@@ -15,16 +15,9 @@
 package cmd
 
 import (
+	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
 )
-
-const dataPath = "data.json"
-const branch = "stable"
-
-type version struct {
-	name string
-}
-type versions []version
 
 // stableCmd represents the stable command
 var stableCmd = &cobra.Command{
@@ -37,16 +30,8 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		runStableCmd(cmd, args)
+		lib.LoadVersion("stable")
 	},
-}
-
-func runStableCmd(cmd *cobra.Command, args []string) {
-
-	// gitClone()
-	// lib.RenameDir()
-	// runFlutterDoctor()
-
 }
 
 func init() {
