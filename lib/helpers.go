@@ -26,22 +26,36 @@ func GetFlutterChannel(branch string) {
 }
 
 // GetFlutterVersion - Gets the version of flutter from the branch directory
-func GetFlutterVersion(branch string) string {
+func GetFlutterVersion(branch string) (string, error) {
 	b, err := ioutil.ReadFile(versionsPath + "/" + branch + "/version")
 	if err != nil {
-		fmt.Print(err)
+		return "", err
 	}
 
-	return string(b)
+	return string(b), nil
 }
 
 // RunFlutterDoctor - runs 'flutter doctor' command
-func RunFlutterDoctor() {
+func RunFlutterDoctor() error {
 	cmd := exec.Command("flutter", "doctor")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	err := cmd.Run()
-	if err != nil {
+
+	return err
+}
+
+// Exists = checks if directory exists
+func Exists(branch string) (bool, error) {
+	// check if version directory exists
+	if _, err := os.Stat(versionsPath + "/" + branch); err != nil {
+		if os.IsNotExist(err) {
+			// -> version directory does not exist
+			fmt.Println("Branch does not exist")
+			return false, err
+		}
+		// -> error when getting file
 		log.Fatalf("cmd.Run() failed with %s\n", err)
 	}
+	return true, nil
 }

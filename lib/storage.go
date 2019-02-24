@@ -2,6 +2,7 @@ package lib
 
 import (
 	"log"
+	"os"
 
 	"github.com/schollz/jsonstore"
 )
@@ -9,25 +10,23 @@ import (
 const storageFile = "data.json"
 
 // SetSave - Sets a value and saves in one function
-func SetSave(ks *jsonstore.JSONStore, key string, value interface{}) error {
-	if err := ks.Set(key, value); err != nil {
-		log.Fatal("ks.Set() - Storing state of active version // ", err)
-	}
+func SetSave(ks *jsonstore.JSONStore, branch string, value interface{}) error {
+	err := ks.Set(branch, value)
 
-	if err := jsonstore.Save(ks, storageFile); err != nil {
-		log.Fatal("jsonstore.save() - Could not save state // ", err)
-	}
+	err = jsonstore.Save(ks, storageFile)
 
-	// return error
+	return err
 }
 
 // DeleteSave = Deletes a key and saves the file in one function
-func DeleteSave(ks *jsonstore.JSONStore, key string) error {
-	ks.Delete(key)
+func DeleteSave(ks *jsonstore.JSONStore, branch string) error {
+	ks.Delete(branch)
 
-	if err := jsonstore.Save(ks, storageFile); err != nil {
-		log.Fatal("jsonstore.save() - Could not save state // ", err)
+	err := jsonstore.Save(ks, storageFile)
+
+	if err := os.RemoveAll(versionsPath + "/" + branch); err != nil {
+		log.Fatal(err)
 	}
 
-	// return err
+	return err
 }

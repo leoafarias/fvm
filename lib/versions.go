@@ -8,6 +8,12 @@ import (
 	"github.com/schollz/jsonstore"
 )
 
+// Version - type of version
+// type Version struct {
+// 	name    string
+// 	version string
+// }
+
 const (
 	versionsPath  = "./versions"
 	activeDirPath = versionsPath + "/active"
@@ -32,7 +38,7 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 		if err := os.RemoveAll(activeDirPath); err != nil {
 			log.Fatal(err)
 		}
-		ks.Delete("active")
+		DeleteSave(ks, "active")
 	} else {
 
 		if activeBranch == branch {
@@ -46,7 +52,7 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 		DeleteSave(ks, "active")
 	}
 
-	if _, err := exists(branch); err != nil {
+	if _, err := Exists(branch); err != nil {
 		GetFlutterChannel(branch)
 	}
 
@@ -55,16 +61,21 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 		log.Fatal("toggleActive() - Moving new branch into active // ", err)
 	}
 
-	SetSave(ks, "acrive", branch)
-	if err := ks.Set("active", branch); err != nil {
-		log.Fatal("ks.Set() - Storing state of active version // ", err)
+	if err := SetSave(ks, "active", branch); err != nil {
+		log.Fatal("SetSave() - cannot save new state // ", err)
 	}
 
-	if err := jsonstore.Save(ks, "data.json"); err != nil {
-		log.Fatal("jsonstore.save() - Could not save state // ", err)
+	version, err := GetFlutterVersion("active")
+	if err != nil {
+		RunFlutterDoctor()
+		version, err = GetFlutterVersion("active")
+		if err != nil {
+			log.Fatal("GetFlutterVersion() - Could not get flutter version after running doctor // ", err)
+		}
 	}
 
-	RunFlutterDoctor()
+	fmt.Println("Current Version: " + version)
+
 }
 
 // toggleActive - Sets from active to inactive and inactive to active versions
@@ -95,23 +106,9 @@ func getActiveBranch(ks *jsonstore.JSONStore) (string, error) {
 		return "", err
 	}
 	fmt.Println("After get Branch", activeBranch)
-	if _, err := exists("active"); err != nil {
+	if _, err := Exists("active"); err != nil {
 
 		return "", err
 	}
 	return activeBranch, nil
-}
-
-func exists(branch string) (bool, error) {
-	// check if version directory exists
-	if _, err := os.Stat(versionsPath + "/" + branch); err != nil {
-		if os.IsNotExist(err) {
-			// -> version directory does not exist
-			fmt.Println("Branch does not exist")
-			return false, err
-		}
-		// -> error when getting file
-		log.Fatalf("cmd.Run() failed with %s\n", err)
-	}
-	return true, nil
 }
