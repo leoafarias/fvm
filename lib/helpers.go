@@ -1,13 +1,15 @@
 package lib
 
 import (
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 )
 
-// GetChannel - Clones git from Flutter repo
-func GetChannel(branch string) {
+// GetFlutterChannel - Clones git from Flutter repo
+func GetFlutterChannel(branch string) {
 	versionDir := versionsPath + "/" + branch
 
 	// clean directory just in case before cloning
@@ -23,8 +25,18 @@ func GetChannel(branch string) {
 	}
 }
 
-// RunDoctor - runs 'flutter doctor' command
-func RunDoctor() {
+// GetFlutterVersion - Gets the version of flutter from the branch directory
+func GetFlutterVersion(branch string) string {
+	b, err := ioutil.ReadFile(versionsPath + "/" + branch + "/version")
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	return string(b)
+}
+
+// RunFlutterDoctor - runs 'flutter doctor' command
+func RunFlutterDoctor() {
 	cmd := exec.Command("flutter", "doctor")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

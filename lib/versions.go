@@ -43,15 +43,11 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 			log.Fatal("toggleActive() - Moving active version back to version dir // ", err)
 		}
 
-		ks.Delete("active")
-
-		if err := jsonstore.Save(ks, "data.json"); err != nil {
-			log.Fatal("jsonstore.save() - Could not save state // ", err)
-		}
+		DeleteSave(ks, "active")
 	}
 
 	if _, err := exists(branch); err != nil {
-		GetChannel(branch)
+		GetFlutterChannel(branch)
 	}
 
 	// moves new branch into active
@@ -59,6 +55,7 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 		log.Fatal("toggleActive() - Moving new branch into active // ", err)
 	}
 
+	SetSave(ks, "acrive", branch)
 	if err := ks.Set("active", branch); err != nil {
 		log.Fatal("ks.Set() - Storing state of active version // ", err)
 	}
@@ -67,7 +64,7 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 		log.Fatal("jsonstore.save() - Could not save state // ", err)
 	}
 
-	RunDoctor()
+	RunFlutterDoctor()
 }
 
 // toggleActive - Sets from active to inactive and inactive to active versions
