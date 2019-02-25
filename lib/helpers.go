@@ -6,11 +6,12 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
 )
 
 // GetFlutterChannel - Clones git from Flutter repo
 func GetFlutterChannel(branch string) {
-	versionDir := versionsPath + "/" + branch
+	versionDir := path.Join(versionsPath, branch)
 
 	// clean directory just in case before cloning
 	if err := os.RemoveAll(versionDir); err != nil {
@@ -25,9 +26,36 @@ func GetFlutterChannel(branch string) {
 	}
 }
 
+// ListVersions - lists all versions that are setup
+func ListVersions() {
+	files, err := ioutil.ReadDir(versionsPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, f := range files {
+		fmt.Println(f.Name())
+	}
+}
+
+// GetChannel = gets channel that is selected
+func GetChannel(channel string) (string, error) {
+	// cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "--symbolic", "@{u}")
+	// 	_branch = branch == 'HEAD' ? _channel : branch;
+
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	workspacePath, _ := os.Getwd()
+	cmd.Dir = path.Join(workspacePath, versionsPath, channel)
+	o, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return string(o), nil
+}
+
 // GetFlutterVersion - Gets the version of flutter from the branch directory
 func GetFlutterVersion(branch string) (string, error) {
-	b, err := ioutil.ReadFile(versionsPath + "/" + branch + "/version")
+	b, err := ioutil.ReadFile(path.Join(versionsPath, branch))
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +76,7 @@ func RunFlutterDoctor() error {
 // Exists = checks if directory exists
 func Exists(branch string) (bool, error) {
 	// check if version directory exists
-	if _, err := os.Stat(versionsPath + "/" + branch); err != nil {
+	if _, err := os.Stat(path.Join(versionsPath, branch)); err != nil {
 		if os.IsNotExist(err) {
 			// -> version directory does not exist
 			fmt.Println("Branch does not exist")

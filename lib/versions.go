@@ -2,17 +2,12 @@ package lib
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/schollz/jsonstore"
 )
-
-// Version - type of version
-// type Version struct {
-// 	name    string
-// 	version string
-// }
 
 const (
 	versionsPath  = "./versions"
@@ -21,48 +16,63 @@ const (
 
 // LoadVersion - loads requested version
 func LoadVersion(branch string) {
-	ks, err := jsonstore.Open("data.json")
+	// ks, err := jsonstore.Open("data.json")
 
-	if err != nil {
-		ks = new(jsonstore.JSONStore)
-	}
+	// if err != nil {
+	// 	ks = new(jsonstore.JSONStore)
+	// }
 
-	setActiveVersion(branch, ks)
+	// os.Getwd()
+
+	// setActiveVersion(branch, ks)
+
+	// cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "--symbolic", "@{u}")
+	// b, _ := cmd.Output()
+	// fmt.Println(string(b))
+
+	// cmd = exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
+	// b, _ = cmd.Output()
+
+	setActiveVersion(branch)
+
 }
 
-func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
-	activeBranch, err := getActiveBranch(ks)
-
-	// removes active version back to the version directory
+func setActiveVersion(branch string) {
+	activeBranch, err := GetChannel("active")
 	if err != nil {
-		if err := os.RemoveAll(activeDirPath); err != nil {
-			log.Fatal(err)
-		}
-		DeleteSave(ks, "active")
-	} else {
+		activeBranch = "NO_ACTIVE"
+	}
 
-		if activeBranch == branch {
-			return
-		}
-
+	if branch != activeBranch && branch != "NO_ACTIVE" {
 		if err := toggleActive(true, activeBranch); err != nil {
 			log.Fatal("toggleActive() - Moving active version back to version dir // ", err)
 		}
-
-		DeleteSave(ks, "active")
 	}
 
-	if _, err := Exists(branch); err != nil {
+}
+
+func channelExists(channel string) bool {
+	files, err := ioutil.ReadDir(versionsPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, f := range files {
+		if f.Name() == channel {
+			return true
+		}
+	}
+	return false
+}
+
+func flutterSetup(branch string) {
+
+	if !channelExists(branch) {
 		GetFlutterChannel(branch)
 	}
 
 	// moves new branch into active
 	if err := toggleActive(false, branch); err != nil {
 		log.Fatal("toggleActive() - Moving new branch into active // ", err)
-	}
-
-	if err := SetSave(ks, "active", branch); err != nil {
-		log.Fatal("SetSave() - cannot save new state // ", err)
 	}
 
 	version, err := GetFlutterVersion("active")
@@ -75,7 +85,6 @@ func setActiveVersion(branch string, ks *jsonstore.JSONStore) {
 	}
 
 	fmt.Println("Current Version: " + version)
-
 }
 
 // toggleActive - Sets from active to inactive and inactive to active versions
