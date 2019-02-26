@@ -1,6 +1,7 @@
 package fluttertools
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -8,10 +9,13 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/briandowns/spinner"
 )
+
+var wg sync.WaitGroup
 
 const versionsPath = "versions"
 
@@ -75,25 +79,35 @@ func GetVersionNumber(branch string) (string, error) {
 }
 
 // RunDoctor - runs 'flutter doctor' command
-func RunDoctor() error {
+func RunDoctor() {
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-	s.Suffix = " Setting up Flutter"
-
+	s.Suffix = " Building Flutter Tool"
 	s.Start()
+
 	cmd := exec.Command("flutter", "doctor")
 
-	err := cmd.Start()
-	if err != nil {
-		log.Fatalf("cmd.Start() failed with '%s'\n", err)
-	}
+	c := make(chan struct{})
+	wg.Add(1)
+	go func(cmd *exec.Cmd, c chan struct{}) {
+		defer wg.Done()
+		stdout, err := cmd.StdoutPipe()
+		if err != nil {
+			panic(err)
+		}
+		<-c
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			m := scanner.Text()
+			// fmt.Println(m)
+			s.Suffix = " " + m
+		}
+	}(cmd, c)
 
-	err = cmd.Wait()
-	if err != nil {
-		log.Fatalf("cmd.Start() failed with '%s'\n", err)
-	}
+	c <- struct{}{}
+	cmd.Start()
 
+	wg.Wait()
 	s.Stop()
 	fmt.Println("[✓] Flutter is setup")
 
-	return err
 }
