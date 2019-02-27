@@ -97,15 +97,15 @@ func setup(v Version) (Version, error) {
 	}
 
 	// If there is no version run Doctor
-	// if v.number == "" {
-	// 	fluttertools.RunDoctor()
-	// 	versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
-	// 	if err != nil {
-	// 		return Version{}, err
-	// 	}
+	if v.number == "" {
+		fluttertools.RunDoctor()
+		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
+		if err != nil {
+			return Version{}, err
+		}
 
-	// 	v.number = versionNumber
-	// }
+		v.number = versionNumber
+	}
 
 	return v, nil
 }

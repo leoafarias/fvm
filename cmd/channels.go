@@ -15,6 +15,10 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
 )
@@ -58,11 +62,26 @@ var stableCmd = &cobra.Command{
 	},
 }
 
+// stableCmd represents the stable command
+var dirCmd = &cobra.Command{
+	Use:   "dir",
+	Short: "Current Directory",
+	Run: func(cmd *cobra.Command, args []string) {
+		ex, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		exPath := filepath.Dir(ex)
+		fmt.Println(exPath)
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(masterCmd)
 	rootCmd.AddCommand(devCmd)
 	rootCmd.AddCommand(betaCmd)
 	rootCmd.AddCommand(stableCmd)
+	rootCmd.AddCommand(dirCmd)
 
 	rootCmd.PersistentFlags().BoolVarP(&Upgrade, "upgrade", "u", false, "Gets the latest version of the channel")
 
