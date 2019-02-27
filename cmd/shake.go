@@ -20,8 +20,8 @@ import (
 )
 
 // pruneCmd represents the prune command
-var pruneCmd = &cobra.Command{
-	Use:   "prune",
+var shakeCmd = &cobra.Command{
+	Use:   "shake",
 	Short: "Remove all versions except the current version",
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -30,7 +30,7 @@ var pruneCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(pruneCmd)
+	rootCmd.AddCommand(shakeCmd)
 
 	// Here you will define your flags and configuration settings.
 
