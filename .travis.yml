@@ -1,6 +1,6 @@
 sudo: required
 language: go
-go: '1.10'
+go: '1.12'
 # services:
 #   - docker
 install:
