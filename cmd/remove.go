@@ -16,6 +16,7 @@ package cmd
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
@@ -33,7 +34,13 @@ var removeCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.RemoveVersion(args[0])
+		var version string
+		if strings.HasPrefix(args[0], "v") {
+			version = args[0]
+		} else {
+			version = "v" + args[0]
+		}
+		lib.RemoveVersion(version)
 	},
 }
 
