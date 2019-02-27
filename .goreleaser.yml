@@ -22,9 +22,15 @@ checksum:
   name_template: 'checksums.txt'
 snapshot:
   name_template: "{{ .Tag }}-next"
+brew:
+  github:
+    owner: leoafarias
+    name: homebrew-tap
+  folder: Formula
 changelog:
   sort: asc
   filters:
     exclude:
     - '^docs:'
     - '^test:'
+    - '^skip:'
