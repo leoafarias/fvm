@@ -2,6 +2,8 @@
 # Make sure to check the documentation at http://goreleaser.com
 
 project_name: fvm
+description: "Flutter version management tool"
+homepage: "https://github.com/leoafarias/fvm"
 before:
   hooks:
     # you may remove this if you don't use vgo
@@ -26,7 +28,8 @@ brew:
   github:
     owner: leoafarias
     name: homebrew-tap
-  folder: Formula
+dependencies:
+    - git
 changelog:
   sort: asc
   filters:
