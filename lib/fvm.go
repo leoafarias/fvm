@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
-	"github.com/leoafarias/fvm/fluttertools"
+	"github.com/leoafarias/fvm/lib/fluttertools"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/ttacon/chalk"
 )
