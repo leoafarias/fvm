@@ -19,6 +19,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Upgrade - flag to trigger a full channel upgrade
+var Upgrade bool
+
 // masterCmd represents the master command
 var masterCmd = &cobra.Command{
 	Use:   "master",
@@ -61,13 +64,6 @@ func init() {
 	rootCmd.AddCommand(betaCmd)
 	rootCmd.AddCommand(stableCmd)
 
-	// Here you will define your flags and configuration settings.
+	rootCmd.PersistentFlags().BoolVarP(&Upgrade, "upgrade", "u", false, "Gets the latest version of the channel")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// channelCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// channelCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

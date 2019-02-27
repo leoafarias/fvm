@@ -17,6 +17,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/manifoldco/promptui"
@@ -32,6 +33,11 @@ var listCmd = &cobra.Command{
 		vs, err := lib.ListVersions()
 		if err != nil {
 			log.Fatal(err)
+		}
+		fmt.Println(len(vs))
+		if len(vs) == 0 {
+			fmt.Println("No Flutter versions installed")
+			os.Exit(1)
 		}
 
 		templates := promptui.SelectTemplates{
