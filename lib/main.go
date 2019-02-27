@@ -6,13 +6,20 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
+	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/leoafarias/fvm/fluttertools"
+	homedir "github.com/mitchellh/go-homedir"
+	"github.com/ttacon/chalk"
 )
 
-const (
-	versionsPath  = "versions"
-	activeDirPath = versionsPath + "active"
+var (
+	homeDir, _    = homedir.Dir()
+	flutterHome   = path.Join(homeDir, "flutter")
+	workspaceHome = path.Join(homeDir, "fvm")
+	versionsDir   = path.Join(workspaceHome, "versions")
 )
 
 // Versions - slice of versions
@@ -22,7 +29,7 @@ type Versions []Version
 type Version struct {
 	Name   string
 	number string
-	active bool
+	Active bool
 	dir    bool
 }
 
@@ -32,9 +39,9 @@ func LoadVersion(branch string) {
 	var lv Version
 	var vs Versions
 
-	vs, err := ListChannels()
+	vs, err := ListVersions()
 	if err != nil {
-		log.Fatal("ListChannels() - Cannot list channels // ", err)
+		log.Fatal("ListVersions() - Cannot list channels // ", err)
 	}
 
 	for _, v := range vs {
@@ -44,7 +51,7 @@ func LoadVersion(branch string) {
 		}
 
 		// If active version is not needed version
-		if v.active && v.Name != branch {
+		if v.Active && v.Name != branch {
 			// Move version back to it's diretory
 			if err := toggleActive(true, string(v.Name)); err != nil {
 				log.Fatal("toggleActive() - Moving active version back to version dir // ", err)
@@ -57,56 +64,56 @@ func LoadVersion(branch string) {
 		lv = Version{
 			Name:   branch,
 			dir:    false,
-			active: false,
+			Active: false,
 		}
 	}
 
-	finalVersion, err := channelSetup(lv)
+	finalVersion, err := setup(lv)
 	if err != nil {
-		log.Fatal("channelSetup() - Channel setup did not work // ", err)
+		log.Fatal("setup() - Channel setup did not work // ", err)
 	}
 
-	fmt.Println("Done! ", finalVersion.Name, finalVersion.number)
+	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), finalVersion.Name, finalVersion.number)
 
 }
 
-func channelSetup(v Version) (Version, error) {
+func setup(v Version) (Version, error) {
 
 	// If directory doesnt exists get the channel
 	if v.dir == false {
-		fluttertools.GetChannel(v.Name)
+		fluttertools.GetChannel(versionsDir, v.Name)
 		v.dir = true
 	}
 
 	// If there is a directory and not active
-	if v.dir && v.active == false {
+	if v.dir && v.Active == false {
 
 		// moves new branch into active
 		if err := toggleActive(false, v.Name); err != nil {
 			log.Fatal("toggleActive() - Moving new branch into active // ", err)
 		}
 
-		v.active = true
+		v.Active = true
 	}
 
 	// If there is no version run Doctor
-	if v.number == "" {
-		fluttertools.RunDoctor()
-		versionNumber, err := fluttertools.GetVersionNumber("active")
-		if err != nil {
-			return Version{}, err
-		}
+	// if v.number == "" {
+	// 	fluttertools.RunDoctor()
+	// 	versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
+	// 	if err != nil {
+	// 		return Version{}, err
+	// 	}
 
-		v.number = versionNumber
-	}
+	// 	v.number = versionNumber
+	// }
 
 	return v, nil
 }
 
-// ListChannels - lists all the current versions
-func ListChannels() (Versions, error) {
+// ListVersions - lists all the current versions
+func ListVersions() (Versions, error) {
 	var vs Versions
-	files, err := ioutil.ReadDir(versionsPath)
+	files, err := ioutil.ReadDir(versionsDir)
 	if err != nil {
 		return Versions{}, err
 	}
@@ -117,30 +124,73 @@ func ListChannels() (Versions, error) {
 			continue
 		}
 		dir := f.Name()
-		isActive := false
-		versionNumber, _ := fluttertools.GetVersionNumber(dir)
 
-		if dir == "active" {
-			dir, _ = fluttertools.GetChannelInfo("active")
-			isActive = true
-		}
+		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(versionsDir, dir))
 
 		vs = append(vs, Version{
 			Name:   dir,
 			number: versionNumber,
-			active: isActive,
+			Active: false,
 			dir:    true,
 		})
 	}
 
+	// Get current active channel
+	currentVersion, err := fluttertools.GetChannelInfo(flutterHome)
+	if err != nil {
+		return vs, nil
+	}
+
+	// Get current active version
+	currentVersionNMumber, _ := fluttertools.GetVersionNumber(flutterHome)
+
+	vs = append(vs, Version{
+		Name:   currentVersion,
+		number: currentVersionNMumber,
+		Active: true,
+		dir:    true,
+	})
+
 	return vs, nil
 }
 
-func channelCleanUp(channel string) {
-	// clean directory just in case before cloning
-	if err := os.RemoveAll(path.Join(versionsPath, channel)); err != nil {
-		log.Fatal(err)
+// RemoveVersions - Remove all the files in the versionPath provided
+func RemoveVersions() error {
+	folders, err := filepath.Glob(filepath.Join(versionsDir, "*"))
+	if err != nil {
+		return err
 	}
+	for _, folder := range folders {
+		err = os.RemoveAll(folder)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// RemoveVersion - Removes a specifc version
+func RemoveVersion(version string) error {
+	var dirPath string
+	vs, err := ListVersions()
+	if err != nil {
+		log.Fatal("ListVersions() - Cannot list channels // ", err)
+	}
+
+	for _, v := range vs {
+		if v.Name == version && v.Active {
+			dirPath = flutterHome
+		} else {
+			dirPath = path.Join(versionsDir, version)
+
+		}
+	}
+	err = os.RemoveAll(dirPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // toggleActive - Sets from active to inactive and inactive to active versions
@@ -148,18 +198,27 @@ func toggleActive(fromActive bool, branch string) error {
 	var fromPath string
 	var toPath string
 
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+	s.Color("cyan", "bold")
+
 	if fromActive {
-		fromPath = path.Join(versionsPath, "active")
-		toPath = path.Join(versionsPath, branch)
+		fromPath = flutterHome
+		toPath = path.Join(versionsDir, branch)
+		s.Suffix = "Deactivating version [" + branch + "]"
 	} else {
-		fromPath = path.Join(versionsPath, branch)
-		toPath = path.Join(versionsPath, "active")
+		fromPath = path.Join(versionsDir, branch)
+		toPath = flutterHome
+		s.Suffix = "Activating version [" + branch + "]"
 	}
 
-	err := os.Rename(fromPath, toPath)
+	s.Start()
 
+	err := os.Rename(fromPath, toPath)
 	if err != nil {
 		return err
 	}
+
+	s.Stop()
+	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
 	return err
 }

@@ -26,36 +26,33 @@ import (
 // listCmd represents the list command
 var listCmd = &cobra.Command{
 	Use:   "list",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Lists currently installed channels",
 	Run: func(cmd *cobra.Command, args []string) {
-		var options []string
-		vs, err := lib.ListChannels()
+		// var options []string
+		vs, err := lib.ListVersions()
 		if err != nil {
-			log.Fatal("Something went wrong when getting the channels")
+			log.Fatal(err)
 		}
 
-		for _, v := range vs {
-			options = append(options, v.Name)
+		templates := promptui.SelectTemplates{
+			Active:   `👉  {{ .Name | cyan | bold }}`,
+			Inactive: `   {{ .Name | cyan }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
 		}
 
-		prompt := promptui.Select{
-			Label: "Choose Installed Versions",
-			Items: options,
+		list := promptui.Select{
+			Label:     "Choose Installed Versions",
+			Items:     vs,
+			Templates: &templates,
 		}
 
-		_, result, err := prompt.Run()
+		i, _, err := list.Run()
 		if err != nil {
 			fmt.Printf("Prompt failed %v\n", err)
 			return
 		}
 
-		lib.LoadVersion(result)
+		lib.LoadVersion(vs[i].Name)
 	},
 }
 

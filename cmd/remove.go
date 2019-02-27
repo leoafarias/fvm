@@ -15,29 +15,38 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
 )
 
-// devCmd represents the dev command
-var devCmd = &cobra.Command{
-	Use:   "dev",
-	Short: "Switch to the dev channel",
+// removeCmd represents the remove command
+var removeCmd = &cobra.Command{
+	Use:   "remove [channel]",
+	Short: "Removes a channel that is already installed ",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return errors.New("What is the channel")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("dev")
+		lib.RemoveVersion(args[0])
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(devCmd)
+	rootCmd.AddCommand(removeCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// devCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// devCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

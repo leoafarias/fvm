@@ -15,29 +15,39 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
 )
 
-// devCmd represents the dev command
-var devCmd = &cobra.Command{
-	Use:   "dev",
-	Short: "Switch to the dev channel",
+// releaseCmd represents the release command
+var releaseCmd = &cobra.Command{
+	Use:   "release",
+	Short: "Gets release by version",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) != 1 {
+			return errors.New("What version would like to install?")
+		}
+
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("dev")
+		version := "v" + args[0]
+		lib.LoadVersion(version)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(devCmd)
+	rootCmd.AddCommand(releaseCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// devCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// releaseCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// devCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// releaseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

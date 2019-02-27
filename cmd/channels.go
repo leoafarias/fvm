@@ -19,6 +19,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// masterCmd represents the master command
+var masterCmd = &cobra.Command{
+	Use:   "master",
+	Short: "Switch to the master channel",
+	Run: func(cmd *cobra.Command, args []string) {
+		lib.LoadVersion("master")
+	},
+}
+
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:   "dev",
@@ -28,16 +37,37 @@ var devCmd = &cobra.Command{
 	},
 }
 
+// betaCmd represents the beta command
+var betaCmd = &cobra.Command{
+	Use:   "beta",
+	Short: "Switch to the beta channel",
+	Run: func(cmd *cobra.Command, args []string) {
+		lib.LoadVersion("beta")
+	},
+}
+
+// stableCmd represents the stable command
+var stableCmd = &cobra.Command{
+	Use:   "stable",
+	Short: "Switch to the stable channel",
+	Run: func(cmd *cobra.Command, args []string) {
+		lib.LoadVersion("stable")
+	},
+}
+
 func init() {
+	rootCmd.AddCommand(masterCmd)
 	rootCmd.AddCommand(devCmd)
+	rootCmd.AddCommand(betaCmd)
+	rootCmd.AddCommand(stableCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// devCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// channelCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// devCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// channelCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
