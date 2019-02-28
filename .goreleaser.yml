@@ -33,7 +33,7 @@ brew:
   dependencies:
     - git
   install: |
-    bin.install '{{ .ProjectName }}'
+    bin.install "fvm"
 changelog:
   sort: asc
   filters:
