@@ -17,8 +17,8 @@ import (
 
 var (
 	homeDir, _    = homedir.Dir()
-	flutterHome   = path.Join(homeDir, "flutter")
 	workspaceHome = path.Join(homeDir, "fvm")
+	flutterHome   = path.Join(homeDir, "flutter")
 	versionsDir   = path.Join(workspaceHome, "versions")
 )
 
@@ -195,30 +195,34 @@ func RemoveVersion(version string) error {
 
 // toggleActive - Sets from active to inactive and inactive to active versions
 func toggleActive(fromActive bool, branch string) error {
-	var fromPath string
+
 	var toPath string
 
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("cyan", "bold")
-
-	if fromActive {
-		fromPath = flutterHome
-		toPath = path.Join(versionsDir, branch)
-		s.Suffix = "Deactivating version [" + branch + "]"
-	} else {
-		fromPath = path.Join(versionsDir, branch)
-		toPath = flutterHome
-		s.Suffix = "Activating version [" + branch + "]"
-	}
-
 	s.Start()
 
-	err := os.Rename(fromPath, toPath)
-	if err != nil {
-		return err
+	if fromActive {
+		// toPath = path.Join(versionsDir, branch)
+		// fromPath = flutterHome
+		s.Suffix = "Deactivating version [" + branch + "]"
+		if err := os.Remove(flutterHome); err != nil {
+			log.Fatal(err)
+		}
+	} else {
+
+		s.Suffix = "Deactivating version [" + branch + "]"
+		os.Remove(flutterHome)
+		toPath = path.Join(versionsDir, branch)
+		s.Suffix = "Activating version [" + branch + "]"
+		err := os.Symlink(toPath, flutterHome)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 	}
 
 	s.Stop()
 	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
-	return err
+	return nil
 }

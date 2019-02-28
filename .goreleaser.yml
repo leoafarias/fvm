@@ -23,6 +23,7 @@ checksum:
 snapshot:
   name_template: "{{ .Tag }}-next"
 brew:
+  name: fvm
   github:
     owner: leoafarias
     name: homebrew-tap
@@ -31,6 +32,8 @@ brew:
   homepage: "https://github.com/leoafarias/fvm"
   dependencies:
     - git
+  install: |
+    bin.install '{{ .ProjectName }}'
 changelog:
   sort: asc
   filters:
