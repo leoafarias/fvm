@@ -1,15 +1,40 @@
 # fvm
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
-## Installation
+##Installation
+
+#### Binary installation
+
+[Download](https://github.com/leoafarias/fvm/releases) a
+compatible binary for your system. For convenience, place `fvm` in a
+directory where you can access it from the command line. Usually this is
+`/usr/local/bin`.
+
+```bash
+$ mv /path/to/fvm /usr/local/bin
+```
+
+#### Via Go
+
+If you want, you can also get `fvm` via Go:
+
+```bash
+$ go get -u github.com/leoafarias/fvm
+$ cd $GOPATH/src/github.com/leoafarias/fvm
+$ go install .
+```
 
 ## Usage
 
 ### Installing & Activating Releases & Channels
-Use `fvm <version>` to install and activate a release of Flutter.
+Use `fvm <version>` to install and activate a version of Flutter.
 
-    $ fvm 1.2.1
-    $ fvm 0.11.13
+    $ fvm stable
+    $ fvm beta
+    
+    $ fvm release 1.2.1
+    $ fvm release 0.11.13
+    
 
 If `<version>` has already been installed, `fvm` will activate it from cache without having to download and set up again.
 
