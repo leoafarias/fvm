@@ -16,10 +16,8 @@ import (
 )
 
 var (
-	homeDir, _    = homedir.Dir()
-	workspaceHome = path.Join(homeDir, "fvm")
-	flutterHome   = path.Join(homeDir, "flutter")
-	versionsDir   = path.Join(workspaceHome, "versions")
+	flutterHome   = fluttertools.GetFlutterHome()
+	workspaceHome = getWorkspaceHome()
 )
 
 // Versions - slice of versions
@@ -81,7 +79,7 @@ func setup(v Version) (Version, error) {
 
 	// If directory doesnt exists get the channel
 	if v.dir == false {
-		fluttertools.GetChannel(versionsDir, v.Name)
+		fluttertools.GetChannel(workspaceHome, v.Name)
 		v.dir = true
 	}
 
@@ -113,7 +111,7 @@ func setup(v Version) (Version, error) {
 // ListVersions - lists all the current versions
 func ListVersions() (Versions, error) {
 	var vs Versions
-	files, err := ioutil.ReadDir(versionsDir)
+	files, err := ioutil.ReadDir(workspaceHome)
 	if err != nil {
 		return Versions{}, err
 	}
@@ -125,7 +123,7 @@ func ListVersions() (Versions, error) {
 		}
 		dir := f.Name()
 
-		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(versionsDir, dir))
+		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(workspaceHome, dir))
 
 		vs = append(vs, Version{
 			Name:   dir,
@@ -156,7 +154,7 @@ func ListVersions() (Versions, error) {
 
 // RemoveVersions - Remove all the files in the versionPath provided
 func RemoveVersions() error {
-	folders, err := filepath.Glob(filepath.Join(versionsDir, "*"))
+	folders, err := filepath.Glob(filepath.Join(workspaceHome, "*"))
 	if err != nil {
 		return err
 	}
@@ -181,7 +179,7 @@ func RemoveVersion(version string) error {
 		if v.Name == version && v.Active {
 			dirPath = flutterHome
 		} else {
-			dirPath = path.Join(versionsDir, version)
+			dirPath = path.Join(workspaceHome, version)
 
 		}
 	}
@@ -203,8 +201,7 @@ func toggleActive(fromActive bool, branch string) error {
 	s.Start()
 
 	if fromActive {
-		// toPath = path.Join(versionsDir, branch)
-		// fromPath = flutterHome
+
 		s.Suffix = "Deactivating version [" + branch + "]"
 		if err := os.Remove(flutterHome); err != nil {
 			log.Fatal(err)
@@ -213,7 +210,7 @@ func toggleActive(fromActive bool, branch string) error {
 
 		s.Suffix = "Deactivating version [" + branch + "]"
 		os.Remove(flutterHome)
-		toPath = path.Join(versionsDir, branch)
+		toPath = path.Join(workspaceHome, branch)
 		s.Suffix = "Activating version [" + branch + "]"
 		err := os.Symlink(toPath, flutterHome)
 		if err != nil {
@@ -225,4 +222,11 @@ func toggleActive(fromActive bool, branch string) error {
 	s.Stop()
 	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
 	return nil
+}
+
+func getWorkspaceHome() string {
+	homeDir, _ := homedir.Dir()
+	workspaceHome := path.Join(homeDir, "fvm")
+	os.MkdirAll(workspaceHome, os.ModePerm)
+	return workspaceHome
 }

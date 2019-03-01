@@ -25,7 +25,7 @@ import (
 // releaseCmd represents the release command
 var releaseCmd = &cobra.Command{
 	Use:   "release",
-	Short: "Gets release by version",
+	Short: "Gets release by version number",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
 			return errors.New("What version would like to install?")

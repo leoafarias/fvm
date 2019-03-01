@@ -20,9 +20,9 @@ import (
 )
 
 // pruneCmd represents the prune command
-var shakeCmd = &cobra.Command{
-	Use:   "shake",
-	Short: "Remove all versions except the current version",
+var cleanCmd = &cobra.Command{
+	Use:   "clean",
+	Short: "Remove all flutter versions",
 
 	Run: func(cmd *cobra.Command, args []string) {
 		lib.RemoveVersions()
@@ -30,7 +30,7 @@ var shakeCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(shakeCmd)
+	rootCmd.AddCommand(cleanCmd)
 
 	// Here you will define your flags and configuration settings.
 

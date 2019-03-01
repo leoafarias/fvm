@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/ttacon/chalk"
 )
 
@@ -87,6 +88,29 @@ func runGit(execPath string, args ...string) (string, error) {
 
 }
 
+// GetFlutterHome - Returns the home path to the flutter directory
+func GetFlutterHome() string {
+
+	var flutterHome string
+	envVar := os.Getenv("PATH")
+	v := strings.Split(envVar, ":")
+	for _, v := range v {
+		if strings.Contains(v, "flutter") {
+			flutterHome = strings.TrimSuffix(v, "/bin")
+		}
+	}
+
+	if len(flutterHome) == 0 {
+		homeDir, _ := homedir.Dir()
+		flutterHome = path.Join(homeDir, "flutter")
+	}
+
+	os.MkdirAll(flutterHome, os.ModePerm)
+
+	return flutterHome
+
+}
+
 // RunDoctor - runs 'flutter doctor' command
 func RunDoctor() {
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
@@ -102,48 +126,3 @@ func RunDoctor() {
 	s.Stop()
 	fmt.Println(chalk.Cyan.Color("[✓]"), "Flutter is setup")
 }
-
-// RunDoctor - runs 'flutter doctor' command
-// func RunDoctor() {
-// 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-// 	s.Color("cyan", "bold")
-
-// 	s.Start()
-
-// 	cmd := exec.Command("flutter", "doctor")
-
-// 	c := make(chan struct{})
-// 	wg.Add(1)
-
-// 	go func(cmd *exec.Cmd, c chan struct{}) {
-// 		s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-// 		s.Prefix = "Setting up Flutter"
-// 		s.Color("cyan", "bold")
-// 		s.Start()
-
-// 		defer wg.Done()
-// 		stdout, err := cmd.StdoutPipe()
-// 		if err != nil {
-// 			panic(err)
-// 		}
-// 		<-c
-// 		scanner := bufio.NewScanner(stdout)
-// 		for scanner.Scan() {
-// 			m := scanner.Text()
-// 			// fmt.Println(m)
-// 			if !strings.HasPrefix(m, " ") {
-// 				s.Suffix = m
-// 			}
-// 		}
-
-// 		fmt.Println("[✓] " + "Setup Complete")
-
-// 	}(cmd, c)
-
-// 	c <- struct{}{}
-// 	cmd.Start()
-
-// 	cmd.Wait()
-// 	s.Stop()
-// 	fmt.Println(chalk.Cyan.Color("[✓]"), "Flutter is setup")
-// }

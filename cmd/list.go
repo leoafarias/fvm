@@ -34,9 +34,9 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(len(vs))
+
 		if len(vs) == 0 {
-			fmt.Println("No Flutter versions installed")
+			fmt.Println("No Flutter versions installed/n")
 			os.Exit(1)
 		}
 
@@ -59,6 +59,7 @@ var listCmd = &cobra.Command{
 		}
 
 		lib.LoadVersion(vs[i].Name)
+
 	},
 }
 

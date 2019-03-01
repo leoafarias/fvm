@@ -16,8 +16,11 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/leoafarias/fvm/lib"
+	"github.com/manifoldco/promptui"
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -28,12 +31,41 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "fvm",
-	Short: "A version management tool for Flutter",
+	Short: "Lists all the installed versions of Flutter",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) {
-	// 	fmt.Println(args)
-	// },
+	Run: func(cmd *cobra.Command, args []string) {
+		// var options []string
+		vs, err := lib.ListVersions()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		if len(vs) == 0 {
+			fmt.Println("No Flutter versions installed")
+			os.Exit(0)
+		}
+
+		templates := promptui.SelectTemplates{
+			Active:   `👉  {{ .Name | cyan | bold }}`,
+			Inactive: `   {{ .Name | cyan }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
+		}
+
+		list := promptui.Select{
+			Label:     "Choose Installed Versions",
+			Items:     vs,
+			Templates: &templates,
+		}
+
+		i, _, err := list.Run()
+		if err != nil {
+			fmt.Printf("Prompt failed %v\n", err)
+			return
+		}
+
+		lib.LoadVersion(vs[i].Name)
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
