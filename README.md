@@ -1,7 +1,9 @@
 # fvm
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
-##Installation
+[![Go Report Card](https://goreportcard.com/badge/github.com/leoafarias/fvm)](https://goreportcard.com/report/github.com/leoafarias/go-fvm) [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+
+## Installation
 
 #### Binary installation
 
