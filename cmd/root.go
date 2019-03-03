@@ -45,49 +45,54 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
-			var version string
-			if strings.HasPrefix(args[0], "v") {
-				version = args[0]
-			} else {
-				version = "v" + args[0]
-			}
-			lib.LoadVersion(version)
-
+			getVersion(args)
 		} else {
-
-			// var options []string
-			vs, err := lib.ListVersions()
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			if len(vs) == 0 {
-				fmt.Println("No Flutter versions installed")
-				os.Exit(0)
-			}
-
-			templates := promptui.SelectTemplates{
-				Active:   `👉  {{ .Name | cyan | bold }}`,
-				Inactive: `   {{ .Name | cyan }}`,
-				Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
-			}
-
-			list := promptui.Select{
-				Label:     "Choose Installed Versions",
-				Items:     vs,
-				Templates: &templates,
-			}
-
-			i, _, err := list.Run()
-			if err != nil {
-				fmt.Printf("Prompt failed %v\n", err)
-				return
-			}
-
-			lib.LoadVersion(vs[i].Name)
+			versionPicker()
 		}
-
 	},
+}
+
+func getVersion(args []string) {
+	var version string
+	if strings.HasPrefix(args[0], "v") {
+		version = args[0]
+	} else {
+		version = "v" + args[0]
+	}
+	lib.LoadVersion(version)
+}
+
+func versionPicker() {
+	// var options []string
+	vs, err := lib.ListVersions()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(vs) == 0 {
+		fmt.Println("No Flutter versions installed")
+		os.Exit(0)
+	}
+
+	templates := promptui.SelectTemplates{
+		Active:   `👉  {{ .Name | cyan | bold }}`,
+		Inactive: `   {{ .Name | cyan }}`,
+		Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
+	}
+
+	list := promptui.Select{
+		Label:     "Choose Installed Versions",
+		Items:     vs,
+		Templates: &templates,
+	}
+
+	i, _, err := list.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	lib.LoadVersion(vs[i].Name)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

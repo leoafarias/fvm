@@ -32,35 +32,35 @@ type Version struct {
 }
 
 // LoadVersion - loads requested version
-func LoadVersion(branch string) {
+func LoadVersion(version string) error {
 
 	var lv Version
 	var vs Versions
 
 	vs, err := ListVersions()
 	if err != nil {
-		log.Fatal("ListVersions() - Cannot list channels // ", err)
+		return err
 	}
 
 	for _, v := range vs {
 
-		if v.Name == branch {
+		if v.Name == version {
 			lv = v
 		}
 
 		// If active version is not needed version
-		if v.Active && v.Name != branch {
+		if v.Active && v.Name != version {
 			// Move version back to it's diretory
 			if err := toggleActive(true, string(v.Name)); err != nil {
-				log.Fatal("toggleActive() - Moving active version back to version dir // ", err)
+				return err
 			}
 		}
 	}
 
-	// If no version was found, set to be the branch
+	// If no version was found, set to be the version
 	if (lv == Version{}) {
 		lv = Version{
-			Name:   branch,
+			Name:   version,
 			dir:    false,
 			Active: false,
 		}
@@ -68,10 +68,11 @@ func LoadVersion(branch string) {
 
 	finalVersion, err := setup(lv)
 	if err != nil {
-		log.Fatal("setup() - Channel setup did not work // ", err)
+		return err
 	}
 
 	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), finalVersion.Name, finalVersion.number)
+	return nil
 
 }
 
@@ -80,7 +81,6 @@ func setup(v Version) (Version, error) {
 	// If directory doesnt exists get the channel
 	if v.dir == false {
 		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
-			log.Fatal(err)
 			return Version{}, err
 		}
 		v.dir = true
@@ -98,15 +98,15 @@ func setup(v Version) (Version, error) {
 	}
 
 	// If there is no version run Doctor
-	if v.number == "" {
-		fluttertools.RunDoctor()
-		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
-		if err != nil {
-			return Version{}, err
-		}
+	// if v.number == "" {
+	// 	fluttertools.RunDoctor()
+	// 	versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
+	// 	if err != nil {
+	// 		return Version{}, err
+	// 	}
 
-		v.number = versionNumber
-	}
+	// 	v.number = versionNumber
+	// }
 
 	return v, nil
 }
@@ -142,15 +142,13 @@ func ListVersions() (Versions, error) {
 		return vs, nil
 	}
 
-	// Get current active version
-	currentVersionNMumber, _ := fluttertools.GetVersionNumber(flutterHome)
-
-	vs = append(vs, Version{
-		Name:   currentVersion,
-		number: currentVersionNMumber,
-		Active: true,
-		dir:    true,
-	})
+	// Find active version in Versions and update the status
+	for i := range vs {
+		if vs[i].Name == currentVersion {
+			fmt.Println("currentVersion", currentVersion)
+			vs[i].Active = true
+		}
+	}
 
 	return vs, nil
 }
