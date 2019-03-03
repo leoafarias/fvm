@@ -32,15 +32,15 @@ Use `fvm <version>` to install and activate a version of Flutter.
     $ fvm stable
     $ fvm beta
     
-    $ fvm release 1.2.1
-    $ fvm release 0.11.13
+    $ fvm 1.2.1
+    $ fvm 0.11.13
     
 
 If `<version>` has already been installed, `fvm` will activate it from cache without having to download and set up again.
 
 Lists all currently installed versions
 
-    $ fvm list
+    $ fvm
             v1.2.1
         >   v0.11.13
             master

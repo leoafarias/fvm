@@ -79,7 +79,10 @@ func setup(v Version) (Version, error) {
 
 	// If directory doesnt exists get the channel
 	if v.dir == false {
-		fluttertools.GetChannel(workspaceHome, v.Name)
+		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
+			log.Fatal(err)
+			return Version{}, err
+		}
 		v.dir = true
 	}
 

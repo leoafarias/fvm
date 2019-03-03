@@ -15,9 +15,11 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/manifoldco/promptui"
@@ -32,39 +34,59 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "fvm",
 	Short: "Lists all the installed versions of Flutter",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) > 1 {
+			return errors.New("Can only accept one argument")
+		}
+
+		return nil
+	},
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		// var options []string
-		vs, err := lib.ListVersions()
-		if err != nil {
-			log.Fatal(err)
+		if len(args) == 1 {
+			var version string
+			if strings.HasPrefix(args[0], "v") {
+				version = args[0]
+			} else {
+				version = "v" + args[0]
+			}
+			lib.LoadVersion(version)
+
+		} else {
+
+			// var options []string
+			vs, err := lib.ListVersions()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			if len(vs) == 0 {
+				fmt.Println("No Flutter versions installed")
+				os.Exit(0)
+			}
+
+			templates := promptui.SelectTemplates{
+				Active:   `👉  {{ .Name | cyan | bold }}`,
+				Inactive: `   {{ .Name | cyan }}`,
+				Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
+			}
+
+			list := promptui.Select{
+				Label:     "Choose Installed Versions",
+				Items:     vs,
+				Templates: &templates,
+			}
+
+			i, _, err := list.Run()
+			if err != nil {
+				fmt.Printf("Prompt failed %v\n", err)
+				return
+			}
+
+			lib.LoadVersion(vs[i].Name)
 		}
 
-		if len(vs) == 0 {
-			fmt.Println("No Flutter versions installed")
-			os.Exit(0)
-		}
-
-		templates := promptui.SelectTemplates{
-			Active:   `👉  {{ .Name | cyan | bold }}`,
-			Inactive: `   {{ .Name | cyan }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
-		}
-
-		list := promptui.Select{
-			Label:     "Choose Installed Versions",
-			Items:     vs,
-			Templates: &templates,
-		}
-
-		i, _, err := list.Run()
-		if err != nil {
-			fmt.Printf("Prompt failed %v\n", err)
-			return
-		}
-
-		lib.LoadVersion(vs[i].Name)
 	},
 }
 
