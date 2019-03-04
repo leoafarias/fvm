@@ -15,6 +15,8 @@ import (
 	"github.com/ttacon/chalk"
 )
 
+const flutterRepo = "https://github.com/flutter/flutter.git"
+
 // GetChannel - Clones git from Flutter repo
 func GetChannel(versionsPath string, branch string) error {
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
@@ -30,7 +32,7 @@ func GetChannel(versionsPath string, branch string) error {
 		log.Fatal(err)
 	}
 
-	_, err := runGit(versionsPath, "clone", "-b", branch, "https://github.com/flutter/flutter.git", branch)
+	_, err := runGit(versionsPath, "clone", "-b", branch, flutterRepo, branch)
 	if err != nil {
 		return err
 	}
@@ -69,16 +71,6 @@ func runGit(execPath string, args ...string) (string, error) {
 	cmd := exec.Command("git", args...)
 	cmd.Dir = execPath
 
-	// err := cmd.Start()
-	// if err != nil {
-	// 	log.Fatalf("cmd.Start() failed with '%s'\n", err)
-	// }
-
-	// err = cmd.Wait()
-	// if err != nil {
-	// 	log.Fatalf("cmd.Start() failed with '%s'\n", err)
-	// }
-
 	o, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", err
@@ -109,6 +101,25 @@ func GetFlutterHome() string {
 
 	return flutterHome
 
+}
+
+// GetAllVersions - Gets all available versions
+func GetAllVersions() ([]string, error) {
+	var versions []string
+	o, err := runGit(".", "ls-remote", "--tags", flutterRepo)
+	if err != nil {
+		return []string{}, err
+	}
+
+	tags := strings.Fields(o)
+
+	for _, v := range tags {
+		if strings.Contains(v, "refs/tags") {
+			versions = append(versions, strings.TrimPrefix(v, "refs/tags/"))
+		}
+	}
+
+	return versions, nil
 }
 
 // RunDoctor - runs 'flutter doctor' command

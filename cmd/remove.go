@@ -1,22 +1,9 @@
-// Copyright © 2019 NAME HERE <EMAIL ADDRESS>
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 package cmd
 
 import (
 	"errors"
-	"strings"
+	"fmt"
+	"os"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
@@ -24,36 +11,25 @@ import (
 
 // removeCmd represents the remove command
 var removeCmd = &cobra.Command{
-	Use:   "remove [channel]",
-	Short: "Removes a channel that is already installed ",
+	Use:   "remove [version]",
+	Short: "Removes a version that is already installed ",
 	Args: func(cmd *cobra.Command, args []string) error {
 		if len(args) != 1 {
-			return errors.New("What is the channel")
+			return errors.New("What is the version")
 		}
 
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		var version string
-		if strings.HasPrefix(args[0], "v") {
-			version = args[0]
-		} else {
-			version = "v" + args[0]
+		v, err := lib.CheckVersion(args[0])
+		if err != nil {
+			fmt.Println("Not a valid version")
+			os.Exit(0)
 		}
-		lib.RemoveVersion(version)
+		lib.RemoveVersion(v)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(removeCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// removeCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// removeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

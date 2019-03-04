@@ -67,6 +67,11 @@ User or intall the latest cutting edge build
 
     $ fvm master
 
+### Releases
+See all available releases for download
+
+    $ fvm releases
+
 ### Removing versions
 Removes a specific version
 
