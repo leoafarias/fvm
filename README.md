@@ -72,8 +72,8 @@ Removes a specific version
 
     $ fvm remove <version>
     
-Removes all Flutter versions, and channels
+Removes all Flutter versions except the active one
 
-    $ fvm clean
+    $ fvm shake
 
 

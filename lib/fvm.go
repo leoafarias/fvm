@@ -1,12 +1,13 @@
 package lib
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
-	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -46,14 +47,6 @@ func LoadVersion(version string) error {
 
 		if v.Name == version {
 			lv = v
-		}
-
-		// If active version is not needed version
-		if v.Active && v.Name != version {
-			// Move version back to it's diretory
-			if err := toggleActive(true, string(v.Name)); err != nil {
-				return err
-			}
 		}
 	}
 
@@ -98,15 +91,15 @@ func setup(v Version) (Version, error) {
 	}
 
 	// If there is no version run Doctor
-	// if v.number == "" {
-	// 	fluttertools.RunDoctor()
-	// 	versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
-	// 	if err != nil {
-	// 		return Version{}, err
-	// 	}
+	if v.number == "" {
+		fluttertools.RunDoctor()
+		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
+		if err != nil {
+			return Version{}, err
+		}
 
-	// 	v.number = versionNumber
-	// }
+		v.number = versionNumber
+	}
 
 	return v, nil
 }
@@ -145,7 +138,6 @@ func ListVersions() (Versions, error) {
 	// Find active version in Versions and update the status
 	for i := range vs {
 		if vs[i].Name == currentVersion {
-			fmt.Println("currentVersion", currentVersion)
 			vs[i].Active = true
 		}
 	}
@@ -153,43 +145,78 @@ func ListVersions() (Versions, error) {
 	return vs, nil
 }
 
-// RemoveVersions - Remove all the files in the versionPath provided
-func RemoveVersions() error {
-	folders, err := filepath.Glob(filepath.Join(workspaceHome, "*"))
+// ShakeVersions - Remove all versions except the active one
+func ShakeVersions() error {
+
+	// Gets all the installed versions
+	vs, err := ListVersions()
 	if err != nil {
 		return err
 	}
-	for _, folder := range folders {
-		err = os.RemoveAll(folder)
-		if err != nil {
-			return err
+
+	// Loops all installed versions
+	for _, v := range vs {
+		// If version matches and its active
+		if v.Active == false {
+			// Remove the version that is not active
+			if err := os.RemoveAll(path.Join(workspaceHome, v.Name)); err != nil {
+				return err
+			}
 		}
 	}
+
 	return nil
 }
 
 // RemoveVersion - Removes a specifc version
 func RemoveVersion(version string) error {
-	var dirPath string
+	dirPath := path.Join(workspaceHome, version)
+
+	// Gets all the installed versions
 	vs, err := ListVersions()
-	if err != nil {
-		log.Fatal("ListVersions() - Cannot list channels // ", err)
-	}
-
-	for _, v := range vs {
-		if v.Name == version && v.Active {
-			dirPath = flutterHome
-		} else {
-			dirPath = path.Join(workspaceHome, version)
-
-		}
-	}
-	err = os.RemoveAll(dirPath)
 	if err != nil {
 		return err
 	}
 
+	// Loops all installed versions
+	for _, v := range vs {
+		// If version matches and its active
+		if v.Name == version && v.Active {
+			os.RemoveAll(flutterHome)
+		}
+	}
+	// Remove everything from version directory
+	if err := os.RemoveAll(dirPath); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// CheckVersion = checks if version passed is valid
+func CheckVersion(version string) (string, error) {
+	// Check if version is one of the channels
+	if version == "master" || version == "dev" || version == "beta" || version == "stable" {
+		return version, nil
+	}
+
+	// If version does not start with a "v" add it
+	if !strings.HasPrefix(version, "v") {
+		version = "v" + version
+	}
+
+	vs, err := fluttertools.GetAllVersions()
+	if err != nil {
+		return "", err
+	}
+
+	for _, v := range vs {
+		if v == version {
+			return version, nil
+		}
+	}
+
+	return "", errors.New("Not a valid version number")
 }
 
 // toggleActive - Sets from active to inactive and inactive to active versions
@@ -217,7 +244,6 @@ func toggleActive(fromActive bool, branch string) error {
 		if err != nil {
 			log.Fatal(err)
 		}
-
 	}
 
 	s.Stop()
