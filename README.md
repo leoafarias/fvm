@@ -7,7 +7,12 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 [![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-## Installation
+## Why not Flutter Channels?
+If all you want is to use the latest stable version or a specific channel once in a while, you should be using [Flutter Channels](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels).
+
+This tool allows you similar functionality to Channels; however it caches those versions locally, so you don't have to wait for a full setup every time you want to switch versions.
+
+Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 #### Binary installation
 
@@ -30,14 +35,15 @@ $ go install .
 
 ## Usage
 
-### Installing & Activating Releases & Channels
+### Installing and Activating Releases/Channels
 Use `fvm <version>` to install and activate a version of Flutter.
+
+    $ fvm 1.2.1
+    $ fvm 0.11.13
 
     $ fvm stable
     $ fvm beta
     
-    $ fvm 1.2.1
-    $ fvm 0.11.13
     
 
 If `<version>` has already been installed, `fvm` will activate it from cache without having to download and set up again.
