@@ -1,7 +1,10 @@
-<p align="left"><image src="https://raw.githubusercontent.com/leoafarias/fvm/master/logo.png" width="100px"/></p>
-
+![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/logo.png)
 ___
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
+
+![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/terminal.gif)
+
+![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/terminal.gif)
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/leoafarias/fvm)](https://goreportcard.com/report/github.com/leoafarias/go-fvm)
 [![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)

@@ -55,9 +55,9 @@ func versionPicker() {
 	}
 
 	templates := promptui.SelectTemplates{
-		Active:   `👉  {{ .Name | cyan | bold }}`,
-		Inactive: `   {{ .Name | cyan }}`,
-		Selected: `{{ "✔" | green | bold }} {{ "Channel" | bold }}: {{ .Name | cyan }}`,
+		Active:   `👉  {{ .Name | cyan | bold }}{{ "/" | cyan | bold }}{{ .Number | cyan | bold}}`,
+		Inactive: `   {{ .Name | white }}`,
+		Selected: `{{ "✔" | green | bold }} {{ "Version" | bold }}: {{ .Name | cyan }}`,
 	}
 
 	list := promptui.Select{

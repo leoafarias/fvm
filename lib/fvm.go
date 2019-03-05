@@ -26,22 +26,22 @@ type Versions []Version
 // Version = version struct type
 type Version struct {
 	Name   string
-	number string
+	Number string
 	Active bool
-	dir    bool
+	Exists bool
 }
 
 func (v *Version) setup() error {
 	// If directory doesnt exists get the channel
-	if v.dir == false {
+	if v.Exists == false {
 		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
 			return err
 		}
-		v.dir = true
+		v.Exists = true
 	}
 
 	// If there is a directory and not active
-	if v.dir && v.Active == false {
+	if v.Exists && v.Active == false {
 
 		// activaes version
 		if err := v.activate(); err != nil {
@@ -52,14 +52,14 @@ func (v *Version) setup() error {
 	}
 
 	// If there is no version run Doctor
-	if v.number == "" {
+	if v.Number == "" {
 		fluttertools.RunDoctor()
 		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
 		if err != nil {
 			return err
 		}
 
-		v.number = versionNumber
+		v.Number = versionNumber
 	}
 
 	return nil
@@ -153,7 +153,7 @@ func LoadVersion(version string) (Version, error) {
 	if (lv == Version{}) {
 		lv = Version{
 			Name:   version,
-			dir:    false,
+			Exists: false,
 			Active: false,
 		}
 	}
@@ -174,10 +174,10 @@ func AddVersion(version string) error {
 	}
 
 	// If the name is the same as the number, name releae for friendly message
-	if v.Name == ("v" + v.number) {
+	if v.Name == ("v" + v.Number) {
 		v.Name = "Release"
 	}
-	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), v.Name, v.number)
+	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), v.Name, v.Number)
 	return nil
 }
 
@@ -212,9 +212,9 @@ func ListVersions() (Versions, error) {
 
 		vs = append(vs, Version{
 			Name:   f.Name(),
-			number: versionNumber,
+			Number: versionNumber,
 			Active: false,
-			dir:    true,
+			Exists: true,
 		})
 	}
 
