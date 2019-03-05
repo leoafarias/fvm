@@ -1,0 +1,6 @@
+# Ignore everything Go
+*.go
+*.yml
+lib
+cmd
+assets

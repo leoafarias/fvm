@@ -1,8 +1,5 @@
-versions/*
-*.json
-
 #yarn and npm
-distribution/node_modules
+node_modules
 *.log
 *.lock
 

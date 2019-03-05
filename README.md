@@ -15,6 +15,14 @@ This tool allows you similar functionality to Channels; however it caches those 
 
 Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
+#### Via NPM or Yarn
+Simple way to get and start running the CLI
+```bash
+npm -g install fvm
+# or
+yarn global add fvm
+```
+
 #### Binary installation
 
 [Download](https://github.com/leoafarias/fvm/releases) a

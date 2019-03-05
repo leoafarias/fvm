@@ -1,0 +1,30 @@
+{
+  "name": "fvm",
+  "version": "0.2.4",
+  "description": "Flutter Version Management: A simple cli to manage Flutter SDK versions.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leoafarias/fvm.git"
+  },
+  "keywords": [
+    "flutter"
+  ],
+  "author": "Leo Farias",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leoafarias/fvm/issues"
+  },
+  "homepage": "https://github.com/leoafarias/fvm#readme",
+  "dependencies": {
+    "go-npm": "^0.1.9"
+  },
+  "goBinary": {
+    "name": "fvm-cli",
+    "path": "./bin",
+    "url": "https://github.com/leoafarias/fvm/releases/download/v{{version}}/fvm{{version}}_{{platform}}_{{arch}}.tar.gz"
+  }
+}
