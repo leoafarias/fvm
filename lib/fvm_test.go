@@ -61,28 +61,28 @@ func Test_CheckVersion(t *testing.T) {
 	}
 }
 
-func TestAddVersion(t *testing.T) {
-	type args struct {
-		version string
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantErr bool
-	}{
-		{"Stable Channel", args{version: "stable"}, false},
-		{"Beta Channel", args{version: "beta"}, false},
-		{"Dev Channel", args{version: "dev"}, false},
-		{"Master Channel", args{version: "master"}, false},
-		{"Version Number", args{version: "v1.2.0"}, false},
-		{"Version Number Wrong", args{version: "v1.2.0"}, false},
-		{"Fake Channel", args{version: "fake"}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := AddVersion(tt.args.version); (err != nil) != tt.wantErr {
-				t.Errorf("AddVersion() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
+// func TestAddVersion(t *testing.T) {
+// 	type args struct {
+// 		version string
+// 	}
+// 	tests := []struct {
+// 		name    string
+// 		args    args
+// 		wantErr bool
+// 	}{
+// 		{"Stable Channel", args{version: "stable"}, false},
+// 		{"Beta Channel", args{version: "beta"}, false},
+// 		{"Dev Channel", args{version: "dev"}, false},
+// 		{"Master Channel", args{version: "master"}, false},
+// 		{"Version Number", args{version: "v1.2.0"}, false},
+// 		{"Version Number Wrong", args{version: "v1.2.0"}, false},
+// 		{"Fake Channel", args{version: "fake"}, true},
+// 	}
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			if err := AddVersion(tt.args.version); (err != nil) != tt.wantErr {
+// 				t.Errorf("AddVersion() error = %v, wantErr %v", err, tt.wantErr)
+// 			}
+// 		})
+// 	}
+// }
