@@ -1,6 +1,11 @@
 versions/*
 *.json
 
+#yarn and npm
+distribution/node_modules
+*.log
+*.lock
+
 # Binaries for programs and plugins
 *.exe
 *.exe~
