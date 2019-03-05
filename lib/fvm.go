@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"strings"
@@ -32,19 +31,119 @@ type Version struct {
 	dir    bool
 }
 
-// LoadVersion - loads requested version
-func LoadVersion(version string) error {
+func (v *Version) setup() error {
+	// If directory doesnt exists get the channel
+	if v.dir == false {
+		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
+			return err
+		}
+		v.dir = true
+	}
 
-	var lv Version
-	var vs Versions
+	// If there is a directory and not active
+	if v.dir && v.Active == false {
 
-	vs, err := ListVersions()
-	if err != nil {
+		// activaes version
+		if err := v.activate(); err != nil {
+			return err
+		}
+
+		v.Active = true
+	}
+
+	// If there is no version run Doctor
+	if v.number == "" {
+		fluttertools.RunDoctor()
+		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
+		if err != nil {
+			return err
+		}
+
+		v.number = versionNumber
+	}
+
+	return nil
+}
+
+func (v *Version) remove() error {
+	dirPath := path.Join(workspaceHome, v.Name)
+
+	if v.Active {
+		os.RemoveAll(flutterHome)
+	}
+
+	// Remove everything from version directory
+	if err := os.RemoveAll(dirPath); err != nil {
 		return err
 	}
 
-	for _, v := range vs {
+	v = &Version{}
 
+	return nil
+}
+
+func (v *Version) activate() error {
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+	s.Color("cyan", "bold")
+	s.Start()
+	s.Suffix = "Activating version [" + v.Name + "]"
+
+	if v.Active {
+		return nil
+	}
+
+	if err := os.Remove(flutterHome); err != nil {
+		return err
+	}
+
+	os.Remove(flutterHome)
+	toPath := path.Join(workspaceHome, v.Name)
+
+	if err := os.Symlink(toPath, flutterHome); err != nil {
+		return err
+	}
+
+	s.Stop()
+	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
+
+	return nil
+}
+
+// Shake - Removes all versions except the inactive one
+func (vs *Versions) Shake() error {
+	// Loops all installed versions
+	for _, v := range *vs {
+		// If version matches and its not active
+		if v.Active == false {
+			// Remove the version that is not active
+			if err := os.RemoveAll(path.Join(workspaceHome, v.Name)); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadVersion - loads requested version
+func LoadVersion(version string) (Version, error) {
+
+	// Checks if its a valid version. Returns corrected
+	version, err := CheckVersion(version)
+	if err != nil {
+		return Version{}, err
+	}
+
+	// Gets all currently installed versions
+	vs, err := ListVersions()
+	if err != nil {
+		return Version{}, err
+	}
+
+	var lv Version
+
+	// Checks if version to load is currentrly installed
+	for _, v := range vs {
 		if v.Name == version {
 			lv = v
 		}
@@ -59,49 +158,40 @@ func LoadVersion(version string) error {
 		}
 	}
 
-	finalVersion, err := setup(lv)
+	return lv, nil
+
+}
+
+// AddVersion - Adds a new version
+func AddVersion(version string) error {
+	v, err := LoadVersion(version)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), finalVersion.Name, finalVersion.number)
-	return nil
+	if err := v.setup(); err != nil {
+		return err
+	}
 
+	// If the name is the same as the number, name releae for friendly message
+	if v.Name == ("v" + v.number) {
+		v.Name = "Release"
+	}
+	fmt.Println(chalk.Cyan.Color("[✓] Current Version: "), v.Name, v.number)
+	return nil
 }
 
-func setup(v Version) (Version, error) {
-
-	// If directory doesnt exists get the channel
-	if v.dir == false {
-		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
-			return Version{}, err
-		}
-		v.dir = true
+// RemoveVersion - Removes a version
+func RemoveVersion(version string) error {
+	v, err := LoadVersion(version)
+	if err != nil {
+		return err
 	}
 
-	// If there is a directory and not active
-	if v.dir && v.Active == false {
-
-		// moves new branch into active
-		if err := toggleActive(false, v.Name); err != nil {
-			log.Fatal("toggleActive() - Moving new branch into active // ", err)
-		}
-
-		v.Active = true
+	if err := v.remove(); err != nil {
+		return err
 	}
-
-	// If there is no version run Doctor
-	if v.number == "" {
-		fluttertools.RunDoctor()
-		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
-		if err != nil {
-			return Version{}, err
-		}
-
-		v.number = versionNumber
-	}
-
-	return v, nil
+	return nil
 }
 
 // ListVersions - lists all the current versions
@@ -117,12 +207,11 @@ func ListVersions() (Versions, error) {
 		if !f.IsDir() {
 			continue
 		}
-		dir := f.Name()
 
-		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(workspaceHome, dir))
+		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(workspaceHome, f.Name()))
 
 		vs = append(vs, Version{
-			Name:   dir,
+			Name:   f.Name(),
 			number: versionNumber,
 			Active: false,
 			dir:    true,
@@ -143,54 +232,6 @@ func ListVersions() (Versions, error) {
 	}
 
 	return vs, nil
-}
-
-// ShakeVersions - Remove all versions except the active one
-func ShakeVersions() error {
-
-	// Gets all the installed versions
-	vs, err := ListVersions()
-	if err != nil {
-		return err
-	}
-
-	// Loops all installed versions
-	for _, v := range vs {
-		// If version matches and its active
-		if v.Active == false {
-			// Remove the version that is not active
-			if err := os.RemoveAll(path.Join(workspaceHome, v.Name)); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-// RemoveVersion - Removes a specifc version
-func RemoveVersion(version string) error {
-	dirPath := path.Join(workspaceHome, version)
-
-	// Gets all the installed versions
-	vs, err := ListVersions()
-	if err != nil {
-		return err
-	}
-
-	// Loops all installed versions
-	for _, v := range vs {
-		// If version matches and its active
-		if v.Name == version && v.Active {
-			os.RemoveAll(flutterHome)
-		}
-	}
-	// Remove everything from version directory
-	if err := os.RemoveAll(dirPath); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // CheckVersion = checks if version passed is valid
@@ -219,41 +260,15 @@ func CheckVersion(version string) (string, error) {
 	return "", errors.New("Not a valid version number")
 }
 
-// toggleActive - Sets from active to inactive and inactive to active versions
-func toggleActive(fromActive bool, branch string) error {
-
-	var toPath string
-
-	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-	s.Color("cyan", "bold")
-	s.Start()
-
-	if fromActive {
-
-		s.Suffix = "Deactivating version [" + branch + "]"
-		if err := os.Remove(flutterHome); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-
-		s.Suffix = "Deactivating version [" + branch + "]"
-		os.Remove(flutterHome)
-		toPath = path.Join(workspaceHome, branch)
-		s.Suffix = "Activating version [" + branch + "]"
-		err := os.Symlink(toPath, flutterHome)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-
-	s.Stop()
-	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
-	return nil
-}
-
 func getWorkspaceHome() string {
 	homeDir, _ := homedir.Dir()
 	workspaceHome := path.Join(homeDir, "fvm")
 	os.MkdirAll(workspaceHome, os.ModePerm)
 	return workspaceHome
+}
+
+func removeFromSlice(s []int, i int) []int {
+	s[i] = s[len(s)-1]
+	// We do not need to put s[i] at the end, as it will be discarded anyway
+	return s[:len(s)-1]
 }

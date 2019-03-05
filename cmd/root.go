@@ -35,7 +35,7 @@ var rootCmd = &cobra.Command{
 				fmt.Println("Not a valid version")
 				os.Exit(0)
 			}
-			lib.RemoveVersion(v)
+			lib.AddVersion(v)
 		} else {
 			versionPicker()
 		}
@@ -72,7 +72,7 @@ func versionPicker() {
 		return
 	}
 
-	lib.LoadVersion(vs[i].Name)
+	lib.AddVersion(vs[i].Name)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

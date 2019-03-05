@@ -31,7 +31,7 @@ var masterCmd = &cobra.Command{
 	Use:   "master",
 	Short: "Switch to the master channel",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("master")
+		lib.AddVersion("master")
 	},
 }
 
@@ -40,7 +40,7 @@ var devCmd = &cobra.Command{
 	Use:   "dev",
 	Short: "Switch to the dev channel",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("dev")
+		lib.AddVersion("dev")
 	},
 }
 
@@ -49,7 +49,7 @@ var betaCmd = &cobra.Command{
 	Use:   "beta",
 	Short: "Switch to the beta channel",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("beta")
+		lib.AddVersion("beta")
 	},
 }
 
@@ -58,7 +58,7 @@ var stableCmd = &cobra.Command{
 	Use:   "stable",
 	Short: "Switch to the stable channel",
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.LoadVersion("stable")
+		lib.AddVersion("stable")
 	},
 }
 

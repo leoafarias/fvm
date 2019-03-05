@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"log"
+	"os"
+
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
 )
@@ -11,7 +14,13 @@ var shakeCmd = &cobra.Command{
 	Short: "Remove all flutter versions",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		lib.ShakeVersions()
+		vs, err := lib.ListVersions()
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(0)
+		}
+
+		vs.Shake()
 	},
 }
 
