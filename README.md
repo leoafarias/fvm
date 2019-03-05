@@ -7,7 +7,7 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 [![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 
-## Why not Flutter Channels?
+## Why not use Flutter Channels?
 If all you want is to use the latest stable version or a specific channel once in a while, you should be using [Flutter Channels](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels).
 
 This tool allows you similar functionality to Channels; however it caches those versions locally, so you don't have to wait for a full setup every time you want to switch versions.
