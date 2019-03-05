@@ -14,9 +14,7 @@ compatible binary for your system. For convenience, place `fvm` in a
 directory where you can access it from the command line. Usually this is
 `/usr/local/bin`.
 
-```bash
-$ mv /path/to/fvm /usr/local/bin
-```
+For more detailed instructions check out [Installation](https://go.equinox.io/github.com/leoafarias/fvm)
 
 #### Via Go
 
