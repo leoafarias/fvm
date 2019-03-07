@@ -4,6 +4,8 @@
   "description": "Flutter Version Management: A simple cli to manage Flutter SDK versions.",
   "main": "index.js",
   "scripts": {
+    "postinstall": "go-npm install",
+    "preuninstall": "go-npm uninstall",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
