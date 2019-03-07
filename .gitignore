@@ -2,6 +2,7 @@
 node_modules
 *.log
 *.lock
+bin
 
 # Binaries for programs and plugins
 *.exe

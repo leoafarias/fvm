@@ -1,6 +1,6 @@
 {
   "name": "fvm",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "description": "Flutter Version Management: A simple cli to manage Flutter SDK versions.",
   "main": "index.js",
   "scripts": {
@@ -25,7 +25,7 @@
     "go-npm": "^0.1.9"
   },
   "goBinary": {
-    "name": "fvm-cli",
+    "name": "fvm",
     "path": "./bin",
     "url": "https://github.com/leoafarias/fvm/releases/download/v{{version}}/fvm_{{version}}_{{platform}}_{{arch}}.tar.gz"
   }
