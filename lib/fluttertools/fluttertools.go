@@ -112,10 +112,11 @@ func GetFlutterHome() string {
 
 		// Always clean up symlink before
 		os.RemoveAll(usrBinFlutter)
+		// os.MkdirAll(usrBinFlutter, os.ModePerm)
 
 		// Creates a symlink from the usr/local/bin to the flutter exec in the flutterHome
 		if err := os.Symlink(flutterExec, usrBinFlutter); err != nil {
-			// fmt.Println(err)
+			fmt.Println(err)
 			fmt.Println("Please set your flutter path before using the tool")
 			os.Exit(0)
 		}
