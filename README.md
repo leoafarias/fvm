@@ -1,5 +1,4 @@
-![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/logo.png)
-___
+# `fvm`
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 
@@ -16,10 +15,13 @@ This tool allows you similar functionality to Channels; however it caches those 
 Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 #### Easiest way NPM & Yarn
+This is a very simple way to get started with fvm.
 ```bash
 npm install -g fvm
 # or 
 yarn global add fvm
+# and
+fvm stable
 ```
 
 #### Binary installation
