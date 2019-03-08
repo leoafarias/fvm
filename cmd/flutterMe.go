@@ -60,6 +60,15 @@ var flutterMeCmd = &cobra.Command{
 			fmt.Print(err)
 			fmt.Print("Could not open visual studio code")
 		}
+
+		if _, err := runCmd(".", "code", "--install-extension", "dart-code.dart-code"); err != nil {
+			fmt.Print(err)
+		}
+
+		if _, err := runCmd(".", "code", "--install-extension", "dart-code.flutter"); err != nil {
+			fmt.Print(err)
+		}
+
 	},
 }
 

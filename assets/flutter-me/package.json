@@ -1,0 +1,11 @@
+{
+  "name": "flutter-me",
+  "version": "0.0.1",
+  "description": "coming soon",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
