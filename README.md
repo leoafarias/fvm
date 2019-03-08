@@ -1,10 +1,9 @@
-# `fvm`
-Flutter Version Management: A simple cli to manage Flutter SDK versions.
-
-
+# `fvm` 
 [![Go Report Card](https://goreportcard.com/badge/github.com/leoafarias/fvm)](https://goreportcard.com/report/github.com/leoafarias/go-fvm)
 [![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+
+Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 ![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/terminal.gif)
 ## Why not use Flutter Channels?
