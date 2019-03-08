@@ -1,6 +1,6 @@
 {
   "name": "fvm",
-  "version": "0.2.9",
+  "version": "0.3.0",
   "description": "Flutter Version Management: A simple cli to manage Flutter SDK versions.",
   "main": "index.js",
   "scripts": {
