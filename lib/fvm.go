@@ -96,7 +96,6 @@ func (v *Version) activate() error {
 		return err
 	}
 
-	os.Remove(flutterHome)
 	toPath := path.Join(workspaceHome, v.Name)
 
 	if err := os.Symlink(toPath, flutterHome); err != nil {

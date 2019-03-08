@@ -84,19 +84,45 @@ func runGit(execPath string, args ...string) (string, error) {
 func GetFlutterHome() string {
 
 	var flutterHome string
+
+	// Get all env variablds
 	envVar := os.Getenv("PATH")
+
 	v := strings.Split(envVar, ":")
+
+	// Range to find flutter and trim bin path
 	for _, v := range v {
 		if strings.Contains(v, "flutter") {
 			flutterHome = strings.TrimSuffix(v, "/bin")
 		}
 	}
 
+	// If flutter path has not been set
 	if len(flutterHome) == 0 {
 		homeDir, _ := homedir.Dir()
+
+		// Set default flutter home
 		flutterHome = path.Join(homeDir, "flutter")
+
+		// Set path to flutter bin
+		flutterExec := path.Join(flutterHome, "bin", "flutter")
+
+		// usr/local/bin path to flutter
+		usrBinFlutter := path.Join("/", "usr", "local", "bin", "flutter")
+
+		// Always clean up symlink before
+		os.RemoveAll(usrBinFlutter)
+
+		// Creates a symlink from the usr/local/bin to the flutter exec in the flutterHome
+		if err := os.Symlink(flutterExec, usrBinFlutter); err != nil {
+			// fmt.Println(err)
+			fmt.Println("Please set your flutter path before using the tool")
+			os.Exit(0)
+		}
+
 	}
 
+	// Make sure directories exist and are created
 	os.MkdirAll(flutterHome, os.ModePerm)
 
 	return flutterHome
