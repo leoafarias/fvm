@@ -2,6 +2,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/leoafarias/fvm)](https://goreportcard.com/report/github.com/leoafarias/go-fvm)
 [![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
+[![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
