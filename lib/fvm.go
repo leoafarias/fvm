@@ -32,7 +32,7 @@ type Version struct {
 }
 
 func (v *Version) setup() error {
-	// If directory doesnt exists get the channel
+	// If directory does not exists get the channel
 	if v.Exists == false {
 		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
 			return err
@@ -141,7 +141,7 @@ func LoadVersion(version string) (Version, error) {
 
 	var lv Version
 
-	// Checks if version to load is currentrly installed
+	// Checks if version to load is currently installed
 	for _, v := range vs {
 		if v.Name == version {
 			lv = v
@@ -172,7 +172,7 @@ func AddVersion(version string) error {
 		return err
 	}
 
-	// If the name is the same as the number, name releae for friendly message
+	// If the name is the same as the number, name release for friendly message
 	if v.Name == ("v" + v.Number) {
 		v.Name = "Release"
 	}

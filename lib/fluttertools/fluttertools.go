@@ -17,7 +17,7 @@ import (
 
 const flutterRepo = "https://github.com/flutter/flutter.git"
 
-// GetChannel - Clones git from Flutter repo
+// GetChannel - Clones git from Flutter repository
 func GetChannel(versionsPath string, branch string) error {
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("cyan", "bold")
@@ -85,7 +85,7 @@ func GetFlutterHome() string {
 
 	var flutterHome string
 
-	// Get all env variablds
+	// Get all env variables
 	envVar := os.Getenv("PATH")
 
 	v := strings.Split(envVar, ":")
