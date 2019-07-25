@@ -43,7 +43,7 @@ func (v *Version) setup() error {
 	// If there is a directory and not active
 	if v.Exists && v.Active == false {
 
-		// activaes version
+		// activates version
 		if err := v.activate(); err != nil {
 			return err
 		}

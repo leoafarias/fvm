@@ -50,11 +50,15 @@ func GetChannelInfo(versionPath string) (string, error) {
 	branch, err := runGit(versionPath, "rev-parse", "--abbrev-ref", "HEAD")
 
 	if branch == "HEAD" {
-		branch, _ = runGit(versionPath, "tag", "--points-at", "HEAD")
+		branch, err = runGit(versionPath, "tag", "--points-at", "HEAD")
+	}
+
+	if err != nil {
+		return "", err
 	}
 
 	// Have to trim the line break on conversion
-	return branch, err
+	return branch, nil
 }
 
 // GetVersionNumber - Gets the version of flutter from the branch directory

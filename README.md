@@ -99,6 +99,15 @@ Removes all Flutter versions except the active one
 
     $ fvm shake
 
+### WIP - Tests
+
+To properly run the tests I have created a mocking service that instead of getting Flutter every time, and also building it it stores them in a local file.
+
+If you are looking into properly testing this
+
+- test/beta: Cloned but doctor not run
+- test/master: Cloned and doctor has run
+- test/stable: Cloned and doctor has run
 
 ## Contributing
 
@@ -107,3 +116,4 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
