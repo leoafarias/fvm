@@ -21,7 +21,7 @@ var removeCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		v, err := lib.CheckVersion(args[0])
+		v, err := lib.IsValidVersion(args[0])
 		if err != nil {
 			fmt.Println("Not a valid version")
 			os.Exit(0)

@@ -126,7 +126,7 @@ func (vs *Versions) Shake() error {
 func LoadVersion(version string) (Version, error) {
 
 	// Checks if its a valid version. Returns corrected
-	version, err := isValidversion(version)
+	version, err := IsValidVersion(version)
 	if err != nil {
 		return Version{}, err
 	}
@@ -231,8 +231,8 @@ func ListVersions() (Versions, error) {
 	return vs, nil
 }
 
-// isValidversion = checks if version passed is valid
-func isValidversion(version string) (string, error) {
+// IsValidVersion = checks if version passed is valid
+func IsValidVersion(version string) (string, error) {
 	// Check if version is one of the channels
 	if version == "master" || version == "dev" || version == "beta" || version == "stable" {
 		return version, nil

@@ -30,7 +30,7 @@ var rootCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
-			v, err := lib.CheckVersion(args[0])
+			v, err := lib.IsValidVersion(args[0])
 			if err != nil {
 				fmt.Println("Not a valid version")
 				os.Exit(0)
