@@ -53,7 +53,7 @@ func (v *Version) setup() error {
 
 	// If there is no version run Doctor
 	if v.Number == "" {
-		fluttertools.RunDoctor()
+		// fluttertools.RunDoctor()
 		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
 		if err != nil {
 			return err
@@ -92,13 +92,11 @@ func (v *Version) activate() error {
 		return nil
 	}
 
-	if err := os.Remove(flutterHome); err != nil {
-		return err
-	}
+	// Move existing directory back to the workspace
+	workspacePath := path.Join(workspaceHome, v.Name)
 
-	toPath := path.Join(workspaceHome, v.Name)
-
-	if err := os.Symlink(toPath, flutterHome); err != nil {
+	// Copy the current flutterHome back into the workspace dir
+	if err := Copy(flutterHome, workspacePath); err != nil {
 		return err
 	}
 
@@ -128,7 +126,7 @@ func (vs *Versions) Shake() error {
 func LoadVersion(version string) (Version, error) {
 
 	// Checks if its a valid version. Returns corrected
-	version, err := CheckVersion(version)
+	version, err := isValidversion(version)
 	if err != nil {
 		return Version{}, err
 	}
@@ -233,8 +231,8 @@ func ListVersions() (Versions, error) {
 	return vs, nil
 }
 
-// CheckVersion = checks if version passed is valid
-func CheckVersion(version string) (string, error) {
+// isValidversion = checks if version passed is valid
+func isValidversion(version string) (string, error) {
 	// Check if version is one of the channels
 	if version == "master" || version == "dev" || version == "beta" || version == "stable" {
 		return version, nil
@@ -264,10 +262,4 @@ func getWorkspaceHome() string {
 	workspaceHome := path.Join(homeDir, "fvm")
 	os.MkdirAll(workspaceHome, os.ModePerm)
 	return workspaceHome
-}
-
-func removeFromSlice(s []int, i int) []int {
-	s[i] = s[len(s)-1]
-	// We do not need to put s[i] at the end, as it will be discarded anyway
-	return s[:len(s)-1]
 }
