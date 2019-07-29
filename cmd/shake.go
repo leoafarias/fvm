@@ -14,7 +14,7 @@ var shakeCmd = &cobra.Command{
 	Short: "Remove all flutter versions",
 
 	Run: func(cmd *cobra.Command, args []string) {
-		vs, err := lib.ListVersions()
+		vs, err := lib.ListLocalVersions()
 		if err != nil {
 			log.Fatal(err)
 			os.Exit(0)

@@ -1,9 +1,15 @@
 {
     "cSpell.words": [
+        "dcopy",
+        "fcopy",
         "flutter",
+        "lcopy",
         "mitchellh",
         "preuninstall",
         "repo",
         "ttacon"
+    ],
+    "cSpell.ignoreWords": [
+        "manifoldco"
     ]
 }

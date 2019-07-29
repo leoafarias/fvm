@@ -44,7 +44,7 @@ var rootCmd = &cobra.Command{
 
 func versionPicker() {
 	// var options []string
-	vs, err := lib.ListVersions()
+	vs, err := lib.ListLocalVersions()
 	if err != nil {
 		log.Fatal(err)
 	}

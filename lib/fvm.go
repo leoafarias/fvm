@@ -4,140 +4,35 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"path"
 	"strings"
-	"time"
 
-	"github.com/briandowns/spinner"
-	"github.com/leoafarias/fvm/lib/fluttertools"
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/leoafarias/fvm/internals/fluttertools"
+	"github.com/leoafarias/fvm/internals/utils"
 	"github.com/ttacon/chalk"
 )
 
 var (
-	flutterHome   = fluttertools.GetFlutterHome()
-	workspaceHome = getWorkspaceHome()
+	flutterHome   = utils.GetFlutterHome()
+	workspaceHome = utils.GetWorkspaceHome()
 )
 
-// Versions - slice of versions
-type Versions []Version
-
-// Version = version struct type
-type Version struct {
-	Name   string
-	Number string
-	Active bool
-	Exists bool
-}
-
-func (v *Version) setup() error {
-	// If directory does not exists get the channel
-	if v.Exists == false {
-		if err := fluttertools.GetChannel(workspaceHome, v.Name); err != nil {
-			return err
-		}
-		v.Exists = true
-	}
-
-	// If there is a directory and not active
-	if v.Exists && v.Active == false {
-
-		// activates version
-		if err := v.activate(); err != nil {
-			return err
-		}
-
-		v.Active = true
-	}
-
-	// If there is no version run Doctor
-	if v.Number == "" {
-		// fluttertools.RunDoctor()
-		versionNumber, err := fluttertools.GetVersionNumber(flutterHome)
-		if err != nil {
-			return err
-		}
-
-		v.Number = versionNumber
-	}
-
-	return nil
-}
-
-func (v *Version) remove() error {
-	dirPath := path.Join(workspaceHome, v.Name)
-
-	if v.Active {
-		os.RemoveAll(flutterHome)
-	}
-
-	// Remove everything from version directory
-	if err := os.RemoveAll(dirPath); err != nil {
-		return err
-	}
-
-	v = &Version{}
-
-	return nil
-}
-
-func (v *Version) activate() error {
-	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-	s.Color("cyan", "bold")
-	s.Start()
-	s.Suffix = "Activating version [" + v.Name + "]"
-
-	if v.Active {
-		return nil
-	}
-
-	// Move existing directory back to the workspace
-	workspacePath := path.Join(workspaceHome, v.Name)
-
-	// Copy the current flutterHome back into the workspace dir
-	if err := Copy(flutterHome, workspacePath); err != nil {
-		return err
-	}
-
-	s.Stop()
-	fmt.Println(chalk.Cyan.Color("[✓]"), s.Suffix)
-
-	return nil
-}
-
-// Shake - Removes all versions except the inactive one
-func (vs *Versions) Shake() error {
-	// Loops all installed versions
-	for _, v := range *vs {
-		// If version matches and its not active
-		if v.Active == false {
-			// Remove the version that is not active
-			if err := os.RemoveAll(path.Join(workspaceHome, v.Name)); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 // LoadVersion - loads requested version
-func LoadVersion(version string) (Version, error) {
+func LoadVersion(version string) (fluttertools.Version, error) {
 
 	// Checks if its a valid version. Returns corrected
 	version, err := IsValidVersion(version)
 	if err != nil {
-		return Version{}, err
+		return fluttertools.Version{}, err
 	}
 
 	// Gets all currently installed versions
-	vs, err := ListVersions()
+	vs, err := ListLocalVersions()
 	if err != nil {
-		return Version{}, err
+		return fluttertools.Version{}, err
 	}
 
-	var lv Version
+	var lv fluttertools.Version
 
 	// Checks if version to load is currently installed
 	for _, v := range vs {
@@ -147,8 +42,8 @@ func LoadVersion(version string) (Version, error) {
 	}
 
 	// If no version was found, set to be the version
-	if (lv == Version{}) {
-		lv = Version{
+	if (lv == fluttertools.Version{}) {
+		lv = fluttertools.Version{
 			Name:   version,
 			Exists: false,
 			Active: false,
@@ -166,7 +61,7 @@ func AddVersion(version string) error {
 		return err
 	}
 
-	if err := v.setup(); err != nil {
+	if err := v.Setup(); err != nil {
 		return err
 	}
 
@@ -185,18 +80,18 @@ func RemoveVersion(version string) error {
 		return err
 	}
 
-	if err := v.remove(); err != nil {
+	if err := v.Remove(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// ListVersions - lists all the current versions
-func ListVersions() (Versions, error) {
-	var vs Versions
+// ListLocalVersions - lists all the current versions
+func ListLocalVersions() (fluttertools.Versions, error) {
+	var vs fluttertools.Versions
 	files, err := ioutil.ReadDir(workspaceHome)
 	if err != nil {
-		return Versions{}, err
+		return fluttertools.Versions{}, err
 	}
 
 	for _, f := range files {
@@ -207,7 +102,7 @@ func ListVersions() (Versions, error) {
 
 		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(workspaceHome, f.Name()))
 
-		vs = append(vs, Version{
+		vs = append(vs, fluttertools.Version{
 			Name:   f.Name(),
 			Number: versionNumber,
 			Active: false,
@@ -255,11 +150,4 @@ func IsValidVersion(version string) (string, error) {
 	}
 
 	return "", errors.New("Not a valid version number")
-}
-
-func getWorkspaceHome() string {
-	homeDir, _ := homedir.Dir()
-	workspaceHome := path.Join(homeDir, "fvm")
-	os.MkdirAll(workspaceHome, os.ModePerm)
-	return workspaceHome
 }

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/leoafarias/fvm/lib/fluttertools"
+	"github.com/leoafarias/fvm/internals/fluttertools"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/manifoldco/promptui"
