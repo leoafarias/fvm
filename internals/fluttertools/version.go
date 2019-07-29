@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	flutterHome   = utils.GetFlutterHome()
-	workspaceHome = utils.GetWorkspaceHome()
+	flutterHome  = utils.GetFlutterHome()
+	versionsHome = utils.GetVersionsHome()
 )
 
 // Versions - slice of versions
@@ -32,7 +32,7 @@ type Version struct {
 func (v *Version) Setup() error {
 	// If directory does not exists get the channel
 	if v.Exists == false {
-		if err := GetChannel(workspaceHome, v.Name); err != nil {
+		if err := GetChannel(versionsHome, v.Name); err != nil {
 			return err
 		}
 		v.Exists = true
@@ -65,7 +65,7 @@ func (v *Version) Setup() error {
 
 // Remove - Removes version from file system
 func (v *Version) Remove() error {
-	dirPath := path.Join(workspaceHome, v.Name)
+	dirPath := path.Join(versionsHome, v.Name)
 
 	if v.Active {
 		os.RemoveAll(flutterHome)
@@ -96,8 +96,8 @@ func (v *Version) activate() error {
 		return nil
 	}
 
-	// Sets version path to be activated workspace
-	versionPath := path.Join(workspaceHome, v.Name)
+	// Sets version path to be activated in workspace
+	newVersionPath := path.Join(versionsHome, v.Name)
 
 	currentVersion, err := GetChannelInfo(flutterHome)
 	if err != nil || currentVersion == "" {
@@ -107,14 +107,16 @@ func (v *Version) activate() error {
 		}
 	}
 
+	oldVersionPath := path.Join(versionsHome, currentVersion)
+
 	// Copy the current versionPath into flutterHome
-	err = utils.Move(flutterHome, path.Join(workspaceHome, currentVersion))
+	err = utils.Move(flutterHome, oldVersionPath)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	// Copy the current versionPath into flutterHome
-	err = utils.Move(versionPath, flutterHome)
+	err = utils.Move(newVersionPath, flutterHome)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -129,7 +131,7 @@ func (vs *Versions) Shake() error {
 		// If version matches and its not active
 		if v.Active == false {
 			// Remove the version that is not active
-			if err := os.RemoveAll(path.Join(workspaceHome, v.Name)); err != nil {
+			if err := os.RemoveAll(path.Join(versionsHome, v.Name)); err != nil {
 				return err
 			}
 		}

@@ -17,6 +17,13 @@ func GetWorkspaceHome() string {
 	return workspaceHome
 }
 
+// GetVersionsHome - Returns the path for the versions within the workspace
+func GetVersionsHome() string {
+	versionsHome := path.Join(GetWorkspaceHome(), "versions")
+	os.MkdirAll(versionsHome, os.ModePerm)
+	return versionsHome
+}
+
 // GetFlutterHome - Returns the home path to the flutter directory
 func GetFlutterHome() string {
 

@@ -13,8 +13,8 @@ import (
 )
 
 var (
-	flutterHome   = utils.GetFlutterHome()
-	workspaceHome = utils.GetWorkspaceHome()
+	flutterHome  = utils.GetFlutterHome()
+	versionsHome = utils.GetVersionsHome()
 )
 
 // LoadVersion - loads requested version
@@ -89,7 +89,7 @@ func RemoveVersion(version string) error {
 // ListLocalVersions - lists all the current versions
 func ListLocalVersions() (fluttertools.Versions, error) {
 	var vs fluttertools.Versions
-	files, err := ioutil.ReadDir(workspaceHome)
+	files, err := ioutil.ReadDir(versionsHome)
 	if err != nil {
 		return fluttertools.Versions{}, err
 	}
@@ -100,7 +100,7 @@ func ListLocalVersions() (fluttertools.Versions, error) {
 			continue
 		}
 
-		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(workspaceHome, f.Name()))
+		versionNumber, _ := fluttertools.GetVersionNumber(path.Join(versionsHome, f.Name()))
 
 		vs = append(vs, fluttertools.Version{
 			Name:   f.Name(),
