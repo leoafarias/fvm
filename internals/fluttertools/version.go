@@ -3,6 +3,7 @@ package fluttertools
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -32,6 +33,7 @@ type Version struct {
 func (v *Version) Setup() error {
 	// If directory does not exists get the channel
 	if v.Exists == false {
+		log.Printf("Version: %+v not currently downloaded.\n", v)
 		if err := GetChannel(versionsHome, v.Name); err != nil {
 			return err
 		}
@@ -40,7 +42,7 @@ func (v *Version) Setup() error {
 
 	// If there is a directory and not active
 	if v.Exists && v.Active == false {
-
+		log.Printf("Version: %+v downloaded but its not active.\n", v)
 		// activates version
 		if err := v.activate(); err != nil {
 			return err
@@ -51,6 +53,7 @@ func (v *Version) Setup() error {
 
 	// If there is no version run Doctor
 	if v.Number == "" {
+		log.Printf("Version: %+v downloaded but not installed.\n", v.Name)
 		// RunDoctor()
 		versionNumber, err := GetVersionNumber(flutterHome)
 		if err != nil {
@@ -60,19 +63,30 @@ func (v *Version) Setup() error {
 		v.Number = versionNumber
 	}
 
+	// Check if version exists and is active to avoid installing again
+	if v.Exists && v.Active {
+		fmt.Printf("%+v\n", v)
+		return nil
+	}
+
 	return nil
 }
 
 // Remove - Removes version from file system
 func (v *Version) Remove() error {
+	log.Printf("Removing %#v\n", v.Name)
 	dirPath := path.Join(versionsHome, v.Name)
 
 	if v.Active {
-		os.RemoveAll(flutterHome)
+		log.Printf("%#v is currently active\n", v.Name)
+		// If version is active, it should be removed from flutterHome
+		dirPath = flutterHome
 	}
 
 	// Remove everything from version directory
+	log.Printf("Removing %#v from file system\n", v.Name)
 	if err := os.RemoveAll(dirPath); err != nil {
+		log.Print(err)
 		return err
 	}
 
@@ -85,7 +99,7 @@ func (v *Version) activate() error {
 	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 	s.Color("cyan", "bold")
 	s.Start()
-	s.Suffix = "Activating version [" + v.Name + "]"
+	s.Suffix = " Activating version [" + v.Name + "]"
 
 	// We will defer functions for better code readability
 	// Important: Last in first out order
@@ -142,10 +156,14 @@ func (vs *Versions) Shake() error {
 
 // GetVersionNumber - Gets the version of flutter from the branch directory
 func GetVersionNumber(versionPath string) (string, error) {
+	log.Printf("Getting version number from %#v", versionPath)
 	b, err := ioutil.ReadFile(path.Join(versionPath, "version"))
 	if err != nil {
+		log.Printf("No version number found.")
 		return "", err
 	}
+
+	log.Printf("Version number is %#v", string(b))
 
 	return string(b), nil
 }

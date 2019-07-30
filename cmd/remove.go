@@ -2,8 +2,6 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
-	"os"
 
 	"github.com/leoafarias/fvm/lib"
 	"github.com/spf13/cobra"
@@ -21,12 +19,7 @@ var removeCmd = &cobra.Command{
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		v, err := lib.IsValidVersion(args[0])
-		if err != nil {
-			fmt.Println("Not a valid version")
-			os.Exit(0)
-		}
-		lib.RemoveVersion(v)
+		lib.RemoveVersion(args[0])
 	},
 }
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"path"
 	"strings"
 
@@ -19,7 +20,7 @@ var (
 
 // LoadVersion - loads requested version
 func LoadVersion(version string) (fluttertools.Version, error) {
-
+	log.Printf("Loading version %#v", version)
 	// Checks if its a valid version. Returns corrected
 	version, err := IsValidVersion(version)
 	if err != nil {
@@ -61,6 +62,7 @@ func AddVersion(version string) error {
 		return err
 	}
 
+	// Setup version
 	if err := v.Setup(); err != nil {
 		return err
 	}
@@ -113,15 +115,20 @@ func ListLocalVersions() (fluttertools.Versions, error) {
 	// Get current active channel
 	currentVersion, err := fluttertools.GetChannelInfo(flutterHome)
 	if err != nil {
+		log.Printf("Cannot get current version in FlutterHome\n")
 		return vs, nil
 	}
 
-	// Find active version in Versions and update the status
-	for i := range vs {
-		if vs[i].Name == currentVersion {
-			vs[i].Active = true
-		}
-	}
+	// Add current active version
+	log.Printf("#### Current Version: %+v.\n", currentVersion)
+
+	versionNumber, _ := fluttertools.GetVersionNumber(flutterHome)
+	vs = append(vs, fluttertools.Version{
+		Name:   currentVersion,
+		Number: versionNumber,
+		Active: true,
+		Exists: true,
+	})
 
 	return vs, nil
 }
@@ -130,6 +137,7 @@ func ListLocalVersions() (fluttertools.Versions, error) {
 func IsValidVersion(version string) (string, error) {
 	// Check if version is one of the channels
 	if version == "master" || version == "dev" || version == "beta" || version == "stable" {
+		log.Printf("Is a valid channel of %#v", version)
 		return version, nil
 	}
 
@@ -138,16 +146,21 @@ func IsValidVersion(version string) (string, error) {
 		version = "v" + version
 	}
 
+	log.Printf("Getting valid Flutter versions to compare.")
 	vs, err := fluttertools.GetAllVersions()
 	if err != nil {
 		return "", err
 	}
 
+	// See if version matches a valid flutter version
 	for _, v := range vs {
 		if v == version {
+			log.Printf("Is a valid version of %#v", version)
 			return version, nil
 		}
 	}
 
-	return "", errors.New("Not a valid version number")
+	err = errors.New("Not a valid Flutter version")
+	log.Print(err)
+	return "", err
 }
