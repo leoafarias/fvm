@@ -3,7 +3,7 @@ import 'package:fvm/utils/flutter_tools.dart';
 
 void main() {
   test('gitClone', () async {
-    await flutterSdkClone('v1.8.4');
+    await flutterChannelClone('v1.8.4');
     expect(true, true);
   });
 
@@ -14,6 +14,11 @@ void main() {
 
   test('listSdkVersions', () async {
     await listSdkVersions();
+    expect(true, true);
+  });
+
+  test('flutterListInstalledSdks', () async {
+    await flutterListInstalledSdks();
     expect(true, true);
   });
 }
