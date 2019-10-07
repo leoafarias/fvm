@@ -13,7 +13,7 @@ void main() {
   });
 
   test('listSdkVersions', () async {
-    await listSdkVersions();
+    await flutterListAllSdks();
     expect(true, true);
   });
 

@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:console/console.dart';
+import 'package:fvm/utils/logger.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {
@@ -14,8 +17,13 @@ class ListCommand extends Command {
 
   Future<void> run() async {
     final choices = await flutterListInstalledSdks();
-    //TODO: Check if choices are empty
+    if (choices.length == 0) {
+      logger.stdout('No SDKs have been installed.');
+      exit(0);
+    }
+
     final version = Chooser<String>(choices, message: 'Select a version:');
     version.chooseSync();
+    // TODO: Implement `use` functionality
   }
 }

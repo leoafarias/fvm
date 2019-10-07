@@ -1,26 +1,30 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:console/console.dart';
 import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/logger.dart';
 
-/// Removes Flutter SDK
-class RemoveCommand extends Command {
+/// Use an installed SDK version
+class UseCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "remove";
-  final description = "Removes Flutter SDK Version";
+  final name = "use";
+  final description = "Which Flutter SDK Version you would like to use";
 
   /// Constructor
-  RemoveCommand() {
+  UseCommand() {
     argParser
-      ..addOption('channel', abbr: 'c', help: 'Fluter channel to remove ')
+      ..addOption('channel', abbr: 'c', help: 'Fluter channel to use ')
       ..addOption(
         'version',
         abbr: 'v',
-        help: 'Version number to remove. i.e: 1.8.1',
+        help: 'Version number to use. i.e: 1.8.1',
       );
   }
 
-  void run() async {
+  Future<void> run() async {
     final channel = argResults['channel'];
     final version = argResults['version'];
 

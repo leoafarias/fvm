@@ -1,8 +1,8 @@
 name: fvm
-description: A sample command-line application.
-# version: 1.0.0
-# homepage: https://www.example.com
-# author: Leo Farias <leokcta@gmail.com>
+description: A simple version manager for Flutter.
+version: 0.0.1
+homepage: https://github.com/leoafarias/fvm
+author: Leo Farias <leokcta@gmail.com>
 
 environment:
   sdk: '>=2.5.0 <3.0.0'
@@ -13,6 +13,7 @@ dependencies:
     # file_utils: ^0.1.3
     console: ^3.1.0
     io: ^0.3.3
+    path: ^1.6.4
   
 
 dev_dependencies:

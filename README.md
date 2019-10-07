@@ -1,113 +1,38 @@
-# `fvm` 
-[![Go Report Card](https://goreportcard.com/badge/github.com/leoafarias/fvm)](https://goreportcard.com/report/github.com/leoafarias/go-fvm)
-[![Build Status](https://travis-ci.org/leoafarias/fvm.svg?branch=master)](https://travis-ci.org/leoafarias/fvm)
+# `fvm`
+
 [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
 [![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
-![](https://raw.githubusercontent.com/leoafarias/fvm/master/assets/terminal.gif)
-## Why not use Flutter Channels?
-If all you want is to use the latest stable version or a specific channel once in a while, you should be using [Flutter Channels](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels).
+Features:
+
+* Configure Flutter SDK version per project
+* Ability to install and cache multiple Flutter SDK Versions
+* Easily switch between Flutter channels & versions
+* Per project Flutter SDK upgrade
+
+## Project Specific Channels or Versions
+
+If all you want is to use the latest stable version or a specific channel for all your projects, you should be using [Flutter Channels](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels).
 
 This tool allows you similar functionality to Channels; however it caches those versions locally, so you don't have to wait for a full setup every time you want to switch versions.
 
 Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
-#### Easiest way NPM & Yarn
-This is a very simple way to get started with fvm.
-```bash
-npm install -g fvm
-# or 
-yarn global add fvm
-# and
-fvm stable
-```
-
-#### Binary installation
-
-[Download](https://github.com/leoafarias/fvm/releases) a
-compatible binary for your system. For convenience, place `fvm` in a
-directory where you can access it from the command line. Usually this is
-`/usr/local/bin`.
-
-For more detailed instructions check out [Installation](https://go.equinox.io/github.com/leoafarias/fvm)
-
-#### Via Go
-
-If you want, you can also get `fvm` via Go:
-
-```bash
-$ go get -u github.com/leoafarias/fvm
-$ cd $GOPATH/src/github.com/leoafarias/fvm
-$ go install .
-```
-
 ## Usage
 
-### Installing and Activating Releases/Channels
-Use `fvm <version>` to install and activate a version of Flutter.
+To install:
 
-    $ fvm 1.2.1
-    $ fvm 0.11.13
+```bash
+$ pub global activate fvm
+```
 
-    $ fvm stable
-    $ fvm beta
-    
-    
+And then, for information on each command:
 
-If `<version>` has already been installed, `fvm` will activate it from cache without having to download and set up again.
-
-Lists all currently installed versions
-
-    $ fvm
-            v1.2.1
-        >   v0.11.13
-            master
-            stable
-
-
-Use `fvm <channel>` to install and activate a particular Flutter channel.
-
-User or install the latest `stable` release
-
-    $ fvm stable
-
-User or install the latest `beta` release
-
-    $ fvm beta
-
-User or install the latest fully-tested build
-
-    $ fvm dev
-
-User or intall the latest cutting edge build
-
-    $ fvm master
-
-### Releases
-See all available releases for download
-
-    $ fvm releases
-
-### Removing versions
-Removes a specific version
-
-    $ fvm remove <version>
-    
-Removes all Flutter versions except the active one
-
-    $ fvm shake
-
-### WIP - Tests
-
-To properly run the tests I have created a mocking service that instead of getting Flutter every time, and also building it it stores them in a local file.
-
-If you are looking into properly testing this
-
-- test/beta: Cloned but doctor not run
-- test/master: Cloned and doctor has run
-- test/stable: Cloned and doctor has run
+```bash
+$ fvm help
+```
 
 ## Contributing
 
@@ -116,4 +41,3 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-

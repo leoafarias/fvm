@@ -4,6 +4,7 @@ import 'package:fvm/commands/flutter.dart';
 import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/list.dart';
 import 'package:fvm/commands/remove.dart';
+import 'package:fvm/commands/use.dart';
 import 'package:fvm/utils/logger.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/utils/logger.dart' show logger;
@@ -27,6 +28,7 @@ Future<void> fvmRunner(List<String> args) async {
   runner..addCommand(ListCommand());
   runner..addCommand(FlutterCommand());
   runner..addCommand(RemoveCommand());
+  runner..addCommand(UseCommand());
 
   return await runner.run(args).catchError((exc, st) {
     if (exc is String) {

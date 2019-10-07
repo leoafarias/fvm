@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/utils/helpers.dart';
 import 'package:path/path.dart';
 import 'package:io/io.dart';
 
@@ -50,7 +51,7 @@ Future<void> flutterSdkInfo(String branch) async {
 }
 
 /// Lists all Flutter SDK Versions
-Future<List<String>> listSdkVersions() async {
+Future<List<String>> flutterListAllSdks() async {
   final result =
       await Process.run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
 // refs/tags/
@@ -79,11 +80,32 @@ Future<void> flutterSdkRemove(String branch) async {
 /// Lists Installed Flutter SDK Version
 Future<List<String>> flutterListInstalledSdks() async {
   final versions = kVersionsDir.listSync();
-  final installedVersions = versions.map((version) async {
+  final installedVersions = versions
+      .where((version) =>
+          FileSystemEntity.typeSync(version.path) ==
+          FileSystemEntityType.directory)
+      .map((version) async {
     return basename(version.path);
   });
 
   final results = await Future.wait(installedVersions);
 
   return results;
+}
+
+/// Create Flutter Dir within the project
+Future<void> createProjectFlutterDir() async {
+  final flutterDir = Directory('${kWorkingDirectory.path}/.flutter');
+  if (await flutterDir.exists()) {
+    await flutterDir.delete(recursive: true);
+  }
+  await flutterDir.create(recursive: true);
+}
+
+/// Links Flutter Dir to cached SDK
+Future<void> linkProjectFlutterDir(String version) async {
+  final versionBin = Directory('${kVersionsDir.path}/$version/bin/flutter');
+  final flutterDir = Directory('${kWorkingDirectory.path}/flutter');
+  await createProjectFlutterDir();
+  await linkDir(flutterDir, versionBin);
 }
