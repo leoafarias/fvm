@@ -1,19 +1,13 @@
-#yarn and npm
-node_modules
-*.log
-*.lock
-bin
+# Files and directories created by pub
+.dart_tool/
+.packages
+# Remove the following pattern if you wish to check in your lock file
+pubspec.lock
+# Do not version the sdk versions
+versions/
 
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+# Conventional directory for build outputs
+build/
 
-# Test binary, built with `go test -c`
-*.test
-test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# Directory created by dartdoc
+doc/api/
