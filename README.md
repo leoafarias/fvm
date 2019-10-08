@@ -30,12 +30,46 @@ $ pub global activate fvm
 And then, for information on each command:
 
 ```bash
-
 $ fvm help
-
 ```
 
-In **VSCode** add the following to your settings.json
+### Install a SDK Version
+
+FVM gives you the ability to install many Flutter **releases** or **channels**.
+
+```bash
+fvm install <version>
+```
+
+Version - use `master` to install the Master channel and `1.8.0` to install the release.
+
+### Use a SDK Version
+
+You are able to use different Flutter SDK versions per project. To do that you just have to go into the root of the project and:
+
+```bash
+$ fvm use <version>
+```
+
+### Remove a SDK Version
+
+Using the remove command will uninstall the SDK version locally. This will impact any projects that depend on that version of the SDK.
+
+```bash
+$ fvm remove <version>
+```
+
+### List Installed Versions
+
+List all the versions that are currently installed on your machine.
+
+```bash
+$ fvm list
+```
+
+### Configure Your IDE
+#### VSCode
+Add the following to your settings.json
 
 ```json
 
@@ -43,11 +77,6 @@ In **VSCode** add the following to your settings.json
     "fvm"
 ]
 ```
-
-### Install a SDK Version
-### Use a SDK Version
-### Remove a SDK Version
-### List Installed Versions
 
 ## Contributing
 
