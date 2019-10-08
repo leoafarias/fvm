@@ -128,6 +128,9 @@ Future<void> flutterSdkRemove(String version) async {
 
 /// Lists Installed Flutter SDK Version
 Future<List<String>> flutterListInstalledSdks() async {
+  if (!await kVersionsDir.exists()) {
+    return [];
+  }
   final versions = kVersionsDir.listSync();
 
   final installedVersions = versions
