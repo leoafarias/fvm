@@ -4,20 +4,18 @@
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
-Features:
+**Features:**
 
 * Configure Flutter SDK version per project
 * Ability to install and cache multiple Flutter SDK Versions
 * Easily switch between Flutter channels & versions
 * Per project Flutter SDK upgrade
 
-## Project Specific Channels or Versions
+## Version Management
 
-If all you want is to use the latest stable version or a specific channel for all your projects, you should be using [Flutter Channels](https://github.com/flutter/flutter/wiki/Flutter-build-release-channels).
+This tool allows you to manage multiple; however, it caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
 
-This tool allows you similar functionality to Channels; however it caches those versions locally, so you don't have to wait for a full setup every time you want to switch versions.
-
-Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
+Also, it allows you to grab versions by a specific release, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 ## Usage
 
@@ -45,7 +43,7 @@ Version - use `master` to install the Master channel and `1.8.0` to install the 
 
 ### Use a SDK Version
 
-You are able to use different Flutter SDK versions per project. To do that you just have to go into the root of the project and:
+You can use different Flutter SDK versions per project. To do that you have to go into the root of the project and:
 
 ```bash
 $ fvm use <version>
@@ -61,7 +59,7 @@ $ fvm remove <version>
 
 ### List Installed Versions
 
-List all the versions that are currently installed on your machine.
+List all the versions that are installed on your machine.
 
 ```bash
 $ fvm list
