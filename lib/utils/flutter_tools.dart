@@ -26,6 +26,7 @@ Future<void> flutterChannelClone(String channel) async {
     throw ExceptionNotValidChannel('"$channel" is not a valid channel');
   }
 
+// TODO: make sure the version is a valid version in the folder before cloning
   if (await channelDirectory.exists()) {
     return;
   }

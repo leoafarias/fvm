@@ -69,16 +69,17 @@ List all the versions that are installed on your machine.
 
 There are a couple of ways you can interact with the SDK setup in your project.
 
-**Proxy Commands:**
+#### Proxy Commands
 
 Flutter command within `fvm` proxies all calls to the CLI just changing the SDK to be the local one.
 
 ```bash
 > fvm flutter run
 ```
+
 This will run `flutter run` command using the local project SDK.
 
-**Call Local SDK Directly:**
+#### Call Local SDK Directly
 
 FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
 

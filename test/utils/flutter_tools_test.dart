@@ -1,3 +1,4 @@
+@Timeout(Duration(minutes: 5))
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:test/test.dart';
@@ -8,8 +9,6 @@ void main() {
   final version = '1.8.0';
 
   test('Clones a "master" channel', () async {
-    // Remove if already exists
-    await flutterSdkRemove(channel);
     // Clones version
     await flutterChannelClone(channel);
     // Check if SDK Version matches cloned
