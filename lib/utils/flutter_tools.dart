@@ -129,6 +129,7 @@ Future<void> flutterSdkRemove(String version) async {
 /// Lists Installed Flutter SDK Version
 Future<List<String>> flutterListInstalledSdks() async {
   final versions = kVersionsDir.listSync();
+
   final installedVersions = versions
       .where((version) =>
           FileSystemEntity.typeSync(version.path) ==
@@ -138,7 +139,7 @@ Future<List<String>> flutterListInstalledSdks() async {
   });
 
   final results = await Future.wait(installedVersions);
-
+  results.sort();
   return results;
 }
 

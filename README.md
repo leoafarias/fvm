@@ -19,16 +19,16 @@ Also, it allows you to grab versions by a specific release, i.e. 1.2.0. In case 
 
 ## Usage
 
-To Setup:
+To Install:
 
 ```bash
-$ pub global activate fvm
+> pub global activate fvm
 ```
 
 And then, for information on each command:
 
 ```bash
-$ fvm help
+> fvm help
 ```
 
 ### Install a SDK Version
@@ -36,7 +36,7 @@ $ fvm help
 FVM gives you the ability to install many Flutter **releases** or **channels**.
 
 ```bash
-fvm install <version>
+> fvm install <version>
 ```
 
 Version - use `master` to install the Master channel and `1.8.0` to install the release.
@@ -46,7 +46,7 @@ Version - use `master` to install the Master channel and `1.8.0` to install the 
 You can use different Flutter SDK versions per project. To do that you have to go into the root of the project and:
 
 ```bash
-$ fvm use <version>
+> fvm use <version>
 ```
 
 ### Remove a SDK Version
@@ -54,7 +54,7 @@ $ fvm use <version>
 Using the remove command will uninstall the SDK version locally. This will impact any projects that depend on that version of the SDK.
 
 ```bash
-$ fvm remove <version>
+> fvm remove <version>
 ```
 
 ### List Installed Versions
@@ -62,11 +62,38 @@ $ fvm remove <version>
 List all the versions that are installed on your machine.
 
 ```bash
-$ fvm list
+> fvm list
 ```
 
+### Running Flutter SDK
+
+There are a couple of ways you can interact with the SDK setup in your project.
+
+**Proxy Commands:**
+
+Flutter command within `fvm` proxies all calls to the CLI just changing the SDK to be the local one.
+
+```bash
+> fvm flutter run
+```
+This will run `flutter run` command using the local project SDK.
+
+**Call Local SDK Directly:**
+
+FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
+
+```bash
+> ./fvm run
+```
+
+This will run `flutter run` command using the local project SDK.
+
+As an example calling `fvm flutter run` is the equivalent of calling `flutter run` using the local project SDK.
+
 ### Configure Your IDE
+
 #### VSCode
+
 Add the following to your settings.json
 
 ```json
@@ -75,6 +102,8 @@ Add the following to your settings.json
     "fvm"
 ]
 ```
+
+[Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 
 ## Contributing
 
