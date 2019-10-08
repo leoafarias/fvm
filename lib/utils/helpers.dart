@@ -19,18 +19,16 @@ Future<bool> isValidFlutterInstall(String version) async {
 }
 
 /// Moves assets from theme directory into brand-app
-Future<void> linkDir(FileSystemEntity target, FileSystemEntity source,
-    {bool copy = false}) async {
-  await _unlinkDir(target);
+Future<void> linkDir(
+  Link source,
+  FileSystemEntity target,
+) async {
   try {
-    await Link(target.path).create(source.path);
+    if (await source.exists()) {
+      await source.delete();
+    }
+    await source.create(target.path);
   } on Exception catch (err) {
-    throw Exception(['Could not create symlink: ', err]);
-  }
-}
-
-void _unlinkDir(FileSystemEntity fsEntity) {
-  if (fsEntity.existsSync()) {
-    fsEntity.deleteSync(recursive: true);
+    throw Exception(['Could not link ${target.path}:', err]);
   }
 }

@@ -8,6 +8,7 @@ import 'package:fvm/commands/use.dart';
 import 'package:fvm/utils/logger.dart';
 import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/utils/logger.dart' show logger;
+import 'package:io/ansi.dart';
 
 /// Runs FVM
 Future<void> fvmRunner(List<String> args) async {
@@ -34,14 +35,11 @@ Future<void> fvmRunner(List<String> args) async {
     if (exc is String) {
       logger.stdout(exc);
     } else {
-      logger.stderr("Oops, something went wrong: ${exc?.message}");
+      logger.stderr("⚠️  ${yellow.wrap(exc?.message)}");
       if (args.contains('--verbose')) {
         logger.stderr(st);
       }
     }
-
     exitCode = 1;
-  }).whenComplete(() {
-    logger.stdout('');
-  });
+  }).whenComplete(() {});
 }

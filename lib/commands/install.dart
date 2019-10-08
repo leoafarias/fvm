@@ -3,6 +3,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
+import 'package:io/ansi.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -12,39 +13,22 @@ class InstallCommand extends Command {
   final description = "Installs Flutter SDK Version";
 
   /// Constructor
-  InstallCommand() {
-    argParser
-      ..addOption('channel', abbr: 'c', help: 'Fluter channel to install ')
-      ..addOption(
-        'version',
-        abbr: 'v',
-        help: 'Version number to install. i.e: 1.8.1',
-      );
-  }
+  InstallCommand();
 
   void run() async {
-    final channel = argResults['channel'];
-    final version = argResults['version'];
+    final version = argResults.arguments[0];
+    final isChannel = isValidFlutterChannel(version);
 
-    final validChannel = isValidFlutterChannel(channel);
-    // Add 'v' in front of version number due to Flutter pattern
-    final validVersion = await isValidFlutterVersion(version);
-
-    // If channel was sent and its a valid Flutter channel
-    if (validChannel) {
-      return await flutterChannelClone(channel);
-    }
-
-    if (validVersion) {
-      return await flutterVersionClone(version);
-    }
-
-    if (channel != null && validChannel == false) {
-      throw Exception('$channel is not a valid Flutter Channel');
-    }
-
-    if (version != null && validVersion == false) {
-      throw Exception('$version is not a valid Flutter version');
+    final progress = logger.progress(green.wrap('Downloading $version'));
+    try {
+      if (isChannel) {
+        await flutterChannelClone(version);
+      } else {
+        await flutterVersionClone(version);
+      }
+      finishProgress(progress);
+    } on Exception {
+      rethrow;
     }
   }
 }
