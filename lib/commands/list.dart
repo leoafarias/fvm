@@ -1,9 +1,9 @@
 import 'dart:io';
-
+import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
-import 'package:console/console.dart';
 import 'package:fvm/utils/logger.dart';
+import 'package:io/io.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {
@@ -22,8 +22,13 @@ class ListCommand extends Command {
       exit(0);
     }
 
-    final version = Chooser<String>(choices, message: 'Select a version:');
-    version.chooseSync();
-    // TODO: Implement `use` functionality
+    void printVersions(String version) {
+      logger.stdout(green.wrap(version));
+    }
+
+    choices.forEach(printVersions);
+    // exit(0);
+    // final version = Chooser<String>(choices, message: 'Select a version:');
+    // final selectedVersion = version.chooseSync();
   }
 }

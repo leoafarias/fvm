@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 
 /// Proxies Flutter Commands
@@ -23,9 +24,10 @@ class FlutterCommand extends Command {
   }
 
   Future<void> run() async {
-    await processRunner(
-      'flutter',
-      argResults.arguments,
-    );
+    if (!await kLocalFlutterLink.exists()) {
+      throw Exception('No version configuration found for this project.');
+    }
+    await processRunner('./fvm', argResults.arguments,
+        workingDirectory: kWorkingDirectory.path);
   }
 }
