@@ -1,7 +1,6 @@
 # `fvm`
 
-[![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php)
-[![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
+![Coverage](coverage_badge.svg?sanitize=true) [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
@@ -22,7 +21,7 @@ Also, it allows you to grab versions by a specific tag, i.e. 1.2.0. In case you 
 
 ## Usage
 
-To install:
+To Setup:
 
 ```bash
 $ pub global activate fvm
@@ -31,8 +30,24 @@ $ pub global activate fvm
 And then, for information on each command:
 
 ```bash
+
 $ fvm help
+
 ```
+
+In **VSCode** add the following to your settings.json
+
+```json
+
+"dart.flutterSdkPaths": [
+    "fvm"
+]
+```
+
+### Install a SDK Version
+### Use a SDK Version
+### Remove a SDK Version
+### List Installed Versions
 
 ## Contributing
 

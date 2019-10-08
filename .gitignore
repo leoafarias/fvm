@@ -11,3 +11,9 @@ build/
 
 # Directory created by dartdoc
 doc/api/
+
+# Test Coverage
+test/.test_coverage.dart
+
+# Link url to flutter version for tests
+fvm
