@@ -13,7 +13,7 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 ## Version Management
 
-This tool allows you to manage multiple; however, it caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
+This tool allows you to manage multiple channels and releases, and caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
 
 Also, it allows you to grab versions by a specific release, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
