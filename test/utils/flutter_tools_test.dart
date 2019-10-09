@@ -74,13 +74,13 @@ void main() {
     expect(correct, true);
   });
 
-  test('Gets correct version from tag ', () async {
+  test('Gets correct version from tag', () async {
     final versionExists = await flutterSdkVersion(version);
-    expect(versionExists, '$version');
+    expect(versionExists, 'v$version');
   });
-  test('Checks that install is not correct', () async {
+  test('Checks that install is not correct ', () async {
     final invalidVersionName = 'INVALID_VERSION';
-    final dir = Directory('${kVersionsDir.path}/$invalidVersionName');
+    final dir = Directory('$kVersionsDir/$invalidVersionName');
     await dir.create(recursive: true);
     final correct = await checkInstalledCorrectly(invalidVersionName);
     expect(correct, false);
