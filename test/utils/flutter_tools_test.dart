@@ -76,7 +76,7 @@ void main() {
 
   test('Gets correct version from tag ', () async {
     final versionExists = await flutterSdkVersion(version);
-    expect(versionExists, 'v$version');
+    expect(versionExists, '$version');
   });
   test('Checks that install is not correct', () async {
     final invalidVersionName = 'INVALID_VERSION';
