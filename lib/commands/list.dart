@@ -3,7 +3,6 @@ import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/logger.dart';
-import 'package:io/io.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {

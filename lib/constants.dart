@@ -1,5 +1,4 @@
 import 'dart:io';
-import "package:path/path.dart";
 
 /// Flutter Repo Address
 const kFlutterRepo = "https://github.com/flutter/flutter.git";

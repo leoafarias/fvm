@@ -129,9 +129,11 @@ Future<void> flutterSdkRemove(String version) async {
 
 /// Lists Installed Flutter SDK Version
 Future<List<String>> flutterListInstalledSdks() async {
+  // Returns empty array if directory does not exist
   if (!await kVersionsDir.exists()) {
     return [];
   }
+
   final versions = kVersionsDir.listSync();
 
   final installedVersions = versions

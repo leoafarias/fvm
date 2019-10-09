@@ -43,6 +43,16 @@ void main() {
     expect(true, true);
   });
 
+  test('Run Flutter Command', () async {
+    try {
+      await fvmRunner(['flutter', '--version']);
+    } on Exception catch (e) {
+      fail("Exception not thrown, $e");
+    }
+
+    expect(true, true);
+  });
+
   test('Run Remove Channel', () async {
     try {
       await fvmRunner(['remove', 'master']);
