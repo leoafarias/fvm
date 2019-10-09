@@ -1,3 +1,5 @@
+import 'dart:io';
+
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
@@ -8,7 +10,7 @@ void main() {
   final channel = 'master';
   final version = '1.8.0';
 
-  test('Clones a "master" channel', () async {
+  test('Clones Channel', () async {
     // Clones version
     await flutterChannelClone(channel);
     // Check if SDK Version matches cloned
@@ -16,7 +18,7 @@ void main() {
     expect(existingChannel, channel);
   });
 
-  test('Clones a version', () async {
+  test('Clones Release', () async {
     // await flutterSdkRemove(version);
     await flutterVersionClone(version);
     final existingVersion = await flutterSdkVersion(version);
@@ -62,13 +64,26 @@ void main() {
   });
 
   test('Gets correct version from channel', () async {
-    final channelExists = await flutterSdkVersion(channel);
-    expect(channelExists, channel);
+    final channelVersion = await flutterSdkVersion(channel);
+    expect(channelVersion, channel);
+  });
+
+  test('Checks that install is correct', () async {
+    await flutterChannelClone(channel);
+    final correct = await checkInstalledCorrectly(channel);
+    expect(correct, true);
   });
 
   test('Gets correct version from tag', () async {
     final versionExists = await flutterSdkVersion(version);
     expect(versionExists, 'v$version');
+  });
+  test('Checks that install is not correct', () async {
+    final invalidVersionName = 'INVALID_VERSION';
+    final dir = Directory('${kVersionsDir.path}/$invalidVersionName');
+    await dir.create(recursive: true);
+    final correct = await checkInstalledCorrectly(invalidVersionName);
+    expect(correct, false);
   });
 
   test('Lists existing Flutter SDK Versions', () async {
@@ -80,7 +95,7 @@ void main() {
     expect(versionsExists, true);
   });
 
-  test('Lists Installed Fluuter SDKs', () async {
+  test('Lists Installed Fluter SDKs', () async {
     final installedVersions = await flutterListInstalledSdks();
     final installExists = installedVersions.contains(channel) &&
         installedVersions.contains(version);

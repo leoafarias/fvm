@@ -1,4 +1,5 @@
 @Timeout(Duration(minutes: 5))
+
 import 'package:fvm/fvm.dart';
 import 'package:test/test.dart';
 
@@ -7,7 +8,7 @@ void main() {
     try {
       await fvmRunner(['install', 'master']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
@@ -37,17 +38,7 @@ void main() {
     try {
       await fvmRunner(['use', 'master']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
-    }
-
-    expect(true, true);
-  });
-
-  test('Run Flutter Command', () async {
-    try {
-      await fvmRunner(['flutter', '--version']);
-    } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
@@ -57,7 +48,7 @@ void main() {
     try {
       await fvmRunner(['remove', 'master']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
@@ -66,9 +57,18 @@ void main() {
     try {
       await fvmRunner(['remove', '1.8.0']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
+  });
+
+  test('Run Flutter Command Fails', () async {
+    try {
+      await fvmRunner(['flutter']);
+      fail("Exception not thrown");
+    } on Exception {
+      expect(true, true);
+    }
   });
 }
