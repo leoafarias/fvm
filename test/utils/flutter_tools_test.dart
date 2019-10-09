@@ -74,7 +74,7 @@ void main() {
     expect(correct, true);
   });
 
-  test('Gets correct version from tag', () async {
+  test('Gets correct version from tag ', () async {
     final versionExists = await flutterSdkVersion(version);
     expect(versionExists, 'v$version');
   });
