@@ -22,7 +22,7 @@ class RemoveCommand extends Command {
   }
 
   void run() async {
-    final version = argResults.arguments[0];
+    final version = argResults.arguments[0].toLowerCase();
 
     final isValidInstall = await isValidFlutterInstall(version);
 

@@ -10,9 +10,6 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/utils/logger.dart' show logger;
 import 'package:io/ansi.dart';
 
-// TODO: Handle error when executing command and FVM link to binary has been removed
-// TODO: Make sure recursive delete on directory does remove the directory itself
-
 /// Runs FVM
 Future<void> fvmRunner(List<String> args) async {
   final runner = CommandRunner('fvm',
@@ -42,6 +39,8 @@ Future<void> fvmRunner(List<String> args) async {
       if (args.contains('--verbose')) {
         logger.stderr(st);
       }
+
+      throw exc;
     }
     exitCode = 1;
   }).whenComplete(() {});

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
@@ -25,7 +27,13 @@ class FlutterCommand extends Command {
 
   Future<void> run() async {
     if (!await kLocalFlutterLink.exists()) {
-      throw Exception('No version configuration found for this project.');
+      throw Exception('No FVM config found. Create with <use> command');
+    }
+
+    final targetLink = File(await kLocalFlutterLink.target());
+
+    if (!await targetLink.exists()) {
+      throw Exception('Issue found with FVM config. Create with <use> command');
     }
     await processRunner('./fvm', argResults.arguments,
         workingDirectory: kWorkingDirectory.path);

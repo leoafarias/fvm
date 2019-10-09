@@ -4,6 +4,7 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:path/path.dart';
 import 'package:io/io.dart';
+import 'package:fvm/utils/logger.dart';
 
 /// Runs a process
 Future<void> processRunner(String cmd, List<String> args,
@@ -26,8 +27,8 @@ Future<void> flutterChannelClone(String channel) async {
     throw ExceptionNotValidChannel('"$channel" is not a valid channel');
   }
 
-// TODO: make sure the version is a valid version in the folder before cloning
-  if (await channelDirectory.exists()) {
+  // If it's installed correctly just return and use cached
+  if (await checkInstalledCorrectly(channel)) {
     return;
   }
 
@@ -51,7 +52,8 @@ Future<void> flutterVersionClone(String version) async {
     throw ExceptionNotValidVersion('"$version" is not a valid version');
   }
 
-  if (await versionDirectory.exists()) {
+  // If it's installed correctly just return and use cached
+  if (await checkInstalledCorrectly(version)) {
     return;
   }
 
@@ -125,6 +127,27 @@ Future<void> flutterSdkRemove(String version) async {
   if (await versionDir.exists()) {
     await versionDir.delete(recursive: true);
   }
+}
+
+/// Check if version is from git
+Future<bool> checkInstalledCorrectly(String version) async {
+  final versionDir = Directory('${kVersionsDir.path}/$version');
+  final gitDir = Directory('${versionDir.path}/.github');
+  final flutterBin = Directory('${versionDir.path}/bin');
+  // Check if version directory exists
+  if (!await versionDir.exists()) {
+    return false;
+  }
+
+  // Check if version directory is from git
+  if (!await gitDir.exists() || !await flutterBin.exists()) {
+    logger.stdout(
+        '$version exists but was not setup correctly. Doing cleanup...');
+    await flutterSdkRemove(version);
+    return false;
+  }
+
+  return true;
 }
 
 /// Lists Installed Flutter SDK Version
