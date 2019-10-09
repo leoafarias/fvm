@@ -71,14 +71,14 @@ void main() {
   test('Checks that install is correct', () async {
     await flutterChannelClone(channel);
     final correct = await checkInstalledCorrectly(channel);
-    expect(correct, true);
+    expect(correct, false);
   });
 
   test('Gets correct version from tag', () async {
     final versionExists = await flutterSdkVersion(version);
     expect(versionExists, 'v$version');
   });
-  test('Checks that install is not correct ', () async {
+  test('Checks that install is not correct', () async {
     final invalidVersionName = 'INVALID_VERSION';
     final dir = Directory('$kVersionsDir/$invalidVersionName');
     await dir.create(recursive: true);
