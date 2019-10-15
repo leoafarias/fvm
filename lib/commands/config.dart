@@ -1,62 +1,33 @@
-import 'dart:io';
-
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:io/ansi.dart';
 import 'package:fvm/utils/config_utils.dart';
 import 'package:fvm/utils/logger.dart';
-import 'package:io/ansi.dart';
 
 /// Config fvm options.
 class ConfigCommand extends Command {
-  /// Constructor
-  ConfigCommand();
-
-  @override
+  String get name => "config";
   String get description => "Config fvm options";
 
-  @override
-  String get name => "config";
-
-  run() {
-    final args = argResults.arguments;
-    _runArgs(args);
-    exit(0);
+  /// Constructor
+  ConfigCommand() {
+    argParser
+      ..addOption('cache-path',
+          abbr: 'c', help: 'Path to store Flutter cached versions')
+      ..addFlag('ls', abbr: 'l', help: 'Lists all config options');
   }
+  Future<void> run() async {
+    final path = argResults['cache-path'];
+    if (path != null) {
+      ConfigUtils().configFlutterStoredPath(path);
+    }
 
-  _runArgs(List<String> args) {
-    final key = args[0];
-
-    if (key == "path") {
-      final pathCommand = _PathCommand();
-      if (args.length > 1) {
-        pathCommand.setFlutterStoredPath(args[1]);
+    if (argResults['ls']) {
+      final configOptions = ConfigUtils().displayAllConfig();
+      if (configOptions.length > 0) {
+        logger.stdout(green.wrap(configOptions));
       } else {
-        logger.stdout(pathCommand.usage);
-        logger.stderr(
-            '${red.wrap('You must enter a directory.')} Such as: fvm config path ~/fvm/versions');
-      }
-    } else if (key == "ls") {
-      final message = ConfigUtils().displayAllConfig();
-      if (!message.isEmpty) {
-        logger.stdout(message);
-      } else {
-        logger.stdout("No configuration options.");
+        logger.stdout(yellow.wrap('No Configurations Have Been Set'));
       }
     }
   }
-}
-
-class _PathCommand extends Command {
-  @override
-  String get description => "Config flutter path";
-
-  @override
-  String get name => "path";
-
-  void setFlutterStoredPath(String path) {
-    ConfigUtils().configFlutterStoredPath(path);
-  }
-
-  @override
-  String get usage => "dfkjl";
 }

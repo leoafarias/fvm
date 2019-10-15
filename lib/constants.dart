@@ -29,7 +29,7 @@ String _fvmHome() {
 }
 
 /// Config file of fvm's config.
-File get kConfigFile => File('${_fvmHome()}/.configFile');
+File get kConfigFile => File('${_fvmHome()}/.fvm_config');
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
@@ -44,4 +44,4 @@ Directory get kVersionsDir {
 final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
 /// Flutter stored path of config.
-const kConfigFlutterStoredKey = "path";
+const kConfigFlutterStoredKey = "cache_path";

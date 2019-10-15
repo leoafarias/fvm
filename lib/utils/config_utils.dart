@@ -33,11 +33,7 @@ class ConfigUtils {
         }
       }
     } on Exception catch (e) {
-      _config = {};
-      _commit();
-    } on Error catch (e) {
-      _config = {};
-      _commit();
+      ExceptionCouldNotReadConfig('$e');
     }
     return _config;
   }
