@@ -65,6 +65,22 @@ List all the versions that are installed on your machine.
 > fvm list
 ```
 
+### Change FVM Cache Directory
+
+There are some configurations that allows for added flexibility on FVM.
+
+```bash
+fvm config --cache-path <path-to-use>
+```
+
+### List Config Options
+
+Returns list of all stored options in the config file.
+
+```bash
+fvm config --ls
+```
+
 ### Running Flutter SDK
 
 There are a couple of ways you can interact with the SDK setup in your project.
@@ -105,6 +121,8 @@ Add the following to your settings.json
 ```
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
+
+
 
 ## Contributing
 

@@ -41,3 +41,14 @@ class ExceptionErrorFlutterPath implements Exception {
 
   String toString() => 'ExceptionErrorFlutterPath: $message';
 }
+
+/// Not a valid version exception
+class ExceptionCouldNotReadConfig implements Exception {
+  /// Version
+  final String message;
+
+  /// Constructor
+  const ExceptionCouldNotReadConfig([this.message = '']);
+
+  String toString() => 'ExceptionCouldNotReadConfig: $message';
+}

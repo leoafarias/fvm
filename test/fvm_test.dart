@@ -2,6 +2,7 @@
 
 import 'package:fvm/fvm.dart';
 import 'package:test/test.dart';
+import 'package:fvm/constants.dart';
 
 void main() {
   test('Run Install Channel', () async {
@@ -70,5 +71,24 @@ void main() {
     } on Exception {
       expect(true, true);
     }
+  });
+
+  test('Runs FVM Config without exception ', () async {
+    try {
+      await fvmRunner(['config', '--cache-path', 'test_Folder/']);
+    } on Exception catch (e) {
+      fail("Exception thrown, $e");
+    }
+    expect(true, true);
+  });
+
+  test('Sets Config cache-path', () async {
+    final path = 'test_path/';
+    try {
+      await fvmRunner(['config', '--cache-path', path]);
+    } on Exception catch (e) {
+      fail("Exception thrown, $e");
+    }
+    expect(path, kVersionsDir.path);
   });
 }
