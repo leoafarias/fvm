@@ -30,3 +30,14 @@ class ExceptionNotValidVersion implements Exception {
 
   String toString() => 'ExceptionNotValidVersion: $message';
 }
+
+/// The folder cannot be set incorrectly.
+class ExceptionErrorFlutterPath implements Exception {
+  /// Version
+  final String message;
+
+  /// Constructor
+  const ExceptionErrorFlutterPath([this.message = '']);
+
+  String toString() => 'ExceptionErrorFlutterPath: $message';
+}

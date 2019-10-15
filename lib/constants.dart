@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:fvm/utils/config_utils.dart';
+
+final _configUtils = ConfigUtils();
+
 /// Flutter Repo Address
 const kFlutterRepo = "https://github.com/flutter/flutter.git";
 
@@ -24,8 +28,20 @@ String _fvmHome() {
   return '$home/fvm';
 }
 
+/// Config file of fvm's config.
+File get kConfigFile => File('${_fvmHome()}/.configFile');
+
 /// Where Flutter SDK Versions are stored
-final kVersionsDir = Directory('${_fvmHome()}/versions');
+Directory get kVersionsDir {
+  final flutterPath = _configUtils.getStoredPath();
+  if (flutterPath != null) {
+    return Directory(flutterPath);
+  }
+  return Directory('${_fvmHome()}/versions');
+}
 
 /// Flutter Channels
 final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
+
+/// Flutter stored path of config.
+const kConfigFlutterStoredKey = "path";
