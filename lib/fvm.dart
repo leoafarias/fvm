@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
+import 'package:fvm/commands/config.dart';
 import 'package:fvm/commands/flutter.dart';
 import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/list.dart';
@@ -22,7 +23,6 @@ Future<void> fvmRunner(List<String> args) async {
     } else {
       logger = Logger.standard();
     }
-    ;
   });
 
   runner..addCommand(InstallCommand());
@@ -30,6 +30,7 @@ Future<void> fvmRunner(List<String> args) async {
   runner..addCommand(FlutterCommand());
   runner..addCommand(RemoveCommand());
   runner..addCommand(UseCommand());
+  runner..addCommand(ConfigCommand());
 
   return await runner.run(args).catchError((exc, st) {
     if (exc is String) {

@@ -167,7 +167,7 @@ Future<List<String>> flutterListInstalledSdks() async {
     return basename(version.path);
   });
 
-  final results = await Future.wait(installedVersions);
+  final results = (await Future.wait(installedVersions)).toList();
   results.sort();
   return results;
 }
