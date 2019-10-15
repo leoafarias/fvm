@@ -1,0 +1,23 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "CaiJingLong",
+      "name": "Caijinglong",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/14145407?v=4",
+      "profile": "https://www.kikt.top",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "fvm",
+  "projectOwner": "leoafarias",
+  "repoType": "github",
+  "repoHost": "https://github.com"
+}
