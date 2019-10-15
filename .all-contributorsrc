@@ -1,23 +1,49 @@
 {
+  "projectName": "fvm",
+  "projectOwner": "leoafarias",
+  "repoType": "github",
+  "repoHost": "https://github.com",
   "files": [
     "README.md"
   ],
-  "imageSize": 100,
+  "imageSize": 50,
   "commit": false,
+  "commitConvention": "none",
   "contributors": [
+    {
+      "login": "leoafarias",
+      "name": "Leo Farias",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/435833?v=4",
+      "profile": "https://github.com/leoafarias",
+      "contributions": [
+        "doc",
+        "ideas",
+        "code",
+        "example",
+        "review",
+        "maintenance",
+        "infra"
+      ]
+    },
+    {
+      "login": "ianko",
+      "name": "Ianko Leite",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/723360?v=4",
+      "profile": "https://github.com/ianko",
+      "contributions": [
+        "ideas"
+      ]
+    },
     {
       "login": "CaiJingLong",
       "name": "Caijinglong",
       "avatar_url": "https://avatars0.githubusercontent.com/u/14145407?v=4",
       "profile": "https://www.kikt.top",
       "contributions": [
-        "code"
+        "code",
+        "ideas"
       ]
     }
   ],
-  "contributorsPerLine": 7,
-  "projectName": "fvm",
-  "projectOwner": "leoafarias",
-  "repoType": "github",
-  "repoHost": "https://github.com"
+  "contributorsPerLine": 7
 }
