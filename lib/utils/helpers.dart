@@ -52,8 +52,6 @@ Link projectFlutterLink() {
   var dir = kWorkingDirectory;
   while (true) {
     link = Link('${dir.path}/fvm');
-    // print("finding: ${link.path}");
-    // print("${link.path} exists:  ${link.existsSync()}");
     if (link.existsSync()) {
       return link;
     }
