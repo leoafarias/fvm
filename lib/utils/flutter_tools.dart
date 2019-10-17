@@ -16,8 +16,6 @@ Future<void> processRunner(String cmd, List<String> args,
   await sharedStdIn.terminate();
 }
 
-// TODO: force all branch and versions to be lowercase
-
 /// Clones Flutter SDK from Channel
 /// Returns true if comes from exists or false if its new fetch.
 Future<void> flutterChannelClone(String channel) async {

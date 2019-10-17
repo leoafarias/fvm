@@ -29,20 +29,17 @@ class FlutterCommand extends Command {
   Future<void> run() async {
     final flutterProjectLink = projectFlutterLink();
 
-    if (flutterProjectLink == null) {
+    if (flutterProjectLink == null || !await flutterProjectLink.exists()) {
       throw Exception('No FVM config found. Create with <use> command');
     }
 
-    if (!await flutterProjectLink.exists()) {
-      throw Exception('No FVM config found. Create with <use> command');
-    }
+    try {
+      final targetLink = File(await flutterProjectLink.target());
 
-    final targetLink = File(await flutterProjectLink.target());
-
-    if (!await flutterProjectLink.exists()) {
-      throw Exception('Issue found with FVM config. Create with <use> command');
+      await processRunner(targetLink.path, argResults.arguments,
+          workingDirectory: kWorkingDirectory.path);
+    } on Exception {
+      rethrow;
     }
-    await processRunner(targetLink.path, argResults.arguments,
-        workingDirectory: kWorkingDirectory.path);
   }
 }

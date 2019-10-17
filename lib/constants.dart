@@ -14,7 +14,7 @@ final kWorkingDirectory = Directory.current;
 final kLocalFlutterLink = Link('${kWorkingDirectory.path}/fvm');
 
 /// FVM Home directory
-String _fvmHome() {
+String get fvmHome {
   var home = "";
   final envVars = Platform.environment;
   if (Platform.isMacOS) {
@@ -29,7 +29,7 @@ String _fvmHome() {
 }
 
 /// Config file of fvm's config.
-File get kConfigFile => File('${_fvmHome()}/.fvm_config');
+File get kConfigFile => File('$fvmHome/.fvm_config');
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
@@ -37,7 +37,7 @@ Directory get kVersionsDir {
   if (flutterPath != null) {
     return Directory(flutterPath);
   }
-  return Directory('${_fvmHome()}/versions');
+  return Directory('$fvmHome/versions');
 }
 
 /// Flutter Channels

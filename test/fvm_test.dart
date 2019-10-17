@@ -1,10 +1,16 @@
 @Timeout(Duration(minutes: 5))
-
 import 'package:fvm/fvm.dart';
+import 'package:fvm/utils/config_utils.dart';
 import 'package:test/test.dart';
 import 'package:fvm/constants.dart';
 
+final testPath = '$fvmHome/test_path';
+
 void main() {
+  tearDown(() async {
+    ConfigUtils().removeConfig();
+  });
+
   test('Run Install Channel', () async {
     try {
       await fvmRunner(['install', 'master']);
@@ -19,7 +25,7 @@ void main() {
     try {
       await fvmRunner(['install', '1.8.0']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
@@ -29,7 +35,7 @@ void main() {
     try {
       await fvmRunner(['list']);
     } on Exception catch (e) {
-      fail("Exception not thrown, $e");
+      fail("Exception thrown, $e");
     }
 
     expect(true, true);
@@ -54,6 +60,7 @@ void main() {
 
     expect(true, true);
   });
+
   test('Run Remove Release', () async {
     try {
       await fvmRunner(['remove', '1.8.0']);
@@ -64,18 +71,17 @@ void main() {
     expect(true, true);
   });
 
-  test('Run Flutter Command Fails', () async {
+  test('Fail Run Flutter Command', () async {
     try {
       await fvmRunner(['flutter']);
-      fail("Exception not thrown");
+      fail('Exception not thrown');
     } on Exception {
       expect(true, true);
     }
   });
-
-  test('Runs FVM Config without exception ', () async {
+  test('Gets config options without exception', () async {
     try {
-      await fvmRunner(['config', '--cache-path', 'test_Folder/']);
+      await fvmRunner(['config', '--ls']);
     } on Exception catch (e) {
       fail("Exception thrown, $e");
     }
@@ -83,12 +89,11 @@ void main() {
   });
 
   test('Sets Config cache-path', () async {
-    final path = 'test_path/';
     try {
-      await fvmRunner(['config', '--cache-path', path]);
+      await fvmRunner(['config', '--cache-path', testPath]);
     } on Exception catch (e) {
       fail("Exception thrown, $e");
     }
-    expect(path, kVersionsDir.path);
+    expect(testPath, kVersionsDir.path);
   });
 }

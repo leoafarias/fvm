@@ -13,7 +13,7 @@ class ConfigCommand extends Command {
     argParser
       ..addOption('cache-path',
           abbr: 'c', help: 'Path to store Flutter cached versions')
-      ..addFlag('ls', abbr: 'l', help: 'Lists all config options');
+      ..addFlag('ls', help: 'Lists all config options');
   }
   Future<void> run() async {
     final path = argResults['cache-path'];

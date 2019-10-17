@@ -19,7 +19,7 @@ class ConfigUtils {
     return _instance;
   }
 
-  Map<String, String> _config = {};
+  final Map<String, String> _config = {};
 
   Map<String, String> _readConfig() {
     if (!kConfigFile.existsSync()) {
@@ -59,15 +59,20 @@ class ConfigUtils {
   /// config flutter stored path
   void configFlutterStoredPath(String path) {
     final type = FileSystemEntity.typeSync(path, followLinks: true);
-    if (type == FileSystemEntityType.file) {
-      throw ExceptionErrorFlutterPath();
-    } else if (type == FileSystemEntityType.directory) {
+    if (type == FileSystemEntityType.directory) {
       setValue(kConfigFlutterStoredKey, path);
     } else if (type == FileSystemEntityType.notFound) {
       Directory(path).createSync(recursive: true);
       setValue(kConfigFlutterStoredKey, path);
     } else {
       throw ExceptionErrorFlutterPath();
+    }
+  }
+
+  /// Removes Config file
+  void removeConfig() {
+    if (!kConfigFile.existsSync()) {
+      kConfigFile.deleteSync();
     }
   }
 
