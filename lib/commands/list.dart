@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:fvm/utils/helpers.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
@@ -19,7 +18,6 @@ class ListCommand extends Command {
     final choices = await flutterListInstalledSdks();
     if (choices.length == 0) {
       logger.stdout('No SDKs have been installed yet.');
-      exit(0);
     }
 
     void printVersions(String version) {
@@ -30,6 +28,5 @@ class ListCommand extends Command {
     }
 
     choices.forEach(printVersions);
-    exit(0);
   }
 }

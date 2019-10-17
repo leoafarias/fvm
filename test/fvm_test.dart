@@ -38,7 +38,7 @@ void main() {
 
     test('List Channel', () async {
       try {
-        await fvmRunner(['list', '--verbose']);
+        await fvmRunner(['list']);
       } on Exception catch (e) {
         fail("Exception thrown, $e");
       }
