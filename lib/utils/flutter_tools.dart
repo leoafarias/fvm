@@ -158,19 +158,18 @@ Future<List<String>> flutterListInstalledSdks() async {
     return [];
   }
 
-  final versions = kVersionsDir.listSync();
+  final versions = await kVersionsDir.list().toList();
 
-  final installedVersions = versions
-      .where((version) =>
-          FileSystemEntity.typeSync(version.path) ==
-          FileSystemEntityType.directory)
-      .map((version) async {
-    return basename(version.path);
-  });
+  var installedVersions = <String>[];
+  for (var version in versions) {
+    if (FileSystemEntity.typeSync(version.path) ==
+        FileSystemEntityType.directory) {
+      installedVersions.add(basename(version.path));
+    }
+  }
 
-  final results = (await Future.wait(installedVersions)).toList();
-  results.sort();
-  return results;
+  installedVersions.sort();
+  return installedVersions;
 }
 
 /// Links Flutter Dir to existsd SDK
