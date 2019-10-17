@@ -56,7 +56,7 @@ Link projectFlutterLink() {
       return link;
     }
     dir = dir.parent;
-    if (rootPrefix == dir.path) {
+    if (rootPrefix(link.path) == dir.path) {
       return null;
     }
   }
