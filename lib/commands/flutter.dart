@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/helpers.dart';
 
 /// Proxies Flutter Commands
 class FlutterCommand extends Command {
@@ -26,16 +27,22 @@ class FlutterCommand extends Command {
   }
 
   Future<void> run() async {
-    if (!await kLocalFlutterLink.exists()) {
+    final flutterProjectLink = projectFlutterLink();
+
+    if (flutterProjectLink == null) {
       throw Exception('No FVM config found. Create with <use> command');
     }
 
-    final targetLink = File(await kLocalFlutterLink.target());
+    if (!await flutterProjectLink.exists()) {
+      throw Exception('No FVM config found. Create with <use> command');
+    }
 
-    if (!await targetLink.exists()) {
+    final targetLink = File(await flutterProjectLink.target());
+
+    if (!await flutterProjectLink.exists()) {
       throw Exception('Issue found with FVM config. Create with <use> command');
     }
-    await processRunner('./fvm', argResults.arguments,
+    await processRunner(targetLink.path, argResults.arguments,
         workingDirectory: kWorkingDirectory.path);
   }
 }

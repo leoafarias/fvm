@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:path/path.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<bool> isValidFlutterVersion(String version) async {
@@ -30,5 +31,33 @@ Future<void> linkDir(
     await source.create(target.path);
   } on Exception catch (err) {
     throw Exception(['Could not link ${target.path}:', err]);
+  }
+}
+
+/// Check if it is the current version.
+bool isCurrentVersion(String version) {
+  final link = projectFlutterLink();
+  if (link != null) {
+    return Uri.parse(File(link.targetSync()).parent.parent.path)
+            .pathSegments
+            .last ==
+        version;
+  }
+  return false;
+}
+
+/// The fvm link of the current working directory.
+Link projectFlutterLink() {
+  Link link;
+  var dir = kWorkingDirectory;
+  while (true) {
+    link = Link('${dir.path}/fvm');
+    if (link.existsSync()) {
+      return link;
+    }
+    dir = dir.parent;
+    if (rootPrefix == dir.path) {
+      return null;
+    }
   }
 }
