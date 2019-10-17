@@ -30,8 +30,6 @@ class ListCommand extends Command {
     }
 
     choices.forEach(printVersions);
-    // exit(0);
-    // final version = Chooser<String>(choices, message: 'Select a version:');
-    // final selectedVersion = version.chooseSync();
+    exit(0);
   }
 }
