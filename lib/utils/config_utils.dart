@@ -70,9 +70,9 @@ class ConfigUtils {
   }
 
   /// Removes Config file
-  void removeConfig() {
-    if (kConfigFile.existsSync()) {
-      kConfigFile.deleteSync();
+  void removeConfig() async {
+    if (await kConfigFile.exists()) {
+      await kConfigFile.delete();
     }
   }
 

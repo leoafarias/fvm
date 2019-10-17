@@ -37,7 +37,7 @@ Future<void> flutterChannelClone(String channel) async {
       workingDirectory: channelDirectory.path);
 
   if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone("Could not clone $channel");
+    throw ExceptionCouldNotClone("Could not clone $channel: ${result.stderr}");
   }
 }
 
@@ -62,7 +62,7 @@ Future<void> flutterVersionClone(String version) async {
       workingDirectory: versionDirectory.path);
 
   if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone("Could not clone $version");
+    throw ExceptionCouldNotClone("Could not clone $version: ${result.stderr}");
   }
 }
 
@@ -76,6 +76,9 @@ Future<void> flutterVersionClone(String version) async {
 /// Gets SDK Version
 Future<String> flutterSdkVersion(String branch) async {
   final branchDirectory = Directory('${kVersionsDir.path}/$branch');
+  if (!await branchDirectory.exists()) {
+    throw Exception('Could not get version from SDK that is not installed');
+  }
   return await _gitGetVersion(branchDirectory.path);
 }
 
