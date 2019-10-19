@@ -36,10 +36,10 @@ Future<void> linkDir(
 }
 
 /// Check if it is the current version.
-bool isCurrentVersion(String version) {
-  final link = projectFlutterLink();
+Future<bool> isCurrentVersion(String version) async {
+  final link = await projectFlutterLink();
   if (link != null) {
-    return Uri.parse(File(link.targetSync()).parent.parent.path)
+    return Uri.parse(File(await link.target()).parent.parent.path)
             .pathSegments
             .last ==
         version;
@@ -48,17 +48,25 @@ bool isCurrentVersion(String version) {
 }
 
 /// The fvm link of the current working directory.
-Link projectFlutterLink() {
-  Link link;
-  var dir = kWorkingDirectory;
-  while (true) {
-    link = Link(path.join(dir.path, 'fvm'));
-    if (link.existsSync()) {
-      return link;
-    }
-    dir = dir.parent;
-    if (rootPrefix == dir.path) {
-      return null;
-    }
+/// [levels] how many levels you would like to go up to search for a version
+Future<Link> projectFlutterLink([Directory dir, int levels = 3]) async {
+  // If there are no levels exit
+  if (levels == 0) {
+    return null;
   }
+  Link link;
+
+  if (dir == null) {
+    dir = kWorkingDirectory;
+  }
+
+  link = Link(path.join(dir.path, 'fvfm'));
+
+  if (await link.exists()) {
+    return link;
+  }
+
+  levels--;
+
+  return await projectFlutterLink(dir, levels);
 }

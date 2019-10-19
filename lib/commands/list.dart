@@ -15,18 +15,22 @@ class ListCommand extends Command {
   ListCommand();
 
   Future<void> run() async {
-    final choices = await flutterListInstalledSdks();
-    if (choices.length == 0) {
-      logger.stdout('No SDKs have been installed yet.');
-    }
-
-    void printVersions(String version) {
-      if (isCurrentVersion(version)) {
-        version = "$version(current)";
+    try {
+      final choices = await flutterListInstalledSdks();
+      if (choices.length == 0) {
+        logger.stdout('No SDKs have been installed yet.');
       }
-      logger.stdout(green.wrap(version));
-    }
 
-    choices.forEach(printVersions);
+      void printVersions(String version) async {
+        if (await isCurrentVersion(version)) {
+          version = "$version(current)";
+        }
+        logger.stdout(green.wrap(version));
+      }
+
+      choices.forEach(await printVersions);
+    } on Exception {
+      rethrow;
+    }
   }
 }

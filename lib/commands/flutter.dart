@@ -27,7 +27,7 @@ class FlutterCommand extends Command {
   }
 
   Future<void> run() async {
-    final flutterProjectLink = projectFlutterLink();
+    final flutterProjectLink = await projectFlutterLink();
 
     if (flutterProjectLink == null || !await flutterProjectLink.exists()) {
       throw Exception('No FVM config found. Create with <use> command');
