@@ -168,11 +168,11 @@ Future<List<String>> flutterListInstalledSdks() async {
     return [];
   }
 
-  final versions = await kVersionsDir.list().toList();
-
+  final versions = await kVersionsDir.list();
+  final versionsList = await versions.toList();
   var installedVersions = <String>[];
-  for (var version in versions) {
-    if (FileSystemEntity.typeSync(version.path) ==
+  for (var version in versionsList) {
+    if (await FileSystemEntity.type(version.path) ==
         FileSystemEntityType.directory) {
       installedVersions.add(path.basename(version.path));
     }
