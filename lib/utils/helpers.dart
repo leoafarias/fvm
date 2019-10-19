@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
@@ -34,18 +33,6 @@ Future<void> linkDir(
   } on Exception catch (err) {
     throw Exception(['Could not link ${target.path}:', err]);
   }
-}
-
-/// List Directory Contents
-Future<List<FileSystemEntity>> listDirContents(Directory dir) {
-  var files = <FileSystemEntity>[];
-
-  var completer = Completer<List<FileSystemEntity>>();
-  var lister = dir.list(recursive: false);
-  lister.listen((file) => files.add(file),
-      // should also register onError
-      onDone: () => completer.complete(files));
-  return completer.future;
 }
 
 /// Check if it is the current version.

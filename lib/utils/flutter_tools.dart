@@ -163,22 +163,27 @@ Future<bool> checkInstalledCorrectly(String version) async {
 
 /// Lists Installed Flutter SDK Version
 Future<List<String>> flutterListInstalledSdks() async {
-  // Returns empty array if directory does not exist
-  if (!await kVersionsDir.exists()) {
-    return [];
-  }
-  final versions = await listDirContents(kVersionsDir);
-
-  var installedVersions = <String>[];
-  for (var version in versions) {
-    if (await FileSystemEntity.type(version.path) ==
-        FileSystemEntityType.directory) {
-      installedVersions.add(path.basename(version.path));
+  try {
+    // Returns empty array if directory does not exist
+    if (!await kVersionsDir.exists()) {
+      return [];
     }
-  }
 
-  installedVersions.sort();
-  return installedVersions;
+    final versions = await kVersionsDir.list().toList();
+
+    var installedVersions = <String>[];
+    for (var version in versions) {
+      if (await FileSystemEntity.type(version.path) ==
+          FileSystemEntityType.directory) {
+        installedVersions.add(path.basename(version.path));
+      }
+    }
+
+    installedVersions.sort();
+    return installedVersions;
+  } on Exception {
+    rethrow;
+  }
 }
 
 /// Links Flutter Dir to existsd SDK
