@@ -21,10 +21,11 @@ DA:54,1
 DA:60,1
 DA:63,3
 DA:65,2
-DA:69,1
-DA:71,2
-LF:24
-LH:19
+DA:67,4
+DA:71,1
+DA:73,2
+LF:25
+LH:20
 end_of_record
 SF:lib/constants.dart
 DA:5,3
