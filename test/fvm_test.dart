@@ -133,15 +133,6 @@ void main() {
     });
   });
 
-  test('Fail Run Flutter Command', () async {
-    try {
-      await fvmRunner(['flutter']);
-      fail('Exception not thrown');
-    } on Exception {
-      expect(true, true);
-    }
-  });
-
   group('Config', () {
     test('Set Cache-Path', () async {
       try {
