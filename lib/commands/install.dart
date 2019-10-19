@@ -15,11 +15,12 @@ class InstallCommand extends Command {
   InstallCommand();
 
   void run() async {
-    final version = argResults.arguments[0].toLowerCase();
-    final isChannel = isValidFlutterChannel(version);
-
-    final progress = logger.progress(green.wrap('Downloading $version'));
     try {
+      await checkIfGitExists();
+      final version = argResults.arguments[0].toLowerCase();
+      final isChannel = isValidFlutterChannel(version);
+
+      final progress = logger.progress(green.wrap('Downloading $version'));
       if (isChannel) {
         await flutterChannelClone(version);
       } else {

@@ -41,6 +41,16 @@ Future<void> flutterChannelClone(String channel) async {
   }
 }
 
+/// Check if Git is installed
+Future<void> checkIfGitExists() async {
+  try {
+    await Process.run('git', ['--version']);
+  } on ProcessException {
+    throw Exception(
+        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
+  }
+}
+
 /// Clones Flutter SDK from Version Number
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> flutterVersionClone(String version) async {

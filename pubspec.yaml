@@ -1,6 +1,6 @@
 name: fvm
 description: A simple version manager for Flutter.
-version: 0.6.1
+version: 0.6.2
 homepage: https://github.com/leoafarias/fvm
 author: Leo Farias <leokcta@gmail.com>
 
