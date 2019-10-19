@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:test/test.dart';
+import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
 void main() {
@@ -30,7 +31,7 @@ void main() {
     });
     test('Checks that install is not correct', () async {
       final invalidVersionName = 'INVALID_VERSION';
-      final dir = Directory('${kVersionsDir.path}/$invalidVersionName');
+      final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
       await dir.create(recursive: true);
       final correct = await checkInstalledCorrectly(invalidVersionName);
       expect(correct, false);

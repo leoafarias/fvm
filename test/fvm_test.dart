@@ -1,6 +1,7 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
 import 'package:test/test.dart';
+import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 
@@ -53,7 +54,9 @@ void main() {
 
         final targetBin = await kLocalFlutterLink.target();
 
-        final channelBin = '${kVersionsDir.path}/$channel/bin/flutter';
+        final channelBin =
+            path.join(kVersionsDir.path, channel, 'bin', 'flutter');
+        ;
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
@@ -99,7 +102,8 @@ void main() {
 
         final targetBin = await kLocalFlutterLink.target();
 
-        final releaseBin = '${kVersionsDir.path}/$release/bin/flutter';
+        final releaseBin =
+            path.join(kVersionsDir.path, release, 'bin', 'flutter');
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);

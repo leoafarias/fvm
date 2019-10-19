@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'package:path/path.dart' as path;
 import 'package:fvm/utils/config_utils.dart';
 
 final _configUtils = ConfigUtils();
@@ -11,7 +11,7 @@ const kFlutterRepo = "https://github.com/flutter/flutter.git";
 final kWorkingDirectory = Directory.current;
 
 /// Local Project Flutter Link
-final kLocalFlutterLink = Link('${kWorkingDirectory.path}/fvm');
+final kLocalFlutterLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
 
 /// FVM Home directory
 String get fvmHome {
@@ -25,11 +25,11 @@ String get fvmHome {
     home = envVars['UserProfile'];
   }
 
-  return '$home/fvm';
+  return path.join(home, 'fvm');
 }
 
 /// Config file of fvm's config.
-File get kConfigFile => File('$fvmHome/.fvm_config');
+File get kConfigFile => File(path.join(fvmHome, '.fvm_config'));
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
@@ -37,7 +37,7 @@ Directory get kVersionsDir {
   if (flutterPath != null) {
     return Directory(flutterPath);
   }
-  return Directory('$fvmHome/versions');
+  return Directory(path.join(fvmHome, 'versions'));
 }
 
 /// Flutter Channels

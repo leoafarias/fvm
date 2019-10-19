@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
 import 'package:fvm/utils/logger.dart';
 
@@ -19,7 +19,7 @@ Future<void> processRunner(String cmd, List<String> args,
 /// Clones Flutter SDK from Channel
 /// Returns true if comes from exists or false if its new fetch.
 Future<void> flutterChannelClone(String channel) async {
-  final channelDirectory = Directory('${kVersionsDir.path}/$channel');
+  final channelDirectory = Directory(path.join(kVersionsDir.path, channel));
 
   if (!isValidFlutterChannel(channel)) {
     throw ExceptionNotValidChannel('"$channel" is not a valid channel');
@@ -44,7 +44,7 @@ Future<void> flutterChannelClone(String channel) async {
 /// Clones Flutter SDK from Version Number
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> flutterVersionClone(String version) async {
-  final versionDirectory = Directory('${kVersionsDir.path}/$version');
+  final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
   if (!await isValidFlutterVersion(version)) {
     throw ExceptionNotValidVersion('"$version" is not a valid version');
@@ -75,7 +75,7 @@ Future<void> flutterVersionClone(String version) async {
 
 /// Gets SDK Version
 Future<String> flutterSdkVersion(String branch) async {
-  final branchDirectory = Directory('${kVersionsDir.path}/$branch');
+  final branchDirectory = Directory(path.join(kVersionsDir.path, branch));
   if (!await branchDirectory.exists()) {
     throw Exception('Could not get version from SDK that is not installed');
   }
@@ -124,7 +124,7 @@ Future<List<String>> flutterListAllSdks() async {
 
 /// Removes a Version of Flutter SDK
 Future<void> flutterSdkRemove(String version) async {
-  final versionDir = Directory('${kVersionsDir.path}/$version');
+  final versionDir = Directory(path.join(kVersionsDir.path, version));
   if (await versionDir.exists()) {
     await versionDir.delete(recursive: true);
   }
@@ -132,9 +132,9 @@ Future<void> flutterSdkRemove(String version) async {
 
 /// Check if version is from git
 Future<bool> checkInstalledCorrectly(String version) async {
-  final versionDir = Directory('${kVersionsDir.path}/$version');
-  final gitDir = Directory('${versionDir.path}/.github');
-  final flutterBin = Directory('${versionDir.path}/bin');
+  final versionDir = Directory(path.join(kVersionsDir.path, version));
+  final gitDir = Directory(path.join(versionDir.path, '.github'));
+  final flutterBin = Directory(path.join(versionDir.path, 'bin'));
   // Check if version directory exists
   if (!await versionDir.exists()) {
     return false;
@@ -164,7 +164,7 @@ Future<List<String>> flutterListInstalledSdks() async {
   for (var version in versions) {
     if (FileSystemEntity.typeSync(version.path) ==
         FileSystemEntityType.directory) {
-      installedVersions.add(basename(version.path));
+      installedVersions.add(path.basename(version.path));
     }
   }
 
@@ -174,6 +174,7 @@ Future<List<String>> flutterListInstalledSdks() async {
 
 /// Links Flutter Dir to existsd SDK
 Future<void> linkProjectFlutterDir(String version) async {
-  final versionBin = Directory('${kVersionsDir.path}/$version/bin/flutter');
+  final versionBin =
+      Directory(path.join(kVersionsDir.path, version, 'bin', 'flutter'));
   await linkDir(kLocalFlutterLink, versionBin);
 }

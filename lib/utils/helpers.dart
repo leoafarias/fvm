@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:path/path.dart';
 
@@ -51,7 +52,7 @@ Link projectFlutterLink() {
   Link link;
   var dir = kWorkingDirectory;
   while (true) {
-    link = Link('${dir.path}/fvm');
+    link = Link(path.join(dir.path, 'fvm'));
     if (link.existsSync()) {
       return link;
     }
