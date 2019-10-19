@@ -83,7 +83,7 @@ fvm config --ls
 
 ### Running Flutter SDK
 
-There are a couple of ways you can interact with the SDK setup in your project.
+There are a couple of ways you can interact with the SDK setup in your project. 
 
 #### Proxy Commands
 
@@ -93,7 +93,7 @@ Flutter command within `fvm` proxies all calls to the CLI just changing the SDK 
 > fvm flutter run
 ```
 
-This will run `flutter run` command using the local project SDK.
+This will run `flutter run` command using the local project SDK. If no FVM config is found in the project. FMV will recursively try for a version in a parent directory.
 
 #### Call Local SDK Directly
 
