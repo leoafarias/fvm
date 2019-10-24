@@ -1,5 +1,5 @@
 name: fvm
-description: Flutter Version Management: A simple cli to manage Flutter SDK versions per project.
+description: A simple cli to manage Flutter SDK versions per project.
 version: 0.6.2
 homepage: https://github.com/leoafarias/fvm
 author: Leo Farias <leokcta@gmail.com>
