@@ -23,7 +23,10 @@ class FlutterCommand extends Command {
           help: '''Suppress analytics reporting when this command runs.''')
       ..addFlag('bug-report',
           help:
-              '''Captures a bug report file to submit to the Flutter team. Contains local paths, device identifiers, and log snippets.''');
+              '''Captures a bug report file to submit to the Flutter team. Contains local paths, device identifiers, and log snippets.''')
+      ..addFlag('debug', help: '''Build a debug version of your app.''')
+      ..addFlag('release',
+          help: '''Build a release version of your app (default mode).''');
   }
 
   Future<void> run() async {
