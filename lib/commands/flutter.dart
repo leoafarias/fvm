@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
@@ -11,20 +12,10 @@ class FlutterCommand extends Command {
   // subclass.
   final name = "flutter";
   final description = "Proxies Flutter Commands";
+  final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  FlutterCommand() {
-    argParser
-      ..addOption('device-id',
-          abbr: 'd', help: '''Target device id or name (prefixes allowed).''')
-      ..addFlag('version',
-          help: '''Reports the version of this tool, on the local version.''')
-      ..addFlag('suppress-analytics',
-          help: '''Suppress analytics reporting when this command runs.''')
-      ..addFlag('bug-report',
-          help:
-              '''Captures a bug report file to submit to the Flutter team. Contains local paths, device identifiers, and log snippets.''');
-  }
+  FlutterCommand();
 
   Future<void> run() async {
     final flutterProjectLink = await projectFlutterLink();

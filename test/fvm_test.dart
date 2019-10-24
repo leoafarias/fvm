@@ -12,6 +12,8 @@ final testPath = '$fvmHome/test_path';
 const channel = 'master';
 const release = '1.8.0';
 
+const defaultParams = ['--verbose'];
+
 void main() {
   setUpAll(() async {
     await fvmSetUpAll();
@@ -22,7 +24,7 @@ void main() {
   group('Channel Flow', () {
     test('Install Channel', () async {
       try {
-        await fvmRunner(['install', channel, '--verbose']);
+        await fvmRunner(['install', channel, ...defaultParams]);
         final existingChannel = await flutterSdkVersion(channel);
         final correct = await checkInstalledCorrectly(channel);
         final installedVersions = await flutterListInstalledSdks();
@@ -49,13 +51,17 @@ void main() {
 
     test('Use Channel', () async {
       try {
-        await fvmRunner(['use', channel, '--verbose']);
+        await fvmRunner(['use', channel, ...defaultParams]);
         final linkExists = await kLocalFlutterLink.exists();
 
         final targetBin = await kLocalFlutterLink.target();
 
-        final channelBin =
-            path.join(kVersionsDir.path, channel, 'bin', 'flutter');
+        final channelBin = path.join(
+          kVersionsDir.path,
+          channel,
+          'bin',
+          'flutter',
+        );
         ;
 
         expect(targetBin == channelBin, true);
@@ -67,7 +73,7 @@ void main() {
 
     test('Remove Channel', () async {
       try {
-        await fvmRunner(['remove', channel, '--verbose']);
+        await fvmRunner(['remove', channel, ...defaultParams]);
       } on Exception catch (e) {
         fail("Exception thrown, $e");
       }
@@ -78,7 +84,7 @@ void main() {
   group('Release Flow', () {
     test('Install Release', () async {
       try {
-        await fvmRunner(['install', release, '--verbose']);
+        await fvmRunner(['install', release, ...defaultParams]);
         final existingRelease = await flutterSdkVersion(release);
         final correct = await checkInstalledCorrectly(release);
         final installedVersions = await flutterListInstalledSdks();
@@ -97,7 +103,7 @@ void main() {
 
     test('Use Release', () async {
       try {
-        await fvmRunner(['use', release, '--verbose']);
+        await fvmRunner(['use', release, ...defaultParams]);
         final linkExists = await kLocalFlutterLink.exists();
 
         final targetBin = await kLocalFlutterLink.target();
@@ -114,7 +120,7 @@ void main() {
 
     test('List Release', () async {
       try {
-        await fvmRunner(['list', '--verbose']);
+        await fvmRunner(['list', ...defaultParams]);
       } on Exception catch (e) {
         fail("Exception thrown, $e");
       }
@@ -124,7 +130,7 @@ void main() {
 
     test('Remove Release', () async {
       try {
-        await fvmRunner(['remove', release, '--verbose']);
+        await fvmRunner(['remove', release, ...defaultParams]);
       } on Exception catch (e) {
         fail("Exception thrown, $e");
       }
@@ -149,6 +155,18 @@ void main() {
       } on Exception catch (e) {
         fail("Exception thrown, $e");
       }
+      expect(true, true);
+    });
+  });
+  group('Flutter Commands', () {
+    test('Flutter Exists', () async {
+      const flutterArgs = ['build', 'ios', '--debug'];
+      try {
+        await fvmRunner(['flutter', ...flutterArgs]);
+      } on Exception catch (e) {
+        fail("Exception thrown, $e");
+      }
+
       expect(true, true);
     });
   });

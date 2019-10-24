@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/commands/config.dart';
 import 'package:fvm/commands/flutter.dart';
@@ -39,10 +40,11 @@ Future<void> fvmRunner(List<String> args) async {
       logger.stderr("⚠️  ${yellow.wrap(exc?.message)}");
       if (args.contains('--verbose')) {
         logger.stderr(st);
+        throw exc;
       }
-
-      throw exc;
     }
     exitCode = 1;
-  }).whenComplete(() {});
+  }).whenComplete(() {
+    stdout.write(resetAll.wrap(''));
+  });
 }

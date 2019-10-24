@@ -16,14 +16,13 @@ class UseCommand extends Command {
   Future<void> run() async {
     final version = argResults.arguments[0];
 
-    final isValidInstall = await isValidFlutterInstall(version);
-
-    if (!isValidInstall) {
-      throw Exception('Flutter SDK: $version is not installed');
-    }
-
-    final progress = logger.progress('Using $version');
     try {
+      final isValidInstall = await isValidFlutterInstall(version);
+
+      if (!isValidInstall) {
+        throw Exception('Flutter SDK: $version is not installed');
+      }
+      final progress = logger.progress('Using $version');
       await linkProjectFlutterDir(version);
       finishProgress(progress);
     } on Exception {
