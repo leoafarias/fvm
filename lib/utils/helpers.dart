@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
-import 'package:path/path.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<bool> isValidFlutterVersion(String version) async {

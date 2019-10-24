@@ -17,7 +17,7 @@ class ListCommand extends Command {
   Future<void> run() async {
     try {
       final choices = await flutterListInstalledSdks();
-      if (choices.length == 0) {
+      if (choices.isEmpty) {
         logger.stdout('No SDKs have been installed yet.');
       }
 

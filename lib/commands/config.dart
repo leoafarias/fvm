@@ -23,7 +23,7 @@ class ConfigCommand extends Command {
 
     if (argResults['ls']) {
       final configOptions = ConfigUtils().displayAllConfig();
-      if (configOptions.length > 0) {
+      if (configOptions.isNotEmpty) {
         logger.stdout(green.wrap(configOptions));
       } else {
         logger.stdout(yellow.wrap('No Configurations Have Been Set'));
