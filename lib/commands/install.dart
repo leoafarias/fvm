@@ -17,6 +17,9 @@ class InstallCommand extends Command {
   void run() async {
     try {
       await checkIfGitExists();
+      if (argResults.arguments.isEmpty) {
+        throw Exception('Need to provide a channel or a version');
+      }
       final version = argResults.arguments[0].toLowerCase();
       final isChannel = isValidFlutterChannel(version);
 
