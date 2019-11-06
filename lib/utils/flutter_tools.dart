@@ -10,10 +10,18 @@ import 'package:fvm/utils/logger.dart';
 Future<void> processRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
-  var spawn =
-      await manager.spawn(cmd, args, workingDirectory: workingDirectory);
-  await spawn.exitCode;
-  await sharedStdIn.terminate();
+
+  try {
+    var spawn =
+        await manager.spawn(cmd, args, workingDirectory: workingDirectory);
+
+    if (await spawn.exitCode != 0) {
+      throw Exception("Could not run command $cmd: $args");
+    }
+    await sharedStdIn.terminate();
+  } on Exception {
+    rethrow;
+  }
 }
 
 /// Clones Flutter SDK from Channel
