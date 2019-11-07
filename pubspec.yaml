@@ -18,6 +18,10 @@ dependencies:
     io: ^0.3.3
     path: ^1.6.4
   
+# Override until https://github.com/dart-lang/args/pull/124 gets resolved
+dependency_overrides:
+  args:
+    git: https://github.com/leoafarias/args.git
 
 dev_dependencies:
   pedantic: ^1.8.0
