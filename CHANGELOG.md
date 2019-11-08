@@ -1,3 +1,9 @@
+## 0.6.6
+
+- Better Flutter command compatibility
+- Improved error logging and --verbose behavior
+- Friendlier error messages
+
 ## 0.6.5
 
 - Better Error handling and friendlier error message
