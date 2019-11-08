@@ -190,7 +190,7 @@ Future<List<String>> flutterListInstalledSdks() async {
     installedVersions.sort();
     return installedVersions;
   } on Exception {
-    rethrow;
+    throw Exception('Could not list installed sdks');
   }
 }
 

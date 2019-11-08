@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
@@ -30,7 +31,8 @@ Future<void> linkDir(
     }
     await source.create(target.path);
   } on Exception catch (err) {
-    throw Exception(['Could not link ${target.path}:', err]);
+    logVerboseError(err);
+    throw Exception('Sorry could not link ${target.path}');
   }
 }
 
