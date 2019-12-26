@@ -1,6 +1,6 @@
 name: Analysis
 
-on: [pull_request]
+on: [push, pull_request]
 
 jobs:
   package-analysis:
