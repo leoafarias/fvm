@@ -40,7 +40,8 @@ Future<void> linkDir(
 Future<bool> isCurrentVersion(String version) async {
   final link = await projectFlutterLink();
   if (link != null) {
-    return Uri.parse(File(await link.target()).parent.parent.path)
+    return Uri.file(File(await link.target()).parent.parent.path,
+                windows: Platform.isWindows)
             .pathSegments
             .last ==
         version;
