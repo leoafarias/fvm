@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:fvm/src/version.dart';
 import 'package:yaml/yaml.dart';
 import 'package:args/command_runner.dart';
 
@@ -12,11 +13,6 @@ class VersionCommand extends Command {
 
   @override
   run() {
-    var f = File("./pubspec.yaml");
-    f.readAsString().then((String text) {
-      var yaml = loadYaml(text);
-      String version = yaml['version'];
-      print(version);
-    });
+    print(packageVersion);
   }
 }

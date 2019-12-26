@@ -1,0 +1,24 @@
+name: Publish Package
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Install dependencies
+        run: pub get
+      - name: Run Builder for Version
+        run: pub run build_runner build
+      - name: Run tests
+        run: pub run test
+      - name: Publish
+        uses: sakebook/actions-flutter-pub-publisher@v1.2.0
+        with:
+          credential: ${{ secrets.CREDENTIAL_JSON }}
+          flutter_package: false
+          skip_test: false

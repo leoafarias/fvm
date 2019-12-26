@@ -1,3 +1,7 @@
+## 0.6.7
+
+- Added `version` command to see currently installed `fvm` version
+
 ## 0.6.6
 
 - Better Flutter command compatibility
