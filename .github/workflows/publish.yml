@@ -14,7 +14,7 @@ jobs:
       - name: Install dependencies
         run: pub get
       - name: Run Builder for Version
-        run: pub run build_runner build
+        run: pub run build_runner build --delete-conflicting-outputs
       - name: Run tests
         run: pub run test
   publish:
