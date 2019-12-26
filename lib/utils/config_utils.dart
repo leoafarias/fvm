@@ -29,7 +29,7 @@ class ConfigUtils {
       final savedValueMap = json.decode(kConfigFile.readAsStringSync());
       for (final key in savedValueMap.keys) {
         if (key is String) {
-          _config[key] = savedValueMap[key];
+          _config[key] = savedValueMap[key] as String;
         }
       }
     } on Exception catch (e) {

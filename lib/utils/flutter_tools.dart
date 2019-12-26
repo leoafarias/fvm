@@ -113,7 +113,7 @@ Future<String> _gitGetVersion(String path) async {
     throw Exception('Could not get version Info.');
   }
 
-  final versionNumber = result.stdout.trim();
+  final versionNumber = result.stdout.trim() as String;
   return versionNumber;
 }
 
@@ -126,7 +126,7 @@ Future<List<String>> flutterListAllSdks() async {
     throw Exception('Could not fetch list of available Flutter SDKs');
   }
 
-  List<String> tags = result.stdout.split('\n');
+  var tags = result.stdout.split('\n') as List<String>;
 
   var versionsList = <String>[];
   for (var tag in tags) {
