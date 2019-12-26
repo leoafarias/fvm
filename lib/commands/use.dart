@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
+import 'package:io/ansi.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -16,20 +15,23 @@ class UseCommand extends Command {
   UseCommand();
 
   Future<void> run() async {
+    if (argResults.arguments.isEmpty) {
+      final instruction = yellow.wrap('fvm use <version>');
+      throw 'Please provide a version. $instruction';
+    }
     final version = argResults.arguments[0];
 
     final isValidInstall = await isValidFlutterInstall(version);
 
     if (!isValidInstall) {
-      throw Exception('Flutter SDK: $version is not installed');
+      final instruction = yellow.wrap('fvm install <version> first.');
+      throw 'Flutter $version is not installed. Please run $instruction';
     }
 
-    final progress = logger.progress('Using $version');
-    try {
-      await linkProjectFlutterDir(version);
-      finishProgress(progress);
-    } on Exception {
-      rethrow;
-    }
+    final progress = logger.progress('Activating $version');
+
+    await linkProjectFlutterDir(version);
+    logger.stdout(green.wrap('$version is active'));
+    finishProgress(progress);
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:fvm/utils/helpers.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
@@ -16,18 +16,18 @@ class ListCommand extends Command {
 
   Future<void> run() async {
     final choices = await flutterListInstalledSdks();
-    if (choices.length == 0) {
-      logger.stdout('No SDKs have been installed yet.');
-      exit(0);
+
+    if (choices.isEmpty) {
+      throw 'No SDKs have been installed yet.';
     }
 
-    void printVersions(String version) {
+    void printVersions(String version) async {
+      if (await isCurrentVersion(version)) {
+        version = "$version (current)";
+      }
       logger.stdout(green.wrap(version));
     }
 
-    choices.forEach(printVersions);
-    // exit(0);
-    // final version = Chooser<String>(choices, message: 'Select a version:');
-    // final selectedVersion = version.chooseSync();
+    choices.forEach(await printVersions);
   }
 }
