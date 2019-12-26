@@ -165,4 +165,15 @@ void main() {
       expect(true, true);
     });
   });
+
+  group('Utils', () {
+    test('Check Version', () async {
+      try {
+        await fvmRunner(['version']);
+      } on Exception catch (e) {
+        fail("Exception thrown, $e");
+      }
+      expect(true, true);
+    });
+  });
 }
