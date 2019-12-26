@@ -5,8 +5,11 @@ import 'package:fvm/utils/logger.dart';
 
 /// Config fvm options.
 class ConfigCommand extends Command {
-  String get name => "config";
-  String get description => "Config fvm options";
+  @override
+  String get name => 'config';
+
+  @override
+  String get description => 'Config fvm options';
 
   /// Constructor
   ConfigCommand() {
@@ -15,6 +18,8 @@ class ConfigCommand extends Command {
           abbr: 'c', help: 'Path to store Flutter cached versions')
       ..addFlag('ls', help: 'Lists all config options');
   }
+
+  @override
   Future<void> run() async {
     final path = argResults['cache-path'];
     if (path != null) {

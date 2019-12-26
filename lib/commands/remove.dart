@@ -7,8 +7,8 @@ import 'package:fvm/utils/logger.dart';
 class RemoveCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "remove";
-  final description = "Removes Flutter SDK Version";
+  final name = 'remove';
+  final description = 'Removes Flutter SDK Version';
 
   /// Constructor
   RemoveCommand() {
@@ -21,6 +21,7 @@ class RemoveCommand extends Command {
       );
   }
 
+  @override
   void run() async {
     final version = argResults.arguments[0].toLowerCase();
 

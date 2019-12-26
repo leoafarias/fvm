@@ -8,12 +8,13 @@ import 'package:io/ansi.dart';
 class UseCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "use";
-  final description = "Which Flutter SDK Version you would like to use";
+  final name = 'use';
+  final description = 'Which Flutter SDK Version you would like to use';
 
   /// Constructor
   UseCommand();
 
+  @override
   Future<void> run() async {
     if (argResults.arguments.isEmpty) {
       final instruction = yellow.wrap('fvm use <version>');
