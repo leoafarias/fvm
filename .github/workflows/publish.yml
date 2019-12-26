@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v1
       - name: Run Analysis
-        uses: ./.github/workflows/analysis.yml
+        uses: ./.github/actions/analysis.yml
       - name: Run Builder for Version
         run: pub run build_runner build
       - name: Publish
