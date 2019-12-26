@@ -7,6 +7,9 @@ final _configUtils = ConfigUtils();
 /// Flutter Repo Address
 const kFlutterRepo = "https://github.com/flutter/flutter.git";
 
+/// Directory that the script is running
+final kFvmDirectory = Platform.script.toString();
+
 /// Working Directory for FVM
 final kWorkingDirectory = Directory.current;
 
