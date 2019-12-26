@@ -9,7 +9,10 @@ import 'package:io/ansi.dart';
 class InstallCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
+  @override
   final name = 'install';
+
+  @override
   final description = 'Installs Flutter SDK Version';
 
   /// Constructor

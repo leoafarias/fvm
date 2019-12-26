@@ -16,7 +16,7 @@ Future<void> processRunner(String cmd, List<String> args,
         await manager.spawn(cmd, args, workingDirectory: workingDirectory);
 
     if (await spawn.exitCode != 0) {
-      throw Exception("Could not run command $cmd: $args");
+      throw Exception('Could not run command $cmd: $args');
     }
     await sharedStdIn.terminate();
   } on Exception {
@@ -45,7 +45,7 @@ Future<void> flutterChannelClone(String channel) async {
       workingDirectory: channelDirectory.path);
 
   if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone("Could not clone $channel: ${result.stderr}");
+    throw ExceptionCouldNotClone('Could not clone $channel: ${result.stderr}');
   }
 }
 
@@ -80,7 +80,7 @@ Future<void> flutterVersionClone(String version) async {
       workingDirectory: versionDirectory.path);
 
   if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone("Could not clone $version: ${result.stderr}");
+    throw ExceptionCouldNotClone('Could not clone $version: ${result.stderr}');
   }
 }
 
@@ -113,7 +113,7 @@ Future<String> _gitGetVersion(String path) async {
     throw Exception('Could not get version Info.');
   }
 
-  final versionNumber = result.stdout.trim();
+  final versionNumber = result.stdout.trim() as String;
   return versionNumber;
 }
 
@@ -126,7 +126,7 @@ Future<List<String>> flutterListAllSdks() async {
     throw Exception('Could not fetch list of available Flutter SDKs');
   }
 
-  List<String> tags = result.stdout.split('\n');
+  var tags = result.stdout.split('\n') as List<String>;
 
   var versionsList = <String>[];
   for (var tag in tags) {

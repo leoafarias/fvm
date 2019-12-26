@@ -22,16 +22,18 @@ class ListCommand extends Command {
     final choices = await flutterListInstalledSdks();
 
     if (choices.isEmpty) {
-      throw 'No SDKs have been installed yet.';
+      throw Exception('No SDKs have been installed yet.');
     }
 
-    void printVersions(String version) async {
+    Future<void> printVersions(String version) async {
       if (await isCurrentVersion(version)) {
-        version = "$version (current)";
+        version = '$version (current)';
       }
       logger.stdout(green.wrap(version));
     }
 
-    choices.forEach(await printVersions);
+    for (var choice in choices) {
+      await printVersions(choice);
+    }
   }
 }

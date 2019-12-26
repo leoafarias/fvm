@@ -21,17 +21,17 @@ class ConfigCommand extends Command {
 
   @override
   Future<void> run() async {
-    final path = argResults['cache-path'];
+    final path = argResults['cache-path'] as String;
     if (path != null) {
       ConfigUtils().configFlutterStoredPath(path);
     }
 
-    if (argResults['ls']) {
+    if (argResults['ls'] != null) {
       final configOptions = ConfigUtils().displayAllConfig();
       if (configOptions.isNotEmpty) {
         logger.stdout(green.wrap(configOptions));
       } else {
-        throw 'No configuration has been set';
+        throw Exception('No configuration has been set');
       }
     }
   }

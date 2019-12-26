@@ -7,7 +7,10 @@ import 'package:fvm/utils/logger.dart';
 class RemoveCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
+  @override
   final name = 'remove';
+
+  @override
   final description = 'Removes Flutter SDK Version';
 
   /// Constructor
@@ -28,7 +31,7 @@ class RemoveCommand extends Command {
     final isValidInstall = await isValidFlutterInstall(version);
 
     if (!isValidInstall) {
-      throw 'Flutter SDK: $version is not installed';
+      throw Exception('Flutter SDK: $version is not installed');
     }
 
     final progress = logger.progress('Removing $version');
