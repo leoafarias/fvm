@@ -43,7 +43,17 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "zmtzawqlp",
+      "name": "zmtzawqlp",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/16477333?v=4",
+      "profile": "https://juejin.im/user/5bdc1a32518825170b101080",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
-  "contributorsPerLine": 7
+  "contributorsPerLine": 7,
+  "skipCi": true
 }
