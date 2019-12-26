@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:args/command_runner.dart';
 import 'package:fvm/commands/config.dart';
 import 'package:fvm/commands/flutter.dart';
 import 'package:fvm/commands/install.dart';
@@ -8,7 +7,6 @@ import 'package:fvm/commands/remove.dart';
 import 'package:fvm/commands/runner.dart';
 import 'package:fvm/commands/use.dart';
 import 'package:fvm/utils/logger.dart';
-import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/utils/logger.dart' show logger;
 import 'package:io/ansi.dart';
 
