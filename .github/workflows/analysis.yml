@@ -1,0 +1,23 @@
+name: Analysis
+
+on: [pull_request]
+
+jobs:
+  package-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1 # required
+      - uses: axel-op/dart-package-analyzer@stable
+        with:
+          # Required:
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: google/dart:latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: pub get
+      - name: Run tests
+        run: pub run test
