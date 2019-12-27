@@ -5,7 +5,7 @@ import 'package:fvm/utils/config_utils.dart';
 final _configUtils = ConfigUtils();
 
 /// Flutter Repo Address
-const kFlutterRepo = "https://github.com/flutter/flutter.git";
+const kFlutterRepo = 'https://github.com/flutter/flutter.git';
 
 /// Directory that the script is running
 final kFvmDirectory = Platform.script.toString();
@@ -18,7 +18,7 @@ final kLocalFlutterLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
 
 /// FVM Home directory
 String get fvmHome {
-  var home = "";
+  var home = '';
   final envVars = Platform.environment;
   if (Platform.isMacOS) {
     home = envVars['HOME'];
@@ -47,4 +47,4 @@ Directory get kVersionsDir {
 final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
 /// Flutter stored path of config.
-const kConfigFlutterStoredKey = "cache_path";
+const kConfigFlutterStoredKey = 'cache_path';

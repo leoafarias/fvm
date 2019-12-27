@@ -9,12 +9,16 @@ import 'package:io/ansi.dart';
 class InstallCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "install";
-  final description = "Installs Flutter SDK Version";
+  @override
+  final name = 'install';
+
+  @override
+  final description = 'Installs Flutter SDK Version';
 
   /// Constructor
   InstallCommand();
 
+  @override
   void run() async {
     await checkIfGitExists();
     if (argResults.arguments.isEmpty) {

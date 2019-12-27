@@ -8,26 +8,32 @@ import 'package:fvm/utils/logger.dart';
 class ListCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "list";
-  final description = "Lists installed Flutter SDK Version";
+  @override
+  final name = 'list';
+
+  @override
+  final description = 'Lists installed Flutter SDK Version';
 
   /// Constructor
   ListCommand();
 
+  @override
   Future<void> run() async {
     final choices = await flutterListInstalledSdks();
 
     if (choices.isEmpty) {
-      throw 'No SDKs have been installed yet.';
+      throw Exception('No SDKs have been installed yet.');
     }
 
-    void printVersions(String version) async {
+    Future<void> printVersions(String version) async {
       if (await isCurrentVersion(version)) {
-        version = "$version (current)";
+        version = '$version (current)';
       }
       logger.stdout(green.wrap(version));
     }
 
-    choices.forEach(await printVersions);
+    for (var choice in choices) {
+      await printVersions(choice);
+    }
   }
 }

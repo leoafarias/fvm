@@ -29,7 +29,7 @@ class ConfigUtils {
       final savedValueMap = json.decode(kConfigFile.readAsStringSync());
       for (final key in savedValueMap.keys) {
         if (key is String) {
-          _config[key] = savedValueMap[key];
+          _config[key] = savedValueMap[key] as String;
         }
       }
     } on Exception catch (e) {
@@ -65,7 +65,7 @@ class ConfigUtils {
       Directory(path).createSync(recursive: true);
       setValue(kConfigFlutterStoredKey, path);
     } else {
-      throw ExceptionErrorFlutterPath();
+      throw const ExceptionErrorFlutterPath();
     }
   }
 
@@ -100,7 +100,7 @@ class ConfigUtils {
     final sb = StringBuffer();
     for (final key in _config.keys) {
       final value = _config[key];
-      sb.writeln("$key : $value");
+      sb.writeln('$key : $value');
     }
 
     return sb.toString();

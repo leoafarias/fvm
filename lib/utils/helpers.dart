@@ -58,9 +58,7 @@ Future<Link> projectFlutterLink([Directory dir, int levels = 20]) async {
   }
   Link link;
 
-  if (dir == null) {
-    dir = kWorkingDirectory;
-  }
+  dir ??= kWorkingDirectory;
 
   link = Link(path.join(dir.path, 'fvm'));
 

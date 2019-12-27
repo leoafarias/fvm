@@ -8,16 +8,20 @@ import 'package:io/ansi.dart';
 class UseCommand extends Command {
   // The [name] and [description] properties must be defined by every
   // subclass.
-  final name = "use";
-  final description = "Which Flutter SDK Version you would like to use";
+  @override
+  final name = 'use';
+
+  @override
+  final description = 'Which Flutter SDK Version you would like to use';
 
   /// Constructor
   UseCommand();
 
+  @override
   Future<void> run() async {
     if (argResults.arguments.isEmpty) {
       final instruction = yellow.wrap('fvm use <version>');
-      throw 'Please provide a version. $instruction';
+      throw Exception('Please provide a version. $instruction');
     }
     final version = argResults.arguments[0];
 
@@ -25,7 +29,8 @@ class UseCommand extends Command {
 
     if (!isValidInstall) {
       final instruction = yellow.wrap('fvm install <version> first.');
-      throw 'Flutter $version is not installed. Please run $instruction';
+      throw Exception(
+          'Flutter $version is not installed. Please run $instruction');
     }
 
     final progress = logger.progress('Activating $version');

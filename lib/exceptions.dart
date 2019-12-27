@@ -14,7 +14,7 @@ class ExceptionCouldNotClone implements Exception {
 
   /// Constructor
   const ExceptionCouldNotClone([this.message = '']);
-
+  @override
   String toString() => 'ExceptionCouldNotClone: $message';
 }
 
@@ -25,7 +25,7 @@ class ExceptionNotValidChannel implements Exception {
 
   /// Constructor
   const ExceptionNotValidChannel([this.message = '']);
-
+  @override
   String toString() => 'ExceptionNotValidChannel: $message';
 }
 
@@ -37,6 +37,7 @@ class ExceptionNotValidVersion implements Exception {
   /// Constructor
   const ExceptionNotValidVersion([this.message = '']);
 
+  @override
   String toString() => 'ExceptionNotValidVersion: $message';
 }
 
@@ -48,6 +49,7 @@ class ExceptionErrorFlutterPath implements Exception {
   /// Constructor
   const ExceptionErrorFlutterPath([this.message = '']);
 
+  @override
   String toString() => 'ExceptionErrorFlutterPath: $message';
 }
 
@@ -59,6 +61,7 @@ class ExceptionCouldNotReadConfig implements Exception {
   /// Constructor
   const ExceptionCouldNotReadConfig([this.message = '']);
 
+  @override
   String toString() => 'ExceptionCouldNotReadConfig: $message';
 }
 
@@ -69,6 +72,7 @@ class ExceptionMissingChannelVersion implements Exception {
   /// Constructor
   ExceptionMissingChannelVersion();
 
+  @override
   String toString() {
     return _message;
   }
