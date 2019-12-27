@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
+import 'logger.dart';
+
 /// Configure fvm options.
 
 class ConfigUtils {
@@ -69,11 +71,31 @@ class ConfigUtils {
     }
   }
 
+  /// Config the flutter git remote.
+  ///
+  /// This config will only affect the new version, the git url of the existing version will not change.
+  ///
+  /// Things to do in the future:
+  /// Add a new command to change the remote url corresponding to the existing version.
+  void configGitRemoteUrl(String gitRemoteUrl) {
+    setValue(kConfigGitRemoteUrlKey, gitRemoteUrl);
+  }
+
   /// Removes Config file
   void removeConfig() async {
     if (await kConfigFile.exists()) {
       await kConfigFile.delete();
     }
+  }
+
+  /// Get git remote url of flutter.
+  String getGitRemoteUrl() {
+    final url = _config[kConfigGitRemoteUrlKey];
+    if (url == null || url.trim().isEmpty) {
+      return kFlutterRepo;
+    }
+    checkFlutterRemote(url);
+    return url;
   }
 
   /// get flutter stored path.

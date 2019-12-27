@@ -16,6 +16,8 @@ class ConfigCommand extends Command {
     argParser
       ..addOption('cache-path',
           abbr: 'c', help: 'Path to store Flutter cached versions')
+      ..addOption('git-remote',
+          abbr: 'r', help: 'Third-party flutter git sources')
       ..addFlag('ls', help: 'Lists all config options');
   }
 
@@ -24,6 +26,11 @@ class ConfigCommand extends Command {
     final path = argResults['cache-path'] as String;
     if (path != null) {
       ConfigUtils().configFlutterStoredPath(path);
+    }
+
+    final gitRemoteUrl = argResults['git-remote'] as String;
+    if (gitRemoteUrl != null) {
+      ConfigUtils().configGitRemoteUrl(gitRemoteUrl);
     }
 
     if (argResults['ls'] != null) {

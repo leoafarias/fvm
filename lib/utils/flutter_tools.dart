@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/utils/config_utils.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
@@ -41,7 +42,7 @@ Future<void> flutterChannelClone(String channel) async {
   await channelDirectory.create(recursive: true);
 
   var result = await Process.run(
-      'git', ['clone', '-b', channel, kFlutterRepo, '.'],
+      'git', ['clone', '-b', channel, ConfigUtils().getGitRemoteUrl(), '.'],
       workingDirectory: channelDirectory.path);
 
   if (result.exitCode != 0) {
@@ -76,7 +77,7 @@ Future<void> flutterVersionClone(String version) async {
   await versionDirectory.create(recursive: true);
 
   var result = await Process.run(
-      'git', ['clone', '-b', 'v$version', kFlutterRepo, '.'],
+      'git', ['clone', '-b', 'v$version', ConfigUtils().getGitRemoteUrl(), '.'],
       workingDirectory: versionDirectory.path);
 
   if (result.exitCode != 0) {
@@ -119,8 +120,8 @@ Future<String> _gitGetVersion(String path) async {
 
 /// Lists all Flutter SDK Versions
 Future<List<String>> flutterListAllSdks() async {
-  final result =
-      await Process.run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
+  final result = await Process.run(
+      'git', ['ls-remote', '--tags', ConfigUtils().getGitRemoteUrl()]);
 
   if (result.exitCode != 0) {
     throw Exception('Could not fetch list of available Flutter SDKs');

@@ -48,3 +48,5 @@ final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
 /// Flutter stored path of config.
 const kConfigFlutterStoredKey = 'cache_path';
+
+const kConfigGitRemoteUrlKey = 'flutter_git_remote';
