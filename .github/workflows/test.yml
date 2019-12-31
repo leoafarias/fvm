@@ -1,16 +1,8 @@
-name: Analysis
+name: Test
 
 on: [pull_request]
 
 jobs:
-  package-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1 # required
-      - uses: axel-op/dart-package-analyzer@stable
-        with:
-          # Required:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
   test:
     runs-on: ubuntu-latest
     container:
