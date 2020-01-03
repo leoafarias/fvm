@@ -70,7 +70,7 @@ class ConfigUtils {
   }
 
   /// Removes Config file
-  void removeConfig() async {
+  Future<void> removeConfig() async {
     if (await kConfigFile.exists()) {
       await kConfigFile.delete();
     }
