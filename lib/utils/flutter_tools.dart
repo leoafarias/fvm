@@ -77,7 +77,7 @@ Future<void> flutterVersionClone(String version) async {
   await versionDirectory.create(recursive: true);
 
   var result = await Process.run(
-      'git', ['clone', '-b', 'v$version', ConfigUtils().getGitRemoteUrl(), '.'],
+      'git', ['clone', '-b', '$version', ConfigUtils().getGitRemoteUrl(), '.'],
       workingDirectory: versionDirectory.path);
 
   if (result.exitCode != 0) {

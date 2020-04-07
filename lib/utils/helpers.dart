@@ -7,7 +7,7 @@ import 'package:fvm/utils/flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<bool> isValidFlutterVersion(String version) async {
-  return (await flutterListAllSdks()).contains('v$version');
+  return (await flutterListAllSdks()).contains('$version');
 }
 
 /// Returns true if it's a valid Flutter channel
