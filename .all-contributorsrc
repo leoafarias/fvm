@@ -52,6 +52,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "kuhnroyal",
+      "name": "Peter Leibiger",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1260818?v=4",
+      "profile": "https://github.com/kuhnroyal",
+      "contributions": [
+        "code",
+        "maintenance"
+      ]
     }
   ],
   "contributorsPerLine": 7,
