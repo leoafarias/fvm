@@ -6,10 +6,10 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 **Features:**
 
-* Configure Flutter SDK version per project
-* Ability to install and cache multiple Flutter SDK Versions
-* Easily switch between Flutter channels & versions
-* Per project Flutter SDK upgrade
+- Configure Flutter SDK version per project
+- Ability to install and cache multiple Flutter SDK Versions
+- Easily switch between Flutter channels & versions
+- Per project Flutter SDK upgrade
 
 ## Version Management
 
@@ -24,6 +24,7 @@ To Install:
 ```bash
 > pub global activate fvm
 ```
+
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
 
 And then, for information on each command:
@@ -84,7 +85,7 @@ fvm config --ls
 
 ### Running Flutter SDK
 
-There are a couple of ways you can interact with the SDK setup in your project. 
+There are a couple of ways you can interact with the SDK setup in your project.
 
 #### Proxy Commands
 
@@ -123,6 +124,30 @@ Add the following to your settings.json
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 
+## Working with this repo
+
+### Tests
+
+```bash
+pub run test
+```
+
+### Publishing package
+
+Before pushing package to pub.dev. Run command to create version constant.
+
+```bash
+pub run build_runner build
+```
+
+### Update test coverage
+
+To update test coverage run the following command.
+
+```bash
+pub run test_coverage
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
@@ -145,6 +170,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

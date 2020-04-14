@@ -1,3 +1,7 @@
+## 0.7.1
+
+- Updated version constant
+
 ## 0.7.0
 
 - Added support for new Flutter 1.17.0+ [versioning scheme](https://groups.google.com/forum/#!msg/flutter-announce/b_EcYtyo8Q4/2QSfdp2aBwAJ) -
