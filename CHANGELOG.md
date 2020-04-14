@@ -1,3 +1,9 @@
+## 0.7.0
+
+- Added support for new Flutter 1.17.0+ [versioning scheme](https://groups.google.com/forum/#!msg/flutter-announce/b_EcYtyo8Q4/2QSfdp2aBwAJ) -
+  The new versioning scheme includes changes to tag names and thus also version names for FVM. When reinstalling Flutter versions <1.17.0, the FVM install-path will change, potentially breaking projects that rely on the install-path.
+  The install-path will change from `~/fvm/versions/1.15.17` to `~/fvm/versions/v1.15.17`. Make sure to change this in your IDE configuration.
+
 ## 0.6.7
 
 - Added `version` command to see currently installed `fvm` version

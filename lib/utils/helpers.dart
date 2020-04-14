@@ -6,8 +6,15 @@ import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
-Future<bool> isValidFlutterVersion(String version) async {
-  return (await flutterListAllSdks()).contains('v$version');
+Future<String> coerceValidFlutterVersion(String version) async {
+  if ((await flutterListAllSdks()).contains(version)) {
+    return version;
+  }
+  final prefixedVersion = 'v$version';
+  if ((await flutterListAllSdks()).contains(prefixedVersion)) {
+    return prefixedVersion;
+  }
+  throw ExceptionNotValidVersion('"$version" is not a valid version');
 }
 
 /// Returns true if it's a valid Flutter channel

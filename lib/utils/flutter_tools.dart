@@ -64,9 +64,7 @@ Future<void> checkIfGitExists() async {
 Future<void> flutterVersionClone(String version) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
-  if (!await isValidFlutterVersion(version)) {
-    throw ExceptionNotValidVersion('"$version" is not a valid version');
-  }
+  version = await coerceValidFlutterVersion(version);
 
   // If it's installed correctly just return and use cached
   if (await checkInstalledCorrectly(version)) {
@@ -76,7 +74,7 @@ Future<void> flutterVersionClone(String version) async {
   await versionDirectory.create(recursive: true);
 
   var result = await Process.run(
-      'git', ['clone', '-b', 'v$version', kFlutterRepo, '.'],
+      'git', ['clone', '-b', version, kFlutterRepo, '.'],
       workingDirectory: versionDirectory.path);
 
   if (result.exitCode != 0) {

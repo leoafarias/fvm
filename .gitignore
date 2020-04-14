@@ -18,4 +18,14 @@ test/.test_coverage.dart
 # Link url to flutter version for tests
 fvm
 
-.vscode/launch.json
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Visual Studio Code related
+.classpath
+.project
+.settings/
+.vscode/
