@@ -15,7 +15,7 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 This tool allows you to manage multiple channels and releases, and caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
 
-Also, it allows you to grab versions by a specific release, i.e. 1.2.0. In case you have projects in different Flutter SDK versions and do not want to upgrade.
+Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.17.0-dev.3.1`. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 ## Usage
 
@@ -39,7 +39,7 @@ FVM gives you the ability to install many Flutter **releases** or **channels**.
 > fvm install <version>
 ```
 
-Version - use `master` to install the Master channel and `1.8.0` to install the release.
+Version - use `master` to install the Master channel and `v1.8.0` or `1.17.0-dev.3.1` to install the release.
 
 ### Use a SDK Version
 
