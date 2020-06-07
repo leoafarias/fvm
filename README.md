@@ -69,7 +69,7 @@ List all the versions that are installed on your machine.
 
 ### Change FVM Cache Directory
 
-There are some configurations that allows for added flexibility on FVM.
+There are some configurations that allows for added flexibility on FVM. If no `cache-path` is set, the default fvm path will be used.
 
 ```bash
 fvm config --cache-path <path-to-use>
