@@ -30,6 +30,7 @@ Future<void> fvmRunner(List<String> args) async {
       logger.stderr('⚠️  ${yellow.wrap(exc?.message as String)}');
       if (args.contains('--verbose')) {
         print(st);
+        throw exc;
       }
     }
     exitCode = 1;

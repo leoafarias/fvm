@@ -1,3 +1,9 @@
+# Changelog
+
+## 0.7.2
+
+- Better compatibility with flutter commands.
+
 ## 0.7.1
 
 - Updated version constant
