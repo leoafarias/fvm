@@ -3,6 +3,7 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
+import 'package:fvm/utils/version_installer.dart';
 import 'package:io/ansi.dart';
 
 /// Installs Flutter SDK
@@ -25,14 +26,11 @@ class InstallCommand extends Command {
       throw ExceptionMissingChannelVersion();
     }
     final version = argResults.arguments[0].toLowerCase();
-    final isChannel = isValidFlutterChannel(version);
 
     final progress = logger.progress(green.wrap('Downloading $version'));
-    if (isChannel) {
-      await flutterChannelClone(version);
-    } else {
-      await flutterVersionClone(version);
-    }
+
+    await installFlutterVersion(version);
+
     finishProgress(progress);
   }
 }
