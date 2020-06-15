@@ -113,12 +113,12 @@ As an example calling `fvm flutter run` is the equivalent of calling `flutter ru
 
 #### VSCode
 
-Add the following to your settings.json
+Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`
 
 ```json
 
 "dart.flutterSdkPaths": [
-    "fvm"
+     "/Users/leofarias/fvm/versions"
 ]
 ```
 
