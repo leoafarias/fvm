@@ -5,6 +5,7 @@
 pubspec.lock
 # Do not version the sdk versions
 versions/
+.DS_Store
 
 # Conventional directory for build outputs
 build/
