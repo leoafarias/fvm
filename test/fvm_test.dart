@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
-
 import 'test_helpers.dart';
 
 final testPath = '$fvmHome/test_path';
@@ -16,12 +15,8 @@ const channel = 'master';
 const release = '1.8.0';
 
 void main() {
-  setUpAll(() async {
-    await fvmSetUpAll();
-  });
-  tearDownAll(() async {
-    await fvmTearDownAll();
-  });
+  setUpAll(fvmSetUpAll);
+  tearDownAll(fvmTearDownAll);
   group('Channel Flow', () {
     test('Install without version', () async {
       final args = ['install'];
@@ -46,7 +41,7 @@ void main() {
         expect(correct, true, reason: 'Not Installed Correctly');
         expect(existingChannel, channel);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -54,7 +49,7 @@ void main() {
       try {
         await fvmRunner(['list']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -69,12 +64,11 @@ void main() {
 
         final channelBin =
             path.join(kVersionsDir.path, channel, 'bin', 'flutter');
-        ;
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -82,7 +76,7 @@ void main() {
       try {
         await fvmRunner(['remove', channel, '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);

@@ -6,7 +6,7 @@ import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
-Future<String> coerceValidFlutterVersion(String version) async {
+Future<String> inferFlutterVersion(String version) async {
   if ((await flutterListAllSdks()).contains(version)) {
     return version;
   }
@@ -18,12 +18,12 @@ Future<String> coerceValidFlutterVersion(String version) async {
 }
 
 /// Returns true if it's a valid Flutter channel
-bool isValidFlutterChannel(String channel) {
+bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
 }
 
 /// Returns true it's a valid installed version
-Future<bool> isValidFlutterInstall(String version) async {
+Future<bool> isSdkInstalled(String version) async {
   return (await flutterListInstalledSdks()).contains(version);
 }
 
@@ -60,9 +60,8 @@ Future<bool> isCurrentVersion(String version) async {
 /// [levels] how many levels you would like to go up to search for a version
 Future<Link> projectFlutterLink([Directory dir, int levels = 20]) async {
   // If there are no levels exit
-  if (levels == 0) {
-    return null;
-  }
+  if (levels == 0) return null;
+
   Link link;
 
   dir ??= kWorkingDirectory;

@@ -1,6 +1,5 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
-import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
 import 'package:fvm/utils/version_installer.dart';
@@ -27,21 +26,19 @@ class UseCommand extends Command {
     }
     final version = argResults.arguments[0];
 
-    final isValidInstall = await isValidFlutterInstall(version);
+    final isInstalled = await isSdkInstalled(version);
 
-    if (!isValidInstall) {
+    if (!isInstalled) {
       print('Flutter $version is not installed.');
-      var inputConfirm = await readInput('Would you like to install it? y/N: ');
+      var inputConfirm = await readInput('Would you like to install it? Y/n: ');
 
-      if (inputConfirm.contains('y')) {
+      // Install if input is 'y'
+      if (!inputConfirm.contains('n')) {
         final installProgress = logger.progress('Installing $version');
         await installFlutterVersion(version);
         finishProgress(installProgress);
 
-        await linkProjectFlutterDir(version);
         logger.stdout(green.wrap('$version is active'));
-      } else {
-        print('Done');
       }
     } else {
       logger.stdout(green.wrap('$version is active'));

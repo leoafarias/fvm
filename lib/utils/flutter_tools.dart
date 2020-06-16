@@ -12,10 +12,9 @@ Future<void> processRunner(String cmd, List<String> args,
   final manager = ProcessManager();
 
   try {
-    var spawn =
-        await manager.spawn(cmd, args, workingDirectory: workingDirectory);
+    var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
 
-    if (await spawn.exitCode != 0) {
+    if (await pr.exitCode != 0) {
       throw Exception('Could not run command $cmd: $args');
     }
     await sharedStdIn.terminate();
@@ -29,14 +28,12 @@ Future<void> processRunner(String cmd, List<String> args,
 Future<void> flutterChannelClone(String channel) async {
   final channelDirectory = Directory(path.join(kVersionsDir.path, channel));
 
-  if (!isValidFlutterChannel(channel)) {
+  if (!isFlutterChannel(channel)) {
     throw ExceptionNotValidChannel('"$channel" is not a valid channel');
   }
 
   // If it's installed correctly just return and use cached
-  if (await checkInstalledCorrectly(channel)) {
-    return;
-  }
+  if (await checkInstalledCorrectly(channel)) return;
 
   await channelDirectory.create(recursive: true);
 
@@ -64,7 +61,7 @@ Future<void> checkIfGitExists() async {
 Future<void> flutterVersionClone(String version) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
-  version = await coerceValidFlutterVersion(version);
+  version = await inferFlutterVersion(version);
 
   // If it's installed correctly just return and use cached
   if (await checkInstalledCorrectly(version)) {

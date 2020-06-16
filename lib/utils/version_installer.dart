@@ -7,11 +7,12 @@ Future<void> installFlutterVersion(String flutterVersion) async {
     throw ExceptionMissingChannelVersion();
   }
   final version = flutterVersion.toLowerCase();
-  final isChannel = isValidFlutterChannel(version);
+  final isChannel = isFlutterChannel(version);
 
   if (isChannel) {
     await flutterChannelClone(version);
   } else {
     await flutterVersionClone(version);
   }
+  await linkProjectFlutterDir(version);
 }
