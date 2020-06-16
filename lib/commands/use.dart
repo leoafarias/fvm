@@ -39,6 +39,7 @@ class UseCommand extends Command {
 
     final isInstalled = await isSdkInstalled(version);
 
+    // TODO: Fix installed conditional
     if (!isInstalled) {
       print('Flutter $version is not installed.');
       var inputConfirm = await readInput('Would you like to install it? Y/n: ');
