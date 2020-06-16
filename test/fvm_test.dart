@@ -78,6 +78,22 @@ void main() {
       }
     });
 
+    test('Use Flutter SDK globally', () async {
+      try {
+        await fvmRunner(['use', channel, '--global']);
+        final linkExists = await kDefaultFlutterLink.exists();
+
+        final targetDir = await kDefaultFlutterLink.target();
+
+        final channelDir = path.join(kVersionsDir.path, channel);
+
+        expect(targetDir == channelDir, true);
+        expect(linkExists, true);
+      } on Exception catch (e) {
+        fail("Exception thrown, $e");
+      }
+    });
+
     test('Remove Channel', () async {
       try {
         await fvmRunner(['remove', channel, '--verbose']);
