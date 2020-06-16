@@ -195,3 +195,8 @@ Future<void> linkProjectFlutterDir(String version) async {
       Platform.isWindows ? 'flutter.bat' : 'flutter'));
   await linkDir(kLocalFlutterLink, versionBin);
 }
+
+Future<void> linkProjectFlutterDirGlobally(String version) async {
+  final versionDir = Directory(path.join(kVersionsDir.path, version));
+  await linkDir(kDefaultFlutterLink, versionDir);
+}

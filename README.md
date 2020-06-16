@@ -51,6 +51,8 @@ You can use different Flutter SDK versions per project. To do that you have to g
 > fvm use <version>
 ```
 
+If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `<FVM_HOME>/default/bin`
+
 ### Remove a SDK Version
 
 Using the remove command will uninstall the SDK version locally. This will impact any projects that depend on that version of the SDK.
@@ -113,12 +115,12 @@ As an example calling `fvm flutter run` is the equivalent of calling `flutter ru
 
 #### VSCode
 
-Add the following to your settings.json
+Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`
 
 ```json
 
 "dart.flutterSdkPaths": [
-    "fvm"
+     "/Users/leofarias/fvm/versions"
 ]
 ```
 
