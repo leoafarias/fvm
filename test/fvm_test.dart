@@ -84,7 +84,7 @@ void main() {
         expect(targetDir == channelDir, true);
         expect(linkExists, true);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -112,7 +112,7 @@ void main() {
         expect(correct, true, reason: 'Not Installed Correctly');
         expect(existingRelease, 'v$release');
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -131,7 +131,7 @@ void main() {
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -139,7 +139,7 @@ void main() {
       try {
         await fvmRunner(['list', '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -149,7 +149,7 @@ void main() {
       try {
         await fvmRunner(['remove', release, '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -161,7 +161,7 @@ void main() {
       try {
         await fvmRunner(['config', '--cache-path', testPath]);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(testPath, kVersionsDir.path);
     });
@@ -170,7 +170,7 @@ void main() {
       try {
         await fvmRunner(['config', '--ls']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(true, true);
     });
@@ -181,7 +181,7 @@ void main() {
       try {
         await fvmRunner(['version']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(true, true);
     });
