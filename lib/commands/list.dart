@@ -1,8 +1,10 @@
+import 'dart:io';
+
+import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
-import 'package:fvm/utils/logger.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {
@@ -22,14 +24,19 @@ class ListCommand extends Command {
     final choices = await flutterListInstalledSdks();
 
     if (choices.isEmpty) {
-      throw Exception('No SDKs have been installed yet.');
+      print(cyan.wrap(
+          'No SDKs have been installed yet. Flutter SDKs installed outside of fvm will not be displayed.'));
+      exit(1);
     }
+
+    // Print where versions are stored
+    print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     Future<void> printVersions(String version) async {
       if (await isCurrentVersion(version)) {
         version = '$version (current)';
       }
-      logger.stdout(green.wrap(version));
+      print(cyan.wrap(version));
     }
 
     for (var choice in choices) {

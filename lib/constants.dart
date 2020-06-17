@@ -14,7 +14,10 @@ final kFvmDirectory = Platform.script.toString();
 final kWorkingDirectory = Directory.current;
 
 /// Local Project Flutter Link
-final kLocalFlutterLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
+final kProjectSdkLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
+
+/// Flutter Project pubspec
+final kProjectPubspec = File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
 
 /// FVM Home directory
 String get fvmHome {

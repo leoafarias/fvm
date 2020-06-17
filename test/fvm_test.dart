@@ -58,9 +58,9 @@ void main() {
     test('Use Channel', () async {
       try {
         await fvmRunner(['use', channel, '--verbose']);
-        final linkExists = await kLocalFlutterLink.exists();
+        final linkExists = await kProjectSdkLink.exists();
 
-        final targetBin = await kLocalFlutterLink.target();
+        final targetBin = await kProjectSdkLink.target();
 
         final channelBin =
             path.join(kVersionsDir.path, channel, 'bin', 'flutter');
@@ -121,9 +121,9 @@ void main() {
     test('Use Release', () async {
       try {
         await fvmRunner(['use', release, '--verbose']);
-        final linkExists = await kLocalFlutterLink.exists();
+        final linkExists = await kProjectSdkLink.exists();
 
-        final targetBin = await kLocalFlutterLink.target();
+        final targetBin = await kProjectSdkLink.target();
 
         final releaseBin =
             path.join(kVersionsDir.path, release, 'bin', 'flutter');

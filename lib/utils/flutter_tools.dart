@@ -193,7 +193,7 @@ Future<List<String>> flutterListInstalledSdks() async {
 Future<void> linkProjectFlutterDir(String version) async {
   final versionBin = Directory(path.join(kVersionsDir.path, version, 'bin',
       Platform.isWindows ? 'flutter.bat' : 'flutter'));
-  await linkDir(kLocalFlutterLink, versionBin);
+  await linkDir(kProjectSdkLink, versionBin);
 }
 
 Future<void> linkProjectFlutterDirGlobally(String version) async {

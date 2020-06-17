@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
@@ -31,15 +33,20 @@ class UseCommand extends Command {
 
   @override
   Future<void> run() async {
+    // Check if it's Flutter project
+    if (!isFlutterProject()) {
+      throw Exception('Run `use` command on the root of a Flutter project');
+    }
+
     if (argResults.rest.isEmpty) {
       final instruction = yellow.wrap('fvm use <version>');
       throw Exception('Please provide a version. $instruction');
     }
     final version = argResults.rest[0];
+    final useGlobally = argResults['global'] == true;
 
     final isInstalled = await isSdkInstalled(version);
 
-    // TODO: Fix installed conditional
     if (!isInstalled) {
       print('Flutter $version is not installed.');
       var inputConfirm = await readInput('Would you like to install it? Y/n: ');
@@ -49,13 +56,11 @@ class UseCommand extends Command {
         final installProgress = logger.progress('Installing $version');
         await installFlutterVersion(version);
         finishProgress(installProgress);
-        logger.stdout(green.wrap('$version is active'));
+      } else {
+        // If do not install exist
+        exit(0);
       }
-    } else {
-      logger.stdout(green.wrap('$version is active'));
     }
-
-    final useGlobally = argResults['global'] == true;
 
     if (useGlobally) {
       await linkProjectFlutterDirGlobally(version);
@@ -71,7 +76,5 @@ class UseCommand extends Command {
     } else {
       logger.stdout(green.wrap('$version is active'));
     }
-
-    finishProgress(progress);
   }
 }

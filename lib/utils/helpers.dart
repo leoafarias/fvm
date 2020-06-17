@@ -22,6 +22,11 @@ bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
 }
 
+// Checks if its flutter project
+bool isFlutterProject() {
+  return kProjectPubspec.existsSync();
+}
+
 /// Returns true it's a valid installed version
 Future<bool> isSdkInstalled(String version) async {
   return (await flutterListInstalledSdks()).contains(version);
