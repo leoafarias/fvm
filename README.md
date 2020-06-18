@@ -54,7 +54,7 @@ You can use different Flutter SDK versions per project. To do that you have to g
 > fvm use <version>
 ```
 
-If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `<FVM_HOME>/default/bin`
+If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, thsi will give you the exact path you need to configure.
 
 ### Remove a SDK Version
 
@@ -116,24 +116,30 @@ As an example calling `fvm flutter run` is the equivalent of calling `flutter ru
 
 ### Configure Your IDE
 
+In some situations you might have to restart your IDE and the Flutter debugger to make sure it uses the new version.
+
 #### VSCode
 
-Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`
+Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
+
+Use `fvm list` to show you the path to the versions.
 
 ```json
-
-"dart.flutterSdkPaths": [
-     "/Users/leofarias/fvm/versions"
-]
+{
+  "dart.flutterSdkPaths": [
+    // List all versions installd by FVM
+    "/Users/usr/fvm/versions"
+    // Or add the version symlink for dynamic switch
+    ".fvm/flutter_sdk"
+  ]
+}
 ```
 
 #### Android Studio
 
-copy the path of fvm symbolic link in your root project directory.
-example {fvm-path}/versions/beta/bin/flutter
-in the Android Studio menù open Languages & Frameworks -> Flutter or search for Flutter and change Flutter SDK path to the previous path
-Apply the changes
-You now can Run and Debug with the selected versions of Flutter.
+Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute/path-to-your-project/.fvm/flutter_sdk`
+
+In the Android Studio menu open `Languages & Frameworks -> Flutter` or search for Flutter and change Flutter SDK path. Apply the changes. You now can Run and Debug with the selected versions of Flutter.
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 
