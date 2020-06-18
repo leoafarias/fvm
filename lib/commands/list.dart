@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/print.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
@@ -21,22 +22,22 @@ class ListCommand extends Command {
 
   @override
   Future<void> run() async {
-    final choices = await flutterListInstalledSdks();
+    final choices = flutterListInstalledSdks();
 
     if (choices.isEmpty) {
-      print(cyan.wrap(
-          'No SDKs have been installed yet. Flutter SDKs installed outside of fvm will not be displayed.'));
-      exit(1);
+      Print.info(
+          'No SDKs have been installed yet. Flutter SDKs installed outside of fvm will not be displayed.');
+      exit(0);
     }
 
     // Print where versions are stored
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     Future<void> printVersions(String version) async {
-      if (await isCurrentVersion(version)) {
+      if (isCurrentVersion(version)) {
         version = '$version (current)';
       }
-      print(cyan.wrap(version));
+      Print.info(version);
     }
 
     for (var choice in choices) {

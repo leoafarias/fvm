@@ -32,8 +32,8 @@ void main() {
       try {
         await fvmRunner(['install', channel, '--verbose']);
         final existingChannel = await flutterSdkVersion(channel);
-        final correct = await checkInstalledCorrectly(channel);
-        final installedVersions = await flutterListInstalledSdks();
+        final correct = isInstalledCorrectly(channel);
+        final installedVersions = flutterListInstalledSdks();
 
         final installExists = installedVersions.contains(channel);
 
@@ -58,12 +58,11 @@ void main() {
     test('Use Channel', () async {
       try {
         await fvmRunner(['use', channel, '--verbose']);
-        final linkExists = await kProjectFvmSdkSymlink.exists();
+        final linkExists = kProjectFvmSdkSymlink.existsSync();
 
-        final targetBin = await kProjectFvmSdkSymlink.target();
+        final targetBin = kProjectFvmSdkSymlink.targetSync();
 
-        final channelBin =
-            path.join(kVersionsDir.path, channel, 'bin', 'flutter');
+        final channelBin = path.join(kVersionsDir.path, channel);
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
@@ -75,9 +74,9 @@ void main() {
     test('Use Flutter SDK globally', () async {
       try {
         await fvmRunner(['use', channel, '--global']);
-        final linkExists = await kDefaultFlutterLink.exists();
+        final linkExists = kDefaultFlutterLink.existsSync();
 
-        final targetDir = await kDefaultFlutterLink.target();
+        final targetDir = kDefaultFlutterLink.targetSync();
 
         final channelDir = path.join(kVersionsDir.path, channel);
 
@@ -103,8 +102,8 @@ void main() {
       try {
         await fvmRunner(['install', release, '--verbose']);
         final existingRelease = await flutterSdkVersion(release);
-        final correct = await checkInstalledCorrectly(release);
-        final installedVersions = await flutterListInstalledSdks();
+        final correct = isInstalledCorrectly(release);
+        final installedVersions = flutterListInstalledSdks();
 
         final installExists = installedVersions.contains(release);
 
@@ -121,12 +120,11 @@ void main() {
     test('Use Release', () async {
       try {
         await fvmRunner(['use', release, '--verbose']);
-        final linkExists = await kProjectFvmSdkSymlink.exists();
+        final linkExists = kProjectFvmSdkSymlink.existsSync();
 
-        final targetBin = await kProjectFvmSdkSymlink.target();
+        final targetBin = kProjectFvmSdkSymlink.targetSync();
 
-        final releaseBin =
-            path.join(kVersionsDir.path, release, 'bin', 'flutter');
+        final releaseBin = path.join(kVersionsDir.path, release);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);

@@ -60,6 +60,7 @@ Directory get kVersionsDir {
 
 /// Where Default Flutter SDK is stored
 Link get kDefaultFlutterLink => Link(path.join(fvmHome, 'default'));
+String get kDefaultFlutterPath => path.join(kDefaultFlutterLink.path, 'bin');
 
 /// Flutter Channels
 final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];

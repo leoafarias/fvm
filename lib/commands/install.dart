@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/version_installer.dart';
 
 /// Installs Flutter SDK
@@ -18,7 +18,7 @@ class InstallCommand extends Command {
 
   @override
   void run() async {
-    await checkIfGitExists();
+    Guards.isGitInstalled();
     if (argResults.arguments.isEmpty) {
       throw ExceptionMissingChannelVersion();
     }

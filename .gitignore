@@ -31,3 +31,4 @@ fvm
 .settings/
 .vscode/
 coverage/lcov.info
+.fvm

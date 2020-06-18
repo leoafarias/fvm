@@ -66,7 +66,7 @@ Using the remove command will uninstall the SDK version locally. This will impac
 
 ### List Installed Versions
 
-List all the versions that are installed on your machine.
+List all the versions that are installed on your machine. This command will also output where FVM stores the SDK versions.
 
 ```bash
 > fvm list
@@ -107,7 +107,7 @@ This will run `flutter run` command using the local project SDK. If no FVM confi
 FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
 
 ```bash
-> ./fvm run
+> .fvm/flutter/bin run
 ```
 
 This will run `flutter run` command using the local project SDK.
@@ -126,6 +126,14 @@ Add the following to your settings.json. This will list list all Flutter SDKs in
      "/Users/leofarias/fvm/versions"
 ]
 ```
+
+#### Android Studio
+
+copy the path of fvm symbolic link in your root project directory.
+example {fvm-path}/versions/beta/bin/flutter
+in the Android Studio menù open Languages & Frameworks -> Flutter or search for Flutter and change Flutter SDK path to the previous path
+Apply the changes
+You now can Run and Debug with the selected versions of Flutter.
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 

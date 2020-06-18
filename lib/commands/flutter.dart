@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:args/args.dart';
 
@@ -21,6 +22,7 @@ class FlutterCommand extends Command {
 
   @override
   Future<void> run() async {
+    Guards.isFlutterProject();
     final flutterSdkPath = getFlutterSdkExecPath();
 
     await flutterProcessRunner(flutterSdkPath, argResults.arguments,

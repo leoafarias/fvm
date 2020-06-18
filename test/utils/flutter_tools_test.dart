@@ -13,9 +13,9 @@ void main() {
 
       try {
         await flutterChannelClone(invalidChannel);
-        fail("Exception not thrown");
+        fail('Exception not thrown');
       } on Exception catch (e) {
-        expect(e, TypeMatcher<ExceptionNotValidChannel>());
+        expect(e, const TypeMatcher<ExceptionNotValidChannel>());
       }
     });
 
@@ -24,16 +24,16 @@ void main() {
 
       try {
         await flutterVersionClone(invalidVersion);
-        fail("Exception not thrown");
+        fail('Exception not thrown');
       } on Exception catch (e) {
-        expect(e, TypeMatcher<ExceptionNotValidVersion>());
+        expect(e, const TypeMatcher<ExceptionNotValidVersion>());
       }
     });
     test('Checks that install is not correct', () async {
       final invalidVersionName = 'INVALID_VERSION';
       final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
       await dir.create(recursive: true);
-      final correct = await checkInstalledCorrectly(invalidVersionName);
+      final correct = isInstalledCorrectly(invalidVersionName);
       expect(correct, false);
     });
   });

@@ -1,5 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:io/ansi.dart';
+import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/config_utils.dart';
 
 /// Config fvm options.
@@ -29,7 +29,7 @@ class ConfigCommand extends Command {
     if (argResults['ls'] != null) {
       final configOptions = ConfigUtils().displayAllConfig();
       if (configOptions.isNotEmpty) {
-        print(green.wrap(configOptions));
+        Print.success(configOptions);
       } else {
         throw Exception('No configuration has been set');
       }

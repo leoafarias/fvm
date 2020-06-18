@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/print.dart';
 
 class ProjectConfig {
   final String flutterSdkVersion;
@@ -13,12 +14,13 @@ class ProjectConfig {
   Map<String, dynamic> toJson() => {'flutterSdkVersion': flutterSdkVersion};
 }
 
-void updateProjectConfig(String version) {
+void setAsProjectVersion(String version) {
   if (kProjectFvmConfigJson.existsSync() == false) {
     kProjectFvmConfigJson.createSync(recursive: true);
   }
   saveProjectConfig(ProjectConfig(version));
   updateFlutterSdkBinLink();
+  Print.success('Project now uses Flutter: $version');
 }
 
 void updateFlutterSdkBinLink() {
