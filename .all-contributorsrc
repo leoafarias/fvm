@@ -62,6 +62,17 @@
         "code",
         "maintenance"
       ]
+    },
+    {
+      "login": "davidmartos96",
+      "name": "David Martos",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/22084723?v=4",
+      "profile": "https://github.com/davidmartos96",
+      "contributions": [
+        "code",
+        "test",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
