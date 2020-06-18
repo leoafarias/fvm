@@ -7,20 +7,13 @@ import 'package:io/io.dart';
 import 'package:fvm/utils/logger.dart';
 
 /// Runs a process
-Future<void> processRunner(String cmd, List<String> args,
+Future<void> flutterProcessRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
 
-  try {
-    var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
-
-    if (await pr.exitCode != 0) {
-      throw Exception('Could not run command $cmd: $args');
-    }
-    await sharedStdIn.terminate();
-  } on Exception {
-    rethrow;
-  }
+  var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
+  final exitCode = await pr.exitCode;
+  exit(exitCode);
 }
 
 /// Clones Flutter SDK from Channel
@@ -78,13 +71,6 @@ Future<void> flutterVersionClone(String version) async {
     throw ExceptionCouldNotClone('Could not clone $version: ${result.stderr}');
   }
 }
-
-/// Gets Flutter version from project
-// Future<String> flutterGetProjectVersion() async {
-//   final target = await kLocalFlutterLink.target();
-//   print(target);
-//   return await _gitGetVersion(target);
-// }
 
 /// Gets SDK Version
 Future<String> flutterSdkVersion(String branch) async {
@@ -189,14 +175,7 @@ Future<List<String>> flutterListInstalledSdks() async {
   }
 }
 
-/// Links Flutter Dir to existsd SDK
-Future<void> linkProjectFlutterDir(String version) async {
-  final versionBin = Directory(path.join(kVersionsDir.path, version, 'bin',
-      Platform.isWindows ? 'flutter.bat' : 'flutter'));
-  await linkDir(kProjectSdkLink, versionBin);
-}
-
 Future<void> linkProjectFlutterDirGlobally(String version) async {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  await linkDir(kDefaultFlutterLink, versionDir);
+  await createLink(kDefaultFlutterLink, versionDir);
 }

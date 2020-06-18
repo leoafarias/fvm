@@ -4,6 +4,8 @@ import 'package:fvm/utils/config_utils.dart';
 
 final _configUtils = ConfigUtils();
 
+const kFvmDirName = '.fvm';
+
 /// Flutter Repo Address
 const kFlutterRepo = 'https://github.com/flutter/flutter.git';
 
@@ -13,11 +15,21 @@ final kFvmDirectory = Platform.script.toString();
 /// Working Directory for FVM
 final kWorkingDirectory = Directory.current;
 
+/// Local Project Directory
+final kProjectFvmDir =
+    Directory(path.join(kWorkingDirectory.path, kFvmDirName));
+
+/// Local Project Config
+final kProjectFvmConfigJson =
+    File(path.join(kProjectFvmDir.path, 'fvm_config.json'));
+
 /// Local Project Flutter Link
-final kProjectSdkLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
+final kProjectFvmSdkSymlink =
+    Link(path.join(kProjectFvmDir.path, 'flutter_sdk'));
 
 /// Flutter Project pubspec
-final kProjectPubspec = File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
+final kLocalProjectPubspec =
+    File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
 
 /// FVM Home directory
 String get fvmHome {

@@ -2,13 +2,11 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
+import 'package:fvm/utils/project_config.dart';
 import 'package:fvm/utils/version_installer.dart';
 import 'package:io/ansi.dart';
-import 'package:path/path.dart' as path;
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -21,15 +19,7 @@ class UseCommand extends Command {
   final description = 'Which Flutter SDK Version you would like to use';
 
   /// Constructor
-  UseCommand() {
-    argParser
-      ..addFlag(
-        'global',
-        help:
-            'Creates a symbolic link to the version specified in <FVM_HOME>/default/',
-        negatable: false,
-      );
-  }
+  UseCommand();
 
   @override
   Future<void> run() async {
@@ -43,7 +33,6 @@ class UseCommand extends Command {
       throw Exception('Please provide a version. $instruction');
     }
     final version = argResults.rest[0];
-    final useGlobally = argResults['global'] == true;
 
     final isInstalled = await isSdkInstalled(version);
 
@@ -51,7 +40,7 @@ class UseCommand extends Command {
       print('Flutter $version is not installed.');
       var inputConfirm = await readInput('Would you like to install it? Y/n: ');
 
-      // Install if input is 'y'
+      // Install if input is confirmed
       if (!inputConfirm.contains('n')) {
         final installProgress = logger.progress('Installing $version');
         await installFlutterVersion(version);
@@ -62,19 +51,8 @@ class UseCommand extends Command {
       }
     }
 
-    if (useGlobally) {
-      await linkProjectFlutterDirGlobally(version);
-    } else {
-      await linkProjectFlutterDir(version);
-    }
+    updateProjectConfig(version);
 
-    if (useGlobally) {
-      final flutterSDKBinariesPath = path.join(kDefaultFlutterLink.path, 'bin');
-      logger.stdout(green.wrap('$version linked succesfully'));
-      logger.stdout(cyan.wrap(
-          'Make sure sure to add $flutterSDKBinariesPath to your PATH environment variable'));
-    } else {
-      logger.stdout(green.wrap('$version is active'));
-    }
+    print(green.wrap('$version is active'));
   }
 }

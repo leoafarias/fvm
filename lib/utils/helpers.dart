@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/utils/project_config.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
@@ -24,7 +25,7 @@ bool isFlutterChannel(String channel) {
 
 // Checks if its flutter project
 bool isFlutterProject() {
-  return kProjectPubspec.existsSync();
+  return kLocalProjectPubspec.existsSync();
 }
 
 /// Returns true it's a valid installed version
@@ -33,15 +34,15 @@ Future<bool> isSdkInstalled(String version) async {
 }
 
 /// Moves assets from theme directory into brand-app
-Future<void> linkDir(
+void createLink(
   Link source,
   FileSystemEntity target,
 ) async {
   try {
-    if (await source.exists()) {
-      await source.delete();
+    if (source.existsSync()) {
+      source.deleteSync();
     }
-    await source.create(target.path);
+    source.createSync(target.path);
   } on Exception catch (err) {
     logVerboseError(err);
     throw Exception('Sorry could not link ${target.path}');
@@ -50,34 +51,22 @@ Future<void> linkDir(
 
 /// Check if it is the current version.
 Future<bool> isCurrentVersion(String version) async {
-  final link = await projectFlutterLink();
-  if (link != null) {
-    return Uri.file(File(await link.target()).parent.parent.path,
-                windows: Platform.isWindows)
-            .pathSegments
-            .last ==
-        version;
-  }
-  return false;
+  final config = readProjectConfig();
+  return version == config.flutterSdkVersion;
 }
 
-/// The fvm link of the current working directory.
-/// [levels] how many levels you would like to go up to search for a version
-Future<Link> projectFlutterLink([Directory dir, int levels = 20]) async {
-  // If there are no levels exit
-  if (levels == 0) return null;
-
-  Link link;
-
-  dir ??= kWorkingDirectory;
-
-  link = Link(path.join(dir.path, 'fvm'));
-
-  if (await link.exists()) {
-    return link;
-  } else if (path.rootPrefix(link.path) == dir.path) {
-    return null;
+/// The Flutter SDK Path referenced on FVM
+String getFlutterSdkPath() {
+  try {
+    final config = readProjectConfig();
+    return path.join(kVersionsDir.path, config.flutterSdkVersion);
+  } on Exception catch (e) {
+    // TODO: Clean up exception
+    throw ExceptionCouldNotReadConfig('$e');
   }
-  levels--;
-  return await projectFlutterLink(dir, levels);
+}
+
+String getFlutterSdkExecPath() {
+  return path.join(getFlutterSdkPath(), 'bin',
+      Platform.isWindows ? 'flutter.bat' : 'flutter');
 }
