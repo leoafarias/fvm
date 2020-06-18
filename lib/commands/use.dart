@@ -1,10 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/logger.dart';
-import 'package:io/ansi.dart';
-import 'package:path/path.dart' as path;
+import 'package:fvm/utils/project_config.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -22,46 +21,33 @@ class UseCommand extends Command {
       ..addFlag(
         'global',
         help:
-            'Creates a symbolic link to the version specified in <FVM_HOME>/default/',
+            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
         negatable: false,
       );
   }
 
   @override
   Future<void> run() async {
-    if (argResults.rest.isEmpty) {
-      final instruction = yellow.wrap('fvm use <version>');
-      throw Exception('Please provide a version. $instruction');
-    }
+    final useGlobally = argResults['global'] == true;
     final version = argResults.rest[0];
 
-    final isValidInstall = await isValidFlutterInstall(version);
-
-    if (!isValidInstall) {
-      final instruction = yellow.wrap('fvm install <version> first.');
-      throw Exception(
-          'Flutter $version is not installed. Please run $instruction');
+    if (argResults.rest.isEmpty) {
+      throw Exception('Please provide a version. fvm use <version>');
     }
+    // Make sure is valid Flutter version
+    await Guards.isFlutterVersion(version);
+    // If project use check that is Flutter project
+    if (!useGlobally) Guards.isFlutterProject();
 
-    final progress = logger.progress('Activating $version');
-
-    final useGlobally = argResults['global'] == true;
+    // Make sure version is installed
+    await checkAndInstallVersion(version);
 
     if (useGlobally) {
-      await linkProjectFlutterDirGlobally(version);
+      // Sets version as the global
+      setAsGlobalVersion(version);
     } else {
-      await linkProjectFlutterDir(version);
+      // Updates the project config with version
+      setAsProjectVersion(version);
     }
-
-    if (useGlobally) {
-      final flutterSDKBinariesPath = path.join(kDefaultFlutterLink.path, 'bin');
-      logger.stdout(green.wrap('$version linked succesfully'));
-      logger.stdout(cyan.wrap(
-          'Make sure sure to add $flutterSDKBinariesPath to your PATH environment variable'));
-    } else {
-      logger.stdout(green.wrap('$version is active'));
-    }
-
-    finishProgress(progress);
   }
 }

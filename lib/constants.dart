@@ -4,6 +4,8 @@ import 'package:fvm/utils/config_utils.dart';
 
 final _configUtils = ConfigUtils();
 
+const kFvmDirName = '.fvm';
+
 /// Flutter Repo Address
 const kFlutterRepo = 'https://github.com/flutter/flutter.git';
 
@@ -13,8 +15,21 @@ final kFvmDirectory = Platform.script.toString();
 /// Working Directory for FVM
 final kWorkingDirectory = Directory.current;
 
+/// Local Project Directory
+final kProjectFvmDir =
+    Directory(path.join(kWorkingDirectory.path, kFvmDirName));
+
+/// Local Project Config
+final kProjectFvmConfigJson =
+    File(path.join(kProjectFvmDir.path, 'fvm_config.json'));
+
 /// Local Project Flutter Link
-final kLocalFlutterLink = Link(path.join(kWorkingDirectory.path, 'fvm'));
+final kProjectFvmSdkSymlink =
+    Link(path.join(kProjectFvmDir.path, 'flutter_sdk'));
+
+/// Flutter Project pubspec
+final kLocalProjectPubspec =
+    File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
 
 /// FVM Home directory
 String get fvmHome {
@@ -45,6 +60,7 @@ Directory get kVersionsDir {
 
 /// Where Default Flutter SDK is stored
 Link get kDefaultFlutterLink => Link(path.join(fvmHome, 'default'));
+String get kDefaultFlutterPath => path.join(kDefaultFlutterLink.path, 'bin');
 
 /// Flutter Channels
 final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];

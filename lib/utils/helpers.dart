@@ -2,41 +2,63 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/utils/confirm.dart';
+import 'package:fvm/utils/logger.dart';
+import 'package:fvm/utils/print.dart';
+import 'package:fvm/utils/project_config.dart';
+import 'package:fvm/utils/version_installer.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
-Future<String> coerceValidFlutterVersion(String version) async {
-  if ((await flutterListAllSdks()).contains(version)) {
+Future<String> inferFlutterVersion(String version) async {
+  final versions = await flutterListAllSdks();
+  if ((versions).contains(version)) {
     return version;
   }
   final prefixedVersion = 'v$version';
-  if ((await flutterListAllSdks()).contains(prefixedVersion)) {
+  if ((versions).contains(prefixedVersion)) {
     return prefixedVersion;
   }
   throw ExceptionNotValidVersion('"$version" is not a valid version');
 }
 
 /// Returns true if it's a valid Flutter channel
-bool isValidFlutterChannel(String channel) {
+bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
 }
 
 /// Returns true it's a valid installed version
-Future<bool> isValidFlutterInstall(String version) async {
-  return (await flutterListInstalledSdks()).contains(version);
+bool isFlutterVersionInstalled(String version) {
+  return (flutterListInstalledSdks()).contains(version);
+}
+
+/// Checks if version is installed, and installs or exits
+Future<void> checkAndInstallVersion(String version) async {
+  if (isFlutterVersionInstalled(version)) return null;
+  Print.info('Flutter $version is not installed.');
+
+  // Install if input is confirmed
+  if (await confirm('Would you like to install it?')) {
+    final installProgress = logger.progress('Installing $version');
+    await installFlutterVersion(version);
+    finishProgress(installProgress);
+  } else {
+    // If do not install exist
+    exit(0);
+  }
 }
 
 /// Moves assets from theme directory into brand-app
-Future<void> linkDir(
+void createLink(
   Link source,
   FileSystemEntity target,
 ) async {
   try {
-    if (await source.exists()) {
-      await source.delete();
+    if (source.existsSync()) {
+      source.deleteSync();
     }
-    await source.create(target.path);
+    source.createSync(target.path);
   } on Exception catch (err) {
     logVerboseError(err);
     throw Exception('Sorry could not link ${target.path}');
@@ -44,36 +66,23 @@ Future<void> linkDir(
 }
 
 /// Check if it is the current version.
-Future<bool> isCurrentVersion(String version) async {
-  final link = await projectFlutterLink();
-  if (link != null) {
-    return Uri.file(File(await link.target()).parent.parent.path,
-                windows: Platform.isWindows)
-            .pathSegments
-            .last ==
-        version;
-  }
-  return false;
+bool isCurrentVersion(String version) {
+  final config = readProjectConfig();
+  return version == config.flutterSdkVersion;
 }
 
-/// The fvm link of the current working directory.
-/// [levels] how many levels you would like to go up to search for a version
-Future<Link> projectFlutterLink([Directory dir, int levels = 20]) async {
-  // If there are no levels exit
-  if (levels == 0) {
-    return null;
+/// The Flutter SDK Path referenced on FVM
+String getFlutterSdkPath() {
+  try {
+    final config = readProjectConfig();
+    return path.join(kVersionsDir.path, config.flutterSdkVersion);
+  } on Exception catch (e) {
+    // TODO: Clean up exception
+    throw ExceptionCouldNotReadConfig('$e');
   }
-  Link link;
+}
 
-  dir ??= kWorkingDirectory;
-
-  link = Link(path.join(dir.path, 'fvm'));
-
-  if (await link.exists()) {
-    return link;
-  } else if (path.rootPrefix(link.path) == dir.path) {
-    return null;
-  }
-  levels--;
-  return await projectFlutterLink(dir, levels);
+String getFlutterSdkExecPath() {
+  return path.join(getFlutterSdkPath(), 'bin',
+      Platform.isWindows ? 'flutter.bat' : 'flutter');
 }

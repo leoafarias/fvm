@@ -1,7 +1,6 @@
 import 'package:args/command_runner.dart';
-import 'package:io/ansi.dart';
+import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/config_utils.dart';
-import 'package:fvm/utils/logger.dart';
 
 /// Config fvm options.
 class ConfigCommand extends Command {
@@ -14,6 +13,7 @@ class ConfigCommand extends Command {
   /// Constructor
   ConfigCommand() {
     argParser
+      ..addOption('defaultVersion', abbr: 'd', help: 'Flutter default version')
       ..addOption('cache-path',
           abbr: 'c', help: 'Path to store Flutter cached versions')
       ..addFlag('ls', help: 'Lists all config options');
@@ -29,7 +29,7 @@ class ConfigCommand extends Command {
     if (argResults['ls'] != null) {
       final configOptions = ConfigUtils().displayAllConfig();
       if (configOptions.isNotEmpty) {
-        logger.stdout(green.wrap(configOptions));
+        Print.success(configOptions);
       } else {
         throw Exception('No configuration has been set');
       }

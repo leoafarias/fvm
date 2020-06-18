@@ -2,26 +2,18 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/print.dart';
 import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
-import 'package:fvm/utils/logger.dart';
 
 /// Runs a process
-Future<void> processRunner(String cmd, List<String> args,
+Future<void> flutterProcessRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
 
-  try {
-    var spawn =
-        await manager.spawn(cmd, args, workingDirectory: workingDirectory);
-
-    if (await spawn.exitCode != 0) {
-      throw Exception('Could not run command $cmd: $args');
-    }
-    await sharedStdIn.terminate();
-  } on Exception {
-    rethrow;
-  }
+  var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
+  final exitCode = await pr.exitCode;
+  exit(exitCode);
 }
 
 /// Clones Flutter SDK from Channel
@@ -29,14 +21,12 @@ Future<void> processRunner(String cmd, List<String> args,
 Future<void> flutterChannelClone(String channel) async {
   final channelDirectory = Directory(path.join(kVersionsDir.path, channel));
 
-  if (!isValidFlutterChannel(channel)) {
+  if (!isFlutterChannel(channel)) {
     throw ExceptionNotValidChannel('"$channel" is not a valid channel');
   }
 
   // If it's installed correctly just return and use cached
-  if (await checkInstalledCorrectly(channel)) {
-    return;
-  }
+  if (isInstalledCorrectly(channel)) return;
 
   await channelDirectory.create(recursive: true);
 
@@ -49,27 +39,15 @@ Future<void> flutterChannelClone(String channel) async {
   }
 }
 
-/// Check if Git is installed
-Future<void> checkIfGitExists() async {
-  try {
-    await Process.run('git', ['--version']);
-  } on ProcessException {
-    throw Exception(
-        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
-  }
-}
-
 /// Clones Flutter SDK from Version Number
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> flutterVersionClone(String version) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
-  version = await coerceValidFlutterVersion(version);
+  version = await inferFlutterVersion(version);
 
   // If it's installed correctly just return and use cached
-  if (await checkInstalledCorrectly(version)) {
-    return;
-  }
+  if (isInstalledCorrectly(version)) return;
 
   await versionDirectory.create(recursive: true);
 
@@ -82,17 +60,10 @@ Future<void> flutterVersionClone(String version) async {
   }
 }
 
-/// Gets Flutter version from project
-// Future<String> flutterGetProjectVersion() async {
-//   final target = await kLocalFlutterLink.target();
-//   print(target);
-//   return await _gitGetVersion(target);
-// }
-
 /// Gets SDK Version
 Future<String> flutterSdkVersion(String branch) async {
   final branchDirectory = Directory(path.join(kVersionsDir.path, branch));
-  if (!await branchDirectory.exists()) {
+  if (!branchDirectory.existsSync()) {
     throw Exception('Could not get version from SDK that is not installed');
   }
   return await _gitGetVersion(branchDirectory.path);
@@ -139,28 +110,25 @@ Future<List<String>> flutterListAllSdks() async {
 }
 
 /// Removes a Version of Flutter SDK
-Future<void> flutterSdkRemove(String version) async {
+void flutterSdkRemove(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  if (await versionDir.exists()) {
-    await versionDir.delete(recursive: true);
+  if (versionDir.existsSync()) {
+    versionDir.deleteSync(recursive: true);
   }
 }
 
 /// Check if version is from git
-Future<bool> checkInstalledCorrectly(String version) async {
+bool isInstalledCorrectly(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
   final gitDir = Directory(path.join(versionDir.path, '.github'));
   final flutterBin = Directory(path.join(versionDir.path, 'bin'));
   // Check if version directory exists
-  if (!await versionDir.exists()) {
-    return false;
-  }
+  if (!versionDir.existsSync()) return false;
 
   // Check if version directory is from git
-  if (!await gitDir.exists() || !await flutterBin.exists()) {
-    logger.stdout(
-        '$version exists but was not setup correctly. Doing cleanup...');
-    await flutterSdkRemove(version);
+  if (!gitDir.existsSync() || !flutterBin.existsSync()) {
+    print('$version exists but was not setup correctly. Doing cleanup...');
+    flutterSdkRemove(version);
     return false;
   }
 
@@ -168,18 +136,18 @@ Future<bool> checkInstalledCorrectly(String version) async {
 }
 
 /// Lists Installed Flutter SDK Version
-Future<List<String>> flutterListInstalledSdks() async {
+List<String> flutterListInstalledSdks() {
   try {
     // Returns empty array if directory does not exist
-    if (!await kVersionsDir.exists()) {
+    if (!kVersionsDir.existsSync()) {
       return [];
     }
 
-    final versions = await kVersionsDir.list().toList();
+    final versions = kVersionsDir.listSync().toList();
 
     var installedVersions = <String>[];
     for (var version in versions) {
-      if (await FileSystemEntity.type(version.path) ==
+      if (FileSystemEntity.typeSync(version.path) ==
           FileSystemEntityType.directory) {
         installedVersions.add(path.basename(version.path));
       }
@@ -192,14 +160,11 @@ Future<List<String>> flutterListInstalledSdks() async {
   }
 }
 
-/// Links Flutter Dir to existsd SDK
-Future<void> linkProjectFlutterDir(String version) async {
-  final versionBin = Directory(path.join(kVersionsDir.path, version, 'bin',
-      Platform.isWindows ? 'flutter.bat' : 'flutter'));
-  await linkDir(kLocalFlutterLink, versionBin);
-}
-
-Future<void> linkProjectFlutterDirGlobally(String version) async {
+void setAsGlobalVersion(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  await linkDir(kDefaultFlutterLink, versionDir);
+  createLink(kDefaultFlutterLink, versionDir);
+
+  Print.success('The global Flutter version is now $version');
+  Print.success(
+      'Make sure sure to add $kDefaultFlutterPath to your PATH environment variable');
 }

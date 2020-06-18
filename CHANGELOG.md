@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+- Implemented `--global` flag to set a specific version globally.
+- Changed project configuration to allow for versioning.
+- Refactoring and project clean-up
+- Better user experience
+- Improved error messages
+
 ## 0.7.2
 
 - Better compatibility with flutter commands.

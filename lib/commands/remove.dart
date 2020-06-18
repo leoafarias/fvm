@@ -28,7 +28,7 @@ class RemoveCommand extends Command {
   void run() async {
     final version = argResults.arguments[0].toLowerCase();
 
-    final isValidInstall = await isValidFlutterInstall(version);
+    final isValidInstall = await isFlutterVersionInstalled(version);
 
     if (!isValidInstall) {
       throw Exception('Flutter SDK: $version is not installed');
