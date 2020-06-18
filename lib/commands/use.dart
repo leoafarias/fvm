@@ -1,12 +1,9 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
-import 'package:console/console.dart';
+import 'package:fvm/constants.dart';
+import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/logger.dart';
 import 'package:fvm/utils/project_config.dart';
-import 'package:fvm/utils/version_installer.dart';
-import 'package:io/ansi.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -19,40 +16,38 @@ class UseCommand extends Command {
   final description = 'Which Flutter SDK Version you would like to use';
 
   /// Constructor
-  UseCommand();
+  UseCommand() {
+    argParser
+      ..addFlag(
+        'global',
+        help:
+            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
+        negatable: false,
+      );
+  }
 
   @override
   Future<void> run() async {
-    // Check if it's Flutter project
-    if (!isFlutterProject()) {
-      throw Exception('Run `use` command on the root of a Flutter project');
-    }
-
-    if (argResults.rest.isEmpty) {
-      final instruction = yellow.wrap('fvm use <version>');
-      throw Exception('Please provide a version. $instruction');
-    }
+    final useGlobally = argResults['global'] == true;
     final version = argResults.rest[0];
 
-    final isInstalled = await isSdkInstalled(version);
-
-    if (!isInstalled) {
-      print('Flutter $version is not installed.');
-      var inputConfirm = await readInput('Would you like to install it? Y/n: ');
-
-      // Install if input is confirmed
-      if (!inputConfirm.contains('n')) {
-        final installProgress = logger.progress('Installing $version');
-        await installFlutterVersion(version);
-        finishProgress(installProgress);
-      } else {
-        // If do not install exist
-        exit(0);
-      }
+    if (argResults.rest.isEmpty) {
+      throw Exception('Please provide a version. fvm use <version>');
     }
+    // Make sure is valid Flutter version
+    await Guards.isFlutterVersion(version);
+    // If project use check that is Flutter project
+    if (!useGlobally) Guards.isFlutterProject();
 
-    updateProjectConfig(version);
+    // Make sure version is installed
+    await checkAndInstallVersion(version);
 
-    print(green.wrap('$version is active'));
+    if (useGlobally) {
+      // Sets version as the global
+      setAsGlobalVersion(version);
+    } else {
+      // Updates the project config with version
+      setAsProjectVersion(version);
+    }
   }
 }

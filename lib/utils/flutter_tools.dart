@@ -160,7 +160,11 @@ List<String> flutterListInstalledSdks() {
   }
 }
 
-Future<void> linkProjectFlutterDirGlobally(String version) async {
+void setAsGlobalVersion(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  await createLink(kDefaultFlutterLink, versionDir);
+  createLink(kDefaultFlutterLink, versionDir);
+
+  Print.success('The global Flutter version is now $version');
+  Print.success(
+      'Make sure sure to add $kDefaultFlutterPath to your PATH environment variable');
 }
