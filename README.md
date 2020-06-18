@@ -124,14 +124,19 @@ Add the following to your settings.json. This will list list all Flutter SDKs in
 
 Use `fvm list` to show you the path to the versions.
 
+##### List all versions installd by FVM
+
 ```json
 {
-  "dart.flutterSdkPaths": [
-    // List all versions installd by FVM
-    "/Users/usr/fvm/versions"
-    // Or add the version symlink for dynamic switch
-    ".fvm/flutter_sdk"
-  ]
+  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+}
+```
+
+##### You can also add the version symlink for dynamic switch
+
+```json
+{
+  "dart.flutterSdkPaths": [".fvm/flutter_sdk"]
 }
 ```
 
