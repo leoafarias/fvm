@@ -3,13 +3,17 @@ import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/logger.dart';
 import 'package:io/ansi.dart';
 
-Future<void> installFlutterVersion(String flutterVersion) async {
+Future<void> installFlutterVersion(
+  String flutterVersion,
+) async {
   if (flutterVersion == null) {
     throw ExceptionMissingChannelVersion();
   }
   final version = flutterVersion.toLowerCase();
 
   final progress = logger.progress(green.wrap('Downloading $version'));
+  // Skips line in progress
+  print('');
 
   await flutterVersionClone(version);
 

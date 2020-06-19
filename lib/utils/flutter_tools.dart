@@ -20,7 +20,9 @@ Future<void> processRunner(String cmd, List<String> args,
 
 /// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
-Future<void> flutterVersionClone(String version) async {
+Future<void> flutterVersionClone(
+  String version,
+) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
   if (!isFlutterChannel(version)) {
@@ -31,17 +33,19 @@ Future<void> flutterVersionClone(String version) async {
   if (isInstalledCorrectly(version)) return;
 
   await versionDirectory.create(recursive: true);
+
   final args = [
     'clone',
+    '--progress',
     '--single-branch',
     '-b',
     version,
     '--depth',
     '1',
     kFlutterRepo,
-    '.'
+    versionDirectory.path
   ];
-  await runGit(args, workingDirectory: versionDirectory.path);
+  await processRunner('git', args);
 }
 
 /// Gets SDK Version
