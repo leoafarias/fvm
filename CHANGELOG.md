@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.2
+
+- Size optimization of SDK downloads
+- Code clean-up
+
 ## 0.8.1
 
 - Fixes `list` command when project has no config.
