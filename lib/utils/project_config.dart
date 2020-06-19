@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
 
@@ -33,6 +34,16 @@ ProjectConfig readProjectConfig() {
     final jsonString = kProjectFvmConfigJson.readAsStringSync();
     final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return ProjectConfig.fromJson(projectConfigMap);
+  } on Exception {
+    throw ExceptionProjectConfigNotFound();
+  }
+}
+
+/// Returns version from project config
+String getConfigFlutterVersion() {
+  try {
+    final config = readProjectConfig();
+    return config.flutterSdkVersion;
   } on Exception {
     return null;
   }

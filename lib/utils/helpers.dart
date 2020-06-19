@@ -67,19 +67,14 @@ void createLink(
 
 /// Check if it is the current version.
 bool isCurrentVersion(String version) {
-  final config = readProjectConfig();
-  return version == config.flutterSdkVersion;
+  final configVersion = getConfigFlutterVersion();
+  return version == configVersion;
 }
 
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath() {
-  try {
-    final config = readProjectConfig();
-    return path.join(kVersionsDir.path, config.flutterSdkVersion);
-  } on Exception catch (e) {
-    // TODO: Clean up exception
-    throw ExceptionCouldNotReadConfig('$e');
-  }
+  final config = readProjectConfig();
+  return path.join(kVersionsDir.path, config.flutterSdkVersion);
 }
 
 String getFlutterSdkExecPath() {
