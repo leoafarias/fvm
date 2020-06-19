@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
-
 import 'test_helpers.dart';
 
 final testPath = '$fvmHome/test_path';
@@ -16,12 +15,8 @@ const channel = 'master';
 const release = '1.8.0';
 
 void main() {
-  setUpAll(() async {
-    await fvmSetUpAll();
-  });
-  tearDownAll(() async {
-    await fvmTearDownAll();
-  });
+  setUpAll(fvmSetUpAll);
+  tearDownAll(fvmTearDownAll);
   group('Channel Flow', () {
     test('Install without version', () async {
       final args = ['install'];
@@ -37,8 +32,8 @@ void main() {
       try {
         await fvmRunner(['install', channel, '--verbose']);
         final existingChannel = await flutterSdkVersion(channel);
-        final correct = await checkInstalledCorrectly(channel);
-        final installedVersions = await flutterListInstalledSdks();
+        final correct = isInstalledCorrectly(channel);
+        final installedVersions = flutterListInstalledSdks();
 
         final installExists = installedVersions.contains(channel);
 
@@ -46,7 +41,7 @@ void main() {
         expect(correct, true, reason: 'Not Installed Correctly');
         expect(existingChannel, channel);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -54,7 +49,7 @@ void main() {
       try {
         await fvmRunner(['list']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -63,18 +58,32 @@ void main() {
     test('Use Channel', () async {
       try {
         await fvmRunner(['use', channel, '--verbose']);
-        final linkExists = await kLocalFlutterLink.exists();
+        final linkExists = kProjectFvmSdkSymlink.existsSync();
 
-        final targetBin = await kLocalFlutterLink.target();
+        final targetBin = kProjectFvmSdkSymlink.targetSync();
 
-        final channelBin =
-            path.join(kVersionsDir.path, channel, 'bin', 'flutter');
-        ;
+        final channelBin = path.join(kVersionsDir.path, channel);
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
+      }
+    });
+
+    test('Use Flutter SDK globally', () async {
+      try {
+        await fvmRunner(['use', channel, '--global']);
+        final linkExists = kDefaultFlutterLink.existsSync();
+
+        final targetDir = kDefaultFlutterLink.targetSync();
+
+        final channelDir = path.join(kVersionsDir.path, channel);
+
+        expect(targetDir == channelDir, true);
+        expect(linkExists, true);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
       }
     });
 
@@ -82,7 +91,7 @@ void main() {
       try {
         await fvmRunner(['remove', channel, '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -93,8 +102,8 @@ void main() {
       try {
         await fvmRunner(['install', release, '--verbose']);
         final existingRelease = await flutterSdkVersion(release);
-        final correct = await checkInstalledCorrectly(release);
-        final installedVersions = await flutterListInstalledSdks();
+        final correct = isInstalledCorrectly(release);
+        final installedVersions = flutterListInstalledSdks();
 
         final installExists = installedVersions.contains(release);
 
@@ -102,7 +111,7 @@ void main() {
         expect(correct, true, reason: 'Not Installed Correctly');
         expect(existingRelease, 'v$release');
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -111,17 +120,16 @@ void main() {
     test('Use Release', () async {
       try {
         await fvmRunner(['use', release, '--verbose']);
-        final linkExists = await kLocalFlutterLink.exists();
+        final linkExists = kProjectFvmSdkSymlink.existsSync();
 
-        final targetBin = await kLocalFlutterLink.target();
+        final targetBin = kProjectFvmSdkSymlink.targetSync();
 
-        final releaseBin =
-            path.join(kVersionsDir.path, release, 'bin', 'flutter');
+        final releaseBin = path.join(kVersionsDir.path, release);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
     });
 
@@ -129,7 +137,7 @@ void main() {
       try {
         await fvmRunner(['list', '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -139,7 +147,7 @@ void main() {
       try {
         await fvmRunner(['remove', release, '--verbose']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
 
       expect(true, true);
@@ -151,7 +159,7 @@ void main() {
       try {
         await fvmRunner(['config', '--cache-path', testPath]);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(testPath, kVersionsDir.path);
     });
@@ -160,7 +168,7 @@ void main() {
       try {
         await fvmRunner(['config', '--ls']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(true, true);
     });
@@ -171,7 +179,7 @@ void main() {
       try {
         await fvmRunner(['version']);
       } on Exception catch (e) {
-        fail("Exception thrown, $e");
+        fail('Exception thrown, $e');
       }
       expect(true, true);
     });

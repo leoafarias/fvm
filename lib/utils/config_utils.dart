@@ -70,19 +70,15 @@ class ConfigUtils {
   }
 
   /// Removes Config file
-  Future<void> removeConfig() async {
-    if (await kConfigFile.exists()) {
-      await kConfigFile.delete();
-    }
+  void removeConfig() {
+    if (kConfigFile.existsSync()) kConfigFile.deleteSync();
   }
 
   /// get flutter stored path.
   String getStoredPath() {
     final path = getValue(kConfigFlutterStoredKey);
 
-    if (path == null) {
-      return null;
-    }
+    if (path == null) return null;
 
     final type = FileSystemEntity.typeSync(path, followLinks: true);
     if (type == FileSystemEntityType.directory) {

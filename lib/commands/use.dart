@@ -1,8 +1,9 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/logger.dart';
-import 'package:io/ansi.dart';
+import 'package:fvm/utils/project_config.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -15,28 +16,38 @@ class UseCommand extends Command {
   final description = 'Which Flutter SDK Version you would like to use';
 
   /// Constructor
-  UseCommand();
+  UseCommand() {
+    argParser
+      ..addFlag(
+        'global',
+        help:
+            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
+        negatable: false,
+      );
+  }
 
   @override
   Future<void> run() async {
-    if (argResults.arguments.isEmpty) {
-      final instruction = yellow.wrap('fvm use <version>');
-      throw Exception('Please provide a version. $instruction');
+    final useGlobally = argResults['global'] == true;
+    final version = argResults.rest[0];
+
+    if (argResults.rest.isEmpty) {
+      throw Exception('Please provide a version. fvm use <version>');
     }
-    final version = argResults.arguments[0];
+    // Make sure is valid Flutter version
+    await Guards.isFlutterVersion(version);
+    // If project use check that is Flutter project
+    if (!useGlobally) Guards.isFlutterProject();
 
-    final isValidInstall = await isValidFlutterInstall(version);
+    // Make sure version is installed
+    await checkAndInstallVersion(version);
 
-    if (!isValidInstall) {
-      final instruction = yellow.wrap('fvm install <version> first.');
-      throw Exception(
-          'Flutter $version is not installed. Please run $instruction');
+    if (useGlobally) {
+      // Sets version as the global
+      setAsGlobalVersion(version);
+    } else {
+      // Updates the project config with version
+      setAsProjectVersion(version);
     }
-
-    final progress = logger.progress('Activating $version');
-
-    await linkProjectFlutterDir(version);
-    logger.stdout(green.wrap('$version is active'));
-    finishProgress(progress);
   }
 }

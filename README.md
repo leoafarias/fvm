@@ -1,6 +1,9 @@
 # `fvm`
 
-![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true) [![MIT Licence](https://badges.frapsoft.com/os/mit/mit.svg?v=103)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/Awesome-Flutter-blue.svg?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
+![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)
+![Maintenance](https://img.shields.io/badge/dynamic/json?color=blue&label=maintenance&query=maintenance&url=http://www.pubscore.gq/all?package=fvm&style=flat-square)
+![Health](https://img.shields.io/badge/dynamic/json?color=blue&label=health&query=health&url=http://www.pubscore.gq/all?package=fvm&style=flat-square)
+![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
@@ -51,6 +54,8 @@ You can use different Flutter SDK versions per project. To do that you have to g
 > fvm use <version>
 ```
 
+If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, thsi will give you the exact path you need to configure.
+
 ### Remove a SDK Version
 
 Using the remove command will uninstall the SDK version locally. This will impact any projects that depend on that version of the SDK.
@@ -61,7 +66,7 @@ Using the remove command will uninstall the SDK version locally. This will impac
 
 ### List Installed Versions
 
-List all the versions that are installed on your machine.
+List all the versions that are installed on your machine. This command will also output where FVM stores the SDK versions.
 
 ```bash
 > fvm list
@@ -102,7 +107,7 @@ This will run `flutter run` command using the local project SDK. If no FVM confi
 FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
 
 ```bash
-> ./fvm run
+> .fvm/flutter/bin run
 ```
 
 This will run `flutter run` command using the local project SDK.
@@ -111,16 +116,35 @@ As an example calling `fvm flutter run` is the equivalent of calling `flutter ru
 
 ### Configure Your IDE
 
+In some situations you might have to restart your IDE and the Flutter debugger to make sure it uses the new version.
+
 #### VSCode
 
-Add the following to your settings.json
+Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
+
+Use `fvm list` to show you the path to the versions.
+
+##### List all versions installd by FVM
 
 ```json
-
-"dart.flutterSdkPaths": [
-    "fvm"
-]
+{
+  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+}
 ```
+
+##### You can also add the version symlink for dynamic switch
+
+```json
+{
+  "dart.flutterSdkPaths": [".fvm/flutter_sdk"]
+}
+```
+
+#### Android Studio
+
+Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute/path-to-your-project/.fvm/flutter_sdk`
+
+In the Android Studio menu open `Languages & Frameworks -> Flutter` or search for Flutter and change Flutter SDK path. Apply the changes. You now can Run and Debug with the selected versions of Flutter.
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 
@@ -166,7 +190,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://www.kikt.top"><img src="https://avatars0.githubusercontent.com/u/14145407?v=4" width="50px;" alt=""/><br /><sub><b>Caijinglong</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=CaiJingLong" title="Code">💻</a> <a href="#ideas-CaiJingLong" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="https://juejin.im/user/5bdc1a32518825170b101080"><img src="https://avatars1.githubusercontent.com/u/16477333?v=4" width="50px;" alt=""/><br /><sub><b>zmtzawqlp</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/issues?q=author%3Azmtzawqlp" title="Bug reports">🐛</a></td>
     <td align="center"><a href="https://github.com/kuhnroyal"><img src="https://avatars3.githubusercontent.com/u/1260818?v=4" width="50px;" alt=""/><br /><sub><b>Peter Leibiger</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=kuhnroyal" title="Code">💻</a> <a href="#maintenance-kuhnroyal" title="Maintenance">🚧</a></td>
-  </tr>
+    <td align="center"><a href="https://github.com/davidmartos96"><img src="https://avatars1.githubusercontent.com/u/22084723?v=4" width="50px;" alt=""/><br /><sub><b>David Martos</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=davidmartos96" title="Code">💻</a> <a href="https://github.com/leoafarias/fvm/commits?author=davidmartos96" title="Tests">⚠️</a> <a href="https://github.com/leoafarias/fvm/commits?author=davidmartos96" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://www.itasoft.it"><img src="https://avatars0.githubusercontent.com/u/250296?v=4" width="50px;" alt=""/><br /><sub><b>Luca Panteghini</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=panthe" title="Documentation">📖</a></td>
+    </tr>
 </table>
 
 <!-- markdownlint-enable -->
