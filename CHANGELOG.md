@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1
+
+- Fixes `list` command when project has no config.
+
 ## 0.8.0
 
 - Implemented `--global` flag to set a specific version globally.

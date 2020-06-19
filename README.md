@@ -46,6 +46,16 @@ FVM gives you the ability to install many Flutter **releases** or **channels**.
 
 Version - use `master` to install the Master channel and `v1.8.0` or `1.17.0-dev.3.1` to install the release.
 
+#### Project Config SDK Version
+
+If your project is already configured to use an specifc version. Run `install` without any arguments will make sure the proper version is installed for the project.
+
+```bash
+> fvm install
+```
+
+Check out `use` command to see how to configure a version per project.
+
 ### Use a SDK Version
 
 You can use different Flutter SDK versions per project. To do that you have to go into the root of the project and:
