@@ -23,11 +23,11 @@ class InstallCommand extends Command {
 
     String version;
     if (argResults.arguments.isEmpty) {
-      final config = readProjectConfig();
-      if (config == null) {
+      final configVersion = getConfigFlutterVersion();
+      if (configVersion == null) {
         throw ExceptionMissingChannelVersion();
       }
-      version = config.flutterSdkVersion;
+      version = configVersion;
     } else {
       version = argResults.arguments[0].toLowerCase();
     }

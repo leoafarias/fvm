@@ -77,3 +77,16 @@ class ExceptionMissingChannelVersion implements Exception {
     return message;
   }
 }
+
+/// Cannot find a config for the projec
+class ExceptionProjectConfigNotFound implements Exception {
+  final message = 'No config found for this project.';
+
+  /// Constructor
+  ExceptionProjectConfigNotFound();
+
+  @override
+  String toString() {
+    return message;
+  }
+}

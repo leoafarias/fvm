@@ -21,7 +21,7 @@ class ListCommand extends Command {
   ListCommand();
 
   @override
-  Future<void> run() async {
+  void run() {
     final choices = flutterListInstalledSdks();
 
     if (choices.isEmpty) {
@@ -33,7 +33,7 @@ class ListCommand extends Command {
     // Print where versions are stored
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
-    Future<void> printVersions(String version) async {
+    void printVersions(String version) {
       if (isCurrentVersion(version)) {
         version = '$version (current)';
       }
@@ -41,7 +41,7 @@ class ListCommand extends Command {
     }
 
     for (var choice in choices) {
-      await printVersions(choice);
+      printVersions(choice);
     }
   }
 }
