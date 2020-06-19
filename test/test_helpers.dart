@@ -3,20 +3,22 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/config_utils.dart';
 
-void cleanup() async {
+void cleanup() {
   final fvmHomeDir = Directory(fvmHome);
-  if (await fvmHomeDir.exists()) {
-    await fvmHomeDir.delete(recursive: true);
+  if (fvmHomeDir.existsSync()) {
+    fvmHomeDir.deleteSync(recursive: true);
   }
   ConfigUtils().removeConfig();
-  kProjectFvmDir.deleteSync(recursive: true);
+  if (kProjectFvmDir.existsSync()) {
+    kProjectFvmDir.deleteSync(recursive: true);
+  }
 }
 
-void fvmTearDownAll() async {
+void fvmTearDownAll() {
   cleanup();
 }
 
-void fvmSetUpAll() async {
+void fvmSetUpAll() {
   // Looks just like Teardown rightnow bu
   // will probalby change. Just to guarantee a clean run
   cleanup();
