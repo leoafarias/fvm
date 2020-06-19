@@ -25,7 +25,7 @@ class FlutterCommand extends Command {
     Guards.isFlutterProject();
     final flutterSdkPath = getFlutterSdkExecPath();
 
-    await processRunner(flutterSdkPath, argResults.arguments,
+    await flutterRunner(flutterSdkPath, argResults.arguments,
         workingDirectory: kWorkingDirectory.path);
   }
 }

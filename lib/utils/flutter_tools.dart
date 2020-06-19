@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> processRunner(String cmd, List<String> args,
+Future<void> flutterRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
 
@@ -45,7 +45,7 @@ Future<void> flutterVersionClone(
     kFlutterRepo,
     versionDirectory.path
   ];
-  await processRunner('git', args);
+  await runGitProcess(args);
 }
 
 /// Gets SDK Version
