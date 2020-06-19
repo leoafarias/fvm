@@ -67,13 +67,26 @@ class ExceptionCouldNotReadConfig implements Exception {
 
 /// Provide a channel or version
 class ExceptionMissingChannelVersion implements Exception {
-  final _message = 'Need to provide a channel or a version.';
+  final message = 'Need to provide a channel or a version.';
 
   /// Constructor
   ExceptionMissingChannelVersion();
 
   @override
   String toString() {
-    return _message;
+    return message;
+  }
+}
+
+/// Cannot find a config for the projec
+class ExceptionProjectConfigNotFound implements Exception {
+  final message = 'No config found for this project.';
+
+  /// Constructor
+  ExceptionProjectConfigNotFound();
+
+  @override
+  String toString() {
+    return message;
   }
 }

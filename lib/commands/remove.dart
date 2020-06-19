@@ -28,7 +28,7 @@ class RemoveCommand extends Command {
   void run() async {
     final version = argResults.arguments[0].toLowerCase();
 
-    final isValidInstall = await isFlutterVersionInstalled(version);
+    final isValidInstall = isFlutterVersionInstalled(version);
 
     if (!isValidInstall) {
       throw Exception('Flutter SDK: $version is not installed');
@@ -36,7 +36,7 @@ class RemoveCommand extends Command {
 
     final progress = logger.progress('Removing $version');
     try {
-      await flutterSdkRemove(version);
+      flutterSdkRemove(version);
       finishProgress(progress);
     } on Exception {
       rethrow;
