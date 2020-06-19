@@ -1,63 +1,47 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> flutterProcessRunner(String cmd, List<String> args,
+Future<void> processRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
 
   var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
   final exitCode = await pr.exitCode;
+
   exit(exitCode);
 }
 
-/// Clones Flutter SDK from Channel
-/// Returns true if comes from exists or false if its new fetch.
-Future<void> flutterChannelClone(String channel) async {
-  final channelDirectory = Directory(path.join(kVersionsDir.path, channel));
-
-  if (!isFlutterChannel(channel)) {
-    throw ExceptionNotValidChannel('"$channel" is not a valid channel');
-  }
-
-  // If it's installed correctly just return and use cached
-  if (isInstalledCorrectly(channel)) return;
-
-  await channelDirectory.create(recursive: true);
-
-  var result = await Process.run(
-      'git', ['clone', '-b', channel, kFlutterRepo, '.'],
-      workingDirectory: channelDirectory.path);
-
-  if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone('Could not clone $channel: ${result.stderr}');
-  }
-}
-
-/// Clones Flutter SDK from Version Number
+/// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> flutterVersionClone(String version) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
-  version = await inferFlutterVersion(version);
+  if (!isFlutterChannel(version)) {
+    version = await inferFlutterVersion(version);
+  }
 
   // If it's installed correctly just return and use cached
   if (isInstalledCorrectly(version)) return;
 
   await versionDirectory.create(recursive: true);
-
-  var result = await Process.run(
-      'git', ['clone', '-b', version, kFlutterRepo, '.'],
-      workingDirectory: versionDirectory.path);
-
-  if (result.exitCode != 0) {
-    throw ExceptionCouldNotClone('Could not clone $version: ${result.stderr}');
-  }
+  final args = [
+    'clone',
+    '--progress',
+    '--single-branch',
+    '-b',
+    version,
+    '--depth',
+    '1',
+    kFlutterRepo,
+    '.'
+  ];
+  await processRunner('git', args, workingDirectory: versionDirectory.path);
 }
 
 /// Gets SDK Version

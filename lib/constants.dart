@@ -35,12 +35,10 @@ final kLocalProjectPubspec =
 String get fvmHome {
   var home = '';
   final envVars = Platform.environment;
-  if (Platform.isMacOS) {
-    home = envVars['HOME'];
-  } else if (Platform.isLinux) {
-    home = envVars['HOME'];
-  } else if (Platform.isWindows) {
+  if (Platform.isWindows) {
     home = envVars['UserProfile'];
+  } else {
+    home = envVars['HOME'];
   }
 
   return path.join(home, 'fvm');

@@ -8,18 +8,7 @@ import 'package:fvm/utils/flutter_tools.dart';
 
 void main() {
   group('Invalid Channels & Releases', () {
-    test('Exception on invalid channel', () async {
-      final invalidChannel = 'INVALID_CHANNEL';
-
-      try {
-        await flutterChannelClone(invalidChannel);
-        fail('Exception not thrown');
-      } on Exception catch (e) {
-        expect(e, const TypeMatcher<ExceptionNotValidChannel>());
-      }
-    });
-
-    test('Exception on invalid version', () async {
+    test('Invalid Version/Channel Release', () async {
       final invalidVersion = 'INVALID_VERSION';
 
       try {
