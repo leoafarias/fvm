@@ -68,7 +68,16 @@
       "name": "Luca Panteghini",
       "avatar_url": "https://avatars0.githubusercontent.com/u/250296?v=4",
       "profile": "http://www.itasoft.it",
+      "contributions": ["doc"]
+    },
+     {
+      "login": "davidmartos96",
+      "name": "David Martos",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/22084723?v=4",
+      "profile": "https://github.com/davidmartos96",
       "contributions": [
+        "code",
+        "test",
         "doc"
       ]
     }
