@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/utils/git.dart';
 
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
@@ -32,7 +33,6 @@ Future<void> flutterVersionClone(String version) async {
   await versionDirectory.create(recursive: true);
   final args = [
     'clone',
-    '--progress',
     '--single-branch',
     '-b',
     version,
@@ -41,7 +41,7 @@ Future<void> flutterVersionClone(String version) async {
     kFlutterRepo,
     '.'
   ];
-  await processRunner('git', args, workingDirectory: versionDirectory.path);
+  await runGit(args, workingDirectory: versionDirectory.path);
 }
 
 /// Gets SDK Version
@@ -54,12 +54,12 @@ Future<String> flutterSdkVersion(String branch) async {
 }
 
 Future<String> _gitGetVersion(String path) async {
-  var result = await Process.run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
+  var result = await runGit(['rev-parse', '--abbrev-ref', 'HEAD'],
       workingDirectory: path);
 
   if (result.stdout.trim() == 'HEAD') {
-    result = await Process.run('git', ['tag', '--points-at', 'HEAD'],
-        workingDirectory: path);
+    result =
+        await runGit(['tag', '--points-at', 'HEAD'], workingDirectory: path);
   }
 
   if (result.exitCode != 0) {
@@ -72,8 +72,7 @@ Future<String> _gitGetVersion(String path) async {
 
 /// Lists all Flutter SDK Versions
 Future<List<String>> flutterListAllSdks() async {
-  final result =
-      await Process.run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
+  final result = await runGit(['ls-remote', '--tags', '$kFlutterRepo']);
 
   if (result.exitCode != 0) {
     throw Exception('Could not fetch list of available Flutter SDKs');

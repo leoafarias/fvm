@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/utils/git.dart';
 import 'package:fvm/utils/helpers.dart';
 
 /// Guards
@@ -18,7 +19,7 @@ class Guards {
   /// Check if Git is installed
   static void isGitInstalled() {
     try {
-      Process.runSync('git', ['--version']);
+      runGit(['--version']);
     } on ProcessException {
       throw Exception(
           'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
