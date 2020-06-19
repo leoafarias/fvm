@@ -8,14 +8,16 @@ import 'package:path/path.dart' as path;
 import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> flutterRunner(String cmd, List<String> args,
+Future<void> processRunner(String cmd, List<String> args,
     {String workingDirectory}) async {
   final manager = ProcessManager();
 
-  var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
-  final exitCode = await pr.exitCode;
-
-  exit(exitCode);
+  final p = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
+  // await sharedStdIn.terminate();
+  final exitCode = await p.exitCode;
+  if (exitCode != 0) {
+    exit(await p.exitCode);
+  }
 }
 
 /// Clones Flutter SDK from Version Number or Channel
@@ -45,7 +47,7 @@ Future<void> flutterVersionClone(
     kFlutterRepo,
     versionDirectory.path
   ];
-  await runGitProcess(args);
+  await processRunner('git', args);
 }
 
 /// Gets SDK Version

@@ -1,18 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
-
-/// Run Git command
-Future<void> runGitProcess(List<String> args, {String workingDirectory}) async {
-  final manager = ProcessManager();
-
-  final pr =
-      await manager.spawn('git', args, workingDirectory: workingDirectory);
-  // final exitCode = await pr.exitCode;
-
-  // exit(exitCode);
-}
-
 /// Run Git command
 Future<ProcessResult> runGit(List<String> args,
     {bool throwOnError = true, String workingDirectory}) async {
