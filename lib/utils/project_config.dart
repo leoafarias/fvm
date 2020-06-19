@@ -29,9 +29,13 @@ void updateFlutterSdkBinLink() {
 }
 
 ProjectConfig readProjectConfig() {
-  final jsonString = kProjectFvmConfigJson.readAsStringSync();
-  final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
-  return ProjectConfig.fromJson(projectConfigMap);
+  try {
+    final jsonString = kProjectFvmConfigJson.readAsStringSync();
+    final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
+    return ProjectConfig.fromJson(projectConfigMap);
+  } on Exception {
+    return null;
+  }
 }
 
 void saveProjectConfig(ProjectConfig config) {

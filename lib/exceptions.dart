@@ -67,13 +67,13 @@ class ExceptionCouldNotReadConfig implements Exception {
 
 /// Provide a channel or version
 class ExceptionMissingChannelVersion implements Exception {
-  final _message = 'Need to provide a channel or a version.';
+  final message = 'Need to provide a channel or a version.';
 
   /// Constructor
   ExceptionMissingChannelVersion();
 
   @override
   String toString() {
-    return _message;
+    return message;
   }
 }
