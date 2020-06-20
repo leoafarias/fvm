@@ -35,19 +35,19 @@ class UseCommand extends Command {
       throw Exception('Please provide a version. fvm use <version>');
     }
     // Make sure is valid Flutter version
-    await Guards.isFlutterVersion(version);
+    final flutterVersion = await inferFlutterVersion(version);
     // If project use check that is Flutter project
     if (!useGlobally) Guards.isFlutterProject();
 
     // Make sure version is installed
-    await checkAndInstallVersion(version);
+    await checkAndInstallVersion(flutterVersion);
 
     if (useGlobally) {
       // Sets version as the global
-      setAsGlobalVersion(version);
+      setAsGlobalVersion(flutterVersion);
     } else {
       // Updates the project config with version
-      setAsProjectVersion(version);
+      setAsProjectVersion(flutterVersion);
     }
   }
 }

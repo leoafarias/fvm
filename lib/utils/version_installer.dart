@@ -1,21 +1,28 @@
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/flutter_tools.dart';
-import 'package:fvm/utils/logger.dart';
-import 'package:io/ansi.dart';
+import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/print.dart';
 
-Future<void> installFlutterVersion(
-  String flutterVersion,
-) async {
-  if (flutterVersion == null) {
+Future<void> installFlutterVersion(String version,
+    {bool skipSetup = false}) async {
+  if (version == null) {
     throw ExceptionMissingChannelVersion();
   }
-  final version = flutterVersion.toLowerCase();
 
-  final progress = logger.progress(green.wrap('Downloading $version'));
-  // Skips line in progress
-  print('');
+  // If it's installed correctly just return and use cached
+  if (isInstalledCorrectly(version)) {
+    Print.success('Version: $version - already installed.');
+    return;
+  }
 
-  await flutterVersionClone(version);
+  Print.success('Installing Version: $version:');
 
-  finishProgress(progress);
+  await gitCloneCmd(version);
+
+  // Skips Flutter sdk setup
+  if (skipSetup) return;
+  Print.success('Setting up Flutter sdk');
+  Print.info('If you want to skip this next time use "--skip-setup"');
+  final flutterExec = getFlutterSdkExec(version: version);
+  await flutterCmd(flutterExec, ['--version']);
 }

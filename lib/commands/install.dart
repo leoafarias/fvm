@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/guards.dart';
+import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/project_config.dart';
 import 'package:fvm/utils/version_installer.dart';
 
@@ -15,7 +16,14 @@ class InstallCommand extends Command {
   final description = 'Installs Flutter SDK Version';
 
   /// Constructor
-  InstallCommand();
+  InstallCommand() {
+    argParser
+      ..addFlag(
+        'skip-setup',
+        help: 'Skips Flutter setup after install',
+        negatable: false,
+      );
+  }
 
   @override
   void run() async {
@@ -32,6 +40,10 @@ class InstallCommand extends Command {
       version = argResults.arguments[0].toLowerCase();
     }
 
-    await installFlutterVersion(version);
+    final skipSetup = argResults['skip-setup'] == true;
+
+    final flutterVersion = await inferFlutterVersion(version);
+
+    await installFlutterVersion(flutterVersion, skipSetup: skipSetup);
   }
 }
