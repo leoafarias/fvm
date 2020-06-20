@@ -16,9 +16,6 @@ doc/api/
 # Test Coverage
 test/.test_coverage.dart
 
-# Link url to flutter version for tests
-fvm
-
 # IntelliJ related
 *.iml
 *.ipr
@@ -31,4 +28,6 @@ fvm
 .settings/
 .vscode/
 coverage/lcov.info
+
+# FVM during tests
 .fvm

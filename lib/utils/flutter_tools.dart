@@ -1,42 +1,37 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/git.dart';
 
 import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/logger.dart';
 import 'package:fvm/utils/print.dart';
+import 'package:process_run/cmd_run.dart';
+import 'package:process_run/process_run.dart';
 import 'package:path/path.dart' as path;
-import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> processRunner(String cmd, List<String> args,
+Future<void> flutterCmd(String exec, List<String> args,
     {String workingDirectory}) async {
-  final manager = ProcessManager();
-
-  var pr = await manager.spawn(cmd, args, workingDirectory: workingDirectory);
-  final exitCode = await pr.exitCode;
-
-  exit(exitCode);
+  var pr = await run(exec, args,
+      workingDirectory: workingDirectory, stdout: stdout, stderr: stderr);
+  exitCode = pr.exitCode;
 }
 
 /// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
-Future<void> flutterVersionClone(
+Future<void> gitCloneCmd(
   String version,
 ) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
-
-  if (!isFlutterChannel(version)) {
-    version = await inferFlutterVersion(version);
-  }
-
-  // If it's installed correctly just return and use cached
-  if (isInstalledCorrectly(version)) return;
 
   await versionDirectory.create(recursive: true);
 
   final args = [
     'clone',
     '--progress',
+    '--depth',
+    '1',
     '--single-branch',
     '-b',
     version,
@@ -45,12 +40,20 @@ Future<void> flutterVersionClone(
     kFlutterRepo,
     versionDirectory.path
   ];
-  await processRunner('git', args);
+
+  final process = await run('git', args,
+      stdout: stdout, stderr: stderr, verbose: logger.isVerbose);
+
+  if (process.exitCode != 0) {
+    throw ExceptionCouldNotClone(
+        'Could not install Flutter version: $version.');
+  }
 }
 
 /// Gets SDK Version
 Future<String> flutterSdkVersion(String branch) async {
   final branchDirectory = Directory(path.join(kVersionsDir.path, branch));
+
   if (!branchDirectory.existsSync()) {
     throw Exception('Could not get version from SDK that is not installed');
   }

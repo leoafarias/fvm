@@ -12,10 +12,10 @@ void main() {
       final invalidVersion = 'INVALID_VERSION';
 
       try {
-        await flutterVersionClone(invalidVersion);
+        await gitCloneCmd(invalidVersion);
         fail('Exception not thrown');
       } on Exception catch (e) {
-        expect(e, const TypeMatcher<ExceptionNotValidVersion>());
+        expect(e, const TypeMatcher<ExceptionCouldNotClone>());
       }
     });
     test('Checks that install is not correct', () async {
