@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.3
+
+- Installation progress output
+- Flutter setup on installation
+- Ability to skip setup with`--skip-setup`
+
 ## 0.8.2
 
 - Size optimization of SDK downloads
