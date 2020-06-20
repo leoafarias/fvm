@@ -24,5 +24,5 @@ Future<void> installFlutterVersion(String version,
   Print.success('Setting up Flutter sdk');
   Print.info('If you want to skip this next time use "--skip-setup"');
   final flutterExec = getFlutterSdkExec(version: version);
-  await flutterCmd(flutterExec, ['doctor']);
+  await flutterCmd(flutterExec, ['--version']);
 }
