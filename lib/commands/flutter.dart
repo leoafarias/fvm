@@ -23,9 +23,9 @@ class FlutterCommand extends Command {
   @override
   Future<void> run() async {
     Guards.isFlutterProject();
-    final flutterSdkPath = getFlutterSdkExecPath();
+    final flutterExec = getFlutterSdkExec();
 
-    await processRunner(flutterSdkPath, argResults.arguments,
+    await flutterCmd(flutterExec, argResults.arguments,
         workingDirectory: kWorkingDirectory.path);
   }
 }

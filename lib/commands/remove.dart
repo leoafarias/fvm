@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/logger.dart';
+import 'package:fvm/utils/print.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends Command {
@@ -27,17 +27,16 @@ class RemoveCommand extends Command {
   @override
   void run() async {
     final version = argResults.arguments[0].toLowerCase();
-
-    final isValidInstall = isFlutterVersionInstalled(version);
+    final flutterVersion = await inferFlutterVersion(version);
+    final isValidInstall = isFlutterVersionInstalled(flutterVersion);
 
     if (!isValidInstall) {
-      throw Exception('Flutter SDK: $version is not installed');
+      throw Exception('Flutter SDK: $flutterVersion is not installed');
     }
 
-    final progress = logger.progress('Removing $version');
+    Print.success('Removing $flutterVersion');
     try {
-      flutterSdkRemove(version);
-      finishProgress(progress);
+      flutterSdkRemove(flutterVersion);
     } on Exception {
       rethrow;
     }

@@ -40,11 +40,12 @@ And then, for information on each command:
 
 FVM gives you the ability to install many Flutter **releases** or **channels**.
 
+- `version` - use `stable` to install the Stable channel and `v1.8.0` or `1.17.0-dev.3.1` to install the release.
+- `--skip-setup` - will skip Flutter setup after install
+
 ```bash
 > fvm install <version>
 ```
-
-Version - use `master` to install the Master channel and `v1.8.0` or `1.17.0-dev.3.1` to install the release.
 
 #### Project Config SDK Version
 

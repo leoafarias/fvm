@@ -3,6 +3,7 @@ import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/utils/helpers.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -10,9 +11,6 @@ import 'package:fvm/utils/flutter_tools.dart';
 import 'test_helpers.dart';
 
 final testPath = '$fvmHome/test_path';
-
-const channel = 'master';
-const release = '1.8.0';
 
 void main() {
   setUpAll(fvmSetUpAll);
@@ -30,7 +28,7 @@ void main() {
     });
     test('Install Channel', () async {
       try {
-        await fvmRunner(['install', channel, '--verbose']);
+        await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await flutterSdkVersion(channel);
         final correct = isInstalledCorrectly(channel);
         final installedVersions = flutterListInstalledSdks();
@@ -100,16 +98,18 @@ void main() {
   group('Release Flow', () {
     test('Install Release', () async {
       try {
-        await fvmRunner(['install', release, '--verbose']);
-        final existingRelease = await flutterSdkVersion(release);
-        final correct = isInstalledCorrectly(release);
+        await fvmRunner(['install', release, '--verbose', '--skip-setup']);
+        final version = await inferFlutterVersion(release);
+        final existingRelease = await flutterSdkVersion(version);
+
+        final correct = isInstalledCorrectly(version);
         final installedVersions = flutterListInstalledSdks();
 
-        final installExists = installedVersions.contains(release);
+        final installExists = installedVersions.contains(version);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
-        expect(existingRelease, 'v$release');
+        expect(existingRelease, version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -123,8 +123,8 @@ void main() {
         final linkExists = kProjectFvmSdkSymlink.existsSync();
 
         final targetBin = kProjectFvmSdkSymlink.targetSync();
-
-        final releaseBin = path.join(kVersionsDir.path, release);
+        final version = await inferFlutterVersion(release);
+        final releaseBin = path.join(kVersionsDir.path, version);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);
