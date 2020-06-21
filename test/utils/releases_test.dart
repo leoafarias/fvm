@@ -1,31 +1,38 @@
+import 'package:fvm/fvm.dart';
+import 'package:fvm/utils/releases_helper.dart';
 @Timeout(Duration(minutes: 5))
-// import 'package:fvm/utils/releases.dart';
 import 'package:test/test.dart';
-import 'package:dio/dio.dart';
-// import 'package:fvm/utils/releases.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
   test('Can fetch releases for all platforms', () async {
-    String getPlatformUrl(String platform) {
-      return 'https://storage.googleapis.com/flutter_infra/releases/releases_$platform.json';
-    }
-
     try {
-      await Dio().get(getPlatformUrl('macos'));
-      await Dio().get(getPlatformUrl('linux'));
-      await Dio().get(getPlatformUrl('windows'));
+      await http.get(getReleasesUrl(platform: 'macos'));
+      await http.get(getReleasesUrl(platform: 'linux'));
+      await http.get(getReleasesUrl(platform: 'windows'));
       expect(true, true);
     } on Exception {
       fail('Could not resolve all platform releases');
     }
   });
 
-  // test('Can download release', () async {
-  //   try {
-  //     await downloadRelease('beta/macos/flutter_macos_1.19.0-4.1.pre-beta.zip');
-  //     expect(true, true);
-  //   } on Exception {
-  //     rethrow;
-  //   }
-  // });
+  test('Can run releases', () async {
+    try {
+      await fvmRunner(['releases']);
+
+      expect(true, true);
+    } on Exception {
+      rethrow;
+    }
+  });
+
+  test('Can download release', () async {
+    try {
+      final releases = await fetchReleases();
+      print(releases.toString());
+      expect(true, true);
+    } on Exception {
+      rethrow;
+    }
+  });
 }

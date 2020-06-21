@@ -14,14 +14,14 @@ String getReleasesUrl({String platform}) {
 Future<FlutterReleases> fetchReleases() async {
   try {
     final response = await http.get(getReleasesUrl());
-    return jsonDecode(response.body) as FlutterReleases;
+    return flutterReleasesFromMap(response.body);
   } on Exception {
     throw ExceptionCouldNotFetchReleases();
   }
 }
 
 FlutterReleases flutterReleasesFromMap(String str) =>
-    FlutterReleases.fromMap(json.decode(str) as Map<String, dynamic>);
+    FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
 String flutterReleasesToMap(FlutterReleases data) => json.encode(data.toMap());
 
@@ -36,12 +36,16 @@ class FlutterReleases {
   final CurrentRelease currentRelease;
   final List<Release> releases;
 
-  factory FlutterReleases.fromMap(Map<String, dynamic> json) => FlutterReleases(
-        baseUrl: json['base_url'] as String,
-        currentRelease: CurrentRelease.fromMap(json['current_release']),
-        releases:
-            List<Release>.from(json['releases'].map((x) => Release.fromMap(x))),
-      );
+  factory FlutterReleases.fromMap(Map<String, dynamic> json) {
+    return FlutterReleases(
+      baseUrl: json['base_url'] as String,
+      currentRelease: CurrentRelease.fromMap(
+          json['current_release'] as Map<String, dynamic>),
+      releases: List<Release>.from(json['releases']
+              .map((x) => Release.fromMap(x as Map<String, dynamic>))
+          as Iterable<dynamic>),
+    );
+  }
 
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
@@ -61,7 +65,7 @@ class CurrentRelease {
   final String dev;
   final String stable;
 
-  factory CurrentRelease.fromMap(dynamic json) => CurrentRelease(
+  factory CurrentRelease.fromMap(Map<String, dynamic> json) => CurrentRelease(
         beta: json['beta'] as String,
         dev: json['dev'] as String,
         stable: json['stable'] as String,
@@ -92,12 +96,12 @@ class Release {
   final String sha256;
 
   factory Release.fromMap(Map<String, dynamic> json) => Release(
-        hash: json['hash'],
+        hash: json['hash'] as String,
         channel: channelValues.map[json['channel']],
-        version: json['version'],
-        releaseDate: DateTime.parse(json['release_date']),
-        archive: json['archive'],
-        sha256: json['sha256'],
+        version: json['version'] as String,
+        releaseDate: DateTime.parse(json['release_date'] as String),
+        archive: json['archive'] as String,
+        sha256: json['sha256'] as String,
       );
 
   Map<String, dynamic> toMap() => {
@@ -123,6 +127,7 @@ class EnumValues<T> {
 
   Map<T, String> get reverse {
     reverseMap ??= map.map((k, v) => MapEntry(v, k));
+
     return reverseMap;
   }
 }

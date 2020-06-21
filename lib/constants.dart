@@ -56,14 +56,6 @@ Directory get kVersionsDir {
   return Directory(path.join(fvmHome, 'versions'));
 }
 
-/// Gets Flutter Releases for a platform
-String kFlutterReleasesListUrl =
-    '$kFlutterReleasesUrl/releases_${Platform.operatingSystem}.json';
-
-/// Base Url for Flutter Storage
-String kFlutterReleasesUrl =
-    'https://storage.googleapis.com/flutter_infra/releases';
-
 /// Where Default Flutter SDK is stored
 Link get kDefaultFlutterLink => Link(path.join(fvmHome, 'default'));
 String get kDefaultFlutterPath => path.join(kDefaultFlutterLink.path, 'bin');
