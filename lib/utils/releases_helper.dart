@@ -10,17 +10,28 @@ String getReleasesUrl({String platform}) {
   return 'https://storage.googleapis.com/flutter_infra/releases/releases_$platform.json';
 }
 
-/// Fetches Flutter SDK Releases
-Future<FlutterReleases> fetchReleases() async {
+Releases cacheReleasesRes;
+
+/// Gets Flutter SDK Releases
+Future<Releases> getReleases() async {
   try {
+    // If has been cached return
+    if (cacheReleasesRes != null) return cacheReleasesRes;
     final response = await http.get(getReleasesUrl());
-    return flutterReleasesFromMap(response.body);
+    cacheReleasesRes = releasesFromMap(response.body);
+    return cacheReleasesRes;
   } on Exception {
     throw ExceptionCouldNotFetchReleases();
   }
 }
 
-Map<String, dynamic> filterCurrentReleases(Map<String, dynamic> json) {
+// Returns Version based on semver
+Future<Version> getVersion(String version) async {
+  final releases = await getReleases();
+  return releases.getVersion(version);
+}
+
+Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final currentRelease = json['current_release'] as Map<String, dynamic>;
   final releases = json['releases'] as List<dynamic>;
   // Hashes of current releases
@@ -30,64 +41,82 @@ Map<String, dynamic> filterCurrentReleases(Map<String, dynamic> json) {
   releases.forEach((r) {
     // Check if release hash is in hashmap
     final channel = hashMap[r['hash']];
-    if (channel != null) {
-      currentRelease[channel] = r['version'];
-    }
+    if (channel != null) currentRelease[channel] = r;
   });
 
   return currentRelease;
 }
 
-FlutterReleases flutterReleasesFromMap(String str) =>
-    FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
+Releases releasesFromMap(String str) =>
+    Releases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
-String flutterReleasesToMap(FlutterReleases data) => json.encode(data.toMap());
-
-class FlutterReleases {
-  FlutterReleases({
+class Releases {
+  Releases({
     this.baseUrl,
-    this.currentRelease,
-    this.releases,
+    this.channels,
+    this.versions,
   });
 
   final String baseUrl;
-  final CurrentRelease currentRelease;
-  final List<Release> releases;
+  final Channels channels;
+  final List<Version> versions;
 
-  factory FlutterReleases.fromMap(Map<String, dynamic> json) {
-    final currentRelease = filterCurrentReleases(json);
-    return FlutterReleases(
+  factory Releases.fromMap(Map<String, dynamic> json) {
+    final currentRelease = parseCurrentReleases(json);
+    return Releases(
       baseUrl: json['base_url'] as String,
-      currentRelease: CurrentRelease.fromMap(currentRelease),
-      releases: List<Release>.from(json['releases']
-              .map((x) => Release.fromMap(x as Map<String, dynamic>))
+      channels: Channels.fromMap(currentRelease),
+      versions: List<Version>.from(json['releases']
+              .map((x) => Version.fromMap(x as Map<String, dynamic>))
           as Iterable<dynamic>),
     );
   }
 
+  /// Retrieves version information
+  Version getVersion(String version) {
+    return versions.firstWhere((v) => v.version == version);
+  }
+
+  /// Checks if version is a release
+  bool containsVersion(String version) {
+    var contains = false;
+    versions.forEach((v) {
+      // If version is a release return
+      if (v.version == version) contains = true;
+    });
+    return contains;
+  }
+
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
-        'current_release': currentRelease.toMap(),
-        'releases': List<dynamic>.from(releases.map((x) => x.toMap())),
+        'channels': channels.toMap(),
+        'versions': List<dynamic>.from(versions.map((x) => x.toMap())),
       };
 }
 
-class CurrentRelease {
-  CurrentRelease({
+class Channels {
+  Channels({
     this.beta,
     this.dev,
     this.stable,
   });
 
-  final String beta;
-  final String dev;
-  final String stable;
+  final Version beta;
+  final Version dev;
+  final Version stable;
 
-  factory CurrentRelease.fromMap(Map<String, dynamic> json) => CurrentRelease(
-        beta: json['beta'] as String,
-        dev: json['dev'] as String,
-        stable: json['stable'] as String,
+  factory Channels.fromMap(Map<String, dynamic> json) => Channels(
+        beta: Version.fromMap(json['beta'] as Map<String, dynamic>),
+        dev: Version.fromMap(json['dev'] as Map<String, dynamic>),
+        stable: Version.fromMap(json['stable'] as Map<String, dynamic>),
       );
+
+  Version operator [](String key) {
+    if (key == 'beta') return beta;
+    if (key == 'dev') return dev;
+    if (key == 'stable') return stable;
+    return null;
+  }
 
   Map<String, dynamic> toMap() => {
         'beta': beta,
@@ -96,14 +125,14 @@ class CurrentRelease {
       };
 
   Map<String, dynamic> toHashMap() => {
-        '$beta': 'beta',
-        '$dev': 'dev',
-        '$stable': 'stable',
+        '${beta.hash}': 'beta',
+        '${dev.hash}': 'dev',
+        '${stable.hash}': 'stable',
       };
 }
 
-class Release {
-  Release({
+class Version {
+  Version({
     this.hash,
     this.channel,
     this.version,
@@ -119,7 +148,7 @@ class Release {
   final String archive;
   final String sha256;
 
-  factory Release.fromMap(Map<String, dynamic> json) => Release(
+  factory Version.fromMap(Map<String, dynamic> json) => Version(
         hash: json['hash'] as String,
         channel: channelValues.map[json['channel']],
         version: json['version'] as String,

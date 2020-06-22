@@ -29,6 +29,8 @@ Future<void> gitCloneCmd(
 
   final args = [
     'clone',
+    '-c',
+    'advice.detachedHead=false',
     '--progress',
     '--depth',
     '1',
@@ -77,28 +79,6 @@ Future<String> _gitGetVersion(String path) async {
   return versionNumber;
 }
 
-/// Lists all Flutter SDK Versions
-Future<List<String>> flutterListAllSdks() async {
-  final result = await runGit(['ls-remote', '--tags', '$kFlutterRepo']);
-
-  if (result.exitCode != 0) {
-    throw Exception('Could not fetch list of available Flutter SDKs');
-  }
-
-  var tags = result.stdout.split('\n') as List<String>;
-
-  var versionsList = <String>[];
-  for (var tag in tags) {
-    final version = tag.split('refs/tags/');
-
-    if (version.length > 1) {
-      versionsList.add(version[1]);
-    }
-  }
-
-  return versionsList;
-}
-
 /// Removes a Version of Flutter SDK
 void flutterSdkRemove(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
@@ -126,6 +106,7 @@ bool isInstalledCorrectly(String version) {
 }
 
 /// Lists Installed Flutter SDK Version
+
 List<String> flutterListInstalledSdks() {
   try {
     // Returns empty array if directory does not exist

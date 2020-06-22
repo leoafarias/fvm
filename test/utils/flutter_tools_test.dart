@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/utils/releases_helper.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
@@ -28,11 +29,11 @@ void main() {
   });
 
   test('Lists Flutter SDK Tags', () async {
-    final flutterVersions = await flutterListAllSdks();
-    final versionsExists = flutterVersions.contains('v1.8.0') &&
-        flutterVersions.contains('v1.9.6') &&
-        flutterVersions.contains('v1.10.5') &&
-        flutterVersions.contains('v1.9.1+hotfix.4');
+    final releases = await getReleases();
+    final versionsExists = releases.containsVersion('v1.8.1') &&
+        releases.containsVersion('v1.9.6') &&
+        releases.containsVersion('v1.10.5') &&
+        releases.containsVersion('v1.9.1+hotfix.4');
     expect(versionsExists, true);
   });
 }

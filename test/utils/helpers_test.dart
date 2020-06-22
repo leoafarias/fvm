@@ -3,8 +3,8 @@ import 'package:fvm/utils/helpers.dart';
 
 void main() {
   test('Is Valid Flutter Version', () async {
-    expect(await inferFlutterVersion('1.8.0'), 'v1.8.0');
-    expect(await inferFlutterVersion('v1.8.0'), 'v1.8.0');
+    expect(await inferFlutterVersion('1.8.1'), 'v1.8.1');
+    expect(await inferFlutterVersion('v1.8.1'), 'v1.8.1');
 
     expect(await inferFlutterVersion('1.9.6'), 'v1.9.6');
     expect(await inferFlutterVersion('v1.9.6'), 'v1.9.6');
