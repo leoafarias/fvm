@@ -2,7 +2,7 @@
 
 ## 1.0.1
 
-- Supress verbose message for install progress.
+- Suppress verbose message for install progress.
 
 ## 1.0.0
 
