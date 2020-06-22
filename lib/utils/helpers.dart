@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
@@ -79,14 +81,26 @@ bool isCurrentVersion(String version) {
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
-  if (version == null) {
-    final config = readProjectConfig();
-    sdkVersion = config.flutterSdkVersion;
-  }
+  sdkVersion ??= readProjectConfig().flutterSdkVersion;
   return path.join(kVersionsDir.path, sdkVersion);
 }
 
 String getFlutterSdkExec({String version}) {
   return path.join(getFlutterSdkPath(version: version), 'bin',
       Platform.isWindows ? 'flutter.bat' : 'flutter');
+}
+
+String camelCase(String subject) {
+  final _splittedString = subject.split('_');
+
+  if (_splittedString.isEmpty) return '';
+
+  final _firstWord = _splittedString[0].toLowerCase();
+  final _restWords = _splittedString.sublist(1).map(capitalize).toList();
+
+  return _firstWord + _restWords.join('');
+}
+
+String capitalize(String word) {
+  return '${word[0].toUpperCase()}${word.substring(1)}';
 }

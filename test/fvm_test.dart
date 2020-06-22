@@ -12,9 +12,6 @@ import 'test_helpers.dart';
 
 final testPath = '$fvmHome/test_path';
 
-const channel = 'master';
-const release = '1.8.0';
-
 void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);

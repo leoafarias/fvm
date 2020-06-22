@@ -16,6 +16,8 @@ dependencies:
   io: ^0.3.3
   path: ^1.6.4
   process_run: ^0.10.10+1
+  http: ^0.12.1
+  date_format: ^1.0.8
 
 dev_dependencies:
   pedantic: ^1.8.0
