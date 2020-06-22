@@ -25,7 +25,7 @@ class ReleasesCommand extends Command {
     final versions = releases.versions.reversed;
 
     versions.forEach((r) {
-      final channel = channels[r.version];
+      final channel = channels[r.hash];
       final channelOutput = green.wrap('$channel');
       final version = yellow.wrap(r.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
