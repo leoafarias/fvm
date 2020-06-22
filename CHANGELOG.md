@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0
+
+- List Flutter Releases
+- Bug fixes and optimization
+- Project refactoring
+
 ## 0.8.3
 
 - Installation progress output
