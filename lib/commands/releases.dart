@@ -1,13 +1,8 @@
-// import 'dart:io';
-
-// import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
-// import 'package:fvm/utils/print.dart';
 
 import 'package:fvm/utils/releases_helper.dart';
-// import 'package:fvm/utils/print.dart';
-// import 'package:fvm/constants.dart';
+import 'package:fvm/utils/version_installer.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command {
@@ -25,17 +20,26 @@ class ReleasesCommand extends Command {
   @override
   void run() async {
     final flutterReleases = await fetchReleases();
+    final channels = flutterReleases.currentRelease.toMap();
 
-    final releases = flutterReleases.releases;
-    final outputReleases = releases.map((release) {
-      return '${release.version}';
-    }).toList();
+    final list = <String>[];
+
+    channels.forEach((key, value) {
+      list.add('$key: $value');
+    });
+
     var chooser = Chooser<String>(
-      outputReleases,
-      message: 'Select a version: ',
+      list,
+      message: 'Select a release: ',
     );
 
     var version = chooser.chooseSync();
-    print('You chose $version.');
+
+    channels.forEach((key, value) {
+      if (version == '$key: $value') {
+        installFlutterVersion(value as String);
+      }
+    });
+    print('You chose $version');
   }
 }

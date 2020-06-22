@@ -20,6 +20,24 @@ Future<FlutterReleases> fetchReleases() async {
   }
 }
 
+Map<String, dynamic> filterCurrentReleases(Map<String, dynamic> json) {
+  final currentRelease = json['current_release'] as Map<String, dynamic>;
+  final releases = json['releases'] as List<dynamic>;
+  // Hashes of current releases
+  final hashMap = currentRelease.map((key, value) => MapEntry(value, key));
+
+  // Filter out channel/currentRelease versions
+  releases.forEach((r) {
+    // Check if release hash is in hashmap
+    final channel = hashMap[r['hash']];
+    if (channel != null) {
+      currentRelease[channel] = r['version'];
+    }
+  });
+
+  return currentRelease;
+}
+
 FlutterReleases flutterReleasesFromMap(String str) =>
     FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
@@ -37,10 +55,10 @@ class FlutterReleases {
   final List<Release> releases;
 
   factory FlutterReleases.fromMap(Map<String, dynamic> json) {
+    final currentRelease = filterCurrentReleases(json);
     return FlutterReleases(
       baseUrl: json['base_url'] as String,
-      currentRelease: CurrentRelease.fromMap(
-          json['current_release'] as Map<String, dynamic>),
+      currentRelease: CurrentRelease.fromMap(currentRelease),
       releases: List<Release>.from(json['releases']
               .map((x) => Release.fromMap(x as Map<String, dynamic>))
           as Iterable<dynamic>),
