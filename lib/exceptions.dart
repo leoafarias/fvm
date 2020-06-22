@@ -78,7 +78,20 @@ class ExceptionMissingChannelVersion implements Exception {
   }
 }
 
-/// Cannot find a config for the projec
+/// Could not fetch Flutter releases
+class ExceptionCouldNotFetchReleases implements Exception {
+  final message = 'Could not fetch Flutter releases.';
+
+  /// Constructor
+  ExceptionCouldNotFetchReleases();
+
+  @override
+  String toString() {
+    return message;
+  }
+}
+
+/// Cannot find a config for the project
 class ExceptionProjectConfigNotFound implements Exception {
   final message = 'No config found for this project.';
 

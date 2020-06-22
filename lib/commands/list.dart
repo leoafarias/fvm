@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
@@ -35,7 +36,7 @@ class ListCommand extends Command {
 
     void printVersions(String version) {
       if (isCurrentVersion(version)) {
-        version = '$version (current)';
+        version = '$version ${Icon.HEAVY_CHECKMARK}';
       }
       Print.info(version);
     }
