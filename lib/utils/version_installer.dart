@@ -15,7 +15,7 @@ Future<void> installFlutterVersion(String version,
     return;
   }
 
-  Print.success('Installing Version: $version:');
+  Print.success('Installing version: $version:');
 
   await gitCloneCmd(version);
 

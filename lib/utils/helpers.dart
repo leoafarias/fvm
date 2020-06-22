@@ -7,24 +7,26 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/confirm.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/project_config.dart';
+import 'package:fvm/utils/releases_helper.dart';
 import 'package:fvm/utils/version_installer.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<String> inferFlutterVersion(String version) async {
-  final versions = await flutterListAllSdks();
+  final releases = await getReleases();
+
   version = version.toLowerCase();
 
   // Return if its flutter chacnnel
   if (isFlutterChannel(version)) return version;
 
-  if ((versions).contains(version)) {
-    return version;
-  }
+  // Return version
+  if (releases.containsVersion(version)) return version;
+
   final prefixedVersion = 'v$version';
 
-  if ((versions).contains(prefixedVersion)) {
+  if (releases.containsVersion(prefixedVersion)) {
     return prefixedVersion;
   }
 
@@ -81,7 +83,7 @@ bool isCurrentVersion(String version) {
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
-  sdkVersion ??= readProjectConfig().flutterSdkVersion;
+  sdkVersion ??= getConfigFlutterVersion();
   return path.join(kVersionsDir.path, sdkVersion);
 }
 

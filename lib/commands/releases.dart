@@ -20,11 +20,11 @@ class ReleasesCommand extends Command {
 
   @override
   void run() async {
-    final flutterReleases = await fetchReleases();
-    final channels = flutterReleases.currentRelease.toHashMap();
-    final releases = flutterReleases.releases.reversed;
+    final releases = await getReleases();
+    final channels = releases.channels.toHashMap();
+    final versions = releases.versions.reversed;
 
-    releases.forEach((r) {
+    versions.forEach((r) {
       final channel = channels[r.version];
       final channelOutput = green.wrap('$channel');
       final version = yellow.wrap(r.version.padRight(17));
