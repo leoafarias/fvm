@@ -9,10 +9,12 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 **Features:**
 
-- Configure Flutter SDK version per project
+- Configure and use Flutter SDK version per project
 - Ability to install and cache multiple Flutter SDK Versions
-- Easily switch between Flutter channels & versions
-- Per project Flutter SDK upgrade
+- Fast switch between Flutter channels & versions
+- Dynamic sdk paths for IDE debugging support.
+- Version FVM config with project for consistency across teams and CI environments.
+- Set global Flutter version across projects
 
 ## Version Management
 
@@ -81,6 +83,14 @@ List all the versions that are installed on your machine. This command will also
 
 ```bash
 > fvm list
+```
+
+### List Flutter Releases
+
+Displays all Flutter releases, including the current version for `dev`, `beta` and `stable` channels.
+
+```bash
+> fvm releases
 ```
 
 ### Change FVM Cache Directory

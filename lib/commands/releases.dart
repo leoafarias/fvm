@@ -1,8 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
+import 'package:date_format/date_format.dart';
+import 'package:io/ansi.dart';
 
 import 'package:fvm/utils/releases_helper.dart';
-import 'package:fvm/utils/version_installer.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command {
@@ -20,26 +21,22 @@ class ReleasesCommand extends Command {
   @override
   void run() async {
     final flutterReleases = await fetchReleases();
-    final channels = flutterReleases.currentRelease.toMap();
+    final channels = flutterReleases.currentRelease.toHashMap();
+    final releases = flutterReleases.releases.reversed;
 
-    final list = <String>[];
-
-    channels.forEach((key, value) {
-      list.add('$key: $value');
-    });
-
-    var chooser = Chooser<String>(
-      list,
-      message: 'Select a release: ',
-    );
-
-    var version = chooser.chooseSync();
-
-    channels.forEach((key, value) {
-      if (version == '$key: $value') {
-        installFlutterVersion(value as String);
+    releases.forEach((r) {
+      final channel = channels[r.version];
+      final channelOutput = green.wrap('$channel');
+      final version = yellow.wrap(r.version.padRight(17));
+      final pipe = Icon.PIPE_VERTICAL;
+      final friendlyDate =
+          formatDate(r.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
+      if (channel != null) {
+        print('----------$channelOutput----------');
+        print('$friendlyDate $pipe $version');
+      } else {
+        print('$friendlyDate $pipe $version');
       }
     });
-    print('You chose $version');
   }
 }

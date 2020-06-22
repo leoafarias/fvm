@@ -81,7 +81,7 @@ bool isCurrentVersion(String version) {
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
-  version ??= readProjectConfig().flutterSdkVersion;
+  sdkVersion ??= readProjectConfig().flutterSdkVersion;
   return path.join(kVersionsDir.path, sdkVersion);
 }
 

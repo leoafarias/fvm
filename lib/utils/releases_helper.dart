@@ -94,6 +94,12 @@ class CurrentRelease {
         'dev': dev,
         'stable': stable,
       };
+
+  Map<String, dynamic> toHashMap() => {
+        '$beta': 'beta',
+        '$dev': 'dev',
+        '$stable': 'stable',
+      };
 }
 
 class Release {

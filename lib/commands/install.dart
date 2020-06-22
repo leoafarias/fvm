@@ -30,11 +30,13 @@ class InstallCommand extends Command {
     Guards.isGitInstalled();
 
     String version;
+    var hasConfig = false;
     if (argResults.arguments.isEmpty) {
       final configVersion = getConfigFlutterVersion();
       if (configVersion == null) {
         throw ExceptionMissingChannelVersion();
       }
+      hasConfig = true;
       version = configVersion;
     } else {
       version = argResults.arguments[0].toLowerCase();
@@ -45,5 +47,8 @@ class InstallCommand extends Command {
     final flutterVersion = await inferFlutterVersion(version);
 
     await installFlutterVersion(flutterVersion, skipSetup: skipSetup);
+    if (hasConfig) {
+      setAsProjectVersion(version);
+    }
   }
 }
