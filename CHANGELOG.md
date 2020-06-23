@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.2
+
+- Indicates channels on `fvm releases` command.
+
 ## 1.0.1
 
 - Suppress verbose message for install progress.

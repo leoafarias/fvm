@@ -1,4 +1,4 @@
-# `fvm`
+# fvm
 
 ![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)
 [![Maintenance](https://img.shields.io/badge/dynamic/json?color=blue&label=maintenance&query=maintenance&url=http://www.pubscore.gq/all?package=fvm&style=flat-square)](https://pub.dev/help#maintenance)
@@ -11,8 +11,8 @@ Flutter Version Management: A simple cli to manage Flutter SDK versions.
 - Configure and use Flutter SDK version per project
 - Ability to install and cache multiple Flutter SDK Versions
 - Fast switch between Flutter channels & versions
-- Dynamic sdk paths for IDE debugging support.
-- Version FVM config with project for consistency across teams and CI environments.
+- Dynamic SDK paths for IDE debugging support.
+- Version FVM config with a project for consistency across teams and CI environments.
 - Set global Flutter version across projects
 
 ## Version Management
@@ -50,7 +50,7 @@ FVM gives you the ability to install many Flutter **releases** or **channels**.
 
 #### Project Config SDK Version
 
-If your project is already configured to use an specifc version. Run `install` without any arguments will make sure the proper version is installed for the project.
+If you configured your project to use a specific version, run `install` without any arguments will install the proper version.
 
 ```bash
 > fvm install
@@ -66,11 +66,11 @@ You can use different Flutter SDK versions per project. To do that you have to g
 > fvm use <version>
 ```
 
-If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, thsi will give you the exact path you need to configure.
+If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, this will give you the exact path you need to configure.
 
 ### Remove a SDK Version
 
-Using the remove command will uninstall the SDK version locally. This will impact any projects that depend on that version of the SDK.
+Using the remove command will uninstall the SDK version locally, this will impact any projects that depend on that version of the SDK.
 
 ```bash
 > fvm remove <version>
