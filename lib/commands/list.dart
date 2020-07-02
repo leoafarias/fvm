@@ -35,10 +35,14 @@ class ListCommand extends Command {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     void printVersions(String version) {
+      var printVersion = version;
       if (isCurrentVersion(version)) {
-        version = '$version ${Icon.HEAVY_CHECKMARK}';
+        printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
       }
-      Print.info(version);
+      if (isGlobalVersion(version)) {
+        printVersion = '$printVersion (global)';
+      }
+      Print.info(printVersion);
     }
 
     for (var choice in choices) {

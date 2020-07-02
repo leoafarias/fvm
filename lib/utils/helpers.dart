@@ -80,6 +80,15 @@ bool isCurrentVersion(String version) {
   return version == configVersion;
 }
 
+/// Checks if its global version
+bool isGlobalVersion(String version) {
+  if (!kDefaultFlutterLink.existsSync()) return false;
+
+  final globalVersion = path.basename(kDefaultFlutterLink.targetSync());
+
+  return globalVersion == version;
+}
+
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
