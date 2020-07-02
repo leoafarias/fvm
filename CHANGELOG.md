@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Indicates global version on list command.
+
 ## 1.0.3
 
 - Fixes issue with stdin on Flutter commands.
