@@ -13,8 +13,14 @@ import 'package:path/path.dart' as path;
 /// Runs a process
 Future<void> flutterCmd(String exec, List<String> args,
     {String workingDirectory}) async {
-  var pr = await run(exec, args,
-      workingDirectory: workingDirectory, stdout: stdout, stderr: stderr);
+  var pr = await run(
+    exec,
+    args,
+    workingDirectory: workingDirectory,
+    stdout: stdout,
+    stderr: stderr,
+    stdin: stdin,
+  );
   exitCode = pr.exitCode;
 }
 
