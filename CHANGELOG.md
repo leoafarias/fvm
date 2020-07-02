@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3
+
+- Fixes issue with stdin on Flutter commands.
+
 ## 1.0.2
 
 - Indicates channels on `fvm releases` command.

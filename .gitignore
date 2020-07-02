@@ -31,3 +31,4 @@ coverage/lcov.info
 
 # FVM during tests
 .fvm
+.vscode/settings.json
