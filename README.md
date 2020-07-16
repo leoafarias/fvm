@@ -80,7 +80,7 @@ If you want to use a specific version by default in your machine, you can specif
 
 **Force Flag**
 
-Fvm only allows to call the use command on Flutter projects. However if you want to call the `use` command on a non-flutter directory just use the `--force` flag.
+Fvm only allows to call the use command on Flutter projects. However if you want to call the `use` command on a non-flutter directory use the `--force` flag.
 
 If you are starting a new project and plan on using `fvm flutter create` you wil have to use the `--force` flag
 
