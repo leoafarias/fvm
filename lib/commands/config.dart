@@ -13,7 +13,6 @@ class ConfigCommand extends Command {
   /// Constructor
   ConfigCommand() {
     argParser
-      ..addOption('defaultVersion', abbr: 'd', help: 'Flutter default version')
       ..addOption('cache-path',
           abbr: 'c', help: 'Path to store Flutter cached versions')
       ..addFlag('ls', help: 'Lists all config options');

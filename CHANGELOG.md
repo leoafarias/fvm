@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+
+- Implemented --force flag on `use` command to bypass guards if needed.
+- Set where fvm caches versions using FVM_HOME environment variable
+- Deprecated --cache-path in favor of FVM_HOME
+
 ## 1.0.4
 
 - Indicates global version on list command.

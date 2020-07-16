@@ -35,12 +35,11 @@ final kLocalProjectPubspec =
 String get fvmHome {
   final envVars = Platform.environment;
 
-  final fvmHome = envVars['FVM_HOME'];
-  if (fvmHome != null) {
-    return path.normalize(fvmHome);
+  var home = envVars['FVM_HOME'];
+  if (home != null) {
+    return path.normalize(home);
   }
 
-  var home = '';
   if (Platform.isWindows) {
     home = envVars['UserProfile'];
   } else {

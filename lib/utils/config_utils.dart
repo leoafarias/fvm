@@ -5,7 +5,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
 /// Configure fvm options.
-
+@deprecated
 class ConfigUtils {
   static ConfigUtils _instance;
 
@@ -57,6 +57,7 @@ class ConfigUtils {
   }
 
   /// config flutter stored path
+
   void configFlutterStoredPath(String path) {
     final type = FileSystemEntity.typeSync(path, followLinks: true);
     if (type == FileSystemEntityType.directory) {
