@@ -9,6 +9,7 @@
   "imageSize": 50,
   "commit": false,
   "commitConvention": "none",
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-square)](#contributors)",
   "contributors": [
     {
       "login": "leoafarias",
@@ -82,6 +83,6 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
+  "contributorsPerLine": 5,
   "skipCi": true
 }
