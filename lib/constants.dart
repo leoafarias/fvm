@@ -33,8 +33,14 @@ final kLocalProjectPubspec =
 
 /// FVM Home directory
 String get fvmHome {
-  var home = '';
   final envVars = Platform.environment;
+
+  final fvmHome = envVars['FVM_HOME'];
+  if (fvmHome != null) {
+    return path.normalize(fvmHome);
+  }
+
+  var home = '';
   if (Platform.isWindows) {
     home = envVars['UserProfile'];
   } else {
