@@ -23,12 +23,18 @@ class UseCommand extends Command {
         help:
             'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
         negatable: false,
+      )
+      ..addFlag(
+        'force',
+        help: 'Skips command guards that does Flutter project checks.',
+        negatable: false,
       );
   }
 
   @override
   Future<void> run() async {
-    final useGlobally = argResults['global'] == true;
+    final isGlobal = argResults['global'] == true;
+    final isForced = argResults['force'] == true;
     final version = argResults.rest[0];
 
     if (argResults.rest.isEmpty) {
@@ -37,12 +43,12 @@ class UseCommand extends Command {
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
     // If project use check that is Flutter project
-    if (!useGlobally) Guards.isFlutterProject();
+    if (!isGlobal && !isForced) Guards.isFlutterProject();
 
     // Make sure version is installed
     await checkAndInstallVersion(flutterVersion);
 
-    if (useGlobally) {
+    if (isGlobal) {
       // Sets version as the global
       setAsGlobalVersion(flutterVersion);
     } else {

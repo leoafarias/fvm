@@ -10,7 +10,8 @@ class Guards {
   static void isFlutterProject() {
     final isFlutter = kLocalProjectPubspec.existsSync();
     if (!isFlutter) {
-      throw Exception('Run this FVM command at the root of a Flutter project');
+      throw Exception(
+          'Run this FVM command at the root of a Flutter project or use --force to bypass this.');
     }
   }
 

@@ -70,7 +70,23 @@ You can use different Flutter SDK versions per project. To do that you have to g
 > fvm use <version>
 ```
 
+**Set Global Version**
+
 If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, this will give you the exact path you need to configure.
+
+```bash
+> fvm use <version> --global
+```
+
+**Force Flag**
+
+Fvm only allows to call the use command on Flutter projects. However if you want to call the `use` command on a non-flutter directory just use the `--force` flag.
+
+If you are starting a new project and plan on using `fvm flutter create` you wil have to use the `--force` flag
+
+```bash
+> fvm use <version> --force
+```
 
 ### Remove a SDK Version
 
