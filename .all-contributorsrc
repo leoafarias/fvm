@@ -69,9 +69,11 @@
       "name": "Luca Panteghini",
       "avatar_url": "https://avatars0.githubusercontent.com/u/250296?v=4",
       "profile": "https://github.com/panthe",
-      "contributions": ["doc"]
+      "contributions": [
+        "doc"
+      ]
     },
-     {
+    {
       "login": "davidmartos96",
       "name": "David Martos",
       "avatar_url": "https://avatars1.githubusercontent.com/u/22084723?v=4",
@@ -80,6 +82,15 @@
         "code",
         "test",
         "doc"
+      ]
+    },
+    {
+      "login": "svenjacobs",
+      "name": "Sven Jacobs",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/255313?v=4",
+      "profile": "http://svenjacobs.com",
+      "contributions": [
+        "code"
       ]
     }
   ],
