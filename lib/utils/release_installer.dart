@@ -3,7 +3,7 @@ import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
 
-Future<void> installFlutterVersion(String version,
+Future<void> installFlutterRelease(String version,
     {bool skipSetup = false}) async {
   if (version == null) {
     throw ExceptionMissingChannelVersion();

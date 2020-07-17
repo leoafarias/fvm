@@ -4,6 +4,7 @@ import 'package:fvm/utils/flutter_tools.dart';
 import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/project_config.dart';
+import 'package:fvm/utils/pubdev.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -55,5 +56,7 @@ class UseCommand extends Command {
       // Updates the project config with version
       setAsProjectVersion(flutterVersion);
     }
+
+    await checkIfLatestVersion();
   }
 }

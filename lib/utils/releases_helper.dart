@@ -26,7 +26,7 @@ Future<Releases> getReleases() async {
 }
 
 // Returns Version based on semver
-Future<Version> getVersion(String version) async {
+Future<Release> getVersion(String version) async {
   final releases = await getReleases();
   return releases.getVersion(version);
 }
@@ -59,21 +59,21 @@ class Releases {
 
   final String baseUrl;
   final Channels channels;
-  final List<Version> versions;
+  final List<Release> versions;
 
   factory Releases.fromMap(Map<String, dynamic> json) {
     final currentRelease = parseCurrentReleases(json);
     return Releases(
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
-      versions: List<Version>.from(json['releases']
-              .map((x) => Version.fromMap(x as Map<String, dynamic>))
+      versions: List<Release>.from(json['releases']
+              .map((x) => Release.fromMap(x as Map<String, dynamic>))
           as Iterable<dynamic>),
     );
   }
 
   /// Retrieves version information
-  Version getVersion(String version) {
+  Release getVersion(String version) {
     return versions.firstWhere((v) => v.version == version);
   }
 
@@ -101,17 +101,17 @@ class Channels {
     this.stable,
   });
 
-  final Version beta;
-  final Version dev;
-  final Version stable;
+  final Release beta;
+  final Release dev;
+  final Release stable;
 
   factory Channels.fromMap(Map<String, dynamic> json) => Channels(
-        beta: Version.fromMap(json['beta'] as Map<String, dynamic>),
-        dev: Version.fromMap(json['dev'] as Map<String, dynamic>),
-        stable: Version.fromMap(json['stable'] as Map<String, dynamic>),
+        beta: Release.fromMap(json['beta'] as Map<String, dynamic>),
+        dev: Release.fromMap(json['dev'] as Map<String, dynamic>),
+        stable: Release.fromMap(json['stable'] as Map<String, dynamic>),
       );
 
-  Version operator [](String key) {
+  Release operator [](String key) {
     if (key == 'beta') return beta;
     if (key == 'dev') return dev;
     if (key == 'stable') return stable;
@@ -131,8 +131,8 @@ class Channels {
       };
 }
 
-class Version {
-  Version({
+class Release {
+  Release({
     this.hash,
     this.channel,
     this.version,
@@ -148,7 +148,7 @@ class Version {
   final String archive;
   final String sha256;
 
-  factory Version.fromMap(Map<String, dynamic> json) => Version(
+  factory Release.fromMap(Map<String, dynamic> json) => Release(
         hash: json['hash'] as String,
         channel: channelValues.map[json['channel']],
         version: json['version'] as String,

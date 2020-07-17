@@ -1,3 +1,4 @@
+import 'package:fvm/utils/pubdev.dart';
 import 'package:test/test.dart';
 import 'package:fvm/utils/helpers.dart';
 
@@ -21,5 +22,13 @@ void main() {
   test('Not Valid Flutter Version', () async {
     expect(inferFlutterVersion('1.8.0.2'), throwsA(anything));
     expect(inferFlutterVersion('v1.17.0-dev.3.1'), throwsA(anything));
+  });
+
+  test('Check if FVM latest version', () async {
+    var isLatest = await checkIfLatestVersion(currentVersion: '1.0.0');
+    expect(isLatest, false);
+
+    isLatest = await checkIfLatestVersion(currentVersion: '5.0.0');
+    expect(isLatest, true);
   });
 }
