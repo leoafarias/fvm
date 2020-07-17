@@ -8,7 +8,7 @@ import 'package:fvm/utils/confirm.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/project_config.dart';
 import 'package:fvm/utils/releases_helper.dart';
-import 'package:fvm/utils/version_installer.dart';
+import 'package:fvm/utils/release_installer.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/utils/flutter_tools.dart';
 
@@ -51,7 +51,7 @@ Future<void> checkAndInstallVersion(String version) async {
 
   // Install if input is confirmed
   if (await confirm('Would you like to install it?')) {
-    await installFlutterVersion(version);
+    await installFlutterRelease(version);
   } else {
     // If do not install exist
     exit(0);
