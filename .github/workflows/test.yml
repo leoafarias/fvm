@@ -23,7 +23,7 @@ jobs:
         env:
           MAINTENANCE_SCORE: ${{ steps.analysis.outputs.maintenance }}
           HEALTH_SCORE: ${{ steps.analysis.outputs.health }}
-        if: ${{ ($MAINTENANCE_SCORE || $HEALTH_SCORE) != 100}}
+        if: ${{ (MAINTENANCE_SCORE || HEALTH_SCORE) != 100}}
         run: exit 1
       - name: Run tests
         run: pub run test
