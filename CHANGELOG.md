@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2
+
+- Added upgrade message if not running the latest fvm version
+
 ## 1.1.1
 
 - Static analysis, and dart convention on README.md
