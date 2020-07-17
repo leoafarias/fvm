@@ -22,7 +22,6 @@ class FlutterCommand extends Command {
 
   @override
   Future<void> run() async {
-    Guards.isFlutterProject();
     final flutterExec = getFlutterSdkExec();
 
     await flutterCmd(flutterExec, argResults.arguments,
