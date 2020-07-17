@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3
+
+- Removed Flutter project guard from flutter proxy command
+
 ## 1.1.2
 
 - Added upgrade message if not running the latest fvm version
