@@ -11,5 +11,7 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: pub get
+      - name: Dart/Flutter Package Analyzer
+        uses: axel-op/dart-package-analyzer@v2
       - name: Run tests
         run: pub run test
