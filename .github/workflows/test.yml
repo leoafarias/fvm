@@ -20,10 +20,10 @@ jobs:
       # The following step shows how to exit the workflow with an error if a score is below 100:
       - name: Check scores
         # NB: "analysis" is the id set above. Replace it with the one you used if different.
-        env:
-          MAINTENANCE_SCORE: ${{ steps.analysis.outputs.maintenance }}
-          HEALTH_SCORE: ${{ steps.analysis.outputs.health }}
-        if: ${{ (MAINTENANCE_SCORE || HEALTH_SCORE) != 100}}
+        # env:
+        #   MAINTENANCE_SCORE: ${{ steps.analysis.outputs.maintenance }}
+        #   HEALTH_SCORE: ${{ steps.analysis.outputs.health }}
+        if: ${{ (steps.analysis.outputs.maintenance || steps.analysis.outputs.health) != 100}}
         run: exit 1
       - name: Run tests
         run: pub run test
