@@ -11,6 +11,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: pub get
+      - name: Run tests
+        run: pub run test
       - uses: axel-op/dart-package-analyzer@v2
         id: analysis # set an id for the current step
         with:
@@ -28,5 +30,3 @@ jobs:
             echo "Scores are not both equal to 100"
             exit 1
           fi
-      - name: Run tests
-        run: pub run test
