@@ -5,7 +5,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
 /// Configure fvm options.
-@deprecated
+
 class ConfigUtils {
   static ConfigUtils _instance;
 

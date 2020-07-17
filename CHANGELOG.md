@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- Static analysis, and dart convention on README.md
+
 ## 1.1.0
 
 - Implemented --force flag on `use` command to bypass guards if needed.
