@@ -1,6 +1,6 @@
 import 'package:io/ansi.dart';
 
-class Print {
+class PrettyPrint {
   /// Prints sucess message
   static void success(String message) {
     print(green.wrap(message));

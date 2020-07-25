@@ -28,7 +28,7 @@ class ConfigCommand extends Command {
     if (argResults['ls'] != null) {
       final configOptions = ConfigUtils().displayAllConfig();
       if (configOptions.isNotEmpty) {
-        Print.success(configOptions);
+        PrettyPrint.success(configOptions);
       } else {
         throw Exception('No configuration has been set');
       }

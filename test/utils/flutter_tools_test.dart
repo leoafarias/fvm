@@ -2,10 +2,10 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/utils/releases_helper.dart';
+import 'package:fvm/flutter/flutter_releases.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/flutter/flutter_tools.dart';
 
 void main() {
   group('Invalid Channels & Releases', () {
@@ -29,7 +29,7 @@ void main() {
   });
 
   test('Lists Flutter SDK Tags', () async {
-    final releases = await getReleases();
+    final releases = await fetchReleases();
     final versionsExists = releases.containsVersion('v1.8.1') &&
         releases.containsVersion('v1.9.6') &&
         releases.containsVersion('v1.10.5') &&

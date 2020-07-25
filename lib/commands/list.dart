@@ -6,7 +6,7 @@ import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/utils/flutter_tools.dart';
+import 'package:fvm/flutter/flutter_tools.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {
@@ -26,7 +26,7 @@ class ListCommand extends Command {
     final choices = flutterListInstalledSdks();
 
     if (choices.isEmpty) {
-      Print.info(
+      PrettyPrint.info(
           'No SDKs have been installed yet. Flutter SDKs installed outside of fvm will not be displayed.');
       exit(0);
     }
@@ -42,7 +42,7 @@ class ListCommand extends Command {
       if (isGlobalVersion(version)) {
         printVersion = '$printVersion (global)';
       }
-      Print.info(printVersion);
+      PrettyPrint.info(printVersion);
     }
 
     for (var choice in choices) {
