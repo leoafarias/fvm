@@ -28,7 +28,7 @@ void main() {
 
   test('Can download release', () async {
     try {
-      final releases = await fetchReleases();
+      final releases = await getReleasesUrl();
       print(releases.toString());
       expect(true, true);
     } on Exception {

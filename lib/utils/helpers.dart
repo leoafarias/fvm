@@ -4,13 +4,15 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
-
+import 'package:fvm/utils/confirm.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/project_config.dart';
+
 import 'package:fvm/utils/installer.dart';
 import 'package:path/path.dart' as path;
-import 'package:process_run/shell.dart';
+
+import '../flutter/flutter_helpers.dart';
+import 'print.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> checkAndInstallVersion(String version) async {
@@ -18,7 +20,7 @@ Future<void> checkAndInstallVersion(String version) async {
   PrettyPrint.info('Flutter $version is not installed.');
 
   // Install if input is confirmed
-  if (await promptConfirm('Would you like to install it?')) {
+  if (await confirm('Would you like to install it?')) {
     await installRelease(version);
   } else {
     // If do not install exist

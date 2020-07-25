@@ -5,6 +5,8 @@ import 'package:io/ansi.dart';
 
 import 'package:fvm/flutter/flutter_releases.dart';
 
+import '../flutter/flutter_releases.dart';
+
 /// List installed SDK Versions
 class ReleasesCommand extends Command {
   // The [name] and [description] properties must be defined by every
@@ -20,7 +22,7 @@ class ReleasesCommand extends Command {
 
   @override
   void run() async {
-    final releases = await fetchReleases();
+    final releases = await getReleases();
     final channels = releases.channels.toHashMap();
     final versions = releases.releases.reversed;
 

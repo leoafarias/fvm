@@ -30,6 +30,6 @@ void fvmSetUpAll() async {
   // Looks just like Teardown rightnow bu
   // will probalby change. Just to guarantee a clean run
   cleanup();
-  final releases = await fetchReleases();
+  final releases = await getReleases();
   channelVersion = releases.channels[channel].version;
 }
