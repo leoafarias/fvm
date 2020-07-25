@@ -54,19 +54,19 @@ class Releases {
   Releases({
     this.baseUrl,
     this.channels,
-    this.versions,
+    this.releases,
   });
 
   final String baseUrl;
   final Channels channels;
-  final List<Release> versions;
+  final List<Release> releases;
 
   factory Releases.fromMap(Map<String, dynamic> json) {
     final currentRelease = parseCurrentReleases(json);
     return Releases(
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
-      versions: List<Release>.from(json['releases']
+      releases: List<Release>.from(json['releases']
               .map((x) => Release.fromMap(x as Map<String, dynamic>))
           as Iterable<dynamic>),
     );
@@ -74,13 +74,13 @@ class Releases {
 
   /// Retrieves version information
   Release getVersion(String version) {
-    return versions.firstWhere((v) => v.version == version);
+    return releases.firstWhere((v) => v.version == version);
   }
 
   /// Checks if version is a release
   bool containsVersion(String version) {
     var contains = false;
-    versions.forEach((v) {
+    releases.forEach((v) {
       // If version is a release return
       if (v.version == version) contains = true;
     });
@@ -90,7 +90,7 @@ class Releases {
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
         'channels': channels.toMap(),
-        'versions': List<dynamic>.from(versions.map((x) => x.toMap())),
+        'releases': List<dynamic>.from(releases.map((x) => x.toMap())),
       };
 }
 

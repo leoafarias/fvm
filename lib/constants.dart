@@ -1,8 +1,5 @@
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'package:fvm/utils/config_utils.dart';
-
-final _configUtils = ConfigUtils();
 
 const kFvmDirName = '.fvm';
 
@@ -17,7 +14,27 @@ final kWorkingDirectory = Directory.current;
 
 /// Local Project Directory
 final kProjectFvmDir =
-    Directory(path.join(kWorkingDirectory.path, kFvmDirName));
+    Directory(path.join(_getProjectFvmDir().path, kFvmDirName));
+
+// Local project look up on nested project folders (monorepo)
+Directory _getProjectFvmDir({Directory dir}) {
+  dir ??= kWorkingDirectory;
+
+  final isRootDir = path.rootPrefix(dir.path) == dir.path;
+  final flutterProjectDir = Directory(path.join(dir.path, kFvmDirName));
+
+  if (flutterProjectDir.existsSync()) return flutterProjectDir;
+  // Return working directory if it has reached root
+  if (isRootDir) return kWorkingDirectory;
+  return _getProjectFvmDir(dir: dir.parent);
+}
+
+Directory getProjectPath(Directory dir) {
+  var dir = kProjectFvmDir;
+
+  if (dir.existsSync()) return dir;
+  return getProjectPath(dir.parent);
+}
 
 /// Local Project Config
 final kProjectFvmConfigJson =
@@ -32,7 +49,7 @@ final kLocalProjectPubspec =
     File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
 
 /// FVM Home directory
-String get fvmHome {
+String get kFvmHome {
   final envVars = Platform.environment;
 
   var home = envVars['FVM_HOME'];
@@ -50,19 +67,15 @@ String get fvmHome {
 }
 
 /// Config file of fvm's config.
-File get kConfigFile => File(path.join(fvmHome, '.fvm_config'));
+File get kConfigFile => File(path.join(kFvmHome, '.fvm_config'));
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
-  final flutterPath = _configUtils.getStoredPath();
-  if (flutterPath != null) {
-    return Directory(flutterPath);
-  }
-  return Directory(path.join(fvmHome, 'versions'));
+  return Directory(path.join(kFvmHome, 'versions'));
 }
 
 /// Where Default Flutter SDK is stored
-Link get kDefaultFlutterLink => Link(path.join(fvmHome, 'default'));
+Link get kDefaultFlutterLink => Link(path.join(kFvmHome, 'default'));
 String get kDefaultFlutterPath => path.join(kDefaultFlutterLink.path, 'bin');
 
 /// Flutter Channels

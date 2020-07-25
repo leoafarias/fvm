@@ -58,6 +58,8 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
       print(divider);
       print(
           'FVM Update Available $packageVersion → ${green.wrap(latestVersion)} ');
+      print(
+          '${yellow.wrap('Changelog:')} https://github.com/leoafarias/fvm/releases/tag/$packageVersion');
       print('Run $updateCmd to update');
       print(divider);
       return false;

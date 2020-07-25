@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/utils/flutter_tools.dart';
-import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/flutter/flutter_tools.dart';
+
 import 'package:fvm/utils/print.dart';
 
 /// Removes Flutter SDK
@@ -34,7 +35,7 @@ class RemoveCommand extends Command {
       throw Exception('Flutter SDK: $flutterVersion is not installed');
     }
 
-    Print.success('Removing $flutterVersion');
+    PrettyPrint.success('Removing $flutterVersion');
     try {
       flutterSdkRemove(flutterVersion);
     } on Exception {

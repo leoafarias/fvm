@@ -3,7 +3,9 @@ import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
 import 'package:io/ansi.dart';
 
-import 'package:fvm/utils/releases_helper.dart';
+import 'package:fvm/flutter/flutter_releases.dart';
+
+import '../flutter/flutter_releases.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command {
@@ -22,7 +24,7 @@ class ReleasesCommand extends Command {
   void run() async {
     final releases = await getReleases();
     final channels = releases.channels.toHashMap();
-    final versions = releases.versions.reversed;
+    final versions = releases.releases.reversed;
 
     versions.forEach((r) {
       final channel = channels[r.hash];

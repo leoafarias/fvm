@@ -1,9 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/utils/guards.dart';
-import 'package:fvm/utils/helpers.dart';
+
 import 'package:fvm/utils/project_config.dart';
-import 'package:fvm/utils/release_installer.dart';
+import 'package:fvm/utils/installer.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -46,7 +47,7 @@ class InstallCommand extends Command {
 
     final flutterVersion = await inferFlutterVersion(version);
 
-    await installFlutterRelease(flutterVersion, skipSetup: skipSetup);
+    await installRelease(flutterVersion, skipSetup: skipSetup);
     if (hasConfig) {
       setAsProjectVersion(version);
     }

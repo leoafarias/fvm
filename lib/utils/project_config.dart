@@ -21,7 +21,7 @@ void setAsProjectVersion(String version) {
   }
   saveProjectConfig(ProjectConfig(version));
   updateFlutterSdkBinLink();
-  Print.success('Project now uses Flutter: $version');
+  PrettyPrint.success('Project now uses Flutter: $version');
 }
 
 void updateFlutterSdkBinLink() {

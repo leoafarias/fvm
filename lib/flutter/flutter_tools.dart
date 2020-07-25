@@ -10,6 +10,8 @@ import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
 import 'package:path/path.dart' as path;
 
+import '../utils/print.dart';
+
 /// Runs a process
 Future<void> flutterCmd(String exec, List<String> args,
     {String workingDirectory}) async {
@@ -141,7 +143,7 @@ void setAsGlobalVersion(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
   createLink(kDefaultFlutterLink, versionDir);
 
-  Print.success('The global Flutter version is now $version');
-  Print.success(
+  PrettyPrint.success('The global Flutter version is now $version');
+  PrettyPrint.success(
       'Make sure sure to add $kDefaultFlutterPath to your PATH environment variable');
 }

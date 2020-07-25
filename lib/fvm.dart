@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:fvm/commands/config.dart';
 import 'package:fvm/commands/flutter.dart';
 import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/list.dart';
@@ -21,7 +20,6 @@ Future<void> fvmRunner(List<String> args) async {
   runner..addCommand(FlutterCommand());
   runner..addCommand(RemoveCommand());
   runner..addCommand(UseCommand());
-  runner..addCommand(ConfigCommand());
   runner..addCommand(VersionCommand());
   runner..addCommand(ReleasesCommand());
 

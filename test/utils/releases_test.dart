@@ -1,5 +1,5 @@
 import 'package:fvm/fvm.dart';
-import 'package:fvm/utils/releases_helper.dart';
+import 'package:fvm/flutter/flutter_releases.dart';
 @Timeout(Duration(minutes: 5))
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
@@ -28,7 +28,7 @@ void main() {
 
   test('Can download release', () async {
     try {
-      final releases = await getReleases();
+      final releases = await getReleasesUrl();
       print(releases.toString());
       expect(true, true);
     } on Exception {

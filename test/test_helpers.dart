@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:fvm/constants.dart';
-import 'package:fvm/utils/config_utils.dart';
-import 'package:fvm/utils/releases_helper.dart';
+
+import 'package:fvm/flutter/flutter_releases.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.reference
 // git clone --reference ~/gitcaches/flutter.reference https://github.com/flutter/flutter.git
@@ -12,11 +10,12 @@ String channel = 'beta';
 String channelVersion;
 
 void cleanup() {
-  final fvmHomeDir = Directory(fvmHome);
-  if (fvmHomeDir.existsSync()) {
-    fvmHomeDir.deleteSync(recursive: true);
-  }
-  ConfigUtils().removeConfig();
+  //TODO: Move this to another directory for testing
+  // final fvmHomeDir = Directory(fvmHome);
+  // if (fvmHomeDir.existsSync()) {
+  //   fvmHomeDir.deleteSync(recursive: true);
+  // }
+
   if (kProjectFvmDir.existsSync()) {
     kProjectFvmDir.deleteSync(recursive: true);
   }

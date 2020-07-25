@@ -7,51 +7,21 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/confirm.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:fvm/utils/project_config.dart';
-import 'package:fvm/utils/releases_helper.dart';
-import 'package:fvm/utils/release_installer.dart';
+
+import 'package:fvm/utils/installer.dart';
 import 'package:path/path.dart' as path;
-import 'package:fvm/utils/flutter_tools.dart';
 
-/// Returns true if it's a valid Flutter version number
-Future<String> inferFlutterVersion(String version) async {
-  final releases = await getReleases();
-
-  version = version.toLowerCase();
-
-  // Return if its flutter chacnnel
-  if (isFlutterChannel(version)) return version;
-
-  // Return version
-  if (releases.containsVersion(version)) return version;
-
-  final prefixedVersion = 'v$version';
-
-  if (releases.containsVersion(prefixedVersion)) {
-    return prefixedVersion;
-  }
-
-  throw ExceptionNotValidVersion(
-      '"$version" is not a valid Flutter SDK version');
-}
-
-/// Returns true if it's a valid Flutter channel
-bool isFlutterChannel(String channel) {
-  return kFlutterChannels.contains(channel);
-}
-
-/// Returns true it's a valid installed version
-bool isFlutterVersionInstalled(String version) {
-  return (flutterListInstalledSdks()).contains(version);
-}
+import '../flutter/flutter_helpers.dart';
+import 'print.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> checkAndInstallVersion(String version) async {
   if (isFlutterVersionInstalled(version)) return null;
-  Print.info('Flutter $version is not installed.');
+  PrettyPrint.info('Flutter $version is not installed.');
 
   // Install if input is confirmed
   if (await confirm('Would you like to install it?')) {
-    await installFlutterRelease(version);
+    await installRelease(version);
   } else {
     // If do not install exist
     exit(0);
