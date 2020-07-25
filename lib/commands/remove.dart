@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/flutter/flutter_tools.dart';
-import 'package:fvm/utils/helpers.dart';
+
 import 'package:fvm/utils/print.dart';
 
 /// Removes Flutter SDK

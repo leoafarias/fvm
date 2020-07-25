@@ -19,6 +19,13 @@ final kWorkingDirectory = Directory.current;
 final kProjectFvmDir =
     Directory(path.join(kWorkingDirectory.path, kFvmDirName));
 
+Directory getProjectPath(Directory dir) {
+  var dir = kProjectFvmDir;
+
+  if (dir.existsSync()) return dir;
+  return getProjectPath(dir.parent);
+}
+
 /// Local Project Config
 final kProjectFvmConfigJson =
     File(path.join(kProjectFvmDir.path, 'fvm_config.json'));
