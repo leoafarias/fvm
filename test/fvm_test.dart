@@ -10,7 +10,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/flutter/flutter_tools.dart';
 import 'test_helpers.dart';
 
-final testPath = '$fvmHome/test_path';
+final testPath = '$kFvmHome/test_path';
 
 void main() {
   setUpAll(fvmSetUpAll);
@@ -150,26 +150,6 @@ void main() {
         fail('Exception thrown, $e');
       }
 
-      expect(true, true);
-    });
-  });
-
-  group('Config', () {
-    test('Set Cache-Path', () async {
-      try {
-        await fvmRunner(['config', '--cache-path', testPath]);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
-      expect(testPath, kVersionsDir.path);
-    });
-
-    test('List Config Options', () async {
-      try {
-        await fvmRunner(['config', '--ls']);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
       expect(true, true);
     });
   });
