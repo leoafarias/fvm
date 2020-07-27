@@ -10,10 +10,10 @@ String getReleasesUrl({String platform}) {
   return 'https://storage.googleapis.com/flutter_infra/releases/releases_$platform.json';
 }
 
-Releases cacheReleasesRes;
+FlutterReleases cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
-Future<Releases> getReleases() async {
+Future<FlutterReleases> getReleases() async {
   try {
     // If has been cached return
     if (cacheReleasesRes != null) return cacheReleasesRes;
@@ -23,12 +23,6 @@ Future<Releases> getReleases() async {
   } on Exception {
     throw ExceptionCouldNotFetchReleases();
   }
-}
-
-// Returns Version based on semver
-Future<Release> getVersion(String version) async {
-  final releases = await getReleases();
-  return releases.getVersion(version);
 }
 
 Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
@@ -47,11 +41,11 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   return currentRelease;
 }
 
-Releases releasesFromMap(String str) =>
-    Releases.fromMap(jsonDecode(str) as Map<String, dynamic>);
+FlutterReleases releasesFromMap(String str) =>
+    FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
-class Releases {
-  Releases({
+class FlutterReleases {
+  FlutterReleases({
     this.baseUrl,
     this.channels,
     this.releases,
@@ -61,9 +55,9 @@ class Releases {
   final Channels channels;
   final List<Release> releases;
 
-  factory Releases.fromMap(Map<String, dynamic> json) {
+  factory FlutterReleases.fromMap(Map<String, dynamic> json) {
     final currentRelease = parseCurrentReleases(json);
-    return Releases(
+    return FlutterReleases(
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
       releases: List<Release>.from(json['releases']
@@ -167,10 +161,10 @@ class Release {
       };
 }
 
-enum Channel { STABLE, DEV, BETA }
+enum Channel { stable, dev, beta }
 
 final channelValues = EnumValues(
-    {'beta': Channel.BETA, 'dev': Channel.DEV, 'stable': Channel.STABLE});
+    {'beta': Channel.beta, 'dev': Channel.dev, 'stable': Channel.stable});
 
 class EnumValues<T> {
   Map<String, T> map;

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/flutter/flutter_releases.dart';
 import 'package:fvm/utils/git.dart';
 
 import 'package:fvm/utils/helpers.dart';
@@ -9,8 +10,6 @@ import 'package:fvm/utils/print.dart';
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
 import 'package:path/path.dart' as path;
-
-import '../utils/print.dart';
 
 /// Runs a process
 Future<void> flutterCmd(String exec, List<String> args,
@@ -114,7 +113,6 @@ bool isInstalledCorrectly(String version) {
 }
 
 /// Lists Installed Flutter SDK Version
-
 List<String> flutterListInstalledSdks() {
   try {
     // Returns empty array if directory does not exist
