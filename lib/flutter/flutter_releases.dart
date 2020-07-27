@@ -4,10 +4,16 @@ import 'dart:io';
 import 'package:fvm/exceptions.dart';
 import 'package:http/http.dart' as http;
 
+const STORAGE_BASE_URL = 'https://storage.googleapis.com';
+
 /// Gets platform specific release URL
 String getReleasesUrl({String platform}) {
   platform ??= Platform.operatingSystem;
-  return 'https://storage.googleapis.com/flutter_infra/releases/releases_$platform.json';
+  final envVars = Platform.environment;
+
+  var storageUrl = envVars['FLUTTER_STORAGE_BASE_URL'] ?? STORAGE_BASE_URL;
+
+  return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
 FlutterReleases cacheReleasesRes;
