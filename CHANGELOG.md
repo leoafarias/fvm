@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.4
+
+- Nested FVM config look up, to be used on monorepo projects, or nested directories.
+- Added link to changelog on upgrade message.
+
 ## 1.1.3
 
 - Removed Flutter project guard from flutter proxy command

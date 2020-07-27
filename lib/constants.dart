@@ -13,8 +13,7 @@ final kFvmDirectory = Platform.script.toString();
 final kWorkingDirectory = Directory.current;
 
 /// Local Project Directory
-final kProjectFvmDir =
-    Directory(path.join(_getProjectFvmDir().path, kFvmDirName));
+final kProjectFvmDir = _getProjectFvmDir();
 
 // Local project look up on nested project folders (monorepo)
 Directory _getProjectFvmDir({Directory dir}) {
@@ -25,15 +24,10 @@ Directory _getProjectFvmDir({Directory dir}) {
 
   if (flutterProjectDir.existsSync()) return flutterProjectDir;
   // Return working directory if it has reached root
-  if (isRootDir) return kWorkingDirectory;
+  if (isRootDir) {
+    return Directory(path.join(kWorkingDirectory.path, kFvmDirName));
+  }
   return _getProjectFvmDir(dir: dir.parent);
-}
-
-Directory getProjectPath(Directory dir) {
-  var dir = kProjectFvmDir;
-
-  if (dir.existsSync()) return dir;
-  return getProjectPath(dir.parent);
 }
 
 /// Local Project Config
