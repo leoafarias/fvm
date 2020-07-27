@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5
+
+- Added message with notice and fix if Flutter releases URL is blocked in your country.
+
 ## 1.1.4
 
 - Nested FVM config look up, to be used on monorepo projects, or nested directories.

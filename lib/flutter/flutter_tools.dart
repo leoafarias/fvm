@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_releases.dart';
+
 import 'package:fvm/utils/git.dart';
 
 import 'package:fvm/utils/helpers.dart';

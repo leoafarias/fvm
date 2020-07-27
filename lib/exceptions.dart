@@ -1,3 +1,4 @@
+import 'package:fvm/flutter/flutter_releases.dart';
 import 'package:fvm/utils/logger.dart';
 
 /// Logs error for verbose output
@@ -80,7 +81,9 @@ class ExceptionMissingChannelVersion implements Exception {
 
 /// Could not fetch Flutter releases
 class ExceptionCouldNotFetchReleases implements Exception {
-  final message = 'Could not fetch Flutter releases.';
+  final message =
+      '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
+  https://flutter.dev/community/china''';
 
   /// Constructor
   ExceptionCouldNotFetchReleases();
