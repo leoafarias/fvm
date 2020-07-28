@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/flutter/flutter_helpers.dart';
+
 import 'package:http/http.dart' as http;
 
 const STORAGE_BASE_URL = 'https://storage.googleapis.com';
@@ -39,9 +41,14 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
 
   // Filter out channel/currentRelease versions
   releases.forEach((r) {
-    // Check if release hash is in hashmap
+    // Check if release hash is in channel hashmap
     final channel = hashMap[r['hash']];
-    if (channel != null) currentRelease[channel] = r;
+    // If its not channel return
+    if (channel == null) return;
+    // Release is active channel
+    r['activeChannel'] = true;
+    // Assign to current release
+    currentRelease[channel] = r;
   });
 
   return currentRelease;
@@ -74,6 +81,10 @@ class FlutterReleases {
 
   /// Retrieves version information
   Release getVersion(String version) {
+    if (isFlutterChannel(version)) {
+      return channels[version];
+    }
+
     return releases.firstWhere((v) => v.version == version);
   }
 
@@ -139,6 +150,7 @@ class Release {
     this.releaseDate,
     this.archive,
     this.sha256,
+    this.activeChannel,
   });
 
   final String hash;
@@ -147,6 +159,7 @@ class Release {
   final DateTime releaseDate;
   final String archive;
   final String sha256;
+  final bool activeChannel;
 
   factory Release.fromMap(Map<String, dynamic> json) => Release(
         hash: json['hash'] as String,
@@ -155,6 +168,7 @@ class Release {
         releaseDate: DateTime.parse(json['release_date'] as String),
         archive: json['archive'] as String,
         sha256: json['sha256'] as String,
+        activeChannel: json['activeChannel'] as bool ?? false,
       );
 
   Map<String, dynamic> toMap() => {
@@ -164,6 +178,7 @@ class Release {
         'release_date': releaseDate.toIso8601String(),
         'archive': archive,
         'sha256': sha256,
+        'activeChannel': activeChannel,
       };
 }
 

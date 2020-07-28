@@ -85,3 +85,25 @@ String camelCase(String subject) {
 String capitalize(String word) {
   return '${word[0].toUpperCase()}${word.substring(1)}';
 }
+
+Map<String, int> dirStatSync(String dirPath) {
+  var fileNum = 0;
+  var totalSize = 0;
+  var dir = Directory(dirPath);
+  try {
+    if (dir.existsSync()) {
+      dir
+          .listSync(recursive: true, followLinks: false)
+          .forEach((FileSystemEntity entity) {
+        if (entity is File) {
+          fileNum++;
+          totalSize += entity.lengthSync();
+        }
+      });
+    }
+  } catch (e) {
+    print(e.toString());
+  }
+
+  return {'fileNum': fileNum, 'size': totalSize};
+}

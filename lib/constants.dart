@@ -43,7 +43,9 @@ final kLocalProjectPubspec =
     File(path.join(kWorkingDirectory.path, 'pubspec.yaml'));
 
 /// FVM Home directory
-String get kFvmHome {
+String kFvmHome = _getFvmHome();
+
+String _getFvmHome() {
   final envVars = Platform.environment;
 
   var home = envVars['FVM_HOME'];
