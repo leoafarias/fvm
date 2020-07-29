@@ -8,7 +8,7 @@ class CacheDirectory {
   final int size;
   final String redableSize;
   final Directory dir;
-  CacheDirectory({this.files, this.size, this.dir})
+  CacheDirectory({this.files = 0, this.size = 0, this.dir})
       : redableSize = filesize(size);
 
   factory CacheDirectory.fromPath(String path) {
@@ -17,4 +17,8 @@ class CacheDirectory {
     return CacheDirectory(
         dir: dir, files: dirStat['fileNum'], size: dirStat['size']);
   }
+}
+
+CacheDirectory getCacheDirectory(String path) {
+  return CacheDirectory.fromPath(path);
 }
