@@ -4,6 +4,7 @@ import 'package:fvm/commands/runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/utils/installed_release.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -31,7 +32,7 @@ void main() {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await flutterSdkVersion(channel);
         final correct = isInstalledCorrectly(channel);
-        final installedVersions = flutterListInstalledSdks();
+        final installedVersions = getInstalledVersions();
 
         final installExists = installedVersions.contains(channel);
 
@@ -103,7 +104,7 @@ void main() {
         final existingRelease = await flutterSdkVersion(version);
 
         final correct = isInstalledCorrectly(version);
-        final installedVersions = flutterListInstalledSdks();
+        final installedVersions = getInstalledVersions();
 
         final installExists = installedVersions.contains(version);
 

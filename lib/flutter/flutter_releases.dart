@@ -1,30 +1,36 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:path/path.dart' as path;
 
+import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/flutter/flutter_helpers.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 const STORAGE_BASE_URL = 'https://storage.googleapis.com';
+
+String get storageUrl {
+  final envVars = Platform.environment;
+  return envVars['FLUTTER_STORAGE_BASE_URL'] ?? STORAGE_BASE_URL;
+}
 
 /// Gets platform specific release URL
 String getReleasesUrl({String platform}) {
   platform ??= Platform.operatingSystem;
-  final envVars = Platform.environment;
-
-  var storageUrl = envVars['FLUTTER_STORAGE_BASE_URL'] ?? STORAGE_BASE_URL;
-
   return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
 FlutterReleases cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
-Future<FlutterReleases> getReleases() async {
+
+Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
+  // TODO: Implement request caching
   try {
     // If has been cached return
-    if (cacheReleasesRes != null) return cacheReleasesRes;
+    if (cacheReleasesRes != null && cache) return cacheReleasesRes;
     final response = await http.get(getReleasesUrl());
     cacheReleasesRes = releasesFromMap(response.body);
     return cacheReleasesRes;
@@ -54,6 +60,30 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   return currentRelease;
 }
 
+/// ALlows to download a release
+Future<void> downloadRelease(String version) async {
+  final flutterReleases = await fetchFlutterReleases();
+  final release = flutterReleases.getVersion(version);
+  final savePath = path.join(kVersionsDir.path, version);
+  final url = '$storageUrl/flutter_infra/releases/${release.archive}';
+
+  await Dio().download(
+    url,
+    savePath,
+    onReceiveProgress: (rcv, total) {
+      // print(
+      //     'received: ${rcv.toStringAsFixed(0)} out of total: ${total.toStringAsFixed(0)}');
+
+      var progress = ((rcv / total) * 100).toStringAsFixed(0);
+      print(progress);
+      if (progress == '100') {
+        print('DONE');
+      }
+    },
+    deleteOnError: true,
+  );
+}
+
 FlutterReleases releasesFromMap(String str) =>
     FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
@@ -74,7 +104,7 @@ class FlutterReleases {
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
       releases: List<Release>.from(json['releases']
-              .map((x) => Release.fromMap(x as Map<String, dynamic>))
+              .map((r) => Release.fromMap(r as Map<String, dynamic>))
           as Iterable<dynamic>),
     );
   }
@@ -85,7 +115,7 @@ class FlutterReleases {
       return channels[version];
     }
 
-    return releases.firstWhere((v) => v.version == version);
+    return releases.firstWhere((v) => v.version == version, orElse: () => null);
   }
 
   /// Checks if version is a release

@@ -22,7 +22,7 @@ class ReleasesCommand extends Command {
 
   @override
   void run() async {
-    final releases = await getReleases();
+    final releases = await fetchFlutterReleases();
     final channels = releases.channels.toHashMap();
     final versions = releases.releases.reversed;
 

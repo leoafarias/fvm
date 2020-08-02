@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/print.dart';
+import 'package:fvm/utils/installed_release.dart';
+import 'package:fvm/utils/pretty_print.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/flutter/flutter_tools.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command {
@@ -23,7 +23,7 @@ class ListCommand extends Command {
 
   @override
   void run() {
-    final choices = flutterListInstalledSdks();
+    final choices = getInstalledVersions();
 
     if (choices.isEmpty) {
       PrettyPrint.info(

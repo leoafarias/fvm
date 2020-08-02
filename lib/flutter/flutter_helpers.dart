@@ -4,11 +4,10 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
 import 'flutter_releases.dart';
-import 'flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<String> inferFlutterVersion(String version) async {
-  final releases = await getReleases();
+  final releases = await fetchFlutterReleases();
 
   version = version.toLowerCase();
 
@@ -31,9 +30,4 @@ Future<String> inferFlutterVersion(String version) async {
 /// Returns true if it's a valid Flutter channel
 bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
-}
-
-/// Returns true it's a valid installed version
-bool isFlutterVersionInstalled(String version) {
-  return (flutterListInstalledSdks()).contains(version);
 }

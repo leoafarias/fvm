@@ -1,9 +1,10 @@
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/flutter/flutter_tools.dart';
-import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/print.dart';
 
-import 'print.dart';
+import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/utils/pretty_print.dart';
+
+import 'pretty_print.dart';
 
 Future<void> installRelease(String version, {bool skipSetup = false}) async {
   if (version == null) {

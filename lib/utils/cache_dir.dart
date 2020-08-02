@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:filesize/filesize.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
 
 class CacheDirectory {
@@ -19,6 +20,7 @@ class CacheDirectory {
   }
 }
 
-CacheDirectory getCacheDirectory(String path) {
+CacheDirectory getCacheDirectory({String path}) {
+  path ??= kVersionsDir.path;
   return CacheDirectory.fromPath(path);
 }

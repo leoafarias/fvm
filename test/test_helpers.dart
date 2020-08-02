@@ -29,6 +29,6 @@ void fvmSetUpAll() async {
   // Looks just like Teardown rightnow bu
   // will probalby change. Just to guarantee a clean run
   cleanup();
-  final releases = await getReleases();
+  final releases = await fetchFlutterReleases();
   channelVersion = releases.channels[channel].version;
 }

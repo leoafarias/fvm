@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/print.dart';
+import 'package:fvm/utils/pretty_print.dart';
 
 class ProjectConfig {
   final String flutterSdkVersion;

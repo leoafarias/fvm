@@ -29,7 +29,7 @@ void main() {
   });
 
   test('Lists Flutter SDK Tags', () async {
-    final releases = await getReleases();
+    final releases = await fetchFlutterReleases();
     final versionsExists = releases.containsVersion('v1.8.1') &&
         releases.containsVersion('v1.9.6') &&
         releases.containsVersion('v1.10.5') &&

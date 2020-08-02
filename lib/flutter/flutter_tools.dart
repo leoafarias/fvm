@@ -6,7 +6,7 @@ import 'package:fvm/utils/git.dart';
 
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
-import 'package:fvm/utils/print.dart';
+import 'package:fvm/utils/pretty_print.dart';
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
 import 'package:path/path.dart' as path;
@@ -110,31 +110,6 @@ bool isInstalledCorrectly(String version) {
   }
 
   return true;
-}
-
-/// Lists Installed Flutter SDK Version
-List<String> flutterListInstalledSdks() {
-  try {
-    // Returns empty array if directory does not exist
-    if (!kVersionsDir.existsSync()) {
-      return [];
-    }
-
-    final versions = kVersionsDir.listSync().toList();
-
-    var installedVersions = <String>[];
-    for (var version in versions) {
-      if (FileSystemEntity.typeSync(version.path) ==
-          FileSystemEntityType.directory) {
-        installedVersions.add(path.basename(version.path));
-      }
-    }
-
-    installedVersions.sort();
-    return installedVersions;
-  } on Exception {
-    throw Exception('Could not list installed sdks');
-  }
 }
 
 void setAsGlobalVersion(String version) {
