@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/flutter/flutter_releases.dart';
+
 import 'package:path/path.dart' as path;
 
 /// Returns true it's a valid installed version
@@ -33,33 +33,4 @@ List<String> getInstalledVersions() {
   } on Exception {
     throw Exception('Could not list installed versions');
   }
-}
-
-Future<List<InstalledRelease>> getInstalledReleases() async {
-  final flutterReleases = await fetchFlutterReleases();
-  final versions = getInstalledVersions();
-  final releases = versions.map(flutterReleases.getVersion);
-  final filteredReleases = releases.where((release) => release != null);
-
-  return filteredReleases.map((release) => InstalledRelease(release)).toList();
-}
-
-// TODO: Refactor versions to use installed releases
-class InstalledRelease extends Release {
-  // Check if it's a channel release
-  // and not pinned version
-  final bool isChannel;
-  final Directory installedDir;
-  InstalledRelease(Release release)
-      : installedDir = Directory(path.join(kVersionsDir.path, release.version)),
-        isChannel = release.activeChannel,
-        super(
-          hash: release.hash,
-          channel: release.channel,
-          version: release.version,
-          releaseDate: release.releaseDate,
-          archive: release.archive,
-          sha256: release.sha256,
-          activeChannel: release.activeChannel,
-        );
 }
