@@ -50,8 +50,13 @@ Future<void> gitCloneCmd(
     versionDirectory.path
   ];
 
-  final process = await run('git', args,
-      stdout: stdout, stderr: stderr, verbose: logger.isVerbose);
+  final process = await run(
+    'git',
+    args,
+    stdout: stdout,
+    stderr: stderr,
+    verbose: logger.isVerbose,
+  );
 
   if (process.exitCode != 0) {
     throw ExceptionCouldNotClone(
@@ -87,7 +92,7 @@ Future<String> _gitGetVersion(String path) async {
 }
 
 /// Removes a Version of Flutter SDK
-void flutterSdkRemove(String version) {
+void removeRelease(String version) {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
   if (versionDir.existsSync()) {
     versionDir.deleteSync(recursive: true);
@@ -105,7 +110,7 @@ bool isInstalledCorrectly(String version) {
   // Check if version directory is from git
   if (!gitDir.existsSync() || !flutterBin.existsSync()) {
     print('$version exists but was not setup correctly. Doing cleanup...');
-    flutterSdkRemove(version);
+    removeRelease(version);
     return false;
   }
 

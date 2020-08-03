@@ -38,7 +38,7 @@ class RemoveCommand extends Command {
 
     PrettyPrint.success('Removing $flutterVersion');
     try {
-      flutterSdkRemove(flutterVersion);
+      removeRelease(flutterVersion);
     } on Exception {
       rethrow;
     }
