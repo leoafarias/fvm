@@ -11,6 +11,7 @@ executables:
 
 dependencies:
   dio: ^3.0.9
+  # Check if filesize is being used
   filesize: ^1.0.4
   args: ^1.5.3
   cli_util: ^0.2.0
