@@ -92,15 +92,15 @@ Future<String> _gitGetVersion(String path) async {
 }
 
 /// Removes a Version of Flutter SDK
-void removeRelease(String version) {
+Future<void> removeRelease(String version) async {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  if (versionDir.existsSync()) {
-    versionDir.deleteSync(recursive: true);
+  if (await versionDir.exists()) {
+    await versionDir.delete(recursive: true);
   }
 }
 
 /// Check if version is from git
-bool isInstalledCorrectly(String version) {
+Future<bool> isInstalledCorrectly(String version) async {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
   final gitDir = Directory(path.join(versionDir.path, '.github'));
   final flutterBin = Directory(path.join(versionDir.path, 'bin'));
@@ -110,7 +110,7 @@ bool isInstalledCorrectly(String version) {
   // Check if version directory is from git
   if (!gitDir.existsSync() || !flutterBin.existsSync()) {
     print('$version exists but was not setup correctly. Doing cleanup...');
-    removeRelease(version);
+    await removeRelease(version);
     return false;
   }
 

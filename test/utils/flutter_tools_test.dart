@@ -23,7 +23,7 @@ void main() {
       final invalidVersionName = 'INVALID_VERSION';
       final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
       await dir.create(recursive: true);
-      final correct = isInstalledCorrectly(invalidVersionName);
+      final correct = await isInstalledCorrectly(invalidVersionName);
       expect(correct, false);
     });
   });

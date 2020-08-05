@@ -31,7 +31,7 @@ void main() {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await flutterSdkVersion(channel);
-        final correct = isInstalledCorrectly(channel);
+        final correct = await isInstalledCorrectly(channel);
         final installedVersions = getInstalledVersions();
 
         final installExists = installedVersions.contains(channel);
@@ -103,7 +103,7 @@ void main() {
         final version = await inferFlutterVersion(release);
         final existingRelease = await flutterSdkVersion(version);
 
-        final correct = isInstalledCorrectly(version);
+        final correct = await isInstalledCorrectly(version);
         final installedVersions = getInstalledVersions();
 
         final installExists = installedVersions.contains(version);

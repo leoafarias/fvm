@@ -12,7 +12,7 @@ Future<void> installRelease(String version, {bool skipSetup = false}) async {
   }
 
   // If it's installed correctly just return and use cached
-  if (isInstalledCorrectly(version)) {
+  if (await isInstalledCorrectly(version)) {
     PrettyPrint.success('Version: $version - already installed.');
     return;
   }
