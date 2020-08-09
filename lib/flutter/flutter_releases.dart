@@ -63,7 +63,7 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
 /// ALlows to download a release
 Future<void> downloadRelease(String version) async {
   final flutterReleases = await fetchFlutterReleases();
-  final release = flutterReleases.getVersion(version);
+  final release = flutterReleases.getReleaseFromVersion(version);
   final savePath = path.join(kVersionsDir.path, version);
   final url = '$storageUrl/flutter_infra/releases/${release.archive}';
 
@@ -103,14 +103,14 @@ class FlutterReleases {
     return FlutterReleases(
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
-      releases: List<Release>.from(json['releases']
-              .map((r) => Release.fromMap(r as Map<String, dynamic>))
-          as Iterable<dynamic>),
+      releases: List<Release>.from(json['releases'].map(
+        (r) => Release.fromMap(r as Map<String, dynamic>),
+      ) as Iterable<dynamic>),
     );
   }
 
   /// Retrieves version information
-  Release getVersion(String version) {
+  Release getReleaseFromVersion(String version) {
     if (isFlutterChannel(version)) {
       return channels[version];
     }

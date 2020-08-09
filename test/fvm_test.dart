@@ -4,7 +4,7 @@ import 'package:fvm/commands/runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/utils/installed_release.dart';
+import 'package:fvm/utils/installed_versions.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -30,11 +30,10 @@ void main() {
     test('Install Channel', () async {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
-        final existingChannel = await flutterSdkVersion(channel);
+        final existingChannel = await gitGetVersion(channel);
         final correct = await isInstalledCorrectly(channel);
-        final installedVersions = getInstalledVersions();
 
-        final installExists = installedVersions.contains(channel);
+        final installExists = await isInstalledVersion(channel);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
@@ -101,12 +100,11 @@ void main() {
       try {
         await fvmRunner(['install', release, '--verbose', '--skip-setup']);
         final version = await inferFlutterVersion(release);
-        final existingRelease = await flutterSdkVersion(version);
+        final existingRelease = await gitGetVersion(version);
 
         final correct = await isInstalledCorrectly(version);
-        final installedVersions = getInstalledVersions();
 
-        final installExists = installedVersions.contains(version);
+        final installExists = await isInstalledVersion(version);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');

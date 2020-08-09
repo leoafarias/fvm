@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/confirm.dart';
-import 'package:fvm/utils/installed_release.dart';
+import 'package:fvm/utils/installed_versions.dart';
 import 'package:fvm/utils/pretty_print.dart';
 import 'package:fvm/utils/project_config.dart';
 
@@ -14,9 +14,14 @@ import 'package:path/path.dart' as path;
 
 import 'pretty_print.dart';
 
+/// Checks if path is a directory
+bool isDirectory(String path) {
+  return FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
+}
+
 /// Checks if version is installed, and installs or exits
 Future<void> checkAndInstallVersion(String version) async {
-  if (isVersionInstalled(version)) return null;
+  if (await isInstalledVersion(version)) return null;
   PrettyPrint.info('Flutter $version is not installed.');
 
   // Install if input is confirmed

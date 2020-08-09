@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/installed_release.dart';
+import 'package:fvm/utils/installed_versions.dart';
 import 'package:fvm/utils/pretty_print.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
@@ -22,8 +22,8 @@ class ListCommand extends Command {
   ListCommand();
 
   @override
-  void run() {
-    final choices = getInstalledVersions();
+  void run() async {
+    final choices = await getInstalledVersions();
 
     if (choices.isEmpty) {
       PrettyPrint.info(
@@ -46,7 +46,7 @@ class ListCommand extends Command {
     }
 
     for (var choice in choices) {
-      printVersions(choice);
+      printVersions(choice.name);
     }
   }
 }

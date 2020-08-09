@@ -65,22 +65,33 @@ Future<void> gitCloneCmd(
 }
 
 /// Gets SDK Version
-Future<String> flutterSdkVersion(String branch) async {
-  final branchDirectory = Directory(path.join(kVersionsDir.path, branch));
-
-  if (!branchDirectory.existsSync()) {
+Future<String> getFlutterSdkVersion(String version) async {
+  final versionDirectory = Directory(path.join(kVersionsDir.path, version));
+  if (!await versionDirectory.exists()) {
     throw Exception('Could not get version from SDK that is not installed');
   }
-  return await _gitGetVersion(branchDirectory.path);
+  try {
+    final versionFile = File(path.join(versionDirectory.path, 'version'));
+    final semver = await versionFile.readAsString();
+    return semver;
+  } on Exception {
+    // If version file does not exist return null for flutter version.
+    // Means setup was completed yet
+    return null;
+  }
 }
 
-Future<String> _gitGetVersion(String path) async {
+Future<String> gitGetVersion(String version) async {
+  final versionDir = Directory(path.join(kVersionsDir.path, version));
+  if (!await versionDir.exists()) {
+    throw Exception('Could not get version from SDK that is not installed');
+  }
   var result = await runGit(['rev-parse', '--abbrev-ref', 'HEAD'],
-      workingDirectory: path);
+      workingDirectory: versionDir.path);
 
   if (result.stdout.trim() == 'HEAD') {
-    result =
-        await runGit(['tag', '--points-at', 'HEAD'], workingDirectory: path);
+    result = await runGit(['tag', '--points-at', 'HEAD'],
+        workingDirectory: versionDir.path);
   }
 
   if (result.exitCode != 0) {

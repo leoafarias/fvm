@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/flutter/flutter_tools.dart';
-import 'package:fvm/utils/installed_release.dart';
+import 'package:fvm/utils/installed_versions.dart';
 
 import 'package:fvm/utils/pretty_print.dart';
 
@@ -30,7 +30,7 @@ class RemoveCommand extends Command {
   void run() async {
     final version = argResults.arguments[0].toLowerCase();
     final flutterVersion = await inferFlutterVersion(version);
-    final isValidInstall = isVersionInstalled(flutterVersion);
+    final isValidInstall = await isInstalledVersion(flutterVersion);
 
     if (!isValidInstall) {
       throw Exception('Flutter SDK: $flutterVersion is not installed');
