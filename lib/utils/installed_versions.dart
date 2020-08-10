@@ -7,11 +7,11 @@ import 'package:path/path.dart' as path;
 
 class InstalledVersion {
   final String name;
-  final String version;
+  final String sdkVersion;
   final bool isChannel;
   InstalledVersion({
     this.name,
-    this.version,
+    this.sdkVersion,
     this.isChannel,
   });
 }
@@ -41,7 +41,7 @@ Future<List<InstalledVersion>> getInstalledVersions() async {
 
         installedVersions.add(InstalledVersion(
           name: name,
-          version: sdkVersion,
+          sdkVersion: sdkVersion,
           isChannel: isFlutterChannel(name),
         ));
       }
