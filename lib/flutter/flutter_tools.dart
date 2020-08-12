@@ -20,6 +20,7 @@ Future<void> flutterCmd(String exec, List<String> args,
     workingDirectory: workingDirectory,
     stdout: stdout,
     stderr: stderr,
+    runInShell: Platform.isWindows,
     stdin: stdin,
   );
   exitCode = pr.exitCode;
@@ -55,7 +56,7 @@ Future<void> gitCloneCmd(
     args,
     stdout: stdout,
     stderr: stderr,
-    runInShell: true,
+    runInShell: Platform.isWindows,
     verbose: logger.isVerbose,
   );
 

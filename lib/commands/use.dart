@@ -35,13 +35,14 @@ class UseCommand extends Command {
 
   @override
   Future<void> run() async {
+    if (argResults.rest.isEmpty) {
+      throw Exception('Please provide a version. fvm use <version>');
+    }
+
     final isGlobal = argResults['global'] == true;
     final isForced = argResults['force'] == true;
     final version = argResults.rest[0];
 
-    if (argResults.rest.isEmpty) {
-      throw Exception('Please provide a version. fvm use <version>');
-    }
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
     // If project use check that is Flutter project

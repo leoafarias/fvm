@@ -29,8 +29,6 @@ To Install:
 
 ```bash
 > pub global activate fvm
-# or
-> flutter pub global activate fvm
 ```
 
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
