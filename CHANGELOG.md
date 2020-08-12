@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.7
+
+- Changed version on builder
+
 ## 1.1.6
 
 - Better support for Windows
