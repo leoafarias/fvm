@@ -55,6 +55,7 @@ Future<void> gitCloneCmd(
     args,
     stdout: stdout,
     stderr: stderr,
+    runInShell: true,
     verbose: logger.isVerbose,
   );
 
@@ -126,6 +127,11 @@ Future<bool> isInstalledCorrectly(String version) async {
   }
 
   return true;
+}
+
+Future<void> setupFlutterSdk(String version) async {
+  final flutterExec = getFlutterSdkExec(version: version);
+  await flutterCmd(flutterExec, ['--version']);
 }
 
 void setAsGlobalVersion(String version) {

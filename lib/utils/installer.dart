@@ -1,7 +1,6 @@
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/flutter/flutter_tools.dart';
 
-import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/pretty_print.dart';
 
 import 'pretty_print.dart';
@@ -25,6 +24,5 @@ Future<void> installRelease(String version, {bool skipSetup = false}) async {
   if (skipSetup) return;
   PrettyPrint.success('Setting up Flutter sdk');
   PrettyPrint.info('If you want to skip this next time use "--skip-setup"');
-  final flutterExec = getFlutterSdkExec(version: version);
-  await flutterCmd(flutterExec, ['--version']);
+  await setupFlutterSdk(version);
 }
