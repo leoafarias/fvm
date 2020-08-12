@@ -16,9 +16,9 @@ class Guards {
   }
 
   /// Check if Git is installed
-  static void isGitInstalled() {
+  static Future<void> isGitInstalled() async {
     try {
-      runGit(['--version']);
+      await runGit(['--version']);
     } on ProcessException {
       throw Exception(
           'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
