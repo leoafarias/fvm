@@ -20,6 +20,7 @@ Future<void> flutterCmd(String exec, List<String> args,
     workingDirectory: workingDirectory,
     stdout: stdout,
     stderr: stderr,
+    runInShell: Platform.isWindows,
     stdin: stdin,
   );
   exitCode = pr.exitCode;
@@ -50,8 +51,14 @@ Future<void> gitCloneCmd(
     versionDirectory.path
   ];
 
-  final process = await run('git', args,
-      stdout: stdout, stderr: stderr, verbose: logger.isVerbose);
+  final process = await run(
+    'git',
+    args,
+    stdout: stdout,
+    stderr: stderr,
+    verbose: logger.isVerbose,
+    runInShell: Platform.isWindows,
+  );
 
   if (process.exitCode != 0) {
     throw ExceptionCouldNotClone(

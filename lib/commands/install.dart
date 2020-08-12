@@ -28,7 +28,7 @@ class InstallCommand extends Command {
 
   @override
   void run() async {
-    Guards.isGitInstalled();
+    await Guards.isGitInstalled();
 
     String version;
     var hasConfig = false;
