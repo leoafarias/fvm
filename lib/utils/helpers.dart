@@ -2,15 +2,12 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/confirm.dart';
 import 'package:fvm/utils/installed_versions.dart';
 import 'package:fvm/utils/pretty_print.dart';
-import 'package:fvm/utils/project_config.dart';
 
 import 'package:fvm/utils/installer.dart';
-import 'package:path/path.dart' as path;
 
 import 'pretty_print.dart';
 
@@ -49,33 +46,6 @@ void createLink(
   }
 }
 
-/// Check if it is the current version.
-bool isCurrentVersion(String version) {
-  final configVersion = getConfigFlutterVersion();
-  return version == configVersion;
-}
-
-/// Checks if its global version
-bool isGlobalVersion(String version) {
-  if (!kDefaultFlutterLink.existsSync()) return false;
-
-  final globalVersion = path.basename(kDefaultFlutterLink.targetSync());
-
-  return globalVersion == version;
-}
-
-/// The Flutter SDK Path referenced on FVM
-String getFlutterSdkPath({String version}) {
-  var sdkVersion = version;
-  sdkVersion ??= getConfigFlutterVersion();
-  return path.join(kVersionsDir.path, sdkVersion);
-}
-
-String getFlutterSdkExec({String version}) {
-  return path.join(getFlutterSdkPath(version: version), 'bin',
-      Platform.isWindows ? 'flutter.bat' : 'flutter');
-}
-
 String camelCase(String subject) {
   final _splittedString = subject.split('_');
 
@@ -91,14 +61,20 @@ String capitalize(String word) {
   return '${word[0].toUpperCase()}${word.substring(1)}';
 }
 
-Map<String, int> dirStatSync(String dirPath) {
+class DirStat {
+  final int fileNum;
+  final int totalSize;
+  DirStat({this.fileNum, this.totalSize});
+}
+
+Future<DirStat> dirStat(String dirPath) async {
   var fileNum = 0;
   var totalSize = 0;
   var dir = Directory(dirPath);
   try {
-    if (dir.existsSync()) {
-      dir
-          .listSync(recursive: true, followLinks: false)
+    if (await dir.exists()) {
+      await dir
+          .list(recursive: true, followLinks: false)
           .forEach((FileSystemEntity entity) {
         if (entity is File) {
           fileNum++;
@@ -110,5 +86,5 @@ Map<String, int> dirStatSync(String dirPath) {
     print(e.toString());
   }
 
-  return {'fileNum': fileNum, 'size': totalSize};
+  return DirStat(fileNum: fileNum, totalSize: totalSize);
 }

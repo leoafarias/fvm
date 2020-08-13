@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/utils/helpers.dart';
+import 'package:fvm/flutter/flutter_helpers.dart';
+
 import 'package:fvm/utils/installed_versions.dart';
 import 'package:fvm/utils/pretty_print.dart';
 import 'package:io/ansi.dart';

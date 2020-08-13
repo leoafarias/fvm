@@ -9,6 +9,7 @@ class InstalledVersion {
   final String name;
   final String sdkVersion;
   final bool isChannel;
+
   InstalledVersion({
     this.name,
     this.sdkVersion,
