@@ -5,6 +5,7 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/utils/pretty_print.dart';
+import 'package:path/path.dart' as path;
 
 class ProjectConfig {
   final String flutterSdkVersion;
@@ -30,9 +31,10 @@ void updateFlutterSdkBinLink() {
   createLink(kProjectFvmSdkSymlink, File(flutterSdk));
 }
 
-ProjectConfig readProjectConfig() {
+ProjectConfig readProjectConfig({File projectConfig}) {
   try {
-    final jsonString = kProjectFvmConfigJson.readAsStringSync();
+    projectConfig ??= kProjectFvmConfigJson;
+    final jsonString = projectConfig.readAsStringSync();
     final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return ProjectConfig.fromJson(projectConfigMap);
   } on Exception {
@@ -52,4 +54,19 @@ String getConfigFlutterVersion() {
 
 void saveProjectConfig(ProjectConfig config) {
   kProjectFvmConfigJson.writeAsStringSync(jsonEncode(config));
+}
+
+Future<void> getLocalFlutterProjects(String dirPath) async {
+  var dir = Directory(dirPath);
+  List contents = dir.listSync(recursive: true);
+  for (final ioEntity in contents) {
+    if (ioEntity is Directory) {
+      final pubspec = File(path.join(ioEntity.path, 'pubspec.yaml'));
+      // TODO move fvm_config.json to constant
+      final fvmConfig =
+          File(path.join(ioEntity.path, kFvmDirName, 'fvm_config.json'));
+
+      if (pubspec.existsSync() && fvmConfig.existsSync()) {}
+    }
+  }
 }
