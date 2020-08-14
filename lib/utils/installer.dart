@@ -1,5 +1,5 @@
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_tools.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/utils/pretty_print.dart';
 

@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/utils/guards.dart';
 
 import 'package:fvm/utils/project_config.dart';

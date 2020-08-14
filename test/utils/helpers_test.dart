@@ -1,4 +1,4 @@
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/utils/pubdev.dart';
 import 'package:test/test.dart';
 

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/utils/pretty_print.dart';
 import 'package:path/path.dart' as path;
 

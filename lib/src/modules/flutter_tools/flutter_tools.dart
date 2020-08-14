@@ -4,7 +4,7 @@ import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/utils/git.dart';
 
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/logger.dart';
 import 'package:fvm/utils/pretty_print.dart';
