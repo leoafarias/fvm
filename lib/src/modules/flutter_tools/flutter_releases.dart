@@ -4,7 +4,7 @@ import 'package:path/path.dart' as path;
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:dio/dio.dart';

@@ -2,10 +2,10 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_releases.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_releases.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:fvm/flutter/flutter_tools.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
 
 void main() {
   group('Invalid Channels & Releases', () {

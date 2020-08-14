@@ -1,4 +1,4 @@
-import 'package:fvm/flutter/flutter_releases.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_releases.dart';
 import 'package:fvm/utils/logger.dart';
 
 /// Logs error for verbose output

@@ -2,13 +2,13 @@
 import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/runner.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/utils/installed_versions.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
-import 'package:fvm/flutter/flutter_tools.dart';
+import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
 import 'test_helpers.dart';
 
 final testPath = '$kFvmHome/test_path';
