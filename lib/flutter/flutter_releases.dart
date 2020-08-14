@@ -34,14 +34,14 @@ Future<FlutterReleases> getReleases() async {
 Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final currentRelease = json['current_release'] as Map<String, dynamic>;
   final releases = json['releases'] as List<dynamic>;
-  // Hashes of current releases
-  final hashMap = currentRelease.map((key, value) => MapEntry(value, key));
 
   // Filter out channel/currentRelease versions
   releases.forEach((r) {
     // Check if release hash is in hashmap
-    final channel = hashMap[r['hash']];
-    if (channel != null) currentRelease[channel] = r;
+    final channel = currentRelease.entries
+        .firstWhere((item) => item.value == r['hash'], orElse: () => null);
+
+    if (channel != null) currentRelease[channel.key] = r;
   });
 
   return currentRelease;
