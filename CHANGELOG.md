@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.8
+
+- Fix for shared releases between channels
+
 ## 1.1.7
 
 - Changed version on builder
