@@ -41,8 +41,7 @@ class UseCommand extends Command {
     if (argResults.rest.isEmpty) {
       final installedSdks = flutterListInstalledSdks();
       if (installedSdks.isEmpty) {
-        throw Exception(
-            'No version found Please install a version. fvm install <version>');
+        throw Exception('Please install a version. fvm install <version>');
       }
       final listQuestions = [
         [
