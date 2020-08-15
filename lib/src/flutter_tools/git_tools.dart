@@ -12,7 +12,8 @@ class GitTools {}
 /// Check if Git is installed
 Future<void> _checkIfGitInstalled() async {
   try {
-    await runGit(['--version']);
+    await Process.run('git', ['--version'],
+        workingDirectory: kWorkingDirectory.path, runInShell: true);
   } on ProcessException {
     throw Exception(
         'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
