@@ -1,7 +1,9 @@
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/flutter_tools/git_tools.dart';
+import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
-import 'package:fvm/utils/pretty_print.dart';
+import 'package:fvm/src/utils/pretty_print.dart';
 
 import 'pretty_print.dart';
 
@@ -18,7 +20,7 @@ Future<void> installRelease(String version, {bool skipSetup = false}) async {
 
   PrettyPrint.success('Installing version: $version:');
 
-  await gitCloneCmd(version);
+  await runGitClone(version);
 
   // Skips Flutter sdk setup
   if (skipSetup) return;

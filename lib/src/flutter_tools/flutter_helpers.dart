@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/utils/project_config.dart';
+import 'package:fvm/src/flutter_project/project_config.repo.dart';
 import 'package:path/path.dart' as path;
-import 'flutter_releases.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<String> inferFlutterVersion(String version) async {
@@ -32,12 +32,6 @@ Future<String> inferFlutterVersion(String version) async {
 /// Returns true if it's a valid Flutter channel
 bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
-}
-
-/// Check if it is the current version.
-bool isCurrentVersion(String version) {
-  final configVersion = getConfigFlutterVersion();
-  return version == configVersion;
 }
 
 /// Checks if its global version

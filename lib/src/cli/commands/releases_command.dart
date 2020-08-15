@@ -3,7 +3,7 @@ import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
 import 'package:io/ansi.dart';
 
-import 'package:fvm/src/modules/flutter_tools/flutter_releases.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command {

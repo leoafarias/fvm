@@ -2,10 +2,11 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/modules/flutter_tools/flutter_releases.dart';
+import 'package:fvm/src/flutter_tools/git_tools.dart';
+import 'package:fvm/src/local_versions/local_versions_tools.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
 
 void main() {
   group('Invalid Channels & Releases', () {
@@ -13,7 +14,7 @@ void main() {
       final invalidVersion = 'INVALID_VERSION';
 
       try {
-        await gitCloneCmd(invalidVersion);
+        await runGitClone(invalidVersion);
         fail('Exception not thrown');
       } on Exception catch (e) {
         expect(e, const TypeMatcher<ExceptionCouldNotClone>());

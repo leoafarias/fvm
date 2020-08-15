@@ -2,10 +2,11 @@ import 'dart:io';
 
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:fvm/utils/installed_versions.dart';
-import 'package:fvm/utils/pretty_print.dart';
+import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/flutter_project/project_config.repo.dart';
+import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 
@@ -24,7 +25,7 @@ class ListCommand extends Command {
 
   @override
   void run() async {
-    final choices = await getInstalledVersions();
+    final choices = await LocalVersionRepo.getAll();
 
     if (choices.isEmpty) {
       PrettyPrint.info(

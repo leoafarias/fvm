@@ -1,5 +1,5 @@
-import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/utils/pubdev.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/utils/pubdev.dart';
 import 'package:test/test.dart';
 
 void main() {

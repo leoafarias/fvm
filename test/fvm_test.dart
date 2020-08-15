@@ -1,14 +1,16 @@
 @Timeout(Duration(minutes: 5))
-import 'package:fvm/commands/install.dart';
-import 'package:fvm/commands/runner.dart';
+import 'package:fvm/src/cli/commands/install_command.dart';
+import 'package:fvm/src/cli/runner.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/modules/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/utils/installed_versions.dart';
+import 'package:fvm/src/flutter_tools/git_tools.dart';
+import 'package:fvm/src/local_versions/local_versions_tools.dart';
+import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/modules/flutter_tools/flutter_tools.dart';
+
 import 'test_helpers.dart';
 
 final testPath = '$kFvmHome/test_path';
@@ -33,7 +35,7 @@ void main() {
         final existingChannel = await gitGetVersion(channel);
         final correct = await isInstalledCorrectly(channel);
 
-        final installExists = await isInstalledVersion(channel);
+        final installExists = await LocalVersionRepo.isInstalled(channel);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
@@ -104,7 +106,7 @@ void main() {
 
         final correct = await isInstalledCorrectly(version);
 
-        final installExists = await isInstalledVersion(version);
+        final installExists = await LocalVersionRepo.isInstalled(version);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
