@@ -37,12 +37,18 @@ class UseCommand extends Command {
   @override
   Future<void> run() async {
     String version;
+
     if (argResults.rest.isEmpty) {
+      final installedSdks = flutterListInstalledSdks();
+      if (installedSdks.isEmpty) {
+        throw Exception(
+            'No version found Please install a version. fvm install <version>');
+      }
       final listQuestions = [
         [
           {
             'question': 'Select version',
-            'options': flutterListInstalledSdks(),
+            'options': installedSdks,
           },
           'version'
         ]
