@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:fvm/commands/flutter.dart';
 import 'package:fvm/commands/install.dart';
 import 'package:fvm/commands/list.dart';
@@ -27,7 +28,7 @@ Future<void> fvmRunner(List<String> args) async {
     if (exc is String) {
       logger.stdout(exc);
     } else {
-      logger.stderr('⚠️  ${yellow.wrap(exc?.message as String)}');
+      logger.stderr('⚠️  ${yellow.wrap(exc.toString())}');
       if (args.contains('--verbose')) {
         print(st);
         throw exc;
