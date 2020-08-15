@@ -50,6 +50,7 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
     currentRelease.entries.forEach((channel) {
       if (channel.value == release['hash']) {
         currentRelease[channel.key] = release;
+        release['activeChannel'] = true;
       }
     });
   });
