@@ -42,19 +42,16 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
 Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final currentRelease = json['current_release'] as Map<String, dynamic>;
   final releases = json['releases'] as List<dynamic>;
-  // Hashes of current releases
-  final hashMap = currentRelease.map((key, value) => MapEntry(value, key));
 
   // Filter out channel/currentRelease versions
-  releases.forEach((r) {
-    // Check if release hash is in channel hashmap
-    final channel = hashMap[r['hash']];
-    // If its not channel return
-    if (channel == null) return;
-    // Release is active channel
-    r['activeChannel'] = true;
-    // Assign to current release
-    currentRelease[channel] = r;
+  // FIXME: fix issue with repetitive
+  releases.forEach((release) {
+    // Check if release hash is in hashmap
+    currentRelease.entries.forEach((channel) {
+      if (channel.value == release['hash']) {
+        currentRelease[channel.key] = release;
+      }
+    });
   });
 
   return currentRelease;

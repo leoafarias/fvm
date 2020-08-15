@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.9
+
+- Improvements on flutter channels parsing
+
+## 1.1.8
+
+- Fix for shared releases between channels
+
+## 1.1.7
+
+- Changed version on builder
+
 ## 1.1.6
 
 - Better support for Windows
