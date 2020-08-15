@@ -60,31 +60,3 @@ String camelCase(String subject) {
 String capitalize(String word) {
   return '${word[0].toUpperCase()}${word.substring(1)}';
 }
-
-class DirStat {
-  final int fileNum;
-  final int totalSize;
-  DirStat({this.fileNum, this.totalSize});
-}
-
-Future<DirStat> dirStat(String dirPath) async {
-  var fileNum = 0;
-  var totalSize = 0;
-  var dir = Directory(dirPath);
-  try {
-    if (await dir.exists()) {
-      await dir
-          .list(recursive: true, followLinks: false)
-          .forEach((FileSystemEntity entity) {
-        if (entity is File) {
-          fileNum++;
-          totalSize += entity.lengthSync();
-        }
-      });
-    }
-  } catch (e) {
-    print(e.toString());
-  }
-
-  return DirStat(fileNum: fileNum, totalSize: totalSize);
-}

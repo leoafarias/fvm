@@ -1,38 +1,25 @@
-import 'dart:io';
-import 'package:fvm/src/cli/commands/flutter_command.dart';
-import 'package:fvm/src/cli/commands/install_command.dart';
-import 'package:fvm/src/cli/commands/list_command.dart';
-import 'package:fvm/src/cli/commands/releases_command.dart';
-import 'package:fvm/src/cli/commands/remove_command.dart';
-import 'package:fvm/src/cli/runner.dart';
-import 'package:fvm/src/cli/commands/use_command.dart';
-import 'package:fvm/src/cli/commands/version_command.dart';
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/logger.dart' show logger;
-import 'package:io/ansi.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/local_versions/local_versions_tools.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/utils/installer.dart';
 
-/// Runs FVM
-Future<void> fvmRunner(List<String> args) async {
-  final runner = buildRunner();
+export 'package:fvm/src/cli/runner.dart';
+export 'package:fvm/src/releases_api/models/flutter_releases.model.dart';
+export 'package:fvm/src/local_versions/local_version.model.dart';
+export 'package:fvm/src/releases_api/models/release.model.dart';
+export 'package:fvm/src/releases_api/models/channels.model.dart';
 
-  runner..addCommand(InstallCommand());
-  runner..addCommand(ListCommand());
-  runner..addCommand(FlutterCommand());
-  runner..addCommand(RemoveCommand());
-  runner..addCommand(UseCommand());
-  runner..addCommand(VersionCommand());
-  runner..addCommand(ReleasesCommand());
+// FVM API for consumption from GUI & other tools
+class FVM {
+  // Installing flutter sdk
+  static final install = installRelease;
+  static final setup = setupFlutterSdk;
 
-  return await runner.run(args).catchError((exc, st) {
-    if (exc is String) {
-      logger.stdout(exc);
-    } else {
-      logger.stderr('⚠️  ${yellow.wrap(exc.toString())}');
-      if (args.contains('--verbose')) {
-        print(st);
-        throw exc;
-      }
-    }
-    exitCode = 1;
-  }).whenComplete(() {});
+  // Interaction with local versions
+  static final remove = removeRelease;
+  static final getLocalVersions = LocalVersionRepo.getAll;
+
+  // Interaction with releases api
+  static final getFlutterReleases = fetchFlutterReleases;
 }

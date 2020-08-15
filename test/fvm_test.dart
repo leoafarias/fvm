@@ -3,7 +3,7 @@ import 'package:fvm/src/cli/commands/install_command.dart';
 import 'package:fvm/src/cli/runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/fvm.dart';
+
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';

@@ -1,4 +1,4 @@
-import 'package:fvm/fvm.dart';
+import 'package:fvm/src/cli/runner.dart';
 
 @Timeout(Duration(minutes: 5))
 import 'package:test/test.dart';
