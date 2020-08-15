@@ -36,12 +36,14 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final releases = json['releases'] as List<dynamic>;
 
   // Filter out channel/currentRelease versions
-  releases.forEach((r) {
+  // FIXME: fix issue with repetitive
+  releases.forEach((release) {
     // Check if release hash is in hashmap
-    final channel = currentRelease.entries
-        .firstWhere((item) => item.value == r['hash'], orElse: () => null);
-
-    if (channel != null) currentRelease[channel.key] = r;
+    currentRelease.entries.forEach((channel) {
+      if (channel.value == release['hash']) {
+        currentRelease[channel.key] = release;
+      }
+    });
   });
 
   return currentRelease;

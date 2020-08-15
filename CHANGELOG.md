@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.9
+
+- Improvements on flutter channels parsing
+
 ## 1.1.8
 
 - Fix for shared releases between channels
