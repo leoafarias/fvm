@@ -20,44 +20,6 @@ Future<void> _checkIfGitInstalled() async {
   }
 }
 
-/// Run Git command
-Future<ProcessResult> runGit(
-  List<String> args, {
-  bool throwOnError = true,
-  String workingDirectory,
-}) async {
-  await _checkIfGitInstalled();
-  final pr = await Process.run('git', args,
-      workingDirectory: workingDirectory, runInShell: true);
-
-  if (throwOnError) {
-    _throwIfProcessFailed(pr, 'git', args);
-  }
-  return pr;
-}
-
-void _throwIfProcessFailed(
-    ProcessResult pr, String process, List<String> args) {
-  assert(pr != null);
-  if (pr.exitCode != 0) {
-    final values = {
-      'Standard out': pr.stdout.toString().trim(),
-      'Standard error': pr.stderr.toString().trim()
-    }..removeWhere((k, v) => v.isEmpty);
-
-    String message;
-    if (values.isEmpty) {
-      message = 'Unknown error';
-    } else if (values.length == 1) {
-      message = values.values.single;
-    } else {
-      message = values.entries.map((e) => '${e.key}\n${e.value}').join('\n');
-    }
-
-    throw ProcessException(process, args, message, pr.exitCode);
-  }
-}
-
 /// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> runGitClone(
@@ -104,12 +66,12 @@ Future<String> gitGetVersion(String version) async {
   if (!await versionDir.exists()) {
     throw Exception('Could not get version from SDK that is not installed');
   }
-  var result = await runGit(['rev-parse', '--abbrev-ref', 'HEAD'],
-      workingDirectory: versionDir.path);
+  var result = await Process.run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
+      workingDirectory: versionDir.path, runInShell: true);
 
   if (result.stdout.trim() == 'HEAD') {
-    result = await runGit(['tag', '--points-at', 'HEAD'],
-        workingDirectory: versionDir.path);
+    result = await Process.run('git', ['tag', '--points-at', 'HEAD'],
+        workingDirectory: versionDir.path, runInShell: true);
   }
 
   if (result.exitCode != 0) {

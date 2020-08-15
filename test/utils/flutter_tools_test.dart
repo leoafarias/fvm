@@ -4,7 +4,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
-import 'package:fvm/src/releases_api/releases_client.dart';
+
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 
@@ -27,14 +27,5 @@ void main() {
       final correct = await isInstalledCorrectly(invalidVersionName);
       expect(correct, false);
     });
-  });
-
-  test('Lists Flutter SDK Tags', () async {
-    final releases = await fetchFlutterReleases();
-    final versionsExists = releases.containsVersion('v1.8.1') &&
-        releases.containsVersion('v1.9.6') &&
-        releases.containsVersion('v1.10.5') &&
-        releases.containsVersion('v1.9.1+hotfix.4');
-    expect(versionsExists, true);
   });
 }

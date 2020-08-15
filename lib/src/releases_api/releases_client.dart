@@ -38,7 +38,7 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   }
 }
 
-/// ALlows to download a release
+/// Allows to download a release
 Future<void> downloadRelease(String version) async {
   final flutterReleases = await fetchFlutterReleases();
   final release = flutterReleases.getReleaseFromVersion(version);

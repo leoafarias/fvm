@@ -6,8 +6,6 @@ import 'package:fvm/src/flutter_project/project_config.model.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:path/path.dart' as path;
-
 void setAsProjectVersion(String version) {
   if (kProjectFvmConfigJson.existsSync() == false) {
     kProjectFvmConfigJson.createSync(recursive: true);
@@ -50,19 +48,4 @@ String getConfigFlutterVersion() {
 
 void saveProjectConfig(ProjectConfig config) {
   kProjectFvmConfigJson.writeAsStringSync(jsonEncode(config));
-}
-
-Future<void> getLocalFlutterProjects(String dirPath) async {
-  var dir = Directory(dirPath);
-  List contents = dir.listSync(recursive: true);
-  for (final ioEntity in contents) {
-    if (ioEntity is Directory) {
-      final pubspec = File(path.join(ioEntity.path, 'pubspec.yaml'));
-      // TODO move fvm_config.json to constant
-      final fvmConfig =
-          File(path.join(ioEntity.path, kFvmDirName, 'fvm_config.json'));
-
-      if (pubspec.existsSync() && fvmConfig.existsSync()) {}
-    }
-  }
 }

@@ -6,7 +6,7 @@ import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
 
 /// Runs a process
-Future<void> flutterCmd(String exec, List<String> args,
+Future<void> runFlutter(String exec, List<String> args,
     {String workingDirectory}) async {
   var pr = await run(
     exec,
@@ -22,5 +22,5 @@ Future<void> flutterCmd(String exec, List<String> args,
 
 Future<void> setupFlutterSdk(String version) async {
   final flutterExec = getFlutterSdkExec(version: version);
-  await flutterCmd(flutterExec, ['--version']);
+  await runFlutter(flutterExec, ['--version']);
 }
