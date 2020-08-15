@@ -1,14 +1,14 @@
 import 'dart:io';
-import 'package:fvm/commands/flutter.dart';
-import 'package:fvm/commands/install.dart';
-import 'package:fvm/commands/list.dart';
-import 'package:fvm/commands/releases.dart';
-import 'package:fvm/commands/remove.dart';
-import 'package:fvm/commands/runner.dart';
-import 'package:fvm/commands/use.dart';
-import 'package:fvm/commands/version.dart';
-import 'package:fvm/utils/logger.dart';
-import 'package:fvm/utils/logger.dart' show logger;
+import 'package:fvm/src/cli/commands/flutter_command.dart';
+import 'package:fvm/src/cli/commands/install_command.dart';
+import 'package:fvm/src/cli/commands/list_command.dart';
+import 'package:fvm/src/cli/commands/releases_command.dart';
+import 'package:fvm/src/cli/commands/remove_command.dart';
+import 'package:fvm/src/cli/runner.dart';
+import 'package:fvm/src/cli/commands/use_command.dart';
+import 'package:fvm/src/cli/commands/version_command.dart';
+import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/logger.dart' show logger;
 import 'package:io/ansi.dart';
 
 /// Runs FVM

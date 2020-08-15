@@ -1,11 +1,13 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
-import 'package:fvm/flutter/flutter_tools.dart';
-import 'package:fvm/utils/guards.dart';
-import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/utils/project_config.dart';
-import 'package:fvm/utils/pubdev.dart';
+import 'package:fvm/src/flutter_project/project_helpers.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/local_versions/local_versions_tools.dart';
+
+import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/flutter_project/project_config.repo.dart';
+import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/pubdev.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -46,7 +48,10 @@ class UseCommand extends Command {
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
     // If project use check that is Flutter project
-    if (!isGlobal && !isForced) Guards.isFlutterProject();
+    if (!isGlobal && !isForced && !isFlutterProject()) {
+      throw Exception(
+          'Run this FVM command at the root of a Flutter project or use --force to bypass this.');
+    }
 
     // Make sure version is installed
     await checkAndInstallVersion(flutterVersion);
@@ -58,6 +63,8 @@ class UseCommand extends Command {
       // Updates the project config with version
       setAsProjectVersion(flutterVersion);
     }
+
+    PrettyPrint.success('Project now uses Flutter: $version');
 
     await checkIfLatestVersion();
   }

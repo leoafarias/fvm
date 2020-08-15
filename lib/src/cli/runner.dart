@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:fvm/utils/logger.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 /// Builds FVM Runner
 CommandRunner buildRunner() {

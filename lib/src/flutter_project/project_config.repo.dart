@@ -2,20 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/utils/helpers.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
-import 'package:fvm/utils/pretty_print.dart';
+import 'package:fvm/src/flutter_project/project_config.model.dart';
+import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+
 import 'package:path/path.dart' as path;
-
-class ProjectConfig {
-  final String flutterSdkVersion;
-  ProjectConfig(this.flutterSdkVersion);
-
-  ProjectConfig.fromJson(Map<String, dynamic> json)
-      : flutterSdkVersion = json['flutterSdkVersion'] as String;
-
-  Map<String, dynamic> toJson() => {'flutterSdkVersion': flutterSdkVersion};
-}
 
 void setAsProjectVersion(String version) {
   if (kProjectFvmConfigJson.existsSync() == false) {
@@ -23,7 +14,6 @@ void setAsProjectVersion(String version) {
   }
   saveProjectConfig(ProjectConfig(version));
   updateFlutterSdkBinLink();
-  PrettyPrint.success('Project now uses Flutter: $version');
 }
 
 void updateFlutterSdkBinLink() {
@@ -40,6 +30,12 @@ ProjectConfig readProjectConfig({File projectConfig}) {
   } on Exception {
     throw ExceptionProjectConfigNotFound();
   }
+}
+
+/// Check if it is the current version.
+bool isCurrentVersion(String version) {
+  final configVersion = getConfigFlutterVersion();
+  return version == configVersion;
 }
 
 /// Returns version from project config

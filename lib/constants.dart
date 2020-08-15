@@ -6,10 +6,6 @@ const kFvmDirName = '.fvm';
 /// Flutter Repo Address
 const kFlutterRepo = 'https://github.com/flutter/flutter.git';
 
-/// Directory that the script is running
-@deprecated
-final kFvmDirectory = Platform.script.toString();
-
 /// Working Directory for FVM
 final kWorkingDirectory = Directory.current;
 

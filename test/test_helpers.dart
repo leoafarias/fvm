@@ -1,6 +1,6 @@
 import 'package:fvm/constants.dart';
 
-import 'package:fvm/flutter/flutter_releases.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.reference
 // git clone --reference ~/gitcaches/flutter.reference https://github.com/flutter/flutter.git
