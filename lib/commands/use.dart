@@ -6,6 +6,7 @@ import 'package:fvm/utils/guards.dart';
 import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/project_config.dart';
 import 'package:fvm/utils/pubdev.dart';
+import 'package:cli_dialog/cli_dialog.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -35,13 +36,30 @@ class UseCommand extends Command {
 
   @override
   Future<void> run() async {
+    String version;
+
     if (argResults.rest.isEmpty) {
-      throw Exception('Please provide a version. fvm use <version>');
+      final installedSdks = flutterListInstalledSdks();
+      if (installedSdks.isEmpty) {
+        throw Exception('Please install a version. fvm install <version>');
+      }
+      final listQuestions = [
+        [
+          {
+            'question': 'Select version',
+            'options': installedSdks,
+          },
+          'version'
+        ]
+      ];
+      final dialog = CLI_Dialog(listQuestions: listQuestions);
+      final answer = dialog.ask();
+      version = answer['version'] as String;
     }
 
+    version ??= argResults.rest[0];
     final isGlobal = argResults['global'] == true;
     final isForced = argResults['force'] == true;
-    final version = argResults.rest[0];
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
