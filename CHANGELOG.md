@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+
+- Use command now shows installed version if no 'version' is passed.
+- Improved exception message handling
+
 ## 1.1.9
 
 - Improvements on flutter channels parsing

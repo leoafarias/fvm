@@ -7,6 +7,7 @@ import 'flutter_releases.dart';
 import 'flutter_tools.dart';
 
 /// Returns true if it's a valid Flutter version number
+// TODO: Make sure this is called only on command input
 Future<String> inferFlutterVersion(String version) async {
   final releases = await getReleases();
 
