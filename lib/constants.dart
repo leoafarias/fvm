@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 const kFvmDirName = '.fvm';
+final kFvmConfigFileName = 'fvm_config.json';
 
 /// Flutter Repo Address
 const kFlutterRepo = 'https://github.com/flutter/flutter.git';
@@ -29,7 +30,7 @@ Directory _getProjectFvmDir({Directory dir}) {
 
 /// Local Project Config
 final kProjectFvmConfigJson =
-    File(path.join(kProjectFvmDir.path, 'fvm_config.json'));
+    File(path.join(kProjectFvmDir.path, kFvmConfigFileName));
 
 /// Local Project Flutter Link
 final kProjectFvmSdkSymlink =
@@ -60,6 +61,7 @@ String _getFvmHome() {
 }
 
 /// Config file of fvm's config.
+@deprecated
 File get kConfigFile => File(path.join(kFvmHome, '.fvm_config'));
 
 /// Where Flutter SDK Versions are stored

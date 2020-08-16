@@ -1,3 +1,4 @@
+import 'package:fvm/src/flutter_project/project_config.repo.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
@@ -22,4 +23,7 @@ class FVM {
 
   // Interaction with releases api
   static final getFlutterReleases = fetchFlutterReleases;
+
+  // Flutter projects
+  static final getProjectConfig = readProjectConfig;
 }

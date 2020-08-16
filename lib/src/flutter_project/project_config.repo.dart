@@ -6,6 +6,12 @@ import 'package:fvm/src/flutter_project/project_config.model.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
+/// Check if it is the current version.
+bool isCurrentVersion(String version) {
+  final configVersion = getConfigFlutterVersion();
+  return version == configVersion;
+}
+
 void setAsProjectVersion(String version) {
   if (kProjectFvmConfigJson.existsSync() == false) {
     kProjectFvmConfigJson.createSync(recursive: true);
@@ -28,12 +34,6 @@ ProjectConfig readProjectConfig({File projectConfig}) {
   } on Exception {
     throw ExceptionProjectConfigNotFound();
   }
-}
-
-/// Check if it is the current version.
-bool isCurrentVersion(String version) {
-  final configVersion = getConfigFlutterVersion();
-  return version == configVersion;
 }
 
 /// Returns version from project config
