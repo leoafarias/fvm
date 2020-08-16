@@ -26,7 +26,6 @@ FlutterReleases cacheReleasesRes;
 /// Gets Flutter SDK Releases
 
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
-  // TODO: Implement request caching
   try {
     // If has been cached return
     if (cacheReleasesRes != null && cache) return cacheReleasesRes;

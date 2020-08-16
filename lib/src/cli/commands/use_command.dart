@@ -2,12 +2,14 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/flutter_project/project_helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/flutter_project/project_config.repo.dart';
 import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:fvm/src/utils/pubdev.dart';
+import 'package:cli_dialog/cli_dialog.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -37,13 +39,30 @@ class UseCommand extends Command {
 
   @override
   Future<void> run() async {
+    String version;
+
     if (argResults.rest.isEmpty) {
-      throw Exception('Please provide a version. fvm use <version>');
+      final installedSdks = await LocalVersionRepo.getAll();
+      if (installedSdks.isEmpty) {
+        throw Exception('Please install a version. fvm install <version>');
+      }
+      final listQuestions = [
+        [
+          {
+            'question': 'Select version',
+            'options': installedSdks,
+          },
+          'version'
+        ]
+      ];
+      final dialog = CLI_Dialog(listQuestions: listQuestions);
+      final answer = dialog.ask();
+      version = answer['version'] as String;
     }
 
+    version ??= argResults.rest[0];
     final isGlobal = argResults['global'] == true;
     final isForced = argResults['force'] == true;
-    final version = argResults.rest[0];
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
