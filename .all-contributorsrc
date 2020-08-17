@@ -112,6 +112,15 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "deandreamatias",
+      "name": "Matias de Andrea",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/21011641?v=4",
+      "profile": "https://deandreamatias.com/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
