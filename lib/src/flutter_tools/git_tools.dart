@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:path/path.dart' as path;
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
@@ -61,22 +62,32 @@ Future<void> runGitClone(
   }
 }
 
+Future<String> getCurrentGitBranch(Directory dir) async {
+  try {
+    if (!await dir.exists()) {
+      throw Exception('Could not get version from SDK that is not installed');
+    }
+    var result = await Process.run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
+        workingDirectory: dir.path, runInShell: true);
+
+    if (result.stdout.trim() == 'HEAD') {
+      result = await Process.run('git', ['tag', '--points-at', 'HEAD'],
+          workingDirectory: dir.path, runInShell: true);
+    }
+
+    if (result.exitCode != 0) {
+      throw Exception('Could not get version Info.');
+    }
+
+    return result.stdout.trim() as String;
+  } on Exception catch (err) {
+    //TODO: better error logging
+    PrettyPrint.error(err.toString());
+    return null;
+  }
+}
+
 Future<String> gitGetVersion(String version) async {
   final versionDir = Directory(path.join(kVersionsDir.path, version));
-  if (!await versionDir.exists()) {
-    throw Exception('Could not get version from SDK that is not installed');
-  }
-  var result = await Process.run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
-      workingDirectory: versionDir.path, runInShell: true);
-
-  if (result.stdout.trim() == 'HEAD') {
-    result = await Process.run('git', ['tag', '--points-at', 'HEAD'],
-        workingDirectory: versionDir.path, runInShell: true);
-  }
-
-  if (result.exitCode != 0) {
-    throw Exception('Could not get version Info.');
-  }
-
-  return result.stdout.trim() as String;
+  return getCurrentGitBranch(versionDir);
 }

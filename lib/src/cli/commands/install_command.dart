@@ -33,7 +33,7 @@ class InstallCommand extends Command {
     final skipSetup = argResults['skip-setup'] == true;
 
     if (argResults.arguments.isEmpty) {
-      final configVersion = getConfigFlutterVersion();
+      final configVersion = readProjectConfig().flutterSdkVersion;
       if (configVersion == null) {
         throw ExceptionMissingChannelVersion();
       }

@@ -51,6 +51,6 @@ String getFlutterSdkExec({String version}) {
 /// The Flutter SDK Path referenced on FVM
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
-  sdkVersion ??= getConfigFlutterVersion();
+  sdkVersion ??= readProjectConfig().flutterSdkVersion;
   return path.join(kVersionsDir.path, sdkVersion);
 }

@@ -1,5 +1,7 @@
 import 'package:fvm/src/flutter_project/project_config.repo.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/flutter_tools/git_tools.dart';
+
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
@@ -26,4 +28,7 @@ class FVM {
 
   // Flutter projects
   static final getProjectConfig = readProjectConfig;
+
+  // Utils
+  static final currentGitBranch = getCurrentGitBranch;
 }

@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/src/flutter_project/project_config.model.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 /// Check if it is the current version.
 bool isCurrentVersion(String version) {
-  final configVersion = getConfigFlutterVersion();
+  final configVersion = readProjectConfig().flutterSdkVersion;
   return version == configVersion;
 }
 
@@ -32,17 +32,7 @@ ProjectConfig readProjectConfig({File projectConfig}) {
     final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
     return ProjectConfig.fromJson(projectConfigMap);
   } on Exception {
-    throw ExceptionProjectConfigNotFound();
-  }
-}
-
-/// Returns version from project config
-String getConfigFlutterVersion() {
-  try {
-    final config = readProjectConfig();
-    return config.flutterSdkVersion;
-  } on Exception {
-    return null;
+    return ProjectConfig(null);
   }
 }
 
