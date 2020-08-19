@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.1
+## 1.2.2
 
 - Updated process_run dependency (Issue #113)
 
