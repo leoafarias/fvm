@@ -9,7 +9,8 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   releases.forEach((release) {
     // Check if release hash is in hashmap
     currentRelease.entries.forEach((channel) {
-      if (channel.value == release['hash']) {
+      if (channel.value == release['hash'] &&
+          channel.key == release['channel']) {
         currentRelease[channel.key] = release;
         release['activeChannel'] = true;
       }

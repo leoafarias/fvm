@@ -21,18 +21,18 @@ class ReleasesCommand extends Command {
   @override
   void run() async {
     final releases = await fetchFlutterReleases();
-    final channels = releases.channels.toHashMap();
+
     final versions = releases.releases.reversed;
 
     versions.forEach((r) {
-      final channel = channels[r.hash];
-      final channelOutput = green.wrap('$channel');
+      // final channelOutput = green.wrap('$channel');
       final version = yellow.wrap(r.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
           formatDate(r.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
-      if (channel != null) {
-        print('----------$channelOutput----------');
+      if (r.activeChannel) {
+        final channel = r.channel.toString().split('.').last;
+        print('----------$channel----------');
         print('$friendlyDate $pipe $version');
       } else {
         print('$friendlyDate $pipe $version');
