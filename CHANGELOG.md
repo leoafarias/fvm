@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- Updated process_run dependency (Issue #113)
+
 ## 1.2.0
 
 - Use command now shows installed version if no 'version' is passed.
