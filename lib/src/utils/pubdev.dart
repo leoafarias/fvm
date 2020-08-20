@@ -53,13 +53,13 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
     final latestVersion = pubPackage.versions.last;
 
     if (Version.parse(currentVersion) < Version.parse(latestVersion)) {
-      final updateCmd = cyan.wrap('(flutter) pub global activate fvm');
+      final updateCmd = cyan.wrap('pub global activate fvm');
 
       print(divider);
       print(
           'FVM Update Available $packageVersion → ${green.wrap(latestVersion)} ');
       print(
-          '${yellow.wrap('Changelog:')} https://github.com/leoafarias/fvm/releases/tag/$packageVersion');
+          '${yellow.wrap('Changelog:')} https://github.com/leoafarias/fvm/releases/tag/$latestVersion');
       print('Run $updateCmd to update');
       print(divider);
       return false;
