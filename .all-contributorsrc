@@ -121,6 +121,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "znjameswu",
+      "name": "znjameswu",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/61373469?v=4",
+      "profile": "https://github.com/znjameswu",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 5,
