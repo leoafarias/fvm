@@ -18,6 +18,7 @@ class FVM {
   // Installing flutter sdk
   static final install = installRelease;
   static final setup = setupFlutterSdk;
+  static final upgrade = upgradeFlutterChannel;
 
   // Interaction with local versions
   static final remove = removeRelease;
