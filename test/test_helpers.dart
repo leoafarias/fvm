@@ -1,4 +1,4 @@
-import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/releases_api/releases_client.dart';
 
@@ -15,9 +15,11 @@ void cleanup() {
   // if (fvmHomeDir.existsSync()) {
   //   fvmHomeDir.deleteSync(recursive: true);
   // }
-
-  if (kProjectFvmDir.existsSync()) {
-    kProjectFvmDir.deleteSync(recursive: true);
+  final project = FlutterProject.find();
+  if (project.pinnedVersion != null) {
+    // Used just for testing
+    // TODO: add this back
+    // FlutterProject.findProjectDir().deleteSync(recursive: true);
   }
 }
 

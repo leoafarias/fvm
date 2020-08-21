@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/flutter_project/project_config.repo.dart';
-import 'package:path/path.dart' as path;
+
+import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
 
 /// Returns true if it's a valid Flutter version number
@@ -38,19 +38,13 @@ bool isFlutterChannel(String channel) {
 bool isGlobalVersion(String version) {
   if (!kDefaultFlutterLink.existsSync()) return false;
 
-  final globalVersion = path.basename(kDefaultFlutterLink.targetSync());
+  final globalVersion = basename(kDefaultFlutterLink.targetSync());
 
   return globalVersion == version;
 }
 
-String getFlutterSdkExec({String version}) {
-  return path.join(getFlutterSdkPath(version: version), 'bin',
-      Platform.isWindows ? 'flutter.bat' : 'flutter');
-}
-
-/// The Flutter SDK Path referenced on FVM
-String getFlutterSdkPath({String version}) {
-  var sdkVersion = version;
-  sdkVersion ??= readProjectConfig().flutterSdkVersion;
-  return path.join(kVersionsDir.path, sdkVersion);
+String getFlutterSdkExec(String version) {
+  // If version not provided find it within a project
+  final sdkPath = join(kVersionsDir.path, version);
+  return join(sdkPath, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter');
 }

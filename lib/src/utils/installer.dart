@@ -1,7 +1,7 @@
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
-import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:fvm/src/utils/pretty_print.dart';
 
@@ -13,7 +13,7 @@ Future<void> installRelease(String version, {bool skipSetup = false}) async {
   }
 
   // If it's installed correctly just return and use cached
-  if (await isInstalledCorrectly(version)) {
+  if (await LocalVersionRepo().ensureInstalledCorrectly(version)) {
     PrettyPrint.success('Version: $version - already installed.');
     return;
   }

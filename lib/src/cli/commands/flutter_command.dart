@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/flutter_project/flutter_project.model.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
@@ -22,7 +23,8 @@ class FlutterCommand extends Command {
 
   @override
   Future<void> run() async {
-    final flutterExec = getFlutterSdkExec();
+    final project = FlutterProject.find();
+    final flutterExec = getFlutterSdkExec(project.pinnedVersion);
 
     await runFlutter(flutterExec, argResults.arguments,
         workingDirectory: kWorkingDirectory.path);

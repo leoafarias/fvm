@@ -2,7 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:fvm/src/flutter_project/project_config.repo.dart';
+import 'package:fvm/src/flutter_project/flutter_project.model.dart';
 import 'package:fvm/src/utils/installer.dart';
 import 'package:fvm/src/utils/pretty_print.dart';
 
@@ -32,8 +32,10 @@ class InstallCommand extends Command {
     var hasConfig = false;
     final skipSetup = argResults['skip-setup'] == true;
 
+    final project = FlutterProject.find();
+
     if (argResults.arguments.isEmpty) {
-      final configVersion = readProjectConfig().flutterSdkVersion;
+      final configVersion = project.pinnedVersion;
       if (configVersion == null) {
         throw ExceptionMissingChannelVersion();
       }
@@ -47,7 +49,7 @@ class InstallCommand extends Command {
 
     await installRelease(flutterVersion, skipSetup: skipSetup);
     if (hasConfig) {
-      setAsProjectVersion(version);
+      await project.setVersion(version);
       PrettyPrint.success('Project now uses Flutter: $version');
     }
   }

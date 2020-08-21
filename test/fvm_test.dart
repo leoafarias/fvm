@@ -1,3 +1,4 @@
+import 'package:fvm/fvm.dart';
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/src/cli/commands/install_command.dart';
 import 'package:fvm/src/cli/runner.dart';
@@ -5,7 +6,7 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/flutter_tools/git_tools.dart';
-import 'package:fvm/src/local_versions/local_versions_tools.dart';
+
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
@@ -33,9 +34,10 @@ void main() {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await gitGetVersion(channel);
-        final correct = await isInstalledCorrectly(channel);
+        final correct =
+            await LocalVersionRepo().ensureInstalledCorrectly(channel);
 
-        final installExists = await LocalVersionRepo.isInstalled(channel);
+        final installExists = await LocalVersionRepo().isInstalled(channel);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
@@ -57,10 +59,13 @@ void main() {
 
     test('Use Channel', () async {
       try {
-        await fvmRunner(['use', channel, '--verbose']);
-        final linkExists = kProjectFvmSdkSymlink.existsSync();
+        // Run foce to test within fvm
+        //TODO: Create flutter project for test
+        await fvmRunner(['use', channel, '--force', '--verbose']);
+        final sdkSymlink = FlutterProject.find().sdkSymlink;
+        final linkExists = sdkSymlink.existsSync();
 
-        final targetBin = kProjectFvmSdkSymlink.targetSync();
+        final targetBin = sdkSymlink.targetSync();
 
         final channelBin = path.join(kVersionsDir.path, channel);
 
@@ -104,9 +109,10 @@ void main() {
         final version = await inferFlutterVersion(release);
         final existingRelease = await gitGetVersion(version);
 
-        final correct = await isInstalledCorrectly(version);
+        final correct =
+            await LocalVersionRepo().ensureInstalledCorrectly(version);
 
-        final installExists = await LocalVersionRepo.isInstalled(version);
+        final installExists = await LocalVersionRepo().isInstalled(version);
 
         expect(installExists, true, reason: 'Install does not exist');
         expect(correct, true, reason: 'Not Installed Correctly');
@@ -120,10 +126,12 @@ void main() {
 
     test('Use Release', () async {
       try {
-        await fvmRunner(['use', release, '--verbose']);
-        final linkExists = kProjectFvmSdkSymlink.existsSync();
+        // TODO: Use force to run within fvm need to create example project
+        await fvmRunner(['use', release, '--force', '--verbose']);
+        final sdkSymlink = FlutterProject.find().sdkSymlink;
+        final linkExists = sdkSymlink.existsSync();
 
-        final targetBin = kProjectFvmSdkSymlink.targetSync();
+        final targetBin = sdkSymlink.targetSync();
         final version = await inferFlutterVersion(release);
         final releaseBin = path.join(kVersionsDir.path, version);
 

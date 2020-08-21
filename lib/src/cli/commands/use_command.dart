@@ -1,12 +1,12 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/flutter_project/project_helpers.dart';
+
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/flutter_project/project_config.repo.dart';
+import 'package:fvm/src/flutter_project/flutter_project.model.dart';
 import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:cli_dialog/cli_dialog.dart';
@@ -41,8 +41,9 @@ class UseCommand extends Command {
   Future<void> run() async {
     String version;
 
+    // If no version is provider show selection
     if (argResults.rest.isEmpty) {
-      final installedSdks = await LocalVersionRepo.getAll();
+      final installedSdks = await LocalVersionRepo().getAll();
       if (installedSdks.isEmpty) {
         throw Exception('Please install a version. fvm install <version>');
       }
@@ -66,8 +67,10 @@ class UseCommand extends Command {
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
+    final project = FlutterProject.find();
+    final isFlutterProject = await project.isFlutterProject();
     // If project use check that is Flutter project
-    if (!isGlobal && !isForced && !isFlutterProject()) {
+    if (!isGlobal && !isForced && !isFlutterProject) {
       throw Exception(
           'Run this FVM command at the root of a Flutter project or use --force to bypass this.');
     }
@@ -80,7 +83,8 @@ class UseCommand extends Command {
       setAsGlobalVersion(flutterVersion);
     } else {
       // Updates the project config with version
-      setAsProjectVersion(flutterVersion);
+
+      await project.setVersion(flutterVersion);
     }
 
     PrettyPrint.success('Project now uses Flutter: $version');

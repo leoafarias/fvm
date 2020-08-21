@@ -2,8 +2,8 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
-import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
@@ -24,7 +24,8 @@ void main() {
       final invalidVersionName = 'INVALID_VERSION';
       final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
       await dir.create(recursive: true);
-      final correct = await isInstalledCorrectly(invalidVersionName);
+      final correct =
+          await LocalVersionRepo().ensureInstalledCorrectly(invalidVersionName);
       expect(correct, false);
     });
   });

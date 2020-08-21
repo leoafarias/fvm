@@ -18,7 +18,7 @@ bool isDirectory(String path) {
 
 /// Checks if version is installed, and installs or exits
 Future<void> checkAndInstallVersion(String version) async {
-  if (await LocalVersionRepo.isInstalled(version)) return null;
+  if (await LocalVersionRepo().isInstalled(version)) return null;
   PrettyPrint.info('Flutter $version is not installed.');
 
   // Install if input is confirmed
@@ -31,15 +31,12 @@ Future<void> checkAndInstallVersion(String version) async {
 }
 
 /// Moves assets from theme directory into brand-app
-void createLink(
-  Link source,
-  FileSystemEntity target,
-) async {
+Future<void> createLink(Link source, FileSystemEntity target) async {
   try {
-    if (source.existsSync()) {
-      source.deleteSync();
+    if (await source.exists()) {
+      await source.delete();
     }
-    source.createSync(target.path);
+    await source.create(target.path);
   } on Exception catch (err) {
     logVerboseError(err);
     throw Exception('Sorry could not link ${target.path}');

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.model.dart';
@@ -5,18 +7,34 @@ import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:fvm/src/utils/helpers.dart';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 
 class LocalVersionRepo {
   /// Returns true it's a valid installed version
-  static Future<bool> isInstalled(String version) async {
+  Future<bool> isInstalled(String version) async {
     final installedVersions = await getAll();
     final versionsNames = installedVersions.map((v) => v.name);
     return versionsNames.contains(version);
   }
 
+  Future<LocalVersion> getByName(String name) async {
+    final versionDir = Directory(join(kVersionsDir.path, name));
+    final sdkVersion = await getFlutterSdkVersion(name);
+
+    // Return null if version does not exist
+    if (await versionDir.exists()) {
+      return null;
+    }
+
+    return LocalVersion(
+      name: name,
+      sdkVersion: sdkVersion,
+      isChannel: isFlutterChannel(name),
+    );
+  }
+
   /// Lists Installed Flutter SDK Version
-  static Future<List<LocalFlutterVersion>> getAll() async {
+  Future<List<LocalVersion>> getAll() async {
     try {
       // Returns empty array if directory does not exist
       if (!kVersionsDir.existsSync()) {
@@ -25,13 +43,13 @@ class LocalVersionRepo {
 
       final versions = kVersionsDir.listSync().toList();
 
-      var installedVersions = <LocalFlutterVersion>[];
+      var installedVersions = <LocalVersion>[];
       for (var version in versions) {
         if (isDirectory(version.path)) {
-          final name = path.basename(version.path);
+          final name = basename(version.path);
           final sdkVersion = await getFlutterSdkVersion(name);
 
-          installedVersions.add(LocalFlutterVersion(
+          installedVersions.add(LocalVersion(
             name: name,
             sdkVersion: sdkVersion,
             isChannel: isFlutterChannel(name),
@@ -42,7 +60,32 @@ class LocalVersionRepo {
       installedVersions.sort((a, b) => a.name.compareTo(b.name));
       return installedVersions;
     } on Exception {
-      throw Exception('Could not list installed versions');
+      return null;
     }
+  }
+
+  /// Removes a Version of Flutter SDK
+  // TODO: Change this to LocalVersion model
+  Future<void> remove(String version) async {
+    final versionDir = Directory(join(kVersionsDir.path, version));
+    if (await versionDir.exists()) {
+      await versionDir.delete(recursive: true);
+    }
+  }
+
+  Future<bool> ensureInstalledCorrectly(String version) async {
+    final versionDir = Directory(join(kVersionsDir.path, version));
+    final gitDir = Directory(join(versionDir.path, '.github'));
+    final flutterBin = Directory(join(versionDir.path, 'bin'));
+    // Check if version directory exists
+    if (!await versionDir.exists()) return false;
+
+    // Check if version directory is from git
+    if (!await gitDir.exists() || !await flutterBin.exists()) {
+      print('$version exists but was not setup correctly. Doing cleanup...');
+      await remove(version);
+      return false;
+    }
+    return true;
   }
 }
