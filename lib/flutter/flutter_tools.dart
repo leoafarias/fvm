@@ -9,21 +9,26 @@ import 'package:fvm/utils/logger.dart';
 import 'package:fvm/utils/print.dart';
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
+
 import 'package:path/path.dart' as path;
 
 /// Runs a process
 Future<void> flutterCmd(String exec, List<String> args,
     {String workingDirectory}) async {
-  var pr = await run(
-    exec,
-    args,
-    workingDirectory: workingDirectory,
-    stdout: stdout,
-    stderr: stderr,
-    runInShell: Platform.isWindows,
-    stdin: stdin,
-  );
-  exitCode = pr.exitCode;
+  try {
+    var pr = await run(
+      exec,
+      args,
+      workingDirectory: workingDirectory,
+      stdout: stdout,
+      stderr: stderr,
+      runInShell: Platform.isWindows,
+      stdin: stdin,
+    );
+    exitCode = pr.exitCode;
+  } catch (e) {
+    print('$e');
+  }
 }
 
 /// Clones Flutter SDK from Version Number or Channel

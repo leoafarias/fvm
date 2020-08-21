@@ -8,6 +8,7 @@ environment:
 
 executables:
   fvm: main
+  flutter: flutter
 
 dependencies:
   args: ^1.5.3

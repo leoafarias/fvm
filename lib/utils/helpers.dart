@@ -63,12 +63,22 @@ bool isGlobalVersion(String version) {
 String getFlutterSdkPath({String version}) {
   var sdkVersion = version;
   sdkVersion ??= getConfigFlutterVersion();
+  if (sdkVersion == null) {
+    return null;
+  }
   return path.join(kVersionsDir.path, sdkVersion);
 }
 
 String getFlutterSdkExec({String version}) {
-  return path.join(getFlutterSdkPath(version: version), 'bin',
-      Platform.isWindows ? 'flutter.bat' : 'flutter');
+  var sdkPath = getFlutterSdkPath(version: version);
+  if (sdkPath == null) {
+    return '';
+  }
+  return path.join(
+    sdkPath,
+    'bin',
+    Platform.isWindows ? 'flutter.bat' : 'flutter',
+  );
 }
 
 String camelCase(String subject) {
