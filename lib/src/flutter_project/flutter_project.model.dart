@@ -43,7 +43,6 @@ class FlutterProject {
 
   Future<bool> isFlutterProject() async {
     try {
-      final pubspec = await _getPubspec();
       final isFlutter = pubspec.dependencies.firstWhere(
         // ignore: invalid_use_of_protected_member
         (dependency) => dependency.sdk != null,
@@ -55,23 +54,14 @@ class FlutterProject {
     }
   }
 
-  Future<String> getName() async {
-    try {
-      final pubspec = await _getPubspec();
-      return pubspec.name;
-    } on Exception {
-      return null;
-    }
-  }
-
-  Future<String> getGitBranch() async {
-    return await getCurrentGitBranch(projectDir);
+  String get name {
+    return pubspec.name;
   }
 
   /// Pubspec file of the project
-  Future<PubspecYaml> _getPubspec() async {
+  PubspecYaml get pubspec {
     final pubspecFile = File(join(projectDir.path, 'pubspec.yaml'));
-    final pubspec = await pubspecFile.readAsString();
+    final pubspec = pubspecFile.readAsStringSync();
     return pubspec.toPubspecYaml();
   }
 
@@ -84,6 +74,10 @@ class FlutterProject {
     } on Exception {
       return FvmConfig(null);
     }
+  }
+
+  Future<String> getGitBranch() async {
+    return await getCurrentGitBranch(projectDir);
   }
 
   /// Recursive look up to find nested project directory
