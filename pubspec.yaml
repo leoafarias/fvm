@@ -12,8 +12,7 @@ executables:
 dependencies:
   pubspec_yaml: ^2.0.1
   dio: ^3.0.9
-  # Check if filesize is being used
-  filesize: ^1.0.4
+
   args: ^1.5.3
   cli_util: ^0.2.0
   console: ^3.1.0

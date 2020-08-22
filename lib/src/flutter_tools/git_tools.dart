@@ -36,13 +36,9 @@ Future<void> runGitClone(
     '-c',
     'advice.detachedHead=false',
     '--progress',
-    '--depth',
-    '1',
     '--single-branch',
     '-b',
     version,
-    '--depth',
-    '1',
     kFlutterRepo,
     versionDirectory.path
   ];
