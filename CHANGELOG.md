@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.3
+
+- Clone setting changes. Unexpected behavior when installing master in some cases
+
 ## 1.2.2
 
 - Updated process_run dependency (Issue #113)
