@@ -24,10 +24,12 @@ class FlutterProject {
   }
 
   Future<void> setVersion(String version) async {
-    if (await _configFile.exists() == false) {
-      _configFile.createSync(recursive: true);
+    final exists = await _configFile.exists();
+    if (exists == false) {
+      await _configFile.create(recursive: true);
     }
-    _configFile.writeAsStringSync(jsonEncode(_config));
+
+    await _configFile.writeAsString(jsonEncode(FvmConfig(version)));
     await createLink(sdkSymlink, File(join(kVersionsDir.path, version)));
   }
 
