@@ -23,9 +23,7 @@ Future<void> _checkIfGitInstalled() async {
 
 /// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
-Future<void> runGitClone(
-  String version,
-) async {
+Future<void> runGitClone(String version) async {
   await _checkIfGitInstalled();
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
