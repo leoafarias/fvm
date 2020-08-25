@@ -125,13 +125,13 @@ You are able to configure the **fvm** cache directory by setting `FVM_HOME` envi
 
 ## Running Flutter SDK commands
 
-There are a couple of ways you can interact with the Flutter SDK setup in your project. You can run all the Flutter commands through the fvm proxy commands.
+There are couple of ways you can interact with the Flutter SDK setup in your project. You can run all the Flutter commands through the fvm _proxy commands_.
 
 ### Proxy Commands
 
 Flutter command within `fvm` proxies all calls to the CLI just changing the SDK to be the local one.
 
-For instance, to run the `flutter run` with a given Flutter SDK version just call the following. FMV will recursively try for a version in a parent directory.
+For instance, to run the `flutter run` with a given Flutter SDK version just call the following. FVM will recursively try for a version in a parent directory.
 
 ```bash
 > fvm flutter run
@@ -142,6 +142,8 @@ This syntax works also for commands with parameters. The following command will 
 ```bash
 > fvm flutter build aab --release --flavor prod -t lib/main_prod.dart
 ```
+
+In other words, calling a `fvm flutter xxx` command is equivalent to `flutter xxx` if `fvm` is available in the directory tree.
 
 ### Call Local SDK Directly
 
