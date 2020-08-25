@@ -186,9 +186,9 @@ Alternatively, you can specify only selected versions. The following snippet wil
 }
 ```
 
-To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette.
+To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette. You should see all the versions as depicted in the following screenshot.
 
-![VS Code version selector screenshot](docs/vs_code_versions.png)
+![VS Code version selector screenshot](./docs/vs_code_versions.png?raw=true "VS Code version selector screenshot")
 
 #### You can also add the version symlink for dynamic switch
 
