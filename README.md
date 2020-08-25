@@ -95,6 +95,14 @@ Using the remove command will uninstall the SDK version locally, this will impac
 > fvm remove <version>
 ```
 
+### Upgrade the current SDK Version
+
+To upgrade currently used Flutter SDK version (e.g. `stable`) you should call the Flutter SDK command as you would normally do in case of typical Flutter installation. See more in the section [Running Flutter SDK commands](#running-flutter-sdk-commands).
+
+```bash
+> fvm flutter upgrade
+```
+
 ### List Installed Versions
 
 List all the versions that are installed on your machine. This command will also output where FVM stores the SDK versions.
@@ -115,43 +123,49 @@ Displays all Flutter releases, including the current version for `dev`, `beta` a
 
 You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used.
 
-### Running Flutter SDK
+## Running Flutter SDK commands
 
-There are a couple of ways you can interact with the SDK setup in your project.
+There are a couple of ways you can interact with the Flutter SDK setup in your project. You can run all the Flutter commands through the fvm proxy commands.
 
-#### Proxy Commands
+### Proxy Commands
 
 Flutter command within `fvm` proxies all calls to the CLI just changing the SDK to be the local one.
+
+For instance, to run the `flutter run` with a given Flutter SDK version just call the following. FMV will recursively try for a version in a parent directory.
 
 ```bash
 > fvm flutter run
 ```
 
-This will run `flutter run` command using the local project SDK. If no FVM config is found in the project. FMV will recursively try for a version in a parent directory.
+This syntax works also for commands with parameters. The following command will call `flutter build` for a selected flavor and target.
 
-#### Call Local SDK Directly
+```bash
+> fvm flutter build aab --release --flavor prod -t lib/main_prod.dart
+```
 
-FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
+### Call Local SDK Directly
+
+You can also call the local SDK directly bypassing the _proxy commands_. FVM creates a symbolic link within your project called **fvm** which links to the installed version of the SDK.
 
 ```bash
 > .fvm/flutter/bin run
 ```
 
-This will run `flutter run` command using the local project SDK.
+The above example is equivalent to `flutter run` command using the local project SDK.
 
-As an example calling `fvm flutter run` is the equivalent of calling `flutter run` using the local project SDK.
-
-### Configure Your IDE
+## Configure Your IDE
 
 In some situations you might have to restart your IDE and the Flutter debugger to make sure it uses the new version.
 
-#### VSCode
+### VSCode
 
-Add the following to your settings.json. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
+Add the following to your `settings.json`. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
 
 Use `fvm list` to show you the path to the versions.
 
-##### List all versions installd by FVM
+#### List all versions installed by FVM
+
+You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory:
 
 ```json
 {
@@ -159,7 +173,22 @@ Use `fvm list` to show you the path to the versions.
 }
 ```
 
-##### You can also add the version symlink for dynamic switch
+Alternatively, you can specify only selected versions. The following snippet will cause VS Code to show only `stable` and `dev` versions of Flutter.
+
+```json
+{
+  "dart.flutterSdkPaths": [
+    "/Users/usr/fvm/versions/stable",
+    "/Users/usr/fvm/versions/dev"
+  ]
+}
+```
+
+To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette.
+
+![VS Code version selector screenshot](docs/vs_code_versions.png)
+
+#### You can also add the version symlink for dynamic switch
 
 ```json
 {
@@ -167,7 +196,7 @@ Use `fvm list` to show you the path to the versions.
 }
 ```
 
-#### Android Studio
+### Android Studio
 
 Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute/path-to-your-project/.fvm/flutter_sdk`
 
