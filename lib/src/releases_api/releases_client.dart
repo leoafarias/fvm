@@ -42,7 +42,7 @@ Future<void> downloadRelease(String version) async {
   final flutterReleases = await fetchFlutterReleases();
   final release = flutterReleases.getReleaseFromVersion(version);
   final savePath = path.join(kVersionsDir.path, version);
-  final url = '$storageUrl/flutter_infra/releases/${release.archive}';
+  final url = release.archiveUrl;
 
   await Dio().download(
     url,
