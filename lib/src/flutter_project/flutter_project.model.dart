@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 
 import 'package:fvm/src/flutter_project/fvm_config.model.dart';
-import 'package:fvm/src/flutter_tools/git_tools.dart';
+
 import 'package:fvm/src/utils/helpers.dart';
 
 import 'package:path/path.dart';
@@ -13,8 +13,9 @@ class FlutterProject {
   final Directory projectDir;
   Directory _fvmConfigDir;
   File _configFile;
+  String gitBranch;
 
-  FlutterProject(this.projectDir) {
+  FlutterProject(this.projectDir, {this.gitBranch}) {
     _fvmConfigDir = Directory(join(projectDir.path, kFvmDirName));
     _configFile = File(join(_fvmConfigDir.path, kFvmConfigFileName));
   }
@@ -76,10 +77,6 @@ class FlutterProject {
     } on Exception {
       return FvmConfig(null);
     }
-  }
-
-  Future<String> getGitBranch() async {
-    return await getCurrentGitBranch(projectDir);
   }
 
   /// Recursive look up to find nested project directory

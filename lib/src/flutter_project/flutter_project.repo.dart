@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/flutter_tools/git_tools.dart';
 import 'package:path/path.dart';
 
 class FlutterProjectRepo {
@@ -17,9 +18,9 @@ class FlutterProjectRepo {
     )) {
       // Check if entity is directory
       final pubspecFile = File(join(entity.path, 'pubspec.yaml'));
-
       if (entity is Directory && await pubspecFile.exists()) {
-        final project = FlutterProject(entity);
+        final currentGitBranch = await getCurrentGitBranch(entity);
+        final project = FlutterProject(entity, gitBranch: currentGitBranch);
         // Add only if its flutter project
         if (await project.isFlutterProject()) {
           projects.add(project);
