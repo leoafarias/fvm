@@ -8,7 +8,6 @@ class Release {
     this.version,
     this.releaseDate,
     this.archive,
-    this.archiveUrl,
     this.sha256,
     this.activeChannel,
   });
@@ -18,7 +17,6 @@ class Release {
   final String version;
   final DateTime releaseDate;
   final String archive;
-  final String archiveUrl;
   final String sha256;
   final bool activeChannel;
 
@@ -28,7 +26,6 @@ class Release {
         version: json['version'] as String,
         releaseDate: DateTime.parse(json['release_date'] as String),
         archive: json['archive'] as String,
-        archiveUrl: '$storageUrl/flutter_infra/releases/${json['archive']}',
         sha256: json['sha256'] as String,
         activeChannel: json['activeChannel'] as bool ?? false,
       );
@@ -39,8 +36,15 @@ class Release {
         'version': version,
         'release_date': releaseDate.toIso8601String(),
         'archive': archive,
-        'archiveUrl': archiveUrl,
         'sha256': sha256,
         'activeChannel': activeChannel,
       };
+
+  String get channelName {
+    return channel.toString().split('.').last;
+  }
+
+  String get archiveUrl {
+    return '$storageUrl/flutter_infra/releases/$archive';
+  }
 }
