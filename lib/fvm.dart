@@ -14,10 +14,11 @@ export 'package:fvm/src/releases_api/models/channels.model.dart';
 
 // FVM API for consumption from GUI & other tools
 class FVM {
-  // Installing flutter sdk
+  // Flutter SDK
   static final install = installRelease;
   static final setup = setupFlutterSdk;
   static final upgrade = upgradeFlutterChannel;
+  static final noAnalytics = disableTracking;
 
   // Interaction with releases api
   static final getFlutterReleases = fetchFlutterReleases;

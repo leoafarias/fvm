@@ -36,3 +36,8 @@ Future<void> upgradeFlutterChannel(String version) async {
   final flutterExec = getFlutterSdkExec(version);
   await runFlutter(flutterExec, ['upgrade']);
 }
+
+Future<void> disableTracking(String version) async {
+  final flutterExec = getFlutterSdkExec(version);
+  await runFlutter(flutterExec, ['config', '--no-analytics']);
+}
