@@ -7,6 +7,15 @@ import 'package:path/path.dart';
 class FlutterProjectRepo {
   final Directory rootDir;
   FlutterProjectRepo(this.rootDir);
+  Future<FlutterProject> getOne(Directory directory) async {
+    final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
+    if (!await pubspecFile.exists()) {
+      return null;
+    }
+    final currentGitBranch = await getCurrentGitBranch(directory);
+    return FlutterProject(directory, gitBranch: currentGitBranch);
+    // Add only if its flutter project
+  }
 
   /// Retrieves all Flutter projects in rootDir
   Future<List<FlutterProject>> getAll() async {
@@ -17,12 +26,10 @@ class FlutterProjectRepo {
       followLinks: false,
     )) {
       // Check if entity is directory
-      final pubspecFile = File(join(entity.path, 'pubspec.yaml'));
-      if (entity is Directory && await pubspecFile.exists()) {
-        final currentGitBranch = await getCurrentGitBranch(entity);
-        final project = FlutterProject(entity, gitBranch: currentGitBranch);
+      if (entity is Directory) {
+        final project = await getOne(entity);
         // Add only if its flutter project
-        if (await project.isFlutterProject()) {
+        if (project != null && await project.isFlutterProject()) {
           projects.add(project);
         }
       }
