@@ -27,3 +27,5 @@ dev_dependencies:
   test_coverage: ^0.4.1
   build_runner: ^1.0.0
   build_version: ^2.0.1
+  grinder: ^0.8.5
+  cli_pkg: ^1.0.0-beta.8
