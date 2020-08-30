@@ -1,8 +1,8 @@
-import 'package:fvm/fvm.dart';
 @Timeout(Duration(minutes: 5))
-import 'package:fvm/src/cli/commands/install_command.dart';
+import 'package:fvm/fvm.dart';
+
 import 'package:fvm/src/cli/runner.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/flutter_tools/git_tools.dart';
@@ -20,16 +20,16 @@ void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);
   group('Channel Flow', () {
-    test('Install without version', () async {
-      final args = ['install'];
-      try {
-        final runner = buildRunner();
-        runner.addCommand(InstallCommand());
-        await runner.run(args);
-      } on Exception catch (e) {
-        expect(e is ExceptionMissingChannelVersion, true);
-      }
-    });
+    // test('Install without version', () async {
+    //   final args = ['install'];
+    //   try {
+    //     final runner = buildRunner();
+    //     runner.addCommand(InstallCommand());
+    //     await runner.run(args);
+    //   } on Exception catch (e) {
+    //     expect(e is ExceptionMissingChannelVersion, true);
+    //   }
+    // });
     test('Install Channel', () async {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
