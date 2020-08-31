@@ -1,5 +1,6 @@
 import 'package:fvm/flutter/flutter_helpers.dart';
 import 'package:fvm/utils/pubdev.dart';
+import 'package:fvm/utils/version_sort.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -30,5 +31,11 @@ void main() {
 
     isLatest = await checkIfLatestVersion(currentVersion: '5.0.0');
     expect(isLatest, true);
+  });
+
+  test('Check function version_sort()', () async {
+    var unsortedList = ['1.20.0', '1.22.0-1.0.pre', 'beta', '1.21.0-9.1.pre'];
+    var sortedList = ['beta', '1.22.0-1.0.pre', '1.21.0-9.1.pre', '1.20.0'];
+    expect(versionSort(unsortedList), sortedList);
   });
 }

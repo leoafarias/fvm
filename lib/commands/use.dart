@@ -7,6 +7,7 @@ import 'package:fvm/utils/helpers.dart';
 import 'package:fvm/utils/project_config.dart';
 import 'package:fvm/utils/pubdev.dart';
 import 'package:cli_dialog/cli_dialog.dart';
+import 'package:fvm/utils/version_sort.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -33,13 +34,12 @@ class UseCommand extends Command {
         negatable: false,
       );
   }
-
   @override
   Future<void> run() async {
     String version;
 
     if (argResults.rest.isEmpty) {
-      final installedSdks = flutterListInstalledSdks();
+      final installedSdks = versionSort(flutterListInstalledSdks());
       if (installedSdks.isEmpty) {
         throw Exception('Please install a version. fvm install <version>');
       }
