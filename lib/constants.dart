@@ -36,7 +36,7 @@ File get kFvmSettings {
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
   final settings = FvmSettings.read();
-  if (settings != null && settings.cachePath.isNotEmpty) {
+  if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
   }
   return Directory(path.join(kFvmHome, 'versions'));
