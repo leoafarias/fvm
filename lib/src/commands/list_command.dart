@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/local_versions/local_version.repo.dart';
@@ -41,7 +42,7 @@ class ListCommand extends Command {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     // Get current project
-    final project = FlutterProject.find();
+    final project = await FlutterProjectRepo().findOne();
 
     for (var choice in choices) {
       printVersions(choice.name, project);

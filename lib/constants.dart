@@ -1,19 +1,20 @@
 import 'dart:io';
+import 'package:fvm/src/utils/settings.dart';
 import 'package:path/path.dart' as path;
 
 const kFvmDirName = '.fvm';
 final kFvmConfigFileName = 'fvm_config.json';
+final envVars = Platform.environment;
 
 /// Flutter Repo Address
-const kFlutterRepo = 'https://github.com/flutter/flutter.git';
+final kFlutterRepo =
+    envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
 
 /// Working Directory for FVM
 final kWorkingDirectory = Directory.current;
 
 /// FVM Home directory
 String get kFvmHome {
-  final envVars = Platform.environment;
-
   var home = envVars['FVM_HOME'];
   if (home != null) {
     return path.normalize(home);
@@ -28,8 +29,16 @@ String get kFvmHome {
   return path.join(home, 'fvm');
 }
 
+File get kFvmSettings {
+  return File(path.join(kFvmHome, 'config'));
+}
+
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
+  final settings = FvmSettings.read();
+  if (settings != null && settings.cachePath.isNotEmpty) {
+    return Directory(path.normalize(settings.cachePath));
+  }
   return Directory(path.join(kFvmHome, 'versions'));
 }
 

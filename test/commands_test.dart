@@ -1,7 +1,7 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
 
-import 'package:fvm/src/cli/runner.dart';
+import 'package:fvm/src/runner.dart';
 
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
@@ -19,17 +19,7 @@ final testPath = '$kFvmHome/test_path';
 void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);
-  group('Channel Flow', () {
-    // test('Install without version', () async {
-    //   final args = ['install'];
-    //   try {
-    //     final runner = buildRunner();
-    //     runner.addCommand(InstallCommand());
-    //     await runner.run(args);
-    //   } on Exception catch (e) {
-    //     expect(e is ExceptionMissingChannelVersion, true);
-    //   }
-    // });
+  group('Channel Workflow', () {
     test('Install Channel', () async {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
@@ -62,10 +52,10 @@ void main() {
         // Run foce to test within fvm
         //TODO: Create flutter project for test
         await fvmRunner(['use', channel, '--force', '--verbose']);
-        final sdkSymlink = FlutterProject.find().sdkSymlink;
-        final linkExists = sdkSymlink.existsSync();
+        final project = await FlutterProjectRepo().findOne();
+        final linkExists = project.sdkSymlink.existsSync();
 
-        final targetBin = sdkSymlink.targetSync();
+        final targetBin = project.sdkSymlink.targetSync();
 
         final channelBin = path.join(kVersionsDir.path, channel);
 
@@ -92,7 +82,7 @@ void main() {
       }
     });
 
-    test('Remove Channel', () async {
+    test('Remove Channel Command', () async {
       try {
         await fvmRunner(['remove', channel, '--verbose']);
       } on Exception catch (e) {
@@ -102,7 +92,7 @@ void main() {
       expect(true, true);
     });
   });
-  group('Release Flow', () {
+  group('Release Workflow', () {
     test('Install Release', () async {
       try {
         await fvmRunner(['install', release, '--verbose', '--skip-setup']);
@@ -128,10 +118,10 @@ void main() {
       try {
         // TODO: Use force to run within fvm need to create example project
         await fvmRunner(['use', release, '--force', '--verbose']);
-        final sdkSymlink = FlutterProject.find().sdkSymlink;
-        final linkExists = sdkSymlink.existsSync();
+        final project = await FlutterProjectRepo().findOne();
+        final linkExists = project.sdkSymlink.existsSync();
 
-        final targetBin = sdkSymlink.targetSync();
+        final targetBin = project.sdkSymlink.targetSync();
         final version = await inferFlutterVersion(release);
         final releaseBin = path.join(kVersionsDir.path, version);
 
@@ -142,7 +132,7 @@ void main() {
       }
     });
 
-    test('List Release', () async {
+    test('List Releases', () async {
       try {
         await fvmRunner(['list', '--verbose']);
       } on Exception catch (e) {
@@ -163,7 +153,7 @@ void main() {
     });
   });
 
-  group('Utils', () {
+  group('FVM Version Command', () {
     test('Check Version', () async {
       try {
         await fvmRunner(['version']);

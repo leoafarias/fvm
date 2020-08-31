@@ -25,15 +25,16 @@ class ReleasesCommand extends Command {
     final versions = releases.releases.reversed;
 
     versions.forEach((r) {
-      // final channelOutput = green.wrap('$channel');
       final version = yellow.wrap(r.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
           formatDate(r.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
+
       if (r.activeChannel) {
         final channel = r.channel.toString().split('.').last;
-        print('----------$channel----------');
-        print('$friendlyDate $pipe $version');
+        print('--------------------------------------');
+        print('$friendlyDate $pipe $version $channel');
+        print('--------------------------------------');
       } else {
         print('$friendlyDate $pipe $version');
       }

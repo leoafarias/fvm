@@ -1,12 +1,13 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/flutter_project/flutter_project.model.dart';
+
 import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:cli_dialog/cli_dialog.dart';
@@ -66,7 +67,7 @@ class UseCommand extends Command {
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
-    final project = FlutterProject.find();
+    final project = await FlutterProjectRepo().findOne();
     final isFlutterProject = await project.isFlutterProject();
     // If project use check that is Flutter project
     if (!isGlobal && !isForced && !isFlutterProject) {

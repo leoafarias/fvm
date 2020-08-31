@@ -3,7 +3,7 @@ import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:fvm/src/utils/installer.dart';
 
-export 'package:fvm/src/cli/runner.dart';
+export 'package:fvm/src/runner.dart';
 export 'package:fvm/src/local_versions/local_version.model.dart';
 export 'package:fvm/src/local_versions/local_version.repo.dart';
 export 'package:fvm/src/releases_api/models/flutter_releases.model.dart';

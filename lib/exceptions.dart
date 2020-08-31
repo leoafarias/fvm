@@ -16,7 +16,7 @@ class ExceptionCouldNotClone implements Exception {
   /// Constructor
   const ExceptionCouldNotClone([this.message = '']);
   @override
-  String toString() => 'ExceptionCouldNotClone: $message';
+  String toString() => 'Could not clone repository: $message';
 }
 
 /// Not a valid channel exception
