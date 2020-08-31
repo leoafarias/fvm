@@ -1,5 +1,5 @@
-import 'package:fvm/flutter/flutter_releases.dart';
-import 'package:fvm/utils/logger.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 /// Logs error for verbose output
 dynamic logVerboseError(Exception err) {
@@ -16,7 +16,7 @@ class ExceptionCouldNotClone implements Exception {
   /// Constructor
   const ExceptionCouldNotClone([this.message = '']);
   @override
-  String toString() => 'ExceptionCouldNotClone: $message';
+  String toString() => 'Could not clone repository: $message';
 }
 
 /// Not a valid channel exception

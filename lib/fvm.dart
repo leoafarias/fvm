@@ -1,39 +1,25 @@
-import 'dart:io';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
-import 'package:fvm/commands/flutter.dart';
-import 'package:fvm/commands/install.dart';
-import 'package:fvm/commands/list.dart';
-import 'package:fvm/commands/releases.dart';
-import 'package:fvm/commands/remove.dart';
-import 'package:fvm/commands/runner.dart';
-import 'package:fvm/commands/use.dart';
-import 'package:fvm/commands/version.dart';
-import 'package:fvm/utils/logger.dart';
-import 'package:fvm/utils/logger.dart' show logger;
-import 'package:io/ansi.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/utils/installer.dart';
 
-/// Runs FVM
-Future<void> fvmRunner(List<String> args) async {
-  final runner = buildRunner();
+export 'package:fvm/src/runner.dart';
+export 'package:fvm/src/local_versions/local_version.model.dart';
+export 'package:fvm/src/local_versions/local_version.repo.dart';
+export 'package:fvm/src/releases_api/models/flutter_releases.model.dart';
+export 'package:fvm/src/flutter_project/flutter_project.model.dart';
+export 'package:fvm/src/flutter_project/flutter_project.repo.dart';
+export 'package:fvm/src/releases_api/models/release.model.dart';
+export 'package:fvm/src/releases_api/models/channels.model.dart';
 
-  runner..addCommand(InstallCommand());
-  runner..addCommand(ListCommand());
-  runner..addCommand(FlutterCommand());
-  runner..addCommand(RemoveCommand());
-  runner..addCommand(UseCommand());
-  runner..addCommand(VersionCommand());
-  runner..addCommand(ReleasesCommand());
+// FVM API for consumption from GUI & other tools
+class FVM {
+  // Flutter SDK
+  static final install = installRelease;
+  static final setup = setupFlutterSdk;
+  static final upgrade = upgradeFlutterChannel;
+  static final noAnalytics = disableTracking;
 
-  return await runner.run(args).catchError((exc, st) {
-    if (exc is String) {
-      logger.stdout(exc);
-    } else {
-      logger.stderr('⚠️  ${yellow.wrap(exc.toString())}');
-      if (args.contains('--verbose')) {
-        print(st);
-        throw exc;
-      }
-    }
-    exitCode = 1;
-  }).whenComplete(() {});
+  // Interaction with releases api
+  static final getFlutterReleases = fetchFlutterReleases;
 }

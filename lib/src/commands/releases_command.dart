@@ -3,9 +3,7 @@ import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
 import 'package:io/ansi.dart';
 
-import 'package:fvm/flutter/flutter_releases.dart';
-
-import '../flutter/flutter_releases.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command {
@@ -22,20 +20,21 @@ class ReleasesCommand extends Command {
 
   @override
   void run() async {
-    final releases = await getReleases();
-    final channels = releases.channels.toHashMap();
+    final releases = await fetchFlutterReleases();
+
     final versions = releases.releases.reversed;
 
     versions.forEach((r) {
-      final channel = channels[r.hash];
-      final channelOutput = green.wrap('$channel');
       final version = yellow.wrap(r.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
           formatDate(r.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
-      if (channel != null) {
-        print('----------$channelOutput----------');
-        print('$friendlyDate $pipe $version');
+
+      if (r.activeChannel) {
+        final channel = r.channel.toString().split('.').last;
+        print('--------------------------------------');
+        print('$friendlyDate $pipe $version $channel');
+        print('--------------------------------------');
       } else {
         print('$friendlyDate $pipe $version');
       }

@@ -1,10 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/flutter/flutter_helpers.dart';
-import 'package:fvm/utils/guards.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:fvm/utils/project_config.dart';
-import 'package:fvm/utils/installer.dart';
+import 'package:fvm/src/utils/installer.dart';
+import 'package:fvm/src/utils/pretty_print.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -28,12 +28,14 @@ class InstallCommand extends Command {
 
   @override
   void run() async {
-    await Guards.isGitInstalled();
-
     String version;
     var hasConfig = false;
+    final skipSetup = argResults['skip-setup'] == true;
+
+    final project = await FlutterProjectRepo().findOne();
+
     if (argResults.arguments.isEmpty) {
-      final configVersion = getConfigFlutterVersion();
+      final configVersion = project.pinnedVersion;
       if (configVersion == null) {
         throw ExceptionMissingChannelVersion();
       }
@@ -43,13 +45,13 @@ class InstallCommand extends Command {
       version = argResults.arguments[0].toLowerCase();
     }
 
-    final skipSetup = argResults['skip-setup'] == true;
-
     final flutterVersion = await inferFlutterVersion(version);
 
     await installRelease(flutterVersion, skipSetup: skipSetup);
+
     if (hasConfig) {
-      setAsProjectVersion(version);
+      await project.setVersion(version);
+      PrettyPrint.success('Project now uses Flutter: $version');
     }
   }
 }

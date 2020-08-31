@@ -1,15 +1,15 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
-import 'flutter_releases.dart';
-import 'flutter_tools.dart';
+import 'package:path/path.dart';
+import 'package:fvm/src/releases_api/releases_client.dart';
 
 /// Returns true if it's a valid Flutter version number
-// TODO: Make sure this is called only on command input
 Future<String> inferFlutterVersion(String version) async {
-  final releases = await getReleases();
+  final releases = await fetchFlutterReleases();
 
   version = version.toLowerCase();
 
@@ -34,7 +34,17 @@ bool isFlutterChannel(String channel) {
   return kFlutterChannels.contains(channel);
 }
 
-/// Returns true it's a valid installed version
-bool isFlutterVersionInstalled(String version) {
-  return (flutterListInstalledSdks()).contains(version);
+/// Checks if its global version
+bool isGlobalVersion(String version) {
+  if (!kDefaultFlutterLink.existsSync()) return false;
+
+  final globalVersion = basename(kDefaultFlutterLink.targetSync());
+
+  return globalVersion == version;
+}
+
+String getFlutterSdkExec(String version) {
+  // If version not provided find it within a project
+  final sdkPath = join(kVersionsDir.path, version);
+  return join(sdkPath, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter');
 }
