@@ -1,12 +1,8 @@
 import 'dart:io';
-import 'package:fvm/src/releases_api/models/flutter_releases.model.dart';
-import 'package:path/path.dart' as path;
-
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-
 import 'package:http/http.dart' as http;
-import 'package:dio/dio.dart';
+
+import 'package:fvm/src/releases_api/models/flutter_releases.model.dart';
+import 'package:fvm/exceptions.dart';
 
 const STORAGE_BASE_URL = 'https://storage.googleapis.com';
 
@@ -24,7 +20,6 @@ String getReleasesUrl({String platform}) {
 FlutterReleases cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
-
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
@@ -35,28 +30,4 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   } on Exception {
     throw ExceptionCouldNotFetchReleases();
   }
-}
-
-/// Allows to download a release
-Future<void> downloadRelease(String version) async {
-  final flutterReleases = await fetchFlutterReleases();
-  final release = flutterReleases.getReleaseFromVersion(version);
-  final savePath = path.join(kVersionsDir.path, version);
-  final url = release.archiveUrl;
-
-  await Dio().download(
-    url,
-    savePath,
-    onReceiveProgress: (rcv, total) {
-      // print(
-      //     'received: ${rcv.toStringAsFixed(0)} out of total: ${total.toStringAsFixed(0)}');
-
-      var progress = ((rcv / total) * 100).toStringAsFixed(0);
-      print(progress);
-      if (progress == '100') {
-        print('DONE');
-      }
-    },
-    deleteOnError: true,
-  );
 }

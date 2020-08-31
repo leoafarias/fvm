@@ -43,19 +43,19 @@ class ListCommand extends Command {
     // Get current project
     final project = FlutterProject.find();
 
-    void printVersions(String version) {
-      var printVersion = version;
-      if (project.pinnedVersion == version) {
-        printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
-      }
-      if (isGlobalVersion(version)) {
-        printVersion = '$printVersion (global)';
-      }
-      PrettyPrint.info(printVersion);
-    }
-
     for (var choice in choices) {
-      printVersions(choice.name);
+      printVersions(choice.name, project);
     }
   }
+}
+
+void printVersions(String version, FlutterProject project) {
+  var printVersion = version;
+  if (project.pinnedVersion == version) {
+    printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
+  }
+  if (isGlobalVersion(version)) {
+    printVersion = '$printVersion (global)';
+  }
+  PrettyPrint.info(printVersion);
 }

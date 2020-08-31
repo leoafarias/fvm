@@ -11,7 +11,6 @@ executables:
 
 dependencies:
   pubspec_yaml: ^2.0.1
-  dio: ^3.0.9
 
   args: ^1.5.3
   cli_util: ^0.2.0

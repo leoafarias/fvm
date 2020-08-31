@@ -36,7 +36,6 @@ class UseCommand extends Command {
         negatable: false,
       );
   }
-
   @override
   Future<void> run() async {
     String version;

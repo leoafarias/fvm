@@ -1,3 +1,4 @@
+import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:version/version.dart';
 
 class LocalVersion {
@@ -8,8 +9,7 @@ class LocalVersion {
   LocalVersion({
     this.name,
     this.sdkVersion,
-    this.isChannel,
-  });
+  }) : isChannel = isFlutterChannel(name);
 
   int compareTo(LocalVersion other) {
     final version = _assignVersionWeight(name);

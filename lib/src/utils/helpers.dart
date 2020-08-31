@@ -25,8 +25,7 @@ Future<void> checkAndInstallVersion(String version) async {
   if (await confirm('Would you like to install it?')) {
     await installRelease(version);
   } else {
-    // If do not install exist
-    exit(0);
+    return;
   }
 }
 

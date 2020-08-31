@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+
 import 'package:fvm/src/local_versions/local_version.model.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
 
@@ -29,7 +29,6 @@ class LocalVersionRepo {
     return LocalVersion(
       name: name,
       sdkVersion: sdkVersion,
-      isChannel: isFlutterChannel(name),
     );
   }
 
@@ -49,11 +48,12 @@ class LocalVersionRepo {
           final name = basename(version.path);
           final sdkVersion = await getFlutterSdkVersion(name);
 
-          installedVersions.add(LocalVersion(
-            name: name,
-            sdkVersion: sdkVersion,
-            isChannel: isFlutterChannel(name),
-          ));
+          installedVersions.add(
+            LocalVersion(
+              name: name,
+              sdkVersion: sdkVersion,
+            ),
+          );
         }
       }
 
