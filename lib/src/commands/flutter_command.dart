@@ -39,6 +39,9 @@ class FlutterCommand extends Command {
     } else {
       // Use global configured version as fallback
       flutterExec = await which('flutter');
+      if (flutterExec == '') {
+        throw Exception('FVM: Flutter not found in path');
+      }
       PrettyPrint.info(
         'FVM: Running using Flutter version configured in path.',
       );
