@@ -14,7 +14,7 @@ jobs:
       - name: Run tests
         run: pub run test
       - name: Static Analyzer
-        uses: axel-op/dart-package-analyzer@v2
+        uses: axel-op/dart-package-analyzer@v3
         id: analysis # set an id for the current step
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
