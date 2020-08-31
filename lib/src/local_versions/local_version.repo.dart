@@ -57,8 +57,8 @@ class LocalVersionRepo {
         }
       }
 
-      installedVersions.sort((a, b) => a.name.compareTo(b.name));
-      return installedVersions;
+      installedVersions.sort((a, b) => a.compareTo(b));
+      return installedVersions.reversed.toList();
     } on Exception {
       return null;
     }
