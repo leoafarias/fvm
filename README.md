@@ -233,6 +233,10 @@ To update test coverage run the following command.
 pub run test_coverage
 ```
 
+## Troubleshooting
+1. On Windows make sure you are running as an administrator
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`. 
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
