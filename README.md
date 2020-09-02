@@ -25,12 +25,13 @@ This tool allows you to manage multiple channels and releases, and caches these 
 Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.17.0-dev.3.1`. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 ## Usage
-
-To Install:
+1. [Install Dart](https://www.dartlang.org/install).
+2. Activate Fvm:
 
 ```bash
 > pub global activate fvm
 ```
+
 
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
 
@@ -72,6 +73,8 @@ You can use different Flutter SDK versions per project. To do that you have to g
 **Set Global Version**
 
 If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, this will give you the exact path you need to configure.
+
+** Do not activate fvm using `flutter pub global activate`** if you plan on using the --global flag.
 
 ```bash
 > fvm use <version> --global
