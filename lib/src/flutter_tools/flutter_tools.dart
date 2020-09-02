@@ -9,17 +9,22 @@ import 'package:process_run/process_run.dart';
 /// Runs a process
 Future<void> runFlutter(String exec, List<String> args,
     {String workingDirectory}) async {
+  stdin.lineMode = false;
+
   final pr = await run(
     exec,
     args,
     workingDirectory: workingDirectory,
     stdout: stdout,
     stderr: stderr,
+    stdin: stdin,
     runInShell: Platform.isWindows,
   );
   // Cancel subscription before close
   await stdout.close();
   await stderr.close();
+
+  stdin.lineMode = true;
 
   exitCode = pr.exitCode;
 }
