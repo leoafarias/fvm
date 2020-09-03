@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart';
+
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
 import 'package:fvm/constants.dart';
@@ -24,7 +24,7 @@ class FlutterProject {
       await _configFile.create(recursive: true);
     }
 
-    await _configFile.writeAsString(jsonEncode(FvmConfig(version)));
+    await _configFile.writeAsString(FvmConfig(version).toJson());
     await createLink(sdkSymlink, File(join(kVersionsDir.path, version)));
   }
 
@@ -71,8 +71,7 @@ class FlutterProject {
   FvmConfig get _config {
     try {
       final jsonString = _configFile.readAsStringSync();
-      final projectConfigMap = jsonDecode(jsonString) as Map<String, dynamic>;
-      return FvmConfig.fromJson(projectConfigMap);
+      return FvmConfig.fromJson(jsonString);
     } on Exception {
       return null;
     }

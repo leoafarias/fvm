@@ -30,12 +30,12 @@ String get kFvmHome {
 }
 
 File get kFvmSettings {
-  return File(path.join(kFvmHome, 'config'));
+  return File(path.join(kFvmHome, '.settings'));
 }
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
-  final settings = FvmSettings.read();
+  final settings = FvmSettings.readSync();
   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
   }

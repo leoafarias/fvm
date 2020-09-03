@@ -52,7 +52,7 @@ void main() {
         // Run foce to test within fvm
         //TODO: Create flutter project for test
         await fvmRunner(['use', channel, '--force', '--verbose']);
-        final project = await FlutterProjectRepo().findOne();
+        final project = await FlutterProjectRepo().findAncestor();
         final linkExists = project.sdkSymlink.existsSync();
 
         final targetBin = project.sdkSymlink.targetSync();
@@ -118,7 +118,7 @@ void main() {
       try {
         // TODO: Use force to run within fvm need to create example project
         await fvmRunner(['use', release, '--force', '--verbose']);
-        final project = await FlutterProjectRepo().findOne();
+        final project = await FlutterProjectRepo().findAncestor();
         final linkExists = project.sdkSymlink.existsSync();
 
         final targetBin = project.sdkSymlink.targetSync();

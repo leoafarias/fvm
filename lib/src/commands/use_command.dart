@@ -67,7 +67,7 @@ class UseCommand extends Command {
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
-    final project = await FlutterProjectRepo().findOne();
+    final project = await FlutterProjectRepo().findAncestor();
     final isFlutterProject = await project.isFlutterProject();
     // If project use check that is Flutter project
     if (!isGlobal && !isForced && !isFlutterProject) {

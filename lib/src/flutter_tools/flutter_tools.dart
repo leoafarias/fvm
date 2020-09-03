@@ -2,29 +2,34 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-
+import 'package:fvm/src/utils/console_stream_controller.dart';
 import 'package:process_run/cmd_run.dart';
+
 import 'package:process_run/process_run.dart';
 
 /// Runs a process
 Future<void> runFlutter(String exec, List<String> args,
     {String workingDirectory}) async {
-  stdin.lineMode = false;
+  if (stdin.hasTerminal) {
+    stdin.lineMode = false;
+  }
 
   final pr = await run(
     exec,
     args,
     workingDirectory: workingDirectory,
-    stdout: stdout,
-    stderr: stderr,
-    stdin: stdin,
+    stdout: consoleController.stdoutSink,
+    stderr: consoleController.stderrSink,
+    stdin: consoleController.stdinSink,
     runInShell: Platform.isWindows,
   );
-  // Cancel subscription before close
+
+  if (stdin.hasTerminal) {
+    stdin.lineMode = true;
+  }
+
   await stdout.close();
   await stderr.close();
-
-  stdin.lineMode = true;
 
   exitCode = pr.exitCode;
 }

@@ -1,6 +1,7 @@
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/utils/console_stream_controller.dart';
 import 'package:fvm/src/utils/installer.dart';
 
 export 'package:fvm/src/runner.dart';
@@ -11,6 +12,7 @@ export 'package:fvm/src/flutter_project/flutter_project.model.dart';
 export 'package:fvm/src/flutter_project/flutter_project.repo.dart';
 export 'package:fvm/src/releases_api/models/release.model.dart';
 export 'package:fvm/src/releases_api/models/channels.model.dart';
+export 'package:fvm/src/utils/settings.dart';
 
 // FVM API for consumption from GUI & other tools
 class FVM {
@@ -19,6 +21,7 @@ class FVM {
   static final setup = setupFlutterSdk;
   static final upgrade = upgradeFlutterChannel;
   static final noAnalytics = disableTracking;
+  static final console = consoleController;
 
   // Interaction with releases api
   static final getFlutterReleases = fetchFlutterReleases;

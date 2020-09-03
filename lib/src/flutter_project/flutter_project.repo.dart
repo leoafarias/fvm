@@ -5,10 +5,8 @@ import 'package:fvm/src/flutter_tools/git_tools.dart';
 import 'package:path/path.dart';
 
 class FlutterProjectRepo {
-  Directory _rootDir;
-  FlutterProjectRepo({Directory rootDir}) {
-    _rootDir = rootDir ?? Directory.current;
-  }
+  Directory rootDir;
+  FlutterProjectRepo({this.rootDir});
 
   Future<FlutterProject> getOne(Directory directory) async {
     final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
@@ -21,10 +19,14 @@ class FlutterProjectRepo {
   }
 
   /// Retrieves all Flutter projects in rootDir
-  Future<List<FlutterProject>> findAll() async {
+  Future<List<FlutterProject>> getAll() async {
     final projects = <FlutterProject>[];
+
+    if (rootDir == null) {
+      return projects;
+    }
     // Find directories recursively
-    await for (FileSystemEntity entity in _rootDir.list(
+    await for (FileSystemEntity entity in rootDir.list(
       recursive: true,
       followLinks: false,
     )) {
@@ -41,7 +43,7 @@ class FlutterProjectRepo {
   }
 
   /// Recursive look up to find nested project directory
-  Future<FlutterProject> findOne({Directory dir}) async {
+  Future<FlutterProject> findAncestor({Directory dir}) async {
     // Get directory, defined root or current
     dir ??= Directory.current;
 
@@ -54,6 +56,6 @@ class FlutterProjectRepo {
     // Return working directory if it has reached root
     if (isRootDir) return await getOne(Directory.current);
 
-    return findOne(dir: dir.parent);
+    return findAncestor(dir: dir.parent);
   }
 }

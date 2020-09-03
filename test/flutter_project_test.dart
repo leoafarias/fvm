@@ -12,10 +12,11 @@ void main() {
     test('Can find Flutter Project', () async {
       try {
         final flutterProject =
-            await FlutterProjectRepo().findOne(dir: kFlutterAppDir);
+            await FlutterProjectRepo().findAncestor(dir: kFlutterAppDir);
         final dartPackage =
-            await FlutterProjectRepo().findOne(dir: kDartPackageDir);
-        final emptyProject = await FlutterProjectRepo().findOne(dir: kEmptyDir);
+            await FlutterProjectRepo().findAncestor(dir: kDartPackageDir);
+        final emptyProject =
+            await FlutterProjectRepo().findAncestor(dir: kEmptyDir);
 
         expect(await flutterProject.isFlutterProject(), true);
         expect(await dartPackage.isFlutterProject(), false);
@@ -36,10 +37,11 @@ void main() {
     test('Can set SDK version on Flutter Project', () async {
       try {
         final flutterProject =
-            await FlutterProjectRepo().findOne(dir: kFlutterAppDir);
+            await FlutterProjectRepo().findAncestor(dir: kFlutterAppDir);
         final dartPackage =
-            await FlutterProjectRepo().findOne(dir: kDartPackageDir);
-        final emptyProject = await FlutterProjectRepo().findOne(dir: kEmptyDir);
+            await FlutterProjectRepo().findAncestor(dir: kDartPackageDir);
+        final emptyProject =
+            await FlutterProjectRepo().findAncestor(dir: kEmptyDir);
 
         final flutterProjectVersion = await getRandomFlutterVersion();
         final dartPackageVersion = await getRandomFlutterVersion();
@@ -59,7 +61,7 @@ void main() {
 
     test('Can find Flutter Project', () async {
       final projects =
-          await FlutterProjectRepo(rootDir: kTestAssetsDir).findAll();
+          await FlutterProjectRepo(rootDir: kTestAssetsDir).getAll();
       expect(projects.length, 1);
     });
   });

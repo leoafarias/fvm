@@ -32,7 +32,7 @@ class InstallCommand extends Command {
     var hasConfig = false;
     final skipSetup = argResults['skip-setup'] == true;
 
-    final project = await FlutterProjectRepo().findOne();
+    final project = await FlutterProjectRepo().findAncestor();
 
     if (argResults.arguments.isEmpty) {
       final configVersion = project.pinnedVersion;

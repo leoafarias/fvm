@@ -10,6 +10,7 @@ executables:
   fvm: main
 
 dependencies:
+  pretty_json: ^1.0.9
   pubspec_yaml: ^2.0.1
 
   args: ^1.5.3

@@ -42,7 +42,7 @@ class ListCommand extends Command {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     // Get current project
-    final project = await FlutterProjectRepo().findOne();
+    final project = await FlutterProjectRepo().findAncestor();
 
     for (var choice in choices) {
       printVersions(choice.name, project);
