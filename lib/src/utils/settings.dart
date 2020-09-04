@@ -3,27 +3,30 @@ import 'dart:convert';
 import 'package:fvm/constants.dart';
 import 'package:pretty_json/pretty_json.dart';
 
-class FvmSettings {
+class Settings {
   String cachePath;
   String flutterProjectsDir;
   bool skipSetup;
   bool noAnalytics;
+  List<String> projectPaths;
 
-  FvmSettings({
+  Settings({
     this.cachePath,
     this.flutterProjectsDir,
     this.skipSetup,
     this.noAnalytics,
+    this.projectPaths,
   });
 
-  factory FvmSettings.fromJson(String jsonString) {
-    return FvmSettings.fromMap(jsonDecode(jsonString) as Map<String, dynamic>);
+  factory Settings.fromJson(String jsonString) {
+    return Settings.fromMap(jsonDecode(jsonString) as Map<String, dynamic>);
   }
 
-  factory FvmSettings.fromMap(Map<String, dynamic> json) {
-    return FvmSettings(
+  factory Settings.fromMap(Map<String, dynamic> json) {
+    return Settings(
       cachePath: json['cachePath'] as String,
       flutterProjectsDir: json['flutterProjectsDir'] as String,
+      projectPaths: (json['projectPaths'] as List<dynamic>).cast<String>(),
       skipSetup: json['skipSetup'] as bool,
       noAnalytics: json['noAnalytics'] as bool,
     );
@@ -34,25 +37,26 @@ class FvmSettings {
       'cachePath': cachePath,
       'flutterProjectsDir': flutterProjectsDir,
       'skipSetup': skipSetup,
+      'projectPaths': projectPaths,
       'noAnalytics': noAnalytics,
     };
   }
 
-  static Future<FvmSettings> read() async {
+  static Future<Settings> read() async {
     try {
       final payload = await kFvmSettings.readAsString();
-      return FvmSettings.fromJson(payload);
+      return Settings.fromJson(payload);
     } on Exception {
-      return FvmSettings();
+      return Settings();
     }
   }
 
-  static FvmSettings readSync() {
+  static Settings readSync() {
     try {
       final payload = kFvmSettings.readAsStringSync();
-      return FvmSettings.fromJson(payload);
+      return Settings.fromJson(payload);
     } on Exception {
-      return FvmSettings();
+      return Settings();
     }
   }
 

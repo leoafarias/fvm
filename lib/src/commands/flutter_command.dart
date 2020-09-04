@@ -27,7 +27,7 @@ class FlutterCommand extends Command {
 
   @override
   Future<void> run() async {
-    final project = await FlutterProjectRepo().findAncestor();
+    final project = await FlutterProjectRepo.findAncestor();
 
     String flutterExec;
 

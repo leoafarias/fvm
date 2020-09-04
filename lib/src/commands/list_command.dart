@@ -42,7 +42,7 @@ class ListCommand extends Command {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     // Get current project
-    final project = await FlutterProjectRepo().findAncestor();
+    final project = await FlutterProjectRepo.findAncestor();
 
     for (var choice in choices) {
       printVersions(choice.name, project);
@@ -52,7 +52,7 @@ class ListCommand extends Command {
 
 void printVersions(String version, FlutterProject project) {
   var printVersion = version;
-  if (project.pinnedVersion == version) {
+  if (project != null && project.pinnedVersion == version) {
     printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
   }
   if (isGlobalVersion(version)) {

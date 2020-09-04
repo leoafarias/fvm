@@ -32,7 +32,7 @@ class InstallCommand extends Command {
     var hasConfig = false;
     final skipSetup = argResults['skip-setup'] == true;
 
-    final project = await FlutterProjectRepo().findAncestor();
+    final project = await FlutterProjectRepo.findAncestor();
 
     if (argResults.arguments.isEmpty) {
       final configVersion = project.pinnedVersion;
@@ -50,7 +50,7 @@ class InstallCommand extends Command {
     await installRelease(flutterVersion, skipSetup: skipSetup);
 
     if (hasConfig) {
-      await project.setVersion(version);
+      await FlutterProjectRepo.pinVersion(project, version);
       PrettyPrint.success('Project now uses Flutter: $version');
     }
   }

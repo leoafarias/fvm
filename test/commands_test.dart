@@ -50,12 +50,16 @@ void main() {
     test('Use Channel', () async {
       try {
         // Run foce to test within fvm
+
         //TODO: Create flutter project for test
         await fvmRunner(['use', channel, '--force', '--verbose']);
-        final project = await FlutterProjectRepo().findAncestor();
-        final linkExists = project.sdkSymlink.existsSync();
+        final project = await FlutterProjectRepo.findAncestor();
+        if (project == null) {
+          fail('Not running on a flutter project');
+        }
+        final linkExists = project.config.sdkSymlink.existsSync();
 
-        final targetBin = project.sdkSymlink.targetSync();
+        final targetBin = project.config.sdkSymlink.targetSync();
 
         final channelBin = path.join(kVersionsDir.path, channel);
 
@@ -118,10 +122,10 @@ void main() {
       try {
         // TODO: Use force to run within fvm need to create example project
         await fvmRunner(['use', release, '--force', '--verbose']);
-        final project = await FlutterProjectRepo().findAncestor();
-        final linkExists = project.sdkSymlink.existsSync();
+        final project = await FlutterProjectRepo.findAncestor();
+        final linkExists = project.config.sdkSymlink.existsSync();
 
-        final targetBin = project.sdkSymlink.targetSync();
+        final targetBin = project.config.sdkSymlink.targetSync();
         final version = await inferFlutterVersion(release);
         final releaseBin = path.join(kVersionsDir.path, version);
 

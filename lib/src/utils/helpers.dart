@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/utils/confirm.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/utils/pretty_print.dart';
@@ -36,8 +35,12 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
       await source.delete();
     }
     await source.create(target.path);
-  } on Exception catch (err) {
-    logVerboseError(err);
+  } on FileSystemException {
+    if (Platform.isWindows) {
+      throw Exception(
+          'On Windows FVM requires to run in developer mode or as an administrator');
+    }
+  } on Exception {
     throw Exception('Sorry could not link ${target.path}');
   }
 }

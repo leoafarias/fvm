@@ -67,10 +67,10 @@ class UseCommand extends Command {
 
     // Make sure is valid Flutter version
     final flutterVersion = await inferFlutterVersion(version);
-    final project = await FlutterProjectRepo().findAncestor();
-    final isFlutterProject = await project.isFlutterProject();
+    final project = await FlutterProjectRepo.findAncestor();
+
     // If project use check that is Flutter project
-    if (!isGlobal && !isForced && !isFlutterProject) {
+    if (project == null && !isGlobal && !isForced) {
       throw Exception(
           'Run this FVM command at the root of a Flutter project or use --force to bypass this.');
     }
@@ -83,8 +83,7 @@ class UseCommand extends Command {
       setAsGlobalVersion(flutterVersion);
     } else {
       // Updates the project config with version
-
-      await project.setVersion(flutterVersion);
+      await FlutterProjectRepo.pinVersion(project, flutterVersion);
     }
 
     PrettyPrint.success('Project now uses Flutter: $version');

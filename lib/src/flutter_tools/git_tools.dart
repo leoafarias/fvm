@@ -53,8 +53,6 @@ Future<void> runGitClone(String version) async {
     verbose: logger.isVerbose,
   );
 
-  await consoleController.stderr.close();
-
   if (process.exitCode != 0) {
     throw ExceptionCouldNotClone(
         'Could not install Flutter version: $version.');

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:fvm/constants.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:path/path.dart';
 
@@ -13,7 +14,7 @@ String channel = 'beta';
 String channelVersion;
 
 final kTestAssetsDir =
-    Directory(join(Directory.current.path, 'test', 'test_assets'));
+    Directory(join(kWorkingDirectory.path, 'test', 'test_assets'));
 final kFlutterAppDir = Directory(join(kTestAssetsDir.path, 'flutter_app'));
 final kDartPackageDir = Directory(join(kTestAssetsDir.path, 'dart_package'));
 final kEmptyDir = Directory(join(kTestAssetsDir.path, 'empty_folder'));
@@ -40,6 +41,7 @@ void fvmTearDownAll() {
 }
 
 void fvmSetUpAll() async {
+  kWorkingDirectory = kDartPackageDir;
   cleanup();
   final releases = await fetchFlutterReleases();
   channelVersion = releases.channels[channel].version;
