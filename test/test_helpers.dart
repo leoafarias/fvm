@@ -10,6 +10,7 @@ import 'package:path/path.dart';
 // git remote update
 
 String release = '1.17.4';
+
 String channel = 'beta';
 String channelVersion;
 

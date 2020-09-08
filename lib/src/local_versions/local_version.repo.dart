@@ -40,7 +40,7 @@ class LocalVersionRepo {
         return [];
       }
 
-      final versions = kVersionsDir.listSync().toList();
+      final versions = await kVersionsDir.list().toList();
 
       var installedVersions = <LocalVersion>[];
       for (var version in versions) {
@@ -60,7 +60,7 @@ class LocalVersionRepo {
       installedVersions.sort((a, b) => a.compareTo(b));
       return installedVersions.reversed.toList();
     } on Exception {
-      return null;
+      rethrow;
     }
   }
 

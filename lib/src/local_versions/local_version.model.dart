@@ -35,6 +35,14 @@ Version _assignVersionWeight(String version) {
       break;
     default:
   }
+  // // Non semver
+  // if (version.contains('+')) {
+  //   version = version.substring(0, version.indexOf('+'));
+  // }
+
+  if (version.contains('v')) {
+    version = version.replaceFirst('v', '');
+  }
 
   return Version.parse(version);
 }
