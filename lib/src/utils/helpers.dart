@@ -2,30 +2,9 @@ import 'dart:async';
 
 import 'dart:io';
 
-import 'package:fvm/src/utils/confirm.dart';
-import 'package:fvm/src/local_versions/local_version.repo.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
-
-import 'package:fvm/src/utils/installer.dart';
-
-import 'pretty_print.dart';
-
 /// Checks if path is a directory
 bool isDirectory(String path) {
   return FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
-}
-
-/// Checks if version is installed, and installs or exits
-Future<void> checkAndInstallVersion(String version) async {
-  if (await LocalVersionRepo().isInstalled(version)) return null;
-  PrettyPrint.info('Flutter $version is not installed.');
-
-  // Install if input is confirmed
-  if (await confirm('Would you like to install it?')) {
-    await installRelease(version);
-  } else {
-    return;
-  }
 }
 
 /// Moves assets from theme directory into brand-app

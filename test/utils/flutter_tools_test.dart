@@ -17,15 +17,14 @@ void main() {
         await runGitClone(invalidVersion);
         fail('Exception not thrown');
       } on Exception catch (e) {
-        expect(e, const TypeMatcher<ExceptionCouldNotClone>());
+        expect(e, const TypeMatcher<InternalError>());
       }
     });
     test('Checks that install is not correct', () async {
       final invalidVersionName = 'INVALID_VERSION';
       final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
       await dir.create(recursive: true);
-      final correct =
-          await LocalVersionRepo().ensureInstalledCorrectly(invalidVersionName);
+      final correct = await LocalVersionRepo.isInstalled(invalidVersionName);
       expect(correct, false);
     });
   });

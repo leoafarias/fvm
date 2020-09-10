@@ -34,11 +34,6 @@ Future<void> runFlutter(String exec, List<String> args,
   exitCode = pr.exitCode;
 }
 
-Future<void> setupFlutterSdk(String version) async {
-  final flutterExec = getFlutterSdkExec(version);
-  await runFlutter(flutterExec, ['--version']);
-}
-
 Future<void> upgradeFlutterChannel(String version) async {
   if (!isFlutterChannel(version)) {
     throw Exception('Can only upgrade Flutter Channels');

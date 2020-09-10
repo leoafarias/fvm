@@ -24,13 +24,11 @@ void main() {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await gitGetVersion(channel);
-        final correct =
-            await LocalVersionRepo().ensureInstalledCorrectly(channel);
 
-        final installExists = await LocalVersionRepo().isInstalled(channel);
+        final installExists = await LocalVersionRepo.isInstalled(channel);
 
         expect(installExists, true, reason: 'Install does not exist');
-        expect(correct, true, reason: 'Not Installed Correctly');
+
         expect(existingChannel, channel);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
@@ -103,13 +101,10 @@ void main() {
         final version = await inferFlutterVersion(release);
         final existingRelease = await gitGetVersion(version);
 
-        final correct =
-            await LocalVersionRepo().ensureInstalledCorrectly(version);
-
-        final installExists = await LocalVersionRepo().isInstalled(version);
+        final installExists = await LocalVersionRepo.isInstalled(version);
 
         expect(installExists, true, reason: 'Install does not exist');
-        expect(correct, true, reason: 'Not Installed Correctly');
+
         expect(existingRelease, version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');

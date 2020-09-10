@@ -26,7 +26,7 @@ class ListCommand extends Command {
 
   @override
   void run() async {
-    final choices = await LocalVersionRepo().getAll();
+    final choices = await LocalVersionRepo.getAll();
 
     if (choices.isEmpty) {
       PrettyPrint.info(

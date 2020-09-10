@@ -6,8 +6,10 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:args/args.dart';
-import 'package:fvm/src/utils/helpers.dart';
+
 import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/workflows/install_version_workflow.dart';
+
 import 'package:process_run/which.dart';
 
 /// Proxies Flutter Commands
@@ -34,7 +36,7 @@ class FlutterCommand extends Command {
     if (project != null) {
       flutterExec = getFlutterSdkExec(project.pinnedVersion);
       // Make sure that version is installed
-      await checkAndInstallVersion(project.pinnedVersion);
+      await installWorkflow(project.pinnedVersion);
       PrettyPrint.info('FVM: Running version ${project.pinnedVersion}');
     } else {
       // Use global configured version as fallback
