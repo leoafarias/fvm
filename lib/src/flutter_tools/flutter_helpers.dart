@@ -45,6 +45,9 @@ bool isGlobalVersion(String version) {
 
 String getFlutterSdkExec(String version) {
   // If version not provided find it within a project
+  if (version == null) {
+    throw Exception('No Flutter SDK is configured.');
+  }
   final sdkPath = join(kVersionsDir.path, version);
   return join(sdkPath, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter');
 }
