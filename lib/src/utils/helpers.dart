@@ -23,18 +23,3 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
     throw Exception('Sorry could not link ${target.path}');
   }
 }
-
-String camelCase(String subject) {
-  final _splittedString = subject.split('_');
-
-  if (_splittedString.isEmpty) return '';
-
-  final _firstWord = _splittedString[0].toLowerCase();
-  final _restWords = _splittedString.sublist(1).map(capitalize).toList();
-
-  return _firstWord + _restWords.join('');
-}
-
-String capitalize(String word) {
-  return '${word[0].toUpperCase()}${word.substring(1)}';
-}

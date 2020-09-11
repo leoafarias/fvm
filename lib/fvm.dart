@@ -2,8 +2,8 @@ import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:fvm/src/utils/console_stream_controller.dart';
-import 'package:fvm/src/workflows/flutter_setup_workflow.dart';
-import 'package:fvm/src/workflows/install_version_workflow.dart';
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
+import 'package:fvm/src/workflows/install_version.workflow.dart';
 
 export 'package:fvm/src/runner.dart';
 export 'package:fvm/src/local_versions/local_version.model.dart';

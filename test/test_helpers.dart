@@ -15,7 +15,7 @@ String channel = 'beta';
 String channelVersion;
 
 final kTestAssetsDir =
-    Directory(join(kWorkingDirectory.path, 'test', 'test_assets'));
+    Directory(join(kWorkingDirectory.path, 'test', 'support_assets'));
 final kFlutterAppDir = Directory(join(kTestAssetsDir.path, 'flutter_app'));
 final kDartPackageDir = Directory(join(kTestAssetsDir.path, 'dart_package'));
 final kEmptyDir = Directory(join(kTestAssetsDir.path, 'empty_folder'));
@@ -42,7 +42,6 @@ void fvmTearDownAll() {
 }
 
 void fvmSetUpAll() async {
-  kWorkingDirectory = kDartPackageDir;
   cleanup();
   final releases = await fetchFlutterReleases();
   channelVersion = releases.channels[channel].version;

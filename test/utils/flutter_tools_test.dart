@@ -1,15 +1,17 @@
 @Timeout(Duration(minutes: 5))
-import 'dart:io';
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
+
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+
+import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:test/test.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 
-import 'package:test/test.dart';
-import 'package:path/path.dart' as path;
+import '../test_helpers.dart';
 
 void main() {
-  group('Invalid Channels & Releases', () {
+  group('Flutter tools', () {
     test('Invalid Version/Channel Release', () async {
       final invalidVersion = 'INVALID_VERSION';
 
@@ -20,12 +22,20 @@ void main() {
         expect(e, const TypeMatcher<InternalError>());
       }
     });
-    test('Checks that install is not correct', () async {
-      final invalidVersionName = 'INVALID_VERSION';
-      final dir = Directory(path.join(kVersionsDir.path, invalidVersionName));
-      await dir.create(recursive: true);
-      final correct = await LocalVersionRepo.isInstalled(invalidVersionName);
-      expect(correct, false);
+
+    test('Can run flutter', () async {
+      try {
+        await installWorkflow('stable');
+        final flutterProject =
+            await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
+        await FlutterProjectRepo.pinVersion(flutterProject, 'stable');
+
+        await runFlutterCmd(flutterProject.pinnedVersion, ['run']);
+        expect(true, true);
+        // await runFlutter(execPath, ['--version']);
+      } on Exception {
+        fail('Could not run flutter doctor');
+      }
     });
   });
 }

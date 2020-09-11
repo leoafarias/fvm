@@ -54,6 +54,10 @@ Future<void> runGitClone(String version) async {
   );
 
   if (process.exitCode != 0) {
+    // If clone to directory fails. Remove directory
+    if (await versionDirectory.exists()) {
+      await versionDirectory.delete();
+    }
     throw InternalError('Could not install Flutter version: $version.');
   }
 }

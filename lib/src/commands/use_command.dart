@@ -6,10 +6,11 @@ import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/utils/confirm.dart';
+
 import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:fvm/src/utils/pubdev.dart';
-import 'package:fvm/src/workflows/install_version_workflow.dart';
-import 'package:fvm/src/workflows/use_version_workflow.dart';
+import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/use_version.workflow.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {

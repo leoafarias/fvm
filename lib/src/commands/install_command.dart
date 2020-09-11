@@ -2,9 +2,9 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/src/workflows/flutter_setup_workflow.dart';
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
-import 'package:fvm/src/workflows/install_version_workflow.dart';
+import 'package:fvm/src/workflows/install_version.workflow.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {

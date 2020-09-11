@@ -5,6 +5,7 @@ import 'package:fvm/constants.dart';
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:process_run/which.dart';
 
 /// Returns true if it's a valid Flutter version number
 Future<String> inferFlutterVersion(String version) async {
@@ -42,9 +43,10 @@ bool isGlobalVersion(String version) {
 
 String getFlutterSdkExec(String version) {
   // If version not provided find it within a project
-  if (version == null) {
-    throw Exception('No Flutter SDK is configured.');
+  if (version == null || version.isEmpty) {
+    return whichSync('flutter');
   }
-  final sdkPath = join(kVersionsDir.path, version);
-  return join(sdkPath, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter');
+  final sdkPath = join(kVersionsDir.path, version, 'bin', 'flutter');
+
+  return join(sdkPath, Platform.isWindows ? '.bat' : '');
 }
