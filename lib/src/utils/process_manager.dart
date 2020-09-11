@@ -2,6 +2,13 @@ import 'dart:async';
 
 import 'dart:io' as io;
 
+import 'package:io/io.dart';
+
+final processManager = ProcessManager(
+  stderr: io.IOSink(consoleController.stderrSink),
+  stdout: io.IOSink(consoleController.stdoutSink),
+);
+
 final consoleController = ConsoleController();
 
 class ConsoleController {
@@ -11,10 +18,6 @@ class ConsoleController {
   final stderr = StreamController<List<int>>();
   ConsoleController() {
     isCli = io.stdin.hasTerminal;
-  }
-
-  io.Stdin get stdinSink {
-    return isCli ? io.stdin : null;
   }
 
   StreamSink<List<int>> get stdoutSink {

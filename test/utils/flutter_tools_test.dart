@@ -30,11 +30,10 @@ void main() {
             await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
         await FlutterProjectRepo.pinVersion(flutterProject, 'stable');
 
-        await runFlutterCmd(flutterProject.pinnedVersion, ['run']);
+        await runFlutterCmd(flutterProject.pinnedVersion, ['--version']);
         expect(true, true);
-        // await runFlutter(execPath, ['--version']);
       } on Exception {
-        fail('Could not run flutter doctor');
+        fail('Could not run flutter command');
       }
     });
   });

@@ -2,38 +2,39 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/src/utils/console_stream_controller.dart';
-import 'package:process_run/cmd_run.dart';
+import 'package:fvm/src/utils/process_manager.dart';
 
-class FlutterCmd extends ProcessCmd {
-  // Somehow flutter requires runInShell on Linux, does not hurt on windows
-  FlutterCmd(String version, List<String> arguments)
-      : super(getFlutterSdkExec(version), arguments,
-            workingDirectory: kWorkingDirectory.path);
-}
+import 'package:io/io.dart';
 
 /// Runs a process
 Future<void> runFlutterCmd(
   String version,
-  List<String> args,
+  List<String> arguments,
 ) async {
   if (stdin.hasTerminal) {
     stdin.lineMode = false;
   }
 
-  final result = await runCmd(
-    FlutterCmd(version, args),
-    stdout: consoleController.stdoutSink,
-    stderr: consoleController.stderrSink,
-    stdin: consoleController.stdinSink,
+  final execPath = getFlutterSdkExec(version);
+  // Check if can execute path first
+  if (!await isExecutable(execPath)) {
+    throw UsageError('Flutter version $version is not installed');
+  }
+
+  final process = await processManager.spawn(
+    execPath,
+    arguments,
+    workingDirectory: kWorkingDirectory.path,
   );
+
+  exitCode = await process.exitCode;
 
   if (stdin.hasTerminal) {
     stdin.lineMode = true;
+    await sharedStdIn.terminate();
   }
-
-  exitCode = result.exitCode;
 }
 
 Future<void> upgradeFlutterChannel(String version) async {

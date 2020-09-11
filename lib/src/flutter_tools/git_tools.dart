@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/utils/console_stream_controller.dart';
+import 'package:fvm/src/utils/process_manager.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pretty_print.dart';
 import 'package:path/path.dart' as path;
