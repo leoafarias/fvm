@@ -31,7 +31,7 @@ class FlutterCommand extends Command {
 
     String flutterExec;
 
-    if (project != null) {
+    if (project != null && project.pinnedVersion != null) {
       flutterExec = getFlutterSdkExec(project.pinnedVersion);
       // Make sure that version is installed
       await checkAndInstallVersion(project.pinnedVersion);
