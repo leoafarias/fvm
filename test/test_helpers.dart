@@ -28,12 +28,14 @@ Future<String> getRandomFlutterVersion() async {
 
 void cleanup() async {
   // Remove all versions
-  final versionsList = kVersionsDir.listSync(recursive: true);
-  versionsList.forEach((dir) {
-    if (dir.existsSync()) {
-      dir.deleteSync(recursive: true);
-    }
-  });
+  if (kVersionsDir.existsSync()) {
+    final versionsList = kVersionsDir.listSync(recursive: true);
+    versionsList.forEach((dir) {
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    });
+  }
   // Remove fvm config from test projects
   final directoryList = kTestAssetsDir.listSync(recursive: true);
   directoryList.forEach((dir) {

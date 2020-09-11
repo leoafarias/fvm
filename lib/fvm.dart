@@ -4,6 +4,7 @@ import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:fvm/src/utils/process_manager.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/remove_version.workflow.dart';
 
 export 'package:fvm/src/runner.dart';
 export 'package:fvm/src/local_versions/local_version.model.dart';
@@ -19,6 +20,7 @@ export 'package:fvm/src/utils/settings.dart';
 class FVM {
   // Flutter SDK
   static final install = installWorkflow;
+  static final remove = removeWorkflow;
   static final setup = flutterSetupWorkflow;
   static final upgrade = upgradeFlutterChannel;
   static final noAnalytics = disableTracking;

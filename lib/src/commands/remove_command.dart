@@ -38,6 +38,6 @@ class RemoveCommand extends Command {
       return;
     }
 
-    await removeVersionWorkflow(validVersion);
+    await removeWorkflow(validVersion);
   }
 }

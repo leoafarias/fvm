@@ -50,7 +50,7 @@ void main() {
     test('Remove Versions', () async {
       for (var version in listVersions) {
         try {
-          await removeVersionWorkflow(version);
+          await removeWorkflow(version);
 
           final isInstalled = await LocalVersionRepo.isInstalled(version);
           expect(isInstalled, false);
