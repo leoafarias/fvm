@@ -1,7 +1,7 @@
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow(
@@ -26,5 +26,5 @@ Future<void> useVersionWorkflow(
     await FlutterProjectRepo.pinVersion(project, version);
   }
 
-  PrettyPrint.success('Project now uses Flutter: $version');
+  FvmLogger.fine('Project now uses Flutter: $version');
 }

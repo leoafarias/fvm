@@ -7,7 +7,7 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/flutter_project/flutter_project.model.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 
@@ -29,7 +29,7 @@ class ListCommand extends Command {
     final choices = await LocalVersionRepo.getAll();
 
     if (choices.isEmpty) {
-      PrettyPrint.info(
+      FvmLogger.info(
         '''
         No SDKs have been installed yet. Flutter 
         SDKs installed outside of fvm will not be displayed.
@@ -58,5 +58,5 @@ void printVersions(String version, FlutterProject project) {
   if (isGlobalVersion(version)) {
     printVersion = '$printVersion (global)';
   }
-  PrettyPrint.info(printVersion);
+  FvmLogger.info(printVersion);
 }

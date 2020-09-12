@@ -7,7 +7,7 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/utils/confirm.dart';
 
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
@@ -73,7 +73,7 @@ class UseCommand extends Command {
       // Make sure version is installed
       await useVersionWorkflow(validVersion, global: global, force: force);
     } else {
-      PrettyPrint.info('Flutter $validVersion is not installed.');
+      FvmLogger.info('Flutter $validVersion is not installed.');
       // Install if input is confirmed
       if (await confirm('Would you like to install it?')) {
         await installWorkflow(validVersion);

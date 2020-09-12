@@ -1,7 +1,8 @@
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/releases_api/releases_client.dart';
-import 'package:fvm/src/utils/process_manager.dart';
+import 'package:fvm/src/utils/logger.dart';
+
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
 import 'package:fvm/src/workflows/remove_version.workflow.dart';

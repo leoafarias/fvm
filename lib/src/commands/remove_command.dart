@@ -3,7 +3,7 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/workflows/remove_version.workflow.dart';
 
 /// Removes Flutter SDK
@@ -34,7 +34,7 @@ class RemoveCommand extends Command {
     final isValidInstall = await LocalVersionRepo.isInstalled(validVersion);
 
     if (!isValidInstall) {
-      PrettyPrint.info('Flutter SDK: $validVersion is not installed');
+      FvmLogger.info('Flutter SDK: $validVersion is not installed');
       return;
     }
 

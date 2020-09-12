@@ -6,7 +6,7 @@ import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:args/args.dart';
 
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 /// Proxies Flutter Commands
 class FlutterCommand extends Command {
@@ -28,10 +28,10 @@ class FlutterCommand extends Command {
     final project = await FlutterProjectRepo.findAncestor();
 
     if (project != null && project.pinnedVersion != null) {
-      PrettyPrint.info('FVM: Running version ${project.pinnedVersion}');
+      FvmLogger.info('FVM: Running version ${project.pinnedVersion}');
       await runFlutterCmd(project.pinnedVersion, argResults.arguments);
     } else {
-      PrettyPrint.info(
+      FvmLogger.info(
         'FVM: Running using Flutter version configured in path.',
       );
       // Running null will default to flutter version on path

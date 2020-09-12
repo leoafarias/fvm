@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/utils/process_manager.dart';
+
 import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+
 import 'package:path/path.dart' as path;
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
@@ -82,7 +82,7 @@ Future<String> getCurrentGitBranch(Directory dir) async {
     return result.stdout.trim() as String;
   } on Exception catch (err) {
     //TODO: better error logging
-    PrettyPrint.error(err.toString());
+    FvmLogger.error(err.toString());
     return null;
   }
 }
