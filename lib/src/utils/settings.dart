@@ -15,7 +15,7 @@ class Settings {
     this.flutterProjectsDir,
     this.skipSetup,
     this.noAnalytics,
-    this.projectPaths,
+    this.projectPaths = const [],
   });
 
   factory Settings.fromJson(String jsonString) {
