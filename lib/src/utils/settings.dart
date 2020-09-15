@@ -13,8 +13,8 @@ class Settings {
   Settings({
     this.cachePath,
     this.flutterProjectsDir,
-    this.skipSetup,
-    this.noAnalytics,
+    this.skipSetup = true,
+    this.noAnalytics = false,
     this.projectPaths = const [],
   });
 
