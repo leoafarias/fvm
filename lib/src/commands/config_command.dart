@@ -22,7 +22,7 @@ class ConfigCommand extends Command {
   }
   @override
   Future<void> run() async {
-    final config = FvmSettings.read();
+    final config = Settings.readSync();
     config.cachePath = argResults['cachePath'] as String;
     await config.save();
   }

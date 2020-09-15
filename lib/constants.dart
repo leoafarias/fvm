@@ -11,7 +11,8 @@ final kFlutterRepo =
     envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
 
 /// Working Directory for FVM
-final kWorkingDirectory = Directory.current;
+
+var kWorkingDirectory = Directory.current;
 
 /// FVM Home directory
 String get kFvmHome {
@@ -30,12 +31,12 @@ String get kFvmHome {
 }
 
 File get kFvmSettings {
-  return File(path.join(kFvmHome, 'config'));
+  return File(path.join(kFvmHome, '.settings'));
 }
 
 /// Where Flutter SDK Versions are stored
 Directory get kVersionsDir {
-  final settings = FvmSettings.read();
+  final settings = Settings.readSync();
   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
   }

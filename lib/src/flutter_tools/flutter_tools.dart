@@ -1,48 +1,49 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/utils/process_manager.dart';
 
-import 'package:process_run/cmd_run.dart';
-import 'package:process_run/process_run.dart';
+import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> runFlutter(String exec, List<String> args,
-    {String workingDirectory}) async {
-  stdin.lineMode = false;
+Future<void> runFlutterCmd(
+  String version,
+  List<String> arguments,
+) async {
+  if (stdin.hasTerminal) {
+    stdin.lineMode = false;
+  }
 
-  final pr = await run(
-    exec,
-    args,
-    workingDirectory: workingDirectory,
-    stdout: stdout,
-    stderr: stderr,
-    stdin: stdin,
-    runInShell: Platform.isWindows,
+  final execPath = getFlutterSdkExec(version);
+  // Check if can execute path first
+  if (!await isExecutable(execPath)) {
+    throw UsageError('Flutter version $version is not installed');
+  }
+
+  final process = await processManager.spawn(
+    execPath,
+    arguments,
+    workingDirectory: kWorkingDirectory.path,
   );
-  // Cancel subscription before close
-  await stdout.close();
-  await stderr.close();
 
-  stdin.lineMode = true;
+  exitCode = await process.exitCode;
 
-  exitCode = pr.exitCode;
-}
-
-Future<void> setupFlutterSdk(String version) async {
-  final flutterExec = getFlutterSdkExec(version);
-  await runFlutter(flutterExec, ['--version']);
+  if (stdin.hasTerminal) {
+    stdin.lineMode = true;
+    await sharedStdIn.terminate();
+  }
 }
 
 Future<void> upgradeFlutterChannel(String version) async {
   if (!isFlutterChannel(version)) {
     throw Exception('Can only upgrade Flutter Channels');
   }
-  final flutterExec = getFlutterSdkExec(version);
-  await runFlutter(flutterExec, ['upgrade']);
+  await runFlutterCmd(version, ['upgrade']);
 }
 
 Future<void> disableTracking(String version) async {
-  final flutterExec = getFlutterSdkExec(version);
-  await runFlutter(flutterExec, ['config', '--no-analytics']);
+  await runFlutterCmd(version, ['config', '--no-analytics']);
 }

@@ -10,14 +10,7 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
 
 class LocalVersionRepo {
-  /// Returns true it's a valid installed version
-  Future<bool> isInstalled(String version) async {
-    final installedVersions = await getAll();
-    final versionsNames = installedVersions.map((v) => v.name);
-    return versionsNames.contains(version);
-  }
-
-  Future<LocalVersion> getByName(String name) async {
+  static Future<LocalVersion> getByName(String name) async {
     final versionDir = Directory(join(kVersionsDir.path, name));
     final sdkVersion = await getFlutterSdkVersion(name);
 
@@ -33,14 +26,14 @@ class LocalVersionRepo {
   }
 
   /// Lists Installed Flutter SDK Version
-  Future<List<LocalVersion>> getAll() async {
+  static Future<List<LocalVersion>> getAll() async {
     try {
       // Returns empty array if directory does not exist
       if (!kVersionsDir.existsSync()) {
         return [];
       }
 
-      final versions = kVersionsDir.listSync().toList();
+      final versions = await kVersionsDir.list().toList();
 
       var installedVersions = <LocalVersion>[];
       for (var version in versions) {
@@ -60,20 +53,21 @@ class LocalVersionRepo {
       installedVersions.sort((a, b) => a.compareTo(b));
       return installedVersions.reversed.toList();
     } on Exception {
-      return null;
+      rethrow;
     }
   }
 
   /// Removes a Version of Flutter SDK
   // TODO: Change this to LocalVersion model
-  Future<void> remove(String version) async {
+  static Future<void> remove(String version) async {
     final versionDir = Directory(join(kVersionsDir.path, version));
     if (await versionDir.exists()) {
       await versionDir.delete(recursive: true);
     }
   }
 
-  Future<bool> ensureInstalledCorrectly(String version) async {
+  // Checks if isInstalled, and cleans up if its not
+  static Future<bool> isInstalled(String version) async {
     final versionDir = Directory(join(kVersionsDir.path, version));
     final gitDir = Directory(join(versionDir.path, '.github'));
     final flutterBin = Directory(join(versionDir.path, 'bin'));

@@ -1,9 +1,51 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:fvm/constants.dart';
+import 'package:meta/meta.dart';
+
+import 'package:path/path.dart';
+
+import 'package:pretty_json/pretty_json.dart';
+
 class FvmConfig {
-  final String flutterSdkVersion;
-  FvmConfig(this.flutterSdkVersion);
+  Directory configDir;
+  String flutterSdkVersion;
+  FvmConfig({
+    @required this.configDir,
+    @required this.flutterSdkVersion,
+  });
 
-  FvmConfig.fromJson(Map<String, dynamic> json)
-      : flutterSdkVersion = json['flutterSdkVersion'] as String;
+  factory FvmConfig.fromJson(Directory configDir, String jsonString) {
+    return FvmConfig.fromMap(
+      configDir,
+      jsonDecode(jsonString) as Map<String, dynamic>,
+    );
+  }
 
-  Map<String, dynamic> toJson() => {'flutterSdkVersion': flutterSdkVersion};
+  factory FvmConfig.fromMap(Directory configDir, Map<String, dynamic> map) {
+    return FvmConfig(
+      configDir: configDir,
+      flutterSdkVersion: map['flutterSdkVersion'] as String,
+    );
+  }
+
+  String get flutterSdkPath {
+    return join(kVersionsDir.path, flutterSdkVersion);
+  }
+
+  File get configFile {
+    return File(join(configDir.path, kFvmConfigFileName));
+  }
+
+  Link get sdkSymlink {
+    return Link(join(configDir.path, 'flutter_sdk'));
+  }
+
+  String toJson() => prettyJson(toMap(), indent: 2);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'flutterSdkVersion': flutterSdkVersion,
+    };
+  }
 }

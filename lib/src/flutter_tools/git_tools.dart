@@ -2,13 +2,12 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+
 import 'package:path/path.dart' as path;
 import 'package:process_run/cmd_run.dart';
 import 'package:process_run/process_run.dart';
-
-class GitTools {}
 
 /// Check if Git is installed
 Future<void> _checkIfGitInstalled() async {
@@ -48,15 +47,18 @@ Future<void> runGitClone(String version) async {
   final process = await run(
     'git',
     args,
-    stdout: stdout,
-    stderr: stderr,
+    stdout: consoleController.stdoutSink,
+    stderr: consoleController.stderrSink,
     runInShell: Platform.isWindows,
     verbose: logger.isVerbose,
   );
 
   if (process.exitCode != 0) {
-    throw ExceptionCouldNotClone(
-        'Could not install Flutter version: $version.');
+    // If clone to directory fails. Remove directory
+    if (await versionDirectory.exists()) {
+      await versionDirectory.delete();
+    }
+    throw InternalError('Could not install Flutter version: $version.');
   }
 }
 
@@ -65,22 +67,22 @@ Future<String> getCurrentGitBranch(Directory dir) async {
     if (!await dir.exists()) {
       throw Exception('Could not get version from SDK that is not installed');
     }
-    var result = await Process.run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
+    var result = await run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
         workingDirectory: dir.path, runInShell: true);
 
     if (result.stdout.trim() == 'HEAD') {
-      result = await Process.run('git', ['tag', '--points-at', 'HEAD'],
+      result = await run('git', ['tag', '--points-at', 'HEAD'],
           workingDirectory: dir.path, runInShell: true);
     }
 
     if (result.exitCode != 0) {
-      throw Exception('Could not get version Info.');
+      return null;
     }
 
     return result.stdout.trim() as String;
   } on Exception catch (err) {
     //TODO: better error logging
-    PrettyPrint.error(err.toString());
+    FvmLogger.error(err.toString());
     return null;
   }
 }

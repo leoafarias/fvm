@@ -2,9 +2,9 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
-import 'package:fvm/src/utils/installer.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/workflows/install_version.workflow.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -28,30 +28,25 @@ class InstallCommand extends Command {
 
   @override
   void run() async {
-    String version;
-    var hasConfig = false;
+    var version = argResults.arguments[0];
     final skipSetup = argResults['skip-setup'] == true;
 
-    final project = await FlutterProjectRepo().findOne();
-
-    if (argResults.arguments.isEmpty) {
+    final project = await FlutterProjectRepo.findAncestor();
+    // If no version was passed as argument check project config.
+    if (version == null) {
       final configVersion = project.pinnedVersion;
+      // If no config found is version throw error
       if (configVersion == null) {
-        throw ExceptionMissingChannelVersion();
+        throw const UsageError('Please provide a channel or a version.');
       }
-      hasConfig = true;
+      // hasConfig = true;
       version = configVersion;
-    } else {
-      version = argResults.arguments[0].toLowerCase();
     }
+    final validVersion = await inferFlutterVersion(version);
+    await installWorkflow(validVersion);
 
-    final flutterVersion = await inferFlutterVersion(version);
-
-    await installRelease(flutterVersion, skipSetup: skipSetup);
-
-    if (hasConfig) {
-      await project.setVersion(version);
-      PrettyPrint.success('Project now uses Flutter: $version');
+    if (!skipSetup) {
+      await flutterSetupWorkflow(validVersion);
     }
   }
 }

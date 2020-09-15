@@ -1,16 +1,16 @@
 import 'package:args/command_runner.dart';
+import 'package:cli_dialog/cli_dialog.dart';
+
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
-
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
-import 'package:fvm/src/local_versions/local_versions_tools.dart';
+import 'package:fvm/src/utils/confirm.dart';
 
-import 'package:fvm/src/utils/helpers.dart';
-
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pubdev.dart';
-import 'package:cli_dialog/cli_dialog.dart';
+import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/use_version.workflow.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
@@ -43,7 +43,7 @@ class UseCommand extends Command {
 
     // If no version is provider show selection
     if (argResults.rest.isEmpty) {
-      final installedSdks = await LocalVersionRepo().getAll();
+      final installedSdks = await LocalVersionRepo.getAll();
       if (installedSdks.isEmpty) {
         throw Exception('Please install a version. fvm install <version>');
       }
@@ -51,7 +51,7 @@ class UseCommand extends Command {
         [
           {
             'question': 'Select version',
-            'options': installedSdks,
+            'options': installedSdks.map((e) => e.name).toList(),
           },
           'version'
         ]
@@ -62,32 +62,24 @@ class UseCommand extends Command {
     }
 
     version ??= argResults.rest[0];
-    final isGlobal = argResults['global'] == true;
-    final isForced = argResults['force'] == true;
+    final global = argResults['global'] == true;
+    final force = argResults['force'] == true;
 
-    // Make sure is valid Flutter version
-    final flutterVersion = await inferFlutterVersion(version);
-    final project = await FlutterProjectRepo().findOne();
-    final isFlutterProject = await project.isFlutterProject();
-    // If project use check that is Flutter project
-    if (!isGlobal && !isForced && !isFlutterProject) {
-      throw Exception(
-          'Run this FVM command at the root of a Flutter project or use --force to bypass this.');
-    }
+    // Get valid flutter version
+    final validVersion = await inferFlutterVersion(version);
+    final isVersionInstalled = await LocalVersionRepo.isInstalled(validVersion);
 
-    // Make sure version is installed
-    await checkAndInstallVersion(flutterVersion);
-
-    if (isGlobal) {
-      // Sets version as the global
-      setAsGlobalVersion(flutterVersion);
+    if (isVersionInstalled) {
+      // Make sure version is installed
+      await useVersionWorkflow(validVersion, global: global, force: force);
     } else {
-      // Updates the project config with version
-
-      await project.setVersion(flutterVersion);
+      FvmLogger.info('Flutter $validVersion is not installed.');
+      // Install if input is confirmed
+      if (await confirm('Would you like to install it?')) {
+        await installWorkflow(validVersion);
+        await useVersionWorkflow(validVersion, global: global, force: force);
+      }
     }
-
-    PrettyPrint.success('Project now uses Flutter: $version');
 
     await checkIfLatestVersion();
   }

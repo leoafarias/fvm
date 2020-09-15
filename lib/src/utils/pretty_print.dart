@@ -1,8 +1,8 @@
 import 'package:io/ansi.dart';
 
-class PrettyPrint {
+class FvmLogger {
   /// Prints sucess message
-  static void success(String message) {
+  static void fine(String message) {
     print(green.wrap(message));
   }
 

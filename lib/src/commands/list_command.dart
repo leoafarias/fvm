@@ -7,7 +7,7 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/flutter_project/flutter_project.model.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 
@@ -26,10 +26,10 @@ class ListCommand extends Command {
 
   @override
   void run() async {
-    final choices = await LocalVersionRepo().getAll();
+    final choices = await LocalVersionRepo.getAll();
 
     if (choices.isEmpty) {
-      PrettyPrint.info(
+      FvmLogger.info(
         '''
         No SDKs have been installed yet. Flutter 
         SDKs installed outside of fvm will not be displayed.
@@ -42,7 +42,7 @@ class ListCommand extends Command {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     // Get current project
-    final project = await FlutterProjectRepo().findOne();
+    final project = await FlutterProjectRepo.findAncestor();
 
     for (var choice in choices) {
       printVersions(choice.name, project);
@@ -52,11 +52,11 @@ class ListCommand extends Command {
 
 void printVersions(String version, FlutterProject project) {
   var printVersion = version;
-  if (project.pinnedVersion == version) {
+  if (project != null && project.pinnedVersion == version) {
     printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
   }
   if (isGlobalVersion(version)) {
     printVersion = '$printVersion (global)';
   }
-  PrettyPrint.info(printVersion);
+  FvmLogger.info(printVersion);
 }

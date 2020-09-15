@@ -1,4 +1,8 @@
+import 'dart:io';
+
+import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
+import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -33,5 +37,13 @@ void main() {
     final afterUnsorted = versionUnsorted.reversed.toList().map((e) => e.name);
 
     expect(afterUnsorted, sortedList);
+  });
+
+  test('Checks that install is not correct', () async {
+    final invalidVersionName = 'INVALID_VERSION';
+    final dir = Directory(join(kVersionsDir.path, invalidVersionName));
+    await dir.create(recursive: true);
+    final correct = await LocalVersionRepo.isInstalled(invalidVersionName);
+    expect(correct, false);
   });
 }

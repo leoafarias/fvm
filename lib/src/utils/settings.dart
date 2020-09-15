@@ -1,33 +1,68 @@
 import 'dart:convert';
 
 import 'package:fvm/constants.dart';
+import 'package:pretty_json/pretty_json.dart';
 
-class FvmSettings {
+class Settings {
   String cachePath;
-  FvmSettings({this.cachePath});
+  String flutterProjectsDir;
+  bool skipSetup;
+  bool noAnalytics;
+  List<String> projectPaths;
 
-  factory FvmSettings.fromMap(Map<String, dynamic> json) {
-    return FvmSettings(cachePath: json['cachePath'] as String);
+  Settings({
+    this.cachePath,
+    this.flutterProjectsDir,
+    this.skipSetup = true,
+    this.noAnalytics = false,
+    this.projectPaths = const [],
+  });
+
+  factory Settings.fromJson(String jsonString) {
+    return Settings.fromMap(jsonDecode(jsonString) as Map<String, dynamic>);
+  }
+
+  factory Settings.fromMap(Map<String, dynamic> json) {
+    return Settings(
+      cachePath: json['cachePath'] as String,
+      flutterProjectsDir: json['flutterProjectsDir'] as String,
+      projectPaths: (json['projectPaths'] as List<dynamic>).cast<String>(),
+      skipSetup: json['skipSetup'] as bool,
+      noAnalytics: json['noAnalytics'] as bool,
+    );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'cachePath': cachePath,
+      'flutterProjectsDir': flutterProjectsDir,
+      'skipSetup': skipSetup,
+      'projectPaths': projectPaths,
+      'noAnalytics': noAnalytics,
     };
   }
 
-  static FvmSettings read() {
+  static Future<Settings> read() async {
+    try {
+      final payload = await kFvmSettings.readAsString();
+      return Settings.fromJson(payload);
+    } on Exception {
+      return Settings();
+    }
+  }
+
+  static Settings readSync() {
     try {
       final payload = kFvmSettings.readAsStringSync();
-      return FvmSettings.fromMap(jsonDecode(payload) as Map<String, dynamic>);
+      return Settings.fromJson(payload);
     } on Exception {
-      return FvmSettings();
+      return Settings();
     }
   }
 
   Future<void> save() async {
     try {
-      await kFvmSettings.writeAsString(jsonEncode(toMap()));
+      await kFvmSettings.writeAsString(prettyJson(toMap(), indent: 2));
     } on Exception {
       throw Exception('Could not save FVM config');
     }

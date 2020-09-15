@@ -1,14 +1,12 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
+
 import 'package:fvm/fvm.dart';
 
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:args/args.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/pretty_print.dart';
-import 'package:process_run/which.dart';
+
+import 'package:fvm/src/utils/logger.dart';
 
 /// Proxies Flutter Commands
 class FlutterCommand extends Command {
@@ -27,30 +25,17 @@ class FlutterCommand extends Command {
 
   @override
   Future<void> run() async {
-    final project = await FlutterProjectRepo().findOne();
+    final project = await FlutterProjectRepo.findAncestor();
 
-    String flutterExec;
-
-    if (project != null) {
-      flutterExec = getFlutterSdkExec(project.pinnedVersion);
-      // Make sure that version is installed
-      await checkAndInstallVersion(project.pinnedVersion);
-      PrettyPrint.info('FVM: Running version ${project.pinnedVersion}');
+    if (project != null && project.pinnedVersion != null) {
+      FvmLogger.info('FVM: Running version ${project.pinnedVersion}');
+      await runFlutterCmd(project.pinnedVersion, argResults.arguments);
     } else {
-      // Use global configured version as fallback
-      flutterExec = await which('flutter');
-      if (flutterExec == '') {
-        throw Exception('FVM: Flutter not found in path');
-      }
-      PrettyPrint.info(
+      FvmLogger.info(
         'FVM: Running using Flutter version configured in path.',
       );
+      // Running null will default to flutter version on path
+      await runFlutterCmd(null, argResults.arguments);
     }
-
-    await runFlutter(
-      flutterExec,
-      argResults.arguments,
-      workingDirectory: kWorkingDirectory.path,
-    );
   }
 }
