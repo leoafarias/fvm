@@ -51,7 +51,7 @@ class UseCommand extends Command {
         [
           {
             'question': 'Select version',
-            'options': installedSdks,
+            'options': installedSdks.map((e) => e.name).toList(),
           },
           'version'
         ]
