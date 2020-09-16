@@ -8,6 +8,7 @@ class Settings {
   String flutterProjectsDir;
   bool skipSetup;
   bool noAnalytics;
+  bool advancedMode;
   List<String> projectPaths;
 
   Settings({
@@ -15,6 +16,7 @@ class Settings {
     this.flutterProjectsDir,
     this.skipSetup = true,
     this.noAnalytics = false,
+    this.advancedMode = false,
     this.projectPaths = const [],
   });
 
@@ -27,8 +29,9 @@ class Settings {
       cachePath: json['cachePath'] as String,
       flutterProjectsDir: json['flutterProjectsDir'] as String,
       projectPaths: (json['projectPaths'] as List<dynamic>).cast<String>(),
-      skipSetup: json['skipSetup'] as bool,
-      noAnalytics: json['noAnalytics'] as bool,
+      skipSetup: json['skipSetup'] as bool ?? true,
+      noAnalytics: json['noAnalytics'] as bool ?? false,
+      advancedMode: json['advancedMode'] as bool ?? false,
     );
   }
 
@@ -39,6 +42,7 @@ class Settings {
       'skipSetup': skipSetup,
       'projectPaths': projectPaths,
       'noAnalytics': noAnalytics,
+      'advancedMode': advancedMode,
     };
   }
 
