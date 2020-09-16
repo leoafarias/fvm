@@ -46,7 +46,7 @@ String getFlutterSdkExec(String version) {
   if (version == null || version.isEmpty) {
     return whichSync('flutter');
   }
-  final sdkPath = join(kVersionsDir.path, version, 'bin', 'flutter');
+  final sdkPath = join(kVersionsDir.path, version, 'bin');
 
-  return join(sdkPath, Platform.isWindows ? '.bat' : '');
+  return join(sdkPath, Platform.isWindows ? 'flutter.bat' : 'flutter');
 }
