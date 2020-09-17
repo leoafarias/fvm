@@ -56,7 +56,7 @@ dependencies:
       path: plugins/flutter_plugins/path_provider_fde
 
   fvm:
-    path: /Users/leofarias/Projects/fvm
+    path: ../cli
     # path: C:\Users\Leo\Projects\fvm
 
 dev_dependencies:
