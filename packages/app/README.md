@@ -22,6 +22,10 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 - View details about each Flutter release
 - Remove unused Flutter SDK Versions
 
+## Windows
+- [Turn on developer mode](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development)  to properly link versions to projects or run in Administrator mode.
+
+
 ## Get the App
 
 This is currently an alpha release.
