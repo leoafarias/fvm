@@ -1,4 +1,4 @@
-# fvm
+<img src="https://github.com/leoafarias/fvm/blob/master/docs/fvm-logo.png?raw=true" alt="drawing" width="200"/>
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
@@ -25,13 +25,13 @@ This tool allows you to manage multiple channels and releases, and caches these 
 Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.17.0-dev.3.1`. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 ## Usage
+
 1. [Install Dart](https://www.dartlang.org/install).
 2. Activate Fvm:
 
 ```bash
 > pub global activate fvm
 ```
-
 
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
 
@@ -235,8 +235,9 @@ pub run test_coverage
 ```
 
 ## Troubleshooting
+
 1. On Windows make sure you are running as an administrator
-2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`. 
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
 
 ## License
 
@@ -273,6 +274,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
