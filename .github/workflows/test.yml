@@ -47,8 +47,8 @@ jobs:
         uses: axel-op/dart-package-analyzer@v3
         id: analysis # set an id for the current step
         with:
+          working-directory: packages/cli
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          relativePath: packages/cli/
 
 
         # You can then use this id to retrieve the outputs in the next steps.
