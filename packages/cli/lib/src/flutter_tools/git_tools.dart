@@ -31,8 +31,6 @@ Future<void> runGitClone(String version) async {
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
   await versionDirectory.create(recursive: true);
-  print('VERSION $version');
-  print(versionDirectory.path);
 
   final args = [
     'clone',
@@ -50,8 +48,8 @@ Future<void> runGitClone(String version) async {
     'git',
     args,
     commandVerbose: true,
-    stdout: stdout,
-    stderr: stderr,
+    stdout: consoleController.stdout,
+    stderr: consoleController.stderr,
     verbose: logger.isVerbose,
     runInShell: Platform.isWindows,
   );

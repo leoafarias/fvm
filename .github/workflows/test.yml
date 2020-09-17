@@ -8,11 +8,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macOS-latest, windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest]
         sdk-version: [stable] #, dev]
         include:
-          - os: macOS-latest
-            TARGET: macos
+          # - os: macOS-latest
+          #   TARGET: macos
           - os: ubuntu-latest
             TARGET: linux
           - os: windows-latest
@@ -37,23 +37,3 @@ jobs:
       - name: Run tests
         run: pub run test
         working-directory: packages/cli
-
-  analyzer:
-    runs-on: ubuntu-latest
-    container:
-      image: google/dart:latest
-    steps:
-      - name: Static Analyzer
-        uses: axel-op/dart-package-analyzer@v3
-        id: analysis # set an id for the current step
-        with:
-          working-directory: packages/cli
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-
-
-        # You can then use this id to retrieve the outputs in the next steps.
-        # The following step shows how to exit the workflow with an error if a score is below 100:
-      - name: Score below 100.0
-        # NB: "analysis" is the id set above. Replace it with the one you used if different.
-        if: ${{ (steps.analysis.outputs.maintenance != 100.0) || (steps.analysis.outputs.health != 100)}}
-        run: exit 0
