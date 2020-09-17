@@ -4,27 +4,36 @@ on: [pull_request]
 
 jobs:
   test_cli:
-    runs-on: ubuntu-latest
-    container:
-      image: google/dart:latest
+    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        sdk-version: [stable] #, dev]
+        include:
+          # - os: macOS-latest
+          #   TARGET: macos
+          - os: ubuntu-latest
+            TARGET: linux
+          - os: windows-latest
+            TARGET: windows
+
     steps:
       - uses: actions/checkout@v1
+
+      - name: Setup Dart ${{ matrix.dart-version }}
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
+      # - name: Setup Flutter ${{ matrix.sdk-version }}
+      #   uses: DanTup/gh-actions/setup-flutter@master
+      #   with:
+      #     channel: ${{ matrix.sdk-version }}
+
       - name: Install dependencies
         run: pub get
         working-directory: packages/cli
       - name: Run tests
         run: pub run test
         working-directory: packages/cli
-      - name: Static Analyzer
-        uses: axel-op/dart-package-analyzer@v2
-        id: analysis # set an id for the current step
-        with:
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          relativePath: packages/cli
-
-        # You can then use this id to retrieve the outputs in the next steps.
-        # The following step shows how to exit the workflow with an error if a score is below 100:
-      - name: Score below 100.0
-        # NB: "analysis" is the id set above. Replace it with the one you used if different.
-        if: ${{ (steps.analysis.outputs.maintenance != 100.0) || (steps.analysis.outputs.health != 100)}}
-        run: exit 1

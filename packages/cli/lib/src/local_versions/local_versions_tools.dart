@@ -10,13 +10,11 @@ Future<String> getFlutterSdkVersion(String version) async {
   if (!await versionDirectory.exists()) {
     throw Exception('Could not get version from SDK that is not installed');
   }
-  try {
-    final versionFile = File(path.join(versionDirectory.path, 'version'));
-    final semver = await versionFile.readAsString();
-    return semver;
-  } on Exception {
-    // If version file does not exist return null for flutter version.
-    // Means setup was completed yet
+
+  final versionFile = File(path.join(versionDirectory.path, 'version'));
+  if (await versionFile.exists()) {
+    return await versionFile.readAsString();
+  } else {
     return null;
   }
 }

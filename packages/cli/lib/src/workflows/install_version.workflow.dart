@@ -15,11 +15,11 @@ Future<void> installWorkflow(String version) async {
       return;
     }
 
-    FvmLogger.fine('Installing version: $version:');
+    FvmLogger.fine('Installing version: $version');
 
     await runGitClone(version);
 
-    FvmLogger.fine('Version installed: $version:');
+    FvmLogger.fine('Version installed: $version');
   } on Exception {
     throw InternalError('Could not install <$version>');
   }

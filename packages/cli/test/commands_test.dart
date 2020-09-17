@@ -19,7 +19,7 @@ final testPath = '$kFvmHome/test_path';
 void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);
-  group('Channel Workflow', () {
+  group('Channel Workflow:', () {
     test('Install Channel', () async {
       try {
         await fvmRunner(['install', channel, '--verbose', '--skip-setup']);

@@ -32,3 +32,4 @@ coverage/lcov.info
 # FVM during tests
 .fvm
 .vscode/settings.json
+packages/cli/test/.test_coverage.dart
