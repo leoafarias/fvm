@@ -4,10 +4,12 @@ on: [pull_request]
 
 jobs:
   test_cli:
+    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macOS-10.14, windows-2019, ubuntu-18.04]
+        sdk-version: [stable] #, dev]
         include:
           - os: macOS-10.14
             TARGET: macos
@@ -15,10 +17,20 @@ jobs:
             TARGET: linux
           - os: windows-2019
             TARGET: windows
-    container:
-      image: google/dart:latest
+
     steps:
       - uses: actions/checkout@v1
+
+      - name: Setup Dart ${{ matrix.dart-version }}
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
+      - name: Setup Flutter ${{ matrix.sdk-version }}
+        uses: DanTup/gh-actions/setup-flutter@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
       - name: Install dependencies
         run: pub get
         working-directory: packages/cli
