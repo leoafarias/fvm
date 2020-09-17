@@ -35,7 +35,7 @@ jobs:
         run: pub get
         working-directory: packages/cli
       - name: Run tests
-        run: pub run test --verbose
+        run: pub run test
         working-directory: packages/cli
 
   analyzer:
