@@ -22,7 +22,6 @@ class FlutterProjectRepo {
       config: config,
       projectDir: directory,
     );
-    // Add only if its flutter project
   }
 
   static Future<List<FlutterProject>> fetchProjects(List<String> paths) async {

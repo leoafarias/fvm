@@ -106,6 +106,18 @@ class AppShell extends HookWidget {
                     selectedIndex: selectedIndex.value,
                     minWidth: kNavigationWidth,
                     minExtendedWidth: kNavigationWidthExtended,
+                    trailing: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        IconButton(
+                          icon: const Icon(Icons.search),
+                          iconSize: 20,
+                          onPressed: () {
+                            showSearch.value = true;
+                          },
+                        ),
+                      ],
+                    ),
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
                       navigation.goTo(NavigationRoutes.values[index]);
