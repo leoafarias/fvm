@@ -48,7 +48,7 @@ jobs:
         id: analysis # set an id for the current step
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          relativePath: packages/cli
+          relativePath: packages/cli/
 
 
         # You can then use this id to retrieve the outputs in the next steps.
