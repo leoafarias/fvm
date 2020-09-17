@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 
@@ -44,7 +43,7 @@ Future<void> runGitClone(String version) async {
     versionDirectory.path
   ];
 
-  final process = await run(
+  await run(
     'git',
     args,
     stdout: consoleController.stdoutSink,
@@ -52,14 +51,6 @@ Future<void> runGitClone(String version) async {
     runInShell: Platform.isWindows,
     verbose: logger.isVerbose,
   );
-
-  if (process.exitCode != 0) {
-    // If clone to directory fails. Remove directory
-    if (await versionDirectory.exists()) {
-      await versionDirectory.delete();
-    }
-    throw InternalError('Could not install Flutter version: $version.');
-  }
 }
 
 Future<String> getCurrentGitBranch(Directory dir) async {
