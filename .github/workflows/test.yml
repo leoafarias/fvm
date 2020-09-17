@@ -4,7 +4,17 @@ on: [pull_request]
 
 jobs:
   test_cli:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macOS-10.14, windows-2019, ubuntu-18.04]
+        include:
+          - os: macOS-10.14
+            TARGET: macos
+          - os: ubuntu-18.04
+            TARGET: linux
+          - os: windows-2019
+            TARGET: windows
     container:
       image: google/dart:latest
     steps:
