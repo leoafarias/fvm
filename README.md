@@ -1,11 +1,11 @@
-# fvm
+<img src="https://github.com/leoafarias/fvm/blob/master/docs/fvm-logo.png?raw=true" alt="drawing" width="200"/>
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
 [![Likes](https://img.shields.io/badge/dynamic/json?color=blue&label=likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm)
 [![Health](https://img.shields.io/badge/dynamic/json?color=blue&label=health&query=pub_points&url=http://www.pubscore.gq/pub-points?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm/score) ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true) [![Github All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=flat-square)](https://github.com/leoafarias/fvm/graphs/contributors) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
-Flutter Version Management: A simple cli to manage Flutter SDK versions.
+Flutter Version Management: A simple app & cli to manage Flutter SDK versions.
 
 FVM helps with the need for a consistent app builds by allowing to reference Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time.
 
@@ -18,6 +18,12 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 - Version FVM config with a project for consistency across teams and CI environments.
 - Set global Flutter version across projects
 
+## GUI App - MacOS & Windows Download (Alpha)
+
+[![FVM App Screenshot](https://github.com/leoafarias/fvm/blob/master/docs/fvm-app.png?raw=true)](https://github.com/leoafarias/fvm/releases)
+
+[Read more about it here.](https://github.com/leoafarias/fvm/tree/master/packages/app)
+
 ## Version Management
 
 This tool allows you to manage multiple channels and releases, and caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
@@ -25,13 +31,13 @@ This tool allows you to manage multiple channels and releases, and caches these 
 Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.17.0-dev.3.1`. In case you have projects in different Flutter SDK versions and do not want to upgrade.
 
 ## Usage
+
 1. [Install Dart](https://www.dartlang.org/install).
 2. Activate Fvm:
 
 ```bash
 > pub global activate fvm
 ```
-
 
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
 
@@ -235,8 +241,9 @@ pub run test_coverage
 ```
 
 ## Troubleshooting
+
 1. On Windows make sure you are running as an administrator
-2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`. 
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
 
 ## License
 
@@ -273,6 +280,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
