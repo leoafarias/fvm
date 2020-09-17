@@ -1,9 +1,9 @@
-name: Test
+name: Test CLI
 
 on: [pull_request]
 
 jobs:
-  test:
+  test_cli:
     runs-on: ubuntu-latest
     container:
       image: google/dart:latest
@@ -11,15 +11,19 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: pub get
+        working-directory: packages/cli
       - name: Run tests
         run: pub run test
+        working-directory: packages/cli
       - name: Static Analyzer
         uses: axel-op/dart-package-analyzer@v2
         id: analysis # set an id for the current step
         with:
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-      # You can then use this id to retrieve the outputs in the next steps.
-      # The following step shows how to exit the workflow with an error if a score is below 100:
+          relativePath: packages/cli
+
+        # You can then use this id to retrieve the outputs in the next steps.
+        # The following step shows how to exit the workflow with an error if a score is below 100:
       - name: Score below 100.0
         # NB: "analysis" is the id set above. Replace it with the one you used if different.
         if: ${{ (steps.analysis.outputs.maintenance != 100.0) || (steps.analysis.outputs.health != 100)}}
