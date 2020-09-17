@@ -1,0 +1,81 @@
+name: fvm_app
+description: Flutter Version Manager.
+
+# The following line prevents the package from being accidentally published to
+# pub.dev using `pub publish`. This is preferred for private packages.
+publish_to: "none" # Remove this line if you wish to publish to pub.dev
+
+# The following defines the version and build number for your application.
+# A version number is three numbers separated by dots, like 1.2.43
+# followed by an optional build number separated by a +.
+# Both the version and the builder number may be overridden in flutter
+# build by specifying --build-name and --build-number, respectively.
+# In Android, build-name is used as versionName while build-number used as versionCode.
+# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
+# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
+# Read more about iOS versioning at
+# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.7.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  oktoast: ^2.3.2
+  settings_ui: ^0.4.0
+  material_floating_search_bar: ^0.1.7
+  flutter_spinkit: ^4.1.2+1
+  flutter_markdown: ^0.4.4
+  material_design_icons_flutter: ^4.0.5555
+  animations: ^1.1.2
+
+  async: ^2.4.2
+  pubspec_yaml: ^2.0.1
+  url_launcher: ^5.6.0
+  watcher: ^0.9.7+15
+  google_fonts: ^1.1.0
+  filesize: ^1.0.4
+  date_time_format: ^1.0.0+4
+  hooks_riverpod: ^0.10.1
+  flutter_hooks: ^0.14.0
+
+  file_chooser:
+    git:
+      url: git://github.com/google/flutter-desktop-embedding.git
+      path: plugins/file_chooser
+  window_size:
+    git:
+      url: git://github.com/google/flutter-desktop-embedding.git
+      path: plugins/window_size
+  path_provider_fde:
+    git:
+      url: git://github.com/google/flutter-desktop-embedding.git
+      path: plugins/flutter_plugins/path_provider_fde
+
+  fvm:
+    path: ../cli
+    # path: C:\Users\Leo\Projects\fvm
+
+dev_dependencies:
+  build_runner: ^1.10.2
+  effective_dart: ^1.2.4
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  # The following line ensures that the Material Icons font is
+  # included with your application, so that you can use the icons in
+  # the material Icons class.
+  uses-material-design: true
+  # To add assets to your application, add an assets section, like this:
+  assets:
+    - assets/getting_started.md
+  #   - images/a_dot_burr.jpeg
+  #   - images/a_dot_ham.jpeg
+  # An image asset can refer to one or more resolution-specific "variants", see
+  # https://flutter.dev/assets-and-images/#resolution-aware.
+  # For details regarding adding assets from package dependencies, see
+  # https://flutter.dev/assets-and-images/#from-packages
