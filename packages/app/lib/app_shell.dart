@@ -35,7 +35,7 @@ final pages = [
 class AppShell extends HookWidget {
   const AppShell({Key key}) : super(key: key);
 
-  final totalTabs = 4;
+  final totalTabs = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -106,21 +106,14 @@ class AppShell extends HookWidget {
                     selectedIndex: selectedIndex.value,
                     minWidth: kNavigationWidth,
                     minExtendedWidth: kNavigationWidthExtended,
-                    trailing: Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        IconButton(
-                          icon: const Icon(Icons.search),
-                          iconSize: 20,
-                          onPressed: () {
-                            showSearch.value = true;
-                          },
-                        ),
-                      ],
-                    ),
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
-                      navigation.goTo(NavigationRoutes.values[index]);
+                      // If its search
+                      if (index == 4) {
+                        showSearch.value = true;
+                      } else {
+                        navigation.goTo(NavigationRoutes.values[index]);
+                      }
                     },
                     labelType: NavigationRailLabelType.none,
                     destinations: [
@@ -139,6 +132,10 @@ class AppShell extends HookWidget {
                       NavButton(
                         label: 'Settings',
                         iconData: Icons.settings,
+                      ),
+                      NavButton(
+                        label: 'Search',
+                        iconData: Icons.search,
                       ),
                     ],
                   ),

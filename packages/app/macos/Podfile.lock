@@ -13,7 +13,7 @@ PODS:
 
 DEPENDENCIES:
   - file_chooser (from `Flutter/ephemeral/.symlinks/plugins/file_chooser/macos`)
-  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
+  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64-release`)
   - path_provider (from `Flutter/ephemeral/.symlinks/plugins/path_provider/macos`)
   - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
   - url_launcher (from `Flutter/ephemeral/.symlinks/plugins/url_launcher/macos`)
@@ -24,7 +24,7 @@ EXTERNAL SOURCES:
   file_chooser:
     :path: Flutter/ephemeral/.symlinks/plugins/file_chooser/macos
   FlutterMacOS:
-    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
+    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64-release
   path_provider:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider/macos
   path_provider_macos:
