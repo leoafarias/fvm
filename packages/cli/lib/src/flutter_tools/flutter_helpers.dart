@@ -23,7 +23,7 @@ Future<String> inferFlutterVersion(String version) async {
   if (releases.containsVersion(prefixedVersion)) {
     return prefixedVersion;
   } else {
-    throw Exception('Could not infer Flutter Version');
+    throw Exception('Could not infer Flutter Version $version');
   }
 }
 

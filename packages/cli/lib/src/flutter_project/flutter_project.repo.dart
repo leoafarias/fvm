@@ -6,7 +6,6 @@ import 'package:pubspec_yaml/pubspec_yaml.dart';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_project/fvm_config_repo.dart';
-import 'package:fvm/src/flutter_tools/git_tools.dart';
 
 class FlutterProjectRepo {
   static Future<FlutterProject> getOne(Directory directory) async {
@@ -17,13 +16,11 @@ class FlutterProjectRepo {
     }
 
     final config = await FvmConfigRepo.read(directory);
-    final gitBranch = await getCurrentGitBranch(directory);
 
     return FlutterProject(
       name: pubspec.name,
       config: config,
       projectDir: directory,
-      gitBranch: gitBranch,
     );
     // Add only if its flutter project
   }
@@ -108,6 +105,6 @@ class FlutterProjectRepo {
     // Return working directory if it has reached root
     if (isRootDir) return null;
 
-    return findAncestor(dir: dir.parent);
+    return await findAncestor(dir: dir.parent);
   }
 }

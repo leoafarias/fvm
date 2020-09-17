@@ -15,7 +15,7 @@ class LocalVersionRepo {
     final sdkVersion = await getFlutterSdkVersion(name);
 
     // Return null if version does not exist
-    if (await versionDir.exists()) {
+    if (!await versionDir.exists()) {
       return null;
     }
 
@@ -39,14 +39,9 @@ class LocalVersionRepo {
       for (var version in versions) {
         if (isDirectory(version.path)) {
           final name = basename(version.path);
-          final sdkVersion = await getFlutterSdkVersion(name);
 
-          installedVersions.add(
-            LocalVersion(
-              name: name,
-              sdkVersion: sdkVersion,
-            ),
-          );
+          final localVersion = await getByName(name);
+          installedVersions.add(localVersion);
         }
       }
 

@@ -1,7 +1,7 @@
+@Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
-@Timeout(Duration(minutes: 5))
 import 'package:test/test.dart';
 
 import '../test_helpers.dart';
@@ -9,8 +9,8 @@ import '../test_helpers.dart';
 // import '../test_helpers.dart';
 
 void main() {
-  setUp(fvmSetUpAll);
-  tearDown(fvmTearDownAll);
+  setUpAll(fvmSetUpAll);
+  tearDownAll(fvmTearDownAll);
   group('Flutter tools', () {
     test('Can run flutter', () async {
       try {

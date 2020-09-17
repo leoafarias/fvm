@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 
@@ -15,7 +16,6 @@ Future<void> _checkIfGitInstalled() async {
       'git',
       ['--version'],
       workingDirectory: kWorkingDirectory.path,
-      runInShell: Platform.isWindows,
     );
   } on ProcessException {
     throw Exception(
@@ -26,10 +26,13 @@ Future<void> _checkIfGitInstalled() async {
 /// Clones Flutter SDK from Version Number or Channel
 /// Returns exists:true if comes from cache or false if its new fetch.
 Future<void> runGitClone(String version) async {
+  print('RUNNING GIT CLONE');
   await _checkIfGitInstalled();
   final versionDirectory = Directory(path.join(kVersionsDir.path, version));
 
   await versionDirectory.create(recursive: true);
+  print('VERSION $version');
+  print(versionDirectory.path);
 
   final args = [
     'clone',
@@ -43,27 +46,41 @@ Future<void> runGitClone(String version) async {
     versionDirectory.path
   ];
 
-  await run(
+  final process = await run(
     'git',
     args,
-    stdout: consoleController.stdoutSink,
-    stderr: consoleController.stderrSink,
-    runInShell: Platform.isWindows,
+    commandVerbose: true,
+    stdout: stdout,
+    stderr: stderr,
     verbose: logger.isVerbose,
+    runInShell: Platform.isWindows,
   );
+
+  if (process.exitCode != 0) {
+    // Did not cleanly exit clean up directory
+    if (process.exitCode == 128) {
+      if (await versionDirectory.exists()) {
+        await versionDirectory.delete();
+      }
+    }
+    throw InternalError('Could not install Flutter version: $version.');
+  }
+
+  return;
 }
 
 Future<String> getCurrentGitBranch(Directory dir) async {
   try {
     if (!await dir.exists()) {
-      throw Exception('Could not get version from SDK that is not installed');
+      throw Exception(
+          'Could not get GIT version from ${dir.path} that does not exist');
     }
     var result = await run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
-        workingDirectory: dir.path, runInShell: true);
+        workingDirectory: dir.path);
 
     if (result.stdout.trim() == 'HEAD') {
       result = await run('git', ['tag', '--points-at', 'HEAD'],
-          workingDirectory: dir.path, runInShell: true);
+          workingDirectory: dir.path);
     }
 
     if (result.exitCode != 0) {
@@ -74,6 +91,14 @@ Future<String> getCurrentGitBranch(Directory dir) async {
   } on Exception catch (err) {
     //TODO: better error logging
     FvmLogger.error(err.toString());
+    return null;
+  }
+}
+
+Future<String> getProjectGitBranch(Directory dir) async {
+  try {
+    return await getCurrentGitBranch(dir);
+  } on Exception {
     return null;
   }
 }

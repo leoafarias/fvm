@@ -43,8 +43,8 @@ class InstallCommand extends Command {
       version = configVersion;
     }
     final validVersion = await inferFlutterVersion(version);
-    await installWorkflow(validVersion);
 
+    await installWorkflow(validVersion);
     if (!skipSetup) {
       await flutterSetupWorkflow(validVersion);
     }
