@@ -26,10 +26,10 @@ jobs:
         with:
           channel: ${{ matrix.sdk-version }}
 
-      - name: Setup Flutter ${{ matrix.sdk-version }}
-        uses: DanTup/gh-actions/setup-flutter@master
-        with:
-          channel: ${{ matrix.sdk-version }}
+      # - name: Setup Flutter ${{ matrix.sdk-version }}
+      #   uses: DanTup/gh-actions/setup-flutter@master
+      #   with:
+      #     channel: ${{ matrix.sdk-version }}
 
       - name: Install dependencies
         run: pub get
