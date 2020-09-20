@@ -13,7 +13,7 @@ Future<bool> runFlutterCmd(
   String version,
   List<String> arguments,
 ) async {
-  if (stdin.hasTerminal) {
+  if (stdin.hasTerminal && !Platform.isWindows) {
     stdin.lineMode = false;
   }
 
