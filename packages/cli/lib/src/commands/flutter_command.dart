@@ -34,8 +34,11 @@ class FlutterCommand extends Command {
       FvmLogger.info(
         'FVM: Running using Flutter version configured in path.',
       );
-      // Running null will default to flutter version on path
-      await runFlutterCmd(null, argResults.arguments);
+      if (!await runFlutterCmd(null, argResults.arguments)) {
+        FvmLogger.error(
+          'FVM: No Flutter found in path.',
+        );
+      }
     }
   }
 }

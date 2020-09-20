@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
@@ -43,8 +44,13 @@ bool isGlobalVersion(String version) {
 
 String getFlutterSdkExec(String version) {
   // If version not provided find it within a project
+
   if (version == null || version.isEmpty) {
-    return whichSync('flutter');
+    final execPath = whichSync('flutter');
+    FvmLogger.info(
+      'FVM: Found Flutter at "$execPath"',
+    );
+    return execPath;
   }
   final sdkPath = join(kVersionsDir.path, version, 'bin');
 

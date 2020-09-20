@@ -9,7 +9,7 @@ import 'package:fvm/src/utils/process_manager.dart';
 import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> runFlutterCmd(
+Future<bool> runFlutterCmd(
   String version,
   List<String> arguments,
 ) async {
@@ -18,6 +18,9 @@ Future<void> runFlutterCmd(
   }
 
   final execPath = getFlutterSdkExec(version);
+  if (execPath == null) {
+    return false;
+  }
   // Check if can execute path first
   if (!await isExecutable(execPath)) {
     throw UsageError('Flutter version $version is not installed');
@@ -35,6 +38,7 @@ Future<void> runFlutterCmd(
     stdin.lineMode = true;
     await sharedStdIn.terminate();
   }
+  return true;
 }
 
 Future<void> upgradeFlutterChannel(String version) async {
