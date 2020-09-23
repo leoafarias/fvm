@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
@@ -18,6 +19,7 @@ import 'package:io/ansi.dart';
 
 /// Runs FVM
 Future<void> fvmRunner(List<String> args) async {
+  isCli = true;
   final runner = buildRunner();
 
   runner..addCommand(InstallCommand());
@@ -31,11 +33,11 @@ Future<void> fvmRunner(List<String> args) async {
 
   return await runner.run(args).catchError((exc, st) {
     if (exc is String) {
-      logger.stdout(exc);
+      FvmLogger.info(exc);
     } else {
-      logger.stderr('${yellow.wrap(exc.toString())}');
+      FvmLogger.warning('${yellow.wrap(exc.toString())}');
       if (args.contains('--verbose')) {
-        print(st);
+        FvmLogger.error(st.toString());
         throw exc;
       }
     }

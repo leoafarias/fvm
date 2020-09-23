@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+
 import 'package:fvm/src/utils/process_manager.dart';
 
 import 'package:io/io.dart';
@@ -13,7 +14,8 @@ Future<void> runFlutterCmd(
   String version,
   List<String> arguments,
 ) async {
-  if (stdin.hasTerminal) {
+  if (isCli) {
+    stdin.echoMode = false;
     stdin.lineMode = false;
   }
 
@@ -23,17 +25,22 @@ Future<void> runFlutterCmd(
     throw UsageError('Flutter version $version is not installed');
   }
 
-  final process = await processManager.spawn(
-    execPath,
-    arguments,
-    workingDirectory: kWorkingDirectory.path,
-  );
+  try {
+    final process = await processManager.spawn(
+      execPath,
+      arguments,
+      workingDirectory: kWorkingDirectory.path,
+    );
 
-  exitCode = await process.exitCode;
+    exitCode = await process.exitCode;
 
-  if (stdin.hasTerminal) {
-    stdin.lineMode = true;
-    await sharedStdIn.terminate();
+    if (isCli) {
+      stdin.echoMode = true;
+      stdin.lineMode = true;
+      await sharedStdIn.terminate();
+    }
+  } on Exception {
+    throw const InternalError('Could not run Flutter command');
   }
 }
 

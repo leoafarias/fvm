@@ -101,7 +101,7 @@ class FvmQueueProvider extends StateNotifier<FvmQueue> {
         break;
       case QueueAction.setupOnly:
         await FVM.setup(item.name);
-
+        await notify('Version ${item.name} has finished setup.');
         await _checkAndDisableAnalytics(item.name);
         notify('Version ${item.name} has finished setup');
 
