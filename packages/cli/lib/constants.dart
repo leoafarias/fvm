@@ -5,6 +5,7 @@ import 'package:path/path.dart' as path;
 const kFvmDirName = '.fvm';
 final kFvmConfigFileName = 'fvm_config.json';
 final envVars = Platform.environment;
+var isCli = false;
 
 /// Flutter Repo Address
 final kFlutterRepo =
