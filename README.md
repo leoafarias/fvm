@@ -243,7 +243,7 @@ pub run test_coverage
 ## Troubleshooting
 
 1. On Windows make sure you are running as an administrator
-2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`. Please run `flutter pub cache repair` and `pub cache repair`, and try again.
 
 ## License
 
