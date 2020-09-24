@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_chooser
-  path_provider_fde
   url_launcher_windows
   window_size
 )
