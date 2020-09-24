@@ -19,7 +19,8 @@ Future<void> _checkIfGitInstalled() async {
     );
   } on ProcessException {
     throw Exception(
-        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads');
+      'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
+    );
   }
 }
 
@@ -48,7 +49,6 @@ Future<void> runGitClone(String version) async {
     args,
     stdout: consoleController.stdout,
     stderr: consoleController.stderr,
-    verbose: logger.isVerbose,
   );
 
   if (process.exitCode != 0) {
@@ -58,6 +58,7 @@ Future<void> runGitClone(String version) async {
         await versionDirectory.delete();
       }
     }
+
     throw InternalError('Could not install Flutter version: $version.');
   }
 

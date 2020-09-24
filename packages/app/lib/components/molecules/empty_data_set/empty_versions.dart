@@ -27,7 +27,6 @@ class EmptyVersions extends StatelessWidget {
               style: Theme.of(context).textTheme.caption,
             ),
             const SizedBox(height: 20),
-            // TODO: Add navigation routing
             RaisedButton.icon(
               padding: const EdgeInsets.fromLTRB(30, 15, 30, 15),
               onPressed: () {

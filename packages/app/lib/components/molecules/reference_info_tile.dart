@@ -1,9 +1,14 @@
 import 'package:fvm_app/components/atoms/list_tile.dart';
+import 'package:fvm_app/components/atoms/setup_button.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
 import 'package:fvm_app/dto/channel.dto.dart';
 import 'package:fvm_app/dto/version.dto.dart';
+import 'package:fvm_app/providers/fvm_queue.provider.dart';
 import 'package:fvm_app/utils/channel_descriptions.dart';
 import 'package:flutter/material.dart';
+
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ReferenceInfoTile extends StatelessWidget {
   final VersionDto version;
@@ -29,7 +34,9 @@ class ReferenceInfoTile extends StatelessWidget {
         const Divider(height: 0),
         FvmListTile(
           title: const Text('Version'),
-          trailing: Chip(label: Text(channel.sdkVersion ?? '')),
+          trailing: channel.sdkVersion != null
+              ? Chip(label: Text(channel.sdkVersion ?? ''))
+              : SetupButton(version: channel),
         )
       ],
     );

@@ -26,7 +26,7 @@ dependencies:
 
   oktoast: ^2.3.2
   settings_ui: ^0.4.0
-  material_floating_search_bar: ^0.1.7
+  material_floating_search_bar: 0.2.0-dev+1
   flutter_spinkit: ^4.1.2+1
   flutter_markdown: ^0.4.4
   material_design_icons_flutter: ^4.0.5555

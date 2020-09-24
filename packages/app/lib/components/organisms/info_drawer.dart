@@ -1,23 +1,17 @@
-import 'package:fvm_app/components/atoms/cache_date_display.dart';
-import 'package:fvm_app/components/atoms/copy_button.dart';
-import 'package:fvm_app/components/atoms/group_tile.dart';
-import 'package:fvm_app/components/atoms/list_tile.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
-import 'package:fvm_app/components/molecules/advanced_info_tile.dart';
+
 import 'package:fvm_app/components/molecules/cache_info_tile.dart';
 import 'package:fvm_app/components/molecules/reference_info_tile.dart';
 import 'package:fvm_app/components/molecules/release_info_section.dart';
 import 'package:fvm_app/components/molecules/version_install_button.dart';
 import 'package:fvm_app/providers/selected_info_provider.dart';
-import 'package:fvm_app/utils/channel_descriptions.dart';
+
 import 'package:fvm_app/utils/layout_size.dart';
 
 import 'package:flutter/material.dart';
 
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:date_time_format/date_time_format.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class InfoDrawer extends HookWidget {
   const InfoDrawer({Key key}) : super(key: key);
@@ -36,8 +30,6 @@ class InfoDrawer extends HookWidget {
       }
       provider.clearVersion();
     }
-
-    // TODO: Create a custom list tile with configuration
 
     if (selected == null) {
       return Drawer(
