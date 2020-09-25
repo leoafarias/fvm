@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="172px" height="172px" viewBox="0 0 172 172" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Icon</title>
+    <defs>
+        <polygon id="path-1" points="93.5984348 0.108100358 49.9852174 58.0311828 93.5984348 115.968817 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+        <polygon id="path-3" points="93.5984348 0.108100358 49.9852174 58.0311828 93.5984348 115.968817 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+        <linearGradient x1="19.6683038%" y1="105.563424%" x2="69.8851617%" y2="45.8533713%" id="linearGradient-5">
+            <stop stop-color="#000000" offset="0%"></stop>
+            <stop stop-color="#1A237E" stop-opacity="0" offset="100%"></stop>
+        </linearGradient>
+        <polygon id="path-6" points="49.9852174 58.0311828 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+        <radialGradient cx="2.81443037%" cy="6.81818336%" fx="2.81443037%" fy="6.81818336%" r="151.476498%" gradientTransform="translate(0.028144,0.068182),scale(1.000000,0.810345),translate(-0.028144,-0.068182)" id="radialGradient-8">
+            <stop stop-color="#FFFFFF" stop-opacity="0.1" offset="0%"></stop>
+            <stop stop-color="#FFFFFF" stop-opacity="0" offset="100%"></stop>
+        </radialGradient>
+        <polygon id="path-9" points="93.5984348 0.108100358 49.9852174 58.0311828 93.5984348 115.968817 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+        <polygon id="path-11" points="93.5984348 0.108100358 49.9852174 58.0311828 93.5984348 115.968817 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+        <polygon id="path-13" points="49.9852174 58.0311828 93.5984348 115.968817 43.7525217 115.968817 25.0575652 91.1389964 0.131478261 58.0311828 43.754087 0.106021505 93.5984348 0.106021505"></polygon>
+    </defs>
+    <g id="Icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="logo_flutter_1080px_clr" transform="translate(86.500000, 109.500000) rotate(-90.000000) translate(-86.500000, -109.500000) translate(39.000000, 51.000000)">
+            <g id="Group">
+                <g id="Clipped" fill="#5800F1" fill-rule="nonzero">
+                    <g id="Group">
+                        <polygon id="Path" points="93.5984348 0.108100358 93.5984348 0.108100358 93.5984348 0.108100358 43.7525217 0.108100358 0.140869565 58.0436559 25.0575652 91.1389964"></polygon>
+                    </g>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <g id="SVGID_5_"></g>
+                    <polygon id="Path" fill="#230079" fill-rule="nonzero" mask="url(#mask-2)" points="25.0575652 91.1389964 43.7525217 115.968817 93.5984348 115.968817 93.5984348 115.968817 49.9852174 58.0436559"></polygon>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-4" fill="white">
+                        <use xlink:href="#path-3"></use>
+                    </mask>
+                    <g id="SVGID_7_"></g>
+                    <polygon id="Path" fill="url(#linearGradient-5)" fill-rule="nonzero" mask="url(#mask-4)" points="25.0575652 91.1389964 62.0248696 74.1443728 49.9852174 58.0436559"></polygon>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-7" fill="white">
+                        <use xlink:href="#path-6"></use>
+                    </mask>
+                    <g id="SVGID_10_"></g>
+                    <polygon id="Rectangle" fill="#3800C1" fill-rule="nonzero" mask="url(#mask-7)" transform="translate(25.058268, 58.037039) rotate(-45.000000) translate(-25.058268, -58.037039) " points="7.43565408 40.4144249 48.4638497 34.6314565 42.6808813 75.6596521 1.6526857 81.4426205"></polygon>
+                </g>
+            </g>
+            <polygon id="Shape" fill="url(#radialGradient-8)" fill-rule="nonzero" points="50.1380558 58.9937561 94 117 43.869815 117 25.0682408 92.1407758 0 58.9937561 43.8713891 1 94 1"></polygon>
+        </g>
+        <g id="logo_flutter_1080px_clr" transform="translate(86.500000, 63.500000) rotate(-90.000000) translate(-86.500000, -63.500000) translate(39.000000, 5.000000)">
+            <g id="Group">
+                <g id="Clipped" fill="#5800F1" fill-rule="nonzero">
+                    <g id="Group">
+                        <polygon id="Path" points="93.5984348 0.108100358 93.5984348 0.108100358 93.5984348 0.108100358 43.7525217 0.108100358 0.140869565 58.0436559 25.0575652 91.1389964"></polygon>
+                    </g>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-10" fill="white">
+                        <use xlink:href="#path-9"></use>
+                    </mask>
+                    <g id="SVGID_5_"></g>
+                    <polygon id="Path" fill="#230079" fill-rule="nonzero" mask="url(#mask-10)" points="25.0575652 91.1389964 43.7525217 115.968817 93.5984348 115.968817 93.5984348 115.968817 49.9852174 58.0436559"></polygon>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-12" fill="white">
+                        <use xlink:href="#path-11"></use>
+                    </mask>
+                    <g id="SVGID_7_"></g>
+                    <polygon id="Path" fill="url(#linearGradient-5)" fill-rule="nonzero" mask="url(#mask-12)" points="25.0575652 91.1389964 62.0248696 74.1443728 49.9852174 58.0436559"></polygon>
+                </g>
+                <g id="Clipped">
+                    <mask id="mask-14" fill="white">
+                        <use xlink:href="#path-13"></use>
+                    </mask>
+                    <g id="SVGID_10_"></g>
+                    <polygon id="Rectangle" fill="#3800C1" fill-rule="nonzero" mask="url(#mask-14)" transform="translate(25.058268, 58.037039) rotate(-45.000000) translate(-25.058268, -58.037039) " points="7.43565408 40.4144249 48.4638497 34.6314565 42.6808813 75.6596521 1.6526857 81.4426205"></polygon>
+                </g>
+            </g>
+            <polygon id="Shape" fill="url(#radialGradient-8)" fill-rule="nonzero" points="50.1380558 58.9937561 94 117 43.869815 117 25.0682408 92.1407758 0 58.9937561 43.8713891 1 94 1"></polygon>
+        </g>
+    </g>
+</svg>
