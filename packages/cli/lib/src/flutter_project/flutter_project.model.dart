@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/flutter_project/fvm_config.model.dart';
+import 'package:meta/meta.dart';
 
 class FlutterProject {
   final String name;
@@ -9,9 +10,9 @@ class FlutterProject {
   final FvmConfig config;
 
   FlutterProject({
+    @required this.config,
     this.name,
     this.projectDir,
-    this.config,
     this.gitBranch,
   });
 

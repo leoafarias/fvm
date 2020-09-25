@@ -11,11 +11,11 @@ class FlutterProjectRepo {
   static Future<FlutterProject> getOne(Directory directory) async {
     final pubspec = await _getPubspec(directory);
 
-    if (pubspec == null) {
-      return FlutterProject();
-    }
-
     final config = await FvmConfigRepo.read(directory);
+
+    if (pubspec == null) {
+      return FlutterProject(config: config);
+    }
 
     return FlutterProject(
       name: pubspec.name,
@@ -96,10 +96,10 @@ class FlutterProjectRepo {
     dir ??= kWorkingDirectory;
 
     final isRootDir = rootPrefix(dir.path) == dir.path;
-    final flutterProjectDir = Directory(dir.path);
+    final directory = Directory(dir.path);
 
-    if (await flutterProjectDir.exists()) {
-      return await getOne(flutterProjectDir);
+    if (await isFlutterProject(directory)) {
+      return await getOne(directory);
     }
     // Return working directory if it has reached root
     if (isRootDir) return null;

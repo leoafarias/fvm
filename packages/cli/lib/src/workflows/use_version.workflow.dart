@@ -1,3 +1,4 @@
+import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
@@ -21,8 +22,11 @@ Future<void> useVersionWorkflow(
   if (global) {
     // Sets version as the global
     setAsGlobalVersion(version);
-  } else {
+  } else if (force) {
     // Updates the project config with version
+    final rootProject = await FlutterProjectRepo.getOne(kWorkingDirectory);
+    await FlutterProjectRepo.pinVersion(rootProject, version);
+  } else {
     await FlutterProjectRepo.pinVersion(project, version);
   }
 
