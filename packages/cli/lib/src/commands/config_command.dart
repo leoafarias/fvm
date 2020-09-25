@@ -15,15 +15,21 @@ class ConfigCommand extends Command {
   ConfigCommand() {
     argParser
       ..addOption(
-        'cachePath',
+        'cache-path',
         help:
             'Set the path which FVM will cache the version. This will take precedence over FVM_HOME environment variable.',
       );
   }
   @override
   Future<void> run() async {
+    final cachePath = argResults['cache-path'] as String;
+
+    print(cachePath);
     final config = Settings.readSync();
-    config.cachePath = argResults['cachePath'] as String;
-    await config.save();
+    if (cachePath != null) {
+      config.cachePath = cachePath;
+      await config.save();
+    }
+    print('Cache Path: ${config.cachePath}');
   }
 }

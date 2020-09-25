@@ -122,10 +122,6 @@ Displays all Flutter releases, including the current version for `dev`, `beta` a
 > fvm releases
 ```
 
-### Change FVM Cache Directory
-
-You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used.
-
 ## Running Flutter SDK commands
 
 There are couple of ways you can interact with the Flutter SDK setup in your project. You can run all the Flutter commands through the fvm _proxy commands_.
@@ -157,6 +153,32 @@ You can also call the local SDK directly bypassing the _proxy commands_. FVM cre
 ```
 
 The above example is equivalent to `flutter run` command using the local project SDK.
+
+### Change FVM Cache Directory
+
+You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
+
+### FVM Config
+
+There are some configurations which you are able to set on FVM. **All settings set on CLI are compatible with the App(GUI)**.
+
+#### List config
+
+```bash
+> fvm config
+```
+
+#### Set cache path
+
+Location where Flutter SDK versions will be stored. If nothing is set, default will be used.
+
+```bash
+> fvm config --cache-path <CACHE_PATH>
+```
+
+### Flutter Fork & Git Cache
+
+You are able to use your own Flutter fork or cache the Flutter git locally for faster cloning, by setting the `FVM_GIT_CACHE` environment variable.
 
 ## Configure Your IDE
 
