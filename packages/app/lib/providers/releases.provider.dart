@@ -9,6 +9,7 @@ class ReleasesProviderPayload {
   final List<ReleaseDto> beta;
   final List<ReleaseDto> dev;
   final List<ReleaseDto> stable;
+
   ReleasesProviderPayload({
     this.all,
     this.beta,

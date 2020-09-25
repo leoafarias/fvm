@@ -35,6 +35,11 @@ Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.
 
 [Read dart.dev docs for more info](https://dart.dev/tools/pub/cmd/pub-global#running-a-script) on how to run global dart scripts.
 
+### Usage on Windows
+
+- On Windows make sure you are running in developer mode [Instructions Here](https://docs.microsoft.com/en-us/windows/uwp/get-started/enable-your-device-for-development) or as an administrator
+- Make sure `pub global activate fvm` is running using the installed `dart-sdk` pub version. Not the one that comes with Flutter. I am currently looking in ways to make this better.
+
 And then, for information on each command:
 
 ```bash
@@ -255,11 +260,6 @@ To update test coverage run the following command.
 ```bash
 pub run test_coverage
 ```
-
-## Troubleshooting
-
-1. On Windows make sure you are running as an administrator
-2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
 
 ## License
 
