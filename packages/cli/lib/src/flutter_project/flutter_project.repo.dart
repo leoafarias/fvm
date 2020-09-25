@@ -96,11 +96,13 @@ class FlutterProjectRepo {
     dir ??= kWorkingDirectory;
 
     final isRootDir = rootPrefix(dir.path) == dir.path;
+
     final directory = Directory(dir.path);
 
     if (await isFlutterProject(directory)) {
       return await getOne(directory);
     }
+
     // Return working directory if it has reached root
     if (isRootDir) return null;
 
