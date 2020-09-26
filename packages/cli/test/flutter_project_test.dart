@@ -11,8 +11,8 @@ void main() {
   group('Flutter Projects', () {
     test('Can find Flutter Project', () async {
       try {
-        // final flutterProject =
-        await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
+        final flutterProject =
+            await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
         final dartPackage =
             await FlutterProjectRepo.findAncestor(dir: kDartPackageDir);
         final emptyProject =
@@ -20,14 +20,13 @@ void main() {
 
         expect(dartPackage != null, true);
         expect(emptyProject != null, true);
-        // expect(flutterProject != null, true);
-        // expect(flutterProject.name, 'flutter_app');
-        // expect(flutterProject.projectDir.path, kFlutterAppDir.path);
+        expect(flutterProject != null, true);
+        expect(flutterProject.name, 'flutter_app');
+        expect(flutterProject.projectDir.path, kFlutterAppDir.path);
 
-        // expect(await FlutterProjectRepo.isFlutterProject(kFlutterAppDir), true);
-        // expect(
-        //     await FlutterProjectRepo.isFlutterProject(kDartPackageDir), false);
-        // expect(await FlutterProjectRepo.isFlutterProject(kEmptyDir), false);
+        expect(flutterProject.isFlutterProject, true);
+        expect(dartPackage.isFlutterProject, false);
+        expect(emptyProject.isFlutterProject, false);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
