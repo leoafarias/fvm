@@ -10,17 +10,13 @@ import 'package:fvm/src/flutter_project/fvm_config_repo.dart';
 class FlutterProjectRepo {
   static Future<FlutterProject> getOne(Directory directory) async {
     final pubspec = await _getPubspec(directory);
-
     final config = await FvmConfigRepo.read(directory);
 
-    if (pubspec == null) {
-      return FlutterProject(config: config);
-    }
-
     return FlutterProject(
-      name: pubspec.name,
+      name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
+      isFlutterProject: await isFlutterProject(directory),
     );
   }
 
@@ -99,12 +95,16 @@ class FlutterProjectRepo {
 
     final directory = Directory(dir.path);
 
-    if (await isFlutterProject(directory)) {
-      return await getOne(directory);
+    final project = await getOne(directory);
+
+    if (project.isFlutterProject) {
+      return project;
     }
 
-    // Return working directory if it has reached root
-    if (isRootDir) return null;
+    // Return working directory if has reached root
+    if (isRootDir) {
+      return await getOne(kWorkingDirectory);
+    }
 
     return await findAncestor(dir: dir.parent);
   }

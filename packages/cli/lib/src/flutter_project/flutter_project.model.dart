@@ -8,12 +8,14 @@ class FlutterProject {
   final Directory projectDir;
   final String gitBranch;
   final FvmConfig config;
+  final bool isFlutterProject;
 
   FlutterProject({
     @required this.config,
     this.name,
     this.projectDir,
     this.gitBranch,
+    this.isFlutterProject,
   });
 
   String get pinnedVersion {

@@ -1,4 +1,3 @@
-import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
@@ -13,7 +12,7 @@ Future<void> useVersionWorkflow(
   final project = await FlutterProjectRepo.findAncestor();
 
   // If project use check that is Flutter project
-  if (project == null && !global && !force) {
+  if (!project.isFlutterProject && !global && !force) {
     throw const UsageError(
       'Run this FVM command at the root of a Flutter project or use --force to bypass this.',
     );
@@ -22,10 +21,6 @@ Future<void> useVersionWorkflow(
   if (global) {
     // Sets version as the global
     setAsGlobalVersion(version);
-  } else if (force) {
-    // Updates the project config with version
-    final rootProject = await FlutterProjectRepo.getOne(kWorkingDirectory);
-    await FlutterProjectRepo.pinVersion(rootProject, version);
   } else {
     await FlutterProjectRepo.pinVersion(project, version);
   }
