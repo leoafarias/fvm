@@ -1,11 +1,11 @@
-# fvm
+<img src="https://github.com/leoafarias/fvm/blob/master/docs/fvm-logo.png?raw=true" alt="drawing" width="200"/>
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
 [![Likes](https://img.shields.io/badge/dynamic/json?color=blue&label=likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm)
 [![Health](https://img.shields.io/badge/dynamic/json?color=blue&label=health&query=pub_points&url=http://www.pubscore.gq/pub-points?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm/score) ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true) [![Github All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=flat-square)](https://github.com/leoafarias/fvm/graphs/contributors) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
-Flutter Version Management: A simple cli to manage Flutter SDK versions.
+Flutter Version Management: A simple app & cli to manage Flutter SDK versions.
 
 FVM helps with the need for a consistent app builds by allowing to reference Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time.
 
@@ -18,6 +18,12 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 - Version FVM config with a project for consistency across teams and CI environments.
 - Set global Flutter version across projects
 
+## GUI App - MacOS & Windows Download (Alpha)
+
+[![FVM App Screenshot](https://github.com/leoafarias/fvm/blob/master/docs/fvm-app.png?raw=true)](https://github.com/leoafarias/fvm/releases)
+
+[Read more about it here.](https://github.com/leoafarias/fvm/tree/master/packages/app)
+
 ## Version Management
 
 This tool allows you to manage multiple channels and releases, and caches these versions locally, so you don't have to wait for a full setup every time you want to switch versions.
@@ -26,7 +32,8 @@ Also, it allows you to grab versions by a specific release, i.e. `v1.2.0` or `1.
 
 ## Usage
 
-To Install:
+1. [Install Dart](https://www.dartlang.org/install).
+2. Activate Fvm:
 
 ```bash
 > pub global activate fvm
@@ -72,6 +79,8 @@ You can use different Flutter SDK versions per project. To do that you have to g
 **Set Global Version**
 
 If you want to use a specific version by default in your machine, you can specify the flag `--global` to the `use` command. A symbolic link to the Flutter version will be created in the `fvm` home folder, which you could then add to your PATH environment variable as follows: `FVM_HOME/default/bin`. Use `fvm use --help`, this will give you the exact path you need to configure.
+
+** Do not activate fvm using `flutter pub global activate`** if you plan on using the --global flag.
 
 ```bash
 > fvm use <version> --global
@@ -119,10 +128,6 @@ Displays all Flutter releases, including the current version for `dev`, `beta` a
 > fvm releases
 ```
 
-### Change FVM Cache Directory
-
-You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used.
-
 ## Running Flutter SDK commands
 
 There are couple of ways you can interact with the Flutter SDK setup in your project. You can run all the Flutter commands through the fvm _proxy commands_.
@@ -154,6 +159,32 @@ You can also call the local SDK directly bypassing the _proxy commands_. FVM cre
 ```
 
 The above example is equivalent to `flutter run` command using the local project SDK.
+
+### Change FVM Cache Directory
+
+You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
+
+### FVM Config
+
+There are some configurations which you are able to set on FVM. **All settings set on CLI are compatible with the App(GUI)**.
+
+#### List config
+
+```bash
+> fvm config
+```
+
+#### Set cache path
+
+Location where Flutter SDK versions will be stored. If nothing is set, default will be used.
+
+```bash
+> fvm config --cache-path <CACHE_PATH>
+```
+
+### Flutter Fork & Git Cache
+
+You are able to use your own Flutter fork or cache the Flutter git locally for faster cloning, by setting the `FVM_GIT_CACHE` environment variable.
 
 ## Configure Your IDE
 
@@ -203,6 +234,7 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute/path-to-your-project/.fvm/flutter_sdk`
 
 In the Android Studio menu open `Languages & Frameworks -> Flutter` or search for Flutter and change Flutter SDK path. Apply the changes. You now can Run and Debug with the selected versions of Flutter.
+Restart Android Studio to see the new settings applied.
 
 [Add your IDE instructions here](https://github.com/leoafarias/fvm/issues)
 
@@ -229,6 +261,11 @@ To update test coverage run the following command.
 ```bash
 pub run test_coverage
 ```
+
+## Troubleshooting
+
+1. On Windows make sure you are running as an administrator
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
 
 ## License
 
@@ -265,6 +302,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
