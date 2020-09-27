@@ -6,11 +6,10 @@ import 'package:fvm/src/releases_api/releases_client.dart';
 import 'package:path/path.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.reference
-// git clone --reference ~/gitcaches/flutter.reference https://github.com/flutter/flutter.git
+// git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
 String release = '1.17.4';
-
 String channel = 'beta';
 String channelVersion;
 

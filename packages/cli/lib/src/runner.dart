@@ -33,7 +33,7 @@ Future<void> fvmRunner(List<String> args) async {
 
   return await runner.run(args).catchError((exc, st) {
     if (exc is String) {
-      FvmLogger.info(exc);
+      FvmLogger.warning(exc);
     } else {
       FvmLogger.warning('${yellow.wrap(exc.toString())}');
       if (args.contains('--verbose')) {
@@ -50,14 +50,18 @@ CommandRunner buildRunner() {
   final runner = CommandRunner('fvm',
       'Flutter Version Management: A cli to manage Flutter SDK versions.');
 
-  runner.argParser.addFlag('verbose',
-      help: 'Print verbose output.', negatable: false, callback: (verbose) {
-    if (verbose) {
-      logger = Logger.verbose();
-    } else {
-      logger = Logger.standard();
-    }
-  });
+  runner.argParser.addFlag(
+    'verbose',
+    help: 'Print verbose output.',
+    negatable: false,
+    callback: (verbose) {
+      if (verbose) {
+        logger = Logger.verbose();
+      } else {
+        logger = Logger.standard();
+      }
+    },
+  );
 
   return runner;
 }

@@ -25,22 +25,21 @@ Future<void> runFlutterCmd(
     throw UsageError('Flutter version $version is not installed');
   }
 
-  try {
-    final process = await processManager.spawn(
-      execPath,
-      arguments,
-      workingDirectory: kWorkingDirectory.path,
-    );
+  final process = await processManager.spawn(
+    execPath,
+    arguments,
+    workingDirectory: kWorkingDirectory.path,
+  );
 
-    exitCode = await process.exitCode;
+  exitCode = await process.exitCode;
 
-    if (isCli) {
-      stdin.echoMode = true;
-      stdin.lineMode = true;
-      await sharedStdIn.terminate();
-    }
-  } on Exception {
-    throw const InternalError('Could not run Flutter command');
+  if (isCli) {
+    stdin.lineMode = true;
+    // echoMode needs to come after lineMode
+    // Error on windows
+    // https://github.com/dart-lang/sdk/issues/28599
+    stdin.echoMode = true;
+    await sharedStdIn.terminate();
   }
 }
 

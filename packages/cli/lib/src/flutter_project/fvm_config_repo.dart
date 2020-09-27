@@ -38,7 +38,8 @@ class FvmConfigRepo {
       await config.configFile.writeAsString(config.toJson());
 
       await _createSdkLink(config);
-    } on Exception {
+    } on Exception catch (err) {
+      print(err);
       throw Exception('Could not save config changes');
     }
   }

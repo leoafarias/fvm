@@ -1,3 +1,4 @@
+import 'package:fvm_app/components/atoms/setup_button.dart';
 import 'package:fvm_app/dto/master.dto.dart';
 import 'package:fvm_app/dto/version.dto.dart';
 import 'package:fvm_app/dto/channel.dto.dart';
@@ -25,17 +26,7 @@ class VersionInstalledStatus extends StatelessWidget {
     var latestRelease = version.release?.version;
 
     if (version.needSetup) {
-      return Tooltip(
-        message: 'SDK has not finished setup',
-        child: IconButton(
-          icon: const Icon(MdiIcons.alert),
-          iconSize: 20,
-          color: Colors.cyan,
-          onPressed: () {
-            context.read(fvmQueueProvider).setup(version.name);
-          },
-        ),
-      );
+      return SetupButton(version: version);
     }
 
     // If it's channel set current release;

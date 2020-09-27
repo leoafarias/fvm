@@ -176,13 +176,6 @@ class AppShell extends HookWidget {
                 if (showSearch.value != focus) {
                   showSearch.value = focus;
                 }
-                // TODO: Remove this after
-                // https://github.com/bnxm/material_floating_search_bar/issues/4
-                // is merged and released
-                if (!focus) {
-                  await Future.delayed(Duration.zero);
-                  focusNode.requestFocus();
-                }
               },
             ),
           ],
