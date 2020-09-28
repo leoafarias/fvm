@@ -7,6 +7,7 @@ void main(List<String> args) {
   pkg.humanName = 'fvm';
   pkg.githubUser = env['GITHUB_USERNAME'];
   pkg.githubPassword = env['GITHUB_PASSWORD'];
+  pkg.chocolateyNuspec = 'fvm.nuspec';
 
   pkg.addAllTasks();
   grind(args);
