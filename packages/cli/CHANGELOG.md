@@ -1,5 +1,3 @@
-# Changelog
-
 ## 1.3.0-dev.2
 
 - Bug fixes and improvements 😂
