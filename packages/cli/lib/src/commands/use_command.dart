@@ -62,6 +62,7 @@ class UseCommand extends Command {
     }
 
     version ??= argResults.rest[0];
+
     final global = argResults['global'] == true;
     final force = argResults['force'] == true;
 
