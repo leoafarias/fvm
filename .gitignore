@@ -33,3 +33,4 @@ coverage/lcov.info
 .fvm
 .vscode/settings.json
 packages/cli/test/.test_coverage.dart
+packages/cli/.env
