@@ -1,9 +1,9 @@
 name: Test CLI
 
-on: [pull_request]
+on: [push]
 
 jobs:
-  test_cli:
+  test:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
@@ -34,6 +34,10 @@ jobs:
       - name: Install dependencies
         run: pub get
         working-directory: packages/cli
+
+      - name: Run Builder for Version
+        run: pub run build_runner build
+
       - name: Run tests
         run: pub run test
         working-directory: packages/cli
