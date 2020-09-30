@@ -96,4 +96,4 @@ jobs:
 
       - name: Deploy Homebrew (macOS)
         run: pub run grinder pkg-homebrew-update
-        if: matrix.TARGTET == 'macos'
+        if: matrix.TARGET == 'macos'
