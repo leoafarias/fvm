@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
     container:
       image: google/dart:latest
     defaults:
