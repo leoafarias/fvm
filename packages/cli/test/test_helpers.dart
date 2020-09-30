@@ -46,11 +46,9 @@ void cleanup() {
 }
 
 void fvmTearDownAll() {
-  cleanup();
+  // cleanup();
 }
 
 void fvmSetUpAll() async {
   cleanup();
-  final releases = await fetchFlutterReleases();
-  channelVersion = releases.channels[channel].version;
 }

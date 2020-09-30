@@ -6,7 +6,8 @@ Future<void> removeWorkflow(String version) async {
   FvmLogger.fine('Removing $version');
   try {
     await LocalVersionRepo.remove(version);
-  } on Exception {
+  } on Exception catch (err) {
+    logger.trace(err.toString());
     throw InternalError('Could not remove $version');
   }
 }

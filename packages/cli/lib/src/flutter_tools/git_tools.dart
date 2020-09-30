@@ -59,7 +59,8 @@ Future<void> runGitClone(String version) async {
       }
     }
 
-    throw InternalError('Could not install Flutter version: $version.');
+    logger.trace(process.stderr.toString());
+    throw InternalError('Could not git clone $version');
   }
 
   return;

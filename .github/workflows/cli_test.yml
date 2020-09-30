@@ -3,12 +3,15 @@ name: Test CLI
 on: [pull_request]
 
 jobs:
-  test_cli:
+  test:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: packages/cli
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
         sdk-version: [stable] #, dev]
         include:
           # - os: macOS-latest
@@ -20,7 +23,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-
       - name: Setup Dart ${{ matrix.dart-version }}
         uses: DanTup/gh-actions/setup-dart@master
         with:
@@ -33,7 +35,6 @@ jobs:
 
       - name: Install dependencies
         run: pub get
-        working-directory: packages/cli
-      - name: Run tests
-        run: pub run test
-        working-directory: packages/cli
+
+      - name: Run Test and Builder
+        run: pub run build_runner test --delete-conflicting-outputs
