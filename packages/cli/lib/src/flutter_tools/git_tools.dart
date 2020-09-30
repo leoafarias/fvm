@@ -47,8 +47,8 @@ Future<void> runGitClone(String version) async {
   final process = await run(
     'git',
     args,
-    stdout: consoleController.stdout,
-    stderr: consoleController.stderr,
+    stdout: consoleController.stdoutSink,
+    stderr: consoleController.stderrSink,
   );
 
   if (process.exitCode != 0) {
