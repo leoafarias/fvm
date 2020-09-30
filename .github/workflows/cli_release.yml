@@ -41,6 +41,7 @@ jobs:
 
   release:
     name: Release
+    needs: test
     runs-on: ubuntu-latest
     container:
       image: google/dart:latest
@@ -48,6 +49,9 @@ jobs:
       run:
         working-directory: packages/cli
     steps:
+      - name: Install dependencies
+        run: pub get
+
       - name: Build Version Number
         run: pub run build_runner build --delete-conflicting-outputs
 
