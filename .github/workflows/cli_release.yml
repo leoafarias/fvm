@@ -1,54 +1,59 @@
 on:
-  [push]
-  # push:
-  #   # Sequence of patterns matched against refs/tags
-  #   tags:
-  #     - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 name: Create Release
 
 jobs:
-  # build:
-  #   name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
-  #   defaults:
-  #     run:
-  #       working-directory: packages/cli
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     matrix:
-  #       os: [windows-latest, ubuntu-latest, macos-latest]
-  #       sdk-version: [stable] #, dev]
-  #       include:
-  #         - os: macOS-latest
-  #           TARGET: macos
-  #         - os: ubuntu-latest
-  #           TARGET: linux
-  #         - os: windows-latest
-  #           TARGET: windows
-
-  #   steps:
-  #     - uses: actions/checkout@v1
-
-  #     - name: Setup Dart ${{ matrix.dart-version }}
-  #       uses: DanTup/gh-actions/setup-dart@master
-  #       with:
-  #         channel: ${{ matrix.sdk-version }}
-
-  #     - name: Install dependencies
-  #       run: pub get
-
-  #     - name: Run Test and Builder
-  #       run: pub run build_runner test --delete-conflicting-outputs
-
-  #     - name: Deploy to Pub (Linux)
-  #       run: pub run grinder pkg-pub-deploy
-
-  #     - name: Deploy Github (Linux)
-  #       run: pub run grinder pkg-github-all
-
-  deploy:
+  release:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
-    # needs: build
+    defaults:
+      run:
+        working-directory: packages/cli
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        sdk-version: [stable] #, dev]
+        include:
+          - os: macOS-latest
+            TARGET: macos
+          - os: ubuntu-latest
+            TARGET: linux
+          - os: windows-latest
+            TARGET: windows
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Dart ${{ matrix.dart-version }}
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
+      - name: Install dependencies
+        run: pub get
+
+      - name: Run Test and Builder
+        run: pub run build_runner test --delete-conflicting-outputs
+
+      - name: Build Version Number
+        run: pub run build_runner build --delete-conflicting-outputs
+
+      - name: Deploy Github
+        run: pub run grinder pkg-github-all
+
+      - name: Deploy to Homebrew
+        run: pub run grinder pkg-homebrew-update
+
+      - name: Deploy to Pub
+        run: pub run grinder pkg-pub-deploy
+
+  deploy-windows:
+    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    needs: build
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
@@ -58,11 +63,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest]
+        os: [windows-latest]
         sdk-version: [stable] #, dev]
         include:
-          - os: macos-latest
-            TARGET: macos
+          # - os: macos-latest
+          #   TARGET: macos
           - os: windows-latest
             TARGET: windows
           # - os: ubuntu-latest
@@ -90,10 +95,10 @@ jobs:
       #   run: pub run grinder pkg-github-all
       #   if: matrix.os == 'ubuntu-latest'
 
+      # - name: Deploy Homebrew (macOS)
+      #   run: pub run grinder pkg-homebrew-update
+      #   if: matrix.TARGET == 'macos'
+
       - name: Deploy Chocolatey (Windows)
         run: pub run grinder pkg-chocolatey-deploy
         if: matrix.TARGET == 'windows'
-
-      - name: Deploy Homebrew (macOS)
-        run: pub run grinder pkg-homebrew-update
-        if: matrix.TARGET == 'macos'
