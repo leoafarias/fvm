@@ -48,7 +48,7 @@ jobs:
 
   deploy:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
-    needs: test
+    # needs: build
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
