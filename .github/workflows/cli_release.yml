@@ -43,13 +43,17 @@ jobs:
     name: Release
     needs: test
     runs-on: ubuntu-latest
+    env:
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: google/dart:latest
     defaults:
       run:
-        shell: bash
         working-directory: packages/cli
     steps:
+      - uses: actions/checkout@v1
+
       - name: Install dependencies
         run: pub get
 
@@ -71,7 +75,6 @@ jobs:
     runs-on: windows-latest
     needs: release
     env:
-      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
     defaults:
       run:
