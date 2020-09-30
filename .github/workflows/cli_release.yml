@@ -47,9 +47,10 @@ jobs:
       image: google/dart:latest
     defaults:
       run:
-        shell: bash
         working-directory: packages/cli
     steps:
+      - uses: actions/checkout@v1
+
       - name: Install dependencies
         run: pub get
 
