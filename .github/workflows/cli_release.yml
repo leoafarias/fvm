@@ -70,7 +70,7 @@ jobs:
         run: pub get
 
       - name: Run Builder for Version
-        run: pub run build_runner build
+        run: pub run build_runner build --delete-conflicting-outputs
 
       - name: Deploy to Pub (Linux)
         run: pub run grinder pkg-pub-deploy
