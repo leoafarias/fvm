@@ -39,9 +39,12 @@ jobs:
       - name: Run Test and Builder
         run: pub run build_runner test --delete-conflicting-outputs
 
-  build:
+  deploy:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
     needs: test
+    env:
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
     defaults:
       run:
         working-directory: packages/cli
