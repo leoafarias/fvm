@@ -14,8 +14,8 @@ jobs:
         os: [windows-latest, ubuntu-latest, macos-latest]
         sdk-version: [stable] #, dev]
         include:
-          # - os: macOS-latest
-          #   TARGET: macos
+          - os: macOS-latest
+            TARGET: macos
           - os: ubuntu-latest
             TARGET: linux
           - os: windows-latest
