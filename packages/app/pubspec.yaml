@@ -54,7 +54,6 @@ dependencies:
 
   fvm:
     path: ../cli
-    # path: C:\Users\Leo\Projects\fvm
 
 dev_dependencies:
   build_runner: ^1.10.2
