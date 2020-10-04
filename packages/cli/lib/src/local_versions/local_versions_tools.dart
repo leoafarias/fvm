@@ -25,5 +25,5 @@ void setAsGlobalVersion(String version) {
 
   FvmLogger.fine('The global Flutter version is now $version');
   FvmLogger.fine(
-      'Make sure sure to add $kDefaultFlutterPath to your PATH environment variable');
+      'Make sure to add $kDefaultFlutterPath to your PATH environment variable');
 }
