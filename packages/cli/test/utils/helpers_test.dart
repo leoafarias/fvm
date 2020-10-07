@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:fvm/constants.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
+import 'package:fvm/src/version.dart';
+import 'package:path/path.dart';
+import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -30,5 +36,12 @@ void main() {
 
     isLatest = await checkIfLatestVersion(currentVersion: '5.0.0');
     expect(isLatest, true);
+  });
+
+  test('Does CLI version match', () async {
+    final pubspec = File(
+      join(kWorkingDirectory.path, 'pubspec.yaml'),
+    ).readAsStringSync().toPubspecYaml();
+    expect(pubspec.version.valueOr(() => null), packageVersion);
   });
 }

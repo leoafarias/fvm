@@ -12,7 +12,7 @@ Future<void> useVersionWorkflow(
   final project = await FlutterProjectRepo.findAncestor();
 
   // If project use check that is Flutter project
-  if (project == null && !global && !force) {
+  if (!project.isFlutterProject && !global && !force) {
     throw const UsageError(
       'Run this FVM command at the root of a Flutter project or use --force to bypass this.',
     );
@@ -22,7 +22,6 @@ Future<void> useVersionWorkflow(
     // Sets version as the global
     setAsGlobalVersion(version);
   } else {
-    // Updates the project config with version
     await FlutterProjectRepo.pinVersion(project, version);
   }
 

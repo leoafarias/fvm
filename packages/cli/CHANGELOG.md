@@ -1,6 +1,4 @@
-# Changelog
-
-## 1.3.0-dev.1
+## 1.3.0-dev.4
 
 - Bug fixes and improvements 😂
 - Implemented ability to change cachePath on settings [#101](https://github.com/leoafarias/fvm/issues/101)

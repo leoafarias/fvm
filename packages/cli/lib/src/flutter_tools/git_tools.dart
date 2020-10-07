@@ -47,8 +47,8 @@ Future<void> runGitClone(String version) async {
   final process = await run(
     'git',
     args,
-    stdout: consoleController.stdout,
-    stderr: consoleController.stderr,
+    stdout: consoleController.stdoutSink,
+    stderr: consoleController.stderrSink,
   );
 
   if (process.exitCode != 0) {
@@ -59,7 +59,8 @@ Future<void> runGitClone(String version) async {
       }
     }
 
-    throw InternalError('Could not install Flutter version: $version.');
+    logger.trace(process.stderr.toString());
+    throw InternalError('Could not git clone $version');
   }
 
   return;

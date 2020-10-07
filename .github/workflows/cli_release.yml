@@ -1,0 +1,98 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+  test:
+    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    defaults:
+      run:
+        working-directory: packages/cli
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        sdk-version: [stable] #, dev]
+        include:
+          - os: macOS-latest
+            TARGET: macos
+          - os: ubuntu-latest
+            TARGET: linux
+          - os: windows-latest
+            TARGET: windows
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Dart ${{ matrix.dart-version }}
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
+      - name: Install dependencies
+        run: pub get
+
+      - name: Run Test and Builder
+        run: pub run build_runner test --delete-conflicting-outputs
+
+  release:
+    name: Release
+    needs: test
+    runs-on: ubuntu-latest
+    env:
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+    container:
+      image: google/dart:latest
+    defaults:
+      run:
+        working-directory: packages/cli
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install dependencies
+        run: pub get
+
+      - name: Build Version Number
+        run: pub run build_runner build --delete-conflicting-outputs
+
+      - name: Deploy Github
+        run: pub run grinder pkg-github-all
+
+      - name: Deploy to Homebrew
+        run: pub run grinder pkg-homebrew-update
+
+      - name: Deploy to Pub
+        run: pub run grinder pkg-pub-deploy
+
+  # might later turn this into different types of deploys
+  deploy-windows:
+    name: Cholatey Deploy (Windows)
+    runs-on: windows-latest
+    needs: release
+    env:
+      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+    defaults:
+      run:
+        working-directory: packages/cli
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Dart
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: pub get
+
+      - name: Run Builder for Version
+        run: pub run build_runner build --delete-conflicting-outputs
+
+      - name: Deploy Chocolatey (Windows)
+        run: pub run grinder pkg-chocolatey-deploy
