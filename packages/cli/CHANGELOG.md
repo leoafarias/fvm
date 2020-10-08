@@ -1,9 +1,9 @@
-## 1.3.0-dev.4
+## 1.3.0
 
 - Bug fixes and improvements 😂
 - Implemented ability to change cachePath on settings [#101](https://github.com/leoafarias/fvm/issues/101)
 - Improved UX with Flutter run command [#124](https://github.com/leoafarias/fvm/issues/124)
-- Added notice on Windows to run as developer mode or administrator
+- Added a notice on Windows to run as developer mode or administrator
 - Ability to set Flutter Git Repo URL (Advanced)
 
 ## 1.2.3
@@ -16,7 +16,7 @@
 
 ## 1.2.0
 
-- Use command now shows installed version if no 'version' is passed.
+- Use command now shows the installed version if no 'version' is passed.
 - Improved exception message handling
 
 ## 1.1.9
