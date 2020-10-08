@@ -1,7 +1,7 @@
 module.exports = {
   title: "FVM",
   tagline: "Flutter Version Management",
-  url: "https://your-docusaurus-test-site.com",
+  url: "https://fvm.app",
   baseUrl: "/",
   onBrokenLinks: "throw",
   favicon: "img/favicon.ico",
