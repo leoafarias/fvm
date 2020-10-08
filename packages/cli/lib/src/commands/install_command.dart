@@ -28,12 +28,12 @@ class InstallCommand extends Command {
 
   @override
   void run() async {
-    var version = argResults.arguments[0];
+    String version;
     final skipSetup = argResults['skip-setup'] == true;
 
     final project = await FlutterProjectRepo.findAncestor();
     // If no version was passed as argument check project config.
-    if (version == null) {
+    if (argResults.arguments.isEmpty) {
       final configVersion = project.pinnedVersion;
       // If no config found is version throw error
       if (configVersion == null) {
@@ -41,6 +41,8 @@ class InstallCommand extends Command {
       }
       // hasConfig = true;
       version = configVersion;
+    } else {
+      version = argResults.arguments[0];
     }
     final validVersion = await inferFlutterVersion(version);
 
