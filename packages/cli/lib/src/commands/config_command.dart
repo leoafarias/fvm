@@ -24,7 +24,6 @@ class ConfigCommand extends Command {
   Future<void> run() async {
     final cachePath = argResults['cache-path'] as String;
 
-    print(cachePath);
     final config = Settings.readSync();
     if (cachePath != null) {
       config.cachePath = cachePath;
