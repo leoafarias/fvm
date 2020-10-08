@@ -149,6 +149,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "mx1up",
+      "name": "mx1up",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/178714?v=4",
+      "profile": "https://github.com/mx1up",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,
