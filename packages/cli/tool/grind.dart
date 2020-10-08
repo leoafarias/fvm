@@ -6,7 +6,6 @@ void main(List<String> args) {
   pkg.humanName = 'fvm';
   pkg.githubUser = 'leoafarias';
   pkg.homebrewRepo = 'leoafarias/homebrew-fvm';
-  pkg.homebrewTag = 'v${pkg.pubspec.version.toString()}';
   pkg.addAllTasks();
   grind(args);
 }
