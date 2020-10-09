@@ -5,6 +5,9 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import useBaseUrl from "@docusaurus/useBaseUrl";
 import styles from "./styles.module.css";
+import useThemeContext from '@theme/hooks/useThemeContext';
+import { Tweet } from 'react-twitter-widgets'
+import GitHubButton from 'react-github-btn'
 
 const features = [
   {
@@ -57,8 +60,18 @@ function Feature({ imageUrl, title, description }) {
   );
 }
 
+function TweetCard({tweetId}) {
+  const {isDarkTheme} = useThemeContext();
+  return (
+    <div className={clsx("col col--4", styles.feature)}>
+      <Tweet tweetId={tweetId} options={{conversation:'none',cards:'hidden',theme: isDarkTheme ?'dark' : 'light',dnt:true}} />
+    </div>
+  );
+}
+
 function Home() {
   const context = useDocusaurusContext();
+  
   const { siteConfig = {} } = context;
   return (
     <Layout
@@ -78,11 +91,12 @@ function Home() {
               to={useBaseUrl("docs/")}
             >
               Get Started
-            </Link>
+            </Link>            
           </div>
         </div>
       </header>
       <main>
+        
         {features && features.length > 0 && (
           <section className={styles.features}>
             <div className="container">
@@ -94,6 +108,16 @@ function Home() {
             </div>
           </section>
         )}
+          <section className={styles.features}>
+            <div className="container">
+              <div className="row">
+              <TweetCard tweetId="1233108148778676226"   />
+              <TweetCard tweetId="1293512990390661121"  />
+              <TweetCard tweetId="1298153069780316160"  />
+              
+              </div>
+            </div>
+          </section>
       </main>
     </Layout>
   );

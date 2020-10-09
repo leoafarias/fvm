@@ -5,7 +5,7 @@ module.exports = {
   baseUrl: "/",
   onBrokenLinks: "throw",
   favicon: "img/favicon.ico",
-  organizationName: "fvm", // Usually your GitHub org/user name.
+  organizationName: "leoafarias", // Usually your GitHub org/user name.
   projectName: "fvm", // Usually your repo name.
   themeConfig: {
     navbar: {
