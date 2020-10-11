@@ -1,3 +1,7 @@
+## 1.3.1
+
+- Fix issue when running `install` command with pinned version [#161](https://github.com/leoafarias/fvm/issues/161)
+
 ## 1.3.0
 
 - Bug fixes and improvements 😂
