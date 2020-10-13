@@ -42,11 +42,13 @@ class ConsoleController {
   final error = StreamController<List<int>>();
   static bool isCli = false;
 
+  static bool get isTerminal => isCli && io.stdin.hasTerminal;
+
   StreamSink<List<int>> get stdoutSink {
-    return isCli ? io.stdout : stdout.sink;
+    return isTerminal ? io.stdout : stdout.sink;
   }
 
   StreamSink<List<int>> get stderrSink {
-    return isCli ? io.stderr : stderr.sink;
+    return isTerminal ? io.stderr : stderr.sink;
   }
 }

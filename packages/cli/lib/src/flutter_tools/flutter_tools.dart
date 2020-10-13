@@ -15,7 +15,7 @@ Future<void> runFlutterCmd(
   String version,
   List<String> arguments,
 ) async {
-  if (ConsoleController.isCli) {
+  if (ConsoleController.isTerminal) {
     stdin.echoMode = false;
     stdin.lineMode = false;
   }
@@ -34,7 +34,7 @@ Future<void> runFlutterCmd(
 
   exitCode = await process.exitCode;
 
-  if (ConsoleController.isCli) {
+  if (ConsoleController.isTerminal) {
     stdin.lineMode = true;
     // echoMode needs to come after lineMode
     // Error on windows
