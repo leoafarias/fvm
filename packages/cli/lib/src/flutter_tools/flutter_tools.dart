@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 import 'package:fvm/src/utils/process_manager.dart';
 
@@ -14,7 +15,7 @@ Future<void> runFlutterCmd(
   String version,
   List<String> arguments,
 ) async {
-  if (isCli) {
+  if (ConsoleController.isCli) {
     stdin.echoMode = false;
     stdin.lineMode = false;
   }
@@ -33,7 +34,7 @@ Future<void> runFlutterCmd(
 
   exitCode = await process.exitCode;
 
-  if (isCli) {
+  if (ConsoleController.isCli) {
     stdin.lineMode = true;
     // echoMode needs to come after lineMode
     // Error on windows

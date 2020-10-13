@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:cli_util/cli_logging.dart';
-import 'package:fvm/constants.dart';
 import 'package:io/ansi.dart';
 
 /// Log
@@ -41,6 +40,7 @@ class ConsoleController {
   final fine = StreamController<List<int>>();
   final info = StreamController<List<int>>();
   final error = StreamController<List<int>>();
+  static bool isCli = false;
 
   StreamSink<List<int>> get stdoutSink {
     return isCli ? io.stdout : stdout.sink;
