@@ -1,3 +1,7 @@
+## 1.3.3-dev.0
+
+- Fix error when setup on some platforms and tools [#160](https://github.com/leoafarias/fvm/issues/160)
+
 ## 1.3.2
 
 - Better logging for Flutter setup.
