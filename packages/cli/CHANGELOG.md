@@ -1,3 +1,7 @@
+## 1.3.2
+
+- Better logging for Flutter setup.
+
 ## 1.3.1
 
 - Fix issue when running `install` command with pinned version [#161](https://github.com/leoafarias/fvm/issues/161)

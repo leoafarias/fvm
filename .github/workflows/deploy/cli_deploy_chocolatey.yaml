@@ -1,0 +1,48 @@
+# This is a basic workflow that is manually triggered
+
+name: Chocolatey Deploy
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      name:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Deploys version to Chocolatey'
+                
+        # Input has to be provided for the workflow to run
+        required: true
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy-windows:
+    name: Cholatey Deploy (Windows)
+    runs-on: windows-latest
+    needs: release
+    env:
+      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+    defaults:
+      run:
+        working-directory: packages/cli
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Setup Dart
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: pub get
+
+      - name: Run Builder for Version
+        run: pub run build_runner build --delete-conflicting-outputs
+
+      - name: Run Test
+        run: pub run test
+
+      - name: Deploy Chocolatey (Windows)
+        run: pub run grinder pkg-chocolatey-deploy
