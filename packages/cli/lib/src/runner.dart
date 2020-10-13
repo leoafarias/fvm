@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:fvm/constants.dart';
+
 import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
@@ -19,7 +19,7 @@ import 'package:io/ansi.dart';
 
 /// Runs FVM
 Future<void> fvmRunner(List<String> args) async {
-  isCli = true;
+  ConsoleController.isCli = true;
   final runner = buildRunner();
 
   runner..addCommand(InstallCommand());
