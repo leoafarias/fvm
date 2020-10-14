@@ -1,4 +1,4 @@
-## 1.3.3-dev.0
+## 1.3.3-dev.1
 
 - Fix error when setup on some platforms and tools [#160](https://github.com/leoafarias/fvm/issues/160)
 
