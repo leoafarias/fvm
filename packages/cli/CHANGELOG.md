@@ -1,3 +1,7 @@
+## 1.3.4
+
+- Better support for CI, and custom workflows using `fvm flutter ...` commands.
+
 ## 1.3.3
 
 - Fix error when setup on some platforms and tools [#160](https://github.com/leoafarias/fvm/issues/160)
@@ -13,7 +17,7 @@
 ## 1.3.0
 
 - Bug fixes and improvements 😂
-- Implemented ability to change cachePath on settings [#101](https://github.com/leoafarias/fvm/issues/101)
+- Implemented ability to change cachePath` on settings [#101](https://github.com/leoafarias/fvm/issues/101)
 - Improved UX with Flutter run command [#124](https://github.com/leoafarias/fvm/issues/124)
 - Added a notice on Windows to run as developer mode or administrator
 - Ability to set Flutter Git Repo URL (Advanced)
