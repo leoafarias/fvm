@@ -1,11 +1,7 @@
-import 'package:args/command_runner.dart';
-
-import 'package:fvm/fvm.dart';
-
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
-
 import 'package:args/args.dart';
-
+import 'package:args/command_runner.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 /// Proxies Flutter Commands
