@@ -25,6 +25,7 @@ dependencies:
   date_format: ^1.0.9
   version: ^1.2.0
   cli_dialog: ^0.3.3
+  pub_api_client: ^1.0.4
 
 dev_dependencies:
   pedantic: ^1.9.2
