@@ -4,6 +4,7 @@ import 'package:fvm_app/components/atoms/shortcuts.dart';
 import 'package:fvm_app/constants.dart';
 import 'package:fvm_app/providers/navigation_provider.dart';
 import 'package:fvm_app/providers/selected_info_provider.dart';
+import 'package:fvm_app/screens/packages_screen.dart';
 import 'package:fvm_app/utils/layout_size.dart';
 
 import 'package:flutter/material.dart';
@@ -16,7 +17,7 @@ import 'package:fvm_app/components/organisms/info_drawer.dart';
 
 import 'package:fvm_app/screens/explore_screen.dart';
 import 'package:fvm_app/screens/home_screen.dart';
-import 'package:fvm_app/screens/projects.screen.dart';
+import 'package:fvm_app/screens/projects_screen.dart';
 import 'package:fvm_app/screens/settings_screen.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,7 +30,8 @@ final pages = [
   HomeScreen(key: UniqueKey()),
   ProjectsScreen(key: UniqueKey()),
   ExploreScreen(key: UniqueKey()),
-  SettingsScreen(key: UniqueKey()),
+  PackagesScreen(key: UniqueKey()),
+  // SettingsScreen(key: UniqueKey()),
 ];
 
 class AppShell extends HookWidget {
