@@ -46,7 +46,7 @@ class InstallCommand extends Command {
       // Make sure version is pinned if using a project config
       await FlutterProjectRepo.pinVersion(project, version);
     } else {
-      version = argResults.arguments[0];
+      version = argResults.rest[0];
       version = await inferFlutterVersion(version);
 
       await installWorkflow(version);

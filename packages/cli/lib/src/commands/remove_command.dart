@@ -18,6 +18,7 @@ class RemoveCommand extends Command {
 
   /// Constructor
   RemoveCommand() {
+    // TODO: Remove these options
     argParser
       ..addOption('channel', abbr: 'c', help: 'Fluter channel to remove ')
       ..addOption(
@@ -29,7 +30,7 @@ class RemoveCommand extends Command {
 
   @override
   void run() async {
-    final version = argResults.arguments[0].toLowerCase();
+    final version = argResults.rest[0].toLowerCase();
     final validVersion = await inferFlutterVersion(version);
     final isValidInstall = await LocalVersionRepo.isInstalled(validVersion);
 
