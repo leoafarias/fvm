@@ -1,3 +1,7 @@
+## 1.3.5-dev
+
+- Added symlink on install behavior without version
+
 ## 1.3.4
 
 - Better support for CI, and custom workflows using `fvm flutter ...` commands.
