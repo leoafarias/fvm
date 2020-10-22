@@ -1,0 +1,68 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'App v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/app
+    container:
+      image: google/dart:latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Install dependencies
+        run: pub get
+      - name: Install Cider
+        run: pub global activate cider
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: false
+  build:
+    name: "Build ${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: packages/app
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        sdk-version: [dev] #, dev]
+        include:
+          - os: macOS-latest
+            TARGET: macos
+          - os: ubuntu-latest
+            TARGET: linux
+          - os: windows-latest
+            TARGET: windows
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
+      - name: Setup Flutter ${{ matrix.sdk-version }}
+        uses: DanTup/gh-actions/setup-flutter@master
+        with:
+          channel: ${{ matrix.sdk-version }}
+
+      - name: Analyze Flutter
+        run: flutter analyze
+
+      - name: Build Release App
+        run: flutter build ${{ matrix.TARGET }}

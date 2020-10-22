@@ -8,7 +8,6 @@
 import 'dart:io';
 
 import 'package:fvm_app/providers/settings.provider.dart';
-import 'package:fvm_app/utils/notify.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fvm/fvm.dart';

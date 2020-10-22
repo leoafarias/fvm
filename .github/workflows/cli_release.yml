@@ -25,6 +25,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
 
       - name: Setup Dart ${{ matrix.dart-version }}
         uses: DanTup/gh-actions/setup-dart@master
@@ -51,6 +53,8 @@ jobs:
         working-directory: packages/cli
     steps:
       - uses: actions/checkout@v1
+        with:
+          fetch-depth: 0
 
       - name: Install dependencies
         run: pub get

@@ -24,7 +24,7 @@ class InstructionView extends StatelessWidget {
                     if (snapshot.hasData) {
                       return Markdown(
                         controller: controller,
-                        onTapLink: (href) async {
+                        onTapLink: (_, href, __) async {
                           if (await canLaunch(href)) {
                             await launch(href);
                           } else {
@@ -37,7 +37,7 @@ class InstructionView extends StatelessWidget {
                       );
                     }
 
-                    return Center(
+                    return const Center(
                       child: CircularProgressIndicator(),
                     );
                   }),

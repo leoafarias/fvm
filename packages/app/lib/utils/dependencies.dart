@@ -18,7 +18,7 @@ Future<List<PackageDetail>> fetchAllDependencies(Set<String> packages) async {
   final pkgFutures = <Future<PubPackage>>[];
 
   for (var pkg in packages) {
-    pkgFutures.add(client.getPackage(pkg));
+    pkgFutures.add(client.packageInfo(pkg));
   }
   final packagesRes = await Future.wait(pkgFutures);
 
@@ -31,7 +31,7 @@ Future<List<PackageDetail>> fetchAllScores(List<PubPackage> packages) async {
   final pkgs = <Future<PackageDetail>>[];
 
   Future<PackageDetail> _assignScore(PubPackage package) async {
-    final score = await client.getScore(package.name);
+    final score = await client.packageScore(package.name);
     return PackageDetail(
       score: score,
       package: package,

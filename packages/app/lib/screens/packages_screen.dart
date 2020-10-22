@@ -1,5 +1,5 @@
 import 'package:fvm_app/components/atoms/screen.dart';
-import 'package:fvm_app/components/atoms/typography.dart';
+
 import 'package:fvm_app/providers/project_dependencies.provider.dart';
 
 import 'package:flutter/material.dart';

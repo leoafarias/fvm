@@ -18,7 +18,6 @@ import 'package:fvm_app/components/organisms/info_drawer.dart';
 import 'package:fvm_app/screens/explore_screen.dart';
 import 'package:fvm_app/screens/home_screen.dart';
 import 'package:fvm_app/screens/projects_screen.dart';
-import 'package:fvm_app/screens/settings_screen.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
