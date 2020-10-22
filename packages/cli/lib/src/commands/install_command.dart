@@ -5,6 +5,7 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
 import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/use_version.workflow.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -41,14 +42,16 @@ class InstallCommand extends Command {
       }
       // hasConfig = true;
       version = configVersion;
+      await installWorkflow(version);
+      await useVersionWorkflow(version);
     } else {
       version = argResults.arguments[0];
-    }
-    final validVersion = await inferFlutterVersion(version);
+      version = await inferFlutterVersion(version);
 
-    await installWorkflow(validVersion);
+      await installWorkflow(version);
+    }
     if (!skipSetup) {
-      await flutterSetupWorkflow(validVersion);
+      await flutterSetupWorkflow(version);
     }
   }
 }
