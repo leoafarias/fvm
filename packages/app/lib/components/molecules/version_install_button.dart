@@ -19,7 +19,7 @@ class VersionInstallButton extends HookWidget {
     final hovering = useState(false);
     final queueProvider = useProvider(fvmQueueProvider.state);
 
-    useValueChanged(queueProvider, (_, __) {
+    useEffect(() {
       final isInstalling = queueProvider.activeItem != null &&
           queueProvider.activeItem.name == version.name;
 
@@ -34,7 +34,8 @@ class VersionInstallButton extends HookWidget {
       );
 
       isQueued.value = queued != null;
-    });
+      return;
+    }, [queueProvider]);
 
     Future<void> onInstall() async {
       isQueued.value = true;

@@ -19,6 +19,7 @@ class ProjectItem extends HookWidget {
     final installedVersions = useProvider(installedVersionsProvider);
 
     return Container(
+      height: 80,
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(
@@ -27,12 +28,14 @@ class ProjectItem extends HookWidget {
           ),
         ),
       ),
-      child: FvmListTile(
-        leading: const Icon(MdiIcons.alphaPBox),
-        title: FvmSubheading(project.name),
-        trailing: ProjectVersionSelect(
-          project: project,
-          versions: installedVersions,
+      child: Center(
+        child: FvmListTile(
+          leading: const Icon(MdiIcons.alphaPBox),
+          title: FvmSubheading(project.name),
+          trailing: ProjectVersionSelect(
+            project: project,
+            versions: installedVersions,
+          ),
         ),
       ),
     );

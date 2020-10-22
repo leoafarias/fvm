@@ -47,8 +47,6 @@ dependencies:
   freezed: ^0.12.2
   flutter_hooks: ^0.14.1
   path_provider: ^1.6.21
-  pub_api_client:
-    path: /Users/leofarias/Projects/pubdev_api
 
   file_chooser:
     git:
@@ -61,6 +59,8 @@ dependencies:
 
   fvm:
     path: ../cli
+  pub_api_client:
+    path: ../../../pubdev_api
 
 dev_dependencies:
   build_runner: ^1.10.3
