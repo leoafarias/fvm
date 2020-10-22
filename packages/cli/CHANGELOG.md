@@ -1,4 +1,4 @@
-## 1.3.5-dev
+## 1.3.5+1
 
 - Added symlink on install behavior without version
 
