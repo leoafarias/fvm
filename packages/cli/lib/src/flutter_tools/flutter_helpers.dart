@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
@@ -23,7 +24,7 @@ Future<String> inferFlutterVersion(String version) async {
   if (releases.containsVersion(prefixedVersion)) {
     return prefixedVersion;
   } else {
-    throw Exception('Could not infer Flutter Version $version');
+    throw InternalError('Could not infer Flutter Version $version');
   }
 }
 
