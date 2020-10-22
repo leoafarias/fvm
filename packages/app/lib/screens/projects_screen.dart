@@ -1,5 +1,7 @@
 import 'package:fvm_app/components/atoms/loading_indicator.dart';
 import 'package:fvm_app/components/atoms/screen.dart';
+import 'package:fvm_app/components/atoms/typography.dart';
+import 'package:fvm_app/providers/settings.provider.dart';
 import 'package:fvm_app/utils/notify.dart';
 
 import 'package:flutter/material.dart';
@@ -18,7 +20,19 @@ class ProjectsScreen extends HookWidget {
   @override
   Widget build(BuildContext context) {
     final projects = useProvider(projectsProvider.state);
+    final filteredProjects = useState(projects.list);
+    final settings = useProvider(settingsProvider.state);
+
     final controller = useScrollController();
+
+    useEffect(() {
+      if (settings.onlyProjectsWithFvm) {
+        filteredProjects.value =
+            projects.list.where((p) => p.pinnedVersion != null).toList();
+      } else {
+        filteredProjects.value = projects.list;
+      }
+    }, [projects, settings.onlyProjectsWithFvm]);
 
     if (projects.loading) {
       return const Center(
@@ -26,28 +40,51 @@ class ProjectsScreen extends HookWidget {
       );
     }
 
-    if (projects.list.isEmpty) {
+    if (filteredProjects.value.isEmpty) {
       return const EmptyProjects();
     }
 
     return FvmScreen(
       title: 'Flutter Projects',
       actions: [
-        IconButton(
-          tooltip: 'Refresh Projects',
+        FlatButton.icon(
+          label: const FvmCaption('Refresh'),
           icon: const Icon(MdiIcons.refresh, size: 20),
           onPressed: () async {
             await context.read(projectsProvider).scan();
             notify('Projects Refreshed');
           },
         ),
+        const VerticalDivider(
+          width: 40,
+        ),
+        Tooltip(
+          message: '''Displays only projects with versions pinned.''',
+          child: Row(
+            children: [
+              const FvmCaption('Only Pinned'),
+              SizedBox(
+                height: 10,
+                width: 60,
+                child: Switch(
+                  activeColor: Colors.cyan,
+                  value: settings.onlyProjectsWithFvm,
+                  onChanged: (active) async {
+                    settings.onlyProjectsWithFvm = active;
+                    await context.read(settingsProvider).save(settings);
+                  },
+                ),
+              ),
+            ],
+          ),
+        )
       ],
       child: Scrollbar(
         child: ListView.builder(
           controller: controller,
-          itemCount: projects.list.length,
+          itemCount: filteredProjects.value.length,
           itemBuilder: (context, index) {
-            final item = projects.list[index];
+            final item = filteredProjects.value[index];
             return ProjectItem(item, key: Key(item.projectDir.path));
           },
         ),

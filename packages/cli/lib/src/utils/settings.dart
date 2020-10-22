@@ -9,6 +9,7 @@ class Settings {
   bool skipSetup;
   bool noAnalytics;
   bool advancedMode;
+  bool onlyProjectsWithFvm;
   List<String> projectPaths;
 
   Settings({
@@ -17,6 +18,7 @@ class Settings {
     this.skipSetup = true,
     this.noAnalytics = false,
     this.advancedMode = false,
+    this.onlyProjectsWithFvm = false,
     this.projectPaths = const [],
   });
 
@@ -32,6 +34,7 @@ class Settings {
       skipSetup: json['skipSetup'] as bool ?? true,
       noAnalytics: json['noAnalytics'] as bool ?? false,
       advancedMode: json['advancedMode'] as bool ?? false,
+      onlyProjectsWithFvm: json['onlyProjectsWithFvm'] as bool ?? false,
     );
   }
 
@@ -43,6 +46,7 @@ class Settings {
       'projectPaths': projectPaths,
       'noAnalytics': noAnalytics,
       'advancedMode': advancedMode,
+      'onlyProjectsWithFvm': onlyProjectsWithFvm,
     };
   }
 
