@@ -33,22 +33,26 @@ class InstallCommand extends Command {
 
     final project = await FlutterProjectRepo.findAncestor();
     // If no version was passed as argument check project config.
-    if (argResults.arguments.isEmpty) {
+    if (argResults.rest.isEmpty) {
       final configVersion = project.pinnedVersion;
       // If no config found is version throw error
       if (configVersion == null) {
         throw const UsageError('Please provide a channel or a version.');
       }
-      // hasConfig = true;
-      version = configVersion;
-    } else {
-      version = argResults.arguments[0];
-    }
-    final validVersion = await inferFlutterVersion(version);
 
-    await installWorkflow(validVersion);
+      version = configVersion;
+
+      await installWorkflow(version);
+      // Make sure version is pinned if using a project config
+      await FlutterProjectRepo.pinVersion(project, version);
+    } else {
+      version = argResults.rest[0];
+      version = await inferFlutterVersion(version);
+
+      await installWorkflow(version);
+    }
     if (!skipSetup) {
-      await flutterSetupWorkflow(validVersion);
+      await flutterSetupWorkflow(version);
     }
   }
 }
