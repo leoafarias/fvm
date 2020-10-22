@@ -34,7 +34,7 @@ class InstallCommand extends Command {
 
     final project = await FlutterProjectRepo.findAncestor();
     // If no version was passed as argument check project config.
-    if (argResults.arguments.isEmpty) {
+    if (argResults.rest.isEmpty) {
       final configVersion = project.pinnedVersion;
       // If no config found is version throw error
       if (configVersion == null) {
@@ -42,8 +42,10 @@ class InstallCommand extends Command {
       }
       // hasConfig = true;
       version = configVersion;
+
       await installWorkflow(version);
-      await useVersionWorkflow(version);
+      // Make sure version is pinned if using a project config
+      await FlutterProjectRepo.pinVersion(project, version);
     } else {
       version = argResults.arguments[0];
       version = await inferFlutterVersion(version);
