@@ -5,7 +5,6 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
 import 'package:fvm/src/workflows/install_version.workflow.dart';
-import 'package:fvm/src/workflows/use_version.workflow.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command {
@@ -40,7 +39,7 @@ class InstallCommand extends Command {
       if (configVersion == null) {
         throw const UsageError('Please provide a channel or a version.');
       }
-      // hasConfig = true;
+
       version = configVersion;
 
       await installWorkflow(version);
