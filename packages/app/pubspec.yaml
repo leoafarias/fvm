@@ -21,7 +21,10 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  pub_api_client: ^1.0.4
+  
+  dio_http_cache: ^0.2.11
+  dio: ^3.0.10
+  flutter_cache_manager: ^2.0.0
   flutter:
     sdk: flutter
     
@@ -44,6 +47,8 @@ dependencies:
   freezed: ^0.12.2
   flutter_hooks: ^0.14.1
   path_provider: ^1.6.21
+  pub_api_client:
+    path: /Users/leofarias/Projects/pubdev_api
 
   file_chooser:
     git:
