@@ -1,3 +1,7 @@
+## 1.3.6-dev.1
+
+- Added PATH env on Flutter processs. For better third party tooling support.
+
 ## 1.3.5+1
 
 - Added symlink on install behavior without version
