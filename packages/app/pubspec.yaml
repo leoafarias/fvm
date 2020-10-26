@@ -38,7 +38,7 @@ dependencies:
   
   async: ^2.4.2
   pubspec_yaml: ^2.0.1
-  url_launcher: ^5.7.6
+  url_launcher: ^5.7.8
   watcher: ^0.9.7+15
   google_fonts: ^1.1.1
   filesize: ^1.0.4
@@ -46,7 +46,7 @@ dependencies:
   hooks_riverpod: ^0.12.1
   freezed: ^0.12.2
   flutter_hooks: ^0.14.1
-  path_provider: ^1.6.21
+  path_provider: ^1.6.22
 
   file_chooser:
     git:
