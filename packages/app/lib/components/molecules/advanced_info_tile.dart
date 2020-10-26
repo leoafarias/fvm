@@ -4,7 +4,7 @@ import 'package:fvm_app/components/atoms/list_tile.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
 import 'package:fvm_app/dto/version.dto.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fvm_app/utils/open_link.dart';
 
 class AdvancedInfoTile extends StatelessWidget {
   final VersionDto version;
@@ -25,11 +25,7 @@ class AdvancedInfoTile extends StatelessWidget {
           trailing: IconButton(
             icon: const Icon(Icons.cloud_download),
             onPressed: () async {
-              if (await canLaunch(version.release.archiveUrl)) {
-                await launch(version.release.archiveUrl);
-              } else {
-                throw '''Could not launch ${version.release.archiveUrl}''';
-              }
+              await openLink(version.release.archiveUrl);
             },
           ),
         ),

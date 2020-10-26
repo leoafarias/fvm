@@ -1,7 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
+import 'package:fvm_app/utils/github_parse.dart';
+import 'package:fvm_app/utils/http_cache.dart';
 import 'package:pub_api_client/pub_api_client.dart';
 
-final client = PubClient();
+// ignore: avoid_classes_with_only_static_members
+
+final client = PubClient(client: CacheHttpClient());
 
 class PackageDetail {
   @required
@@ -15,6 +22,12 @@ class PackageDetail {
     this.score,
     this.count,
   });
+
+  int compareTo(PackageDetail other) {
+    if (other.count > count) return -1;
+    if (other.count == count) return 0;
+    return 1;
+  }
 }
 
 Map<String, PubPackage> mapPackages;
@@ -50,6 +63,7 @@ Future<List<PackageDetail>> fetchAllScores(
   }
 
   for (var pkg in validPubPkgs) {
+    getRepoSlugFromPubspec(pkg.latestPubspec);
     pkgs.add(_assignScore(pkg, packages[pkg.name]));
   }
 

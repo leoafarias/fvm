@@ -4,7 +4,7 @@ import 'package:pub_api_client/pub_api_client.dart';
 import 'package:hooks_riverpod/all.dart';
 
 // ignore: top_level_function_literal_block
-final projectDependenciesProvider = FutureProvider((ref) {
+final projectDependenciesProvider = FutureProvider((ref) async {
   final projects = ref.watch(projectsProvider.state);
   final packages = <String, int>{};
 
@@ -19,11 +19,12 @@ final projectDependenciesProvider = FutureProvider((ref) {
     allDeps.forEach((dep) {
       // ignore: invalid_use_of_protected_member
       if (dep.hosted != null && !isGooglePubPackage(dep.package())) {
-        packages.update(dep.package(), (val) => ++val, ifAbsent: () => 0);
-      } else {
-        print(dep.package());
+        packages.update(dep.package(), (val) => ++val, ifAbsent: () => 1);
       }
     });
   }
-  return fetchAllDependencies(packages);
+  final pkgs = await fetchAllDependencies(packages);
+  pkgs..sort((a, b) => a.compareTo(b));
+  // Reverse order
+  return pkgs.reversed.toList();
 });

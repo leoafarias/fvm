@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fvm_app/utils/open_link.dart';
 
 class InstructionView extends StatelessWidget {
   final String name;
@@ -25,11 +25,7 @@ class InstructionView extends StatelessWidget {
                       return Markdown(
                         controller: controller,
                         onTapLink: (_, href, __) async {
-                          if (await canLaunch(href)) {
-                            await launch(href);
-                          } else {
-                            throw 'Could not launch $href';
-                          }
+                          await openLink(href);
                         },
                         selectable: false,
                         data: snapshot.data,
