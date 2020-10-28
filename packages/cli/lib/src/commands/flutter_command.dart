@@ -24,10 +24,11 @@ class FlutterCommand extends Command {
     final project = await FlutterProjectRepo.findAncestor();
 
     if (project != null && project.pinnedVersion != null) {
-      FvmLogger.info('FVM: Running version ${project.pinnedVersion}');
+      logger.trace('FVM: Running version ${project.pinnedVersion}');
+
       await runFlutterCmd(project.pinnedVersion, argResults.arguments);
     } else {
-      FvmLogger.info(
+      logger.trace(
         'FVM: Running using Flutter version configured in path.',
       );
       // Running null will default to flutter version on path

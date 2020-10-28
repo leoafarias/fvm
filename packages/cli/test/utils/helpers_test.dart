@@ -44,4 +44,18 @@ void main() {
     ).readAsStringSync().toPubspecYaml();
     expect(pubspec.version.valueOr(() => null), packageVersion);
   });
+
+  test('Test ReplaceFlutterPathEnv', () async {
+    final version = 'stable';
+    final envName = 'PATH';
+    final emptyEnvVar = replaceFlutterPathEnv('');
+    final nullEnvVar = replaceFlutterPathEnv(null);
+
+    final newEnvVar = replaceFlutterPathEnv(version);
+    final flutterPath = join(kVersionsDir.path, version, 'bin');
+
+    expect(emptyEnvVar[envName], envVars[envName]);
+    expect(nullEnvVar[envName], envVars[envName]);
+    expect(newEnvVar[envName].contains(flutterPath), true);
+  });
 }

@@ -58,12 +58,15 @@ Map<String, String> replaceFlutterPathEnv(String version) {
     return envVars;
   }
 
-  final newEnvs = envVars['PATH']
+  final pathEnvList = envVars['PATH']
       .split(':')
-      .where((e) => '$e/flutter' != whichSync('flutter'));
+      .where((e) => '$e/flutter' != whichSync('flutter'))
+      .toList();
 
   final binPath = join(kVersionsDir.path, version, 'bin');
 
+  final newEnv = pathEnvList.join(':');
+
   return Map<String, String>.from(envVars)
-    ..addAll({'PATH': '$newEnvs:$binPath'});
+    ..addAll({'PATH': '$newEnv:$binPath'});
 }
