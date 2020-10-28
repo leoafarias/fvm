@@ -1,3 +1,4 @@
+import 'package:adaptive_navigation/adaptive_navigation.dart';
 import 'package:animations/animations.dart';
 import 'package:fvm_app/components/atoms/nav_button.dart';
 import 'package:fvm_app/components/atoms/shortcuts.dart';
@@ -33,10 +34,19 @@ final pages = [
   // SettingsScreen(key: UniqueKey()),
 ];
 
+const _destinations = [
+  AdaptiveScaffoldDestination(title: 'Dashboard', icon: Icons.category),
+  AdaptiveScaffoldDestination(title: 'Projects', icon: MdiIcons.folderMultiple),
+  AdaptiveScaffoldDestination(title: 'Explore', icon: Icons.explore),
+  AdaptiveScaffoldDestination(title: 'Settings', icon: Icons.settings),
+  AdaptiveScaffoldDestination(title: 'Packages', icon: MdiIcons.package)
+];
+
 class AppShell extends HookWidget {
   const AppShell({Key key}) : super(key: key);
 
-  final totalTabs = 5;
+  final int _destinationCount = 5;
+  final bool _includeBaseDestinationsInMenu = true;
 
   @override
   Widget build(BuildContext context) {
@@ -90,98 +100,140 @@ class AppShell extends HookWidget {
     });
 
     return KBShortcutManager(
-      onRouteShortcut: handleIndexShortcut,
-      focusNode: focusNode,
-      child: Scaffold(
-        key: _scaffoldKey,
-        endDrawer: !LayoutSize.isLarge ? const InfoDrawer() : Container(),
-        bottomNavigationBar: const AppBottomBar(),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            Container(
-              child: Row(
-                children: <Widget>[
-                  NavigationRail(
-                    leading: const SizedBox(height: 10),
-                    selectedIndex: selectedIndex.value,
-                    minWidth: kNavigationWidth,
-                    minExtendedWidth: kNavigationWidthExtended,
-                    extended: !LayoutSize.isSmall,
-                    onDestinationSelected: (index) {
-                      // If its search
-                      if (index == 4) {
-                        showSearch.value = true;
-                      } else {
-                        navigation.goTo(NavigationRoutes.values[index]);
-                      }
-                    },
-                    labelType: NavigationRailLabelType.none,
-                    destinations: [
-                      NavButton(
-                        label: 'Dashboard',
-                        iconData: Icons.category,
-                      ),
-                      NavButton(
-                        label: 'Projects',
-                        iconData: MdiIcons.folderMultiple,
-                      ),
-                      NavButton(
-                        label: 'Explore',
-                        iconData: Icons.explore,
-                      ),
-                      NavButton(
-                        label: 'Settings',
-                        iconData: Icons.settings,
-                      ),
-                      NavButton(
-                        label: 'Search',
-                        iconData: Icons.search,
-                      ),
-                    ],
-                  ),
-                  const VerticalDivider(thickness: 1, width: 1),
-                  // This is the main content.
-                  Expanded(
-                    child: PageTransitionSwitcher(
-                      duration: const Duration(milliseconds: 250),
-                      reverse: selectedIndex.value <
-                          (navigation.previous.index ?? 0),
-                      child: pages[selectedIndex.value],
-                      transitionBuilder: (
-                        child,
-                        animation,
-                        secondaryAnimation,
-                      ) {
-                        return SharedAxisTransition(
-                          fillColor: Colors.transparent,
-                          child: child,
-                          animation: animation,
-                          secondaryAnimation: secondaryAnimation,
-                          transitionType: SharedAxisTransitionType.vertical,
-                        );
-                      },
-                    ),
-                  ),
-                  LayoutSize.isLarge
-                      ? const VerticalDivider(width: 0)
-                      : Container(),
-                  LayoutSize.isLarge ? const InfoDrawer() : Container()
-                ],
+        onRouteShortcut: handleIndexShortcut,
+        focusNode: focusNode,
+        child: AdaptiveNavigationScaffold(
+          selectedIndex: selectedIndex.value,
+          destinations: _destinations,
+          appBar: AdaptiveAppBar(title: Text('Test')),
+          fabInRail: false,
+          floatingActionButton: FloatingActionButton(
+            child: const Icon(Icons.search),
+            onPressed: () => showSearch.value = true,
+          ),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              PageTransitionSwitcher(
+                duration: const Duration(milliseconds: 250),
+                reverse: selectedIndex.value < (navigation.previous.index ?? 0),
+                child: pages[selectedIndex.value],
+                transitionBuilder: (
+                  child,
+                  animation,
+                  secondaryAnimation,
+                ) {
+                  return SharedAxisTransition(
+                    fillColor: Colors.transparent,
+                    child: child,
+                    animation: animation,
+                    secondaryAnimation: secondaryAnimation,
+                    transitionType: SharedAxisTransitionType.vertical,
+                  );
+                },
               ),
-            ),
-            SearchBar(
-              showSearch: showSearch.value,
-              onFocusChanged: (focus) async {
-                // focusNode.requestFocus();
-                if (showSearch.value != focus) {
-                  showSearch.value = focus;
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+              SearchBar(
+                showSearch: showSearch.value,
+                onFocusChanged: (focus) async {
+                  // focusNode.requestFocus();
+                  if (showSearch.value != focus) {
+                    showSearch.value = focus;
+                  }
+                },
+              ),
+            ],
+          ),
+        )
+        // child: Scaffold(
+        //   key: _scaffoldKey,
+        //   endDrawer: !LayoutSize.isLarge ? const InfoDrawer() : Container(),
+        //   bottomNavigationBar: const AppBottomBar(),
+        //   body: Stack(
+        //     fit: StackFit.expand,
+        //     children: [
+        //       Container(
+        //         child: Row(
+        //           children: <Widget>[
+        //             NavigationRail(
+        //               leading: const SizedBox(height: 10),
+        //               selectedIndex: selectedIndex.value,
+        //               minWidth: kNavigationWidth,
+        //               minExtendedWidth: kNavigationWidthExtended,
+        //               extended: !LayoutSize.isSmall,
+        //               onDestinationSelected: (index) {
+        //                 // If its search
+        //                 if (index == 4) {
+        //                   showSearch.value = true;
+        //                 } else {
+        //                   navigation.goTo(NavigationRoutes.values[index]);
+        //                 }
+        //               },
+        //               labelType: NavigationRailLabelType.none,
+        //               destinations: [
+        //                 NavButton(
+        //                   label: 'Dashboard',
+        //                   iconData: Icons.category,
+        //                 ),
+        //                 NavButton(
+        //                   label: 'Projects',
+        //                   iconData: MdiIcons.folderMultiple,
+        //                 ),
+        //                 NavButton(
+        //                   label: 'Explore',
+        //                   iconData: Icons.explore,
+        //                 ),
+        //                 NavButton(
+        //                   label: 'Settings',
+        //                   iconData: Icons.settings,
+        //                 ),
+        //                 NavButton(
+        //                   label: 'Search',
+        //                   iconData: Icons.search,
+        //                 ),
+        //               ],
+        //             ),
+        //             const VerticalDivider(thickness: 1, width: 1),
+        //             // This is the main content.
+        //             Expanded(
+        //               child: PageTransitionSwitcher(
+        //                 duration: const Duration(milliseconds: 250),
+        //                 reverse: selectedIndex.value <
+        //                     (navigation.previous.index ?? 0),
+        //                 child: pages[selectedIndex.value],
+        //                 transitionBuilder: (
+        //                   child,
+        //                   animation,
+        //                   secondaryAnimation,
+        //                 ) {
+        //                   return SharedAxisTransition(
+        //                     fillColor: Colors.transparent,
+        //                     child: child,
+        //                     animation: animation,
+        //                     secondaryAnimation: secondaryAnimation,
+        //                     transitionType: SharedAxisTransitionType.vertical,
+        //                   );
+        //                 },
+        //               ),
+        //             ),
+        //             LayoutSize.isLarge
+        //                 ? const VerticalDivider(width: 0)
+        //                 : Container(),
+        //             LayoutSize.isLarge ? const InfoDrawer() : Container()
+        //           ],
+        //         ),
+        //       ),
+        //       SearchBar(
+        //         showSearch: showSearch.value,
+        //         onFocusChanged: (focus) async {
+        //           // focusNode.requestFocus();
+        //           if (showSearch.value != focus) {
+        //             showSearch.value = focus;
+        //           }
+        //         },
+        //       ),
+        //     ],
+        //   ),
+        // ),
+        );
   }
 }

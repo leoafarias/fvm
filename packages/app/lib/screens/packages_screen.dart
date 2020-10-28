@@ -24,67 +24,87 @@ class PackagesScreen extends HookWidget {
         data: (data) {
           return FvmScreen(
             title: 'On The Shoulders of Giants (Used Packages)',
-            child: ListView.separated(
-              separatorBuilder: (_, __) => const Divider(),
-              itemBuilder: (context, index) {
-                final pkg = data[index];
-                final position = ++index;
-                return Container(
-                  height: 120,
-                  child: Column(
-                    children: [
-                      FvmListTile(
-                        leading: Text(position.toString()),
-                        title: Text(pkg.package.name),
-                        subtitle: Text(
-                          pkg.package.description,
-                          maxLines: 2,
-                          style: Theme.of(context).textTheme.caption,
+            child: Scrollbar(
+              child: ListView.builder(
+                // separatorBuilder: (_, __) => const Divider(),
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  final pkg = data[index];
+                  final position = ++index;
+                  return Container(
+                    height: 150,
+                    child: Column(
+                      children: [
+                        FvmListTile(
+                          leading: CircleAvatar(
+                            child: Text(position.toString()),
+                          ),
+                          title: Text(pkg.package.name),
+                          subtitle: Text(
+                            pkg.package.description,
+                            maxLines: 2,
+                            style: Theme.of(context).textTheme.caption,
+                          ),
+                          trailing: PackageScoreDisplay(score: pkg.score),
                         ),
-                        trailing: PackageScoreDisplay(score: pkg.score),
-                      ),
-                      const Divider(thickness: 0.5),
-                      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                        GithubInfoDisplay(
-                          key: Key(pkg.package.name),
-                          repoSlug:
-                              getRepoSlugFromPubspec(pkg.package.latestPubspec),
+                        const Divider(thickness: 0.5),
+                        Row(
+                          children: [
+                            GithubInfoDisplay(
+                              key: Key(pkg.package.name),
+                              repoSlug: getRepoSlugFromPubspec(
+                                  pkg.package.latestPubspec),
+                            ),
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      FvmCaption(pkg.package.version),
+                                      const SizedBox(width: 10),
+                                      const Text('·'),
+                                      const SizedBox(width: 10),
+                                      TextButton(
+                                        child: const Text('details'),
+                                        onPressed: () async {
+                                          await openLink(pkg.package.url);
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Text('·'),
+                                      const SizedBox(width: 10),
+                                      TextButton(
+                                        child: const Text('changelog'),
+                                        onPressed: () async {
+                                          await openLink(
+                                              pkg.package.changelogUrl);
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Text('·'),
+                                      const SizedBox(width: 10),
+                                      TextButton(
+                                        child: const Text('website'),
+                                        onPressed: () async {
+                                          await openLink(pkg
+                                              .package.latestPubspec.homepage);
+                                        },
+                                      ),
+                                      const SizedBox(width: 10),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            )
+                          ],
                         ),
-                        FvmCaption(pkg.package.version),
-                        const SizedBox(width: 10),
-                        const Text('·'),
-                        const SizedBox(width: 10),
-                        TextButton(
-                          child: const Text('details'),
-                          onPressed: () async {
-                            await openLink(pkg.package.url);
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        const Text('·'),
-                        const SizedBox(width: 10),
-                        TextButton(
-                          child: const Text('changelog'),
-                          onPressed: () async {
-                            await openLink(pkg.package.changelogUrl);
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                        const Text('·'),
-                        const SizedBox(width: 10),
-                        TextButton(
-                          child: const Text('website'),
-                          onPressed: () async {
-                            await openLink(pkg.package.latestPubspec.homepage);
-                          },
-                        ),
-                        const SizedBox(width: 10),
-                      ])
-                    ],
-                  ),
-                );
-              },
-              itemCount: data.length,
+                        const Divider()
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           );
         },

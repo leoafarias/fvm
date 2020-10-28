@@ -1,7 +1,21 @@
 import 'package:fvm_app/providers/projects_provider.dart';
 import 'package:fvm_app/utils/dependencies.dart';
+import 'package:fvm_app/utils/http_cache.dart';
+import 'package:github/github.dart';
 import 'package:pub_api_client/pub_api_client.dart';
 import 'package:hooks_riverpod/all.dart';
+
+final getGithubRepositoryProvider =
+    FutureProvider.family<Repository, RepositorySlug>((ref, repoSlug) async {
+  final github = GitHub(
+    auth: Authentication.withToken('fa01cbd4098cb70784d31b8383e32f7f68ee9526'),
+    client: CacheHttpClient(),
+  );
+  if (repoSlug == null) {
+    throw 'Not valid Github Slug';
+  }
+  return await github.repositories.getRepository(repoSlug);
+});
 
 // ignore: top_level_function_literal_block
 final projectDependenciesProvider = FutureProvider((ref) async {
