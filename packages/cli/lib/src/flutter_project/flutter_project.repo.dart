@@ -97,7 +97,7 @@ class FlutterProjectRepo {
 
     final project = await getOne(directory);
 
-    if (project.isFlutterProject) {
+    if (project.config?.flutterSdkVersion != null) {
       return project;
     }
 
