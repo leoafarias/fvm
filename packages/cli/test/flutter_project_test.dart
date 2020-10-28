@@ -9,6 +9,22 @@ void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);
   group('Flutter Projects', () {
+    test('Can set SDK version on Flutter Project', () async {
+      try {
+        final flutterProject = await FlutterProjectRepo.getOne(kFlutterAppDir);
+
+        final flutterProjectVersion = await getRandomFlutterVersion();
+
+        await FlutterProjectRepo.pinVersion(
+          flutterProject,
+          flutterProjectVersion,
+        );
+
+        expect(flutterProject.pinnedVersion, flutterProjectVersion);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
+      }
+    });
     test('Can find Flutter Project', () async {
       try {
         final flutterProject =
@@ -27,23 +43,6 @@ void main() {
         expect(flutterProject.isFlutterProject, true);
         expect(dartPackage.isFlutterProject, false);
         expect(emptyProject.isFlutterProject, false);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
-    });
-
-    test('Can set SDK version on Flutter Project', () async {
-      try {
-        final flutterProject = await FlutterProjectRepo.findAncestor();
-
-        final flutterProjectVersion = await getRandomFlutterVersion();
-
-        await FlutterProjectRepo.pinVersion(
-          flutterProject,
-          flutterProjectVersion,
-        );
-
-        expect(flutterProject.pinnedVersion, flutterProjectVersion);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
