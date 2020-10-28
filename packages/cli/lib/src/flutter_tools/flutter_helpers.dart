@@ -51,3 +51,22 @@ String getFlutterSdkExec(String version) {
 
   return join(sdkPath, Platform.isWindows ? 'flutter.bat' : 'flutter');
 }
+
+// TODO: Implement tests
+Map<String, String> replaceFlutterPathEnv(String version) {
+  if (version == null || version.isEmpty) {
+    return envVars;
+  }
+
+  final pathEnvList = envVars['PATH']
+      .split(':')
+      .where((e) => '$e/flutter' != whichSync('flutter'))
+      .toList();
+
+  final binPath = join(kVersionsDir.path, version, 'bin');
+
+  final newEnv = pathEnvList.join(':');
+
+  return Map<String, String>.from(envVars)
+    ..addAll({'PATH': '$newEnv:$binPath'});
+}

@@ -1,3 +1,9 @@
+## 1.3.6-dev.3
+
+- Enhancement: Added PATH env on Flutter processs. For better third party tooling support.
+- Fix: Updated Grinder dependencies
+- Fix: Better ancestor lookup logic for monorepo setups. [#180](https://github.com/leoafarias/fvm/issues/180)
+
 ## 1.3.5+1
 
 - Added symlink on install behavior without version

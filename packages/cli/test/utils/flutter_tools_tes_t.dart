@@ -9,8 +9,8 @@ import '../test_helpers.dart';
 // import '../test_helpers.dart';
 
 void main() {
-  setUpAll(fvmSetUpAll);
-  tearDownAll(fvmTearDownAll);
+  // setUpAll(fvmSetUpAll);
+  // tearDownAll(fvmTearDownAll);
   group('Flutter tools', () {
     test('Can run flutter', () async {
       try {

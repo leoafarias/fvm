@@ -1,3 +1,4 @@
+import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/local_versions/local_versions_tools.dart';
@@ -9,8 +10,7 @@ Future<void> useVersionWorkflow(
   bool global,
   bool force,
 }) async {
-  final project = await FlutterProjectRepo.findAncestor();
-
+  final project = await FlutterProjectRepo.getOne(kWorkingDirectory);
   // If project use check that is Flutter project
   if (!project.isFlutterProject && !global && !force) {
     throw const UsageError(

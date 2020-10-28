@@ -59,7 +59,7 @@ FVM gives you the ability to install many Flutter **releases** or **channels**.
 
 #### Project Config SDK Version
 
-If you configured your project to use a specific version, run `install` without any arguments will install the proper version.
+If you configured your project to use a specific version, run `install` without any arguments will install and link the proper version.
 
 ```bash
 > fvm install
@@ -74,6 +74,8 @@ You can use different Flutter SDK versions per project. To do that you have to g
 ```bash
 > fvm use <version>
 ```
+
+**Important:** Please consider adding `flutter_sdk` to your .gitignore to avoid versioning your Fvm Flutter SDK symlink.
 
 **Set Global Version**
 
