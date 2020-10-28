@@ -36,10 +36,8 @@ dev_dependencies:
   grinder: ^0.8.6
   dotenv: ^2.0.0
   # cli_pkg: ^1.0.0-beta.9
-  # cli_pkg:
-  #   git:
-  #     url: https://github.com/leoafarias/dart_cli_pkg.git
-  #     ref: chocolatey-deploy-fix
   cli_pkg:
-    path: /Users/leofarias/dart_cli_pkg
-  
+    git:
+      url: https://github.com/leoafarias/dart_cli_pkg.git
+      ref: chocolatey-deploy-fix
+
