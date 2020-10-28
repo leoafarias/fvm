@@ -1,6 +1,7 @@
 ## 1.3.6-dev.1
 
-- Added PATH env on Flutter processs. For better third party tooling support.
+- Enhancement: Added PATH env on Flutter processs. For better third party tooling support.
+- Fix: Better ancestor lookup logic for monorepo setups. [#180](https://github.com/leoafarias/fvm/issues/180)
 
 ## 1.3.5+1
 
