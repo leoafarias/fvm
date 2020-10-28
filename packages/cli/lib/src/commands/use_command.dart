@@ -71,17 +71,15 @@ class UseCommand extends Command {
     final validVersion = await inferFlutterVersion(version);
     final isVersionInstalled = await LocalVersionRepo.isInstalled(validVersion);
 
-    if (isVersionInstalled) {
+    if (!isVersionInstalled) {
       // Make sure version is installed
-      await useVersionWorkflow(validVersion, global: global, force: force);
-    } else {
       FvmLogger.info('Flutter $validVersion is not installed.');
       // Install if input is confirmed
       if (await confirm('Would you like to install it?')) {
         await installWorkflow(validVersion);
-        await useVersionWorkflow(validVersion, global: global, force: force);
       }
     }
+    await useVersionWorkflow(validVersion, global: global, force: force);
 
     await checkIfLatestVersion();
   }
