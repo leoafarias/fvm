@@ -21,11 +21,13 @@ Future<void> runFlutterCmd(
   if (!await isExecutable(execPath)) {
     throw UsageError('Flutter version $version is not installed');
   }
+
   _switchLineMode(false, args);
 
   final process = await processManager.spawn(
     execPath,
     args,
+    environment: replaceFlutterPathEnv(version),
     workingDirectory: kWorkingDirectory.path,
   );
 
