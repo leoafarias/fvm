@@ -1,4 +1,4 @@
-## 1.3.6-dev.3
+## 1.3.6
 
 - Enhancement: Added PATH env on Flutter processs. For better third party tooling support.
 - Fix: Updated Grinder dependencies
