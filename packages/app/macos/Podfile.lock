@@ -8,9 +8,9 @@ PODS:
   - path_provider (0.0.1)
   - path_provider_macos (0.0.1):
     - FlutterMacOS
-  - sqflite (0.0.1):
+  - sqflite (0.0.2):
     - FlutterMacOS
-    - FMDB (~> 2.7.2)
+    - FMDB (>= 2.7.5)
   - url_launcher (0.0.1)
   - url_launcher_macos (0.0.1):
     - FlutterMacOS
@@ -55,7 +55,7 @@ SPEC CHECKSUMS:
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   path_provider: e0848572d1d38b9a7dd099e79cf83f5b7e2cde9f
   path_provider_macos: a0a3fd666cb7cd0448e936fb4abad4052961002b
-  sqflite: 6c1f07e1d4399d619ea619fea9171251dd24d058
+  sqflite: a5789cceda41d54d23f31d6de539d65bb14100ea
   url_launcher: af78307ef9bafff91273b34f1c6c0c86a0004fd7
   url_launcher_macos: 45af3d61de06997666568a7149c1be98b41c95d4
   window_size: 339dafa0b27a95a62a843042038fa6c3c48de195

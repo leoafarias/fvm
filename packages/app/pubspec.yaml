@@ -22,7 +22,7 @@ environment:
 
 dependencies:
   
-  adaptive_navigation: ^0.0.2
+  
   pubspec_parse: ^0.1.5
   github: ^7.0.3
 
@@ -61,8 +61,7 @@ dependencies:
 
   fvm:
     path: ../cli
-  pub_api_client:
-    path: ../../../pubdev_api
+  pub_api_client: ^1.0.9
 
 dev_dependencies:
   build_runner: ^1.10.3
