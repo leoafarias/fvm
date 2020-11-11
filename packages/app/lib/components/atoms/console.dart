@@ -49,14 +49,14 @@ class Console extends HookWidget {
           children: [
             const SizedBox(width: 20),
             installedList.length > 0
-                ? FvmCaption('${installedList.length} Versions')
-                : const FvmCaption('Versions'),
+                ? TypographyCaption('${installedList.length} Versions')
+                : const TypographyCaption('Versions'),
             const SizedBox(width: 20),
             const CacheSizeDisplay(),
             const SizedBox(width: 20),
             projects.loading
-                ? const FvmCaption('Loading Projects...')
-                : FvmCaption('${projects.list.length} Projects'),
+                ? const TypographyCaption('Loading Projects...')
+                : TypographyCaption('${projects.list.length} Projects'),
             const SizedBox(width: 20),
           ],
         ),

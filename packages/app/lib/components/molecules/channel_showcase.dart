@@ -27,10 +27,10 @@ class ChannelShowcase extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                FvmTitle(channel.name),
-                FvmSubheading(channel.release.version),
+                TypographyTitle(channel.name),
+                TypographySubheading(channel.release.version),
                 const SizedBox(height: 5),
-                FvmCaption(
+                TypographyCaption(
                   DateTimeFormat.relative(
                     channel.release.releaseDate,
                     appendIfAfter: 'ago',

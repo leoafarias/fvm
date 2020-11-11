@@ -36,8 +36,6 @@ final pages = [
 class AppShell extends HookWidget {
   const AppShell({Key key}) : super(key: key);
 
-  final totalTabs = 5;
-
   @override
   Widget build(BuildContext context) {
     LayoutSize.init(context);
@@ -57,6 +55,15 @@ class AppShell extends HookWidget {
       }
       navigation.goTo(route);
     }
+
+    // Set current index or search based on route change
+    useValueChanged(currentRoute, (_, __) {
+      if (currentRoute == NavigationRoutes.searchScreen) {
+        showSearch.value = true;
+      } else {
+        selectedIndex.value = currentRoute.index;
+      }
+    });
 
     // Logic for displaying or hiding drawer based on layout
     // ignore: missing_return
@@ -80,15 +87,6 @@ class AppShell extends HookWidget {
       }
     }, [selectedInfo, LayoutSize.size]);
 
-    // Set current index or search based on route change
-    useValueChanged(currentRoute, (_, __) {
-      if (currentRoute == NavigationRoutes.searchScreen) {
-        showSearch.value = true;
-      } else {
-        selectedIndex.value = currentRoute.index;
-      }
-    });
-
     return KBShortcutManager(
       onRouteShortcut: handleIndexShortcut,
       focusNode: focusNode,
@@ -109,12 +107,7 @@ class AppShell extends HookWidget {
                     minExtendedWidth: kNavigationWidthExtended,
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
-                      // If its search
-                      if (index == 4) {
-                        showSearch.value = true;
-                      } else {
-                        navigation.goTo(NavigationRoutes.values[index]);
-                      }
+                      navigation.goTo(NavigationRoutes.values[index]);
                     },
                     labelType: NavigationRailLabelType.none,
                     destinations: [
@@ -131,10 +124,14 @@ class AppShell extends HookWidget {
                         iconData: Icons.explore,
                       ),
                       NavButton(
-                        label: 'Settings',
-                        iconData: Icons.settings,
+                        label: 'Packages',
+                        iconData: MdiIcons.package,
                       ),
-                      NavButton(label: 'Search', iconData: Icons.search),
+                      // NavButton(
+                      //   label: 'Settings',
+                      //   iconData: Icons.settings,
+                      // ),
+                      // NavButton(label: 'Search', iconData: Icons.search),
                     ],
                   ),
                   const VerticalDivider(thickness: 1, width: 1),

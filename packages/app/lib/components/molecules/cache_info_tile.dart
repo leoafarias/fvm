@@ -25,7 +25,7 @@ class CacheInfoTile extends StatelessWidget {
         const Divider(height: 0),
         FvmListTile(
           title: const Text('Cache Location'),
-          subtitle: FvmCaption(version.installedDir.path),
+          subtitle: TypographyCaption(version.installedDir.path),
           trailing: CopyButton(version.installedDir.path),
         ),
       ],

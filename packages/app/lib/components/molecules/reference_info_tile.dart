@@ -25,7 +25,7 @@ class ReferenceInfoTile extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-          child: FvmParagraph(channelDescriptions[version.name]),
+          child: TypographyParagraph(channelDescriptions[version.name]),
         ),
         const Divider(height: 0),
         FvmListTile(

@@ -1,4 +1,3 @@
-import 'package:fvm_app/components/atoms/blur_background.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
 import 'package:flutter/material.dart';
 
@@ -10,8 +9,7 @@ class FvmAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: FvmTitle(title),
-      backgroundColor: Colors.transparent,
+      title: TypographyTitle(title),
       centerTitle: false,
       actions: actions,
       bottom: const PreferredSize(
@@ -22,7 +20,9 @@ class FvmAppBar extends StatelessWidget {
         ),
       ),
       automaticallyImplyLeading: false,
-      flexibleSpace: const BlurBackground(),
+      // shadowColor: Colors.transparent,
+      // backgroundColor: Colors.transparent,
+      // flexibleSpace: const BlurBackground(),
     );
   }
 }

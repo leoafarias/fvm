@@ -35,7 +35,7 @@ class InfoDrawer extends HookWidget {
       return Drawer(
         child: Container(
           color: Theme.of(context).cardColor,
-          child: const Center(child: FvmCaption('Nothing selected')),
+          child: const Center(child: TypographyCaption('Nothing selected')),
         ),
       );
     }
@@ -44,7 +44,7 @@ class InfoDrawer extends HookWidget {
       child: Scaffold(
         backgroundColor: Theme.of(context).cardColor,
         appBar: AppBar(
-          title: FvmTitle(selected.name),
+          title: TypographyTitle(selected.name),
           leading: IconButton(
             icon: const Icon(Icons.close),
             iconSize: 20,

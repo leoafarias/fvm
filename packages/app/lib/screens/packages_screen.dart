@@ -23,7 +23,7 @@ class PackagesScreen extends HookWidget {
     return packages.when(
         data: (data) {
           return FvmScreen(
-            title: 'On The Shoulders of Giants (Used Packages)',
+            title: 'Your Most Popular Packages',
             child: Scrollbar(
               child: ListView.builder(
                 // separatorBuilder: (_, __) => const Divider(),
@@ -37,6 +37,7 @@ class PackagesScreen extends HookWidget {
                       children: [
                         FvmListTile(
                           leading: CircleAvatar(
+                            backgroundColor: Colors.black26,
                             child: Text(position.toString()),
                           ),
                           title: Text(pkg.package.name),
@@ -61,7 +62,7 @@ class PackagesScreen extends HookWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      FvmCaption(pkg.package.version),
+                                      TypographyCaption(pkg.package.version),
                                       const SizedBox(width: 10),
                                       const Text('·'),
                                       const SizedBox(width: 10),

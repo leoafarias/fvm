@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class FvmParagraph extends StatelessWidget {
+class TypographyParagraph extends StatelessWidget {
   final String text;
   final int maxLines;
   final TextOverflow overflow;
-  const FvmParagraph(this.text, {this.maxLines, this.overflow, Key key})
+  const TypographyParagraph(this.text, {this.maxLines, this.overflow, Key key})
       : super(key: key);
 
   @override
@@ -22,9 +22,9 @@ class FvmParagraph extends StatelessWidget {
   }
 }
 
-class FvmCaption extends StatelessWidget {
+class TypographyCaption extends StatelessWidget {
   final String text;
-  const FvmCaption(this.text, {Key key}) : super(key: key);
+  const TypographyCaption(this.text, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +35,9 @@ class FvmCaption extends StatelessWidget {
   }
 }
 
-class FvmHeadline extends StatelessWidget {
+class TypographyHeadline extends StatelessWidget {
   final String text;
-  const FvmHeadline(this.text, {Key key}) : super(key: key);
+  const TypographyHeadline(this.text, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +79,9 @@ class TextStderr extends StatelessWidget {
   }
 }
 
-class FvmTitle extends StatelessWidget {
+class TypographyTitle extends StatelessWidget {
   final String text;
-  const FvmTitle(this.text, {Key key}) : super(key: key);
+  const TypographyTitle(this.text, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -92,9 +92,9 @@ class FvmTitle extends StatelessWidget {
   }
 }
 
-class FvmSubheading extends StatelessWidget {
+class TypographySubheading extends StatelessWidget {
   final String text;
-  const FvmSubheading(this.text, {Key key}) : super(key: key);
+  const TypographySubheading(this.text, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -8,8 +8,12 @@ ThemeData darkTheme() {
     brightness: Brightness.dark,
     primarySwatch: Colors.cyan,
     accentColor: Colors.cyan,
-    cardColor: const Color(0xFF222222),
-    scaffoldBackgroundColor: const Color(0xFF0E0E0E),
+    // cardColor: const Color(0xFF222222),
+    // scaffoldBackgroundColor: const Color(0xFF0E0E0E),
+    appBarTheme: const AppBarTheme(
+      elevation: 0,
+      color: Color(0xFF333333),
+    ),
     cardTheme: const CardTheme(shape: RoundedRectangleBorder()),
     dialogTheme: DialogTheme(
       elevation: 10,

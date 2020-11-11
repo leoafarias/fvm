@@ -41,14 +41,14 @@ class ExploreScreen extends HookWidget {
         child: CustomScrollView(
           slivers: [
             SliverAppBar(
-              title: const FvmTitle('Channels'),
+              title: const TypographyTitle('Channels'),
               actions: [
                 Tooltip(
                   message:
                       '''Allows access to functionality that is unsable, and latest cutting edge.''',
                   child: Row(
                     children: [
-                      const FvmCaption('Advanced'),
+                      const TypographyCaption('Advanced'),
                       SizedBox(
                         height: 10,
                         width: 60,
@@ -92,10 +92,10 @@ class ExploreScreen extends HookWidget {
                     child: Row(
                       children: [
                         const SizedBox(width: 10),
-                        const FvmSubheading('Master'),
+                        const TypographySubheading('Master'),
                         const SizedBox(width: 20),
                         const Expanded(
-                          child: FvmCaption(
+                          child: TypographyCaption(
                               '''The current tip-of-tree, absolute latest cutting edge build. Usually functional, though sometimes we accidentally break things.'''),
                         ),
                         const SizedBox(width: 20),
@@ -151,7 +151,7 @@ class ExploreScreen extends HookWidget {
                   children: [
                     Row(
                       children: [
-                        const FvmTitle('Versions'),
+                        const TypographyTitle('Versions'),
                         const SizedBox(width: 10),
                         Chip(label: Text(releases.length.toString())),
                       ],

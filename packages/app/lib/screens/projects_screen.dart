@@ -49,7 +49,7 @@ class ProjectsScreen extends HookWidget {
       title: 'Flutter Projects',
       actions: [
         FlatButton.icon(
-          label: const FvmCaption('Refresh'),
+          label: const TypographyCaption('Refresh'),
           icon: const Icon(MdiIcons.refresh, size: 20),
           onPressed: () async {
             await context.read(projectsProvider).scan();
@@ -63,7 +63,7 @@ class ProjectsScreen extends HookWidget {
           message: '''Displays only projects with versions pinned.''',
           child: Row(
             children: [
-              const FvmCaption('Only Pinned'),
+              const TypographyCaption('Only Pinned'),
               SizedBox(
                 height: 10,
                 width: 60,

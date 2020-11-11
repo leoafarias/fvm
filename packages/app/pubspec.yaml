@@ -21,8 +21,6 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  
-  
   pubspec_parse: ^0.1.5
   github: ^7.0.3
 

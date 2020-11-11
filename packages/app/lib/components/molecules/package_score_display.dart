@@ -21,8 +21,8 @@ class PackageScoreDisplay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FvmTitle(score.likeCount.toString()),
-              const FvmCaption('Likes'),
+              TypographyTitle(score.likeCount.toString()),
+              const TypographyCaption('Likes'),
             ],
           ),
           const VerticalDivider(width: 25),
@@ -30,8 +30,8 @@ class PackageScoreDisplay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FvmTitle(score.grantedPoints.toString()),
-              const FvmCaption('Pub Points'),
+              TypographyTitle(score.grantedPoints.toString()),
+              const TypographyCaption('Pub Points'),
             ],
           ),
           const VerticalDivider(width: 25),
@@ -39,8 +39,9 @@ class PackageScoreDisplay extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FvmTitle('${(score.popularityScore * 100).toStringAsFixed(0)}%'),
-              const FvmCaption('Popularity'),
+              TypographyTitle(
+                  '${(score.popularityScore * 100).toStringAsFixed(0)}%'),
+              const TypographyCaption('Popularity'),
             ],
           ),
         ],

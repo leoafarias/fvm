@@ -31,7 +31,7 @@ class ProjectItem extends HookWidget {
       child: Center(
         child: FvmListTile(
           leading: const Icon(MdiIcons.alphaPBox),
-          title: FvmSubheading(project.name),
+          title: TypographySubheading(project.name),
           trailing: ProjectVersionSelect(
             project: project,
             versions: installedVersions,

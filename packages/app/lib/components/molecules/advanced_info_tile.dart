@@ -21,7 +21,8 @@ class AdvancedInfoTile extends StatelessWidget {
       children: [
         FvmListTile(
           title: const Text('Download Zip'),
-          subtitle: const FvmCaption('Zip file with all release dependencies.'),
+          subtitle: const TypographyCaption(
+              'Zip file with all release dependencies.'),
           trailing: IconButton(
             icon: const Icon(Icons.cloud_download),
             onPressed: () async {
@@ -32,13 +33,13 @@ class AdvancedInfoTile extends StatelessWidget {
         const Divider(),
         FvmListTile(
           title: const Text('Hash'),
-          subtitle: FvmCaption(version.release.hash),
+          subtitle: TypographyCaption(version.release.hash),
           trailing: CopyButton(version.release.hash),
         ),
         const Divider(),
         FvmListTile(
           title: const Text('Sha256'),
-          subtitle: FvmCaption(version.release.sha256),
+          subtitle: TypographyCaption(version.release.sha256),
           trailing: CopyButton(version.release.sha256),
         ),
       ],
