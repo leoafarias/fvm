@@ -24,7 +24,7 @@ dependencies:
   http: ^0.12.2
   date_format: ^1.0.9
   version: ^1.2.0
-  cli_dialog: ^0.3.3
+  cli_dialog: ^0.4.0
   pub_api_client: ^1.0.9
 
 
