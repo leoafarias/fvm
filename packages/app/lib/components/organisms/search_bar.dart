@@ -61,7 +61,6 @@ class SearchBar extends HookWidget {
               transitionCurve: Curves.easeInOut,
               margins: const EdgeInsets.fromLTRB(0, 10, 0, 0),
               physics: const BouncingScrollPhysics(),
-              showDrawerHamburger: false,
               debounceDelay: const Duration(milliseconds: 200),
               maxWidth: MediaQuery.of(context).size.width / 1.5,
               backdropColor: Colors.black.withOpacity(0.5),
@@ -69,7 +68,7 @@ class SearchBar extends HookWidget {
               // transition: CircularFloatingSearchBarTransition(),
               scrollPadding: const EdgeInsets.all(0),
               onQueryChanged: (query) async {
-                if (!query.isEmpty) {
+                if (query.isNotEmpty) {
                   isLoading.value = true;
                 }
                 queryProvider.state = query;

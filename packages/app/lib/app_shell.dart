@@ -5,6 +5,7 @@ import 'package:fvm_app/constants.dart';
 import 'package:fvm_app/providers/navigation_provider.dart';
 import 'package:fvm_app/providers/selected_info_provider.dart';
 import 'package:fvm_app/screens/packages_screen.dart';
+import 'package:fvm_app/screens/settings_screen.dart';
 import 'package:fvm_app/utils/layout_size.dart';
 
 import 'package:flutter/material.dart';
@@ -30,7 +31,7 @@ final pages = [
   ProjectsScreen(key: UniqueKey()),
   ExploreScreen(key: UniqueKey()),
   PackagesScreen(key: UniqueKey()),
-  // SettingsScreen(key: UniqueKey()),
+  SettingsScreen(key: UniqueKey()),
 ];
 
 class AppShell extends HookWidget {
@@ -107,7 +108,12 @@ class AppShell extends HookWidget {
                     minExtendedWidth: kNavigationWidthExtended,
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
-                      navigation.goTo(NavigationRoutes.values[index]);
+                      // If its search
+                      if (index == 5) {
+                        showSearch.value = true;
+                      } else {
+                        navigation.goTo(NavigationRoutes.values[index]);
+                      }
                     },
                     labelType: NavigationRailLabelType.none,
                     destinations: [
@@ -127,11 +133,11 @@ class AppShell extends HookWidget {
                         label: 'Packages',
                         iconData: MdiIcons.package,
                       ),
-                      // NavButton(
-                      //   label: 'Settings',
-                      //   iconData: Icons.settings,
-                      // ),
-                      // NavButton(label: 'Search', iconData: Icons.search),
+                      NavButton(
+                        label: 'Settings',
+                        iconData: Icons.settings,
+                      ),
+                      NavButton(label: 'Search', iconData: Icons.search),
                     ],
                   ),
                   const VerticalDivider(thickness: 1, width: 1),

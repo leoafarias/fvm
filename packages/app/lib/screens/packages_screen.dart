@@ -1,4 +1,5 @@
 import 'package:fvm_app/components/atoms/list_tile.dart';
+import 'package:fvm_app/components/atoms/loading_indicator.dart';
 import 'package:fvm_app/components/atoms/screen.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
 import 'package:fvm_app/components/molecules/github_info_display.dart';
@@ -109,7 +110,7 @@ class PackagesScreen extends HookWidget {
             ),
           );
         },
-        loading: () => const CircularProgressIndicator(),
+        loading: () => const LoadingIndicator(),
         error: (_, __) => Container());
   }
 }
