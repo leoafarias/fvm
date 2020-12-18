@@ -31,18 +31,20 @@ Future<void> fvmRunner(List<String> args) async {
   runner..addCommand(ConfigCommand());
   runner..addCommand(ReleasesCommand());
 
-  return await runner.run(args).catchError((exc, st) {
+  try {
+    await runner.run(args);
+  } catch (exc, st) {
     if (exc is String) {
       FvmLogger.warning(exc);
     } else {
       FvmLogger.warning('${yellow.wrap(exc.toString())}');
       if (args.contains('--verbose')) {
         FvmLogger.error(st.toString());
-        throw exc;
+        rethrow;
       }
     }
     exitCode = 1;
-  }).whenComplete(() {});
+  }
 }
 
 /// Builds FVM Runner
