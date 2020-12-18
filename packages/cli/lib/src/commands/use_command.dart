@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:args/command_runner.dart';
 import 'package:cli_dialog/cli_dialog.dart';
 
@@ -84,6 +82,5 @@ class UseCommand extends Command {
     await useVersionWorkflow(validVersion, global: global, force: force);
 
     await checkIfLatestVersion();
-    exit(0);
   }
 }
