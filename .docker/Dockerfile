@@ -1,6 +1,6 @@
 FROM google/dart:latest
 
-ENV FVM_VERSION "1.3.7"
+ARG FVM_VERSION
 
 RUN apt-get update --quiet --yes
 RUN apt-get install --quiet --yes \
