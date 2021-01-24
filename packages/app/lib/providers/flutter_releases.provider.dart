@@ -68,7 +68,6 @@ final releasesStateProvider = Provider<AppReleasesState>((ref) {
     final installedChannel = installedVersions.getChannel(name);
     final sdkVersion =
         installedChannel == null ? null : installedChannel.sdkVersion;
-
     final channelDto = ChannelDto(
       name: name,
       isInstalled: installedChannel != null,
@@ -90,8 +89,7 @@ final releasesStateProvider = Provider<AppReleasesState>((ref) {
 
     // Check if version is found in installed versions
     final installedVersion = installedVersions.getVersion(item.version);
-    final sdkVersion =
-        installedVersion == null ? null : installedVersion.sdkVersion;
+    final sdkVersion = installedVersion?.sdkVersion;
 
     final version = ReleaseDto(
       name: item.version,
