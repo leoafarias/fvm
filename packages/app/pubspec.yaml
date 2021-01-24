@@ -42,11 +42,8 @@ dependencies:
   hooks_riverpod: ^0.12.1
   flutter_hooks: ^0.14.1
   path_provider: ^1.6.17
-
-  file_chooser:
-    git:
-      url: git://github.com/google/flutter-desktop-embedding.git
-      path: plugins/file_chooser
+  file_chooser: ^0.1.6
+  
   window_size:
     git:
       url: git://github.com/google/flutter-desktop-embedding.git
