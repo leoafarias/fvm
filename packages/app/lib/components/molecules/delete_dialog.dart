@@ -1,5 +1,4 @@
 import 'package:fvm_app/dto/version.dto.dart';
-import 'package:fvm_app/dto/channel.dto.dart';
 
 import 'package:flutter/material.dart';
 
