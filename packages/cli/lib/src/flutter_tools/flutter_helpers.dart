@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/src/utils/logger.dart';
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
@@ -44,12 +45,17 @@ bool isGlobalVersion(String version) {
 
 String getFlutterSdkExec(String version) {
   // If version not provided find it within a project
+  String getPlatformBinary() => Platform.isWindows ? 'flutter.bat' : 'flutter';
   if (version == null || version.isEmpty) {
+    if (kDefaultFlutterLink.existsSync()) {
+      logger.trace('use fvm global flutter version');
+      return join(kDefaultFlutterLink.path, 'bin', getPlatformBinary());
+    }
     return whichSync('flutter');
   }
   final sdkPath = join(kVersionsDir.path, version, 'bin');
 
-  return join(sdkPath, Platform.isWindows ? 'flutter.bat' : 'flutter');
+  return join(sdkPath, getPlatformBinary());
 }
 
 // TODO: Implement tests

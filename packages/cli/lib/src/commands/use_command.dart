@@ -29,7 +29,7 @@ class UseCommand extends Command {
       ..addFlag(
         'global',
         help:
-            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
+            'Sets version as the global version.',
         negatable: false,
       )
       ..addFlag(
