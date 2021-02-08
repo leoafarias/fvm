@@ -39,6 +39,7 @@ Future<void> runGitClone(String version) async {
     '--progress',
     '--single-branch',
     '-b',
+    '--depth 1',
     version,
     kFlutterRepo,
     versionDirectory.path
