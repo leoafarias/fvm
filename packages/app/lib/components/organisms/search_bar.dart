@@ -69,7 +69,7 @@ class SearchBar extends HookWidget {
               // transition: CircularFloatingSearchBarTransition(),
               scrollPadding: const EdgeInsets.all(0),
               onQueryChanged: (query) async {
-                if (!query.isEmpty) {
+                if (query.isNotEmpty) {
                   isLoading.value = true;
                 }
                 queryProvider.state = query;

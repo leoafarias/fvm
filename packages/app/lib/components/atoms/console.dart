@@ -48,7 +48,7 @@ class Console extends HookWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 20),
-            installedList.length > 0
+            installedList.isNotEmpty
                 ? FvmCaption('${installedList.length} Versions')
                 : const FvmCaption('Versions'),
             const SizedBox(width: 20),

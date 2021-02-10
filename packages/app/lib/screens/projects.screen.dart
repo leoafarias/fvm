@@ -32,6 +32,7 @@ class ProjectsScreen extends HookWidget {
       } else {
         filteredProjects.value = projects.list;
       }
+      return;
     }, [projects, settings.onlyProjectsWithFvm]);
 
     if (projects.loading) {

@@ -109,11 +109,7 @@ class AppShell extends HookWidget {
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
                       // If its search
-                      if (index == 4) {
-                        showSearch.value = true;
-                      } else {
-                        navigation.goTo(NavigationRoutes.values[index]);
-                      }
+                      navigation.goTo(NavigationRoutes.values[index]);
                     },
                     labelType: NavigationRailLabelType.none,
                     destinations: [

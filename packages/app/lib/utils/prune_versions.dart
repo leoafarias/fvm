@@ -46,9 +46,10 @@ Future<void> pruneVersionsDialog(BuildContext context) async {
               padding: const EdgeInsets.all(20),
               child: const Text("Confirm"),
               onPressed: () async {
-                toDelete.forEach((version) {
-                  context.read(fvmQueueProvider).remove(version.name);
-                });
+                final queueProvider = context.read(fvmQueueProvider);
+                for (final version in toDelete) {
+                  queueProvider.remove(version.name);
+                }
                 // for (var version in toDelete) {
                 //   print('RUN');
                 //   print(version.name);
