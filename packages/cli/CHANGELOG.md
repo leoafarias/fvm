@@ -1,3 +1,7 @@
+## 1.3.7
+
+- Fix issue for delay exist after use command [#195](https://github.com/leoafarias/fvm/issues/195)
+
 ## 1.3.6
 
 - Enhancement: Added PATH env on Flutter processs. For better third party tooling support.

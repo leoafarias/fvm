@@ -159,6 +159,15 @@
         "bug",
         "code"
       ]
+    },
+    {
+      "login": "nank1ro",
+      "name": "Alexandru Mariuti",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60045235?v=4",
+      "profile": "http://www.topcode.it",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,

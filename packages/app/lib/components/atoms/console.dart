@@ -48,7 +48,7 @@ class Console extends HookWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(width: 20),
-            installedList.length > 0
+            installedList.isNotEmpty
                 ? TypographyCaption('${installedList.length} Versions')
                 : const TypographyCaption('Versions'),
             const SizedBox(width: 20),

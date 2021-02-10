@@ -42,24 +42,18 @@ dependencies:
   watcher: ^0.9.7+15
   google_fonts: ^1.1.1
   filesize: ^1.0.4
-  date_time_format: ^1.1.0
   hooks_riverpod: ^0.12.1
-  freezed: ^0.12.2
+  date_time_format: ^1.0.0+4
   flutter_hooks: ^0.14.1
   path_provider: ^1.6.24
-
-  file_chooser:
-    git:
-      url: git://github.com/google/flutter-desktop-embedding.git
-      path: plugins/file_chooser
+  file_chooser: ^0.1.6
   window_size:
     git:
       url: git://github.com/google/flutter-desktop-embedding.git
       path: plugins/window_size
 
-  fvm:
-    path: ../cli
   pub_api_client: ^1.0.9
+  fvm:
 
 dev_dependencies:
   build_runner: ^1.10.6
