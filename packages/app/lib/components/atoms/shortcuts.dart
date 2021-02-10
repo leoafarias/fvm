@@ -45,6 +45,10 @@ class _KBShortcutManagerState extends State<KBShortcutManager> {
         LogicalKeySet(
           LogicalKeyboardKey.metaLeft,
           LogicalKeyboardKey.digit4,
+        ): const NavigationIntent(route: NavigationRoutes.packagesScreen),
+        LogicalKeySet(
+          LogicalKeyboardKey.metaLeft,
+          LogicalKeyboardKey.digit5,
         ): const NavigationIntent(route: NavigationRoutes.settingsScreen),
         LogicalKeySet(
           LogicalKeyboardKey.metaLeft,

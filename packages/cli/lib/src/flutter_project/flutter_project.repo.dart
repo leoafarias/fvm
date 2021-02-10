@@ -16,6 +16,7 @@ class FlutterProjectRepo {
       name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
+      pubspec: pubspec,
       isFlutterProject: await isFlutterProject(directory),
     );
   }

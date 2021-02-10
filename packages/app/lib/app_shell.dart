@@ -4,6 +4,8 @@ import 'package:fvm_app/components/atoms/shortcuts.dart';
 import 'package:fvm_app/constants.dart';
 import 'package:fvm_app/providers/navigation_provider.dart';
 import 'package:fvm_app/providers/selected_info_provider.dart';
+import 'package:fvm_app/screens/packages_screen.dart';
+import 'package:fvm_app/screens/settings_screen.dart';
 import 'package:fvm_app/utils/layout_size.dart';
 
 import 'package:flutter/material.dart';
@@ -16,8 +18,7 @@ import 'package:fvm_app/components/organisms/info_drawer.dart';
 
 import 'package:fvm_app/screens/explore_screen.dart';
 import 'package:fvm_app/screens/home_screen.dart';
-import 'package:fvm_app/screens/projects.screen.dart';
-import 'package:fvm_app/screens/settings_screen.dart';
+import 'package:fvm_app/screens/projects_screen.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -29,13 +30,12 @@ final pages = [
   HomeScreen(key: UniqueKey()),
   ProjectsScreen(key: UniqueKey()),
   ExploreScreen(key: UniqueKey()),
+  PackagesScreen(key: UniqueKey()),
   SettingsScreen(key: UniqueKey()),
 ];
 
 class AppShell extends HookWidget {
   const AppShell({Key key}) : super(key: key);
-
-  final totalTabs = 5;
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +56,15 @@ class AppShell extends HookWidget {
       }
       navigation.goTo(route);
     }
+
+    // Set current index or search based on route change
+    useValueChanged(currentRoute, (_, __) {
+      if (currentRoute == NavigationRoutes.searchScreen) {
+        showSearch.value = true;
+      } else {
+        selectedIndex.value = currentRoute.index;
+      }
+    });
 
     // Logic for displaying or hiding drawer based on layout
     // ignore: missing_return
@@ -79,15 +88,6 @@ class AppShell extends HookWidget {
       }
     }, [selectedInfo, LayoutSize.size]);
 
-    // Set current index or search based on route change
-    useValueChanged(currentRoute, (_, __) {
-      if (currentRoute == NavigationRoutes.searchScreen) {
-        showSearch.value = true;
-      } else {
-        selectedIndex.value = currentRoute.index;
-      }
-    });
-
     return KBShortcutManager(
       onRouteShortcut: handleIndexShortcut,
       focusNode: focusNode,
@@ -109,7 +109,11 @@ class AppShell extends HookWidget {
                     extended: !LayoutSize.isSmall,
                     onDestinationSelected: (index) {
                       // If its search
-                      navigation.goTo(NavigationRoutes.values[index]);
+                      if (index == 5) {
+                        showSearch.value = true;
+                      } else {
+                        navigation.goTo(NavigationRoutes.values[index]);
+                      }
                     },
                     labelType: NavigationRailLabelType.none,
                     destinations: [
@@ -126,13 +130,14 @@ class AppShell extends HookWidget {
                         iconData: Icons.explore,
                       ),
                       NavButton(
+                        label: 'Packages',
+                        iconData: MdiIcons.package,
+                      ),
+                      NavButton(
                         label: 'Settings',
                         iconData: Icons.settings,
                       ),
-                      NavButton(
-                        label: 'Search',
-                        iconData: Icons.search,
-                      ),
+                      NavButton(label: 'Search', iconData: Icons.search),
                     ],
                   ),
                   const VerticalDivider(thickness: 1, width: 1),

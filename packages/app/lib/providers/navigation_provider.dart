@@ -5,6 +5,7 @@ enum NavigationRoutes {
   homeScreen,
   projectsScreen,
   exploreScreen,
+  packagesScreen,
   settingsScreen,
   searchScreen,
 }

@@ -4,7 +4,7 @@ import 'package:fvm_app/components/atoms/list_tile.dart';
 import 'package:fvm_app/components/atoms/typography.dart';
 import 'package:fvm_app/dto/version.dto.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fvm_app/utils/open_link.dart';
 
 class AdvancedInfoTile extends StatelessWidget {
   final VersionDto version;
@@ -21,28 +21,25 @@ class AdvancedInfoTile extends StatelessWidget {
       children: [
         FvmListTile(
           title: const Text('Download Zip'),
-          subtitle: const FvmCaption('Zip file with all release dependencies.'),
+          subtitle: const TypographyCaption(
+              'Zip file with all release dependencies.'),
           trailing: IconButton(
             icon: const Icon(Icons.cloud_download),
             onPressed: () async {
-              if (await canLaunch(version.release.archiveUrl)) {
-                await launch(version.release.archiveUrl);
-              } else {
-                throw '''Could not launch ${version.release.archiveUrl}''';
-              }
+              await openLink(version.release.archiveUrl);
             },
           ),
         ),
         const Divider(),
         FvmListTile(
           title: const Text('Hash'),
-          subtitle: FvmCaption(version.release.hash),
+          subtitle: TypographyCaption(version.release.hash),
           trailing: CopyButton(version.release.hash),
         ),
         const Divider(),
         FvmListTile(
           title: const Text('Sha256'),
-          subtitle: FvmCaption(version.release.sha256),
+          subtitle: TypographyCaption(version.release.sha256),
           trailing: CopyButton(version.release.sha256),
         ),
       ],

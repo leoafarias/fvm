@@ -55,8 +55,8 @@ class ProjectVersionSelect extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               project.pinnedVersion != null
-                  ? FvmCaption(project.pinnedVersion)
-                  : const FvmCaption('Choose'),
+                  ? TypographyCaption(project.pinnedVersion)
+                  : const TypographyCaption('Choose'),
               const SizedBox(width: 20),
               const Icon(MdiIcons.chevronDown),
             ],
