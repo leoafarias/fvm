@@ -54,6 +54,7 @@ dependencies:
 
   pub_api_client: ^1.0.9
   fvm:
+    path: ../cli
 
 dev_dependencies:
   build_runner: ^1.10.6

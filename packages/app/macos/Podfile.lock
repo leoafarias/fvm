@@ -1,7 +1,7 @@
 PODS:
   - file_chooser (0.0.2):
     - FlutterMacOS
-  - FlutterMacOS (1.0.0)
+  - FlutterMacOS (1.22.4)
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
@@ -19,7 +19,6 @@ PODS:
 
 DEPENDENCIES:
   - file_chooser (from `Flutter/ephemeral/.symlinks/plugins/file_chooser/macos`)
-  - FlutterMacOS (from `Flutter/ephemeral/.symlinks/flutter/darwin-x64`)
   - path_provider (from `Flutter/ephemeral/.symlinks/plugins/path_provider/macos`)
   - path_provider_macos (from `Flutter/ephemeral/.symlinks/plugins/path_provider_macos/macos`)
   - sqflite (from `Flutter/ephemeral/.symlinks/plugins/sqflite/macos`)
@@ -29,13 +28,12 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - FlutterMacOS
     - FMDB
 
 EXTERNAL SOURCES:
   file_chooser:
     :path: Flutter/ephemeral/.symlinks/plugins/file_chooser/macos
-  FlutterMacOS:
-    :path: Flutter/ephemeral/.symlinks/flutter/darwin-x64
   path_provider:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider/macos
   path_provider_macos:
@@ -51,7 +49,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   file_chooser: 24432cf5dc836722b05c11c2a0a30d19c3c9b996
-  FlutterMacOS: 15bea8a44d2fa024068daa0140371c020b4b6ff9
+  FlutterMacOS: ac210ef71944b3f04789076d70d4c72c7ec0c619
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   path_provider: e0848572d1d38b9a7dd099e79cf83f5b7e2cde9f
   path_provider_macos: a0a3fd666cb7cd0448e936fb4abad4052961002b
@@ -62,4 +60,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: d8ba9b3e9e93c62c74a660b46c6fcb09f03991a7
 
-COCOAPODS: 1.9.3
+COCOAPODS: 1.10.1
