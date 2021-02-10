@@ -192,7 +192,7 @@ In some situations you might have to restart your IDE and the Flutter debugger t
 
 ### VSCode
 
-Add the following to your `settings.json`. This will list list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
+Add the following to your `settings.json`. This will list all Flutter SDKs installed when using VSCode when using `Flutter: Change SDK`.
 
 Use `fvm list` to show you the path to the versions.
 
@@ -304,6 +304,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
