@@ -168,6 +168,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "andreadelfante",
+      "name": "Andrea Del Fante",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7781176?v=4",
+      "profile": "https://github.com/andreadelfante",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,
