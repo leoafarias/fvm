@@ -229,6 +229,15 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 }
 ```
 
+#### Remove the flutter sdk from search to make things easier
+```json
+{
+  "search.exclude": {
+    "**/.fvm": true
+  },
+}
+```
+
 ### Android Studio
 
 Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute/path-to-your-project/.fvm/flutter_sdk`
