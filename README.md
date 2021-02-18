@@ -20,7 +20,7 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 
 ## GUI App - MacOS & Windows Download (Alpha)
 
-[![FVM App Screenshot](https://github.com/leoafarias/sidekick/blob/main/docs/fvm-app.png?raw=true)](https://github.com/leoafarias/sidekick)
+[![FVM App Screenshot](https://github.com/leoafarias/sidekick/blob/main/assets/fvm-app.png?raw=true)](https://github.com/leoafarias/sidekick)
 
 [Read more about it here.](https://github.com/leoafarias/sidekick)
 
