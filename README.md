@@ -5,7 +5,7 @@
 [![Likes](https://img.shields.io/badge/dynamic/json?color=blue&label=likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm)
 [![Health](https://img.shields.io/badge/dynamic/json?color=blue&label=health&query=pub_points&url=http://www.pubscore.gq/pub-points?package=fvm&style=flat-square&cacheSeconds=90000)](https://pub.dev/packages/fvm/score) ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true) [![Github All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=flat-square)](https://github.com/leoafarias/fvm/graphs/contributors) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
-Flutter Version Management: A simple app & cli to manage Flutter SDK versions.
+Flutter Version Management: A simple cli to manage Flutter SDK versions.
 
 FVM helps with the need for a consistent app builds by allowing to reference Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time.
 
@@ -20,9 +20,9 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 
 ## GUI App - MacOS & Windows Download (Alpha)
 
-[![FVM App Screenshot](https://github.com/leoafarias/fvm/blob/master/docs/fvm-app.png?raw=true)](https://github.com/leoafarias/fvm/releases)
+[![FVM App Screenshot](https://github.com/leoafarias/sidekick/blob/main/docs/fvm-app.png?raw=true)](https://github.com/leoafarias/sidekick)
 
-[Read more about it here.](https://github.com/leoafarias/fvm/tree/master/packages/app)
+[Read more about it here.](https://github.com/leoafarias/sidekick)
 
 ## Version Management
 
