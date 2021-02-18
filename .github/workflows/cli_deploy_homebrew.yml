@@ -18,9 +18,6 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
     container:
       image: google/dart:latest
-    defaults:
-      run:
-        working-directory: packages/cli
     steps:
       - uses: actions/checkout@v1
 

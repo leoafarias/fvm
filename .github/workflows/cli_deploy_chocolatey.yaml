@@ -15,10 +15,6 @@ jobs:
     needs: release
     env:
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
-    defaults:
-      run:
-        working-directory: packages/cli
-
     steps:
       - uses: actions/checkout@v1
 

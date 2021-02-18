@@ -6,9 +6,6 @@ jobs:
   test:
     name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        working-directory: packages/cli
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
