@@ -34,3 +34,4 @@ coverage/lcov.info
 .vscode/settings.json
 packages/cli/test/.test_coverage.dart
 packages/cli/.env
+.env
