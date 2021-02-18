@@ -54,6 +54,13 @@ class FlutterProjectRepo {
     return await fetchProjects(paths);
   }
 
+  static Future<void> updateSdkLink(FlutterProject project) async {
+    final config = project.config;
+    if (project != null && project.pinnedVersion != null) {
+      await FvmConfigRepo.updateSdkLink(config);
+    }
+  }
+
   static Future<void> pinVersion(FlutterProject project, String version) async {
     final config = project.config;
     config.flutterSdkVersion = version;

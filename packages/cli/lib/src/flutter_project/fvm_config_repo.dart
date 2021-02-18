@@ -26,7 +26,7 @@ class FvmConfigRepo {
     }
   }
 
-  static Future<void> _createSdkLink(FvmConfig config) async {
+  static Future<void> updateSdkLink(FvmConfig config) async {
     await createLink(config.sdkSymlink, File(config.flutterSdkPath));
   }
 
@@ -37,7 +37,7 @@ class FvmConfigRepo {
       }
       await config.configFile.writeAsString(config.toJson());
 
-      await _createSdkLink(config);
+      await updateSdkLink(config);
     } on Exception catch (err) {
       print(err);
       throw Exception('Could not save config changes');

@@ -5,9 +5,6 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
-import 'package:fvm/src/utils/confirm.dart';
-
-import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 
 import 'package:fvm/src/workflows/install_version.workflow.dart';
@@ -15,8 +12,6 @@ import 'package:fvm/src/workflows/use_version.workflow.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'use';
 
@@ -69,16 +64,9 @@ class UseCommand extends Command {
 
     // Get valid flutter version
     final validVersion = await inferFlutterVersion(version);
-    final isVersionInstalled = await LocalVersionRepo.isInstalled(validVersion);
 
-    if (!isVersionInstalled) {
-      // Make sure version is installed
-      FvmLogger.info('Flutter $validVersion is not installed.');
-      // Install if input is confirmed
-      if (await confirm('Would you like to install it?')) {
-        await installWorkflow(validVersion);
-      }
-    }
+    await installWorkflow(validVersion);
+
     await useVersionWorkflow(validVersion, global: global, force: force);
 
     await checkIfLatestVersion();
