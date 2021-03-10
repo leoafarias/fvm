@@ -20,7 +20,6 @@ import 'package:fvm/src/version.dart';
 
 import 'package:io/io.dart';
 
-
 class FvmCommandRunner extends CommandRunner<int> {
   FvmCommandRunner()
       : super('fvm',
@@ -52,7 +51,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(ConfigCommand());
     addCommand(ReleasesCommand());
   }
-
 
   @override
   Future<int> run(Iterable<String> args) async {

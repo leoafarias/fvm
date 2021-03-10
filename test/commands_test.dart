@@ -156,7 +156,7 @@ void main() {
   group('FVM Version Command', () {
     test('Check Version', () async {
       try {
-        await fvmRunner.run(['version']);
+        await fvmRunner.run(['--version']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }

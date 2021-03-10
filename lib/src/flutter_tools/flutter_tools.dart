@@ -24,11 +24,11 @@ Future<int> runFlutterCmd(
   }
 
   final environment = replaceFlutterPathEnv(version);
-  await _runFlutterOrDartCmd(execPath, args, environment);
+  return await _runFlutterOrDartCmd(execPath, args, environment);
 }
 
 /// Runs a process
-Future<void> runDartCmd(
+Future<int> runDartCmd(
   String version,
   List<String> args,
 ) async {
@@ -36,14 +36,14 @@ Future<void> runDartCmd(
   args ??= [];
   // Check if can execute path first
   if (!await isExecutable(execPath)) {
-    throw UsageError('Flutter version $version is not installed');
+    throw UsageException('Flutter version $version is not installed', '');
   }
 
   final environment = replaceDartPathEnv(version);
-  await _runFlutterOrDartCmd(execPath, args, environment);
+  return await _runFlutterOrDartCmd(execPath, args, environment);
 }
 
-Future<void> _runFlutterOrDartCmd(
+Future<int> _runFlutterOrDartCmd(
   String execPath,
   List<String> args,
   Map<String, String> environment,

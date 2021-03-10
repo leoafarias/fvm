@@ -4,9 +4,7 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 
-import 'package:fvm/exceptions.dart';
 import 'package:meta/meta.dart';
-
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
