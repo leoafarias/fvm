@@ -7,6 +7,7 @@ import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 import 'package:fvm/src/commands/flutter_command.dart';
+import 'package:fvm/src/commands/dart_command.dart';
 import 'package:fvm/src/commands/install_command.dart';
 import 'package:fvm/src/commands/list_command.dart';
 import 'package:fvm/src/commands/releases_command.dart';
@@ -18,6 +19,7 @@ import 'package:fvm/src/utils/logger.dart' show logger;
 import 'package:fvm/src/version.dart';
 
 import 'package:io/io.dart';
+
 
 class FvmCommandRunner extends CommandRunner<int> {
   FvmCommandRunner()
@@ -44,11 +46,13 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(InstallCommand());
     addCommand(ListCommand());
     addCommand(FlutterCommand());
+    addCommand(DartCommand());
     addCommand(RemoveCommand());
     addCommand(UseCommand());
     addCommand(ConfigCommand());
     addCommand(ReleasesCommand());
   }
+
 
   @override
   Future<int> run(Iterable<String> args) async {
