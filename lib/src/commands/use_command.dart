@@ -7,11 +7,11 @@ import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/local_versions/local_version.repo.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 
-import 'package:fvm/src/workflows/install_version.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
+import 'package:io/io.dart';
 
 /// Use an installed SDK version
-class UseCommand extends Command {
+class UseCommand extends Command<int> {
   @override
   final name = 'use';
 
@@ -34,7 +34,7 @@ class UseCommand extends Command {
       );
   }
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     String version;
 
     // If no version is provider show selection
@@ -65,10 +65,10 @@ class UseCommand extends Command {
     // Get valid flutter version
     final validVersion = await inferFlutterVersion(version);
 
-    await installWorkflow(validVersion);
-
     await useVersionWorkflow(validVersion, global: global, force: force);
 
     await checkIfLatestVersion();
+
+    return ExitCode.success.code;
   }
 }

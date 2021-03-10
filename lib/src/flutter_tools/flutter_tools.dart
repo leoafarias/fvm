@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/utils/logger.dart';
 
@@ -11,7 +12,7 @@ import 'package:fvm/src/utils/process_manager.dart';
 import 'package:io/io.dart';
 
 /// Runs a process
-Future<void> runFlutterCmd(
+Future<int> runFlutterCmd(
   String version,
   List<String> args,
 ) async {
@@ -19,7 +20,7 @@ Future<void> runFlutterCmd(
   args ??= [];
   // Check if can execute path first
   if (!await isExecutable(execPath)) {
-    throw UsageError('Flutter version $version is not installed');
+    throw UsageException('Flutter version $version is not installed', '');
   }
 
   final environment = replaceFlutterPathEnv(version);
@@ -61,6 +62,8 @@ Future<void> _runFlutterOrDartCmd(
   _switchLineMode(true, args);
 
   await sharedStdIn.terminate();
+
+  return exitCode;
 }
 
 // Replicate Flutter cli behavior during run

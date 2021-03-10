@@ -1,13 +1,14 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
 import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:io/io.dart';
 
 /// Installs Flutter SDK
-class InstallCommand extends Command {
+class InstallCommand extends Command<int> {
   // The [name] and [description] properties must be defined by every
   // subclass.
   @override
@@ -18,16 +19,15 @@ class InstallCommand extends Command {
 
   /// Constructor
   InstallCommand() {
-    argParser
-      ..addFlag(
-        'skip-setup',
-        help: 'Skips Flutter setup after install',
-        negatable: false,
-      );
+    argParser.addFlag(
+      'skip-setup',
+      help: 'Skips Flutter setup after install',
+      negatable: false,
+    );
   }
 
   @override
-  void run() async {
+  Future<int> run() async {
     String version;
     final skipSetup = argResults['skip-setup'] == true;
 
@@ -37,7 +37,7 @@ class InstallCommand extends Command {
       final configVersion = project.pinnedVersion;
       // If no config found is version throw error
       if (configVersion == null) {
-        throw const UsageError('Please provide a channel or a version.');
+        throw UsageException('Please provide a channel or a version.', '');
       }
 
       version = configVersion;
@@ -52,5 +52,7 @@ class InstallCommand extends Command {
     if (!skipSetup) {
       await flutterSetupWorkflow(version);
     }
+
+    return ExitCode.success.code;
   }
 }
