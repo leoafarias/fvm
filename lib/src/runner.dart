@@ -6,6 +6,7 @@ import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 import 'package:fvm/src/commands/flutter_command.dart';
+import 'package:fvm/src/commands/dart_command.dart';
 import 'package:fvm/src/commands/install_command.dart';
 import 'package:fvm/src/commands/list_command.dart';
 import 'package:fvm/src/commands/releases_command.dart';
@@ -24,6 +25,7 @@ Future<void> fvmRunner(List<String> args) async {
 
   runner..addCommand(InstallCommand());
   runner..addCommand(ListCommand());
+  runner..addCommand(DartCommand());
   runner..addCommand(FlutterCommand());
   runner..addCommand(RemoveCommand());
   runner..addCommand(UseCommand());

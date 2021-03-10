@@ -22,12 +22,37 @@ Future<void> runFlutterCmd(
     throw UsageError('Flutter version $version is not installed');
   }
 
+  final environment = replaceFlutterPathEnv(version);
+  await _runFlutterOrDartCmd(execPath, args, environment);
+}
+
+/// Runs a process
+Future<void> runDartCmd(
+  String version,
+  List<String> args,
+) async {
+  final execPath = getDartSdkExec(version);
+  args ??= [];
+  // Check if can execute path first
+  if (!await isExecutable(execPath)) {
+    throw UsageError('Flutter version $version is not installed');
+  }
+
+  final environment = replaceDartPathEnv(version);
+  await _runFlutterOrDartCmd(execPath, args, environment);
+}
+
+Future<void> _runFlutterOrDartCmd(
+  String execPath,
+  List<String> args,
+  Map<String, String> environment,
+) async {
   _switchLineMode(false, args);
 
   final process = await processManager.spawn(
     execPath,
     args,
-    environment: replaceFlutterPathEnv(version),
+    environment: environment,
     workingDirectory: kWorkingDirectory.path,
   );
 

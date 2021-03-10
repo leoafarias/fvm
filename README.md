@@ -134,7 +134,7 @@ There are couple of ways you can interact with the Flutter SDK setup in your pro
 
 ### Proxy Commands
 
-Flutter command within `fvm` proxies all calls to the CLI just changing the SDK to be the local one.
+The `flutter` and `dart` commands within `fvm` proxy all calls to the CLI just changing the SDK to be the local one.
 
 For instance, to run the `flutter run` with a given Flutter SDK version just call the following. FVM will recursively try for a version in a parent directory.
 
