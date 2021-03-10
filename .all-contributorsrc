@@ -178,6 +178,16 @@
         "ideas",
         "code"
       ]
+    },
+    {
+      "login": "Kavantix",
+      "name": "Pieter van Loon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6243755?v=4",
+      "profile": "https://github.com/Kavantix",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 5,
