@@ -1,6 +1,7 @@
-import 'dart:io';
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/utils/logger.dart';
@@ -12,58 +13,68 @@ import 'package:fvm/src/commands/releases_command.dart';
 import 'package:fvm/src/commands/remove_command.dart';
 
 import 'package:fvm/src/commands/use_command.dart';
-import 'package:fvm/src/commands/version_command.dart';
 
 import 'package:fvm/src/utils/logger.dart' show logger;
-import 'package:io/ansi.dart';
+import 'package:fvm/src/version.dart';
 
-/// Runs FVM
-Future<void> fvmRunner(List<String> args) async {
-  ConsoleController.isCli = true;
-  final runner = buildRunner();
+import 'package:io/io.dart';
 
-  runner..addCommand(InstallCommand());
-  runner..addCommand(ListCommand());
-  runner..addCommand(FlutterCommand());
-  runner..addCommand(RemoveCommand());
-  runner..addCommand(UseCommand());
-  runner..addCommand(VersionCommand());
-  runner..addCommand(ConfigCommand());
-  runner..addCommand(ReleasesCommand());
-
-  try {
-    await runner.run(args);
-  } catch (exc, st) {
-    if (exc is String) {
-      FvmLogger.warning(exc);
-    } else {
-      FvmLogger.warning('${yellow.wrap(exc.toString())}');
-      if (args.contains('--verbose')) {
-        FvmLogger.error(st.toString());
-        rethrow;
-      }
-    }
-    exitCode = 1;
+class FvmCommandRunner extends CommandRunner<int> {
+  FvmCommandRunner()
+      : super('fvm',
+            'Flutter Version Management: A cli to manage Flutter SDK versions.') {
+    argParser
+      ..addFlag(
+        'verbose',
+        help: 'Print verbose output.',
+        negatable: false,
+        callback: (verbose) {
+          if (verbose) {
+            logger = Logger.verbose();
+          } else {
+            logger = Logger.standard();
+          }
+        },
+      )
+      ..addFlag(
+        'version',
+        help: 'Print the current version',
+        negatable: false,
+      );
+    addCommand(InstallCommand());
+    addCommand(ListCommand());
+    addCommand(FlutterCommand());
+    addCommand(RemoveCommand());
+    addCommand(UseCommand());
+    addCommand(ConfigCommand());
+    addCommand(ReleasesCommand());
   }
-}
 
-/// Builds FVM Runner
-CommandRunner buildRunner() {
-  final runner = CommandRunner('fvm',
-      'Flutter Version Management: A cli to manage Flutter SDK versions.');
+  @override
+  Future<int> run(Iterable<String> args) async {
+    try {
+      ConsoleController.isCli = true;
+      final _argResults = parse(args);
+      return await runCommand(_argResults) ?? ExitCode.success.code;
+    } on UsageException catch (e) {
+      FvmLogger.warning(e.message);
+      FvmLogger.info('');
+      return ExitCode.usage.code;
+    } on InternalError catch (e, stackTrace) {
+      FvmLogger.error(e.message);
+      FvmLogger.error('$stackTrace');
+      FvmLogger.info('');
+      return ExitCode.usage.code;
+    }
+  }
 
-  runner.argParser.addFlag(
-    'verbose',
-    help: 'Print verbose output.',
-    negatable: false,
-    callback: (verbose) {
-      if (verbose) {
-        logger = Logger.verbose();
-      } else {
-        logger = Logger.standard();
-      }
-    },
-  );
+  @override
+  Future<int> runCommand(ArgResults topLevelResults) async {
+    if (topLevelResults['version'] == true) {
+      print(packageVersion);
+      return ExitCode.success.code;
+    }
 
-  return runner;
+    return super.runCommand(topLevelResults);
+  }
 }

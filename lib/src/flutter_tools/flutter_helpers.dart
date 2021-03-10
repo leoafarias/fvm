@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
 
 import 'package:path/path.dart';
 import 'package:fvm/src/releases_api/releases_client.dart';
@@ -24,7 +24,8 @@ Future<String> inferFlutterVersion(String version) async {
   if (releases.containsVersion(prefixedVersion)) {
     return prefixedVersion;
   } else {
-    throw InternalError('Could not infer Flutter Version $version');
+    throw UsageException(
+        '$version is not a valid Flutter channel or release', '');
   }
 }
 

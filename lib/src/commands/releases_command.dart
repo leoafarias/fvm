@@ -4,9 +4,10 @@ import 'package:date_format/date_format.dart';
 import 'package:io/ansi.dart';
 
 import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:io/io.dart';
 
 /// List installed SDK Versions
-class ReleasesCommand extends Command {
+class ReleasesCommand extends Command<int> {
   // The [name] and [description] properties must be defined by every
   // subclass.
   @override
@@ -19,7 +20,7 @@ class ReleasesCommand extends Command {
   ReleasesCommand();
 
   @override
-  void run() async {
+  Future<int> run() async {
     final releases = await fetchFlutterReleases();
 
     final versions = releases.releases.reversed;
@@ -39,5 +40,6 @@ class ReleasesCommand extends Command {
         print('$friendlyDate $pipe $version');
       }
     });
+    return ExitCode.success.code;
   }
 }

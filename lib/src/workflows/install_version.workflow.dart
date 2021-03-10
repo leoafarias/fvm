@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 import 'package:fvm/src/utils/confirm.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:io/io.dart';
 
 import '../utils/logger.dart';
 
@@ -32,6 +35,9 @@ Future<void> installWorkflow(
       FvmLogger.fine('Installing version: $version');
       await runGitClone(version);
       FvmLogger.fine('Version installed: $version');
+    } else {
+      // Exit if don't want to install
+      exit(ExitCode.success.code);
     }
   } on Exception catch (err) {
     logger.trace(err.toString());

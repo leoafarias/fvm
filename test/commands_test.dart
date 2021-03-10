@@ -16,13 +16,14 @@ import 'test_helpers.dart';
 
 final testPath = '$kFvmHome/test_path';
 
+final fvmRunner = FvmCommandRunner();
 void main() {
   setUpAll(fvmSetUpAll);
   tearDownAll(fvmTearDownAll);
   group('Channel Workflow:', () {
     test('Install Channel', () async {
       try {
-        await fvmRunner(['install', channel, '--verbose', '--skip-setup']);
+        await fvmRunner.run(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await gitGetVersion(channel);
 
         final installExists = await LocalVersionRepo.isInstalled(channel);
@@ -37,7 +38,7 @@ void main() {
 
     test('List Channel', () async {
       try {
-        await fvmRunner(['list']);
+        await fvmRunner.run(['list']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -50,7 +51,7 @@ void main() {
         // Run foce to test within fvm
 
         //TODO: Create flutter project for test
-        await fvmRunner(['use', channel, '--force', '--verbose']);
+        await fvmRunner.run(['use', channel, '--force', '--verbose']);
         final project = await FlutterProjectRepo.findAncestor();
         if (project == null) {
           fail('Not running on a flutter project');
@@ -70,7 +71,7 @@ void main() {
 
     test('Use Flutter SDK globally', () async {
       try {
-        await fvmRunner(['use', channel, '--global']);
+        await fvmRunner.run(['use', channel, '--global']);
         final linkExists = kDefaultFlutterLink.existsSync();
 
         final targetDir = kDefaultFlutterLink.targetSync();
@@ -86,7 +87,7 @@ void main() {
 
     test('Remove Channel Command', () async {
       try {
-        await fvmRunner(['remove', channel, '--verbose']);
+        await fvmRunner.run(['remove', channel, '--verbose']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -97,7 +98,7 @@ void main() {
   group('Release Workflow', () {
     test('Install Release', () async {
       try {
-        await fvmRunner(['install', release, '--verbose', '--skip-setup']);
+        await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
         final version = await inferFlutterVersion(release);
         final existingRelease = await gitGetVersion(version);
 
@@ -116,7 +117,7 @@ void main() {
     test('Use Release', () async {
       try {
         // TODO: Use force to run within fvm need to create example project
-        await fvmRunner(['use', release, '--force', '--verbose']);
+        await fvmRunner.run(['use', release, '--force', '--verbose']);
         final project = await FlutterProjectRepo.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
@@ -133,7 +134,7 @@ void main() {
 
     test('List Releases', () async {
       try {
-        await fvmRunner(['list', '--verbose']);
+        await fvmRunner.run(['list', '--verbose']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -143,7 +144,7 @@ void main() {
 
     test('Remove Release', () async {
       try {
-        await fvmRunner(['remove', release, '--verbose']);
+        await fvmRunner.run(['remove', release, '--verbose']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -155,7 +156,7 @@ void main() {
   group('FVM Version Command', () {
     test('Check Version', () async {
       try {
-        await fvmRunner(['version']);
+        await fvmRunner.run(['version']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }

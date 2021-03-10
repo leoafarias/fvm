@@ -1,20 +1,16 @@
-import 'dart:io';
-
-import 'package:console/console.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
 import 'package:fvm/src/local_versions/local_version.repo.dart';
-import 'package:fvm/src/flutter_project/flutter_project.model.dart';
+
 import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/print_versions.dart';
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
+import 'package:io/io.dart';
 
 /// List installed SDK Versions
-class ListCommand extends Command {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
+class ListCommand extends Command<int> {
   @override
   final name = 'list';
 
@@ -25,7 +21,7 @@ class ListCommand extends Command {
   ListCommand();
 
   @override
-  void run() async {
+  Future<int> run() async {
     final choices = await LocalVersionRepo.getAll();
 
     if (choices.isEmpty) {
@@ -35,7 +31,7 @@ class ListCommand extends Command {
         SDKs installed outside of fvm will not be displayed.
         ''',
       );
-      exit(0);
+      return ExitCode.success.code;
     }
 
     // Print where versions are stored
@@ -47,16 +43,7 @@ class ListCommand extends Command {
     for (var choice in choices) {
       printVersions(choice.name, project);
     }
-  }
-}
 
-void printVersions(String version, FlutterProject project) {
-  var printVersion = version;
-  if (project != null && project.pinnedVersion == version) {
-    printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
+    return ExitCode.success.code;
   }
-  if (isGlobalVersion(version)) {
-    printVersion = '$printVersion (global)';
-  }
-  FvmLogger.info(printVersion);
 }

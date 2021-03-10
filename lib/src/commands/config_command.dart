@@ -1,8 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/src/utils/settings.dart';
+import 'package:io/io.dart';
 
 /// Fvm Config
-class ConfigCommand extends Command {
+class ConfigCommand extends Command<int> {
   // The [name] and [description] properties must be defined by every
   // subclass.
   @override
@@ -13,15 +14,14 @@ class ConfigCommand extends Command {
 
   /// Constructor
   ConfigCommand() {
-    argParser
-      ..addOption(
-        'cache-path',
-        help:
-            'Set the path which FVM will cache the version. This will take precedence over FVM_HOME environment variable.',
-      );
+    argParser.addOption(
+      'cache-path',
+      help:
+          'Set the path which FVM will cache the version. This will take precedence over FVM_HOME environment variable.',
+    );
   }
   @override
-  Future<void> run() async {
+  Future<int> run() async {
     final cachePath = argResults['cache-path'] as String;
 
     final config = Settings.readSync();
@@ -30,5 +30,6 @@ class ConfigCommand extends Command {
       await config.save();
     }
     print('Cache Path: ${config.cachePath}');
+    return ExitCode.success.code;
   }
 }
