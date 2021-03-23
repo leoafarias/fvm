@@ -18,11 +18,11 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 - Version FVM config with a project for consistency across teams and CI environments.
 - Set global Flutter version across projects
 
-## GUI App - MacOS & Windows Download (Alpha)
-
-[![FVM App Screenshot](https://github.com/leoafarias/sidekick/blob/main/assets/fvm-app.png?raw=true)](https://github.com/leoafarias/sidekick)
+### The app has moved to a different repo and is now Flutter Sidekick.
 
 [Read more about it here.](https://github.com/leoafarias/sidekick)
+
+[![FVM App Screenshot](https://github.com/leoafarias/sidekick/blob/main/assets/sidekick.png?raw=true)](https://github.com/leoafarias/sidekick)
 
 ## Version Management
 
@@ -230,11 +230,12 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 ```
 
 #### Remove the flutter sdk from search to make things easier
+
 ```json
 {
   "search.exclude": {
     "**/.fvm": true
-  },
+  }
 }
 ```
 
