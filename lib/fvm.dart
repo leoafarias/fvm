@@ -20,7 +20,8 @@ export 'package:fvm/src/utils/settings.dart';
 // FVM API for consumption from GUI & other tools
 class FVM {
   // Flutter SDK
-  static final install = installWorkflow;
+  static final install = (String versionName) =>
+      installWorkflow(versionName, skipConfirmation: true);
   static final remove = removeWorkflow;
   static final setup = flutterSetupWorkflow;
   static final upgrade = upgradeFlutterChannel;
