@@ -1,3 +1,8 @@
+# 1.3.8
+
+- Issue on install [#242](https://github.com/leoafarias/fvm/issues/242)
+- Auto linking[#207](https://github.com/leoafarias/fvm/issues/207)
+
 ## 1.3.7
 
 - Fix issue for delay exist after use command [#195](https://github.com/leoafarias/fvm/issues/195)
