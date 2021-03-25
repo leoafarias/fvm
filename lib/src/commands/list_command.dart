@@ -1,7 +1,8 @@
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_app_service.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/print_versions.dart';
@@ -22,9 +23,9 @@ class ListCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final choices = await LocalVersionRepo.getAll();
+    final cacheVersions = await CacheService.getAll();
 
-    if (choices.isEmpty) {
+    if (cacheVersions.isEmpty) {
       FvmLogger.info(
         '''
         No SDKs have been installed yet. Flutter 
@@ -38,10 +39,10 @@ class ListCommand extends Command<int> {
     print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
 
     // Get current project
-    final project = await FlutterProjectRepo.findAncestor();
+    final project = await FlutterAppService.findAncestor();
 
-    for (var choice in choices) {
-      printVersions(choice.name, project);
+    for (var version in cacheVersions) {
+      printVersions(version, project);
     }
 
     return ExitCode.success.code;

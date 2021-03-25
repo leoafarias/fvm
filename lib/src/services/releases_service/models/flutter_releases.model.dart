@@ -1,10 +1,9 @@
 import 'dart:convert';
 
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-
-import 'package:fvm/src/releases_api/current_release_parser.dart';
-import 'package:fvm/src/releases_api/models/channels.model.dart';
-import 'package:fvm/src/releases_api/models/release.model.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/releases_service/current_release_parser.dart';
+import 'package:fvm/src/services/releases_service/models/channels.model.dart';
+import 'package:fvm/src/services/releases_service/models/release.model.dart';
 
 FlutterReleases releasesFromMap(String str) =>
     FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
@@ -33,7 +32,7 @@ class FlutterReleases {
 
   /// Retrieves version information
   Release getReleaseFromVersion(String version) {
-    if (isFlutterChannel(version)) {
+    if (FlutterTools.isChannel(version)) {
       return channels[version];
     }
 

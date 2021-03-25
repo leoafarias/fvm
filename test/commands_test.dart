@@ -1,13 +1,13 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/runner.dart';
 
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -26,9 +26,9 @@ void main() {
         await fvmRunner.run(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await gitGetVersion(channel);
 
-        final installExists = await LocalVersionRepo.isInstalled(channel);
+        final cacheVersion = await CacheService.isVersionCached(channel);
 
-        expect(installExists, true, reason: 'Install does not exist');
+        expect(cacheVersion != null, true, reason: 'Install does not exist');
 
         expect(existingChannel, channel);
       } on Exception catch (e) {
@@ -52,7 +52,7 @@ void main() {
 
         //TODO: Create flutter project for test
         await fvmRunner.run(['use', channel, '--force', '--verbose']);
-        final project = await FlutterProjectRepo.findAncestor();
+        final project = await FlutterAppService.findAncestor();
         if (project == null) {
           fail('Not running on a flutter project');
         }
@@ -99,12 +99,12 @@ void main() {
     test('Install Release', () async {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
-        final version = await inferFlutterVersion(release);
+        final version = await FlutterTools.inferVersion(release);
         final existingRelease = await gitGetVersion(version);
 
-        final installExists = await LocalVersionRepo.isInstalled(version);
+        final cacheVersion = await CacheService.isVersionCached(version);
 
-        expect(installExists, true, reason: 'Install does not exist');
+        expect(cacheVersion != null, true, reason: 'Install does not exist');
 
         expect(existingRelease, version);
       } on Exception catch (e) {
@@ -118,11 +118,11 @@ void main() {
       try {
         // TODO: Use force to run within fvm need to create example project
         await fvmRunner.run(['use', release, '--force', '--verbose']);
-        final project = await FlutterProjectRepo.findAncestor();
+        final project = await FlutterAppService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();
-        final version = await inferFlutterVersion(release);
+        final version = await FlutterTools.inferVersion(release);
         final releaseBin = path.join(kVersionsDir.path, version);
 
         expect(targetBin == releaseBin, true);

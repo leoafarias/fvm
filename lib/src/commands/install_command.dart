@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
 import 'package:fvm/src/workflows/install_version.workflow.dart';
@@ -31,7 +31,7 @@ class InstallCommand extends Command<int> {
     String version;
     final skipSetup = argResults['skip-setup'] == true;
 
-    final project = await FlutterProjectRepo.findAncestor();
+    final project = await FlutterAppService.findAncestor();
     // If no version was passed as argument check project config.
     if (argResults.rest.isEmpty) {
       final configVersion = project.pinnedVersion;
@@ -45,7 +45,7 @@ class InstallCommand extends Command<int> {
       await installWorkflow(version, skipConfirmation: true);
     } else {
       version = argResults.rest[0];
-      version = await inferFlutterVersion(version);
+      version = await FlutterTools.inferVersion(version);
 
       await installWorkflow(version, skipConfirmation: true);
     }

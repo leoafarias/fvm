@@ -1,15 +1,16 @@
 import 'package:console/console.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+
+import 'package:fvm/src/models/flutter_app_model.dart';
 import 'package:fvm/src/utils/logger.dart';
 
-void printVersions(String version, FlutterProject project) {
-  var printVersion = version;
+void printVersions(CacheVersion version, FlutterApp project) {
+  var printVersion = version.name;
 
-  if (project != null && project.pinnedVersion == version) {
+  if (project != null && project.pinnedVersion == version.name) {
     printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
   }
-  if (isGlobalVersion(version)) {
+  if (CacheService.isGlobal(version)) {
     printVersion = '$printVersion (global)';
   }
   FvmLogger.info(printVersion);

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:path/path.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.reference

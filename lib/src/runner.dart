@@ -17,8 +17,9 @@ import 'package:fvm/src/commands/use_command.dart';
 
 import 'package:fvm/src/utils/logger.dart' show logger;
 import 'package:fvm/src/version.dart';
-
 import 'package:io/io.dart';
+
+// import 'package:io/io.dart';
 
 class FvmCommandRunner extends CommandRunner<int> {
   FvmCommandRunner()

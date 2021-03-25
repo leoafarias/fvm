@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/flutter_project/fvm_config.model.dart';
+
+import 'package:fvm/src/models/fvm_config_model.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
 
-class FvmConfigRepo {
+class FvmConfigService {
   static Future<FvmConfig> read(Directory directory) async {
     final configDir = Directory(join(directory.path, kFvmDirName));
     final configFile = File(join(configDir.path, kFvmConfigFileName));

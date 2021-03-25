@@ -1,7 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/fvm.dart';
+
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
 
@@ -22,7 +23,7 @@ class FlutterCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final project = await FlutterProjectRepo.findAncestor();
+    final project = await FlutterAppService.findAncestor();
 
     if (project != null && project.pinnedVersion != null) {
       logger.trace('FVM: Running version ${project.pinnedVersion}');

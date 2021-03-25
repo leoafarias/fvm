@@ -1,4 +1,4 @@
-import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 

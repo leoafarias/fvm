@@ -4,7 +4,7 @@ import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/flutter_tools/git_tools.dart';
 
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/workflows/install_version.workflow.dart';
 import 'package:fvm/src/workflows/remove_version.workflow.dart';
 import 'package:test/test.dart';
@@ -34,15 +34,15 @@ void main() {
         try {
           await installWorkflow(version);
           final gitVersion = await gitGetVersion(version);
-          final isInstalled = await LocalVersionRepo.isInstalled(version);
-          expect(isInstalled, true);
+          final cacheVersion = await CacheService.isVersionCached(version);
+          expect(cacheVersion != null, true);
           expect(gitVersion, version);
         } on Exception catch (e) {
           fail('Exception thrown, $e');
         }
       }
 
-      final localVersions = await LocalVersionRepo.getAll();
+      final localVersions = await CacheService.getAll();
       expect(localVersions.length, listVersions.length,
           reason: 'Checking if all versions were installed');
     });
@@ -52,14 +52,14 @@ void main() {
         try {
           await removeWorkflow(version);
 
-          final isInstalled = await LocalVersionRepo.isInstalled(version);
-          expect(isInstalled, false);
+          final cacheVersion = await CacheService.isVersionCached(version);
+          expect(cacheVersion == null, true);
         } on Exception catch (e) {
           fail('Exception thrown, $e');
         }
       }
 
-      final localVersions = await LocalVersionRepo.getAll();
+      final localVersions = await CacheService.getAll();
       expect(localVersions.isEmpty, true,
           reason: 'Checking if all versions were removed');
     });

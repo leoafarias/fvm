@@ -16,8 +16,8 @@ void main() {
       try {
         await installWorkflow('stable');
         final flutterProject =
-            await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
-        await FlutterProjectRepo.pinVersion(flutterProject, 'stable');
+            await FlutterAppService.findAncestor(dir: kFlutterAppDir);
+        await FlutterAppService.pinVersion(flutterProject, 'stable');
 
         await runFlutterCmd(flutterProject.pinnedVersion, ['--version']);
         expect(true, true);

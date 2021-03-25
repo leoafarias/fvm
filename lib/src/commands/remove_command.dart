@@ -1,7 +1,8 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+
+import 'package:fvm/src/services/cache_service.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/workflows/remove_version.workflow.dart';
@@ -23,10 +24,11 @@ class RemoveCommand extends Command<int> {
   @override
   Future<int> run() async {
     final version = argResults.rest[0].toLowerCase();
-    final validVersion = await inferFlutterVersion(version);
-    final isValidInstall = await LocalVersionRepo.isInstalled(validVersion);
+    final validVersion = await FlutterTools.inferVersion(version);
 
-    if (!isValidInstall) {
+    final cacheVersion = await CacheService.isVersionCached(validVersion);
+
+    if (cacheVersion == null) {
       FvmLogger.info('Flutter SDK: $validVersion is not installed');
       return ExitCode.success.code;
     }

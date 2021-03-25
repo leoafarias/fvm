@@ -1,5 +1,5 @@
 /// Goes through the current_release payload.
-/// Finds the proper releae base on the hash
+/// Finds the proper release base on the hash
 /// Assings to the current_release
 Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final currentRelease = json['current_release'] as Map<String, dynamic>;

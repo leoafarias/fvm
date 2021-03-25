@@ -17,16 +17,16 @@ Future<void> installWorkflow(
     assert(version != null);
 
     // If it's installed correctly just return and use cached
-    final isVersionInstalled = await LocalVersionRepo.isInstalled(version);
+    final cacheVersion = await CacheService.isVersionCached(version);
 
-    // Ensure the config link and symlink are updated
-    final project = await FlutterProjectRepo.findAncestor();
-    await FlutterProjectRepo.updateSdkLink(project);
-
-    if (isVersionInstalled) {
+    if (cacheVersion != null) {
       logger.trace('Version: $version - already installed.');
       return;
     }
+
+    // Ensure the config link and symlink are updated
+    final project = await FlutterAppService.findAncestor();
+    await FlutterAppService.updateSdkLink(project);
 
     FvmLogger.info('Flutter $version is not installed.');
 

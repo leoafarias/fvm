@@ -1,23 +1,32 @@
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'dart:io';
+
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:meta/meta.dart';
 import 'package:version/version.dart';
 
-class LocalVersion {
+class CacheVersion {
+  @required
   final String name;
+  @required
   final String sdkVersion;
+  @required
+  final Directory dir;
   final bool isChannel;
 
-  LocalVersion({
+  CacheVersion({
     this.name,
     this.sdkVersion,
-  }) : isChannel = isFlutterChannel(name);
+    this.dir,
+  }) : isChannel = FlutterTools.isChannel(name);
 
-  int compareTo(LocalVersion other) {
+  int compareTo(CacheVersion other) {
     final version = _assignVersionWeight(name);
     final otherVersion = _assignVersionWeight(other.name);
     return version.compareTo(otherVersion);
   }
 }
 
+// Assigns weight to [version] for proper comparison
 Version _assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
   switch (version) {
@@ -35,10 +44,6 @@ Version _assignVersionWeight(String version) {
       break;
     default:
   }
-  // // Non semver
-  // if (version.contains('+')) {
-  //   version = version.substring(0, version.indexOf('+'));
-  // }
 
   if (version.contains('v')) {
     version = version.replaceFirst('v', '');

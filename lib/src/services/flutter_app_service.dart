@@ -1,18 +1,17 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/models/flutter_app_model.dart';
+import 'package:fvm/src/services/fvm_config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_project/fvm_config_repo.dart';
-
-class FlutterProjectRepo {
-  static Future<FlutterProject> getOne(Directory directory) async {
+class FlutterAppService {
+  static Future<FlutterApp> getOne(Directory directory) async {
     final pubspec = await _getPubspec(directory);
-    final config = await FvmConfigRepo.read(directory);
+    final config = await FvmConfigService.read(directory);
 
-    return FlutterProject(
+    return FlutterApp(
       name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
@@ -21,7 +20,7 @@ class FlutterProjectRepo {
     );
   }
 
-  static Future<List<FlutterProject>> fetchProjects(List<String> paths) async {
+  static Future<List<FlutterApp>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
         (path) async => await getOne(
@@ -32,7 +31,7 @@ class FlutterProjectRepo {
   }
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<FlutterProject>> scanDirectory({Directory rootDir}) async {
+  static Future<List<FlutterApp>> scanDirectory({Directory rootDir}) async {
     final paths = <String>[];
 
     if (rootDir == null) {
@@ -54,17 +53,17 @@ class FlutterProjectRepo {
     return await fetchProjects(paths);
   }
 
-  static Future<void> updateSdkLink(FlutterProject project) async {
+  static Future<void> updateSdkLink(FlutterApp project) async {
     final config = project.config;
     if (project != null && project.pinnedVersion != null) {
-      await FvmConfigRepo.updateSdkLink(config);
+      await FvmConfigService.updateSdkLink(config);
     }
   }
 
-  static Future<void> pinVersion(FlutterProject project, String version) async {
+  static Future<void> pinVersion(FlutterApp project, String version) async {
     final config = project.config;
     config.flutterSdkVersion = version;
-    await FvmConfigRepo.save(config);
+    await FvmConfigService.save(config);
   }
 
   static Future<PubspecYaml> _getPubspec(Directory directory) async {
@@ -95,7 +94,7 @@ class FlutterProjectRepo {
   }
 
   /// Recursive look up to find nested project directory
-  static Future<FlutterProject> findAncestor({Directory dir}) async {
+  static Future<FlutterApp> findAncestor({Directory dir}) async {
     // Get directory, defined root or current
     dir ??= kWorkingDirectory;
 

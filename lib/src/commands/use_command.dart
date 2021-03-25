@@ -1,10 +1,11 @@
 import 'package:args/command_runner.dart';
-import 'package:cli_dialog/cli_dialog.dart';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/utils/ask_versions.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 
 import 'package:fvm/src/workflows/use_version.workflow.dart';
@@ -39,22 +40,13 @@ class UseCommand extends Command<int> {
 
     // If no version is provider show selection
     if (argResults.rest.isEmpty) {
-      final installedSdks = await LocalVersionRepo.getAll();
-      if (installedSdks.isEmpty) {
+      final cacheVersions = await CacheService.getAll();
+      if (cacheVersions.isEmpty) {
         throw Exception('Please install a version. fvm install <version>');
       }
-      final listQuestions = [
-        [
-          {
-            'question': 'Select version',
-            'options': installedSdks.map((e) => e.name).toList(),
-          },
-          'version'
-        ]
-      ];
-      final dialog = CLI_Dialog(listQuestions: listQuestions);
-      final answer = dialog.ask();
-      version = answer['version'] as String;
+
+      /// Ask which version to select
+      version = askWhichVersion(cacheVersions);
     }
 
     version ??= argResults.rest[0];
@@ -63,10 +55,12 @@ class UseCommand extends Command<int> {
     final force = argResults['force'] == true;
 
     // Get valid flutter version
-    final validVersion = await inferFlutterVersion(version);
+    final validVersion = await FlutterTools.inferVersion(version);
 
+    /// Run use workflow
     await useVersionWorkflow(validVersion, global: global, force: force);
 
+    // Check if its running the latest version of FVM
     await checkIfLatestVersion();
 
     return ExitCode.success.code;

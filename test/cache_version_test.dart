@@ -31,7 +31,7 @@ void main() {
     ];
 
     final versionUnsorted =
-        unsortedList.map((v) => LocalVersion(name: v)).toList();
+        unsortedList.map((v) => CacheVersion(name: v)).toList();
     versionUnsorted.sort((a, b) => a.compareTo(b));
 
     final afterUnsorted = versionUnsorted.reversed.toList().map((e) => e.name);
@@ -43,7 +43,7 @@ void main() {
     final invalidVersionName = 'INVALID_VERSION';
     final dir = Directory(join(kVersionsDir.path, invalidVersionName));
     await dir.create(recursive: true);
-    final correct = await LocalVersionRepo.isInstalled(invalidVersionName);
-    expect(correct, false);
+    final cacheVersion = await CacheService.isVersionCached(invalidVersionName);
+    expect(cacheVersion != null, false);
   });
 }

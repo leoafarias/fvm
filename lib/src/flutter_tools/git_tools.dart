@@ -12,11 +12,7 @@ import 'package:process_run/process_run.dart';
 /// Check if Git is installed
 Future<void> _checkIfGitInstalled() async {
   try {
-    await run(
-      'git',
-      ['--version'],
-      workingDirectory: kWorkingDirectory.path,
-    );
+    await run('git', ['--version'], workingDirectory: kWorkingDirectory.path);
   } on ProcessException {
     throw Exception(
       'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
@@ -66,6 +62,13 @@ Future<void> runGitClone(String version) async {
   return;
 }
 
+Future<bool> checkIfLatestMaster() async {
+  final result =
+      await run('git', ['rev-list', 'HEAD...origin/master', '--count']);
+  // If 0 then it's up to date
+  return result.stdout == 0;
+}
+
 Future<String> getCurrentGitBranch(Directory dir) async {
   try {
     if (!await dir.exists()) {
@@ -86,7 +89,6 @@ Future<String> getCurrentGitBranch(Directory dir) async {
 
     return result.stdout.trim() as String;
   } on Exception catch (err) {
-    //TODO: better error logging
     FvmLogger.error(err.toString());
     return null;
   }

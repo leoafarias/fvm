@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:fvm/src/flutter_project/fvm_config.model.dart';
+import 'package:fvm/src/models/fvm_config_model.dart';
 import 'package:meta/meta.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
-class FlutterProject {
+class FlutterApp {
   final String name;
   final Directory projectDir;
   final String gitBranch;
@@ -12,7 +12,7 @@ class FlutterProject {
   final bool isFlutterProject;
   final PubspecYaml pubspec;
 
-  FlutterProject({
+  FlutterApp({
     @required this.config,
     this.name,
     this.projectDir,
