@@ -1,4 +1,4 @@
-<img src="https://github.com/leoafarias/fvm/blob/master/docs/fvm-logo.png?raw=true" alt="drawing" width="200"/>
+<img src="https://github.com/leoafarias/fvm/blob/master/assets/fvm-logo.png?raw=true" alt="drawing" width="200"/>
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
@@ -219,7 +219,7 @@ Alternatively, you can specify only selected versions. The following snippet wil
 
 To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette. You should see all the versions as depicted in the following screenshot.
 
-![VS Code version selector screenshot](./docs/vs_code_versions.png?raw=true "VS Code version selector screenshot")
+![VS Code version selector screenshot](./assets/vs_code_versions.png?raw=true "VS Code version selector screenshot")
 
 #### You can also add the version symlink for dynamic switch
 

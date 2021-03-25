@@ -38,17 +38,10 @@ class UseCommand extends Command<int> {
   Future<int> run() async {
     String version;
 
-    // If no version is provider show selection
+    // If no version return error
+    //TODO: Provide version selection
     if (argResults.rest.isEmpty) {
-      final cacheVersions = await CacheService.getAll();
-      if (cacheVersions.isEmpty) {
-        throw Exception('Please install a version. fvm install <version>');
-      }
-
-      /// Ask which version to select
-      /// TODO: Add this back up
-      // version = askWhichVersion(cacheVersions);
-      throw Exception('Pleae provide a version');
+      throw Exception('Please provide a version to use');
     }
 
     version ??= argResults.rest[0];
