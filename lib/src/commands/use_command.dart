@@ -5,7 +5,7 @@ import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/utils/ask_versions.dart';
+
 import 'package:fvm/src/utils/pubdev.dart';
 
 import 'package:fvm/src/workflows/use_version.workflow.dart';
@@ -46,7 +46,9 @@ class UseCommand extends Command<int> {
       }
 
       /// Ask which version to select
-      version = askWhichVersion(cacheVersions);
+      /// TODO: Add this back up
+      // version = askWhichVersion(cacheVersions);
+      throw Exception('Pleae provide a version');
     }
 
     version ??= argResults.rest[0];
