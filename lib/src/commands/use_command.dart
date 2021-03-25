@@ -1,10 +1,8 @@
 import 'package:args/command_runner.dart';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
-import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/flutter_tools/flutter_tools.dart';
 
 import 'package:fvm/src/utils/pubdev.dart';
 
