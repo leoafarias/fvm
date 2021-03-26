@@ -1,8 +1,10 @@
 import 'package:args/command_runner.dart';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/utils/console_utils.dart';
 
 import 'package:fvm/src/utils/pubdev.dart';
 
@@ -36,10 +38,16 @@ class UseCommand extends Command<int> {
   Future<int> run() async {
     String version;
 
-    // If no version return error
-    //TODO: Provide version selection
+    // Show chooser if not version is provided
     if (argResults.rest.isEmpty) {
-      throw Exception('Please provide a version to use');
+      final cacheVersions = await CacheService.getAll();
+      if (cacheVersions.isEmpty) {
+        throw Exception('Please install a version. fvm install <version>');
+      }
+
+      /// Ask which version to select
+
+      version = versionChooser(cacheVersions);
     }
 
     version ??= argResults.rest[0];

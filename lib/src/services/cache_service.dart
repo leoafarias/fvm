@@ -82,6 +82,7 @@ class CacheService {
     if (await CacheService.verifyIntegrity(cacheVersion)) {
       print('$version exists but was not setup correctly. Doing cleanup...');
       await CacheService.remove(cacheVersion);
+      return null;
     }
     return cacheVersion;
   }

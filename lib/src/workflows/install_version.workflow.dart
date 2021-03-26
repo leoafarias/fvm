@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/flutter_tools/git_tools.dart';
-import 'package:fvm/src/utils/confirm.dart';
+
+import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 

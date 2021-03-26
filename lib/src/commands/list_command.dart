@@ -3,9 +3,10 @@ import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/utils/console_utils.dart';
 
 import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/print_versions.dart';
+
 import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
@@ -42,7 +43,7 @@ class ListCommand extends Command<int> {
     final project = await FlutterAppService.findAncestor();
 
     for (var version in cacheVersions) {
-      printVersions(version, project);
+      printVersionStatus(version, project);
     }
 
     return ExitCode.success.code;
