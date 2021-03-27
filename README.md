@@ -1,4 +1,4 @@
-<img src="https://github.com/leoafarias/fvm/blob/master/assets/fvm-logo.png?raw=true" alt="drawing" width="200"/>
+# fvm
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
