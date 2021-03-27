@@ -18,8 +18,8 @@ final testPath = '$kFvmHome/test_path';
 
 final fvmRunner = FvmCommandRunner();
 void main() {
-  setUpAll(fvmSetUpAll);
-  tearDownAll(fvmTearDownAll);
+  // setUpAll(fvmSetUpAll);
+  // tearDownAll(fvmTearDownAll);
   group('Channel Workflow:', () {
     test('Install Channel', () async {
       try {

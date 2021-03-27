@@ -46,13 +46,15 @@ class GlobalCommand extends Command<int> {
 
     final isSetup = await CacheService.checkGlobalSetup();
 
+    // TODO: Check if no flutter is setup on PATH
     if (isSetup) {
       FvmLogger.fine('$validVersion has been set as global');
     } else {
       FvmLogger.info('');
       FvmLogger.fine('$validVersion has been set as global');
       FvmLogger.warning('However your "flutter" path current points to:');
-      FvmLogger.info(whichSync('flutter'));
+      FvmLogger.info(
+          whichSync('flutter') ?? 'No version is configured on path.');
       FvmLogger.info(
           'to use global Flutter SDK through FVM you should change it to:');
       FvmLogger.info(kGlobalFlutterPath);
