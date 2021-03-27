@@ -40,7 +40,7 @@ class ListCommand extends Command<int> {
     final project = await FlutterAppService.findAncestor();
 
     for (var version in cacheVersions) {
-      printVersionStatus(version, project);
+      await printVersionStatus(version, project);
     }
 
     return ExitCode.success.code;

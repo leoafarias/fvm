@@ -104,12 +104,11 @@ class CacheService {
 
   /// Checks if its global version
   static Future<bool> isGlobal(CacheVersion version) async {
-    return await kGlobalFlutterLink.target() == version.dir.path;
-  }
-
-  /// Checks if its global version
-  static bool isGlobalSync(CacheVersion version) {
-    return kGlobalFlutterLink.targetSync() == version.dir.path;
+    if (await kGlobalFlutterLink.exists()) {
+      return await kGlobalFlutterLink.target() == version.dir.path;
+    } else {
+      return false;
+    }
   }
 
   /// Checks if global version is configured correctly

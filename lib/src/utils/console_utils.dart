@@ -13,13 +13,14 @@ Future<bool> confirm(String message) async {
 }
 
 /// Prints out versions on FVM and it's status
-void printVersionStatus(CacheVersion version, FlutterApp project) {
+Future<void> printVersionStatus(
+    CacheVersion version, FlutterApp project) async {
   var printVersion = version.name;
 
   if (project != null && project.pinnedVersion == version.name) {
     printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
   }
-  if (CacheService.isGlobalSync(version)) {
+  if (await CacheService.isGlobal(version)) {
     printVersion = '$printVersion (global)';
   }
   FvmLogger.info(printVersion);
