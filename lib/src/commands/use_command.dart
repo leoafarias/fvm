@@ -1,12 +1,12 @@
 import 'package:args/command_runner.dart';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
 
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
+
 import 'package:fvm/src/utils/console_utils.dart';
-
-import 'package:fvm/src/utils/pubdev.dart';
+import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/messages.dart';
 
 import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
@@ -25,7 +25,7 @@ class UseCommand extends Command<int> {
       ..addFlag(
         'global',
         help:
-            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kDefaultFlutterPath',
+            'Sets version as the global version.\nMake sure Flutter PATH env is set to: $kGlobalFlutterPath',
         negatable: false,
       )
       ..addFlag(
@@ -40,29 +40,31 @@ class UseCommand extends Command<int> {
 
     // Show chooser if not version is provided
     if (argResults.rest.isEmpty) {
-      final cacheVersions = await CacheService.getAll();
-      if (cacheVersions.isEmpty) {
-        throw Exception('Please install a version. fvm install <version>');
-      }
-
       /// Ask which version to select
-
-      version = versionChooser(cacheVersions);
+      version = await cacheVersionSelector();
     }
 
+    // Get version from first arg
     version ??= argResults.rest[0];
 
     final global = argResults['global'] == true;
+
+    //TODO: Deprecation notice. Remove it later
+    if (global) {
+      FvmLogger.warning(Messages.UseGlobalDeprecation);
+      return ExitCode.usage.code;
+    }
+
     final force = argResults['force'] == true;
 
     // Get valid flutter version
     final validVersion = await FlutterTools.inferVersion(version);
 
     /// Run use workflow
-    await useVersionWorkflow(validVersion, global: global, force: force);
-
-    // Check if its running the latest version of FVM
-    await checkIfLatestVersion();
+    await useVersionWorkflow(
+      validVersion,
+      force: force,
+    );
 
     return ExitCode.success.code;
   }

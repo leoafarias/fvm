@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/services/releases_service/current_release_parser.dart';
 import 'package:fvm/src/services/releases_service/models/channels.model.dart';
 import 'package:fvm/src/services/releases_service/models/release.model.dart';

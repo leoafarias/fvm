@@ -27,8 +27,8 @@ Future<String> getRandomFlutterVersion() async {
 
 void cleanup() {
   // Remove all versions
-  if (kVersionsDir.existsSync()) {
-    final versionsList = kVersionsDir.listSync(recursive: true);
+  if (kFvmCacheDir.existsSync()) {
+    final versionsList = kFvmCacheDir.listSync(recursive: true);
     versionsList.forEach((dir) {
       if (dir.existsSync()) {
         dir.deleteSync(recursive: true);

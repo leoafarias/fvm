@@ -28,7 +28,7 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
     cacheReleasesRes = releasesFromMap(response.body);
     return cacheReleasesRes;
   } on Exception {
-    throw InternalError(
+    throw FvmInternalError(
         '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
   https://flutter.dev/community/china''');
   }

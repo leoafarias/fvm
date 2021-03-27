@@ -10,7 +10,8 @@ void main() {
   group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
-        final flutterProject = await FlutterAppService.getOne(kFlutterAppDir);
+        final flutterProject =
+            await FlutterAppService.getByDirectory(kFlutterAppDir);
 
         final flutterProjectVersion = await getRandomFlutterVersion();
 

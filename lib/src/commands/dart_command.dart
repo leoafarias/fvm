@@ -2,9 +2,10 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import 'package:fvm/src/services/flutter_app_service.dart';
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+
+import 'package:fvm/src/utils/commands.dart';
 import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 
 /// Proxies Dart Commands
 class DartCommand extends Command<int> {
@@ -20,20 +21,19 @@ class DartCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final project = await FlutterAppService.findAncestor();
+    final version = await FlutterAppService.findVersion();
+    final args = argResults.arguments;
 
-    if (project != null && project.pinnedVersion != null) {
-      logger.trace('FVM: Running version ${project.pinnedVersion}');
+    if (version != null) {
+      FvmLogger.info('fvm: running version $version of Flutter sdk');
       // Will install version if not already instaled
-      await installWorkflow(project.pinnedVersion);
+      final cacheVersion = await ensureCacheWorkflow(version);
       // Runs flutter command with pinned version
-      return await runDartCmd(project.pinnedVersion, argResults.arguments);
+      return await dartCmd(cacheVersion, args);
     } else {
-      logger.trace(
-        'FVM: Running using Flutter version configured in path.',
-      );
+      FvmLogger.info('Running using Flutter version configured in path.');
       // Running null will default to flutter version on path
-      return await runDartCmd(null, argResults.arguments);
+      return await dartGlobalCmd(args);
     }
   }
 }

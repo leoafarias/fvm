@@ -1,11 +1,14 @@
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
+
 import 'package:fvm/src/utils/logger.dart';
 
 Future<void> removeWorkflow(String version) async {
   FvmLogger.fine('Removing $version');
   try {
     final cacheVersion = await CacheService.isVersionCached(version);
+
+    /// Remove if version is cached
     if (cacheVersion != null) {
       await CacheService.remove(cacheVersion);
     } else {
@@ -13,6 +16,6 @@ Future<void> removeWorkflow(String version) async {
     }
   } on Exception catch (err) {
     logger.trace(err.toString());
-    throw InternalError('Could not remove $version');
+    throw FvmInternalError('Could not remove $version');
   }
 }

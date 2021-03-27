@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:meta/meta.dart';
 import 'package:version/version.dart';
 

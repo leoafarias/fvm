@@ -7,8 +7,9 @@ final kFvmConfigFileName = 'fvm_config.json';
 final envVars = Platform.environment;
 
 /// Flutter Repo Address
-final kFlutterRepo =
-    envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
+String get kFlutterRepo {
+  return envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
+}
 
 /// Working Directory for FVM
 
@@ -35,7 +36,7 @@ File get kFvmSettings {
 }
 
 /// Where Flutter SDK Versions are stored
-Directory get kVersionsDir {
+Directory get kFvmCacheDir {
   final settings = Settings.readSync();
   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
@@ -44,8 +45,8 @@ Directory get kVersionsDir {
 }
 
 /// Where Default Flutter SDK is stored
-Link get kDefaultFlutterLink => Link(path.join(kFvmHome, 'default'));
-String get kDefaultFlutterPath => path.join(kDefaultFlutterLink.path, 'bin');
+Link get kGlobalFlutterLink => Link(path.join(kFvmHome, 'default'));
+String get kGlobalFlutterPath => path.join(kGlobalFlutterLink.path, 'bin');
 
 /// Flutter Channels
-final kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
+const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];

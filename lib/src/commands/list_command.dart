@@ -1,4 +1,4 @@
-import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
@@ -24,20 +24,17 @@ class ListCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final cacheVersions = await CacheService.getAll();
+    final cacheVersions = await CacheService.getAllVersions();
 
     if (cacheVersions.isEmpty) {
-      FvmLogger.info(
-        '''
-        No SDKs have been installed yet. Flutter 
-        SDKs installed outside of fvm will not be displayed.
-        ''',
+      throw const FvmUsageException(
+        'No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.',
       );
-      return ExitCode.success.code;
     }
 
     // Print where versions are stored
-    print('Versions path:  ${yellow.wrap(kVersionsDir.path)}');
+    FvmLogger.info(
+        'Versions path:  ${yellow.wrap(CacheService.cacheDir.path)}');
 
     // Get current project
     final project = await FlutterAppService.findAncestor();

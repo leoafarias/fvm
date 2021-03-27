@@ -30,7 +30,7 @@ class FvmConfig {
   }
 
   String get flutterSdkPath {
-    return join(kVersionsDir.path, flutterSdkVersion);
+    return join(kFvmCacheDir.path, flutterSdkVersion);
   }
 
   File get configFile {

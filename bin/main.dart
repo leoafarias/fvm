@@ -1,5 +1,7 @@
+import 'dart:io';
+
 import 'package:fvm/fvm.dart';
 
 void main(List<String> args) async {
-  await FvmCommandRunner().run(args);
+  exit(await FvmCommandRunner().run(args));
 }

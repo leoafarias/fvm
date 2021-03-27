@@ -1,13 +1,17 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/models/cache_version_model.dart';
 
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
+import 'package:process_run/shell.dart';
 
 class CacheService {
-  static Future<CacheVersion> getByName(String name) async {
-    final versionDir = Directory(join(kVersionsDir.path, name));
+  static final cacheDir = kFvmCacheDir;
+
+  static Future<CacheVersion> getByVersionName(String name) async {
+    final versionDir = versionCacheDir(name);
     // Return null if version does not exist
     if (!await versionDir.exists()) return null;
 
@@ -21,18 +25,18 @@ class CacheService {
   }
 
   /// Lists Installed Flutter SDK Version
-  static Future<List<CacheVersion>> getAll() async {
+  static Future<List<CacheVersion>> getAllVersions() async {
     // Returns empty array if directory does not exist
-    if (!kVersionsDir.existsSync()) return [];
+    if (!cacheDir.existsSync()) return [];
 
-    final versions = await kVersionsDir.list().toList();
+    final versions = await cacheDir.list().toList();
 
     final cacheVersions = <CacheVersion>[];
 
     for (var version in versions) {
       if (isDirectory(version.path)) {
         final name = basename(version.path);
-        cacheVersions.add(await getByName(name));
+        cacheVersions.add(await getByVersionName(name));
       }
     }
 
@@ -43,9 +47,8 @@ class CacheService {
 
   /// Removes a Version of Flutter SDK
   static Future<void> remove(CacheVersion version) async {
-    final versionDir = Directory(join(kVersionsDir.path, version.name));
-    if (await versionDir.exists()) {
-      await versionDir.delete(recursive: true);
+    if (await version.dir.exists()) {
+      await version.dir.delete(recursive: true);
     }
   }
 
@@ -59,12 +62,12 @@ class CacheService {
 
   /// Gets Flutter SDK from CacheVersion
   static Future<String> getFlutterSdkVersion(String version) async {
-    final versionDirectory = Directory(join(kVersionsDir.path, version));
-    if (!await versionDirectory.exists()) {
+    final versionDir = versionCacheDir(version);
+    if (!await versionDir.exists()) {
       throw Exception('Could not get version from SDK that is not installed');
     }
 
-    final versionFile = File(join(versionDirectory.path, 'version'));
+    final versionFile = File(join(versionDir.path, 'version'));
     if (await versionFile.exists()) {
       return await versionFile.readAsString();
     } else {
@@ -72,9 +75,15 @@ class CacheService {
     }
   }
 
+  // Caches version
+  static Future<CacheVersion> cacheVersion(String version) async {
+    await GitTools.cloneVersion(version);
+    return isVersionCached(version);
+  }
+
 // Checks if isInstalled, and cleans up if its not
   static Future<CacheVersion> isVersionCached(String version) async {
-    final cacheVersion = await CacheService.getByName(version);
+    final cacheVersion = await CacheService.getByVersionName(version);
     // Return false if not cached
     if (cacheVersion == null) return null;
 
@@ -89,16 +98,24 @@ class CacheService {
 
   /// Sets a CacheVersion as global
   static Future<void> setGlobal(CacheVersion version) async {
-    final versionDir = Directory(join(kVersionsDir.path, version.name));
-    await createLink(kDefaultFlutterLink, versionDir);
+    final versionDir = Directory(join(kFvmCacheDir.path, version.name));
+    await createLink(kGlobalFlutterLink, versionDir);
   }
 
   /// Checks if its global version
-  static bool isGlobal(CacheVersion version) {
-    if (!kDefaultFlutterLink.existsSync()) return false;
+  static Future<bool> isGlobal(CacheVersion version) async {
+    return await kGlobalFlutterLink.target() == version.dir.path;
+  }
 
-    final globalVersion = basename(kDefaultFlutterLink.targetSync());
+  /// Checks if its global version
+  static bool isGlobalSync(CacheVersion version) {
+    return kGlobalFlutterLink.targetSync() == version.dir.path;
+  }
 
-    return globalVersion == version.name;
+  /// Checks if global version is configured correctly
+  static Future<bool> checkGlobalSetup() async {
+    /// Return false if link does not exist
+    if (!await kGlobalFlutterLink.exists()) return false;
+    return kGlobalFlutterPath == await which('flutter');
   }
 }

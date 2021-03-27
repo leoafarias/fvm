@@ -7,7 +7,7 @@ import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
 class FlutterAppService {
-  static Future<FlutterApp> getOne(Directory directory) async {
+  static Future<FlutterApp> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
     final config = await FvmConfigService.read(directory);
 
@@ -23,11 +23,26 @@ class FlutterAppService {
   static Future<List<FlutterApp>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
-        (path) async => await getOne(
-          Directory(path),
-        ),
+        (path) async => await getByDirectory(Directory(path)),
       ),
     );
+  }
+
+  /// Updates the link to make sure its always correct
+  static Future<void> updateLink() async {
+    // Ensure the config link and symlink are updated
+    final project = await FlutterAppService.findAncestor();
+    if (project != null &&
+        project.pinnedVersion != null &&
+        project.config != null) {
+      await FvmConfigService.updateSdkLink(project.config);
+    }
+  }
+
+  /// Search for version configured
+  static Future<String> findVersion() async {
+    final project = await FlutterAppService.findAncestor();
+    return project?.pinnedVersion;
   }
 
   /// Scans for Flutter projects found in the rootDir
@@ -51,13 +66,6 @@ class FlutterAppService {
       }
     }
     return await fetchProjects(paths);
-  }
-
-  static Future<void> updateSdkLink(FlutterApp project) async {
-    final config = project.config;
-    if (project != null && project.pinnedVersion != null) {
-      await FvmConfigService.updateSdkLink(config);
-    }
   }
 
   static Future<void> pinVersion(FlutterApp project, String version) async {
@@ -102,7 +110,7 @@ class FlutterAppService {
 
     final directory = Directory(dir.path);
 
-    final project = await getOne(directory);
+    final project = await getByDirectory(directory);
 
     if (project.config?.flutterSdkVersion != null) {
       return project;
@@ -110,7 +118,7 @@ class FlutterAppService {
 
     // Return working directory if has reached root
     if (isRootDir) {
-      return await getOne(kWorkingDirectory);
+      return await getByDirectory(kWorkingDirectory);
     }
 
     return await findAncestor(dir: dir.parent);

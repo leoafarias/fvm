@@ -1,8 +1,9 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+
+import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
@@ -48,17 +49,16 @@ void main() {
     expect(pubspec.version.valueOr(() => null), packageVersion);
   });
 
-  test('Test ReplaceFlutterPathEnv', () async {
-    final version = 'stable';
+  test('Test update env variables', () async {
+    final envVars = Platform.environment;
+    // final version = 'stable';
     final envName = 'PATH';
-    final emptyEnvVar = replaceFlutterPathEnv('');
-    final nullEnvVar = replaceFlutterPathEnv(null);
+    final fakePath = 'FAKE_PATH';
 
-    final newEnvVar = replaceFlutterPathEnv(version);
-    final flutterPath = join(kVersionsDir.path, version, 'bin');
+    final newEnvVar = updateFlutterEnvVariables('FAKE_PATH');
 
-    expect(emptyEnvVar[envName], envVars[envName]);
-    expect(nullEnvVar[envName], envVars[envName]);
-    expect(newEnvVar[envName].contains(flutterPath), true);
+    // expect(newEnvVar[envName], envVars[envName]);
+    expect(newEnvVar[envName].contains(fakePath), true);
+    expect(envVars, isNot(newEnvVar));
   });
 }

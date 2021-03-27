@@ -1,10 +1,10 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/runner.dart';
 
-import 'package:fvm/src/flutter_tools/git_tools.dart';
+import 'package:fvm/src/services/git_tools.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_app_service.dart';
@@ -24,7 +24,7 @@ void main() {
     test('Install Channel', () async {
       try {
         await fvmRunner.run(['install', channel, '--verbose', '--skip-setup']);
-        final existingChannel = await gitGetVersion(channel);
+        final existingChannel = await GitTools.getBranchOrTag(channel);
 
         final cacheVersion = await CacheService.isVersionCached(channel);
 
@@ -60,7 +60,7 @@ void main() {
 
         final targetBin = project.config.sdkSymlink.targetSync();
 
-        final channelBin = path.join(kVersionsDir.path, channel);
+        final channelBin = path.join(kFvmCacheDir.path, channel);
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
@@ -71,12 +71,12 @@ void main() {
 
     test('Use Flutter SDK globally', () async {
       try {
-        await fvmRunner.run(['use', channel, '--global']);
-        final linkExists = kDefaultFlutterLink.existsSync();
+        await fvmRunner.run(['global', channel]);
+        final linkExists = kGlobalFlutterLink.existsSync();
 
-        final targetDir = kDefaultFlutterLink.targetSync();
+        final targetDir = kGlobalFlutterLink.targetSync();
 
-        final channelDir = path.join(kVersionsDir.path, channel);
+        final channelDir = path.join(kFvmCacheDir.path, channel);
 
         expect(targetDir == channelDir, true);
         expect(linkExists, true);
@@ -87,7 +87,7 @@ void main() {
 
     test('Remove Channel Command', () async {
       try {
-        await fvmRunner.run(['remove', channel, '--verbose']);
+        await fvmRunner.run(['remove', channel, '--verbose', '--force']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -100,7 +100,7 @@ void main() {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
         final version = await FlutterTools.inferVersion(release);
-        final existingRelease = await gitGetVersion(version);
+        final existingRelease = await GitTools.getBranchOrTag(version);
 
         final cacheVersion = await CacheService.isVersionCached(version);
 
@@ -123,7 +123,7 @@ void main() {
 
         final targetBin = project.config.sdkSymlink.targetSync();
         final version = await FlutterTools.inferVersion(release);
-        final releaseBin = path.join(kVersionsDir.path, version);
+        final releaseBin = path.join(kFvmCacheDir.path, version);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);

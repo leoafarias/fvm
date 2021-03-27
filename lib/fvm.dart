@@ -1,4 +1,4 @@
-// import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+// import 'package:fvm/src/services/flutter_tools.dart';
 
 // import 'package:fvm/src/services/releases_service/releases_client.dart';
 // import 'package:fvm/src/utils/logger.dart';

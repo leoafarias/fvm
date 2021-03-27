@@ -4,6 +4,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/commands/config_command.dart';
+import 'package:fvm/src/commands/global_command.dart';
+import 'package:fvm/src/commands/which_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 import 'package:fvm/src/commands/flutter_command.dart';
@@ -16,6 +18,8 @@ import 'package:fvm/src/commands/remove_command.dart';
 import 'package:fvm/src/commands/use_command.dart';
 
 import 'package:fvm/src/utils/logger.dart' show logger;
+import 'package:fvm/src/utils/pubdev.dart';
+
 import 'package:fvm/src/version.dart';
 import 'package:io/io.dart';
 
@@ -48,6 +52,8 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(FlutterCommand());
     addCommand(DartCommand());
     addCommand(RemoveCommand());
+    addCommand(WhichCommand());
+    addCommand(GlobalCommand());
     addCommand(UseCommand());
     addCommand(ConfigCommand());
     addCommand(ReleasesCommand());
@@ -58,15 +64,36 @@ class FvmCommandRunner extends CommandRunner<int> {
     try {
       ConsoleController.isCli = true;
       final _argResults = parse(args);
-      return await runCommand(_argResults) ?? ExitCode.success.code;
-    } on UsageException catch (e) {
+
+      final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
+      
+      // Command might be null
+      final cmd = _argResults?.command?.name;
+
+      // Check if its running the latest version of FVM
+      if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
+        await checkIfLatestVersion();
+      }
+      return exitCode;
+    } on FvmUsageException catch (e) {
+      FvmLogger.spacer();
       FvmLogger.warning(e.message);
-      FvmLogger.info('');
+      FvmLogger.spacer();
+      FvmLogger.info(usage);
+      FvmLogger.spacer();
       return ExitCode.usage.code;
-    } on InternalError catch (e, stackTrace) {
+    } on FvmInternalError catch (e, stackTrace) {
+      FvmLogger.spacer();
       FvmLogger.error(e.message);
       FvmLogger.error('$stackTrace');
-      FvmLogger.info('');
+      FvmLogger.spacer();
+      return ExitCode.usage.code;
+    } on UsageException catch (e) {
+      FvmLogger.spacer();
+      FvmLogger.warning(e.message);
+      FvmLogger.spacer();
+      FvmLogger.info(usage);
+      FvmLogger.spacer();
       return ExitCode.usage.code;
     }
   }
@@ -74,7 +101,7 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     if (topLevelResults['version'] == true) {
-      print(packageVersion);
+      FvmLogger.info(packageVersion);
       return ExitCode.success.code;
     }
 

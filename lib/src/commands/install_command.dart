@@ -1,10 +1,11 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/src/flutter_tools/flutter_tools.dart';
+import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/services/flutter_app_service.dart';
-import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 
-import 'package:fvm/src/workflows/install_version.workflow.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
 /// Installs Flutter SDK
@@ -28,29 +29,28 @@ class InstallCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    String version;
+    CacheVersion cacheVersion;
     final skipSetup = argResults['skip-setup'] == true;
+    String version;
 
-    final project = await FlutterAppService.findAncestor();
     // If no version was passed as argument check project config.
     if (argResults.rest.isEmpty) {
-      final configVersion = project.pinnedVersion;
+      version = await FlutterAppService.findVersion();
+
       // If no config found is version throw error
-      if (configVersion == null) {
-        throw UsageException('Please provide a channel or a version.', '');
+      if (version == null) {
+        throw const FvmUsageException(
+            'Please provide a channel or a version, or run this command in a Flutter project that has FVM configured.');
       }
-
-      version = configVersion;
-
-      await installWorkflow(version, skipConfirmation: true);
-    } else {
-      version = argResults.rest[0];
-      version = await FlutterTools.inferVersion(version);
-
-      await installWorkflow(version, skipConfirmation: true);
     }
+    version ??= argResults.rest[0];
+
+    final validVersion = await FlutterTools.inferVersion(version);
+    cacheVersion =
+        await ensureCacheWorkflow(validVersion, skipConfirmation: true);
+
     if (!skipSetup) {
-      await flutterSetupWorkflow(version);
+      await FlutterTools.setupSdk(cacheVersion);
     }
 
     return ExitCode.success.code;
