@@ -225,7 +225,7 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 
 ```json
 {
-  "dart.flutterSdkPaths": [".fvm/flutter_sdk"]
+  "dart.flutterSdkPath":".fvm/flutter_sdk"
 }
 ```
 
