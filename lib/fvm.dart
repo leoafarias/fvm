@@ -16,18 +16,4 @@ export 'package:fvm/src/services/flutter_app_service.dart';
 export 'package:fvm/src/services/releases_service/models/release.model.dart';
 export 'package:fvm/src/services/releases_service/models/channels.model.dart';
 export 'package:fvm/src/utils/settings.dart';
-
-// FVM API for consumption from GUI & other tools
-// class FVMClient {
-//   // Flutter SDK
-//   static final install = (String versionName) =>
-//       installWorkflow(versionName, skipConfirmation: true);
-//   static final remove = removeWorkflow;
-//   static final setup = flutterSetupWorkflow;
-//   static final upgrade = upgradeChannel;
-//   static final noAnalytics = disableTracking;
-//   static final console = consoleController;
-
-//   // Interaction with releases api
-//   static final getFlutterReleases = fetchFlutterReleases;
-// }
+export 'package:fvm/src/utils/fvm_client.dart';
