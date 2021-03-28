@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:fvm/src/utils/settings.dart';
+import 'package:fvm/src/services/fvm_settings_service.dart';
+
 import 'package:path/path.dart' as path;
 
 const kFvmDirName = '.fvm';
@@ -37,7 +38,7 @@ File get kFvmSettings {
 
 /// Where Flutter SDK Versions are stored
 Directory get kFvmCacheDir {
-  final settings = Settings.readSync();
+  final settings = FvmSettingsService.readSync();
   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
   }

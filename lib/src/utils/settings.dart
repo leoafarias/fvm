@@ -1,26 +1,23 @@
 import 'dart:convert';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
-
-class Settings {
+class FvmSettings {
   String cachePath;
 
   bool skipSetup;
   bool noAnalytics;
 
-  Settings({
+  FvmSettings({
     this.cachePath,
     this.skipSetup = true,
     this.noAnalytics = false,
   });
 
-  factory Settings.fromJson(String jsonString) {
-    return Settings.fromMap(jsonDecode(jsonString) as Map<String, dynamic>);
+  factory FvmSettings.fromJson(String jsonString) {
+    return FvmSettings.fromMap(jsonDecode(jsonString) as Map<String, dynamic>);
   }
 
-  factory Settings.fromMap(Map<String, dynamic> json) {
-    return Settings(
+  factory FvmSettings.fromMap(Map<String, dynamic> json) {
+    return FvmSettings(
       cachePath: json['cachePath'] as String,
       skipSetup: json['skipSetup'] as bool ?? true,
       noAnalytics: json['noAnalytics'] as bool ?? false,
@@ -33,31 +30,5 @@ class Settings {
       'skipSetup': skipSetup,
       'noAnalytics': noAnalytics,
     };
-  }
-
-  static Future<Settings> read() async {
-    try {
-      final payload = await kFvmSettings.readAsString();
-      return Settings.fromJson(payload);
-    } on Exception {
-      return Settings();
-    }
-  }
-
-  static Settings readSync() {
-    try {
-      final payload = kFvmSettings.readAsStringSync();
-      return Settings.fromJson(payload);
-    } on Exception {
-      return Settings();
-    }
-  }
-
-  Future<void> save() async {
-    try {
-      await kFvmSettings.writeAsString(prettyJson(toMap()));
-    } on Exception {
-      throw Exception('Could not save FVM config');
-    }
   }
 }
