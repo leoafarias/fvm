@@ -188,6 +188,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "YangLang116",
+      "name": "Mr Yang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15442222?v=4",
+      "profile": "https://github.com/YangLang116",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,

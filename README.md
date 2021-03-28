@@ -1,4 +1,4 @@
-<img src="https://github.com/leoafarias/fvm/blob/master/assets/fvm-logo.png?raw=true" alt="drawing" width="200"/>
+# fvm
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
@@ -225,7 +225,7 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 
 ```json
 {
-  "dart.flutterSdkPaths": [".fvm/flutter_sdk"]
+  "dart.flutterSdkPath":".fvm/flutter_sdk"
 }
 ```
 
@@ -314,6 +314,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://www.topcode.it"><img src="https://avatars.githubusercontent.com/u/60045235?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Alexandru Mariuti</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=nank1ro" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/andreadelfante"><img src="https://avatars.githubusercontent.com/u/7781176?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Andrea Del Fante</b></sub></a><br /><a href="#ideas-andreadelfante" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/leoafarias/fvm/commits?author=andreadelfante" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Kavantix"><img src="https://avatars.githubusercontent.com/u/6243755?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Pieter van Loon</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=Kavantix" title="Code">💻</a> <a href="#ideas-Kavantix" title="Ideas, Planning, & Feedback">🤔</a></td>
+    <td align="center"><a href="https://github.com/YangLang116"><img src="https://avatars.githubusercontent.com/u/15442222?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Mr Yang</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=YangLang116" title="Code">💻</a></td>
   </tr>
 </table>
 
