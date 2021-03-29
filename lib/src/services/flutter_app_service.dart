@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/models/flutter_app_model.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/fvm_config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
@@ -68,9 +69,19 @@ class FlutterAppService {
     return await fetchProjects(paths);
   }
 
-  static Future<void> pinVersion(FlutterApp project, String version) async {
+  static Future<void> pinVersion(
+    FlutterApp project,
+    ValidVersion validVersion, {
+    String environment,
+  }) async {
     final config = project.config;
-    config.flutterSdkVersion = version;
+    // Attach as main version if no environment is set
+    if (environment == null) {
+      config.flutterSdkVersion = validVersion.version;
+    } else {
+      // Pin as an environment version
+      config.environment[environment] = validVersion.version;
+    }
     await FvmConfigService.save(config);
   }
 
@@ -112,7 +123,7 @@ class FlutterAppService {
 
     final project = await getByDirectory(directory);
 
-    if (project.config?.flutterSdkVersion != null) {
+    if (project.config.exists != null) {
       return project;
     }
 

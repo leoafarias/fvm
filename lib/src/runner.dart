@@ -4,6 +4,7 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/commands/config_command.dart';
+import 'package:fvm/src/commands/env_command.dart';
 import 'package:fvm/src/commands/global_command.dart';
 import 'package:fvm/src/commands/spawn_command.dart';
 import 'package:fvm/src/commands/which_command.dart';
@@ -45,20 +46,21 @@ class FvmCommandRunner extends CommandRunner<int> {
       )
       ..addFlag(
         'version',
-        help: 'Print the current version',
+        help: 'current version',
         negatable: false,
       );
     addCommand(InstallCommand());
+    addCommand(UseCommand());
     addCommand(ListCommand());
+    addCommand(RemoveCommand());
+    addCommand(ReleasesCommand());
     addCommand(FlutterCommand());
     addCommand(DartCommand());
-    addCommand(RemoveCommand());
-    addCommand(WhichCommand());
     addCommand(GlobalCommand());
-    addCommand(UseCommand());
-    addCommand(ConfigCommand());
-    addCommand(ReleasesCommand());
+    addCommand(WhichCommand());
     addCommand(SpawnCommand());
+    addCommand(ConfigCommand());
+    addCommand(EnvCommand());
   }
 
   @override

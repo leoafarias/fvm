@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/models/cache_version_model.dart';
 
@@ -76,20 +77,22 @@ class CacheService {
   }
 
   // Caches version
-  static Future<CacheVersion> cacheVersion(String version) async {
-    await GitTools.cloneVersion(version);
-    return isVersionCached(version);
+  static Future<CacheVersion> cacheVersion(ValidVersion validVersion) async {
+    await GitTools.cloneVersion(validVersion.version);
+    return isVersionCached(validVersion);
   }
 
 // Checks if isInstalled, and cleans up if its not
-  static Future<CacheVersion> isVersionCached(String version) async {
-    final cacheVersion = await CacheService.getByVersionName(version);
+  static Future<CacheVersion> isVersionCached(ValidVersion validVersion) async {
+    final cacheVersion =
+        await CacheService.getByVersionName(validVersion.version);
     // Return false if not cached
     if (cacheVersion == null) return null;
 
     // Check if version directory is from git
     if (await CacheService.verifyIntegrity(cacheVersion)) {
-      print('$version exists but was not setup correctly. Doing cleanup...');
+      print(
+          '$validVersion exists but was not setup correctly. Doing cleanup...');
       await CacheService.remove(cacheVersion);
       return null;
     }

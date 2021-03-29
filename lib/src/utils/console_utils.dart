@@ -26,7 +26,7 @@ Future<void> printVersionStatus(
   FvmLogger.info(printVersion);
 }
 
-/// Allows you to pass a versions for selecction.
+/// Allows to select from cached sdks.
 Future<String> cacheVersionSelector() async {
   final cacheVersions = await CacheService.getAllVersions();
   // Return message if no cached versions
@@ -39,9 +39,47 @@ Future<String> cacheVersionSelector() async {
 
   final versionsList = cacheVersions.map((version) => version.name).toList();
 
-  var chooser = Chooser<String>(
+  // Better legibility
+  FvmLogger.spacer();
+
+  final chooser = Chooser<String>(
     versionsList,
-    message: 'Select a version: ',
+    message: '\nSelect a version:',
+  );
+
+  final version = chooser.chooseSync();
+  return version;
+}
+
+/// Select from project environments
+Future<String> projectEnvSeletor() async {
+  final project = await FlutterAppService.findAncestor();
+
+  // If project use check that is Flutter project
+  if (project == null) {
+    throw const FvmUsageException(
+      'Cannot find any FVM config.',
+    );
+  }
+
+  // Gets environment version
+  final envs = project.config.environment;
+
+  final envList = envs.keys.toList();
+
+  // Check if there are no environments configured
+  if (envList.isEmpty) {
+    throw const FvmUsageException(
+      'Could not find any environment configuration.',
+    );
+  }
+  FvmLogger.spacer();
+  FvmLogger.fine('Project Environments confopigured for "${project.name}":');
+  FvmLogger.spacer();
+
+  final chooser = Chooser<String>(
+    envList,
+    message: '\nSelect an environment: ',
   );
 
   final version = chooser.chooseSync();
@@ -53,7 +91,7 @@ Future<String> cacheVersionSelector() async {
 void switchLineMode(bool active, List<String> args) {
   // Don't do anything if its not terminal
   // or if it's not run command
-  // TODO: Check this for other commands like dart:migrate
+  // TODO: Check this for other commands like dart:migrate?
   if (!ConsoleController.isTerminal || args.isEmpty || args.first != 'run') {
     return;
   }

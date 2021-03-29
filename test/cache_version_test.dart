@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
@@ -43,7 +44,10 @@ void main() {
     final invalidVersionName = 'INVALID_VERSION';
     final dir = Directory(join(kFvmCacheDir.path, invalidVersionName));
     await dir.create(recursive: true);
-    final cacheVersion = await CacheService.isVersionCached(invalidVersionName);
+
+    /// Override valid version for testing purposes
+    final cacheVersion =
+        await CacheService.isVersionCached(ValidVersion(invalidVersionName));
     expect(cacheVersion != null, false);
   });
 }

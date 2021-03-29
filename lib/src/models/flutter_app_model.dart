@@ -7,7 +7,6 @@ import 'package:pubspec_yaml/pubspec_yaml.dart';
 class FlutterApp {
   final String name;
   final Directory projectDir;
-  final String gitBranch;
   final FvmConfig config;
   final bool isFlutterProject;
   final PubspecYaml pubspec;
@@ -16,7 +15,6 @@ class FlutterApp {
     @required this.config,
     this.name,
     this.projectDir,
-    this.gitBranch,
     this.isFlutterProject,
     this.pubspec,
   });

@@ -17,7 +17,7 @@ class ListCommand extends Command<int> {
   final name = 'list';
 
   @override
-  final description = 'Lists installed Flutter SDK Version';
+  final description = 'Lists installed Flutter SDK Versions';
 
   /// Constructor
   ListCommand();

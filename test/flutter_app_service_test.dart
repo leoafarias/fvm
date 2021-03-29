@@ -1,5 +1,5 @@
-import 'package:fvm/src/services/flutter_app_service.dart';
 @Timeout(Duration(minutes: 5))
+import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:test/test.dart';
 
 import 'test_helpers.dart';
@@ -10,17 +10,16 @@ void main() {
   group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
-        final flutterProject =
-            await FlutterAppService.getByDirectory(kFlutterAppDir);
+        final project = await FlutterAppService.getByDirectory(kFlutterAppDir);
 
-        final flutterProjectVersion = await getRandomFlutterVersion();
+        final validVersion = await getRandomFlutterVersion();
 
         await FlutterAppService.pinVersion(
-          flutterProject,
-          flutterProjectVersion,
+          project,
+          validVersion,
         );
 
-        expect(flutterProject.pinnedVersion, flutterProjectVersion);
+        expect(project.pinnedVersion, validVersion.version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }

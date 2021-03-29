@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
-
 import 'package:fvm/constants.dart';
-
 import 'package:fvm/src/models/fvm_config_model.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
@@ -14,11 +11,7 @@ class FvmConfigService {
 
     try {
       final jsonString = await configFile.readAsString();
-      final json = await jsonDecode(jsonString) as Map<String, dynamic>;
-      return FvmConfig(
-        configDir: configDir,
-        flutterSdkVersion: json['flutterSdkVersion'] as String,
-      );
+      return FvmConfig.fromJson(configDir, jsonString);
     } on Exception {
       return FvmConfig(
         configDir: configDir,

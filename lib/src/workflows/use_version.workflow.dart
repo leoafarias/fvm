@@ -2,14 +2,16 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow(
-  String version, {
+  ValidVersion validVersion, {
   bool force,
+  String environment,
 }) async {
   final project = await FlutterAppService.getByDirectory(kWorkingDirectory);
 
@@ -21,9 +23,23 @@ Future<void> useVersionWorkflow(
   }
 
   // Run install workflow
-  await ensureCacheWorkflow(version);
+  await ensureCacheWorkflow(validVersion);
 
-  await FlutterAppService.pinVersion(project, version);
+  await FlutterAppService.pinVersion(
+    project,
+    validVersion,
+    environment: environment,
+  );
 
-  FvmLogger.fine('Project now uses Flutter: $version');
+  FvmLogger.spacer();
+
+  // Different message if configured environment
+  if (environment != null) {
+    FvmLogger.fine(
+      'Project now uses Flutter [$validVersion] on [$environment] environment.',
+    );
+  } else {
+    FvmLogger.fine('Project now uses Flutter [$validVersion]');
+  }
+  FvmLogger.spacer();
 }

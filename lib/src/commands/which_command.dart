@@ -30,27 +30,31 @@ class WhichCommand extends Command<int> {
           await CacheService.getByVersionName(project.pinnedVersion);
       FvmLogger.spacer();
       FvmLogger.fine('FVM config found:');
-      FvmLogger.spacer();
+      FvmLogger.divider();
       FvmLogger.info('Project: ${project.name}');
       FvmLogger.info('Directory: ${project.projectDir.path}');
       FvmLogger.info('Version: ${project.pinnedVersion}');
-      FvmLogger.info('Git Branch: ${project.gitBranch}');
-      FvmLogger.spacer();
+      FvmLogger.info(
+          'Project Environment: ${(project.config.activeEnv) ?? "Not configured"}');
+      FvmLogger.divider();
       if (cacheVersion == null) {
         FvmLogger.warning(
           'Version is not currently cached. Run "fvm install" on this directory, or "fvm install ${project.pinnedVersion}" anywhere.',
         );
       } else {
-        FvmLogger.info('Version is currently cached locally.');
+        FvmLogger.fine('Version is currently cached locally.');
         FvmLogger.info('Cache Path: ${cacheVersion.dir.path}');
         FvmLogger.info('Channel: ${cacheVersion.isChannel}');
 
+        ///
         if (cacheVersion.sdkVersion != null) {
           FvmLogger.info('SDK Version: ${cacheVersion.sdkVersion}');
         } else {
           FvmLogger.info(
               'SDK Version: Need to finish setup. Run "fvm flutter doctor"');
         }
+
+        FvmLogger.divider();
       }
     } else {
       final execPath = await which('flutter');

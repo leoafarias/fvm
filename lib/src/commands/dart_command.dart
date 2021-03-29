@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/utils/commands.dart';
 import 'package:fvm/src/utils/logger.dart';
@@ -25,13 +26,18 @@ class DartCommand extends Command<int> {
     final args = argResults.arguments;
 
     if (version != null) {
-      FvmLogger.info('fvm: running version $version of Flutter sdk');
+      // Make sure version is valid
+      final validVersion = await FlutterTools.inferVersion(version);
       // Will install version if not already instaled
-      final cacheVersion = await ensureCacheWorkflow(version);
+      final cacheVersion = await ensureCacheWorkflow(validVersion);
+
+      FvmLogger.info('fvm: running Dart from Flutter "$version"');
+      FvmLogger.spacer();
       // Runs flutter command with pinned version
       return await dartCmd(cacheVersion, args);
     } else {
       FvmLogger.info('Running using Flutter version configured in path.');
+      FvmLogger.spacer();
       // Running null will default to flutter version on path
       return await dartGlobalCmd(args);
     }

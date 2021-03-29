@@ -1,5 +1,6 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/runner.dart';
@@ -26,7 +27,9 @@ void main() {
         await fvmRunner.run(['install', channel, '--verbose', '--skip-setup']);
         final existingChannel = await GitTools.getBranchOrTag(channel);
 
-        final cacheVersion = await CacheService.isVersionCached(channel);
+        final cacheVersion = await CacheService.isVersionCached(
+          ValidVersion(channel),
+        );
 
         expect(cacheVersion != null, true, reason: 'Install does not exist');
 
@@ -99,14 +102,14 @@ void main() {
     test('Install Release', () async {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
-        final version = await FlutterTools.inferVersion(release);
-        final existingRelease = await GitTools.getBranchOrTag(version);
+        final valid = await FlutterTools.inferVersion(release);
+        final existingRelease = await GitTools.getBranchOrTag(valid.version);
 
-        final cacheVersion = await CacheService.isVersionCached(version);
+        final cacheVersion = await CacheService.isVersionCached(valid);
 
         expect(cacheVersion != null, true, reason: 'Install does not exist');
 
-        expect(existingRelease, version);
+        expect(existingRelease, valid.version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -122,8 +125,8 @@ void main() {
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();
-        final version = await FlutterTools.inferVersion(release);
-        final releaseBin = path.join(kFvmCacheDir.path, version);
+        final valid = await FlutterTools.inferVersion(release);
+        final releaseBin = path.join(kFvmCacheDir.path, valid.version);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);

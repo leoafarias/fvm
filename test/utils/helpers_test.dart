@@ -10,28 +10,31 @@ import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
 
+Future<String> _inferVersionString(String version) async {
+  final valid = await FlutterTools.inferVersion(version);
+  return valid.version;
+}
+
 void main() {
   test('Is Valid Flutter Version', () async {
-    expect(await FlutterTools.inferVersion('1.8.1'), 'v1.8.1');
-    expect(await FlutterTools.inferVersion('v1.8.1'), 'v1.8.1');
+    expect(await _inferVersionString('1.8.1'), 'v1.8.1');
+    expect(await _inferVersionString('v1.8.1'), 'v1.8.1');
 
-    expect(await FlutterTools.inferVersion('1.9.6'), 'v1.9.6');
-    expect(await FlutterTools.inferVersion('v1.9.6'), 'v1.9.6');
+    expect(await _inferVersionString('1.9.6'), 'v1.9.6');
+    expect(await _inferVersionString('v1.9.6'), 'v1.9.6');
 
-    expect(await FlutterTools.inferVersion('1.10.5'), 'v1.10.5');
-    expect(await FlutterTools.inferVersion('v1.10.5'), 'v1.10.5');
+    expect(await _inferVersionString('2.0.2'), '2.0.2');
+    expect(await _inferVersionString('v1.10.5'), 'v1.10.5');
 
-    expect(
-        await FlutterTools.inferVersion('1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
-    expect(
-        await FlutterTools.inferVersion('v1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
+    expect(await _inferVersionString('1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
+    expect(await _inferVersionString('v1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
 
-    expect(await FlutterTools.inferVersion('1.17.0-dev.3.1'), '1.17.0-dev.3.1');
+    expect(await _inferVersionString('1.17.0-dev.3.1'), '1.17.0-dev.3.1');
   });
 
   test('Not Valid Flutter Version', () async {
-    expect(FlutterTools.inferVersion('1.8.0.2'), throwsA(anything));
-    expect(FlutterTools.inferVersion('v1.17.0-dev.3.1'), throwsA(anything));
+    expect(_inferVersionString('1.8.0.2'), throwsA(anything));
+    expect(_inferVersionString('v1.17.0-dev.3.1'), throwsA(anything));
   });
 
   test('Check if FVM latest version', () async {

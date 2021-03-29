@@ -1,6 +1,7 @@
 @Timeout(Duration(minutes: 5))
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 
 import 'package:fvm/src/services/git_tools.dart';
 
@@ -32,9 +33,10 @@ void main() {
     test('Install Versions', () async {
       for (var version in listVersions) {
         try {
-          await ensureCacheWorkflow(version);
+          await ensureCacheWorkflow(ValidVersion(version));
           final gitVersion = await GitTools.getBranchOrTag(version);
-          final cacheVersion = await CacheService.isVersionCached(version);
+          final cacheVersion =
+              await CacheService.isVersionCached(ValidVersion(version));
           expect(cacheVersion != null, true);
           expect(gitVersion, version);
         } on Exception catch (e) {
@@ -50,9 +52,10 @@ void main() {
     test('Remove Versions', () async {
       for (var version in listVersions) {
         try {
-          await removeWorkflow(version);
+          await removeWorkflow(ValidVersion(version));
 
-          final cacheVersion = await CacheService.isVersionCached(version);
+          final cacheVersion =
+              await CacheService.isVersionCached(ValidVersion(version));
           expect(cacheVersion == null, true);
         } on Exception catch (e) {
           fail('Exception thrown, $e');

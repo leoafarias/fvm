@@ -4,6 +4,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
 
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/commands.dart';
@@ -40,7 +41,7 @@ class FlutterTools {
   }
 
   /// Tries to infer a correct flutter version number
-  static Future<String> inferVersion(String version) async {
+  static Future<ValidVersion> inferVersion(String version) async {
     assert(version != null);
     final releases = await fetchFlutterReleases();
     // Not case sensitve
@@ -48,12 +49,12 @@ class FlutterTools {
 
     // Return if its flutter channel
     if (isChannel(version) || releases.containsVersion(version)) {
-      return version;
+      return ValidVersion(version);
     }
     // Try prefixing the version
     final prefixedVersion = 'v$version';
     if (releases.containsVersion(prefixedVersion)) {
-      return prefixedVersion;
+      return ValidVersion(prefixedVersion);
     } else {
       /// Fallback if cannot verify version
       throw FvmUsageException(

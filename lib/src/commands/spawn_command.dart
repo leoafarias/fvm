@@ -38,7 +38,8 @@ class SpawnCommand extends Command<int> {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
       // Runs flutter command with pinned version
-      FvmLogger.info('fvm: running version "$version"');
+      FvmLogger.info('fvm: Spawning version "$version"');
+      FvmLogger.spacer();
       return await flutterCmd(cacheVersion, flutterArgs);
     } else {
       throw const FvmUsageException(

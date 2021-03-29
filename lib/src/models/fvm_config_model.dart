@@ -9,9 +9,11 @@ import 'package:path/path.dart';
 class FvmConfig {
   Directory configDir;
   String flutterSdkVersion;
+  Map<String, dynamic> environment;
   FvmConfig({
     @required this.configDir,
     @required this.flutterSdkVersion,
+    this.environment = const {},
   });
 
   factory FvmConfig.fromJson(Directory configDir, String jsonString) {
@@ -25,11 +27,23 @@ class FvmConfig {
     return FvmConfig(
       configDir: configDir,
       flutterSdkVersion: map['flutterSdkVersion'] as String,
+      environment: map['environment'] as Map<String, dynamic>,
     );
   }
 
   String get flutterSdkPath {
     return join(kFvmCacheDir.path, flutterSdkVersion);
+  }
+
+  String get activeEnv {
+    return environment.keys.firstWhere(
+      (key) => environment[key] == flutterSdkVersion,
+      orElse: () => null,
+    );
+  }
+
+  bool get exists {
+    return configFile.existsSync();
   }
 
   File get configFile {
@@ -45,6 +59,7 @@ class FvmConfig {
   Map<String, dynamic> toMap() {
     return {
       'flutterSdkVersion': flutterSdkVersion,
+      'environment': environment,
     };
   }
 }

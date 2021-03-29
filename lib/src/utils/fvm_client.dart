@@ -17,7 +17,8 @@ class FVMClient {
   // Flutter SDK
   // ignore: top_level_function_literal_block
   static final install = (String versionName) async {
-    return await ensureCacheWorkflow(versionName, skipConfirmation: true);
+    final validVersion = await FlutterTools.inferVersion(versionName);
+    return await ensureCacheWorkflow(validVersion, skipConfirmation: true);
   };
   static final remove = removeWorkflow;
   static final use = useVersionWorkflow;
