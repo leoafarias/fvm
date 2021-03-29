@@ -13,7 +13,7 @@ class FvmConfig {
   FvmConfig({
     @required this.configDir,
     @required this.flutterSdkVersion,
-    this.environment = const {},
+    @required this.environment,
   });
 
   factory FvmConfig.fromJson(Directory configDir, String jsonString) {
@@ -27,7 +27,7 @@ class FvmConfig {
     return FvmConfig(
       configDir: configDir,
       flutterSdkVersion: map['flutterSdkVersion'] as String,
-      environment: map['environment'] as Map<String, dynamic>,
+      environment: (map['environment'] as Map<String, dynamic>) ?? {},
     );
   }
 

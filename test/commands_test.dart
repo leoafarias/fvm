@@ -9,6 +9,7 @@ import 'package:fvm/src/services/git_tools.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -94,8 +95,6 @@ void main() {
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
-
-      expect(true, true);
     });
   });
   group('Release Workflow', () {
@@ -114,12 +113,11 @@ void main() {
         fail('Exception thrown, $e');
       }
 
-      expect(true, true);
+      // expect(true, true);
     });
 
     test('Use Release', () async {
       try {
-        // TODO: Use force to run within fvm need to create example project
         await fvmRunner.run(['use', release, '--force', '--verbose']);
         final project = await FlutterAppService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -135,7 +133,7 @@ void main() {
       }
     });
 
-    test('List Releases', () async {
+    test('List Command', () async {
       try {
         await fvmRunner.run(['list', '--verbose']);
       } on Exception catch (e) {
@@ -145,14 +143,33 @@ void main() {
       expect(true, true);
     });
 
+    test('Which Command', () async {
+      try {
+        await fvmRunner.run(['which', '--verbose']);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
+      }
+
+      expect(true, true);
+    });
+
+    test('Env Command', () async {
+      try {
+        await ensureCacheWorkflow(ValidVersion(channel),
+            skipConfirmation: true);
+        await fvmRunner.run(['use', channel, '--env', 'production', '--force']);
+        await fvmRunner.run(['env', 'production']);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
+      }
+    });
+
     test('Remove Release', () async {
       try {
         await fvmRunner.run(['remove', release, '--verbose']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
-
-      expect(true, true);
     });
   });
 
