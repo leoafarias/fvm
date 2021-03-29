@@ -10,8 +10,6 @@ import 'package:io/io.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'install';
 

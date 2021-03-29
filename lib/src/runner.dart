@@ -5,6 +5,7 @@ import 'package:fvm/exceptions.dart';
 
 import 'package:fvm/src/commands/config_command.dart';
 import 'package:fvm/src/commands/global_command.dart';
+import 'package:fvm/src/commands/spawn_command.dart';
 import 'package:fvm/src/commands/which_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 
@@ -57,6 +58,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(UseCommand());
     addCommand(ConfigCommand());
     addCommand(ReleasesCommand());
+    addCommand(SpawnCommand());
   }
 
   @override
@@ -66,7 +68,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       final _argResults = parse(args);
 
       final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
-      
+
       // Command might be null
       final cmd = _argResults?.command?.name;
 
