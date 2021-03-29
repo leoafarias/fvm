@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
@@ -9,6 +10,7 @@ import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/commands.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:path/path.dart';
 
 class FlutterTools {
   /// Disables tracking for Flutter SDK
@@ -37,6 +39,20 @@ class FlutterTools {
     } on Exception catch (err) {
       logger.trace(err.toString());
       throw const FvmInternalError('Could not finish setting up Flutter sdk');
+    }
+  }
+
+  /// Gets Flutter SDK version from CacheVersion
+  static Future<String> getSdkVersion(CacheVersion version) async {
+    if (!await version.dir.exists()) {
+      throw Exception('Could not get version from SDK that is not installed');
+    }
+
+    final versionFile = File(join(version.dir.path, 'version'));
+    if (await versionFile.exists()) {
+      return await versionFile.readAsString();
+    } else {
+      return null;
     }
   }
 

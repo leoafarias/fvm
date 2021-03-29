@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/fvm.dart';
 
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 
@@ -46,23 +47,21 @@ class WhichCommand extends Command<int> {
         FvmLogger.info('Cache Path: ${cacheVersion.dir.path}');
         FvmLogger.info('Channel: ${cacheVersion.isChannel}');
 
-        ///
-        if (cacheVersion.sdkVersion != null) {
-          FvmLogger.info('SDK Version: ${cacheVersion.sdkVersion}');
+        final sdkVersion = await FlutterTools.getSdkVersion(cacheVersion);
+        if (sdkVersion != null) {
+          FvmLogger.info('SDK Version: $sdkVersion');
         } else {
           FvmLogger.info(
               'SDK Version: Need to finish setup. Run "fvm flutter doctor"');
         }
-
-        FvmLogger.divider();
       }
     } else {
       final execPath = await which('flutter');
       FvmLogger.spacer();
       FvmLogger.fine('No FVM config found:');
       FvmLogger.info('Fvm will run the version in your PATH env: $execPath');
-      FvmLogger.spacer();
     }
+    FvmLogger.spacer();
 
     return ExitCode.success.code;
   }

@@ -33,8 +33,8 @@ class ListCommand extends Command<int> {
     }
 
     // Print where versions are stored
-    FvmLogger.info(
-        'Versions path:  ${yellow.wrap(CacheService.cacheDir.path)}');
+    FvmLogger.info('Cache Path:  ${yellow.wrap(CacheService.cacheDir.path)}');
+    FvmLogger.spacer();
 
     // Get current project
     final project = await FlutterAppService.findAncestor();
@@ -42,6 +42,8 @@ class ListCommand extends Command<int> {
     for (var version in cacheVersions) {
       await printVersionStatus(version, project);
     }
+
+    FvmLogger.spacer();
 
     return ExitCode.success.code;
   }

@@ -15,7 +15,7 @@ Future<int> flutterCmd(
   List<String> args,
 ) async {
   // Get exec path for flutter
-  final execPath = cacheFlutterExecPath(version);
+  final execPath = version.flutterExec;
   // Update environment variables
   final environment = updateFlutterEnvVariables(execPath);
   // Run command
@@ -29,7 +29,7 @@ Future<int> flutterCmd(
 /// Runs dart cmd
 Future<int> dartCmd(CacheVersion version, List<String> args) async {
   // Get exec path for dart
-  final execPath = cacheDartExecPath(version);
+  final execPath = version.dartExec;
   // Update environment
   final environment = updateDartEnvVariables(execPath);
 
@@ -55,8 +55,15 @@ Future<int> dartGlobalCmd(List<String> args) async {
 
 /// Runs dart cmd
 Future<int> flutterGlobalCmd(List<String> args) async {
+  String execPath;
+  // Try to get fvm global version
+  final cacheVersion = await CacheService.getGlobal();
   // Get exec path for flutter
-  final execPath = whichSync('flutter');
+  if (cacheVersion != null) {
+    execPath = cacheVersion.dartExec;
+  } else {
+    execPath = whichSync('flutter');
+  }
 
   // Run command
   return await _runCmd(

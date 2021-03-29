@@ -7,6 +7,11 @@ const kFvmDirName = '.fvm';
 final kFvmConfigFileName = 'fvm_config.json';
 final envVars = Platform.environment;
 
+// Execs
+String binExt = Platform.isWindows ? '.bat' : '';
+String flutterBinFileName = 'flutter$binExt';
+String dartBinFileName = 'dart$binExt';
+
 /// Flutter Repo Address
 String get kFlutterRepo {
   return envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';

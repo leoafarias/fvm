@@ -1,25 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
-
-String binExt = Platform.isWindows ? '.bat' : '';
-
-String flutterBinFileName = 'flutter$binExt';
-String dartBinFileName = 'dart$binExt';
+import 'package:version/version.dart';
 
 Directory versionCacheDir(String version) {
   return Directory(join(kFvmCacheDir.path, version));
-}
-
-String cacheDartExecPath(CacheVersion version) {
-  return join(version.dir.path, 'bin', dartBinFileName);
-}
-
-String cacheFlutterExecPath(CacheVersion version) {
-  return join(version.dir.path, 'bin', flutterBinFileName);
 }
 
 /// Checks if path is a directory
@@ -68,4 +55,30 @@ Map<String, String> _updateEnvVariables(
 
   return Map<String, String>.from(envVars)
     ..addAll({'PATH': '$newEnv:$execPath'});
+}
+
+// Assigns weight to [version] for proper comparison
+Version assignVersionWeight(String version) {
+  /// Assign version number to continue to work with semver
+  switch (version) {
+    case 'master':
+      version = '400';
+      break;
+    case 'stable':
+      version = '300';
+      break;
+    case 'beta':
+      version = '200';
+      break;
+    case 'dev':
+      version = '100';
+      break;
+    default:
+  }
+
+  if (version.contains('v')) {
+    version = version.replaceFirst('v', '');
+  }
+
+  return Version.parse(version);
 }

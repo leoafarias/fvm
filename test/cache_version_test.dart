@@ -32,7 +32,7 @@ void main() {
     ];
 
     final versionUnsorted =
-        unsortedList.map((v) => CacheVersion(name: v)).toList();
+        unsortedList.map((version) => CacheVersion(version)).toList();
     versionUnsorted.sort((a, b) => a.compareTo(b));
 
     final afterUnsorted = versionUnsorted.reversed.toList().map((e) => e.name);
