@@ -56,8 +56,8 @@ jobs:
       - name: Build Version Number
         run: pub run build_runner build --delete-conflicting-outputs
 
-      - name: Deploy to Pub
-        run: pub run grinder pkg-pub-deploy
-
       - name: Deploy Github
         run: pub run grinder pkg-github-all
+
+      - name: Deploy to Pub
+        run: pub run grinder pkg-pub-deploy

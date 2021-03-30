@@ -1,4 +1,4 @@
-# 2.0.0-dev.2
+## 2.0.0-dev.3
 
 - Feature: Environemnts - Set Flutter sdk versions per project environment.
 - Feature: Which - Easily view the Flutter version configure for the project and it's state
@@ -8,7 +8,7 @@
 - Improvements: Better error messaging, notifications and logging
 - Improvements: Many quality of life improvements
 
-# 1.3.8
+## 1.3.8
 
 - Issue on install [#242](https://github.com/leoafarias/fvm/issues/242)
 - Auto linking[#207](https://github.com/leoafarias/fvm/issues/207)
