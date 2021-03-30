@@ -111,6 +111,6 @@ class CacheService {
   static Future<bool> isGlobalConfigured() async {
     /// Return false if link does not exist
     if (!await kGlobalFlutterLink.exists()) return false;
-    return kGlobalFlutterPath == await which('flutter');
+    return join(kGlobalFlutterPath, 'flutter') == await which('flutter');
   }
 }
