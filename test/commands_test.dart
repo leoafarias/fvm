@@ -54,7 +54,6 @@ void main() {
       try {
         // Run foce to test within fvm
 
-        //TODO: Create flutter project for test
         await fvmRunner.run(['use', channel, '--force', '--verbose']);
         final project = await FlutterAppService.findAncestor();
         if (project == null) {

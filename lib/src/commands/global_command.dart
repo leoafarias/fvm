@@ -46,7 +46,6 @@ class GlobalCommand extends Command<int> {
 
     final isSetup = await CacheService.isGlobalConfigured();
 
-    // TODO: Check if no flutter is setup on PATH
     FvmLogger.spacer();
     FvmLogger.fine('Flutter "$validVersion" has been set as global');
     if (!isSetup) {
