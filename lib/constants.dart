@@ -1,5 +1,6 @@
 import 'dart:io';
-import 'package:fvm/src/services/fvm_settings_service.dart';
+
+import 'package:fvm/src/services/settings_service.dart';
 
 import 'package:path/path.dart' as path;
 
@@ -43,11 +44,17 @@ File get kFvmSettings {
 
 /// Where Flutter SDK Versions are stored
 Directory get kFvmCacheDir {
-  final settings = FvmSettingsService.readSync();
+  /// Loads settings file
+  final settings = SettingsService.readSync();
   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
     return Directory(path.normalize(settings.cachePath));
   }
   return Directory(path.join(kFvmHome, 'versions'));
+}
+
+/// Directory for Flutter repo git cache
+Directory get kGitCacheDir {
+  return Directory(path.join(kFvmHome, 'git-cache'));
 }
 
 /// Where Default Flutter SDK is stored

@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/fvm_settings_service.dart';
+import 'package:fvm/src/services/settings_service.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 import 'package:io/io.dart';
@@ -27,10 +27,10 @@ class ConfigCommand extends Command<int> {
   Future<int> run() async {
     final cachePath = argResults['cache-path'] as String;
 
-    final settings = FvmSettingsService.readSync();
+    final settings = SettingsService.readSync();
     if (cachePath != null) {
       settings.cachePath = cachePath;
-      await FvmSettingsService.save(settings);
+      await SettingsService.save(settings);
     }
     FvmLogger.spacer();
     FvmLogger.fine('FVM Settings:');

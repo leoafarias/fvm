@@ -2,7 +2,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 
-class FvmSettingsService {
+class SettingsService {
   static Future<FvmSettings> read() async {
     try {
       final payload = await kFvmSettings.readAsString();

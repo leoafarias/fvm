@@ -36,7 +36,8 @@ class WhichCommand extends Command<int> {
       FvmLogger.info('Directory: ${project.projectDir.path}');
       FvmLogger.info('Version: ${project.pinnedVersion}');
       FvmLogger.info(
-          'Project Environment: ${(project.config.activeEnv) ?? "Not configured"}');
+        'Project Environment: ${(project.config.activeEnv) ?? "None selected"}',
+      );
       FvmLogger.divider();
       if (cacheVersion == null) {
         FvmLogger.warning(

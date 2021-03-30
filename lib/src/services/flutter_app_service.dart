@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/models/flutter_app_model.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/services/fvm_config_service.dart';
+import 'package:fvm/src/services/config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
 class FlutterAppService {
   static Future<FlutterApp> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
-    final config = await FvmConfigService.read(directory);
+    final config = await ConfigService.read(directory);
 
     return FlutterApp(
       name: pubspec == null ? null : pubspec.name,
@@ -36,7 +36,7 @@ class FlutterAppService {
     if (project != null &&
         project.pinnedVersion != null &&
         project.config != null) {
-      await FvmConfigService.updateSdkLink(project.config);
+      await ConfigService.updateSdkLink(project.config);
     }
   }
 
@@ -82,7 +82,7 @@ class FlutterAppService {
       // Pin as an environment version
       config.environment[environment] = validVersion.version;
     }
-    await FvmConfigService.save(config);
+    await ConfigService.save(config);
   }
 
   static Future<PubspecYaml> _getPubspec(Directory directory) async {

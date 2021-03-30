@@ -18,7 +18,7 @@ Future<void> printVersionStatus(
   var printVersion = version.name;
 
   if (project != null && project.pinnedVersion == version.name) {
-    printVersion = '$printVersion ${Icon.HEAVY_CHECKMARK}';
+    printVersion = '$printVersion (active)';
   }
   if (await CacheService.isGlobal(version)) {
     printVersion = '$printVersion (global)';
