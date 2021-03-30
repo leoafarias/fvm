@@ -1,3 +1,13 @@
+# 2.0.0-dev.2
+
+- Feature: Environemnts - Set Flutter sdk versions per project environment.
+- Feature: Which - Easily view the Flutter version configure for the project and it's state
+- Feature: Spawn - Easily proxy Flutter commands through any cached version
+- Improvements: Global - Create own command to set global versions. Deprecated "--global" flag.
+- Improvements: Flutter command proxy now defaults to FVM global configured version before looking for one configured on PATH
+- Improvements: Better error messaging, notifications and logging
+- Improvements: Many quality of life improvements
+
 # 1.3.8
 
 - Issue on install [#242](https://github.com/leoafarias/fvm/issues/242)
