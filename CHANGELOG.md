@@ -1,6 +1,6 @@
 ## 2.0.0-dev.3
 
-- Feature: Environemnts - Set Flutter sdk versions per project environment.
+- Feature: Environments - Set Flutter sdk versions per project environment.
 - Feature: Which - Easily view the Flutter version configure for the project and it's state
 - Feature: Spawn - Easily proxy Flutter commands through any cached version
 - Improvements: Global - Create own command to set global versions. Deprecated "--global" flag.
