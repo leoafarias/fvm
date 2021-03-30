@@ -1,7 +1,9 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
 
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
+
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/utils/console_utils.dart';
 
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/workflows/remove_version.workflow.dart';
@@ -18,20 +20,48 @@ class RemoveCommand extends Command<int> {
   final description = 'Removes Flutter SDK Version';
 
   /// Constructor
-  RemoveCommand();
+
+  RemoveCommand() {
+    argParser.addFlag(
+      'force',
+      help: 'Skips version global check.',
+      negatable: false,
+    );
+  }
 
   @override
   Future<int> run() async {
-    final version = argResults.rest[0].toLowerCase();
-    final validVersion = await inferFlutterVersion(version);
-    final isValidInstall = await LocalVersionRepo.isInstalled(validVersion);
+    final force = argResults['force'] == true;
+    String version;
 
-    if (!isValidInstall) {
+    if (argResults.rest.isEmpty) {
+      version = await cacheVersionSelector();
+    }
+    // Assign if its empty
+    version ??= argResults.rest[0];
+    final validVersion = await FlutterTools.inferVersion(version);
+    final cacheVersion = await CacheService.isVersionCached(validVersion);
+
+    // Check if version is installed
+    if (cacheVersion == null) {
       FvmLogger.info('Flutter SDK: $validVersion is not installed');
       return ExitCode.success.code;
     }
 
-    await removeWorkflow(validVersion);
+    final isGlobal = await CacheService.isGlobal(cacheVersion);
+
+    if (!isGlobal || force) {
+      await removeWorkflow(validVersion);
+    } else {
+      final confirmation = await confirm(
+        '$validVersion is current configured as "global". Do you still would like to remove?',
+      );
+
+      if (confirmation) {
+        await removeWorkflow(validVersion);
+      }
+    }
+
     return ExitCode.success.code;
   }
 }

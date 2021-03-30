@@ -1,18 +1,18 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/models/flutter_app_model.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/services/fvm_config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/flutter_project/fvm_config_repo.dart';
-
-class FlutterProjectRepo {
-  static Future<FlutterProject> getOne(Directory directory) async {
+class FlutterAppService {
+  static Future<FlutterApp> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
-    final config = await FvmConfigRepo.read(directory);
+    final config = await FvmConfigService.read(directory);
 
-    return FlutterProject(
+    return FlutterApp(
       name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
@@ -21,18 +21,33 @@ class FlutterProjectRepo {
     );
   }
 
-  static Future<List<FlutterProject>> fetchProjects(List<String> paths) async {
+  static Future<List<FlutterApp>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
-        (path) async => await getOne(
-          Directory(path),
-        ),
+        (path) async => await getByDirectory(Directory(path)),
       ),
     );
   }
 
+  /// Updates the link to make sure its always correct
+  static Future<void> updateLink() async {
+    // Ensure the config link and symlink are updated
+    final project = await FlutterAppService.findAncestor();
+    if (project != null &&
+        project.pinnedVersion != null &&
+        project.config != null) {
+      await FvmConfigService.updateSdkLink(project.config);
+    }
+  }
+
+  /// Search for version configured
+  static Future<String> findVersion() async {
+    final project = await FlutterAppService.findAncestor();
+    return project?.pinnedVersion;
+  }
+
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<FlutterProject>> scanDirectory({Directory rootDir}) async {
+  static Future<List<FlutterApp>> scanDirectory({Directory rootDir}) async {
     final paths = <String>[];
 
     if (rootDir == null) {
@@ -54,17 +69,20 @@ class FlutterProjectRepo {
     return await fetchProjects(paths);
   }
 
-  static Future<void> updateSdkLink(FlutterProject project) async {
+  static Future<void> pinVersion(
+    FlutterApp project,
+    ValidVersion validVersion, {
+    String environment,
+  }) async {
     final config = project.config;
-    if (project != null && project.pinnedVersion != null) {
-      await FvmConfigRepo.updateSdkLink(config);
+    // Attach as main version if no environment is set
+    if (environment == null) {
+      config.flutterSdkVersion = validVersion.version;
+    } else {
+      // Pin as an environment version
+      config.environment[environment] = validVersion.version;
     }
-  }
-
-  static Future<void> pinVersion(FlutterProject project, String version) async {
-    final config = project.config;
-    config.flutterSdkVersion = version;
-    await FvmConfigRepo.save(config);
+    await FvmConfigService.save(config);
   }
 
   static Future<PubspecYaml> _getPubspec(Directory directory) async {
@@ -95,7 +113,7 @@ class FlutterProjectRepo {
   }
 
   /// Recursive look up to find nested project directory
-  static Future<FlutterProject> findAncestor({Directory dir}) async {
+  static Future<FlutterApp> findAncestor({Directory dir}) async {
     // Get directory, defined root or current
     dir ??= kWorkingDirectory;
 
@@ -103,15 +121,15 @@ class FlutterProjectRepo {
 
     final directory = Directory(dir.path);
 
-    final project = await getOne(directory);
+    final project = await getByDirectory(directory);
 
-    if (project.config?.flutterSdkVersion != null) {
+    if (project.config.exists != null) {
       return project;
     }
 
     // Return working directory if has reached root
     if (isRootDir) {
-      return await getOne(kWorkingDirectory);
+      return await getByDirectory(kWorkingDirectory);
     }
 
     return await findAncestor(dir: dir.parent);

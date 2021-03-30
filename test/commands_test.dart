@@ -1,13 +1,15 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 
 import 'package:fvm/src/runner.dart';
 
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+import 'package:fvm/src/services/git_tools.dart';
 
-import 'package:fvm/src/flutter_tools/git_tools.dart';
-
-import 'package:fvm/src/local_versions/local_version.repo.dart';
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 import 'package:fvm/constants.dart';
@@ -18,17 +20,19 @@ final testPath = '$kFvmHome/test_path';
 
 final fvmRunner = FvmCommandRunner();
 void main() {
-  setUpAll(fvmSetUpAll);
-  tearDownAll(fvmTearDownAll);
+  // setUpAll(fvmSetUpAll);
+  // tearDownAll(fvmTearDownAll);
   group('Channel Workflow:', () {
     test('Install Channel', () async {
       try {
         await fvmRunner.run(['install', channel, '--verbose', '--skip-setup']);
-        final existingChannel = await gitGetVersion(channel);
+        final existingChannel = await GitTools.getBranchOrTag(channel);
 
-        final installExists = await LocalVersionRepo.isInstalled(channel);
+        final cacheVersion = await CacheService.isVersionCached(
+          ValidVersion(channel),
+        );
 
-        expect(installExists, true, reason: 'Install does not exist');
+        expect(cacheVersion != null, true, reason: 'Install does not exist');
 
         expect(existingChannel, channel);
       } on Exception catch (e) {
@@ -52,7 +56,7 @@ void main() {
 
         //TODO: Create flutter project for test
         await fvmRunner.run(['use', channel, '--force', '--verbose']);
-        final project = await FlutterProjectRepo.findAncestor();
+        final project = await FlutterAppService.findAncestor();
         if (project == null) {
           fail('Not running on a flutter project');
         }
@@ -60,7 +64,7 @@ void main() {
 
         final targetBin = project.config.sdkSymlink.targetSync();
 
-        final channelBin = path.join(kVersionsDir.path, channel);
+        final channelBin = path.join(kFvmCacheDir.path, channel);
 
         expect(targetBin == channelBin, true);
         expect(linkExists, true);
@@ -71,12 +75,12 @@ void main() {
 
     test('Use Flutter SDK globally', () async {
       try {
-        await fvmRunner.run(['use', channel, '--global']);
-        final linkExists = kDefaultFlutterLink.existsSync();
+        await fvmRunner.run(['global', channel]);
+        final linkExists = kGlobalFlutterLink.existsSync();
 
-        final targetDir = kDefaultFlutterLink.targetSync();
+        final targetDir = kGlobalFlutterLink.targetSync();
 
-        final channelDir = path.join(kVersionsDir.path, channel);
+        final channelDir = path.join(kFvmCacheDir.path, channel);
 
         expect(targetDir == channelDir, true);
         expect(linkExists, true);
@@ -87,43 +91,40 @@ void main() {
 
     test('Remove Channel Command', () async {
       try {
-        await fvmRunner.run(['remove', channel, '--verbose']);
+        await fvmRunner.run(['remove', channel, '--verbose', '--force']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
-
-      expect(true, true);
     });
   });
   group('Release Workflow', () {
     test('Install Release', () async {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
-        final version = await inferFlutterVersion(release);
-        final existingRelease = await gitGetVersion(version);
+        final valid = await FlutterTools.inferVersion(release);
+        final existingRelease = await GitTools.getBranchOrTag(valid.version);
 
-        final installExists = await LocalVersionRepo.isInstalled(version);
+        final cacheVersion = await CacheService.isVersionCached(valid);
 
-        expect(installExists, true, reason: 'Install does not exist');
+        expect(cacheVersion != null, true, reason: 'Install does not exist');
 
-        expect(existingRelease, version);
+        expect(existingRelease, valid.version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
 
-      expect(true, true);
+      // expect(true, true);
     });
 
     test('Use Release', () async {
       try {
-        // TODO: Use force to run within fvm need to create example project
         await fvmRunner.run(['use', release, '--force', '--verbose']);
-        final project = await FlutterProjectRepo.findAncestor();
+        final project = await FlutterAppService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();
-        final version = await inferFlutterVersion(release);
-        final releaseBin = path.join(kVersionsDir.path, version);
+        final valid = await FlutterTools.inferVersion(release);
+        final releaseBin = path.join(kFvmCacheDir.path, valid.version);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);
@@ -132,7 +133,7 @@ void main() {
       }
     });
 
-    test('List Releases', () async {
+    test('List Command', () async {
       try {
         await fvmRunner.run(['list', '--verbose']);
       } on Exception catch (e) {
@@ -142,14 +143,33 @@ void main() {
       expect(true, true);
     });
 
+    test('Which Command', () async {
+      try {
+        await fvmRunner.run(['which', '--verbose']);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
+      }
+
+      expect(true, true);
+    });
+
+    test('Env Command', () async {
+      try {
+        await ensureCacheWorkflow(ValidVersion(channel),
+            skipConfirmation: true);
+        await fvmRunner.run(['use', channel, '--env', 'production', '--force']);
+        await fvmRunner.run(['env', 'production']);
+      } on Exception catch (e) {
+        fail('Exception thrown, $e');
+      }
+    });
+
     test('Remove Release', () async {
       try {
         await fvmRunner.run(['remove', release, '--verbose']);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
-
-      expect(true, true);
     });
   });
 

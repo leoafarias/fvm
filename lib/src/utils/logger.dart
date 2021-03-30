@@ -8,10 +8,14 @@ import 'package:io/ansi.dart';
 /// Log
 Logger logger = Logger.standard();
 
+String logBold(String message) {
+  return yellow.wrap(message);
+}
+
 class FvmLogger {
   /// Prints sucess message
   static void fine(String message) {
-    print(green.wrap(message));
+    print(cyan.wrap(message));
     consoleController.fine.add(utf8.encode(message));
   }
 
@@ -21,13 +25,25 @@ class FvmLogger {
   }
 
   static void info(String message) {
-    print(cyan.wrap(message));
+    print(message);
     consoleController.info.add(utf8.encode(message));
   }
 
   static void error(String message) {
     print(red.wrap(message));
     consoleController.error.add(utf8.encode(message));
+  }
+
+  static void spacer() {
+    print('');
+    consoleController.info.add(utf8.encode(''));
+  }
+
+  static void divider() {
+    const line = '___________________________________________________\n';
+
+    print(line);
+    consoleController.info.add(utf8.encode(line));
   }
 }
 

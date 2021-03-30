@@ -1,33 +1,40 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/flutter_tools/flutter_helpers.dart';
+
+import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
 
+Future<String> _inferVersionString(String version) async {
+  final valid = await FlutterTools.inferVersion(version);
+  return valid.version;
+}
+
 void main() {
   test('Is Valid Flutter Version', () async {
-    expect(await inferFlutterVersion('1.8.1'), 'v1.8.1');
-    expect(await inferFlutterVersion('v1.8.1'), 'v1.8.1');
+    expect(await _inferVersionString('1.8.1'), 'v1.8.1');
+    expect(await _inferVersionString('v1.8.1'), 'v1.8.1');
 
-    expect(await inferFlutterVersion('1.9.6'), 'v1.9.6');
-    expect(await inferFlutterVersion('v1.9.6'), 'v1.9.6');
+    expect(await _inferVersionString('1.9.6'), 'v1.9.6');
+    expect(await _inferVersionString('v1.9.6'), 'v1.9.6');
 
-    expect(await inferFlutterVersion('1.10.5'), 'v1.10.5');
-    expect(await inferFlutterVersion('v1.10.5'), 'v1.10.5');
+    expect(await _inferVersionString('2.0.2'), '2.0.2');
+    expect(await _inferVersionString('v1.10.5'), 'v1.10.5');
 
-    expect(await inferFlutterVersion('1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
-    expect(await inferFlutterVersion('v1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
+    expect(await _inferVersionString('1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
+    expect(await _inferVersionString('v1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
 
-    expect(await inferFlutterVersion('1.17.0-dev.3.1'), '1.17.0-dev.3.1');
+    expect(await _inferVersionString('1.17.0-dev.3.1'), '1.17.0-dev.3.1');
   });
 
   test('Not Valid Flutter Version', () async {
-    expect(inferFlutterVersion('1.8.0.2'), throwsA(anything));
-    expect(inferFlutterVersion('v1.17.0-dev.3.1'), throwsA(anything));
+    expect(_inferVersionString('1.8.0.2'), throwsA(anything));
+    expect(_inferVersionString('v1.17.0-dev.3.1'), throwsA(anything));
   });
 
   test('Check if FVM latest version', () async {
@@ -45,17 +52,16 @@ void main() {
     expect(pubspec.version.valueOr(() => null), packageVersion);
   });
 
-  test('Test ReplaceFlutterPathEnv', () async {
-    final version = 'stable';
+  test('Test update env variables', () async {
+    final envVars = Platform.environment;
+    // final version = 'stable';
     final envName = 'PATH';
-    final emptyEnvVar = replaceFlutterPathEnv('');
-    final nullEnvVar = replaceFlutterPathEnv(null);
+    final fakePath = 'FAKE_PATH';
 
-    final newEnvVar = replaceFlutterPathEnv(version);
-    final flutterPath = join(kVersionsDir.path, version, 'bin');
+    final newEnvVar = updateFlutterEnvVariables('FAKE_PATH');
 
-    expect(emptyEnvVar[envName], envVars[envName]);
-    expect(nullEnvVar[envName], envVars[envName]);
-    expect(newEnvVar[envName].contains(flutterPath), true);
+    // expect(newEnvVar[envName], envVars[envName]);
+    expect(newEnvVar[envName].contains(fakePath), true);
+    expect(envVars, isNot(newEnvVar));
   });
 }

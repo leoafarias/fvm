@@ -1,9 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
 
-import 'package:fvm/src/releases_api/releases_client.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:io/io.dart';
 
 /// List installed SDK Versions
@@ -14,7 +15,7 @@ class ReleasesCommand extends Command<int> {
   final name = 'releases';
 
   @override
-  final description = 'Lists Flutter SDK releases.';
+  final description = 'View Flutter SDK releases.';
 
   /// Constructor
   ReleasesCommand();
@@ -25,19 +26,19 @@ class ReleasesCommand extends Command<int> {
 
     final versions = releases.releases.reversed;
 
-    versions.forEach((r) {
-      final version = yellow.wrap(r.version.padRight(17));
+    versions.forEach((release) {
+      final version = yellow.wrap(release.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
-          formatDate(r.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
+          formatDate(release.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
 
-      if (r.activeChannel) {
-        final channel = r.channel.toString().split('.').last;
-        print('--------------------------------------');
-        print('$friendlyDate $pipe $version $channel');
-        print('--------------------------------------');
+      if (release.activeChannel) {
+        final channel = release.channel.toString().split('.').last;
+        FvmLogger.info('--------------------------------------');
+        FvmLogger.info('$friendlyDate $pipe $version $channel');
+        FvmLogger.info('--------------------------------------');
       } else {
-        print('$friendlyDate $pipe $version');
+        FvmLogger.info('$friendlyDate $pipe $version');
       }
     });
     return ExitCode.success.code;

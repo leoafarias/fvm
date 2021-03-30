@@ -1,7 +1,6 @@
 @Timeout(Duration(minutes: 5))
+import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:test/test.dart';
-
-import 'package:fvm/fvm.dart';
 
 import 'test_helpers.dart';
 
@@ -11,16 +10,16 @@ void main() {
   group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
-        final flutterProject = await FlutterProjectRepo.getOne(kFlutterAppDir);
+        final project = await FlutterAppService.getByDirectory(kFlutterAppDir);
 
-        final flutterProjectVersion = await getRandomFlutterVersion();
+        final validVersion = await getRandomFlutterVersion();
 
-        await FlutterProjectRepo.pinVersion(
-          flutterProject,
-          flutterProjectVersion,
+        await FlutterAppService.pinVersion(
+          project,
+          validVersion,
         );
 
-        expect(flutterProject.pinnedVersion, flutterProjectVersion);
+        expect(project.pinnedVersion, validVersion.version);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -28,11 +27,11 @@ void main() {
     test('Can find Flutter Project', () async {
       try {
         final flutterProject =
-            await FlutterProjectRepo.findAncestor(dir: kFlutterAppDir);
+            await FlutterAppService.findAncestor(dir: kFlutterAppDir);
         final dartPackage =
-            await FlutterProjectRepo.findAncestor(dir: kDartPackageDir);
+            await FlutterAppService.findAncestor(dir: kDartPackageDir);
         final emptyProject =
-            await FlutterProjectRepo.findAncestor(dir: kEmptyDir);
+            await FlutterAppService.findAncestor(dir: kEmptyDir);
 
         expect(dartPackage != null, true);
         expect(emptyProject != null, true);
@@ -50,7 +49,7 @@ void main() {
 
     test('Can find Flutter Project', () async {
       final projects =
-          await FlutterProjectRepo.scanDirectory(rootDir: kTestAssetsDir);
+          await FlutterAppService.scanDirectory(rootDir: kTestAssetsDir);
       expect(projects.length, 1);
     });
   });
