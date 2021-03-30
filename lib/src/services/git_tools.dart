@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/helpers.dart';
 
 import 'package:fvm/src/utils/logger.dart';
@@ -21,6 +22,59 @@ class GitTools {
         'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
       );
     }
+  }
+
+  static Future<void> loadCache() async {
+    try {
+      if (await kGitCacheDir.exists()) {
+        await kGitCacheDir.delete();
+      }
+
+      final args = [
+        'clone',
+        '--mirror',
+        kFlutterRepo,
+        flutterRepo,
+      ];
+
+      await run(
+        'git',
+        args,
+        workingDirectory: kWorkingDirectory.path,
+        stdout: consoleController.stdoutSink,
+        stderr: consoleController.stderrSink,
+      );
+    } on ProcessException {
+      throw Exception(
+        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
+      );
+    }
+  }
+
+  static Future<void> updateCache() async {
+    try {
+      final args = ['remote', 'update'];
+      await run(
+        'git',
+        args,
+        workingDirectory: flutterRepo,
+        stdout: consoleController.stdoutSink,
+        stderr: consoleController.stderrSink,
+      );
+    } on ProcessException {
+      throw Exception(
+        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
+      );
+    }
+  }
+
+  static String get flutterRepo {
+    /// Loads settings file
+    final settings = SettingsService.readSync();
+    if (!settings.gitCache) {
+      return kGitCacheDir.path;
+    }
+    return kFlutterRepo;
   }
 
   /// Clones Flutter SDK from Version Number or Channel

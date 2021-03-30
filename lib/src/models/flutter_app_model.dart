@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/models/fvm_config_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:meta/meta.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
