@@ -135,7 +135,7 @@
       "login": "orestesgaolin",
       "name": "Dominik Roszkowski",
       "avatar_url": "https://avatars3.githubusercontent.com/u/16854239?v=4",
-      "profile": "http://roszkowski.dev",
+      "profile": "https://github.com/orestesgaolin",
       "contributions": [
         "doc",
         "talk"
@@ -157,6 +157,44 @@
       "profile": "https://github.com/mx1up",
       "contributions": [
         "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "nank1ro",
+      "name": "Alexandru Mariuti",
+      "avatar_url": "https://avatars.githubusercontent.com/u/60045235?v=4",
+      "profile": "http://www.topcode.it",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "andreadelfante",
+      "name": "Andrea Del Fante",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7781176?v=4",
+      "profile": "https://github.com/andreadelfante",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "Kavantix",
+      "name": "Pieter van Loon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6243755?v=4",
+      "profile": "https://github.com/Kavantix",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "YangLang116",
+      "name": "Mr Yang",
+      "avatar_url": "https://avatars.githubusercontent.com/u/15442222?v=4",
+      "profile": "https://github.com/YangLang116",
+      "contributions": [
         "code"
       ]
     }
