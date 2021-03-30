@@ -8,9 +8,9 @@ class FvmSettings {
 
   FvmSettings({
     this.cachePath,
-    this.skipSetup = true,
+    this.skipSetup = false,
     this.noAnalytics = false,
-    this.gitCache = true,
+    this.gitCache = false,
   });
 
   factory FvmSettings.fromJson(String jsonString) {
@@ -20,7 +20,7 @@ class FvmSettings {
   factory FvmSettings.fromMap(Map<String, dynamic> json) {
     return FvmSettings(
       cachePath: json['cachePath'] as String,
-      skipSetup: json['skipSetup'] as bool ?? true,
+      skipSetup: json['skipSetup'] as bool ?? false,
       gitCache: json['gitCache'] as bool ?? false,
       noAnalytics: json['noAnalytics'] as bool ?? false,
     );
