@@ -1,5 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/src/services/git_tools.dart';
+import '../services/git_tools.dart';
 import 'package:io/io.dart';
 
 /// Use an installed SDK version

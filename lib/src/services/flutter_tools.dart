@@ -1,15 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+import '../../constants.dart';
+import '../../exceptions.dart';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
 
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/commands.dart';
-import 'package:fvm/src/utils/logger.dart';
+import 'releases_service/releases_client.dart';
+import '../utils/commands.dart';
+import '../utils/logger.dart';
 import 'package:path/path.dart';
 
 class FlutterTools {

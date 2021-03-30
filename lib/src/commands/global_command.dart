@@ -1,13 +1,13 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
+import '../../constants.dart';
 
-import 'package:fvm/src/services/flutter_tools.dart';
+import '../services/flutter_tools.dart';
 
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/logger.dart';
+import '../services/cache_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/logger.dart';
 
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';

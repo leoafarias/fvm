@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import '../../constants.dart';
+import '../services/flutter_tools.dart';
+import '../utils/helpers.dart';
 
 import 'package:path/path.dart';
 

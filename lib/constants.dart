@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/settings_service.dart';
+import 'src/services/settings_service.dart';
 
 import 'package:path/path.dart' as path;
 

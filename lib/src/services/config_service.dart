@@ -1,7 +1,7 @@
 import 'dart:io';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/config_model.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import '../../constants.dart';
+import '../models/config_model.dart';
+import '../utils/helpers.dart';
 import 'package:path/path.dart';
 
 class ConfigService {

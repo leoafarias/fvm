@@ -1,4 +1,4 @@
-import 'package:fvm/exceptions.dart';
+import '../../exceptions.dart';
 import 'package:io/io.dart';
 
 /// Guards against certain action by validatin and throwing errors

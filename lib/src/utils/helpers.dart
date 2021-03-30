@@ -1,21 +1,24 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 import 'package:version/version.dart';
 
+import '../../constants.dart';
+import '../../exceptions.dart';
+
+/// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
   return Directory(join(kFvmCacheDir.path, version));
 }
 
-/// Checks if path is a directory
+/// Returns true if [path] is a directory
 bool isDirectory(String path) {
   return FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
 }
 
-/// Moves assets from theme directory into brand-app
+/// Creates a symlink from [source] to the [target]
 Future<void> createLink(Link source, FileSystemEntity target) async {
   try {
     if (await source.exists()) {
@@ -25,16 +28,18 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
   } on FileSystemException {
     if (Platform.isWindows) {
       throw const FvmInternalError(
-        'On Windows FVM requires to run in developer mode or as an administrator',
+        '''On Windows FVM requires to run in developer mode or as an administrator''',
       );
     }
   }
 }
 
+/// Returns updated environment for Flutter with [execPath]
 Map<String, String> updateFlutterEnvVariables(String execPath) {
   return _updateEnvVariables('flutter', execPath);
 }
 
+/// Returns updated environment for Dark with [execPath]
 Map<String, String> updateDartEnvVariables(String execPath) {
   return _updateEnvVariables('dart', execPath);
 }
@@ -57,7 +62,8 @@ Map<String, String> _updateEnvVariables(
     ..addAll({'PATH': '$newEnv:$execPath'});
 }
 
-// Assigns weight to [version] for proper comparison
+/// Assigns weight to [version] to channels for comparison
+/// Returns a weight for all versions and channels
 Version assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
   switch (version) {

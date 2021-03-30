@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:console/console.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/logger.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import 'logger.dart';
 
 /// Displays notice for confirmation
 Future<bool> confirm(String message) async {

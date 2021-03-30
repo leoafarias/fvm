@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../../constants.dart';
+import '../utils/pretty_json.dart';
 import 'package:meta/meta.dart';
 
 import 'package:path/path.dart';

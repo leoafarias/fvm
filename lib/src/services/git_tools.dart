@@ -1,17 +1,16 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/helpers.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-
 import 'package:path/path.dart' as path;
 import 'package:process_run/cmd_run.dart';
 
-/// Tools used for interacting with git
+import '../../constants.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../utils/helpers.dart';
+import '../utils/logger.dart';
 
+// ignore: avoid_classes_with_only_static_members
+/// Tools  and helpers used for interacting with git
 class GitTools {
   /// Check if Git is installed
   static Future<void> canRun() async {

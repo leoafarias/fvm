@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
-import 'package:fvm/src/services/releases_service/models/flutter_releases.model.dart';
-import 'package:fvm/exceptions.dart';
+import 'models/flutter_releases.model.dart';
+import '../../../exceptions.dart';
 
 const STORAGE_BASE_URL = 'https://storage.googleapis.com';
 

@@ -1,11 +1,11 @@
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
+import '../../constants.dart';
+import '../../exceptions.dart';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
 
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../utils/logger.dart';
+import 'ensure_cache.workflow.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow(

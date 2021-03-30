@@ -1,12 +1,12 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
 
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/console_utils.dart';
+import '../services/flutter_tools.dart';
+import '../utils/console_utils.dart';
 
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
 /// Configure different flutter version per environment

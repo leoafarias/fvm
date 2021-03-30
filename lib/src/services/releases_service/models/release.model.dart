@@ -1,5 +1,5 @@
-import 'package:fvm/src/services/releases_service/models/channels.model.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'channels.model.dart';
+import '../releases_client.dart';
 
 class Release {
   Release({

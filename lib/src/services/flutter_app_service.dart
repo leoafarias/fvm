@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/flutter_app_model.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/services/config_service.dart';
+import '../../constants.dart';
+import '../models/flutter_app_model.dart';
+import '../models/valid_version_model.dart';
+import 'config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 

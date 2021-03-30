@@ -1,9 +1,9 @@
 import 'dart:convert';
 
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/services/releases_service/current_release_parser.dart';
-import 'package:fvm/src/services/releases_service/models/channels.model.dart';
-import 'package:fvm/src/services/releases_service/models/release.model.dart';
+import '../../flutter_tools.dart';
+import '../current_release_parser.dart';
+import 'channels.model.dart';
+import 'release.model.dart';
 
 FlutterReleases releasesFromMap(String str) =>
     FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);

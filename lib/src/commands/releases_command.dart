@@ -1,10 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
-import 'package:fvm/src/utils/logger.dart';
+import '../utils/logger.dart';
 import 'package:io/ansi.dart';
 
-import 'package:fvm/src/services/releases_service/releases_client.dart';
+import '../services/releases_service/releases_client.dart';
 import 'package:io/io.dart';
 
 /// List installed SDK Versions

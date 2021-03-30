@@ -1,12 +1,12 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
+import '../../exceptions.dart';
 
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/commands.dart';
+import '../services/flutter_tools.dart';
+import '../utils/commands.dart';
 
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 /// Spawn Flutter Commands in other versions
 class SpawnCommand extends Command<int> {

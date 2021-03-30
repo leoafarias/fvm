@@ -1,13 +1,13 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
+import '../../exceptions.dart';
 
-import 'package:fvm/src/services/flutter_tools.dart';
+import '../services/flutter_tools.dart';
 
-import 'package:fvm/src/utils/console_utils.dart';
+import '../utils/console_utils.dart';
 
-import 'package:fvm/src/utils/messages.dart';
+import '../utils/messages.dart';
 
-import 'package:fvm/src/workflows/use_version.workflow.dart';
+import '../workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
 
 /// Use an installed SDK version

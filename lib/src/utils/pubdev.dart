@@ -1,4 +1,4 @@
-import 'package:fvm/src/version.dart';
+import '../version.dart';
 import 'package:io/ansi.dart';
 import 'package:pub_api_client/pub_api_client.dart';
 

@@ -1,6 +1,6 @@
 import 'dart:io' as io;
 
-import 'package:fvm/src/utils/logger.dart';
+import 'logger.dart';
 import 'package:io/io.dart';
 
 final processManager = ProcessManager(

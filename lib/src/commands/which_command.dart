@@ -1,10 +1,10 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/fvm.dart';
+import '../../fvm.dart';
 
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
+import '../services/cache_service.dart';
+import '../services/flutter_tools.dart';
 
-import 'package:fvm/src/utils/logger.dart';
+import '../utils/logger.dart';
 
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';

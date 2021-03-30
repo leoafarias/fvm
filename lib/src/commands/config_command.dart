@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/settings_service.dart';
-import 'package:fvm/src/utils/logger.dart';
+import '../../constants.dart';
+import '../services/settings_service.dart';
+import '../utils/logger.dart';
 
 import 'package:io/io.dart';
 

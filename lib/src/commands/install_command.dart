@@ -1,11 +1,11 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../services/flutter_tools.dart';
 
-import 'package:fvm/src/services/flutter_app_service.dart';
+import '../services/flutter_app_service.dart';
 
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
 /// Installs Flutter SDK

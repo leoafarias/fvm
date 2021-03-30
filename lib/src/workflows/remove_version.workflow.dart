@@ -1,9 +1,10 @@
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
 
-import 'package:fvm/src/utils/logger.dart';
+import '../utils/logger.dart';
 
+/// Triggers the workflow to remove a [validVersion]
 Future<void> removeWorkflow(ValidVersion validVersion) async {
   FvmLogger.fine('Removing $validVersion');
   try {

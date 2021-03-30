@@ -1,6 +1,6 @@
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../../constants.dart';
+import '../../fvm.dart';
+import '../utils/pretty_json.dart';
 
 class SettingsService {
   static Future<FvmSettings> read() async {

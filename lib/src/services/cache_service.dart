@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/services/git_tools.dart';
-import 'package:fvm/src/models/cache_version_model.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import '../../constants.dart';
+import '../models/valid_version_model.dart';
+import 'flutter_tools.dart';
+import 'git_tools.dart';
+import '../models/cache_version_model.dart';
+import '../utils/helpers.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 

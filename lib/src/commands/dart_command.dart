@@ -1,12 +1,12 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import 'package:fvm/src/services/flutter_app_service.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
+import '../services/flutter_app_service.dart';
+import '../services/flutter_tools.dart';
 
-import 'package:fvm/src/utils/commands.dart';
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../utils/commands.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 /// Proxies Dart Commands
 class DartCommand extends Command<int> {

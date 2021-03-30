@@ -1,4 +1,4 @@
-import 'package:fvm/src/services/releases_service/models/release.model.dart';
+import 'release.model.dart';
 
 enum Channel { stable, dev, beta }
 
