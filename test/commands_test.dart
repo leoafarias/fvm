@@ -81,8 +81,11 @@ void main() {
 
         final channelDir = path.join(kFvmCacheDir.path, channel);
 
+        final globalConfigured = await CacheService.isGlobalConfigured();
+
         expect(targetDir == channelDir, true);
         expect(linkExists, true);
+        expect(globalConfigured, true);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
