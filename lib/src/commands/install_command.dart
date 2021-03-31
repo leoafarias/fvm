@@ -1,12 +1,11 @@
 import 'package:args/command_runner.dart';
+import 'package:io/io.dart';
+
 import '../../exceptions.dart';
 import '../../fvm.dart';
-import '../services/flutter_tools.dart';
-
 import '../services/flutter_app_service.dart';
-
+import '../services/flutter_tools.dart';
 import '../workflows/ensure_cache.workflow.dart';
-import 'package:io/io.dart';
 
 /// Installs Flutter SDK
 class InstallCommand extends Command<int> {

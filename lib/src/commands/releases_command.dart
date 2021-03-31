@@ -1,11 +1,11 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
-import '../utils/logger.dart';
 import 'package:io/ansi.dart';
+import 'package:io/io.dart';
 
 import '../services/releases_service/releases_client.dart';
-import 'package:io/io.dart';
+import '../utils/logger.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command<int> {

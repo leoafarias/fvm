@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'src/services/settings_service.dart';
-
 import 'package:path/path.dart' as path;
+
+import 'src/services/settings_service.dart';
 
 const kFvmDirName = '.fvm';
 final kFvmConfigFileName = 'fvm_config.json';

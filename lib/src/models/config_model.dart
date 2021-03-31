@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:meta/meta.dart';
+import 'package:path/path.dart';
+
 import '../../constants.dart';
 import '../utils/pretty_json.dart';
-import 'package:meta/meta.dart';
-
-import 'package:path/path.dart';
 
 class FvmConfig {
   Directory configDir;

@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:path/path.dart';
+
 import '../../constants.dart';
 import '../services/flutter_tools.dart';
 import '../utils/helpers.dart';
-
-import 'package:path/path.dart';
 
 class CacheVersion {
   final String name;

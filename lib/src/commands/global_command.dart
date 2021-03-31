@@ -1,16 +1,13 @@
 import 'package:args/command_runner.dart';
-import '../../constants.dart';
-
-import '../services/flutter_tools.dart';
-
-import '../services/cache_service.dart';
-import '../utils/console_utils.dart';
-import '../utils/logger.dart';
-
-import '../workflows/ensure_cache.workflow.dart';
-
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
+
+import '../../constants.dart';
+import '../services/cache_service.dart';
+import '../services/flutter_tools.dart';
+import '../utils/console_utils.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 /// Removes Flutter SDK
 class GlobalCommand extends Command<int> {

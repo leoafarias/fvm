@@ -1,15 +1,13 @@
+import 'package:args/command_runner.dart';
+import 'package:io/ansi.dart';
+import 'package:io/io.dart';
+
 import '../../exceptions.dart';
 import '../../fvm.dart';
-
 import '../services/cache_service.dart';
 import '../services/flutter_app_service.dart';
 import '../utils/console_utils.dart';
-
 import '../utils/logger.dart';
-
-import 'package:io/ansi.dart';
-import 'package:args/command_runner.dart';
-import 'package:io/io.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command<int> {

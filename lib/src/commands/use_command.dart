@@ -1,14 +1,11 @@
 import 'package:args/command_runner.dart';
-import '../../exceptions.dart';
-
-import '../services/flutter_tools.dart';
-
-import '../utils/console_utils.dart';
-
-import '../utils/messages.dart';
-
-import '../workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
+
+import '../../exceptions.dart';
+import '../services/flutter_tools.dart';
+import '../utils/console_utils.dart';
+import '../utils/messages.dart';
+import '../workflows/use_version.workflow.dart';
 
 /// Use an installed SDK version
 class UseCommand extends Command<int> {
@@ -31,7 +28,7 @@ class UseCommand extends Command<int> {
         negatable: false,
         callback: (flag) {
           if (!flag) return;
-          throw const FvmUsageException(Messages.UseGlobalDeprecation);
+          throw const FvmUsageException(Messages.useGlobalDeprecation);
         },
       )
       ..addFlag(

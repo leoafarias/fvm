@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
-import '../services/git_tools.dart';
 import 'package:io/io.dart';
+
+import '../services/git_tools.dart';
 
 /// Use an installed SDK version
 class GitCacheCommand extends Command<int> {

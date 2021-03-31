@@ -1,13 +1,11 @@
 import 'package:args/command_runner.dart';
-
-import '../services/flutter_tools.dart';
+import 'package:io/io.dart';
 
 import '../services/cache_service.dart';
+import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
-
 import '../utils/logger.dart';
 import '../workflows/remove_version.workflow.dart';
-import 'package:io/io.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends Command<int> {

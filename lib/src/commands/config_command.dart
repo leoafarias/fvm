@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
+import 'package:io/io.dart';
+
 import '../../constants.dart';
 import '../services/settings_service.dart';
 import '../utils/logger.dart';
-
-import 'package:io/io.dart';
 
 /// Fvm Config
 class ConfigCommand extends Command<int> {

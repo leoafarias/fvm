@@ -1,6 +1,7 @@
-import '../version.dart';
 import 'package:io/ansi.dart';
 import 'package:pub_api_client/pub_api_client.dart';
+
+import '../version.dart';
 
 Future<bool> checkIfLatestVersion({String currentVersion}) async {
   currentVersion ??= packageVersion;

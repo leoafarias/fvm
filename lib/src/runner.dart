@@ -1,30 +1,26 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import '../exceptions.dart';
+import 'package:io/io.dart';
 
+import '../exceptions.dart';
 import 'commands/config_command.dart';
+import 'commands/dart_command.dart';
 import 'commands/env_command.dart';
+import 'commands/flutter_command.dart';
 import 'commands/git_cache_command.dart';
 import 'commands/global_command.dart';
-import 'commands/spawn_command.dart';
-import 'commands/which_command.dart';
-import 'utils/logger.dart';
-
-import 'commands/flutter_command.dart';
-import 'commands/dart_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
-
+import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
-
+import 'commands/which_command.dart';
+import 'utils/logger.dart';
 import 'utils/logger.dart' show logger;
 import 'utils/pubdev.dart';
-
 import 'version.dart';
-import 'package:io/io.dart';
 
 class FvmCommandRunner extends CommandRunner<int> {
   FvmCommandRunner()

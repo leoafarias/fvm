@@ -1,5 +1,5 @@
-import 'channels.model.dart';
 import '../releases_client.dart';
+import 'channels.model.dart';
 
 class Release {
   Release({

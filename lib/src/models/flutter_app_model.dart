@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'config_model.dart';
 import 'package:meta/meta.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
+
+import 'config_model.dart';
 
 class FlutterApp {
   final String name;

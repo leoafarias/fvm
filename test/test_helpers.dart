@@ -29,21 +29,22 @@ Future<ValidVersion> getRandomFlutterVersion() async {
 void cleanup() {
   // Remove all versions
   if (kFvmCacheDir.existsSync()) {
-    final versionsList = kFvmCacheDir.listSync(recursive: true);
-    versionsList.forEach((dir) {
+    final cacheDirList = kFvmCacheDir.listSync(recursive: true);
+    for (var dir in cacheDirList) {
       if (dir.existsSync()) {
         dir.deleteSync(recursive: true);
       }
-    });
+    }
   }
   // Remove fvm config from test projects
+
   final directoryList = kTestAssetsDir.listSync(recursive: true);
-  directoryList.forEach((dir) {
+  for (var dir in directoryList) {
     final fvmDir = Directory(join(dir.path, '.fvm'));
     if (fvmDir.existsSync()) {
       fvmDir.deleteSync(recursive: true);
     }
-  });
+  }
 }
 
 void fvmTearDownAll() {
