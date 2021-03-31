@@ -13,6 +13,9 @@ import 'git_tools.dart';
 // ignore: avoid_classes_with_only_static_members
 /// Service to interact with FVM Cache
 class CacheService {
+  /// Directory where local versions are cached
+  static final Directory cacheDir = kFvmCacheDir;
+
   /// Returns a [CacheVersion] from a [versionName]
   static Future<CacheVersion> getByVersionName(String versionName) async {
     final versionDir = versionCacheDir(versionName);

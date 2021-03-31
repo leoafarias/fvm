@@ -52,7 +52,7 @@ class RemoveCommand extends Command<int> {
       await removeWorkflow(validVersion);
     } else {
       final confirmation = await confirm(
-        '$validVersion is current configured as "global". Do you still would like to remove?',
+        '''$validVersion is current configured as "global". Do you still would like to remove?''',
       );
 
       if (confirmation) {

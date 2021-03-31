@@ -26,7 +26,7 @@ class ListCommand extends Command<int> {
 
     if (cacheVersions.isEmpty) {
       throw const FvmUsageException(
-        'No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.',
+        '''No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.''',
       );
     }
 

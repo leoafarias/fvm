@@ -1,13 +1,11 @@
 import 'package:args/command_runner.dart';
-import '../../fvm.dart';
-
-import '../services/cache_service.dart';
-import '../services/flutter_tools.dart';
-
-import '../utils/logger.dart';
-
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
+
+import '../../fvm.dart';
+import '../services/cache_service.dart';
+import '../services/flutter_tools.dart';
+import '../utils/logger.dart';
 
 /// Returns which version of Flutter will run
 class WhichCommand extends Command<int> {
@@ -41,7 +39,7 @@ class WhichCommand extends Command<int> {
       FvmLogger.divider();
       if (cacheVersion == null) {
         FvmLogger.warning(
-          'Version is not currently cached. Run "fvm install" on this directory, or "fvm install ${project.pinnedVersion}" anywhere.',
+          '''Version is not currently cached. Run "fvm install" on this directory, or "fvm install ${project.pinnedVersion}" anywhere.''',
         );
       } else {
         FvmLogger.fine('Version is currently cached locally.');

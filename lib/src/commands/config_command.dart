@@ -20,7 +20,7 @@ class ConfigCommand extends Command<int> {
     argParser.addOption(
       'cache-path',
       help:
-          'Set the path which FVM will cache the version. This will take precedence over FVM_HOME environment variable.',
+          '''Set the path which FVM will cache the version. This will take precedence over FVM_HOME environment variable.''',
     );
   }
   @override

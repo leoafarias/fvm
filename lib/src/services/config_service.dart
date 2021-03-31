@@ -1,8 +1,10 @@
 import 'dart:io';
+
+import 'package:path/path.dart';
+
 import '../../constants.dart';
 import '../models/config_model.dart';
 import '../utils/helpers.dart';
-import 'package:path/path.dart';
 
 class ConfigService {
   static Future<FvmConfig> read(Directory directory) async {

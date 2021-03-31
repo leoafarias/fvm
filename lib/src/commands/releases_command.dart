@@ -26,7 +26,7 @@ class ReleasesCommand extends Command<int> {
 
     final versions = releases.releases.reversed;
 
-    versions.forEach((release) {
+    for (var release in versions) {
       final version = yellow.wrap(release.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
@@ -40,7 +40,8 @@ class ReleasesCommand extends Command<int> {
       } else {
         FvmLogger.info('$friendlyDate $pipe $version');
       }
-    });
+    }
+
     return ExitCode.success.code;
   }
 }

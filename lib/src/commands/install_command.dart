@@ -37,7 +37,7 @@ class InstallCommand extends Command<int> {
       // If no config found is version throw error
       if (version == null) {
         throw const FvmUsageException(
-            'Please provide a channel or a version, or run this command in a Flutter project that has FVM configured.');
+            '''Please provide a channel or a version, or run this command in a Flutter project that has FVM configured.''');
       }
     }
     version ??= argResults.rest[0];

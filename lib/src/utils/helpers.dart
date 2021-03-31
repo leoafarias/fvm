@@ -51,14 +51,14 @@ Map<String, String> _updateEnvVariables(
   assert(execPath != null);
 
   /// Remove exec path that does not match
-  final pathEnvList = envVars['PATH']
+  final pathEnvList = kEnvVars['PATH']
       .split(':')
       .where((e) => '$e/$key' != whichSync(key))
       .toList();
 
   final newEnv = pathEnvList.join(':');
 
-  return Map<String, String>.from(envVars)
+  return Map<String, String>.from(kEnvVars)
     ..addAll({'PATH': '$newEnv:$execPath'});
 }
 
