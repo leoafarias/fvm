@@ -1,17 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import '../../constants.dart';
-import '../../exceptions.dart';
-
-import '../../fvm.dart';
-import '../models/valid_version_model.dart';
-
-import 'releases_service/releases_client.dart';
-import '../utils/commands.dart';
-import '../utils/logger.dart';
 import 'package:path/path.dart';
 
+import '../../constants.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
+import '../utils/commands.dart';
+import '../utils/logger.dart';
+import 'releases_service/releases_client.dart';
+
+/// Helpers and tools to interact with Flutter sdk
 class FlutterTools {
   /// Disables tracking for Flutter SDK
   static Future<void> disableTracking(CacheVersion version) async {

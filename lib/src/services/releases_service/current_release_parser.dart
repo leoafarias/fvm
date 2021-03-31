@@ -6,16 +6,16 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
   final releases = json['releases'] as List<dynamic>;
 
   // Filter out channel/currentRelease versions
-  releases.forEach((release) {
-    // Check if release hash is in hashmap
-    currentRelease.entries.forEach((channel) {
-      if (channel.value == release['hash'] &&
-          channel.key == release['channel']) {
-        currentRelease[channel.key] = release;
+  // Could be more efficient
+  for (var release in releases) {
+    for (var current in currentRelease.entries) {
+      if (current.value == release['hash'] &&
+          current.key == release['channel']) {
+        currentRelease[current.key] = release;
         release['activeChannel'] = true;
       }
-    });
-  });
+    }
+  }
 
   return currentRelease;
 }
