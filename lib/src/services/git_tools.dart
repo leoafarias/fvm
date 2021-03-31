@@ -23,7 +23,8 @@ class GitTools {
     }
   }
 
-  static Future<void> loadCache() async {
+  /// Creates local git cache of Flutter repo.
+  static Future<void> createCache() async {
     try {
       if (await kGitCacheDir.exists()) {
         await kGitCacheDir.delete();
@@ -50,6 +51,7 @@ class GitTools {
     }
   }
 
+  /// Updates local Flutter cache with 'remote update'.
   static Future<void> updateCache() async {
     try {
       final args = ['remote', 'update'];
@@ -67,6 +69,7 @@ class GitTools {
     }
   }
 
+  /// Gets the Flutter repo if configured on FVM settings
   static String get flutterRepo {
     /// Loads settings file
     final settings = SettingsService.readSync();
@@ -117,6 +120,7 @@ class GitTools {
     return;
   }
 
+  /// Checks if [branch] is up to date. Returns [true] if it is.
   static Future<bool> checkBranchUpToDate(String branch) async {
     final result =
         await run('git', ['rev-list', 'HEAD...origin/$branch', '--count']);
@@ -146,6 +150,7 @@ class GitTools {
     return versionsList;
   }
 
+  /// Returns the [name] of a branch or tag for a [version]
   static Future<String> getBranchOrTag(String version) async {
     final versionDir = Directory(path.join(kFvmCacheDir.path, version));
     return _getCurrentGitBranch(versionDir);

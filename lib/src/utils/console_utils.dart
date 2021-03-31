@@ -86,12 +86,13 @@ Future<String> projectEnvSeletor() async {
   return version;
 }
 
-// Replicate Flutter cli behavior during run
-// Allows to add commands without ENTER after
+/// Replicate Flutter cli behavior during run
+/// Allows to add commands without ENTER after
+// ignore: avoid_positional_boolean_parameters
 void switchLineMode(bool active, List<String> args) {
   // Don't do anything if its not terminal
   // or if it's not run command
-  // TODO: Check this for other commands like dart:migrate?
+
   if (!ConsoleController.isTerminal || args.isEmpty || args.first != 'run') {
     return;
   }

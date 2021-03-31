@@ -1,12 +1,14 @@
 import 'dart:io';
-import '../../constants.dart';
-import '../models/valid_version_model.dart';
-import 'flutter_tools.dart';
-import 'git_tools.dart';
-import '../models/cache_version_model.dart';
-import '../utils/helpers.dart';
+
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
+
+import '../../constants.dart';
+import '../models/cache_version_model.dart';
+import '../models/valid_version_model.dart';
+import '../utils/helpers.dart';
+import 'flutter_tools.dart';
+import 'git_tools.dart';
 
 class CacheService {
   static final cacheDir = kFvmCacheDir;
