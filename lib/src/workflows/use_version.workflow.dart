@@ -1,7 +1,7 @@
 import '../../constants.dart';
 import '../../exceptions.dart';
-import '../../fvm.dart';
 import '../models/valid_version_model.dart';
+import '../services/project_service.dart';
 import '../utils/logger.dart';
 import 'ensure_cache.workflow.dart';
 
@@ -12,19 +12,20 @@ Future<void> useVersionWorkflow(
   String environment,
 }) async {
   // Get project from working directory
-  final project = await FlutterAppService.getByDirectory(kWorkingDirectory);
+  final project = await ProjectService.getByDirectory(kWorkingDirectory);
 
   // If project use check that is Flutter project
   if (!project.isFlutterProject && !force) {
     throw const FvmUsageException(
-      '''Not a Flutter project. Run this FVM command at the root of a Flutter project or use --force to bypass this.''',
+      'Not a Flutter project. Run this FVM command at'
+      ' the root of a Flutter project or use --force to bypass this.',
     );
   }
 
   // Run install workflow
   await ensureCacheWorkflow(validVersion);
 
-  await FlutterAppService.pinVersion(
+  await ProjectService.pinVersion(
     project,
     validVersion,
     environment: environment,

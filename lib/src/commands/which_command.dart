@@ -2,8 +2,8 @@ import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
-import '../../fvm.dart';
 import '../services/cache_service.dart';
+import '../services/project_service.dart';
 import '../utils/logger.dart';
 
 /// Returns which version of Flutter will run
@@ -44,7 +44,7 @@ class WhichCommand extends Command<int> {
         FvmLogger.info('Cache Path: ${cacheVersion.dir.path}');
         FvmLogger.info('Channel: ${cacheVersion.isChannel}');
 
-        final sdkVersion = await CacheService.getSdkVersion(cacheVersion);
+        final sdkVersion = CacheService.getSdkVersionSync(cacheVersion);
         if (sdkVersion != null) {
           FvmLogger.info('SDK Version: $sdkVersion');
         } else {

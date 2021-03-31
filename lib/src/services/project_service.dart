@@ -26,12 +26,8 @@ class ProjectService {
   }
 
   /// Returns a list of projects by providing a list of [paths]
-  static Future<List<Project>> fetchProjects(List<String> paths) async {
-    return Future.wait(
-      paths.map(
-        (path) async => await getByDirectory(Directory(path)),
-      ),
-    );
+  static Future<List<Project>> fetchProjects(List<Directory> paths) async {
+    return Future.wait(paths.map(getByDirectory));
   }
 
   /// Updates the link to make sure its always correct
@@ -53,7 +49,7 @@ class ProjectService {
 
   /// Scans for Flutter projects found in the rootDir
   static Future<List<Project>> scanDirectory({Directory rootDir}) async {
-    final paths = <String>[];
+    final paths = <Directory>[];
 
     if (rootDir == null) {
       return [];
@@ -67,7 +63,7 @@ class ProjectService {
       if (entity is Directory) {
         // Add only if its flutter project
         if (await isFlutterProject(entity)) {
-          paths.add(entity.path);
+          paths.add(entity);
         }
       }
     }

@@ -1,12 +1,11 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/flutter_app_service.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/services/git_tools.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -52,7 +51,7 @@ void main() {
         // Run foce to test within fvm
 
         await fvmRunner.run(['use', channel, '--force', '--verbose']);
-        final project = await FlutterAppService.findAncestor();
+        final project = await ProjectService.findAncestor();
         if (project == null) {
           fail('Not running on a flutter project');
         }
@@ -115,7 +114,7 @@ void main() {
     test('Use Release', () async {
       try {
         await fvmRunner.run(['use', release, '--force', '--verbose']);
-        final project = await FlutterAppService.findAncestor();
+        final project = await ProjectService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();

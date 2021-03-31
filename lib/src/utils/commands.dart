@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 

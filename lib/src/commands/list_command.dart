@@ -3,7 +3,6 @@ import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../../fvm.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';

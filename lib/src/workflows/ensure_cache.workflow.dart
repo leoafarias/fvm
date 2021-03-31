@@ -6,7 +6,7 @@ import '../../exceptions.dart';
 import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/flutter_app_service.dart';
+import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 
@@ -31,7 +31,7 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     // Ensure the config link and symlink are updated
     // If there is an app
-    await FlutterAppService.updateLink();
+    await ProjectService.updateLink();
 
     FvmLogger.info('Flutter "$validVersion" is not installed.');
 
