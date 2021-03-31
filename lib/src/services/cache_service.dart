@@ -67,6 +67,20 @@ class CacheService {
     return isVersionCached(validVersion);
   }
 
+  /// Gets Flutter SDK version from CacheVersion
+  static Future<String> getSdkVersion(CacheVersion version) async {
+    if (!await version.dir.exists()) {
+      throw Exception('Could not get version from SDK that is not installed');
+    }
+
+    final versionFile = File(join(version.dir.path, 'version'));
+    if (await versionFile.exists()) {
+      return await versionFile.readAsString();
+    } else {
+      return null;
+    }
+  }
+
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
   static Future<CacheVersion> isVersionCached(ValidVersion validVersion) async {
     final cacheVersion = await CacheService.getByVersionName(validVersion.name);

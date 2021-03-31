@@ -1,8 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../services/flutter_app_service.dart';
 import '../services/flutter_tools.dart';
+import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -18,7 +18,7 @@ class DartCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final version = await FlutterAppService.findVersion();
+    final version = await ProjectService.findVersion();
     final args = argResults.arguments;
 
     if (version != null) {

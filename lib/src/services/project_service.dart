@@ -8,10 +8,10 @@ import '../models/project_model.dart';
 import '../models/valid_version_model.dart';
 import 'config_service.dart';
 
-/// Flutter app services
+/// Flutter Project Services
 /// APIs for interacting with local Flutter projects
-class FlutterAppService {
-  /// Returns [app] by providing a [directory]
+class ProjectService {
+  /// Returns projects by providing a [directory]
   static Future<Project> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
     final config = await ConfigService.read(directory);
@@ -25,7 +25,7 @@ class FlutterAppService {
     );
   }
 
-  /// Returns a list of [apps] by providing a list of [paths]
+  /// Returns a list of projects by providing a list of [paths]
   static Future<List<Project>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
@@ -37,7 +37,7 @@ class FlutterAppService {
   /// Updates the link to make sure its always correct
   static Future<void> updateLink() async {
     // Ensure the config link and symlink are updated
-    final project = await FlutterAppService.findAncestor();
+    final project = await ProjectService.findAncestor();
     if (project != null &&
         project.pinnedVersion != null &&
         project.config != null) {
@@ -47,7 +47,7 @@ class FlutterAppService {
 
   /// Search for version configured
   static Future<String> findVersion() async {
-    final project = await FlutterAppService.findAncestor();
+    final project = await ProjectService.findAncestor();
     return project?.pinnedVersion;
   }
 

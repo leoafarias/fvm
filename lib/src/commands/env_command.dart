@@ -29,7 +29,7 @@ class EnvCommand extends Command<int> {
     // Gets env from param if not yet selected
     environment ??= argResults.rest[0];
 
-    final project = await FlutterAppService.findAncestor();
+    final project = await ProjectService.findAncestor();
 
     // If project use check that is Flutter project
     if (project == null) {
@@ -60,7 +60,7 @@ class EnvCommand extends Command<int> {
     await ensureCacheWorkflow(validVersion);
 
     // Pin version to project
-    await FlutterAppService.pinVersion(project, validVersion);
+    await ProjectService.pinVersion(project, validVersion);
 
     FvmLogger.fine(
       '''Now using [$environment] environment. Flutter version [${validVersion.name}].''',
