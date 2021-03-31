@@ -16,7 +16,7 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
 
       print(divider);
       print(
-          'FVM Update Available $packageVersion → ${green.wrap(latest.latestVersion)} ');
+          '''FVM Update Available $packageVersion → ${green.wrap(latest.latestVersion)} ''');
       print('${yellow.wrap('Changelog:')} ${latest.packageInfo.changelogUrl}');
       print('Run $updateCmd to update');
       print(divider);

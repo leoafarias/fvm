@@ -1,7 +1,8 @@
 import 'dart:io' as io;
 
-import 'logger.dart';
 import 'package:io/io.dart';
+
+import 'logger.dart';
 
 final processManager = ProcessManager(
   stderr: io.IOSink(consoleController.stderrSink),

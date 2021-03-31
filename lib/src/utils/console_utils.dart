@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:console/console.dart';
+
 import '../../exceptions.dart';
 import '../../fvm.dart';
 import 'logger.dart';
@@ -32,7 +33,7 @@ Future<String> cacheVersionSelector() async {
   // Return message if no cached versions
   if (cacheVersions.isEmpty) {
     throw const FvmUsageException(
-        'No versions installed. Please install a version. "fvm install <version>". ');
+        '''No versions installed. Please install a version. "fvm install <version>". ''');
   }
 
   /// Ask which version to select

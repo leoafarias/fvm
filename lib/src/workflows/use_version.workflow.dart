@@ -1,9 +1,7 @@
 import '../../constants.dart';
 import '../../exceptions.dart';
-
 import '../../fvm.dart';
 import '../models/valid_version_model.dart';
-
 import '../utils/logger.dart';
 import 'ensure_cache.workflow.dart';
 
@@ -18,7 +16,7 @@ Future<void> useVersionWorkflow(
   // If project use check that is Flutter project
   if (!project.isFlutterProject && !force) {
     throw const FvmUsageException(
-      'Not a Flutter project. Run this FVM command at the root of a Flutter project or use --force to bypass this.',
+      '''Not a Flutter project. Run this FVM command at the root of a Flutter project or use --force to bypass this.''',
     );
   }
 

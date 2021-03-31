@@ -22,10 +22,12 @@ import 'utils/logger.dart' show logger;
 import 'utils/pubdev.dart';
 import 'version.dart';
 
+/// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
+  /// Constructor
   FvmCommandRunner()
       : super('fvm',
-            'Flutter Version Management: A cli to manage Flutter SDK versions.') {
+            '''Flutter Version Management: A cli to manage Flutter SDK versions.''') {
     argParser
       ..addFlag(
         'verbose',

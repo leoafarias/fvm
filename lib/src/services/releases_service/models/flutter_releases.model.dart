@@ -8,17 +8,26 @@ import 'release.model.dart';
 FlutterReleases releasesFromMap(String str) =>
     FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
 
+/// Flutter Releases
 class FlutterReleases {
+  /// Constructor
   FlutterReleases({
     this.baseUrl,
     this.channels,
     this.releases,
   });
 
+  /// Base url for Flutter   /// Channels in Flutter releases
+
   final String baseUrl;
+
+  /// Channels in Flutter releases
   final Channels channels;
+
+  /// LIst of all releases
   final List<Release> releases;
 
+  /// Create FlutterReleaes from a map of values
   factory FlutterReleases.fromMap(Map<String, dynamic> json) {
     final currentRelease = parseCurrentReleases(json);
     return FlutterReleases(
@@ -42,13 +51,16 @@ class FlutterReleases {
   /// Checks if version is a release
   bool containsVersion(String version) {
     var contains = false;
-    releases.forEach((v) {
-      // If version is a release return
-      if (v.version == version) contains = true;
-    });
+    for (var release in releases) {
+      if (release.version == version) {
+        contains = true;
+      }
+    }
+
     return contains;
   }
 
+  /// Return map of model
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
         'channels': channels.toMap(),

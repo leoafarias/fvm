@@ -10,23 +10,24 @@ import '../utils/helpers.dart';
 import 'flutter_tools.dart';
 import 'git_tools.dart';
 
+// ignore: avoid_classes_with_only_static_members
+/// Service to interact with FVM Cache
 class CacheService {
-  static final cacheDir = kFvmCacheDir;
-
-  static Future<CacheVersion> getByVersionName(String name) async {
-    final versionDir = versionCacheDir(name);
+  /// Returns a [CacheVersion] from a [versionName]
+  static Future<CacheVersion> getByVersionName(String versionName) async {
+    final versionDir = versionCacheDir(versionName);
     // Return null if version does not exist
     if (!await versionDir.exists()) return null;
 
-    return CacheVersion(name);
+    return CacheVersion(versionName);
   }
 
   /// Lists Installed Flutter SDK Version
   static Future<List<CacheVersion>> getAllVersions() async {
     // Returns empty array if directory does not exist
-    if (!cacheDir.existsSync()) return [];
+    if (!kFvmCacheDir.existsSync()) return [];
 
-    final versions = await cacheDir.list().toList();
+    final versions = await kFvmCacheDir.list().toList();
 
     final cacheVersions = <CacheVersion>[];
 
@@ -57,13 +58,13 @@ class CacheService {
     return !await gitDir.exists() || !await flutterBin.exists();
   }
 
-  // Caches version
+  /// Caches version a [validVersion] and returns [CacheVersion]
   static Future<CacheVersion> cacheVersion(ValidVersion validVersion) async {
     await GitTools.cloneVersion(validVersion.version);
     return isVersionCached(validVersion);
   }
 
-// Checks if isInstalled, and cleans up if its not
+  /// Checks if a [validVersion] is cached correctly, and cleans up if its not
   static Future<CacheVersion> isVersionCached(ValidVersion validVersion) async {
     final cacheVersion =
         await CacheService.getByVersionName(validVersion.version);
@@ -80,13 +81,13 @@ class CacheService {
     return cacheVersion;
   }
 
-  /// Sets a CacheVersion as global
+  /// Sets a [CacheVersion] as global
   static Future<void> setGlobal(CacheVersion version) async {
     final versionDir = Directory(join(kFvmCacheDir.path, version.name));
     await createLink(kGlobalFlutterLink, versionDir);
   }
 
-  /// Gets the global version
+  /// Returns a global [CacheVersion] if exists
   static Future<CacheVersion> getGlobal() async {
     if (await kGlobalFlutterLink.exists()) {
       // Get directory name
@@ -100,7 +101,7 @@ class CacheService {
     }
   }
 
-  /// Checks if its global version
+  /// Checks if a cached [version] is configured as global
   static Future<bool> isGlobal(CacheVersion version) async {
     if (await kGlobalFlutterLink.exists()) {
       return await kGlobalFlutterLink.target() == version.dir.path;
