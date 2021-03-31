@@ -33,7 +33,7 @@ class GlobalCommand extends Command<int> {
     version ??= argResults.rest[0];
 
     // Get valid flutter version
-    final validVersion = await FlutterTools.inferVersion(version);
+    final validVersion = await FlutterTools.inferValidVersion(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);

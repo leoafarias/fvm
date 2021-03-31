@@ -13,25 +13,25 @@ import 'logger.dart';
 class FVMClient {
   /// Triggers install workflow for [versionName]
   static Future<CacheVersion> install(String versionName) async {
-    final validVersion = await FlutterTools.inferVersion(versionName);
+    final validVersion = await FlutterTools.inferValidVersion(versionName);
     return await ensureCacheWorkflow(validVersion, skipConfirmation: true);
   }
 
   /// Triggers remove
   static Future<void> remove(String versionName) async {
-    final validVersion = await FlutterTools.inferVersion(versionName);
+    final validVersion = await FlutterTools.inferValidVersion(versionName);
     return await removeWorkflow(validVersion);
   }
 
   /// Triggers use workflow for [versionName]
   static Future<void> use(String versionName) async {
-    final validVersion = await FlutterTools.inferVersion(versionName);
+    final validVersion = await FlutterTools.inferValidVersion(versionName);
     return await useVersionWorkflow(validVersion);
   }
 
   /// Triggers finish setup (sdk dependency downloads) for [versionName]
   static Future<void> setup(String versionName) async {
-    final validVersion = await FlutterTools.inferVersion(versionName);
+    final validVersion = await FlutterTools.inferValidVersion(versionName);
     final cacheVersion = await CacheService.isVersionCached(validVersion);
     if (cacheVersion == null) {
       throw Exception('Cannot setup version that is not in cache');

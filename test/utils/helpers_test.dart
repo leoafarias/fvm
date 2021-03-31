@@ -10,7 +10,7 @@ import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
 
 Future<String> _inferVersionString(String version) async {
-  final valid = await FlutterTools.inferVersion(version);
+  final valid = await FlutterTools.inferValidVersion(version);
   return valid.name;
 }
 

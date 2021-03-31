@@ -8,6 +8,17 @@ import 'package:version/version.dart';
 import '../../constants.dart';
 import '../../exceptions.dart';
 
+/// Checks if [name] is a channel
+bool checkIsChannel(String name) {
+  return kFlutterChannels.contains(name);
+}
+
+/// Checks if [name] is a channel with a release
+/// master channels do not have releases
+bool checkIsReleaseChannel(String name) {
+  return kFlutterChannels.contains(name) && name != 'master';
+}
+
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
   return Directory(join(kFvmCacheDir.path, version));

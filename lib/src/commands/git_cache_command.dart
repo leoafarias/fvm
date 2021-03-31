@@ -11,9 +11,6 @@ class GitCacheCommand extends Command<int> {
   @override
   String description = 'Creates a cache of the Flutter repo';
 
-  @override
-  String get summary => '$invocation $description';
-
   /// Constructor
   GitCacheCommand();
 

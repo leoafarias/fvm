@@ -9,8 +9,6 @@ import '../utils/logger.dart';
 
 /// Returns which version of Flutter will run
 class WhichCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'which';
 

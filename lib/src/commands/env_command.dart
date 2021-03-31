@@ -48,7 +48,7 @@ class EnvCommand extends Command<int> {
     }
 
     // Makes sure that is a valid version
-    final validVersion = await FlutterTools.inferVersion(envVersion);
+    final validVersion = await FlutterTools.inferValidVersion(envVersion);
 
     FvmLogger.spacer();
 

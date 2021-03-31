@@ -79,7 +79,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return exitCode;
     } on FvmUsageException catch (e) {
       FvmLogger.spacer();
-      FvmLogger.warning(e.message);
+      FvmLogger.error(e.message);
       FvmLogger.spacer();
       FvmLogger.info(usage);
       FvmLogger.spacer();
@@ -92,7 +92,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on UsageException catch (e) {
       FvmLogger.spacer();
-      FvmLogger.warning(e.message);
+      FvmLogger.error(e.message);
       FvmLogger.spacer();
       FvmLogger.info(usage);
       FvmLogger.spacer();

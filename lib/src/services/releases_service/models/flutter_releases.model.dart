@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import '../../flutter_tools.dart';
+import '../../../utils/helpers.dart';
 import '../current_release_parser.dart';
 import 'channels.model.dart';
 import 'release.model.dart';
@@ -35,15 +35,17 @@ class FlutterReleases {
     return FlutterReleases(
       baseUrl: json['base_url'] as String,
       channels: Channels.fromMap(currentRelease),
-      releases: List<Release>.from(json['releases'].map(
-        (r) => Release.fromMap(r as Map<String, dynamic>),
-      ) as Iterable<dynamic>),
+      releases: List<Release>.from(
+        json['releases'].map(
+          (release) => Release.fromMap(release as Map<String, dynamic>),
+        ) as Iterable<dynamic>,
+      ),
     );
   }
 
   /// Retrieves version information
   Release getReleaseFromVersion(String version) {
-    if (FlutterTools.isChannel(version)) {
+    if (checkIsChannel(version)) {
       return channels[version];
     }
 

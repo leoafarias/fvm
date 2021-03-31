@@ -9,13 +9,14 @@ import '../workflows/remove_version.workflow.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'remove';
 
   @override
   final description = 'Removes Flutter SDK Version';
+
+  @override
+  String get invocation => 'fvm remove <version>';
 
   /// Constructor
 
@@ -37,7 +38,7 @@ class RemoveCommand extends Command<int> {
     }
     // Assign if its empty
     version ??= argResults.rest[0];
-    final validVersion = await FlutterTools.inferVersion(version);
+    final validVersion = await FlutterTools.inferValidVersion(version);
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
     // Check if version is installed

@@ -11,6 +11,7 @@ Future<void> useVersionWorkflow(
   bool force,
   String environment,
 }) async {
+  // Get project from working directory
   final project = await FlutterAppService.getByDirectory(kWorkingDirectory);
 
   // If project use check that is Flutter project

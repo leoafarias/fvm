@@ -3,16 +3,12 @@ import 'package:args/command_runner.dart';
 
 import '../services/flutter_app_service.dart';
 import '../services/flutter_tools.dart';
-
 import '../utils/commands.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
 
 /// Proxies Dart Commands
 class DartCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
-
   @override
   final name = 'dart';
   @override
@@ -27,7 +23,7 @@ class DartCommand extends Command<int> {
 
     if (version != null) {
       // Make sure version is valid
-      final validVersion = await FlutterTools.inferVersion(version);
+      final validVersion = await FlutterTools.inferValidVersion(version);
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
-import '../services/flutter_tools.dart';
 import '../utils/helpers.dart';
 
 /// Cache Version model
@@ -31,7 +30,7 @@ class CacheVersion {
 
   /// Is CacheVersion a channel
   bool get isChannel {
-    return FlutterTools.isChannel(name);
+    return checkIsChannel(name);
   }
 
   /// Compares CacheVersion with [other]

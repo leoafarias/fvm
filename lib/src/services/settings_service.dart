@@ -1,6 +1,5 @@
 import '../../constants.dart';
 import '../../fvm.dart';
-import '../utils/pretty_json.dart';
 
 /// Service for FVM settings
 class SettingsService {
@@ -27,7 +26,7 @@ class SettingsService {
   /// Saves FVM [settings]
   static Future<void> save(FvmSettings settings) async {
     try {
-      await kFvmSettings.writeAsString(prettyJson(settings.toMap()));
+      await kFvmSettings.writeAsString(settings.toJson());
     } on Exception {
       throw Exception('Could not save FVM config');
     }

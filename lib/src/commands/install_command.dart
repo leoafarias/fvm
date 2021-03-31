@@ -15,11 +15,16 @@ class InstallCommand extends Command<int> {
   @override
   final description = 'Installs Flutter SDK Version';
 
+  @override
+  String get invocation =>
+      'fvm install <channel/version>, if no <version> is provided will install version configured in project.';
+
   /// Constructor
   InstallCommand() {
     argParser.addFlag(
       'skip-setup',
       help: 'Skips Flutter setup after install',
+      abbr: 's',
       negatable: false,
     );
   }
@@ -42,7 +47,7 @@ class InstallCommand extends Command<int> {
     }
     version ??= argResults.rest[0];
 
-    final validVersion = await FlutterTools.inferVersion(version);
+    final validVersion = await FlutterTools.inferValidVersion(version);
     cacheVersion =
         await ensureCacheWorkflow(validVersion, skipConfirmation: true);
 

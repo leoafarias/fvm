@@ -97,7 +97,7 @@ void main() {
     test('Install Release', () async {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
-        final valid = await FlutterTools.inferVersion(release);
+        final valid = await FlutterTools.inferValidVersion(release);
         final existingRelease = await GitTools.getBranchOrTag(valid.name);
 
         final cacheVersion = await CacheService.isVersionCached(valid);
@@ -119,7 +119,7 @@ void main() {
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();
-        final valid = await FlutterTools.inferVersion(release);
+        final valid = await FlutterTools.inferValidVersion(release);
         final releaseBin = path.join(kFvmCacheDir.path, valid.name);
 
         expect(targetBin == releaseBin, true);

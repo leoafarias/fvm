@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:fvm/src/utils/pretty_json.dart';
+
 /// FVM Settings model
 class FvmSettings {
   /// Cache path configured in settings
@@ -37,12 +39,14 @@ class FvmSettings {
     );
   }
 
+  /// Returns json of FvmSettings
+  String toJson() => prettyJson(toMap());
+
   /// Returns a map of values from FvmSettings model
   Map<String, dynamic> toMap() {
     return {
       'cachePath': cachePath,
       'skipSetup': skipSetup,
-      'noAnalytics': noAnalytics,
       'gitCache': gitCache,
     };
   }

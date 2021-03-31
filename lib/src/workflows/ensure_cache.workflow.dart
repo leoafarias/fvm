@@ -38,7 +38,8 @@ Future<CacheVersion> ensureCacheWorkflow(
     // Install if input is confirmed
     // allows ot skip confirmation for testing purpose
     if (skipConfirmation || await confirm('Would you like to install it?')) {
-      FvmLogger.fine('Installing version: $validVersion');
+      FvmLogger.spacer();
+      FvmLogger.fine('Installing version: $validVersion...');
       return await CacheService.cacheVersion(validVersion);
     } else {
       // Exit if don't want to install

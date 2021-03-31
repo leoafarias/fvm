@@ -95,7 +95,7 @@ class CacheService {
       // Get directory name
       final version = basename(await kGlobalFlutterLink.target());
       // Make sure its a valid version
-      final validVersion = await FlutterTools.inferVersion(version);
+      final validVersion = await FlutterTools.inferValidVersion(version);
       // Verify version is cached
       return await CacheService.isVersionCached(validVersion);
     } else {
