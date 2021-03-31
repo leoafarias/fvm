@@ -1,8 +1,9 @@
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../../constants.dart';
+import '../../fvm.dart';
 
+/// Service for FVM settings
 class SettingsService {
+  /// Returns [FvmSettings]
   static Future<FvmSettings> read() async {
     try {
       final payload = await kFvmSettings.readAsString();
@@ -12,6 +13,7 @@ class SettingsService {
     }
   }
 
+  /// Returns [FvmSettings] sync
   static FvmSettings readSync() {
     try {
       final payload = kFvmSettings.readAsStringSync();
@@ -21,9 +23,10 @@ class SettingsService {
     }
   }
 
+  /// Saves FVM [settings]
   static Future<void> save(FvmSettings settings) async {
     try {
-      await kFvmSettings.writeAsString(prettyJson(settings.toMap()));
+      await kFvmSettings.writeAsString(settings.toJson());
     } on Exception {
       throw Exception('Could not save FVM config');
     }

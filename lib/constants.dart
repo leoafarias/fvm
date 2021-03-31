@@ -1,43 +1,53 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/settings_service.dart';
-
 import 'package:path/path.dart' as path;
 
-const kFvmDirName = '.fvm';
-final kFvmConfigFileName = 'fvm_config.json';
-final envVars = Platform.environment;
+import 'src/services/settings_service.dart';
 
-// Execs
-String binExt = Platform.isWindows ? '.bat' : '';
-String flutterBinFileName = 'flutter$binExt';
-String dartBinFileName = 'dart$binExt';
+/// Project directory for fvm
+const kFvmDirName = '.fvm';
+
+/// Project fvm config file name
+final kFvmConfigFileName = 'fvm_config.json';
+
+/// Environment variables
+final kEnvVars = Platform.environment;
+
+// Extension per platform
+String _binExt = Platform.isWindows ? '.bat' : '';
+
+/// Flutter executable file name
+String flutterBinFileName = 'flutter$_binExt';
+
+/// Dart executable file name
+String dartBinFileName = 'dart$_binExt';
 
 /// Flutter Repo Address
 String get kFlutterRepo {
-  return envVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
+  return kEnvVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
 }
 
 /// Working Directory for FVM
-
-var kWorkingDirectory = Directory.current;
+/// Cannot be a const because it is modified
+Directory kWorkingDirectory = Directory.current;
 
 /// FVM Home directory
 String get kFvmHome {
-  var home = envVars['FVM_HOME'];
+  var home = kEnvVars['FVM_HOME'];
   if (home != null) {
     return path.normalize(home);
   }
 
   if (Platform.isWindows) {
-    home = envVars['UserProfile'];
+    home = kEnvVars['UserProfile'];
   } else {
-    home = envVars['HOME'];
+    home = kEnvVars['HOME'];
   }
 
   return path.join(home, 'fvm');
 }
 
+/// File for FVM Settings
 File get kFvmSettings {
   return File(path.join(kFvmHome, '.settings'));
 }
@@ -59,6 +69,8 @@ Directory get kGitCacheDir {
 
 /// Where Default Flutter SDK is stored
 Link get kGlobalFlutterLink => Link(path.join(kFvmHome, 'default'));
+
+/// Path for Default Flutter SDK
 String get kGlobalFlutterPath => path.join(kGlobalFlutterLink.path, 'bin');
 
 /// Flutter Channels

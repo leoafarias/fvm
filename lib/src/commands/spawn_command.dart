@@ -1,12 +1,11 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
 
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/commands.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../../exceptions.dart';
+import '../services/flutter_tools.dart';
+import '../utils/commands.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 /// Spawn Flutter Commands in other versions
 class SpawnCommand extends Command<int> {
@@ -34,7 +33,7 @@ class SpawnCommand extends Command<int> {
     final flutterArgs = [...argResults.rest]..removeAt(0);
 
     if (version != null) {
-      final validVersion = await FlutterTools.inferVersion(version);
+      final validVersion = await FlutterTools.inferValidVersion(version);
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
       // Runs flutter command with pinned version

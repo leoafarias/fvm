@@ -1,9 +1,10 @@
 import 'dart:io';
 
 import 'package:console/console.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/logger.dart';
+
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import 'logger.dart';
 
 /// Displays notice for confirmation
 Future<bool> confirm(String message) async {
@@ -13,8 +14,7 @@ Future<bool> confirm(String message) async {
 }
 
 /// Prints out versions on FVM and it's status
-Future<void> printVersionStatus(
-    CacheVersion version, FlutterApp project) async {
+Future<void> printVersionStatus(CacheVersion version, Project project) async {
   var printVersion = version.name;
 
   if (project != null && project.pinnedVersion == version.name) {
@@ -32,7 +32,7 @@ Future<String> cacheVersionSelector() async {
   // Return message if no cached versions
   if (cacheVersions.isEmpty) {
     throw const FvmUsageException(
-        'No versions installed. Please install a version. "fvm install <version>". ');
+        '''No versions installed. Please install a version. "fvm install <version>". ''');
   }
 
   /// Ask which version to select
@@ -86,12 +86,13 @@ Future<String> projectEnvSeletor() async {
   return version;
 }
 
-// Replicate Flutter cli behavior during run
-// Allows to add commands without ENTER after
+/// Replicate Flutter cli behavior during run
+/// Allows to add commands without ENTER after
+// ignore: avoid_positional_boolean_parameters
 void switchLineMode(bool active, List<String> args) {
   // Don't do anything if its not terminal
   // or if it's not run command
-  // TODO: Check this for other commands like dart:migrate?
+
   if (!ConsoleController.isTerminal || args.isEmpty || args.first != 'run') {
     return;
   }

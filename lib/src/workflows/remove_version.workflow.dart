@@ -1,17 +1,19 @@
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
+import '../utils/logger.dart';
 
-import 'package:fvm/src/utils/logger.dart';
-
+/// Triggers the workflow to remove a [validVersion]
 Future<void> removeWorkflow(ValidVersion validVersion) async {
-  FvmLogger.fine('Removing $validVersion');
+  FvmLogger.info('Removing $validVersion...');
   try {
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
     /// Remove if version is cached
     if (cacheVersion != null) {
       await CacheService.remove(cacheVersion);
+
+      FvmLogger.fine('$validVersion removed.');
     } else {
       FvmLogger.warning('Version is not installed: $validVersion');
     }

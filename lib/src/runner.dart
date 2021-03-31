@@ -1,37 +1,33 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:fvm/exceptions.dart';
-
-import 'package:fvm/src/commands/config_command.dart';
-import 'package:fvm/src/commands/env_command.dart';
-import 'package:fvm/src/commands/git_cache_command.dart';
-import 'package:fvm/src/commands/global_command.dart';
-import 'package:fvm/src/commands/spawn_command.dart';
-import 'package:fvm/src/commands/which_command.dart';
-import 'package:fvm/src/utils/logger.dart';
-
-import 'package:fvm/src/commands/flutter_command.dart';
-import 'package:fvm/src/commands/dart_command.dart';
-import 'package:fvm/src/commands/install_command.dart';
-import 'package:fvm/src/commands/list_command.dart';
-import 'package:fvm/src/commands/releases_command.dart';
-import 'package:fvm/src/commands/remove_command.dart';
-
-import 'package:fvm/src/commands/use_command.dart';
-
-import 'package:fvm/src/utils/logger.dart' show logger;
-import 'package:fvm/src/utils/pubdev.dart';
-
-import 'package:fvm/src/version.dart';
 import 'package:io/io.dart';
 
-// import 'package:io/io.dart';
+import '../exceptions.dart';
+import 'commands/config_command.dart';
+import 'commands/dart_command.dart';
+import 'commands/env_command.dart';
+import 'commands/flutter_command.dart';
+import 'commands/git_cache_command.dart';
+import 'commands/global_command.dart';
+import 'commands/install_command.dart';
+import 'commands/list_command.dart';
+import 'commands/releases_command.dart';
+import 'commands/remove_command.dart';
+import 'commands/spawn_command.dart';
+import 'commands/use_command.dart';
+import 'commands/which_command.dart';
+import 'utils/logger.dart';
+import 'utils/logger.dart' show logger;
+import 'utils/pubdev.dart';
+import 'version.dart';
 
+/// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
+  /// Constructor
   FvmCommandRunner()
       : super('fvm',
-            'Flutter Version Management: A cli to manage Flutter SDK versions.') {
+            '''Flutter Version Management: A cli to manage Flutter SDK versions.''') {
     argParser
       ..addFlag(
         'verbose',
@@ -83,7 +79,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return exitCode;
     } on FvmUsageException catch (e) {
       FvmLogger.spacer();
-      FvmLogger.warning(e.message);
+      FvmLogger.error(e.message);
       FvmLogger.spacer();
       FvmLogger.info(usage);
       FvmLogger.spacer();
@@ -96,7 +92,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on UsageException catch (e) {
       FvmLogger.spacer();
-      FvmLogger.warning(e.message);
+      FvmLogger.error(e.message);
       FvmLogger.spacer();
       FvmLogger.info(usage);
       FvmLogger.spacer();

@@ -1,15 +1,13 @@
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/flutter_app_service.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-
-import 'package:io/ansi.dart';
 import 'package:args/command_runner.dart';
+import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../services/cache_service.dart';
+import '../services/flutter_app_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/logger.dart';
 
 /// List installed SDK Versions
 class ListCommand extends Command<int> {
@@ -28,7 +26,7 @@ class ListCommand extends Command<int> {
 
     if (cacheVersions.isEmpty) {
       throw const FvmUsageException(
-        'No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.',
+        '''No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.''',
       );
     }
 

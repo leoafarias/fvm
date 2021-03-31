@@ -19,7 +19,7 @@ void main() {
           validVersion,
         );
 
-        expect(project.pinnedVersion, validVersion.version);
+        expect(project.pinnedVersion, validVersion.name);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -27,11 +27,11 @@ void main() {
     test('Can find Flutter Project', () async {
       try {
         final flutterProject =
-            await FlutterAppService.findAncestor(dir: kFlutterAppDir);
+            await FlutterAppService.findAncestor(directory: kFlutterAppDir);
         final dartPackage =
-            await FlutterAppService.findAncestor(dir: kDartPackageDir);
+            await FlutterAppService.findAncestor(directory: kDartPackageDir);
         final emptyProject =
-            await FlutterAppService.findAncestor(dir: kEmptyDir);
+            await FlutterAppService.findAncestor(directory: kEmptyDir);
 
         expect(dartPackage != null, true);
         expect(emptyProject != null, true);

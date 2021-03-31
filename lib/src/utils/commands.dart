@@ -1,14 +1,15 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/guards.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/process_manager.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
+
+import '../../constants.dart';
+import '../../fvm.dart';
+import 'console_utils.dart';
+import 'guards.dart';
+import 'helpers.dart';
+import 'logger.dart';
+import 'process_manager.dart';
 
 /// Runs Flutter cmd
 Future<int> flutterCmd(

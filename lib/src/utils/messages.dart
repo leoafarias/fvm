@@ -1,4 +1,6 @@
+// ignore: public_member_api_docs
 class Messages {
-  static const UseGlobalDeprecation =
-      'Use command option "--global" has been deprecated. Please use "flutter global <version>"';
+  /// Message for global deprecation
+  static const useGlobalDeprecation =
+      '''Use command option "--global" has been deprecated. Please use "flutter global <version>"''';
 }

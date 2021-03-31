@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/src/services/git_tools.dart';
 import 'package:io/io.dart';
+
+import '../services/git_tools.dart';
 
 /// Use an installed SDK version
 class GitCacheCommand extends Command<int> {
@@ -9,9 +10,6 @@ class GitCacheCommand extends Command<int> {
 
   @override
   String description = 'Creates a cache of the Flutter repo';
-
-  @override
-  String get summary => '$invocation $description';
 
   /// Constructor
   GitCacheCommand();

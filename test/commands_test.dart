@@ -1,18 +1,15 @@
 @Timeout(Duration(minutes: 5))
+import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
-
 import 'package:fvm/src/runner.dart';
-
-import 'package:fvm/src/services/git_tools.dart';
-
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
-import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
-import 'package:fvm/constants.dart';
+import 'package:test/test.dart';
 
 import 'test_helpers.dart';
 
@@ -100,14 +97,14 @@ void main() {
     test('Install Release', () async {
       try {
         await fvmRunner.run(['install', release, '--verbose', '--skip-setup']);
-        final valid = await FlutterTools.inferVersion(release);
-        final existingRelease = await GitTools.getBranchOrTag(valid.version);
+        final valid = await FlutterTools.inferValidVersion(release);
+        final existingRelease = await GitTools.getBranchOrTag(valid.name);
 
         final cacheVersion = await CacheService.isVersionCached(valid);
 
         expect(cacheVersion != null, true, reason: 'Install does not exist');
 
-        expect(existingRelease, valid.version);
+        expect(existingRelease, valid.name);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -122,8 +119,8 @@ void main() {
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();
-        final valid = await FlutterTools.inferVersion(release);
-        final releaseBin = path.join(kFvmCacheDir.path, valid.version);
+        final valid = await FlutterTools.inferValidVersion(release);
+        final releaseBin = path.join(kFvmCacheDir.path, valid.name);
 
         expect(targetBin == releaseBin, true);
         expect(linkExists, true);

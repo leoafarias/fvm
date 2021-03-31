@@ -1,26 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
-
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/commands.dart';
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
 
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../models/valid_version_model.dart';
+import '../utils/commands.dart';
+import '../utils/logger.dart';
+import 'releases_service/releases_client.dart';
+
+/// Helpers and tools to interact with Flutter sdk
 class FlutterTools {
   /// Disables tracking for Flutter SDK
   static Future<void> disableTracking(CacheVersion version) async {
     await flutterCmd(version, ['config', '--no-analytics']);
-  }
-
-  /// Returns true if it's a valid Flutter channel
-  static bool isChannel(String channel) {
-    return kFlutterChannels.contains(channel);
   }
 
   /// Upgrades a cached channel
@@ -56,26 +51,43 @@ class FlutterTools {
     }
   }
 
-  /// Tries to infer a correct flutter version number
-  static Future<ValidVersion> inferVersion(String version) async {
-    assert(version != null);
+  /// Returns a [ValidVersion] from [name]
+  /// Returns the latest release version
+  /// for a channel if [forceRelease] is true
+  static Future<ValidVersion> inferValidVersion(
+    String name, {
+    bool forceRelease = false,
+  }) async {
+    assert(name != null);
     final releases = await fetchFlutterReleases();
     // Not case sensitve
-    version = version.toLowerCase();
+    name = name.toLowerCase();
+    final prefixedVersion = 'v$name';
 
-    // Return if its flutter channel
-    if (isChannel(version) || releases.containsVersion(version)) {
-      return ValidVersion(version);
+    // Check if its master or a valid release version
+    if (name == 'master' || releases.containsVersion(name)) {
+      // Return if its flutter channel
+      return ValidVersion(name);
     }
-    // Try prefixing the version
-    final prefixedVersion = 'v$version';
+
+    // Is a valid prefixed release
     if (releases.containsVersion(prefixedVersion)) {
       return ValidVersion(prefixedVersion);
-    } else {
-      /// Fallback if cannot verify version
-      throw FvmUsageException(
-        '$version is not a valid Flutter channel or release',
-      );
     }
+
+    /// Check that is a channel with a release
+    if (checkIsReleaseChannel(name)) {
+      final channel = releases.channels[name];
+
+      /// Return channel version instead of channel if flag is there
+      final version = forceRelease ? channel.version : name;
+      // Returns valid version
+      return ValidVersion(version);
+    }
+
+    // Throws exception if is not in any above condition
+    throw FvmUsageException(
+      '$name is not a valid Flutter channel or release',
+    );
   }
 }

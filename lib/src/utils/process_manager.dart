@@ -1,8 +1,10 @@
 import 'dart:io' as io;
 
-import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 
+import 'logger.dart';
+
+/// Process manager
 final processManager = ProcessManager(
   stderr: io.IOSink(consoleController.stderrSink),
   stdout: io.IOSink(consoleController.stdoutSink),

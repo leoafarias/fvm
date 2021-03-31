@@ -1,35 +1,43 @@
 import 'dart:io';
+
 import 'package:http/http.dart' as http;
 
-import 'package:fvm/src/services/releases_service/models/flutter_releases.model.dart';
-import 'package:fvm/exceptions.dart';
+import '../../../exceptions.dart';
+import 'models/flutter_releases.model.dart';
 
-const STORAGE_BASE_URL = 'https://storage.googleapis.com';
+const _storageDefaultBase = 'https://storage.googleapis.com';
 
+/// Returns Google's storage url for releases
 String get storageUrl {
   final envVars = Platform.environment;
-  return envVars['FLUTTER_STORAGE_BASE_URL'] ?? STORAGE_BASE_URL;
+
+  /// Uses environment variable if configured.
+  return envVars['FLUTTER_STORAGE_BASE_URL'] ?? _storageDefaultBase;
 }
 
-/// Gets platform specific release URL
+/// Gets platform specific release URL for a [platform]
+/// Defaults to the platform's OS.
+/// returns [url] for the list of the platform releases.
 String getReleasesUrl({String platform}) {
   platform ??= Platform.operatingSystem;
   return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
-FlutterReleases cacheReleasesRes;
+FlutterReleases _cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
+/// Can use memory [cache] if it exists.
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
-    if (cacheReleasesRes != null && cache) return cacheReleasesRes;
+    if (_cacheReleasesRes != null && cache) return _cacheReleasesRes;
     final response = await http.get(getReleasesUrl());
-    cacheReleasesRes = releasesFromMap(response.body);
-    return cacheReleasesRes;
+    _cacheReleasesRes = FlutterReleases.fromJson(response.body);
+    return _cacheReleasesRes;
   } on Exception {
     throw FvmInternalError(
-        '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
-  https://flutter.dev/community/china''');
+      '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
+https://flutter.dev/community/china''',
+    );
   }
 }

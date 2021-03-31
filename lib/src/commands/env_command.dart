@@ -1,13 +1,12 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
+
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../services/flutter_tools.dart';
+import '../utils/console_utils.dart';
+import '../utils/logger.dart';
+import '../workflows/ensure_cache.workflow.dart';
 
 /// Configure different flutter version per environment
 class EnvCommand extends Command<int> {
@@ -49,12 +48,12 @@ class EnvCommand extends Command<int> {
     }
 
     // Makes sure that is a valid version
-    final validVersion = await FlutterTools.inferVersion(envVersion);
+    final validVersion = await FlutterTools.inferValidVersion(envVersion);
 
     FvmLogger.spacer();
 
     FvmLogger.info(
-      'Switching to [$environment] environment, which uses [${validVersion.version}] Flutter sdk.',
+      '''Switching to [$environment] environment, which uses [${validVersion.name}] Flutter sdk.''',
     );
 
     // Run install workflow
@@ -64,7 +63,7 @@ class EnvCommand extends Command<int> {
     await FlutterAppService.pinVersion(project, validVersion);
 
     FvmLogger.fine(
-      'Now using [$environment] environment. Flutter version [${validVersion.version}].',
+      '''Now using [$environment] environment. Flutter version [${validVersion.name}].''',
     );
 
     FvmLogger.spacer();

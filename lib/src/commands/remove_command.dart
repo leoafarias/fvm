@@ -1,23 +1,22 @@
 import 'package:args/command_runner.dart';
-
-import 'package:fvm/src/services/flutter_tools.dart';
-
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/workflows/remove_version.workflow.dart';
 import 'package:io/io.dart';
+
+import '../services/cache_service.dart';
+import '../services/flutter_tools.dart';
+import '../utils/console_utils.dart';
+import '../utils/logger.dart';
+import '../workflows/remove_version.workflow.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'remove';
 
   @override
   final description = 'Removes Flutter SDK Version';
+
+  @override
+  String get invocation => 'fvm remove <version>';
 
   /// Constructor
 
@@ -39,7 +38,7 @@ class RemoveCommand extends Command<int> {
     }
     // Assign if its empty
     version ??= argResults.rest[0];
-    final validVersion = await FlutterTools.inferVersion(version);
+    final validVersion = await FlutterTools.inferValidVersion(version);
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
     // Check if version is installed
@@ -54,7 +53,7 @@ class RemoveCommand extends Command<int> {
       await removeWorkflow(validVersion);
     } else {
       final confirmation = await confirm(
-        '$validVersion is current configured as "global". Do you still would like to remove?',
+        '''$validVersion is current configured as "global". Do you still would like to remove?''',
       );
 
       if (confirmation) {

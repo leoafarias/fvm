@@ -1,17 +1,16 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/helpers.dart';
-
-import 'package:fvm/src/utils/logger.dart';
-
 import 'package:path/path.dart' as path;
 import 'package:process_run/cmd_run.dart';
 
-/// Tools used for interacting with git
+import '../../constants.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../utils/helpers.dart';
+import '../utils/logger.dart';
 
+// ignore: avoid_classes_with_only_static_members
+/// Tools  and helpers used for interacting with git
 class GitTools {
   /// Check if Git is installed
   static Future<void> canRun() async {
@@ -24,7 +23,8 @@ class GitTools {
     }
   }
 
-  static Future<void> loadCache() async {
+  /// Creates local git cache of Flutter repo.
+  static Future<void> createCache() async {
     try {
       if (await kGitCacheDir.exists()) {
         await kGitCacheDir.delete();
@@ -51,6 +51,7 @@ class GitTools {
     }
   }
 
+  /// Updates local Flutter cache with 'remote update'.
   static Future<void> updateCache() async {
     try {
       final args = ['remote', 'update'];
@@ -68,6 +69,7 @@ class GitTools {
     }
   }
 
+  /// Gets the Flutter repo if configured on FVM settings
   static String get flutterRepo {
     /// Loads settings file
     final settings = SettingsService.readSync();
@@ -118,6 +120,7 @@ class GitTools {
     return;
   }
 
+  /// Checks if [branch] is up to date. Returns [true] if it is.
   static Future<bool> checkBranchUpToDate(String branch) async {
     final result =
         await run('git', ['rev-list', 'HEAD...origin/$branch', '--count']);
@@ -147,6 +150,7 @@ class GitTools {
     return versionsList;
   }
 
+  /// Returns the [name] of a branch or tag for a [version]
   static Future<String> getBranchOrTag(String version) async {
     final versionDir = Directory(path.join(kFvmCacheDir.path, version));
     return _getCurrentGitBranch(versionDir);

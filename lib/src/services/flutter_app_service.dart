@@ -1,18 +1,22 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/flutter_app_model.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/services/config_service.dart';
 import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
+import '../../constants.dart';
+import '../models/project_model.dart';
+import '../models/valid_version_model.dart';
+import 'config_service.dart';
+
+/// Flutter app services
+/// APIs for interacting with local Flutter projects
 class FlutterAppService {
-  static Future<FlutterApp> getByDirectory(Directory directory) async {
+  /// Returns [app] by providing a [directory]
+  static Future<Project> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
     final config = await ConfigService.read(directory);
 
-    return FlutterApp(
+    return Project(
       name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
@@ -21,7 +25,8 @@ class FlutterAppService {
     );
   }
 
-  static Future<List<FlutterApp>> fetchProjects(List<String> paths) async {
+  /// Returns a list of [apps] by providing a list of [paths]
+  static Future<List<Project>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
         (path) async => await getByDirectory(Directory(path)),
@@ -47,7 +52,7 @@ class FlutterAppService {
   }
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<FlutterApp>> scanDirectory({Directory rootDir}) async {
+  static Future<List<Project>> scanDirectory({Directory rootDir}) async {
     final paths = <String>[];
 
     if (rootDir == null) {
@@ -69,22 +74,25 @@ class FlutterAppService {
     return await fetchProjects(paths);
   }
 
+  /// Pins a [validVersion] to a Flutter [project].
+  /// Can pin to a specific [environment] if provided
   static Future<void> pinVersion(
-    FlutterApp project,
+    Project project,
     ValidVersion validVersion, {
     String environment,
   }) async {
     final config = project.config;
     // Attach as main version if no environment is set
     if (environment == null) {
-      config.flutterSdkVersion = validVersion.version;
+      config.flutterSdkVersion = validVersion.name;
     } else {
       // Pin as an environment version
-      config.environment[environment] = validVersion.version;
+      config.environment[environment] = validVersion.name;
     }
     await ConfigService.save(config);
   }
 
+  /// Returns a [pubspec] from a [directory]
   static Future<PubspecYaml> _getPubspec(Directory directory) async {
     final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
     if (await pubspecFile.exists()) {
@@ -95,6 +103,7 @@ class FlutterAppService {
     }
   }
 
+  /// Checks if flutter [directory] is a Flutter project
   static Future<bool> isFlutterProject(Directory directory) async {
     try {
       final pubspec = await _getPubspec(directory);
@@ -113,16 +122,18 @@ class FlutterAppService {
   }
 
   /// Recursive look up to find nested project directory
-  static Future<FlutterApp> findAncestor({Directory dir}) async {
+  /// Can start at a specific [directory] if provided
+  static Future<Project> findAncestor({Directory directory}) async {
     // Get directory, defined root or current
-    dir ??= kWorkingDirectory;
+    directory ??= kWorkingDirectory;
 
-    final isRootDir = rootPrefix(dir.path) == dir.path;
+    // Checks if the directory is root
+    final isRootDir = rootPrefix(directory.path) == directory.path;
 
-    final directory = Directory(dir.path);
-
+    // Gets project from directory
     final project = await getByDirectory(directory);
 
+    // If project has a config return it
     if (project.config.exists != null) {
       return project;
     }
@@ -132,6 +143,6 @@ class FlutterAppService {
       return await getByDirectory(kWorkingDirectory);
     }
 
-    return await findAncestor(dir: dir.parent);
+    return await findAncestor(directory: directory.parent);
   }
 }

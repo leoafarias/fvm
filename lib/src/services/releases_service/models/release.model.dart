@@ -1,7 +1,9 @@
-import 'package:fvm/src/services/releases_service/models/channels.model.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
+import '../releases_client.dart';
+import 'channels.model.dart';
 
+/// Release Model
 class Release {
+  /// Constructor
   Release({
     this.hash,
     this.channel,
@@ -12,27 +14,42 @@ class Release {
     this.activeChannel,
   });
 
+  /// Release hash
   final String hash;
+
+  /// Release channel
   final Channel channel;
+
+  /// Release version
   final String version;
+
+  /// Release date
   final DateTime releaseDate;
+
+  /// Release archive name
   final String archive;
+
+  /// Release sha256 hash
   final String sha256;
+
+  /// Is release active in a channel
   final bool activeChannel;
 
-  factory Release.fromMap(Map<String, dynamic> json) => Release(
-        hash: json['hash'] as String,
-        channel: channelValues.map[json['channel']],
-        version: json['version'] as String,
-        releaseDate: DateTime.parse(json['release_date'] as String),
-        archive: json['archive'] as String,
-        sha256: json['sha256'] as String,
-        activeChannel: json['activeChannel'] as bool ?? false,
+  /// Creates a release from a map of values
+  factory Release.fromMap(Map<String, dynamic> map) => Release(
+        hash: map['hash'] as String,
+        channel: channelFromName(map['channel'] as String),
+        version: map['version'] as String,
+        releaseDate: DateTime.parse(map['release_date'] as String),
+        archive: map['archive'] as String,
+        sha256: map['sha256'] as String,
+        activeChannel: map['activeChannel'] as bool ?? false,
       );
 
+  /// Turns Release model into a map of values
   Map<String, dynamic> toMap() => {
         'hash': hash,
-        'channel': channelValues.reverse[channel],
+        'channel': channel.name,
         'version': version,
         'release_date': releaseDate.toIso8601String(),
         'archive': archive,
@@ -40,10 +57,12 @@ class Release {
         'activeChannel': activeChannel,
       };
 
+  /// Returns channel name of the release
   String get channelName {
     return channel.toString().split('.').last;
   }
 
+  /// Returns archive url of the release
   String get archiveUrl {
     return '$storageUrl/flutter_infra/releases/$archive';
   }

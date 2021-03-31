@@ -1,16 +1,14 @@
 import 'package:args/command_runner.dart';
 import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
-
-import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:io/io.dart';
+
+import '../services/releases_service/releases_client.dart';
+import '../utils/logger.dart';
 
 /// List installed SDK Versions
 class ReleasesCommand extends Command<int> {
-  // The [name] and [description] properties must be defined by every
-  // subclass.
   @override
   final name = 'releases';
 
@@ -26,7 +24,7 @@ class ReleasesCommand extends Command<int> {
 
     final versions = releases.releases.reversed;
 
-    versions.forEach((release) {
+    for (var release in versions) {
       final version = yellow.wrap(release.version.padRight(17));
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
@@ -40,7 +38,8 @@ class ReleasesCommand extends Command<int> {
       } else {
         FvmLogger.info('$friendlyDate $pipe $version');
       }
-    });
+    }
+
     return ExitCode.success.code;
   }
 }
