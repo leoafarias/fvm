@@ -7,6 +7,8 @@ import '../utils/helpers.dart';
 
 /// Cache Version model
 class CacheVersion {
+  String _sdkVersion;
+
   /// Name of the version
   final String name;
 

@@ -3,7 +3,10 @@ import 'dart:io';
 import 'package:console/console.dart';
 
 import '../../exceptions.dart';
-import '../../fvm.dart';
+import '../models/cache_version_model.dart';
+import '../models/project_model.dart';
+import '../services/cache_service.dart';
+import '../services/project_service.dart';
 import 'logger.dart';
 
 /// Displays notice for confirmation
@@ -53,7 +56,7 @@ Future<String> cacheVersionSelector() async {
 
 /// Select from project environments
 Future<String> projectEnvSeletor() async {
-  final project = await FlutterAppService.findAncestor();
+  final project = await ProjectService.findAncestor();
 
   // If project use check that is Flutter project
   if (project == null) {

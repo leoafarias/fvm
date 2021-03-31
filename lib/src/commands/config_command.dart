@@ -1,5 +1,4 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/fvm.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 

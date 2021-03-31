@@ -3,8 +3,8 @@ import 'package:io/io.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
-import '../services/flutter_app_service.dart';
 import '../services/flutter_tools.dart';
+import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 
 /// Installs Flutter SDK
@@ -16,8 +16,8 @@ class InstallCommand extends Command<int> {
   final description = 'Installs Flutter SDK Version';
 
   @override
-  String get invocation =>
-      'fvm install <channel/version>, if no <version> is provided will install version configured in project.';
+  String get invocation => 'fvm install <version>, if no <version>'
+      ' is provided will install version configured in project.';
 
   /// Constructor
   InstallCommand() {
@@ -37,12 +37,14 @@ class InstallCommand extends Command<int> {
 
     // If no version was passed as argument check project config.
     if (argResults.rest.isEmpty) {
-      version = await FlutterAppService.findVersion();
+      version = await ProjectService.findVersion();
 
       // If no config found is version throw error
       if (version == null) {
         throw const FvmUsageException(
-            '''Please provide a channel or a version, or run this command in a Flutter project that has FVM configured.''');
+          'Please provide a channel or a version, or run'
+          ' this command in a Flutter project that has FVM configured.',
+        );
       }
     }
     version ??= argResults.rest[0];

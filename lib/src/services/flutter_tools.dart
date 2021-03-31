@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:path/path.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
@@ -34,20 +32,6 @@ class FlutterTools {
     } on Exception catch (err) {
       logger.trace(err.toString());
       throw const FvmInternalError('Could not finish setting up Flutter sdk');
-    }
-  }
-
-  /// Gets Flutter SDK version from CacheVersion
-  static Future<String> getSdkVersion(CacheVersion version) async {
-    if (!await version.dir.exists()) {
-      throw Exception('Could not get version from SDK that is not installed');
-    }
-
-    final versionFile = File(join(version.dir.path, 'version'));
-    if (await versionFile.exists()) {
-      return await versionFile.readAsString();
-    } else {
-      return null;
     }
   }
 

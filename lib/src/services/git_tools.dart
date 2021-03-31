@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart';
 import 'package:process_run/cmd_run.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
-import '../../fvm.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
+import 'settings_service.dart';
 
 // ignore: avoid_classes_with_only_static_members
 /// Tools  and helpers used for interacting with git
@@ -152,7 +152,7 @@ class GitTools {
 
   /// Returns the [name] of a branch or tag for a [version]
   static Future<String> getBranchOrTag(String version) async {
-    final versionDir = Directory(path.join(kFvmCacheDir.path, version));
+    final versionDir = Directory(join(kFvmCacheDir.path, version));
     return _getCurrentGitBranch(versionDir);
   }
 

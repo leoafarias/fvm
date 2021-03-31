@@ -1,5 +1,5 @@
 @Timeout(Duration(minutes: 5))
-import 'package:fvm/src/services/flutter_app_service.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:test/test.dart';
 
 import 'test_helpers.dart';
@@ -10,11 +10,11 @@ void main() {
   group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
-        final project = await FlutterAppService.getByDirectory(kFlutterAppDir);
+        final project = await ProjectService.getByDirectory(kFlutterAppDir);
 
         final validVersion = await getRandomFlutterVersion();
 
-        await FlutterAppService.pinVersion(
+        await ProjectService.pinVersion(
           project,
           validVersion,
         );
@@ -27,11 +27,11 @@ void main() {
     test('Can find Flutter Project', () async {
       try {
         final flutterProject =
-            await FlutterAppService.findAncestor(directory: kFlutterAppDir);
+            await ProjectService.findAncestor(directory: kFlutterAppDir);
         final dartPackage =
-            await FlutterAppService.findAncestor(directory: kDartPackageDir);
+            await ProjectService.findAncestor(directory: kDartPackageDir);
         final emptyProject =
-            await FlutterAppService.findAncestor(directory: kEmptyDir);
+            await ProjectService.findAncestor(directory: kEmptyDir);
 
         expect(dartPackage != null, true);
         expect(emptyProject != null, true);
@@ -49,7 +49,7 @@ void main() {
 
     test('Can find Flutter Project', () async {
       final projects =
-          await FlutterAppService.scanDirectory(rootDir: kTestAssetsDir);
+          await ProjectService.scanDirectory(rootDir: kTestAssetsDir);
       expect(projects.length, 1);
     });
   });

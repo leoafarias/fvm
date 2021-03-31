@@ -3,9 +3,8 @@ import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../../fvm.dart';
 import '../services/cache_service.dart';
-import '../services/flutter_app_service.dart';
+import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 
@@ -35,7 +34,7 @@ class ListCommand extends Command<int> {
     FvmLogger.spacer();
 
     // Get current project
-    final project = await FlutterAppService.findAncestor();
+    final project = await ProjectService.findAncestor();
 
     for (var version in cacheVersions) {
       await printVersionStatus(version, project);
