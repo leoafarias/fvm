@@ -63,14 +63,13 @@ class CacheService {
 
   /// Caches version a [validVersion] and returns [CacheVersion]
   static Future<CacheVersion> cacheVersion(ValidVersion validVersion) async {
-    await GitTools.cloneVersion(validVersion.version);
+    await GitTools.cloneVersion(validVersion.name);
     return isVersionCached(validVersion);
   }
 
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
   static Future<CacheVersion> isVersionCached(ValidVersion validVersion) async {
-    final cacheVersion =
-        await CacheService.getByVersionName(validVersion.version);
+    final cacheVersion = await CacheService.getByVersionName(validVersion.name);
     // Return false if not cached
     if (cacheVersion == null) return null;
 

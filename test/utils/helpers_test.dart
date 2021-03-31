@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
@@ -12,7 +11,7 @@ import 'package:test/test.dart';
 
 Future<String> _inferVersionString(String version) async {
   final valid = await FlutterTools.inferVersion(version);
-  return valid.version;
+  return valid.name;
 }
 
 void main() {

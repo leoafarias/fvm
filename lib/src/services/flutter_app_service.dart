@@ -84,10 +84,10 @@ class FlutterAppService {
     final config = project.config;
     // Attach as main version if no environment is set
     if (environment == null) {
-      config.flutterSdkVersion = validVersion.version;
+      config.flutterSdkVersion = validVersion.name;
     } else {
       // Pin as an environment version
-      config.environment[environment] = validVersion.version;
+      config.environment[environment] = validVersion.name;
     }
     await ConfigService.save(config);
   }

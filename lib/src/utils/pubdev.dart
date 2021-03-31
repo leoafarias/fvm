@@ -3,6 +3,8 @@ import 'package:pub_api_client/pub_api_client.dart';
 
 import '../version.dart';
 
+/// Checks if there is an update for [currentVersion]
+/// If not provided defaults to [packageVersion]
 Future<bool> checkIfLatestVersion({String currentVersion}) async {
   currentVersion ??= packageVersion;
   try {
@@ -14,12 +16,12 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
     if (latest.needUpdate) {
       final updateCmd = cyan.wrap('pub global activate fvm');
 
-      print(divider);
+      print(_divider);
       print(
           '''FVM Update Available $packageVersion → ${green.wrap(latest.latestVersion)} ''');
       print('${yellow.wrap('Changelog:')} ${latest.packageInfo.changelogUrl}');
       print('Run $updateCmd to update');
-      print(divider);
+      print(_divider);
       return false;
     }
     return true;
@@ -29,7 +31,7 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
   }
 }
 
-String get divider {
+String get _divider {
   return yellow
       .wrap('\n___________________________________________________\n\n');
 }

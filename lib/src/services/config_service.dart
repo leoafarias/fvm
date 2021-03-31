@@ -6,7 +6,9 @@ import '../../constants.dart';
 import '../models/config_model.dart';
 import '../utils/helpers.dart';
 
+/// Helpers and tools for the FVM config within a project
 class ConfigService {
+  /// Returns a [FvmConfig] from within a [directory]
   static Future<FvmConfig> read(Directory directory) async {
     final configDir = Directory(join(directory.path, kFvmDirName));
     final configFile = File(join(configDir.path, kFvmConfigFileName));
@@ -23,10 +25,12 @@ class ConfigService {
     }
   }
 
+  /// Updates link for the project SDK from the [config]
   static Future<void> updateSdkLink(FvmConfig config) async {
     await createLink(config.sdkSymlink, File(config.flutterSdkPath));
   }
 
+  /// Saves a fvm [config]
   static Future<void> save(FvmConfig config) async {
     try {
       if (!await config.configFile.exists()) {

@@ -19,7 +19,7 @@ void main() {
           validVersion,
         );
 
-        expect(project.pinnedVersion, validVersion.version);
+        expect(project.pinnedVersion, validVersion.name);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }

@@ -1,11 +1,14 @@
-// Model for valid Flutter versions.
-// Mainly to have some type safety
+/// Model for valid Flutter versions.
+/// User for type safety across FVM
 class ValidVersion {
-  String version;
-  ValidVersion(this.version);
+  /// Name of the version
+  String name;
+
+  /// Constructor
+  ValidVersion(this.name);
 
   @override
   String toString() {
-    return version;
+    return name;
   }
 }

@@ -32,7 +32,7 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
     // If has been cached return
     if (_cacheReleasesRes != null && cache) return _cacheReleasesRes;
     final response = await http.get(getReleasesUrl());
-    _cacheReleasesRes = releasesFromMap(response.body);
+    _cacheReleasesRes = FlutterReleases.fromJson(response.body);
     return _cacheReleasesRes;
   } on Exception {
     throw FvmInternalError(

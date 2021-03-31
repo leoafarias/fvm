@@ -53,7 +53,7 @@ class EnvCommand extends Command<int> {
     FvmLogger.spacer();
 
     FvmLogger.info(
-      '''Switching to [$environment] environment, which uses [${validVersion.version}] Flutter sdk.''',
+      '''Switching to [$environment] environment, which uses [${validVersion.name}] Flutter sdk.''',
     );
 
     // Run install workflow
@@ -63,7 +63,7 @@ class EnvCommand extends Command<int> {
     await FlutterAppService.pinVersion(project, validVersion);
 
     FvmLogger.fine(
-      '''Now using [$environment] environment. Flutter version [${validVersion.version}].''',
+      '''Now using [$environment] environment. Flutter version [${validVersion.name}].''',
     );
 
     FvmLogger.spacer();

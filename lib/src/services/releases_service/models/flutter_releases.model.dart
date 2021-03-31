@@ -5,9 +5,6 @@ import '../current_release_parser.dart';
 import 'channels.model.dart';
 import 'release.model.dart';
 
-FlutterReleases releasesFromMap(String str) =>
-    FlutterReleases.fromMap(jsonDecode(str) as Map<String, dynamic>);
-
 /// Flutter Releases
 class FlutterReleases {
   /// Constructor
@@ -27,7 +24,12 @@ class FlutterReleases {
   /// LIst of all releases
   final List<Release> releases;
 
-  /// Create FlutterReleaes from a map of values
+  /// Creates a FlutterRelease from a [json] string
+  factory FlutterReleases.fromJson(String json) {
+    return FlutterReleases.fromMap(jsonDecode(json) as Map<String, dynamic>);
+  }
+
+  /// Create FlutterRelease from a map of values
   factory FlutterReleases.fromMap(Map<String, dynamic> json) {
     final currentRelease = parseCurrentReleases(json);
     return FlutterReleases(
