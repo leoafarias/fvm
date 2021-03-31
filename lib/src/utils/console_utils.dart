@@ -14,8 +14,7 @@ Future<bool> confirm(String message) async {
 }
 
 /// Prints out versions on FVM and it's status
-Future<void> printVersionStatus(
-    CacheVersion version, FlutterApp project) async {
+Future<void> printVersionStatus(CacheVersion version, Project project) async {
   var printVersion = version.name;
 
   if (project != null && project.pinnedVersion == version.name) {

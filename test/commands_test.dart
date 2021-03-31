@@ -1,5 +1,5 @@
-import 'package:fvm/constants.dart';
 @Timeout(Duration(minutes: 5))
+import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';

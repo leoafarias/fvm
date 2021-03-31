@@ -4,7 +4,7 @@ import 'package:path/path.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 
 import '../../constants.dart';
-import '../models/flutter_app_model.dart';
+import '../models/project_model.dart';
 import '../models/valid_version_model.dart';
 import 'config_service.dart';
 
@@ -12,11 +12,11 @@ import 'config_service.dart';
 /// APIs for interacting with local Flutter projects
 class FlutterAppService {
   /// Returns [app] by providing a [directory]
-  static Future<FlutterApp> getByDirectory(Directory directory) async {
+  static Future<Project> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
     final config = await ConfigService.read(directory);
 
-    return FlutterApp(
+    return Project(
       name: pubspec == null ? null : pubspec.name,
       config: config,
       projectDir: directory,
@@ -26,7 +26,7 @@ class FlutterAppService {
   }
 
   /// Returns a list of [apps] by providing a list of [paths]
-  static Future<List<FlutterApp>> fetchProjects(List<String> paths) async {
+  static Future<List<Project>> fetchProjects(List<String> paths) async {
     return Future.wait(
       paths.map(
         (path) async => await getByDirectory(Directory(path)),
@@ -52,7 +52,7 @@ class FlutterAppService {
   }
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<FlutterApp>> scanDirectory({Directory rootDir}) async {
+  static Future<List<Project>> scanDirectory({Directory rootDir}) async {
     final paths = <String>[];
 
     if (rootDir == null) {
@@ -77,7 +77,7 @@ class FlutterAppService {
   /// Pins a [validVersion] to a Flutter [project].
   /// Can pin to a specific [environment] if provided
   static Future<void> pinVersion(
-    FlutterApp project,
+    Project project,
     ValidVersion validVersion, {
     String environment,
   }) async {
@@ -123,7 +123,7 @@ class FlutterAppService {
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
-  static Future<FlutterApp> findAncestor({Directory directory}) async {
+  static Future<Project> findAncestor({Directory directory}) async {
     // Get directory, defined root or current
     directory ??= kWorkingDirectory;
 
