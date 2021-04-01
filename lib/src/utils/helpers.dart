@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fvm/src/utils/logger.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 import 'package:version/version.dart';
@@ -36,7 +37,8 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
       await source.delete();
     }
     await source.create(target.path);
-  } on FileSystemException {
+  } on FileSystemException catch (e) {
+    logger.trace(e.message);
     if (Platform.isWindows) {
       throw const FvmInternalError(
         '''On Windows FVM requires to run in developer mode or as an administrator''',
