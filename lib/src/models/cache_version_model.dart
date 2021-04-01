@@ -7,8 +7,6 @@ import '../utils/helpers.dart';
 
 /// Cache Version model
 class CacheVersion {
-  String _sdkVersion;
-
   /// Name of the version
   final String name;
 
@@ -40,5 +38,9 @@ class CacheVersion {
     final version = assignVersionWeight(name);
     final otherVersion = assignVersionWeight(other.name);
     return version.compareTo(otherVersion);
+  }
+
+  String toString() {
+    return name;
   }
 }
