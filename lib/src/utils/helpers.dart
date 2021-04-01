@@ -7,6 +7,7 @@ import 'package:version/version.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
+import 'logger.dart';
 
 /// Checks if [name] is a channel
 bool checkIsChannel(String name) {
