@@ -1,10 +1,10 @@
-import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
 import '../services/git_tools.dart';
+import 'base_command.dart';
 
 /// Use an installed SDK version
-class GitCacheCommand extends Command<int> {
+class GitCacheCommand extends BaseCommand {
   @override
   final name = 'git-cache';
 

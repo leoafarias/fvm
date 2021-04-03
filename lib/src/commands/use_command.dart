@@ -1,16 +1,16 @@
-import 'package:args/command_runner.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
+import '../utils/helpers.dart';
+import '../utils/logger.dart';
 import '../utils/messages.dart';
 import '../workflows/use_version.workflow.dart';
+import 'base_command.dart';
 
 /// Use an installed SDK version
-class UseCommand extends Command<int> {
+class UseCommand extends BaseCommand {
   @override
   final name = 'use';
 
@@ -56,9 +56,9 @@ class UseCommand extends Command<int> {
   @override
   Future<int> run() async {
     // final global = argResults['global'] == true;
-    final forceOption = argResults['force'] == true;
-    final pinOption = argResults['pin'] == true;
-    final envOption = argResults['env'] as String;
+    final forceOption = boolArg('force');
+    final pinOption = boolArg('pin');
+    final envOption = stringArg('env');
 
     String version;
 

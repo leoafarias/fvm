@@ -45,12 +45,14 @@ class FVMClient {
   }
 
   /// Triggers disable trackgin for [versionName]
-  static Future<void> disableFlutterTracking(String versionName) async {
-    final cacheVersion = await CacheService.getByVersionName(versionName);
-    if (cacheVersion == null) {
-      throw Exception('Cannot disable tracking version that is not in cache');
-    }
-    await FlutterTools.disableTracking(cacheVersion);
+  // ignore: avoid_positional_boolean_parameters
+  static Future<void> setFlutterAnalytics(bool enabled) async {
+    await FlutterTools.setAnalytics(enabled);
+  }
+
+  /// Triggers disable trackgin for [versionName]
+  static Future<bool> checkFlutterAnalytics() async {
+    return await FlutterTools.checkAnalyticsEnabled();
   }
 
   /// Triggers flutter upgrade for [channelName]

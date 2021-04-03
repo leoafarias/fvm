@@ -1,4 +1,3 @@
-import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
@@ -8,9 +7,10 @@ import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import 'base_command.dart';
 
 /// Removes Flutter SDK
-class GlobalCommand extends Command<int> {
+class GlobalCommand extends BaseCommand {
   @override
   final name = 'global';
 

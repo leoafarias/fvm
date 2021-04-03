@@ -1,4 +1,3 @@
-import 'package:args/command_runner.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
@@ -7,9 +6,10 @@ import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
+import 'base_command.dart';
 
 /// List installed SDK Versions
-class ListCommand extends Command<int> {
+class ListCommand extends BaseCommand {
   @override
   final name = 'list';
 

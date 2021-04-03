@@ -1,14 +1,14 @@
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 
 import '../../exceptions.dart';
 import '../services/flutter_tools.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import 'base_command.dart';
 
 /// Spawn Flutter Commands in other versions
-class SpawnCommand extends Command<int> {
+class SpawnCommand extends BaseCommand {
   @override
   final name = 'spawn';
   @override

@@ -1,4 +1,4 @@
-import 'package:args/command_runner.dart';
+import 'package:fvm/src/commands/base_command.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -8,7 +8,7 @@ import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 
 /// Installs Flutter SDK
-class InstallCommand extends Command<int> {
+class InstallCommand extends BaseCommand {
   @override
   final name = 'install';
 

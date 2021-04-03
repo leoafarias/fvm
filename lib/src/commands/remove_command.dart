@@ -1,4 +1,3 @@
-import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
 import '../services/cache_service.dart';
@@ -6,9 +5,10 @@ import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/remove_version.workflow.dart';
+import 'base_command.dart';
 
 /// Removes Flutter SDK
-class RemoveCommand extends Command<int> {
+class RemoveCommand extends BaseCommand {
   @override
   final name = 'remove';
 

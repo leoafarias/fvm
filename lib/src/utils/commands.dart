@@ -1,11 +1,12 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/cache_service.dart';
 import 'package:io/io.dart';
+import 'package:process_run/cmd_run.dart' as process;
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
+import '../services/cache_service.dart';
 import 'console_utils.dart';
 import 'guards.dart';
 import 'helpers.dart';
@@ -20,8 +21,6 @@ Future<int> flutterCmd(
   // Get exec path for flutter
   final execPath = version.flutterExec;
 
-  FvmLogger.info('fvm: running version "$version"');
-  FvmLogger.spacer();
   // Update environment variables
   final environment = updateFlutterEnvVariables(execPath);
   // Run command
@@ -83,6 +82,15 @@ Future<int> flutterGlobalCmd(List<String> args) async {
     execPath,
     args: args,
   );
+}
+
+Future<String> flutterCmdSimple(
+  List<String> args,
+) async {
+  // Get exec path for flutter
+  final execPath = whichSync('flutter');
+  final result = await process.run(execPath, args);
+  return result.stdout as String;
 }
 
 Future<int> _runCmd(

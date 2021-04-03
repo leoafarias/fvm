@@ -1,13 +1,14 @@
-import 'package:args/command_runner.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
 import '../../constants.dart';
 import '../services/settings_service.dart';
 import '../utils/logger.dart';
+import 'base_command.dart';
 
 /// Fvm Config
-class ConfigCommand extends Command<int> {
+class ConfigCommand extends BaseCommand {
   @override
   final name = 'config';
 
@@ -41,32 +42,31 @@ class ConfigCommand extends Command<int> {
   }
   @override
   Future<int> run() async {
-    final cachePath = argResults['cache-path'] as String;
-    final gitCacheOption = argResults['git-cache'] as bool;
-    final skipSetupOption = argResults['skip-setup'] as bool;
-
     final settings = SettingsService.readSync();
 
     // Flag if settings should be saved
     var shouldSave = false;
 
     // Cache path was set
-    if (cachePath != null) {
-      settings.cachePath = cachePath;
+    if (argResults.wasParsed('cache-path')) {
+      settings.cachePath = stringArg('cache-path');
       shouldSave = true;
     }
 
     // Git cache option has changed
-    if (settings.gitCache != gitCacheOption || gitCacheOption != null) {
-      settings.gitCache = gitCacheOption;
+    if (argResults.wasParsed('git-cache')) {
+      settings.gitCache = boolArg('git-cache');
       shouldSave = true;
     }
 
     // Skip setup option has changed
-    if (settings.skipSetup != skipSetupOption || skipSetupOption != null) {
-      settings.skipSetup = skipSetupOption;
+    if (argResults.wasParsed('skip-setup')) {
+      settings.skipSetup = boolArg('skip-setup');
       shouldSave = true;
     }
+
+    final enabled = await FlutterTools.checkAnalyticsEnabled();
+    print(enabled);
 
     // Save
     if (shouldSave) {
@@ -80,12 +80,16 @@ class ConfigCommand extends Command<int> {
 
       final options = settings.toMap();
 
-      // Print options and it's values
-      for (var key in options.keys) {
-        final value = options[key];
-        if (value != null) {
-          final valuePrint = yellow.wrap(value.toString());
-          FvmLogger.info('$key: $valuePrint');
+      if (options.keys.isEmpty) {
+        FvmLogger.info('No settings have been configured.');
+      } else {
+        // Print options and it's values
+        for (var key in options.keys) {
+          final value = options[key];
+          if (value != null) {
+            final valuePrint = yellow.wrap(value.toString());
+            FvmLogger.info('$key: $valuePrint');
+          }
         }
       }
 

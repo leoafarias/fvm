@@ -1,19 +1,21 @@
 import 'dart:async';
 
-import 'package:fvm/src/utils/helpers.dart';
-
 import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../models/valid_version_model.dart';
 import '../utils/commands.dart';
+import '../utils/helpers.dart';
 import '../utils/logger.dart';
+import '../utils/matchers.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterTools {
   /// Disables tracking for Flutter SDK
-  static Future<void> disableTracking(CacheVersion version) async {
-    await flutterCmd(version, ['config', '--no-analytics']);
+  // ignore: avoid_positional_boolean_parameters
+  static Future<void> setAnalytics(bool enabled) async {
+    final arg = enabled ? '--analytics' : '--no-analytics';
+    await flutterCmdSimple(['config', arg]);
   }
 
   /// Upgrades a cached channel
@@ -29,6 +31,20 @@ class FlutterTools {
   static Future<void> setupSdk(CacheVersion version) async {
     try {
       await flutterCmd(version, ['--version']);
+    } on Exception catch (err) {
+      logger.trace(err.toString());
+      throw const FvmInternalError('Could not finish setting up Flutter sdk');
+    }
+  }
+
+  /// Checks if analytics is enabled
+  static Future<bool> checkAnalyticsEnabled() async {
+    try {
+      final result = await flutterCmdSimple(['config']);
+      return !containsIgnoringWhitespace(
+        result,
+        'Analytics reporting is currently disabled',
+      );
     } on Exception catch (err) {
       logger.trace(err.toString());
       throw const FvmInternalError('Could not finish setting up Flutter sdk');

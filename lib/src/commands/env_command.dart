@@ -1,4 +1,3 @@
-import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -7,9 +6,10 @@ import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import 'base_command.dart';
 
 /// Configure different flutter version per environment
-class EnvCommand extends Command<int> {
+class EnvCommand extends BaseCommand {
   @override
   final name = 'env';
   @override

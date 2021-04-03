@@ -1,14 +1,14 @@
 import 'package:args/args.dart';
-import 'package:args/command_runner.dart';
 
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import 'base_command.dart';
 
 /// Proxies Dart Commands
-class DartCommand extends Command<int> {
+class DartCommand extends BaseCommand {
   @override
   final name = 'dart';
   @override

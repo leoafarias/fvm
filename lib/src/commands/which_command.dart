@@ -1,13 +1,13 @@
-import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
+import 'base_command.dart';
 
 /// Returns which version of Flutter will run
-class WhichCommand extends Command<int> {
+class WhichCommand extends BaseCommand {
   @override
   final name = 'which';
 

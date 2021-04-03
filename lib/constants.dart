@@ -31,6 +31,21 @@ String get kFlutterRepo {
 /// Cannot be a const because it is modified
 Directory kWorkingDirectory = Directory.current;
 
+String get kUserHome {
+  var home = kEnvVars['FVM_HOME'];
+  if (home != null) {
+    return path.normalize(home);
+  }
+
+  if (Platform.isWindows) {
+    home = kEnvVars['UserProfile'];
+  } else {
+    home = kEnvVars['HOME'];
+  }
+
+  return home;
+}
+
 /// FVM Home directory
 String get kFvmHome {
   var home = kEnvVars['FVM_HOME'];
@@ -39,6 +54,7 @@ String get kFvmHome {
   }
 
   if (Platform.isWindows) {
+    // TODO: Check APPDATA
     home = kEnvVars['UserProfile'];
   } else {
     home = kEnvVars['HOME'];

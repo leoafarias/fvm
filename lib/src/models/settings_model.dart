@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../utils/pretty_json.dart';
 
 /// FVM Settings model
 class FvmSettings {
@@ -10,9 +10,6 @@ class FvmSettings {
   /// Settings if should skip setup
   bool skipSetup;
 
-  /// Setting if should turn off analytics
-  bool noAnalytics;
-
   /// If uses local git cache
   bool gitCache;
 
@@ -20,7 +17,6 @@ class FvmSettings {
   FvmSettings({
     this.cachePath,
     this.skipSetup = false,
-    this.noAnalytics = false,
     this.gitCache = false,
   });
 
@@ -35,7 +31,6 @@ class FvmSettings {
       cachePath: map['cachePath'] as String,
       skipSetup: map['skipSetup'] as bool ?? false,
       gitCache: map['gitCache'] as bool ?? false,
-      noAnalytics: map['noAnalytics'] as bool ?? false,
     );
   }
 
