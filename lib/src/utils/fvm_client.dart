@@ -1,14 +1,13 @@
 import 'dart:io';
 
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/settings_service.dart';
-
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
+import '../models/settings_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
+import '../services/settings_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/remove_version.workflow.dart';
 import 'logger.dart';
@@ -44,15 +43,14 @@ class FVMClient {
     await FlutterTools.setupSdk(cacheVersion);
   }
 
-  /// Triggers disable trackgin for [versionName]
-  // ignore: avoid_positional_boolean_parameters
-  static Future<void> setFlutterAnalytics(bool enabled) async {
-    await FlutterTools.setAnalytics(enabled);
+  /// Updates Flutter config options
+  static Future<void> setFlutterConfig(Map<String, bool> config) async {
+    return await FlutterTools.setFluterConfig(config);
   }
 
-  /// Triggers disable trackgin for [versionName]
-  static Future<bool> checkFlutterAnalytics() async {
-    return await FlutterTools.checkAnalyticsEnabled();
+  /// Get Flutter settings
+  static Future<Map<String, bool>> getFlutterConfig() async {
+    return await FlutterTools.getFlutterConfig();
   }
 
   /// Triggers flutter upgrade for [channelName]
@@ -82,24 +80,34 @@ class FVMClient {
     return Future.wait(directories.map(getProjectByDirectory));
   }
 
+  /// Returns true if [cacheVersion] is configured as global
+  static Future<bool> checkIfGlobal(CacheVersion cacheVersion) {
+    return CacheService.isGlobal(cacheVersion);
+  }
+
+  /// Returns true if FVM global version is configured corretly
+  static Future<bool> checkIfGlobalConfigured() {
+    return CacheService.isGlobalConfigured();
+  }
+
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<Project>> scanDirectory({Directory rootDir}) async {
-    return await ProjectService.scanDirectory(rootDir: rootDir);
+  static Future<List<Project>> scanDirectory({Directory rootDir}) {
+    return ProjectService.scanDirectory(rootDir: rootDir);
   }
 
   /// Get all cached Flutter SDK versions
-  static Future<List<CacheVersion>> getCachedVersions() async {
-    return await CacheService.getAllVersions();
+  static Future<List<CacheVersion>> getCachedVersions() {
+    return CacheService.getAllVersions();
   }
 
   /// Returns [FvmSettings]
-  static Future<FvmSettings> readSettings() async {
-    return await SettingsService.read();
+  static Future<FvmSettings> readSettings() {
+    return SettingsService.read();
   }
 
   /// Saves FVM [settings]
-  static Future<void> saveSettings(FvmSettings settings) async {
-    return await SettingsService.save(settings);
+  static Future<void> saveSettings(FvmSettings settings) {
+    return SettingsService.save(settings);
   }
 
   /// Console controller for streams of process output

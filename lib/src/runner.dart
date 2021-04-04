@@ -87,7 +87,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     } on FvmInternalError catch (e, stackTrace) {
       FvmLogger.spacer();
       FvmLogger.error(e.message);
-      FvmLogger.error('$stackTrace');
+      logger.trace('$stackTrace');
       FvmLogger.spacer();
       return ExitCode.usage.code;
     } on UsageException catch (e) {

@@ -31,6 +31,7 @@ String get kFlutterRepo {
 /// Cannot be a const because it is modified
 Directory kWorkingDirectory = Directory.current;
 
+/// User Home Path
 String get kUserHome {
   var home = kEnvVars['FVM_HOME'];
   if (home != null) {
