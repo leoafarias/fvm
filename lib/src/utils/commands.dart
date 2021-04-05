@@ -58,14 +58,14 @@ Future<int> dartGlobalCmd(List<String> args) async {
   );
 }
 
-/// Runs dart cmd
+/// Runs flutter from global version
 Future<int> flutterGlobalCmd(List<String> args) async {
   String execPath;
   // Try to get fvm global version
   final cacheVersion = await CacheService.getGlobal();
   // Get exec path for flutter
   if (cacheVersion != null) {
-    execPath = cacheVersion.dartExec;
+    execPath = cacheVersion.flutterExec;
     FvmLogger.info(
       'FVM: Running global configured version "${cacheVersion.name}"',
     );
