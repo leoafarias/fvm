@@ -197,6 +197,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Saancreed",
+      "name": "Krzysztof Bogacki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26201033?v=4",
+      "profile": "https://github.com/Saancreed",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,
