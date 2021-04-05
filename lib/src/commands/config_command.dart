@@ -65,9 +65,6 @@ class ConfigCommand extends BaseCommand {
       shouldSave = true;
     }
 
-    final enabled = await FlutterTools.checkAnalyticsEnabled();
-    print(enabled);
-
     // Save
     if (shouldSave) {
       await SettingsService.save(settings);
