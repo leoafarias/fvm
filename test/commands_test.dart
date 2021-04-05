@@ -1,3 +1,4 @@
+@Timeout(Duration(minutes: 5))
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
@@ -16,12 +17,12 @@ import 'test_helpers.dart';
 const key = 'commands_test';
 void main() {
   group('Channel Workflow:', () {
-    // tearDownAll(() {
-    //   final testDir = getFvmTestDir(key);
-    //   if (testDir.existsSync()) {
-    //     testDir.deleteSync(recursive: true);
-    //   }
-    // });
+    tearDownAll(() {
+      final testDir = getFvmTestDir(key);
+      if (testDir.existsSync()) {
+        testDir.deleteSync(recursive: true);
+      }
+    });
 
     testWithContext(key, 'Install Channel', () async {
       // await testContextWrapper(contextKey, () async {
