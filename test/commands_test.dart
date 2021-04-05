@@ -16,12 +16,12 @@ import 'test_helpers.dart';
 const key = 'commands_test';
 void main() {
   group('Channel Workflow:', () {
-    tearDownAll(() {
-      final testDir = getFvmTestDir(key);
-      if (testDir.existsSync()) {
-        testDir.deleteSync(recursive: true);
-      }
-    });
+    // tearDownAll(() {
+    //   final testDir = getFvmTestDir(key);
+    //   if (testDir.existsSync()) {
+    //     testDir.deleteSync(recursive: true);
+    //   }
+    // });
 
     testWithContext(key, 'Install Channel', () async {
       // await testContextWrapper(contextKey, () async {
