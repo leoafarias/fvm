@@ -7,6 +7,7 @@ import 'package:version/version.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
+import '../services/context.dart';
 import 'logger.dart';
 
 /// Checks if [name] is a channel
@@ -22,7 +23,7 @@ bool checkIsReleaseChannel(String name) {
 
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
-  return Directory(join(kFvmCacheDir.path, version));
+  return Directory(join(ctx.cacheDir.path, version));
 }
 
 /// Returns true if [path] is a directory

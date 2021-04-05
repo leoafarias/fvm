@@ -1,8 +1,8 @@
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
-import '../../constants.dart';
 import '../services/cache_service.dart';
+import '../services/context.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -53,7 +53,7 @@ class GlobalCommand extends BaseCommand {
           whichSync('flutter') ?? 'No version is configured on path.');
       FvmLogger.info(
           'to use global Flutter SDK through FVM you should change it to:');
-      FvmLogger.info(kGlobalFlutterPath);
+      FvmLogger.info(ctx.globalCacheBinPath);
     }
     FvmLogger.spacer();
 

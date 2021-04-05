@@ -7,13 +7,23 @@ import '../../constants.dart';
 import '../../exceptions.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
+import 'context.dart';
 import 'settings_service.dart';
 
 // ignore: avoid_classes_with_only_static_members
 /// Tools  and helpers used for interacting with git
-class GitTools {
+
+// ignore: non_constant_identifier_names
+final GitTools = GitToolsWithContext();
+
+/// Tools  and helpers used for interacting with git
+class GitToolsWithContext {
+  FvmContext get _context {
+    return ctx;
+  }
+
   /// Check if Git is installed
-  static Future<void> canRun() async {
+  Future<void> canRun() async {
     try {
       await run('git', ['--version'], workingDirectory: kWorkingDirectory.path);
     } on ProcessException {
@@ -24,10 +34,10 @@ class GitTools {
   }
 
   /// Creates local git cache of Flutter repo.
-  static Future<void> createCache() async {
+  Future<void> createCache() async {
     try {
-      if (await kGitCacheDir.exists()) {
-        await kGitCacheDir.delete();
+      if (await _context.gitCacheDir.exists()) {
+        await _context.gitCacheDir.delete();
       }
 
       final args = [
@@ -52,7 +62,7 @@ class GitTools {
   }
 
   /// Updates local Flutter cache with 'remote update'.
-  static Future<void> updateCache() async {
+  Future<void> updateCache() async {
     try {
       final args = ['remote', 'update'];
       await run(
@@ -70,18 +80,18 @@ class GitTools {
   }
 
   /// Gets the Flutter repo if configured on FVM settings
-  static String get flutterRepo {
+  String get flutterRepo {
     /// Loads settings file
     final settings = SettingsService.readSync();
-    if (!settings.gitCache) {
-      return kGitCacheDir.path;
+    if (settings.gitCache) {
+      return _context.gitCacheDir.path;
     }
     return kFlutterRepo;
   }
 
   /// Clones Flutter SDK from Version Number or Channel
   /// Returns exists:true if comes from cache or false if its new fetch.
-  static Future<void> cloneVersion(String version) async {
+  Future<void> cloneVersion(String version) async {
     await canRun();
     final versionDirectory = versionCacheDir(version);
     await versionDirectory.create(recursive: true);
@@ -121,7 +131,7 @@ class GitTools {
   }
 
   /// Checks if [branch] is up to date. Returns [true] if it is.
-  static Future<bool> checkBranchUpToDate(String branch) async {
+  Future<bool> checkBranchUpToDate(String branch) async {
     final result =
         await run('git', ['rev-list', 'HEAD...origin/$branch', '--count']);
     // If 0 then it's up to date
@@ -129,7 +139,8 @@ class GitTools {
   }
 
   /// Lists repository tags
-  static Future<List<String>> getFlutterTags() async {
+  Future<List<String>> getFlutterTags() async {
+    print(_context.cacheDir.path);
     final result = await run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
 
     if (result.exitCode != 0) {
@@ -151,12 +162,12 @@ class GitTools {
   }
 
   /// Returns the [name] of a branch or tag for a [version]
-  static Future<String> getBranchOrTag(String version) async {
-    final versionDir = Directory(join(kFvmCacheDir.path, version));
+  Future<String> getBranchOrTag(String version) async {
+    final versionDir = Directory(join(_context.cacheDir.path, version));
     return _getCurrentGitBranch(versionDir);
   }
 
-  static Future<String> _getCurrentGitBranch(Directory dir) async {
+  Future<String> _getCurrentGitBranch(Directory dir) async {
     try {
       if (!await dir.exists()) {
         throw Exception(

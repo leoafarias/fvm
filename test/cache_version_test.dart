@@ -1,10 +1,7 @@
-import 'dart:io';
-
-import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:path/path.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -43,7 +40,7 @@ void main() {
 
   test('Checks that install is not correct', () async {
     final invalidVersionName = 'INVALID_VERSION';
-    final dir = Directory(join(kFvmCacheDir.path, invalidVersionName));
+    final dir = versionCacheDir(invalidVersionName);
     await dir.create(recursive: true);
 
     /// Override valid version for testing purposes

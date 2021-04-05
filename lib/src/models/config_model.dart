@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+// ignore: prefer_relative_imports
+import 'package:fvm/src/services/context.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
@@ -44,7 +46,7 @@ class FvmConfig {
 
   /// Returns the path of the Flutter SDK
   String get flutterSdkPath {
-    return join(kFvmCacheDir.path, flutterSdkVersion);
+    return join(ctx.cacheDir.path, flutterSdkVersion);
   }
 
   /// Returns the active configured environment

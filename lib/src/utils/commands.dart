@@ -84,6 +84,7 @@ Future<int> flutterGlobalCmd(List<String> args) async {
   );
 }
 
+/// Runs a simple Flutter cmd
 Future<String> flutterCmdSimple(
   List<String> args,
 ) async {
