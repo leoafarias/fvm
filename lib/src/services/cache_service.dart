@@ -123,6 +123,16 @@ class CacheService {
     }
   }
 
+  /// Returns a global [CacheVersion] if exists
+  static String getGlobalVersionSync() {
+    if (ctx.globalCacheLink.existsSync()) {
+      // Get directory name
+      return basename(ctx.globalCacheLink.targetSync());
+    } else {
+      return null;
+    }
+  }
+
   /// Checks if global version is configured correctly
   static Future<bool> isGlobalConfigured() async {
     /// Return false if link does not exist

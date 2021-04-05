@@ -70,8 +70,8 @@ void testWithContext(
   return test(
     description,
     () async {
-      return wrapContext(
-        key,
+      return ctx.run(
+        name: key,
         fvmDir: getFvmTestDir(key),
         body: body,
       );

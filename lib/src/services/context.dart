@@ -73,16 +73,7 @@ class FvmContext {
     return name;
   }
 
-  /// Target path for the global cache
-  // String get globalCacheTarget {
-  //   // Cache to avoid multiple look ups
-  //   if (_globalCacheTarget == null) {
-  //     if (_globalCacheLink.existsSync()) {
-  //       _globalCacheTarget = _globalCacheLink.targetSync();
-  //     }
-  //   }
-  //   return _globalCacheTarget;
-  // }
+  /// Runs context zoned
   FutureOr<V> run<V>({
     @required FutureOr<V> Function() body,
     String name,
@@ -101,17 +92,4 @@ class FvmContext {
       zoneSpecification: zoneSpecification,
     );
   }
-}
-
-/// Group test with a context
-FutureOr<V> wrapContext<V>(
-  String name, {
-  FutureOr<V> Function() body,
-  Directory fvmDir,
-}) {
-  return ctx.run(
-    name: name,
-    fvmDir: fvmDir,
-    body: body,
-  );
 }

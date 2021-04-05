@@ -65,8 +65,8 @@ class FVMClient {
   /// Returns true if FVM global version is configured corretly
   static final checkIfGlobalConfigured = CacheService.isGlobalConfigured;
 
-  /// Returns a global [CacheVersion] if its configured
-  static final getGlobalVersion = CacheService.getGlobal;
+  /// Returns a global version name if its configured
+  static final getGlobalVersionSync = CacheService.getGlobalVersionSync;
 
   /// Sets a [version] as global
   static final setGlobalVersion = CacheService.setGlobal;
