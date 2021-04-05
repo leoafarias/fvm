@@ -96,7 +96,7 @@ class CacheService {
   /// Sets a [CacheVersion] as global
   static Future<void> setGlobal(CacheVersion version) async {
     final versionDir = versionCacheDir(version.name);
-    ;
+
     await createLink(ctx.globalCacheLink, versionDir);
   }
 

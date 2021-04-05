@@ -30,6 +30,7 @@ class FvmContext {
   })  : _fvmDir = fvmDir ?? Directory(kFvmHome),
         _cacheDir = cacheDir;
 
+  /// Name of the context
   final String name;
   final Directory _fvmDir;
   final Directory _cacheDir;
