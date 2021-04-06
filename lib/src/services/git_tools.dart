@@ -35,7 +35,7 @@ class GitTools {
         'clone',
         '--mirror',
         kFlutterRepo,
-        flutterRepo,
+        _cacheRepo,
       ];
 
       await run(
@@ -59,7 +59,7 @@ class GitTools {
       await run(
         'git',
         args,
-        workingDirectory: flutterRepo,
+        workingDirectory: _cacheRepo,
         stdout: consoleController.stdoutSink,
         stderr: consoleController.stderrSink,
       );
@@ -71,7 +71,7 @@ class GitTools {
   }
 
   /// Gets the Flutter repo if configured on FVM settings
-  static String get flutterRepo {
+  static String get _cacheRepo {
     /// Loads settings file
     final settings = SettingsService.readSync();
     if (settings.gitCache) {
@@ -121,17 +121,8 @@ class GitTools {
     return;
   }
 
-  /// Checks if [branch] is up to date. Returns [true] if it is.
-  static Future<bool> checkBranchUpToDate(String branch) async {
-    final result =
-        await run('git', ['rev-list', 'HEAD...origin/$branch', '--count']);
-    // If 0 then it's up to date
-    return result.stdout == 0;
-  }
-
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
-    print(ctx.cacheDir.path);
     final result = await run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
 
     if (result.exitCode != 0) {
