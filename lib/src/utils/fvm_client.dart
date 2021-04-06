@@ -1,3 +1,5 @@
+import 'package:fvm/src/services/context.dart';
+
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
 import '../models/settings_model.dart';
@@ -13,6 +15,9 @@ import 'logger.dart';
 // ignore: avoid_classes_with_only_static_members
 /// Client for FVM APIs for other apps or packages.
 class FVMClient {
+  /// Returns FVM cache directory
+  static final context = ctx;
+
   /// Triggers install workflow for [versionName]
   static Future<CacheVersion> install(String versionName) async {
     final validVersion = await FlutterTools.inferValidVersion(versionName);
@@ -51,7 +56,12 @@ class FVMClient {
   static final upgradeChannel = FlutterTools.upgradeChannel;
 
   /// Returns the setup sdk version of a [versionName]
-  static final getSdkVersionSync = CacheService.getSdkVersionSync;
+  static String getSdkVersionSync(CacheVersion cacheVersion) {
+    // Do a null check for cleaner sidekick implementation
+    if (cacheVersion == null) return null;
+
+    return CacheService.getSdkVersionSync(cacheVersion);
+  }
 
   /// Returns projects by providing a [directory]
   static final getProjectByDirectory = ProjectService.getByDirectory;

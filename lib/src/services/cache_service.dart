@@ -134,9 +134,42 @@ class CacheService {
   }
 
   /// Checks if global version is configured correctly
-  static Future<bool> isGlobalConfigured() async {
+  static Future<GlobalConfigured> isGlobalConfigured() async {
+    final currentPath = await which('flutter');
+
     /// Return false if link does not exist
-    if (!await ctx.globalCacheLink.exists()) return false;
-    return join(ctx.globalCacheBinPath, 'flutter') == await which('flutter');
+    if (!await ctx.globalCacheLink.exists()) {
+      return GlobalConfigured(
+        isSetup: false,
+        currentPath: currentPath,
+        newPath: null,
+      );
+    }
+    final newPath = join(ctx.globalCacheBinPath, 'flutter');
+    return GlobalConfigured(
+      currentPath: currentPath,
+      newPath: newPath,
+      isSetup: newPath == currentPath,
+    );
   }
+}
+
+// TODO: Change to typed data in the future
+///Data returned from global configured
+class GlobalConfigured {
+  /// Is setup correctly
+  final bool isSetup;
+
+  /// Current path configured
+  final String currentPath;
+
+  /// New path to be configured
+  final String newPath;
+
+  /// Constructor
+  const GlobalConfigured({
+    this.isSetup,
+    this.currentPath,
+    this.newPath,
+  });
 }
