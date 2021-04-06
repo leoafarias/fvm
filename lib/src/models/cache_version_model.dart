@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
+import '../services/context.dart';
 import '../utils/helpers.dart';
 
 /// Cache Version model
@@ -25,7 +26,7 @@ class CacheVersion {
 
   /// Returns CacheVersion directory
   Directory get dir {
-    return Directory(join(kFvmCacheDir.path, name));
+    return Directory(join(ctx.cacheDir.path, name));
   }
 
   /// Is CacheVersion a channel

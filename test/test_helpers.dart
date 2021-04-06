@@ -1,10 +1,14 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
@@ -13,6 +17,10 @@ import 'package:path/path.dart';
 String release = '1.17.4';
 const channel = 'beta';
 String channelVersion;
+
+Directory getFvmTestDir(String key) {
+  return Directory(join(kUserHome, 'fvmTest', key));
+}
 
 final kTestAssetsDir =
     Directory(join(kWorkingDirectory.path, 'test', 'support_assets'));
@@ -28,8 +36,8 @@ Future<ValidVersion> getRandomFlutterVersion() async {
 
 void cleanup() {
   // Remove all versions
-  if (kFvmCacheDir.existsSync()) {
-    final cacheDirList = kFvmCacheDir.listSync(recursive: true);
+  if (ctx.cacheDir.existsSync()) {
+    final cacheDirList = ctx.cacheDir.listSync(recursive: true);
     for (var dir in cacheDirList) {
       if (dir.existsSync()) {
         dir.deleteSync(recursive: true);
@@ -45,6 +53,36 @@ void cleanup() {
       fvmDir.deleteSync(recursive: true);
     }
   }
+}
+
+@isTest
+void testWithContext(
+  String key,
+  String description,
+  void Function() body, {
+  String testOn,
+  Timeout timeout,
+  dynamic skip,
+  List<String> tags,
+  Map<String, dynamic> onPlatform,
+  int retry,
+}) {
+  return test(
+    description,
+    () async {
+      return ctx.run(
+        name: key,
+        fvmDir: getFvmTestDir(key),
+        body: body,
+      );
+    },
+    timeout: timeout,
+    skip: skip,
+    tags: tags,
+    onPlatform: onPlatform,
+    retry: retry,
+    testOn: testOn,
+  );
 }
 
 void fvmTearDownAll() {

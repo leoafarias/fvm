@@ -1,13 +1,20 @@
-import '../../constants.dart';
 import '../../fvm.dart';
+import 'context.dart';
 
+// ignore: avoid_classes_with_only_static_members
 /// Service for FVM settings
 class SettingsService {
+  static FvmSettings _settings;
+
   /// Returns [FvmSettings]
   static Future<FvmSettings> read() async {
     try {
-      final payload = await kFvmSettings.readAsString();
-      return FvmSettings.fromJson(payload);
+      if (_settings == null) {
+        final payload = await ctx.settingsFile.readAsString();
+        // Store in memory
+        _settings = FvmSettings.fromJson(payload);
+      }
+      return _settings;
     } on Exception {
       return FvmSettings();
     }
@@ -16,8 +23,12 @@ class SettingsService {
   /// Returns [FvmSettings] sync
   static FvmSettings readSync() {
     try {
-      final payload = kFvmSettings.readAsStringSync();
-      return FvmSettings.fromJson(payload);
+      if (_settings == null) {
+        final payload = ctx.settingsFile.readAsStringSync();
+        // Store in memory
+        _settings = FvmSettings.fromJson(payload);
+      }
+      return _settings;
     } on Exception {
       return FvmSettings();
     }
@@ -26,7 +37,9 @@ class SettingsService {
   /// Saves FVM [settings]
   static Future<void> save(FvmSettings settings) async {
     try {
-      await kFvmSettings.writeAsString(settings.toJson());
+      await ctx.settingsFile.writeAsString(settings.toJson());
+      // Store in memory
+      _settings = settings;
     } on Exception {
       throw Exception('Could not save FVM config');
     }

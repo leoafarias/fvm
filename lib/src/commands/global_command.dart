@@ -1,7 +1,5 @@
 import 'package:io/io.dart';
-import 'package:process_run/shell.dart';
 
-import '../../constants.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
@@ -41,19 +39,19 @@ class GlobalCommand extends BaseCommand {
     // Sets version as the global
     await CacheService.setGlobal(cacheVersion);
 
-    final isSetup = await CacheService.isGlobalConfigured();
+    final configured = await CacheService.isGlobalConfigured();
 
     FvmLogger.spacer();
     FvmLogger.fine('Flutter "$validVersion" has been set as global');
-    if (!isSetup) {
+    if (!configured.isSetup) {
       FvmLogger.divider();
       FvmLogger.warning('However your "flutter" path current points to:');
       FvmLogger.spacer();
       FvmLogger.info(
-          whichSync('flutter') ?? 'No version is configured on path.');
+          configured.currentPath ?? 'No version is configured on path.');
       FvmLogger.info(
           'to use global Flutter SDK through FVM you should change it to:');
-      FvmLogger.info(kGlobalFlutterPath);
+      FvmLogger.info(configured.newPath);
     }
     FvmLogger.spacer();
 

@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
 import '../models/settings_model.dart';
 import '../services/cache_service.dart';
+import '../services/context.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
@@ -15,6 +14,9 @@ import 'logger.dart';
 // ignore: avoid_classes_with_only_static_members
 /// Client for FVM APIs for other apps or packages.
 class FVMClient {
+  /// Returns FVM cache directory
+  static final context = ctx;
+
   /// Triggers install workflow for [versionName]
   static Future<CacheVersion> install(String versionName) async {
     final validVersion = await FlutterTools.inferValidVersion(versionName);
@@ -44,71 +46,51 @@ class FVMClient {
   }
 
   /// Updates Flutter config options
-  static Future<void> setFlutterConfig(Map<String, bool> config) async {
-    return await FlutterTools.setFluterConfig(config);
-  }
+  static final setFlutterConfig = FlutterTools.setFluterConfig;
 
-  /// Get Flutter settings
-  static Future<Map<String, bool>> getFlutterConfig() async {
-    return await FlutterTools.getFlutterConfig();
-  }
+  /// Get Flutter confg
+  static final getFlutterConfig = FlutterTools.getFlutterConfig;
 
-  /// Triggers flutter upgrade for [channelName]
-  static Future<void> upgradeChannel(String channelName) async {
-    final cacheVersion = await CacheService.getByVersionName(channelName);
-    if (cacheVersion == null) {
-      throw Exception('Cannot upgrade channel that is not in cache');
-    }
-    await FlutterTools.upgradeChannel(cacheVersion);
-  }
+  /// Upgrades cached channel [version]
+  static final upgradeChannel = FlutterTools.upgradeChannel;
 
   /// Returns the setup sdk version of a [versionName]
-  static String getSdkVersionSync(CacheVersion version) {
-    if (version == null) return null;
-    return CacheService.getSdkVersionSync(version);
+  static String getSdkVersionSync(CacheVersion cacheVersion) {
+    // Do a null check for cleaner sidekick implementation
+    if (cacheVersion == null) return null;
+
+    return CacheService.getSdkVersionSync(cacheVersion);
   }
 
   /// Returns projects by providing a [directory]
-  static Future<Project> getProjectByDirectory(Directory directory) async {
-    return await ProjectService.getByDirectory(directory);
-  }
+  static final getProjectByDirectory = ProjectService.getByDirectory;
 
-  /// Returns a list of projects by providing a list of [paths]
-  static Future<List<Project>> fetchProjects(
-    List<Directory> directories,
-  ) async {
-    return Future.wait(directories.map(getProjectByDirectory));
-  }
+  /// Returns a list of projects by providing a list of [directories]
+  static final fetchProjects = ProjectService.fetchProjects;
 
   /// Returns true if [cacheVersion] is configured as global
-  static Future<bool> checkIfGlobal(CacheVersion cacheVersion) {
-    return CacheService.isGlobal(cacheVersion);
-  }
+  static final checkIfGlobal = CacheService.isGlobal;
 
   /// Returns true if FVM global version is configured corretly
-  static Future<bool> checkIfGlobalConfigured() {
-    return CacheService.isGlobalConfigured();
-  }
+  static final checkIfGlobalConfigured = CacheService.isGlobalConfigured;
+
+  /// Returns a global version name if its configured
+  static final getGlobalVersionSync = CacheService.getGlobalVersionSync;
+
+  /// Sets a [version] as global
+  static final setGlobalVersion = CacheService.setGlobal;
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<Project>> scanDirectory({Directory rootDir}) {
-    return ProjectService.scanDirectory(rootDir: rootDir);
-  }
+  static final scanDirectory = ProjectService.scanDirectory;
 
   /// Get all cached Flutter SDK versions
-  static Future<List<CacheVersion>> getCachedVersions() {
-    return CacheService.getAllVersions();
-  }
+  static final getCachedVersions = CacheService.getAllVersions;
 
   /// Returns [FvmSettings]
-  static Future<FvmSettings> readSettings() {
-    return SettingsService.read();
-  }
+  static final readSettings = SettingsService.read;
 
   /// Saves FVM [settings]
-  static Future<void> saveSettings(FvmSettings settings) {
-    return SettingsService.save(settings);
-  }
+  static final saveSettings = SettingsService.save;
 
   /// Console controller for streams of process output
   static final console = consoleController;

@@ -1,8 +1,7 @@
-import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
-import '../../constants.dart';
+import '../services/context.dart';
 import '../services/settings_service.dart';
 import '../utils/logger.dart';
 import 'base_command.dart';
@@ -72,7 +71,7 @@ class ConfigCommand extends BaseCommand {
     } else {
       FvmLogger.spacer();
       FvmLogger.fine('FVM Settings:');
-      FvmLogger.info('Located at ${kFvmSettings.path}');
+      FvmLogger.info('Located at ${ctx.settingsFile.path}');
       FvmLogger.spacer();
 
       final options = settings.toMap();

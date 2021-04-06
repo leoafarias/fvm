@@ -5,8 +5,6 @@ import 'package:test/test.dart';
 import 'test_helpers.dart';
 
 void main() {
-  setUpAll(fvmSetUpAll);
-  tearDownAll(fvmTearDownAll);
   group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {

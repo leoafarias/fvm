@@ -84,6 +84,7 @@ Future<int> flutterGlobalCmd(List<String> args) async {
   );
 }
 
+/// Runs a simple Flutter cmd
 Future<String> flutterCmdSimple(
   List<String> args,
 ) async {
@@ -116,7 +117,9 @@ Future<int> _runCmd(
   // Switch on line mode
   switchLineMode(true, args);
 
-  await sharedStdIn.terminate();
+  if (ConsoleController.isCli) {
+    await sharedStdIn.terminate();
+  }
 
   return exitCode;
 }

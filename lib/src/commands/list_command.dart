@@ -3,6 +3,7 @@ import 'package:io/io.dart';
 
 import '../../exceptions.dart';
 import '../services/cache_service.dart';
+import '../services/context.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -22,7 +23,7 @@ class ListCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final cacheVersions = await CacheService.getAllVersions();
-
+    ctx.cacheDir.path;
     if (cacheVersions.isEmpty) {
       throw const FvmUsageException(
         '''No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.''',
@@ -30,7 +31,7 @@ class ListCommand extends BaseCommand {
     }
 
     // Print where versions are stored
-    FvmLogger.info('Cache Path:  ${yellow.wrap(CacheService.cacheDir.path)}');
+    FvmLogger.info('Cache Path:  ${yellow.wrap(ctx.cacheDir.path)}');
     FvmLogger.spacer();
 
     // Get current project

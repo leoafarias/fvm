@@ -8,7 +8,6 @@ import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/env_command.dart';
 import 'commands/flutter_command.dart';
-import 'commands/git_cache_command.dart';
 import 'commands/global_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
@@ -58,7 +57,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(EnvCommand());
-    addCommand(GitCacheCommand());
   }
 
   @override

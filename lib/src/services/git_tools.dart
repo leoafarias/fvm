@@ -7,6 +7,7 @@ import '../../constants.dart';
 import '../../exceptions.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
+import 'context.dart';
 import 'settings_service.dart';
 
 // ignore: avoid_classes_with_only_static_members
@@ -26,15 +27,15 @@ class GitTools {
   /// Creates local git cache of Flutter repo.
   static Future<void> createCache() async {
     try {
-      if (await kGitCacheDir.exists()) {
-        await kGitCacheDir.delete();
+      if (await ctx.gitCacheDir.exists()) {
+        await ctx.gitCacheDir.delete();
       }
 
       final args = [
         'clone',
         '--mirror',
         kFlutterRepo,
-        flutterRepo,
+        _cacheRepo,
       ];
 
       await run(
@@ -58,7 +59,7 @@ class GitTools {
       await run(
         'git',
         args,
-        workingDirectory: flutterRepo,
+        workingDirectory: _cacheRepo,
         stdout: consoleController.stdoutSink,
         stderr: consoleController.stderrSink,
       );
@@ -70,11 +71,11 @@ class GitTools {
   }
 
   /// Gets the Flutter repo if configured on FVM settings
-  static String get flutterRepo {
+  static String get _cacheRepo {
     /// Loads settings file
     final settings = SettingsService.readSync();
-    if (!settings.gitCache) {
-      return kGitCacheDir.path;
+    if (settings.gitCache) {
+      return ctx.gitCacheDir.path;
     }
     return kFlutterRepo;
   }
@@ -120,14 +121,6 @@ class GitTools {
     return;
   }
 
-  /// Checks if [branch] is up to date. Returns [true] if it is.
-  static Future<bool> checkBranchUpToDate(String branch) async {
-    final result =
-        await run('git', ['rev-list', 'HEAD...origin/$branch', '--count']);
-    // If 0 then it's up to date
-    return result.stdout == 0;
-  }
-
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
     final result = await run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
@@ -152,7 +145,7 @@ class GitTools {
 
   /// Returns the [name] of a branch or tag for a [version]
   static Future<String> getBranchOrTag(String version) async {
-    final versionDir = Directory(join(kFvmCacheDir.path, version));
+    final versionDir = Directory(join(ctx.cacheDir.path, version));
     return _getCurrentGitBranch(versionDir);
   }
 

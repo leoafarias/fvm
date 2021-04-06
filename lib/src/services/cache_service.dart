@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
-import '../../constants.dart';
 import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
 import '../utils/helpers.dart';
+import 'context.dart';
 import 'flutter_tools.dart';
 import 'git_tools.dart';
 
@@ -14,9 +14,9 @@ import 'git_tools.dart';
 /// Service to interact with FVM Cache
 class CacheService {
   /// Directory where local versions are cached
-  static final Directory cacheDir = kFvmCacheDir;
 
   /// Returns a [CacheVersion] from a [versionName]
+  /// TODO: Remove directory check in favor of getAllVersions
   static Future<CacheVersion> getByVersionName(String versionName) async {
     final versionDir = versionCacheDir(versionName);
     // Return null if version does not exist
@@ -28,9 +28,9 @@ class CacheService {
   /// Lists Installed Flutter SDK Version
   static Future<List<CacheVersion>> getAllVersions() async {
     // Returns empty array if directory does not exist
-    if (!kFvmCacheDir.existsSync()) return [];
+    if (!await ctx.cacheDir.exists()) return [];
 
-    final versions = await kFvmCacheDir.list().toList();
+    final versions = await ctx.cacheDir.list().toList();
 
     final cacheVersions = <CacheVersion>[];
 
@@ -95,15 +95,16 @@ class CacheService {
 
   /// Sets a [CacheVersion] as global
   static Future<void> setGlobal(CacheVersion version) async {
-    final versionDir = Directory(join(kFvmCacheDir.path, version.name));
-    await createLink(kGlobalFlutterLink, versionDir);
+    final versionDir = versionCacheDir(version.name);
+
+    await createLink(ctx.globalCacheLink, versionDir);
   }
 
   /// Returns a global [CacheVersion] if exists
   static Future<CacheVersion> getGlobal() async {
-    if (await kGlobalFlutterLink.exists()) {
+    if (await ctx.globalCacheLink.exists()) {
       // Get directory name
-      final version = basename(await kGlobalFlutterLink.target());
+      final version = basename(await ctx.globalCacheLink.target());
       // Make sure its a valid version
       final validVersion = await FlutterTools.inferValidVersion(version);
       // Verify version is cached
@@ -115,17 +116,60 @@ class CacheService {
 
   /// Checks if a cached [version] is configured as global
   static Future<bool> isGlobal(CacheVersion version) async {
-    if (await kGlobalFlutterLink.exists()) {
-      return await kGlobalFlutterLink.target() == version.dir.path;
+    if (await ctx.globalCacheLink.exists()) {
+      return await ctx.globalCacheLink.target() == version.dir.path;
     } else {
       return false;
     }
   }
 
-  /// Checks if global version is configured correctly
-  static Future<bool> isGlobalConfigured() async {
-    /// Return false if link does not exist
-    if (!await kGlobalFlutterLink.exists()) return false;
-    return join(kGlobalFlutterPath, 'flutter') == await which('flutter');
+  /// Returns a global [CacheVersion] if exists
+  static String getGlobalVersionSync() {
+    if (ctx.globalCacheLink.existsSync()) {
+      // Get directory name
+      return basename(ctx.globalCacheLink.targetSync());
+    } else {
+      return null;
+    }
   }
+
+  /// Checks if global version is configured correctly
+  static Future<GlobalConfigured> isGlobalConfigured() async {
+    final currentPath = await which('flutter');
+
+    /// Return false if link does not exist
+    if (!await ctx.globalCacheLink.exists()) {
+      return GlobalConfigured(
+        isSetup: false,
+        currentPath: currentPath,
+        newPath: null,
+      );
+    }
+    final newPath = join(ctx.globalCacheBinPath, 'flutter');
+    return GlobalConfigured(
+      currentPath: currentPath,
+      newPath: newPath,
+      isSetup: newPath == currentPath,
+    );
+  }
+}
+
+// TODO: Change to typed data in the future
+///Data returned from global configured
+class GlobalConfigured {
+  /// Is setup correctly
+  final bool isSetup;
+
+  /// Current path configured
+  final String currentPath;
+
+  /// New path to be configured
+  final String newPath;
+
+  /// Constructor
+  const GlobalConfigured({
+    this.isSetup,
+    this.currentPath,
+    this.newPath,
+  });
 }
