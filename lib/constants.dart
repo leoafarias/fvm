@@ -48,31 +48,5 @@ String get kFvmHome {
   return join(kUserHome, 'fvm');
 }
 
-// /// File for FVM Settings
-// File get kFvmSettings {
-//   return File(join(kFvmHome, '.settings'));
-// }
-
-// /// Where Flutter SDK Versions are stored
-// Directory get kFvmCacheDir {
-//   /// Loads settings file
-//   final settings = SettingsService.readSync();
-//   if (settings.cachePath != null && settings.cachePath.isNotEmpty) {
-//     return Directory(normalize(settings.cachePath));
-//   }
-//   return Directory(join(kFvmHome, 'versions'));
-// }
-
-// /// Directory for Flutter repo git cache
-// Directory get kGitCacheDir {
-//   return Directory(join(kFvmHome, 'git-cache'));
-// }
-
-// /// Where Default Flutter SDK is stored
-// Link get kGlobalFlutterLink => Link(join(kFvmHome, 'default'));
-
-// /// Path for Default Flutter SDK
-// String get kGlobalFlutterPath => join(kGlobalFlutterLink.path, 'bin');
-
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];

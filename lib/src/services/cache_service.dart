@@ -147,9 +147,9 @@ class CacheService {
     }
     final newPath = join(ctx.globalCacheBinPath, 'flutter');
     return GlobalConfigured(
+      isSetup: newPath == currentPath,
       currentPath: currentPath,
       newPath: newPath,
-      isSetup: newPath == currentPath,
     );
   }
 }
