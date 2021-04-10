@@ -11,6 +11,8 @@ import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterTools {
+  FlutterTools._();
+
   /// Upgrades a cached channel
   static Future<void> upgradeChannel(CacheVersion version) async {
     if (version.isChannel) {

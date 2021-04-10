@@ -17,7 +17,6 @@ import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
 import 'commands/which_command.dart';
 import 'utils/logger.dart';
-import 'utils/logger.dart' show logger;
 import 'utils/pubdev.dart';
 import 'version.dart';
 

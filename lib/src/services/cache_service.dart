@@ -10,9 +10,10 @@ import 'context.dart';
 import 'flutter_tools.dart';
 import 'git_tools.dart';
 
-// ignore: avoid_classes_with_only_static_members
 /// Service to interact with FVM Cache
 class CacheService {
+  CacheService._();
+
   /// Directory where local versions are cached
 
   /// Returns a [CacheVersion] from a [versionName]

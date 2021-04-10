@@ -34,7 +34,7 @@ class InstallCommand extends BaseCommand {
   @override
   Future<int> run() async {
     CacheVersion cacheVersion;
-    final skipSetup = argResults['skip-setup'] == true;
+    final skipSetup = boolArg('skip-setup');
     String version;
 
     // If no version was passed as argument check project config.

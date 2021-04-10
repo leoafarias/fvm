@@ -1,9 +1,9 @@
 import '../../fvm.dart';
 import 'context.dart';
 
-// ignore: avoid_classes_with_only_static_members
 /// Service for FVM settings
 class SettingsService {
+  SettingsService._();
   static FvmSettings _settings;
 
   /// Returns [FvmSettings]

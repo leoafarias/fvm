@@ -10,9 +10,10 @@ import '../utils/logger.dart';
 import 'context.dart';
 import 'settings_service.dart';
 
-// ignore: avoid_classes_with_only_static_members
 /// Tools  and helpers used for interacting with git
 class GitTools {
+  GitTools._();
+
   /// Check if Git is installed
   static Future<void> canRun() async {
     try {

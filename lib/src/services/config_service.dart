@@ -8,6 +8,8 @@ import '../utils/helpers.dart';
 
 /// Helpers and tools for the FVM config within a project
 class ConfigService {
+  ConfigService._();
+
   /// Returns a [FvmConfig] from within a [directory]
   static Future<FvmConfig> read(Directory directory) async {
     final configDir = Directory(join(directory.path, kFvmDirName));

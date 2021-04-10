@@ -11,6 +11,8 @@ import 'config_service.dart';
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
 class ProjectService {
+  ProjectService._();
+
   /// Returns projects by providing a [directory]
   static Future<Project> getByDirectory(Directory directory) async {
     final pubspec = await _getPubspec(directory);
