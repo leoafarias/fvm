@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
+import 'package:args/command_runner.dart';
 
-import '../../exceptions.dart';
 import '../services/flutter_tools.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
@@ -22,8 +22,9 @@ class SpawnCommand extends BaseCommand {
   @override
   Future<int> run() async {
     if (argResults.rest.isEmpty) {
-      throw const FvmUsageException(
+      throw UsageException(
         'Need to provide a version to spawn a Flutter command',
+        usage,
       );
     }
 
@@ -37,12 +38,13 @@ class SpawnCommand extends BaseCommand {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
       // Runs flutter command with pinned version
-      FvmLogger.info('fvm: Spawning version "$version"');
-      FvmLogger.spacer();
+      FvmLogger.info('Spawning version "$version"...');
+
       return await flutterCmd(cacheVersion, flutterArgs);
     } else {
-      throw const FvmUsageException(
+      throw UsageException(
         'Need to provide a version to spawn a Flutter command',
+        usage,
       );
     }
   }

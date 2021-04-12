@@ -31,15 +31,13 @@ Future<void> useVersionWorkflow(
     environment: environment,
   );
 
-  FvmLogger.spacer();
-
   // Different message if configured environment
   if (environment != null) {
     FvmLogger.fine(
-      'Project now uses Flutter [$validVersion] on [$environment] environment.',
+      'Project now uses Flutter [$validVersion]'
+      ' on [$environment] environment.\n',
     );
   } else {
-    FvmLogger.fine('Project now uses Flutter [$validVersion]');
+    FvmLogger.fine('Project now uses Flutter [$validVersion]\n');
   }
-  FvmLogger.spacer();
 }

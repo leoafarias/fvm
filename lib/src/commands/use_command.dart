@@ -1,3 +1,4 @@
+import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -81,7 +82,10 @@ class UseCommand extends BaseCommand {
 
     /// Cannot pin master channel
     if (pinOption && validVersion.isMaster) {
-      throw FvmUsageException('Cannot pin a version from "master" channel.');
+      throw UsageException(
+        'Cannot pin a version from "master" channel.',
+        usage,
+      );
     }
 
     /// Print pin message if its pinning

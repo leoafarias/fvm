@@ -13,7 +13,10 @@ class EnvCommand extends BaseCommand {
   @override
   final name = 'env';
   @override
-  final description = 'Configure different flutter version per environment';
+  final description = 'Switches between different project environments';
+
+  @override
+  final invocation = 'fvm env <environment_name>';
 
   /// Constructor
   EnvCommand();

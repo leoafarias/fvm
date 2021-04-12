@@ -71,13 +71,12 @@ class ConfigCommand extends BaseCommand {
     } else {
       FvmLogger.spacer();
       FvmLogger.fine('FVM Settings:');
-      FvmLogger.info('Located at ${ctx.settingsFile.path}');
-      FvmLogger.spacer();
+      FvmLogger.info('Located at ${ctx.settingsFile.path}\n');
 
       final options = settings.toMap();
 
       if (options.keys.isEmpty) {
-        FvmLogger.info('No settings have been configured.');
+        FvmLogger.info('No settings have been configured.\n');
       } else {
         // Print options and it's values
         for (var key in options.keys) {
@@ -88,8 +87,6 @@ class ConfigCommand extends BaseCommand {
           }
         }
       }
-
-      FvmLogger.spacer();
     }
 
     return ExitCode.success.code;

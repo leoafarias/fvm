@@ -35,7 +35,9 @@ Future<String> cacheVersionSelector() async {
   // Return message if no cached versions
   if (cacheVersions.isEmpty) {
     throw const FvmUsageException(
-        '''No versions installed. Please install a version. "fvm install <version>". ''');
+      'No versions installed. Please install'
+      ' a version. "fvm install <version>". ',
+    );
   }
 
   /// Ask which version to select
@@ -76,9 +78,8 @@ Future<String> projectEnvSeletor() async {
       'Could not find any environment configuration.',
     );
   }
-  FvmLogger.spacer();
-  FvmLogger.fine('Project Environments confopigured for "${project.name}":');
-  FvmLogger.spacer();
+
+  FvmLogger.fine('Project Environments configured for "${project.name}":\n');
 
   final chooser = Chooser<String>(
     envList,

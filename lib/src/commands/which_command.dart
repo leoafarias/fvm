@@ -24,7 +24,7 @@ class WhichCommand extends BaseCommand {
     if (project != null && project.pinnedVersion != null) {
       final cacheVersion =
           await CacheService.getByVersionName(project.pinnedVersion);
-      FvmLogger.spacer();
+
       FvmLogger.fine('FVM config found:');
       FvmLogger.divider();
       FvmLogger.info('Project: ${project.name}');
@@ -54,11 +54,10 @@ class WhichCommand extends BaseCommand {
       }
     } else {
       final execPath = await which('flutter');
-      FvmLogger.spacer();
+
       FvmLogger.fine('No FVM config found:');
       FvmLogger.info('Fvm will run the version in your PATH env: $execPath');
     }
-    FvmLogger.spacer();
 
     return ExitCode.success.code;
   }

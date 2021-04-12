@@ -27,13 +27,13 @@ class DartCommand extends BaseCommand {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-      FvmLogger.info('fvm: running Dart from Flutter "$version"');
-      FvmLogger.spacer();
+      FvmLogger.info('fvm: running Dart from Flutter "$version"\n');
+
       // Runs flutter command with pinned version
       return await dartCmd(cacheVersion, args);
     } else {
-      FvmLogger.info('Running using Flutter version configured in path.');
-      FvmLogger.spacer();
+      FvmLogger.info('Running using Flutter version configured in path.\n');
+
       // Running null will default to flutter version on path
       return await dartGlobalCmd(args);
     }

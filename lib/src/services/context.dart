@@ -66,7 +66,11 @@ class FvmContext {
   Link get globalCacheLink => Link(join(_fvmDir.path, 'default'));
 
   /// Directory for Global Flutter SDK
-  String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
+  String get globalCacheBinPath => join(
+        globalCacheLink.path,
+        'bin',
+        flutterBinFileName,
+      );
 
   @override
   String toString() {

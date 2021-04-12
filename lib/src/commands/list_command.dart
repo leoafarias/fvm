@@ -26,13 +26,13 @@ class ListCommand extends BaseCommand {
     ctx.cacheDir.path;
     if (cacheVersions.isEmpty) {
       throw const FvmUsageException(
-        '''No SDKs have been installed yet. Flutter. SDKs installed outside of fvm will not be displayed.''',
+        'No SDKs have been installed yet. Flutter. SDKs'
+        ' installed outside of fvm will not be displayed.',
       );
     }
 
     // Print where versions are stored
-    FvmLogger.info('Cache Path:  ${yellow.wrap(ctx.cacheDir.path)}');
-    FvmLogger.spacer();
+    FvmLogger.info('Cache Path:  ${yellow.wrap(ctx.cacheDir.path)}\n');
 
     // Get current project
     final project = await ProjectService.findAncestor();
@@ -40,8 +40,6 @@ class ListCommand extends BaseCommand {
     for (var version in cacheVersions) {
       await printVersionStatus(version, project);
     }
-
-    FvmLogger.spacer();
 
     return ExitCode.success.code;
   }
