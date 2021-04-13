@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
-import 'package:version/version.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
@@ -83,16 +83,16 @@ Version assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
   switch (version) {
     case 'master':
-      version = '400';
+      version = '400.0.0';
       break;
     case 'stable':
-      version = '300';
+      version = '300.0.0';
       break;
     case 'beta':
-      version = '200';
+      version = '200.0.0';
       break;
     case 'dev':
-      version = '100';
+      version = '100.0.0';
       break;
     default:
   }
