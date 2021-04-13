@@ -20,7 +20,7 @@ dependencies:
   meta: ^1.3.0
   path: ^1.7.0
   process_run: ^0.11.2+8
-  pub_api_client: ^1.0.9
+  pub_semver: ^1.4.4
   pubspec_yaml: ^2.0.1+1
   version: ^2.0.0
 
