@@ -58,8 +58,8 @@ jobs:
           tags: leoafarias/fvm:${{ github.event.release.tag_name }}
           build-args: FVM_VERSION=${{ github.event.release.tag_name }}
 
-      - name: Build and push
-        id: docker_build
+      - name: Build and push Alpine image
+        id: docker_build_alpine
         uses: docker/build-push-action@v2
         with:
           file: ./.docker/alpine/Dockerfile
