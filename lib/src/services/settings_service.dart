@@ -37,6 +37,9 @@ class SettingsService {
   /// Saves FVM [settings]
   static Future<void> save(FvmSettings settings) async {
     try {
+      if (!await ctx.settingsFile.exists()) {
+        await ctx.settingsFile.create(recursive: true);
+      }
       await ctx.settingsFile.writeAsString(settings.toJson());
       // Store in memory
       _settings = settings;

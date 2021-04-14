@@ -269,7 +269,7 @@ pub run build_runner build
 To update test coverage run the following command.
 
 ```bash
-pub run test_coverage
+pub run test_cov
 ```
 
 ## Troubleshooting
