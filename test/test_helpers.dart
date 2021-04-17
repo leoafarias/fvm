@@ -16,6 +16,7 @@ import 'package:test/test.dart';
 
 String release = '1.17.4';
 const channel = 'beta';
+const gitHash = 'f4c74a6ec3';
 String channelVersion;
 
 Directory getFvmTestDir(String key) {

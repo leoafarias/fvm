@@ -88,14 +88,18 @@ class GitTools {
     final versionDirectory = versionCacheDir(version);
     await versionDirectory.create(recursive: true);
 
+    final isCommit = checkIsGitShortHash(version);
+
     final args = [
       'clone',
-      '-c',
-      'advice.detachedHead=false',
       '--progress',
-      '--single-branch',
-      '-b',
-      version,
+      if (!isCommit) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '--single-branch',
+        '-b',
+        version,
+      ],
       kFlutterRepo,
       versionDirectory.path
     ];
@@ -117,6 +121,32 @@ class GitTools {
 
       logger.trace(process.stderr.toString());
       throw FvmInternalError('Could not git clone $version');
+    }
+
+    if (isCommit) {
+      final reset = await run(
+        'git',
+        [
+          '-C',
+          versionDirectory.path,
+          'reset',
+          '--hard',
+          version,
+        ],
+        stdout: consoleController.stdoutSink,
+        stderr: consoleController.stderrSink,
+      );
+
+      if (reset.exitCode != 0) {
+        if (await versionDirectory.exists()) {
+          await versionDirectory.delete(recursive: true);
+        }
+
+        logger.trace(process.stderr.toString());
+        throw FvmInternalError(
+          'Could not git reset $version: ${reset.exitCode}',
+        );
+      }
     }
 
     return;

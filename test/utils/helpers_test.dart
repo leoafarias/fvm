@@ -7,6 +7,7 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
 
@@ -30,6 +31,8 @@ void main() {
     expect(await _inferVersionString('v1.9.1+hotfix.4'), 'v1.9.1+hotfix.4');
 
     expect(await _inferVersionString('1.17.0-dev.3.1'), '1.17.0-dev.3.1');
+
+    expect(await _inferVersionString('f4c74a6ec3'), 'f4c74a6ec3');
   });
 
   test('Not Valid Flutter Version', () async {
@@ -63,5 +66,13 @@ void main() {
     // expect(newEnvVar[envName], envVars[envName]);
     expect(newEnvVar[envName].contains(fakePath), true);
     expect(envVars, isNot(newEnvVar));
+  });
+
+  test('Assigns version weights', () async {
+    expect(Version.parse('500.0.0'), assignVersionWeight('0941968447'));
+    expect(Version.parse('400.0.0'), assignVersionWeight('master'));
+    expect(Version.parse('300.0.0'), assignVersionWeight('stable'));
+    expect(Version.parse('200.0.0'), assignVersionWeight('beta'));
+    expect(Version.parse('100.0.0'), assignVersionWeight('dev'));
   });
 }
