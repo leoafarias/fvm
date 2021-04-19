@@ -317,6 +317,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/YangLang116"><img src="https://avatars.githubusercontent.com/u/15442222?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Mr Yang</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=YangLang116" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/Saancreed"><img src="https://avatars.githubusercontent.com/u/26201033?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Krzysztof Bogacki</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/issues?q=author%3ASaancreed" title="Bug reports">🐛</a> <a href="https://github.com/leoafarias/fvm/commits?author=Saancreed" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="http://www.sebroth.com"><img src="https://avatars.githubusercontent.com/u/269860?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Sebastian Roth</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=ened" title="Code">💻</a> <a href="#ideas-ened" title="Ideas, Planning, & Feedback">🤔</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
