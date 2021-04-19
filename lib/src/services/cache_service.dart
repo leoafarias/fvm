@@ -59,7 +59,7 @@ class CacheService {
   static Future<bool> verifyIntegrity(CacheVersion version) async {
     final gitDir = Directory(join(version.dir.path, '.github'));
     final flutterBin = Directory(join(version.dir.path, 'bin'));
-    return !await gitDir.exists() || !await flutterBin.exists();
+    return await gitDir.exists() && await flutterBin.exists();
   }
 
   /// Caches version a [validVersion] and returns [CacheVersion]
@@ -85,7 +85,7 @@ class CacheService {
     if (cacheVersion == null) return null;
 
     // Check if version directory is from git
-    if (await CacheService.verifyIntegrity(cacheVersion)) {
+    if (!await CacheService.verifyIntegrity(cacheVersion)) {
       print(
           '$validVersion exists but was not setup correctly. Doing cleanup...');
       await CacheService.remove(cacheVersion);
@@ -155,7 +155,6 @@ class CacheService {
   }
 }
 
-// TODO: Change to typed data in the future
 ///Data returned from global configured
 class GlobalConfigured {
   /// Is setup correctly
