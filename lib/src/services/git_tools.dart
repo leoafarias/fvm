@@ -88,14 +88,18 @@ class GitTools {
     final versionDirectory = versionCacheDir(version);
     await versionDirectory.create(recursive: true);
 
+    final isCommit = checkIsGitShortHash(version);
+
     final args = [
       'clone',
-      '-c',
-      'advice.detachedHead=false',
       '--progress',
-      '--single-branch',
-      '-b',
-      version,
+      if (!isCommit) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '--single-branch',
+        '-b',
+        version,
+      ],
       kFlutterRepo,
       versionDirectory.path
     ];
@@ -117,6 +121,18 @@ class GitTools {
 
       logger.trace(process.stderr.toString());
       throw FvmInternalError('Could not git clone $version');
+    }
+
+    if (isCommit) {
+      try {
+        await _resetRepository(versionDirectory, commitHash: version);
+      } on FvmInternalError catch (_) {
+        if (await versionDirectory.exists()) {
+          await versionDirectory.delete(recursive: true);
+        }
+
+        rethrow;
+      }
     }
 
     return;
@@ -172,6 +188,32 @@ class GitTools {
     } on Exception catch (err) {
       FvmLogger.error(err.toString());
       return null;
+    }
+  }
+
+  /// Resets the repository at [directory] to [commitHash] using `git reset`
+  ///
+  /// Throws [FvmInternalError] if `git`'s exit code is not 0.
+  static void _resetRepository(Directory directory, {String commitHash}) async {
+    final reset = await run(
+      'git',
+      [
+        '-C',
+        directory.path,
+        'reset',
+        '--hard',
+        commitHash,
+      ],
+      stdout: consoleController.stdoutSink,
+      stderr: consoleController.stderrSink,
+    );
+
+    if (reset.exitCode != 0) {
+      logger.trace(reset.stderr.toString());
+
+      throw FvmInternalError(
+        'Could not git reset $commitHash: ${reset.exitCode}',
+      );
     }
   }
 }

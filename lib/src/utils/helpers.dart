@@ -21,6 +21,12 @@ bool checkIsReleaseChannel(String name) {
   return kFlutterChannels.contains(name) && name != 'master';
 }
 
+/// Checks if [name] is a short hash of a specific framework commit.
+/// This hash is also shown in the `flutter --version` command.
+bool checkIsGitShortHash(String name) {
+  return RegExp('^[a-f0-9]{10}\$').hasMatch(name);
+}
+
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
   return Directory(join(ctx.cacheDir.path, version));
@@ -81,20 +87,24 @@ Map<String, String> _updateEnvVariables(
 /// Returns a weight for all versions and channels
 Version assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
-  switch (version) {
-    case 'master':
-      version = '400.0.0';
-      break;
-    case 'stable':
-      version = '300.0.0';
-      break;
-    case 'beta':
-      version = '200.0.0';
-      break;
-    case 'dev':
-      version = '100.0.0';
-      break;
-    default:
+  if (checkIsGitShortHash(version)) {
+    version = '500.0.0';
+  } else {
+    switch (version) {
+      case 'master':
+        version = '400.0.0';
+        break;
+      case 'stable':
+        version = '300.0.0';
+        break;
+      case 'beta':
+        version = '200.0.0';
+        break;
+      case 'dev':
+        version = '100.0.0';
+        break;
+      default:
+    }
   }
 
   if (version.contains('v')) {
