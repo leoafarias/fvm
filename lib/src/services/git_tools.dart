@@ -124,28 +124,14 @@ class GitTools {
     }
 
     if (isCommit) {
-      final reset = await run(
-        'git',
-        [
-          '-C',
-          versionDirectory.path,
-          'reset',
-          '--hard',
-          version,
-        ],
-        stdout: consoleController.stdoutSink,
-        stderr: consoleController.stderrSink,
-      );
-
-      if (reset.exitCode != 0) {
+      try {
+        await _resetRepository(versionDirectory, commitHash: version);
+      } on FvmInternalError catch (_) {
         if (await versionDirectory.exists()) {
           await versionDirectory.delete(recursive: true);
         }
 
-        logger.trace(process.stderr.toString());
-        throw FvmInternalError(
-          'Could not git reset $version: ${reset.exitCode}',
-        );
+        rethrow;
       }
     }
 
@@ -202,6 +188,32 @@ class GitTools {
     } on Exception catch (err) {
       FvmLogger.error(err.toString());
       return null;
+    }
+  }
+
+  /// Resets the repository at [directory] to [commitHash] using `git reset`
+  ///
+  /// Throws [FvmInternalError] if `git`'s exit code is not 0.
+  static void _resetRepository(Directory directory, {String commitHash}) async {
+    final reset = await run(
+      'git',
+      [
+        '-C',
+        directory.path,
+        'reset',
+        '--hard',
+        commitHash,
+      ],
+      stdout: consoleController.stdoutSink,
+      stderr: consoleController.stderrSink,
+    );
+
+    if (reset.exitCode != 0) {
+      logger.trace(reset.stderr.toString());
+
+      throw FvmInternalError(
+        'Could not git reset $commitHash: ${reset.exitCode}',
+      );
     }
   }
 }
