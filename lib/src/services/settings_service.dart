@@ -1,3 +1,5 @@
+import 'package:fvm/exceptions.dart';
+
 import '../../fvm.dart';
 import 'context.dart';
 
@@ -44,7 +46,7 @@ class SettingsService {
       // Store in memory
       _settings = settings;
     } on Exception {
-      throw Exception('Could not save FVM config');
+      throw FvmInternalError('Could not save FVM settings');
     }
   }
 }

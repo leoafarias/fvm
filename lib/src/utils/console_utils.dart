@@ -6,7 +6,6 @@ import '../../exceptions.dart';
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
 import '../services/cache_service.dart';
-import '../services/project_service.dart';
 import 'logger.dart';
 
 /// Displays notice for confirmation
@@ -57,16 +56,7 @@ Future<String> cacheVersionSelector() async {
 }
 
 /// Select from project environments
-Future<String> projectEnvSeletor() async {
-  final project = await ProjectService.findAncestor();
-
-  // If project use check that is Flutter project
-  if (project == null) {
-    throw const FvmUsageException(
-      'Cannot find any FVM config.',
-    );
-  }
-
+Future<String> projectEnvSeletor(Project project) async {
   // Gets environment version
   final envs = project.config.environment;
 
@@ -74,9 +64,7 @@ Future<String> projectEnvSeletor() async {
 
   // Check if there are no environments configured
   if (envList.isEmpty) {
-    throw const FvmUsageException(
-      'Could not find any environment configuration.',
-    );
+    return null;
   }
 
   FvmLogger.fine('Project Environments configured for "${project.name}":\n');

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
+import '../../exceptions.dart';
 import '../models/config_model.dart';
 import '../utils/helpers.dart';
 
@@ -39,11 +40,9 @@ class ConfigService {
         await config.configFile.create(recursive: true);
       }
       await config.configFile.writeAsString(config.toJson());
-
-      await updateSdkLink(config);
-    } on Exception catch (err) {
-      print(err);
-      throw Exception('Could not save config changes');
+    } on Exception {
+      throw FvmInternalError('Could not save config changes');
     }
+    await updateSdkLink(config);
   }
 }

@@ -163,9 +163,9 @@ void main() {
       );
     });
 
-    testWithContext(key, 'Which Command', () async {
+    testWithContext(key, 'Doctor Command', () async {
       expect(
-        await FvmCommandRunner().run(['which']),
+        await FvmCommandRunner().run(['doctor']),
         ExitCode.success.code,
       );
     });

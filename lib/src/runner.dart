@@ -52,7 +52,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(FlutterCommand());
     addCommand(DartCommand());
     addCommand(GlobalCommand());
-    addCommand(WhichCommand());
+    addCommand(DoctorCommand());
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(EnvCommand());
@@ -81,8 +81,9 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on FvmInternalError catch (e, stackTrace) {
       FvmLogger.spacer();
-      FvmLogger.error(e.message);
-      logger.trace('$stackTrace');
+      FvmLogger.warning(e.message);
+      FvmLogger.spacer();
+      FvmLogger.error('$stackTrace');
       FvmLogger.spacer();
       return ExitCode.usage.code;
     } on UsageException catch (e) {
@@ -92,6 +93,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       FvmLogger.info(e.usage);
       FvmLogger.spacer();
       return ExitCode.usage.code;
+    } on Exception catch (e) {
+      print(e.toString());
     }
   }
 

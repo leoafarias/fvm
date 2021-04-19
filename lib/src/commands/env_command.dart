@@ -24,22 +24,25 @@ class EnvCommand extends BaseCommand {
   @override
   Future<int> run() async {
     String environment;
-
-    if (argResults.rest.isEmpty) {
-      environment = await projectEnvSeletor();
-    }
-
-    // Gets env from param if not yet selected
-    environment ??= argResults.rest[0];
-
     final project = await ProjectService.findAncestor();
 
     // If project use check that is Flutter project
     if (project == null) {
-      throw const FvmUsageException(
-        'Cannot find any FVM config.',
+      throw FvmUsageException(
+        'Cannot find any FVM config in project.',
       );
     }
+    if (argResults.rest.isEmpty) {
+      environment = await projectEnvSeletor(project);
+      if (environment == null) {
+        throw FvmUsageException(
+          'No envs are configured in the project',
+        );
+      }
+    }
+
+    // Gets env from param if not yet selected
+    environment ??= argResults.rest[0];
 
     // Gets environment version
     final envs = project.config.environment;
@@ -47,16 +50,17 @@ class EnvCommand extends BaseCommand {
 
     // Check if env confi exists
     if (envVersion == null) {
-      throw FvmUsageException('Environment: "$environment" is not configured');
+      throw FvmUsageException(
+        'Environment: "$environment" is not configured',
+      );
     }
 
     // Makes sure that is a valid version
     final validVersion = await FlutterTools.inferValidVersion(envVersion);
 
-    FvmLogger.spacer();
-
     FvmLogger.info(
-      '''Switching to [$environment] environment, which uses [${validVersion.name}] Flutter sdk.''',
+      'Switching to [$environment] environment, '
+      'which uses [${validVersion.name}] Flutter sdk.',
     );
 
     // Run install workflow
@@ -66,10 +70,9 @@ class EnvCommand extends BaseCommand {
     await ProjectService.pinVersion(project, validVersion);
 
     FvmLogger.fine(
-      '''Now using [$environment] environment. Flutter version [${validVersion.name}].''',
+      'Now using [$environment] environment. '
+      'Flutter version [${validVersion.name}].\n',
     );
-
-    FvmLogger.spacer();
 
     return ExitCode.success.code;
   }
