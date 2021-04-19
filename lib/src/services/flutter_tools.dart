@@ -129,6 +129,11 @@ class FlutterTools {
       return ValidVersion(version);
     }
 
+    // Check whether it's a git short hash
+    if (checkIsGitShortHash(name)) {
+      return ValidVersion(name);
+    }
+
     // Throws exception if is not in any above condition
     throw FvmUsageException(
       '$name is not a valid Flutter channel or release',
