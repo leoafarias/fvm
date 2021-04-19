@@ -88,7 +88,7 @@ class GitTools {
     final versionDirectory = versionCacheDir(version);
     await versionDirectory.create(recursive: true);
 
-    final isCommit = checkIsGitShortHash(version);
+    final isCommit = checkIsGitHash(version);
 
     final args = [
       'clone',

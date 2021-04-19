@@ -23,8 +23,10 @@ bool checkIsReleaseChannel(String name) {
 
 /// Checks if [name] is a short hash of a specific framework commit.
 /// This hash is also shown in the `flutter --version` command.
-bool checkIsGitShortHash(String name) {
-  return RegExp('^[a-f0-9]{10}\$').hasMatch(name);
+bool checkIsGitHash(String name) {
+  final shortHash = RegExp('^[a-f0-9]{10}\$').hasMatch(name);
+  final hash = RegExp('^[a-f0-9]{40}\$').hasMatch(name);
+  return shortHash || hash;
 }
 
 /// Returns a cache [Directory] for a [version]
@@ -87,7 +89,7 @@ Map<String, String> _updateEnvVariables(
 /// Returns a weight for all versions and channels
 Version assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
-  if (checkIsGitShortHash(version)) {
+  if (checkIsGitHash(version)) {
     version = '500.0.0';
   } else {
     switch (version) {

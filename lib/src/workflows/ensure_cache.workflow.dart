@@ -47,6 +47,6 @@ Future<CacheVersion> ensureCacheWorkflow(
     }
   } on Exception catch (err) {
     logger.trace(err.toString());
-    throw FvmInternalError('Could not install <$validVersion>');
+    throw FvmInternalError('Could not install $validVersion');
   }
 }

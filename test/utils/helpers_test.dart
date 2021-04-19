@@ -70,6 +70,11 @@ void main() {
 
   test('Assigns version weights', () async {
     expect(Version.parse('500.0.0'), assignVersionWeight('0941968447'));
+    expect(Version.parse('500.0.0'), assignVersionWeight('ce18d702e9'));
+    expect(
+      Version.parse('500.0.0'),
+      assignVersionWeight('ce18d702e90d3dff9fee53d61a770c94f14f2811'),
+    );
     expect(Version.parse('400.0.0'), assignVersionWeight('master'));
     expect(Version.parse('300.0.0'), assignVersionWeight('stable'));
     expect(Version.parse('200.0.0'), assignVersionWeight('beta'));

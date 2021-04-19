@@ -130,7 +130,7 @@ class FlutterTools {
     }
 
     // Check whether it's a git short hash
-    if (checkIsGitShortHash(name)) {
+    if (checkIsGitHash(name)) {
       return ValidVersion(name);
     }
 
