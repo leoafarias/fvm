@@ -1,4 +1,4 @@
-## 2.0.0-dev.6
+## 2.0.0-dev.7
 
 - Feature: Environments - Set Flutter sdk versions per project environment.
 - Feature: Doctor - Easily view the Flutter version configure for the project and configuration state
