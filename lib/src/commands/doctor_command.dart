@@ -79,10 +79,10 @@ class DoctorCommand extends BaseCommand {
     FvmLogger.fine('Configured env paths:');
     FvmLogger.divider();
     FvmLogger.info('Flutter:');
-    FvmLogger.info(flutterWhich);
+    FvmLogger.info(flutterWhich ?? '');
     FvmLogger.spacer();
     FvmLogger.info('Dart:');
-    FvmLogger.info(dartWhich);
+    FvmLogger.info(dartWhich ?? '');
     FvmLogger.spacer();
 
     return ExitCode.success.code;
