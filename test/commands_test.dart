@@ -12,7 +12,7 @@ import 'package:io/io.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
-import 'test_helpers.dart';
+import 'test_utils.dart';
 
 const key = 'commands_test';
 void main() {
@@ -24,7 +24,7 @@ void main() {
       }
     });
 
-    testWithContext(key, 'Install Channel', () async {
+    testWithContext('Install Channel', key, () async {
       // await testContextWrapper(contextKey, () async {
       await FvmCommandRunner().run([
         'install',
@@ -44,7 +44,7 @@ void main() {
       // });
     });
 
-    testWithContext(key, 'List Channel', () async {
+    testWithContext('List Channel', key, () async {
       try {
         await FvmCommandRunner().run(['list']);
       } on Exception catch (e) {
@@ -54,7 +54,7 @@ void main() {
       expect(true, true);
     });
 
-    testWithContext(key, 'Use Channel', () async {
+    testWithContext('Use Channel', key, () async {
       try {
         // Run foce to test within fvm
 
@@ -76,7 +76,7 @@ void main() {
       }
     });
 
-    testWithContext(key, 'Use Flutter SDK globally', () async {
+    testWithContext('Use Flutter SDK globally', key, () async {
       try {
         await FvmCommandRunner().run(['global', channel]);
         final linkExists = ctx.globalCacheLink.existsSync();
@@ -100,7 +100,7 @@ void main() {
     });
   });
   group('Release Workflow', () {
-    testWithContext(key, 'Install Release', () async {
+    testWithContext('Install Release', key, () async {
       try {
         await FvmCommandRunner()
             .run(['install', release, '--verbose', '--skip-setup']);
@@ -119,7 +119,7 @@ void main() {
       // expect(true, true);
     });
 
-    testWithContext(key, 'Use Release', () async {
+    testWithContext('Use Release', key, () async {
       try {
         await FvmCommandRunner().run(
           ['use', release, '--force', '--verbose'],
@@ -138,7 +138,7 @@ void main() {
       }
     });
 
-    testWithContext(key, 'List Command', () async {
+    testWithContext('List Command', key, () async {
       try {
         await FvmCommandRunner().run(['list', '--verbose']);
       } on Exception catch (e) {
@@ -148,7 +148,7 @@ void main() {
       expect(true, true);
     });
 
-    testWithContext(key, 'Remove Release', () async {
+    testWithContext('Remove Release', key, () async {
       await FvmCommandRunner().run(
         ['remove', release, '--verbose'],
       );
@@ -163,14 +163,14 @@ void main() {
       );
     });
 
-    testWithContext(key, 'Doctor Command', () async {
+    testWithContext('Doctor Command', key, () async {
       expect(
         await FvmCommandRunner().run(['doctor']),
         ExitCode.success.code,
       );
     });
 
-    testWithContext(key, 'Env Command', () async {
+    testWithContext('Env Command', key, () async {
       await ensureCacheWorkflow(
         ValidVersion(channel),
         skipConfirmation: true,

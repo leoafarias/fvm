@@ -2,7 +2,7 @@
 import 'package:fvm/src/services/project_service.dart';
 import 'package:test/test.dart';
 
-import 'test_helpers.dart';
+import 'test_utils.dart';
 
 void main() {
   group('Flutter Projects', () {
