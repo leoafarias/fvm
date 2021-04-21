@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-      GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     container:
       image: google/dart:latest
     steps:
@@ -24,14 +24,11 @@ jobs:
       - name: Install dependencies
         run: pub get
 
-
       - name: Build Version Number
         run: pub run build_runner build --delete-conflicting-outputs
-        
-      - name: Test 
+
+      - name: Test
         run: pub run test
 
       - name: Deploy to Homebrew
         run: pub run grinder pkg-homebrew-update
-
-      
