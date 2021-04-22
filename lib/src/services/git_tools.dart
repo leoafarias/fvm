@@ -17,7 +17,8 @@ class GitTools {
   /// Check if Git is installed
   static Future<void> canRun() async {
     try {
-      await run('git', ['--version'], workingDirectory: kWorkingDirectory.path);
+      await runExecutableArguments('git', ['--version'],
+          workingDirectory: kWorkingDirectory.path);
     } on ProcessException {
       throw Exception(
         'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
@@ -39,7 +40,7 @@ class GitTools {
         _cacheRepo,
       ];
 
-      await run(
+      await runExecutableArguments(
         'git',
         args,
         workingDirectory: kWorkingDirectory.path,
@@ -57,7 +58,7 @@ class GitTools {
   static Future<void> updateCache() async {
     try {
       final args = ['remote', 'update'];
-      await run(
+      await runExecutableArguments(
         'git',
         args,
         workingDirectory: _cacheRepo,
@@ -104,7 +105,7 @@ class GitTools {
       versionDirectory.path
     ];
 
-    final process = await run(
+    final process = await runExecutableArguments(
       'git',
       args,
       stdout: consoleController.stdoutSink,
@@ -140,7 +141,10 @@ class GitTools {
 
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
-    final result = await run('git', ['ls-remote', '--tags', '$kFlutterRepo']);
+    final result = await runExecutableArguments(
+      'git',
+      ['ls-remote', '--tags', '$kFlutterRepo'],
+    );
 
     if (result.exitCode != 0) {
       throw Exception('Could not fetch list of available Flutter SDKs');
@@ -161,22 +165,24 @@ class GitTools {
   }
 
   /// Returns the [name] of a branch or tag for a [version]
-  static Future<String> getBranchOrTag(String version) async {
+  static Future<String?> getBranchOrTag(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
     return _getCurrentGitBranch(versionDir);
   }
 
-  static Future<String> _getCurrentGitBranch(Directory dir) async {
+  static Future<String?> _getCurrentGitBranch(Directory dir) async {
     try {
       if (!await dir.exists()) {
         throw Exception(
             'Could not get GIT version from ${dir.path} that does not exist');
       }
-      var result = await run('git', ['rev-parse', '--abbrev-ref', 'HEAD'],
+      var result = await runExecutableArguments(
+          'git', ['rev-parse', '--abbrev-ref', 'HEAD'],
           workingDirectory: dir.path);
 
       if (result.stdout.trim() == 'HEAD') {
-        result = await run('git', ['tag', '--points-at', 'HEAD'],
+        result = await runExecutableArguments(
+            'git', ['tag', '--points-at', 'HEAD'],
             workingDirectory: dir.path);
       }
 
@@ -194,8 +200,11 @@ class GitTools {
   /// Resets the repository at [directory] to [commitHash] using `git reset`
   ///
   /// Throws [FvmInternalError] if `git`'s exit code is not 0.
-  static void _resetRepository(Directory directory, {String commitHash}) async {
-    final reset = await run(
+  static Future<void> _resetRepository(
+    Directory directory, {
+    required String commitHash,
+  }) async {
+    final reset = await runExecutableArguments(
       'git',
       [
         '-C',

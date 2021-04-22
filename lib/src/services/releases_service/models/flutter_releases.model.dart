@@ -9,9 +9,9 @@ import 'release.model.dart';
 class FlutterReleases {
   /// Constructor
   FlutterReleases({
-    this.baseUrl,
-    this.channels,
-    this.releases,
+    required this.baseUrl,
+    required this.channels,
+    required this.releases,
   });
 
   /// Base url for Flutter   /// Channels in Flutter releases
@@ -44,12 +44,16 @@ class FlutterReleases {
   }
 
   /// Retrieves version information
-  Release getReleaseFromVersion(String version) {
+  Release? getReleaseFromVersion(String version) {
     if (checkIsChannel(version)) {
       return channels[version];
     }
-
-    return releases.firstWhere((v) => v.version == version, orElse: () => null);
+    try {
+      return releases.firstWhere((v) => v.version == version);
+    } on Exception {
+      // Did not find any items
+      return null;
+    }
   }
 
   /// Checks if version is a release

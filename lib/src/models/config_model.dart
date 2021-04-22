@@ -3,7 +3,6 @@ import 'dart:io';
 
 // ignore: prefer_relative_imports
 import 'package:fvm/src/services/context.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
@@ -15,16 +14,16 @@ class FvmConfig {
   Directory configDir;
 
   /// Flutter SDK version configured
-  String flutterSdkVersion;
+  String? flutterSdkVersion;
 
   /// Environments configured
   Map<String, dynamic> environment;
 
   /// Constructor
   FvmConfig({
-    @required this.configDir,
-    @required this.flutterSdkVersion,
-    @required this.environment,
+    required this.configDir,
+    required this.flutterSdkVersion,
+    required this.environment,
   });
 
   /// Returns FvmConfig in [directory] from [jsonString]
@@ -40,7 +39,7 @@ class FvmConfig {
     return FvmConfig(
       configDir: directory,
       flutterSdkVersion: map['flutterSdkVersion'] as String,
-      environment: (map['environment'] as Map<String, dynamic>) ?? {},
+      environment: map['environment'] as Map<String, dynamic>? ?? {},
     );
   }
 
@@ -50,11 +49,15 @@ class FvmConfig {
   }
 
   /// Returns the active configured environment
-  String get activeEnv {
-    return environment.keys.firstWhere(
+  String? get activeEnv {
+    final env = environment.keys.firstWhere(
       (key) => environment[key] == flutterSdkVersion,
-      orElse: () => null,
+      orElse: () => '',
     );
+
+    if (env.isEmpty) {
+      return null;
+    }
   }
 
   /// Check if config file exists

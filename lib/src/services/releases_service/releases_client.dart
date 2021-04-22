@@ -17,22 +17,24 @@ String get storageUrl {
 /// Gets platform specific release URL for a [platform]
 /// Defaults to the platform's OS.
 /// returns [url] for the list of the platform releases.
-String getReleasesUrl({String platform}) {
+String getReleasesUrl({String? platform}) {
   platform ??= Platform.operatingSystem;
   return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
-FlutterReleases _cacheReleasesRes;
+FlutterReleases? _cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
 /// Can use memory [cache] if it exists.
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
-    if (_cacheReleasesRes != null && cache) return _cacheReleasesRes;
+    if (_cacheReleasesRes != null && cache) {
+      return Future.value(_cacheReleasesRes);
+    }
     final response = await fetch(getReleasesUrl());
     _cacheReleasesRes = FlutterReleases.fromJson(response);
-    return _cacheReleasesRes;
+    return Future.value(_cacheReleasesRes);
   } on Exception catch (err) {
     print(err);
     throw FvmInternalError(

@@ -55,9 +55,8 @@ class FVMClient {
   static final upgradeChannel = FlutterTools.upgradeChannel;
 
   /// Returns the setup sdk version of a [versionName]
-  static String getSdkVersionSync(CacheVersion cacheVersion) {
+  static String? getSdkVersionSync(CacheVersion cacheVersion) {
     // Do a null check for cleaner sidekick implementation
-    if (cacheVersion == null) return null;
 
     return CacheService.getSdkVersionSync(cacheVersion);
   }

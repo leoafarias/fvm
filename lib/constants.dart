@@ -32,9 +32,9 @@ Directory kWorkingDirectory = Directory.current;
 /// User Home Path
 String get kUserHome {
   if (Platform.isWindows) {
-    return kEnvVars['UserProfile'];
+    return kEnvVars['UserProfile']!;
   } else {
-    return kEnvVars['HOME'];
+    return kEnvVars['HOME']!;
   }
 }
 

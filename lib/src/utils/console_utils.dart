@@ -19,7 +19,7 @@ Future<bool> confirm(String message) async {
 Future<void> printVersionStatus(CacheVersion version, Project project) async {
   var printVersion = version.name;
 
-  if (project != null && project.pinnedVersion == version.name) {
+  if (project.pinnedVersion == version.name) {
     printVersion = '$printVersion (active)';
   }
   if (await CacheService.isGlobal(version)) {
@@ -56,7 +56,7 @@ Future<String> cacheVersionSelector() async {
 }
 
 /// Select from project environments
-Future<String> projectEnvSeletor(Project project) async {
+Future<String?> projectEnvSeletor(Project project) async {
   // Gets environment version
   final envs = project.config.environment;
 

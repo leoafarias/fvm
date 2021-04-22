@@ -8,8 +8,8 @@ import 'ensure_cache.workflow.dart';
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow(
   ValidVersion validVersion, {
-  bool force,
-  String environment,
+  bool force = false,
+  String? environment,
 }) async {
   // Get project from working directory
   final project = await ProjectService.getByDirectory(kWorkingDirectory);

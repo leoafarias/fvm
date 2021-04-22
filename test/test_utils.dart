@@ -17,7 +17,7 @@ import 'package:test/test.dart';
 String release = '1.17.4';
 const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
-String channelVersion;
+String? channelVersion;
 
 Directory getFvmTestDir(String key) {
   return Directory(join(kUserHome, 'fvmTest', key));
@@ -61,12 +61,12 @@ void testWithContext(
   String description,
   String key,
   void Function() body, {
-  String testOn,
-  Timeout timeout,
-  dynamic skip,
-  List<String> tags,
-  Map<String, dynamic> onPlatform,
-  int retry,
+  String? testOn,
+  Timeout? timeout,
+  dynamic? skip,
+  List<String>? tags,
+  Map<String, dynamic>? onPlatform,
+  int? retry,
 }) {
   return test(
     description,

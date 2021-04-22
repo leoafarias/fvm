@@ -6,11 +6,9 @@ void main() {
   group('Flutter Releases API', () {
     test('Has Channels', () async {
       final payload = await fetchFlutterReleases();
-      final channels = payload.channels;
+      final channels = payload.channels.toMap().keys;
 
-      expect(channels.stable != null, true);
-      expect(channels.beta != null, true);
-      expect(channels.dev != null, true);
+      expect(channels.length, 3);
     });
     test('Has Flutter Releases', () async {
       final releases = await fetchFlutterReleases();

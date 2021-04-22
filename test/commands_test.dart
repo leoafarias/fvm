@@ -60,9 +60,7 @@ void main() {
 
         await FvmCommandRunner().run(['use', channel, '--force', '--verbose']);
         final project = await ProjectService.findAncestor();
-        if (project == null) {
-          fail('Not running on a flutter project');
-        }
+
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetBin = project.config.sdkSymlink.targetSync();

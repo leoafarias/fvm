@@ -35,15 +35,16 @@ class FlutterTools {
   /// Sets Flutter config
   // ignore: avoid_positional_boolean_parameters
   static Future<void> setFluterConfig(Map<String, bool> config) async {
-    final analytics = config['analytics'] ? '--analytics' : '--no-analytics';
-    final web = config['web'] ? '--enable-web' : '--no-enable-web';
-    final macos = config['macos']
+    final analytics =
+        config['analytics'] == true ? '--analytics' : '--no-analytics';
+    final web = config['web'] == true ? '--enable-web' : '--no-enable-web';
+    final macos = config['macos'] == true
         ? '--enable-macos-desktop'
         : '--no-enable-macos-desktop';
-    final windows = config['windows']
+    final windows = config['windows'] == true
         ? '--enable-windows-desktop'
         : '--no-enable-windows-desktop';
-    final linux = config['linux']
+    final linux = config['linux'] == true
         ? '--enable-linux-desktop'
         : '--no-enable-linux-desktop';
 
@@ -102,7 +103,6 @@ class FlutterTools {
     String name, {
     bool forceRelease = false,
   }) async {
-    assert(name != null);
     final releases = await fetchFlutterReleases();
     // Not case sensitve
     name = name.toLowerCase();

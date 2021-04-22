@@ -18,8 +18,6 @@ Future<CacheVersion> ensureCacheWorkflow(
   bool skipConfirmation = false,
 }) async {
   try {
-    assert(validVersion != null);
-
     // If it's installed correctly just return and use cached
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
@@ -40,7 +38,12 @@ Future<CacheVersion> ensureCacheWorkflow(
     if (skipConfirmation || await confirm('Would you like to install it?')) {
       FvmLogger.spacer();
       FvmLogger.fine('Installing version: $validVersion...');
-      return await CacheService.cacheVersion(validVersion);
+      await CacheService.cacheVersion(validVersion);
+      final cacheVersion = await CacheService.isVersionCached(validVersion);
+      if (cacheVersion == null) {
+        throw FvmInternalError('Could not cache version $validVersion');
+      }
+      return cacheVersion;
     } else {
       // Exit if don't want to install
       exit(ExitCode.success.code);

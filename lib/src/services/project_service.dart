@@ -34,21 +34,19 @@ class ProjectService {
   static Future<void> updateLink() async {
     // Ensure the config link and symlink are updated
     final project = await ProjectService.findAncestor();
-    if (project != null &&
-        project.pinnedVersion != null &&
-        project.config != null) {
+    if (project.pinnedVersion != null) {
       await ConfigService.updateSdkLink(project.config);
     }
   }
 
   /// Search for version configured
-  static Future<String> findVersion() async {
+  static Future<String?> findVersion() async {
     final project = await ProjectService.findAncestor();
-    return project?.pinnedVersion;
+    return project.pinnedVersion;
   }
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<Project>> scanDirectory({Directory rootDir}) async {
+  static Future<List<Project>> scanDirectory({Directory? rootDir}) async {
     final paths = <Directory>[];
 
     if (rootDir == null) {
@@ -75,7 +73,7 @@ class ProjectService {
   static Future<void> pinVersion(
     Project project,
     ValidVersion validVersion, {
-    String environment,
+    String? environment,
   }) async {
     final config = project.config;
     // Attach as main version if no environment is set
@@ -89,7 +87,7 @@ class ProjectService {
   }
 
   /// Returns a [pubspec] from a [directory]
-  static Future<YamlNode> _getPubspec(Directory directory) async {
+  static Future<YamlNode?> _getPubspec(Directory directory) async {
     final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
     if (await pubspecFile.exists()) {
       final pubspec = await pubspecFile.readAsString();
@@ -116,7 +114,7 @@ class ProjectService {
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
-  static Future<Project> findAncestor({Directory directory}) async {
+  static Future<Project> findAncestor({Directory? directory}) async {
     // Get directory, defined root or current
     directory ??= kWorkingDirectory;
 
@@ -127,7 +125,7 @@ class ProjectService {
     final project = await getByDirectory(directory);
 
     // If project has a config return it
-    if (project.config.exists != null) {
+    if (project.config.exists) {
       return project;
     }
 

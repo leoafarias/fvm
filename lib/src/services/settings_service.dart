@@ -5,7 +5,7 @@ import 'context.dart';
 /// Service for FVM settings
 class SettingsService {
   SettingsService._();
-  static FvmSettings _settings;
+  static FvmSettings? _settings;
 
   /// Returns [FvmSettings]
   static Future<FvmSettings> read() async {
@@ -15,7 +15,7 @@ class SettingsService {
         // Store in memory
         _settings = FvmSettings.fromJson(payload);
       }
-      return _settings;
+      return Future.value(_settings);
     } on Exception {
       return FvmSettings();
     }
@@ -27,9 +27,10 @@ class SettingsService {
       if (_settings == null) {
         final payload = ctx.settingsFile.readAsStringSync();
         // Store in memory
-        _settings = FvmSettings.fromJson(payload);
+        return FvmSettings.fromJson(payload);
+      } else {
+        return _settings!;
       }
-      return _settings;
     } on Exception {
       return FvmSettings();
     }

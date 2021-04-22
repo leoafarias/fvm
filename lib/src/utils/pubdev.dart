@@ -18,18 +18,17 @@ Future<String> _fetchLatestVersion() async {
 
 /// Checks if there is an update for [currentVersion]
 /// If not provided defaults to [packageVersion]
-Future<bool> checkIfLatestVersion({String currentVersion}) async {
+Future<bool> checkIfLatestVersion({String? currentVersion}) async {
   currentVersion ??= packageVersion;
   try {
     final latestVersion = await _fetchLatestVersion();
 
     final latestSemVer = Version.parse(latestVersion);
     var needUpdate = false;
-    if (currentVersion != null) {
-      final current = Version.parse(currentVersion);
-      // Check as need update if latest version is higher
-      needUpdate = latestSemVer > current;
-    }
+
+    final current = Version.parse(currentVersion);
+    // Check as need update if latest version is higher
+    needUpdate = latestSemVer > current;
 
     if (needUpdate) {
       final updateCmd = cyan.wrap('pub global activate fvm');
@@ -53,5 +52,5 @@ Future<bool> checkIfLatestVersion({String currentVersion}) async {
 String get _divider {
   return yellow.wrap(
     '\n___________________________________________________\n\n',
-  );
+  )!;
 }

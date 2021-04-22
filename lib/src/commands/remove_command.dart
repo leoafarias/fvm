@@ -30,14 +30,14 @@ class RemoveCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final force = argResults['force'] == true;
-    String version;
+    final force = boolArg('force');
+    String? version;
 
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       version = await cacheVersionSelector();
     }
     // Assign if its empty
-    version ??= argResults.rest[0];
+    version ??= argResults!.rest[0];
     final validVersion = await FlutterTools.inferValidVersion(version);
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
@@ -53,7 +53,8 @@ class RemoveCommand extends BaseCommand {
       await removeWorkflow(validVersion);
     } else {
       final confirmation = await confirm(
-        '''$validVersion is current configured as "global". Do you still would like to remove?''',
+        '$validVersion is current configured as "global". '
+        'Do you still would like to remove?',
       );
 
       if (confirmation) {

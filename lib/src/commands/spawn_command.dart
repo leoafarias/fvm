@@ -21,31 +21,24 @@ class SpawnCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       throw UsageException(
         'Need to provide a version to spawn a Flutter command',
         usage,
       );
     }
 
-    final version = argResults.rest[0];
+    final version = argResults!.rest[0];
 
     // Removes version from first arg
-    final flutterArgs = [...argResults.rest]..removeAt(0);
+    final flutterArgs = [...argResults!.rest]..removeAt(0);
 
-    if (version != null) {
-      final validVersion = await FlutterTools.inferValidVersion(version);
-      // Will install version if not already instaled
-      final cacheVersion = await ensureCacheWorkflow(validVersion);
-      // Runs flutter command with pinned version
-      FvmLogger.info('Spawning version "$version"...');
+    final validVersion = await FlutterTools.inferValidVersion(version);
+    // Will install version if not already instaled
+    final cacheVersion = await ensureCacheWorkflow(validVersion);
+    // Runs flutter command with pinned version
+    FvmLogger.info('Spawning version "$version"...');
 
-      return await flutterCmd(cacheVersion, flutterArgs);
-    } else {
-      throw UsageException(
-        'Need to provide a version to spawn a Flutter command',
-        usage,
-      );
-    }
+    return await flutterCmd(cacheVersion, flutterArgs);
   }
 }

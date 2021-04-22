@@ -36,8 +36,8 @@ void main() {
 
       validChannel = await CacheService.isVersionCached(ValidVersion(_channel));
       validVersion = await CacheService.isVersionCached(ValidVersion(_version));
-      expect(validChannel.name, _channel);
-      expect(validVersion.name, _version);
+      expect(validChannel!.name, _channel);
+      expect(validVersion!.name, _version);
     });
 
     testWithContext('Lists Cache Versions', key, () async {
@@ -48,8 +48,8 @@ void main() {
     testWithContext('Get Cache Versions by name', key, () async {
       final channel = await CacheService.getByVersionName(_channel);
       final version = await CacheService.getByVersionName(_version);
-      expect(channel.name, _channel);
-      expect(version.name, _version);
+      expect(channel!.name, _channel);
+      expect(version!.name, _version);
     });
 
     testWithContext('Verify cache integrity', key, () async {
@@ -57,8 +57,8 @@ void main() {
       final version = await CacheService.getByVersionName(_version);
       final invalidCache = CacheVersion('invalid_version');
 
-      final isChannelValid = await CacheService.verifyIntegrity(channel);
-      final isVersionValid = await CacheService.verifyIntegrity(version);
+      final isChannelValid = await CacheService.verifyIntegrity(channel!);
+      final isVersionValid = await CacheService.verifyIntegrity(version!);
       final isInvalidValid = await CacheService.verifyIntegrity(invalidCache);
 
       expect(isChannelValid, true);
@@ -87,7 +87,7 @@ void main() {
     // });
 
     testWithContext('Set/Get Global Cache Version ', key, () async {
-      CacheVersion globalVersion;
+      CacheVersion? globalVersion;
       bool isChanneGlobal, isVersionGlobal;
       globalVersion = await CacheService.getGlobal();
       expect(globalVersion, null);
@@ -95,12 +95,12 @@ void main() {
       final channel = await CacheService.getByVersionName(_channel);
       final version = await CacheService.getByVersionName(_version);
       // Set channel as global
-      await CacheService.setGlobal(channel);
+      await CacheService.setGlobal(channel!);
       globalVersion = await CacheService.getGlobal();
       isChanneGlobal = await CacheService.isGlobal(channel);
-      isVersionGlobal = await CacheService.isGlobal(version);
+      isVersionGlobal = await CacheService.isGlobal(version!);
 
-      expect(globalVersion.name, channel.name);
+      expect(globalVersion!.name, channel.name);
       expect(isChanneGlobal, true);
       expect(isVersionGlobal, false);
 
@@ -110,7 +110,7 @@ void main() {
       isChanneGlobal = await CacheService.isGlobal(channel);
       isVersionGlobal = await CacheService.isGlobal(version);
 
-      expect(globalVersion.name, version.name);
+      expect(globalVersion!.name, version.name);
       expect(isChanneGlobal, false);
       expect(isVersionGlobal, true);
     });
