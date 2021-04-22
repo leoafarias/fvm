@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:meta/meta.dart';
-import 'package:pubspec_yaml/pubspec_yaml.dart';
+import 'package:path/path.dart';
 
 import 'config_model.dart';
 
@@ -19,16 +19,12 @@ class Project {
   /// Is Flutter project
   final bool isFlutterProject;
 
-  /// Pubspec of the project
-  final PubspecYaml pubspec;
-
   /// Project constructor
   Project({
     @required this.config,
     this.name,
     this.projectDir,
     this.isFlutterProject,
-    this.pubspec,
   });
 
   /// Pinned version within a project
@@ -39,5 +35,10 @@ class Project {
     } else {
       return null;
     }
+  }
+
+  /// Pubspec file
+  File get pubspecFile {
+    return File(join(projectDir.path, 'pubspec.yaml'));
   }
 }

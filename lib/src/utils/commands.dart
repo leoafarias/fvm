@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
-import 'package:process_run/cmd_run.dart' as process;
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -90,7 +88,7 @@ Future<String> flutterCmdSimple(
 ) async {
   // Get exec path for flutter
   final execPath = whichSync('flutter');
-  final result = await process.run(execPath, args);
+  final result = await Process.run(execPath, args);
   return result.stdout as String;
 }
 

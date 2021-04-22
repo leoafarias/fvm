@@ -7,8 +7,8 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
-import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 Future<String> _inferVersionString(String version) async {
   final valid = await FlutterTools.inferValidVersion(version);
@@ -48,10 +48,11 @@ void main() {
   });
 
   test('Does CLI version match', () async {
-    final pubspec = File(
+    final yaml = File(
       join(kWorkingDirectory.path, 'pubspec.yaml'),
-    ).readAsStringSync().toPubspecYaml();
-    expect(pubspec.version.valueOr(() => null), packageVersion);
+    ).readAsStringSync();
+    final pubspec = loadYamlNode(yaml);
+    expect(pubspec.value['version'], packageVersion);
   });
 
   test('Test update env variables', () async {

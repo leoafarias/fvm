@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:pubspec_yaml/pubspec_yaml.dart';
+import 'package:yaml/yaml.dart';
 
 import '../../constants.dart';
 import '../models/project_model.dart';
@@ -15,14 +15,12 @@ class ProjectService {
 
   /// Returns projects by providing a [directory]
   static Future<Project> getByDirectory(Directory directory) async {
-    final pubspec = await _getPubspec(directory);
     final config = await ConfigService.read(directory);
 
     return Project(
-      name: pubspec == null ? null : pubspec.name,
+      name: basename(directory.path),
       config: config,
       projectDir: directory,
-      pubspec: pubspec,
       isFlutterProject: await isFlutterProject(directory),
     );
   }
@@ -91,11 +89,11 @@ class ProjectService {
   }
 
   /// Returns a [pubspec] from a [directory]
-  static Future<PubspecYaml> _getPubspec(Directory directory) async {
+  static Future<YamlNode> _getPubspec(Directory directory) async {
     final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
     if (await pubspecFile.exists()) {
       final pubspec = await pubspecFile.readAsString();
-      return pubspec.toPubspecYaml();
+      return loadYamlNode(pubspec);
     } else {
       return null;
     }
@@ -108,11 +106,8 @@ class ProjectService {
       if (pubspec == null) {
         return false;
       }
-      final isFlutter = pubspec.dependencies.firstWhere(
-        // ignore: invalid_use_of_protected_member
-        (dependency) => dependency.sdk != null,
-        orElse: () => null,
-      );
+      final deps = pubspec.value['dependencies'] ?? {};
+      final isFlutter = deps['flutter'];
       return isFlutter != null;
     } on Exception {
       return false;
