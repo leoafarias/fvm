@@ -1,17 +1,17 @@
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
 import 'package:io/ansi.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
+import 'http.dart';
 
 const _packageUrl = 'https://pub.dev/api/packages/fvm';
 const _changelogUrl = 'https://pub.dev/packages/fvm/changelog';
 
 Future<String> _fetchLatestVersion() async {
-  final response = await http.get(_packageUrl);
-  final json = jsonDecode(response.body) as Map<String, dynamic>;
+  final response = await fetch(_packageUrl);
+  final json = jsonDecode(response) as Map<String, dynamic>;
   final version = json['latest']['version'] as String;
   return version;
 }

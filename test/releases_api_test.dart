@@ -1,6 +1,6 @@
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/http.dart';
 import 'package:test/test.dart';
-import 'package:http/http.dart' as http;
 
 void main() {
   group('Flutter Releases API', () {
@@ -23,9 +23,9 @@ void main() {
 
     test('Can fetch releases for all platforms', () async {
       try {
-        await http.get(getReleasesUrl(platform: 'macos'));
-        await http.get(getReleasesUrl(platform: 'linux'));
-        await http.get(getReleasesUrl(platform: 'windows'));
+        await fetch(getReleasesUrl(platform: 'macos'));
+        await fetch(getReleasesUrl(platform: 'linux'));
+        await fetch(getReleasesUrl(platform: 'windows'));
         expect(true, true);
       } on Exception {
         fail('Could not resolve all platform releases');

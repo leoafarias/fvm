@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -95,6 +97,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on Exception catch (e) {
       print(e.toString());
+      return ExitCode.usage.code;
     }
   }
 

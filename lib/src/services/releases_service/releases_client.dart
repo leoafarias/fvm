@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
-
 import '../../../exceptions.dart';
+import '../../utils/http.dart';
 import 'models/flutter_releases.model.dart';
 
 const _storageDefaultBase = 'https://storage.googleapis.com';
@@ -31,13 +30,16 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
     if (_cacheReleasesRes != null && cache) return _cacheReleasesRes;
-    final response = await http.get(getReleasesUrl());
-    _cacheReleasesRes = FlutterReleases.fromJson(response.body);
+    final response = await fetch(getReleasesUrl());
+    _cacheReleasesRes = FlutterReleases.fromJson(response);
     return _cacheReleasesRes;
-  } on Exception {
+  } on Exception catch (err) {
+    print(err);
     throw FvmInternalError(
-      '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
-https://flutter.dev/community/china''',
+      'Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n'
+      'Fvm will use the value set on '
+      'env FLUTTER_STORAGE_BASE_URL to check versions\n'
+      'if you are located in China, please see this page: https://flutter.dev/community/china',
     );
   }
 }

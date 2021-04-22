@@ -137,20 +137,23 @@ class CacheService {
   /// Checks if global version is configured correctly
   static Future<GlobalConfigured> isGlobalConfigured() async {
     final currentPath = await which('flutter');
+    final binPath = await getParentDirPath(currentPath);
 
     /// Return false if link does not exist
     if (!await ctx.globalCacheLink.exists()) {
       return GlobalConfigured(
         isSetup: false,
-        currentPath: currentPath,
-        newPath: null,
+        currentPath: binPath,
+        correctPath: null,
       );
     }
-    final newPath = join(ctx.globalCacheBinPath);
+
     return GlobalConfigured(
-      isSetup: newPath == currentPath,
-      currentPath: currentPath,
-      newPath: newPath,
+      // Check if flutter path is the exec path
+      isSetup: ctx.globalCacheBinPath == binPath,
+      currentPath: binPath,
+      // Path configuration should link into bin directory
+      correctPath: ctx.globalCacheBinPath,
     );
   }
 }
@@ -163,13 +166,13 @@ class GlobalConfigured {
   /// Current path configured
   final String currentPath;
 
-  /// New path to be configured
-  final String newPath;
+  /// Correct path to be configured
+  final String correctPath;
 
   /// Constructor
   const GlobalConfigured({
     this.isSetup,
     this.currentPath,
-    this.newPath,
+    this.correctPath,
   });
 }

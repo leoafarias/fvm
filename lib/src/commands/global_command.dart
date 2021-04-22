@@ -52,7 +52,7 @@ class GlobalCommand extends BaseCommand {
       FvmLogger.info(
         'to use global Flutter SDK through FVM you should change it to:\n',
       );
-      FvmLogger.info(configured.newPath);
+      FvmLogger.info(configured.correctPath);
     }
 
     return ExitCode.success.code;

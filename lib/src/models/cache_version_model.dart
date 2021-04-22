@@ -38,7 +38,7 @@ class CacheVersion {
   int compareTo(CacheVersion other) {
     final version = assignVersionWeight(name);
     final otherVersion = assignVersionWeight(other.name);
-    return version.compareTo(otherVersion);
+    return compareSemver(version, otherVersion);
   }
 
   String toString() {
