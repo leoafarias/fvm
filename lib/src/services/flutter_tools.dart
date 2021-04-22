@@ -134,6 +134,11 @@ class FlutterTools {
       return ValidVersion(name);
     }
 
+    // Allow custom versoin
+    if (checkIsCustom(name)) {
+      return ValidVersion(name, custom: true);
+    }
+
     // Throws exception if is not in any above condition
     throw FvmUsageException(
       '$name is not a valid Flutter channel or release',

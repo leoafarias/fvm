@@ -28,6 +28,11 @@ bool checkIsGitHash(String name) {
   return shortHash || hash;
 }
 
+/// Checks if [name] is a custom version
+bool checkIsCustom(String name) {
+  return name.startsWith('custom_');
+}
+
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
   return Directory(join(ctx.cacheDir.path, version));

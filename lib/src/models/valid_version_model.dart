@@ -6,8 +6,14 @@ class ValidVersion {
   /// Name of the version
   String name;
 
+  /// Is custom version
+  bool custom;
+
   /// Constructor
-  ValidVersion(this.name);
+  ValidVersion(
+    this.name, {
+    this.custom = false,
+  });
 
   /// Is valid version a channel
   bool get isChannel {
