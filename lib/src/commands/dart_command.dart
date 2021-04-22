@@ -19,7 +19,7 @@ class DartCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final version = await ProjectService.findVersion();
-    final args = argResults.arguments;
+    final args = argResults!.arguments;
 
     if (version != null) {
       // Make sure version is valid

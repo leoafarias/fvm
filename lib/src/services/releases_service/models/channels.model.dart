@@ -24,7 +24,7 @@ extension ChannelExtension on Channel {
       case Channel.beta:
         return 'beta';
       default:
-        return null;
+        return '';
     }
   }
 }
@@ -39,7 +39,7 @@ Channel channelFromName(String name) {
     case 'beta':
       return Channel.beta;
     default:
-      return null;
+      throw Exception('Invalid Channel name: $name');
   }
 }
 
@@ -47,9 +47,9 @@ Channel channelFromName(String name) {
 class Channels {
   /// Channel model contructor
   Channels({
-    this.beta,
-    this.dev,
-    this.stable,
+    required this.beta,
+    required this.dev,
+    required this.stable,
   });
 
   /// Beta channel release
@@ -75,7 +75,7 @@ class Channels {
     if (channelName == 'beta') return beta;
     if (channelName == 'dev') return dev;
     if (channelName == 'stable') return stable;
-    return null;
+    throw Exception('Not a valid channle $channelName');
   }
 
   /// Return a map of values from the Channels model

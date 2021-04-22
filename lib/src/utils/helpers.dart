@@ -41,11 +41,8 @@ bool isDirectory(String path) {
 /// Get the parent directory path of a [filePath]
 Future<String> getParentDirPath(String filePath) async {
   final file = File(filePath);
-  if (await file.exists()) {
-    return file.parent.path;
-  } else {
-    return null;
-  }
+
+  return file.parent.path;
 }
 
 /// Creates a symlink from [source] to the [target]
@@ -80,12 +77,14 @@ Map<String, String> _updateEnvVariables(
   String key,
   String execPath,
 ) {
-  assert(execPath != null);
+  final envPath = kEnvVars['PATH'] ?? '';
 
   /// Remove exec path that does not match
-  final pathEnvList = kEnvVars['PATH']
+  final pathEnvList = envPath
       .split(':')
-      .where((e) => '$e/$key' != whichSync(key))
+      .where(
+        (e) => '$e/$key' != whichSync(key),
+      )
       .toList();
 
   final newEnv = pathEnvList.join(':');
@@ -108,6 +107,10 @@ int compareSemver(String version, String other) {
       final otherMatches = regExp.firstMatch(other);
 
       var result = 0;
+
+      if (versionMatches == null || otherMatches == null) {
+        return result;
+      }
 
       for (var idx = 1; idx < versionMatches.groupCount; idx++) {
         final versionMatch = versionMatches.group(idx) ?? '';

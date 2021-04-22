@@ -5,7 +5,7 @@ import '../utils/pretty_json.dart';
 /// FVM Settings model
 class FvmSettings {
   /// Cache path configured in settings
-  String cachePath;
+  String? cachePath;
 
   /// Settings if should skip setup
   bool skipSetup;
@@ -28,9 +28,9 @@ class FvmSettings {
   ///Returns FvmSettings from a map of values
   factory FvmSettings.fromMap(Map<String, dynamic> map) {
     return FvmSettings(
-      cachePath: map['cachePath'] as String,
-      skipSetup: map['skipSetup'] as bool ?? false,
-      gitCache: map['gitCache'] as bool ?? false,
+      cachePath: map['cachePath'] as String?,
+      skipSetup: map['skipSetup'] as bool,
+      gitCache: map['gitCache'] as bool,
     );
   }
 

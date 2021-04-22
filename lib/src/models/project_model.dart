@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import 'config_model.dart';
@@ -8,7 +7,7 @@ import 'config_model.dart';
 /// Flutter Project model
 class Project {
   /// Name of the flutter project
-  final String name;
+  final String? name;
 
   /// Directory of project
   final Directory projectDir;
@@ -21,20 +20,16 @@ class Project {
 
   /// Project constructor
   Project({
-    @required this.config,
     this.name,
-    this.projectDir,
-    this.isFlutterProject,
+    required this.config,
+    required this.isFlutterProject,
+    required this.projectDir,
   });
 
   /// Pinned version within a project
   /// returns null if no version is pinned
-  String get pinnedVersion {
-    if (config != null) {
-      return config.flutterSdkVersion;
-    } else {
-      return null;
-    }
+  String? get pinnedVersion {
+    return config.flutterSdkVersion;
   }
 
   /// Pubspec file

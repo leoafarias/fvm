@@ -13,7 +13,7 @@ const Symbol contextKey = #fvmContext;
 
 /// FVM Context
 FvmContext get ctx {
-  return Zone.current[contextKey] as FvmContext ?? FvmContext._root;
+  return Zone.current[contextKey] as FvmContext? ?? FvmContext._root;
 }
 
 /// Returns current FVM context
@@ -25,15 +25,15 @@ class FvmContext {
   /// If nothing is provided set default
   FvmContext._(
     this.name, {
-    Directory fvmDir,
-    Directory cacheDir,
+    Directory? fvmDir,
+    Directory? cacheDir,
   })  : _fvmDir = fvmDir ?? Directory(kFvmHome),
-        _cacheDir = cacheDir;
+        _cacheDirOverride = cacheDir;
 
   /// Name of the context
   final String name;
   final Directory _fvmDir;
-  final Directory _cacheDir;
+  final Directory? _cacheDirOverride;
 
   /// File for FVM Settings
   File get settingsFile {
@@ -43,9 +43,14 @@ class FvmContext {
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
     final _settings = SettingsService.readSync();
+
+    // Override cacheDir
+    if (_cacheDirOverride != null) {
+      return _cacheDirOverride!;
+    }
     // If there is a cache
     if (_settings.cachePath != null) {
-      return Directory(normalize(_cacheDir.path));
+      return Directory(normalize(_settings.cachePath!));
     }
 
     /// Default cache directory
@@ -78,11 +83,11 @@ class FvmContext {
 
   /// Runs context zoned
   FutureOr<V> run<V>({
-    @required FutureOr<V> Function() body,
-    String name,
-    final Directory fvmDir,
-    final Directory cacheDir,
-    ZoneSpecification zoneSpecification,
+    required FutureOr<V> Function() body,
+    required String name,
+    final Directory? fvmDir,
+    final Directory? cacheDir,
+    ZoneSpecification? zoneSpecification,
   }) async {
     final child = FvmContext._(
       name,

@@ -61,16 +61,16 @@ class UseCommand extends BaseCommand {
     final pinOption = boolArg('pin');
     final envOption = stringArg('env');
 
-    String version;
+    String? version;
 
     // Show chooser if not version is provided
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       /// Ask which version to select
       version = await cacheVersionSelector();
     }
 
     // Get version from first arg
-    version ??= argResults.rest[0];
+    version ??= argResults!.rest[0];
 
     // throw UsageException('Usage exception', usage.);
 

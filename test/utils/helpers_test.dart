@@ -64,7 +64,7 @@ void main() {
     final newEnvVar = updateFlutterEnvVariables('FAKE_PATH');
 
     // expect(newEnvVar[envName], envVars[envName]);
-    expect(newEnvVar[envName].contains(fakePath), true);
+    expect(newEnvVar[envName]!.contains(fakePath), true);
     expect(envVars, isNot(newEnvVar));
   });
 

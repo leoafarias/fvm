@@ -17,8 +17,7 @@ class CacheService {
   /// Directory where local versions are cached
 
   /// Returns a [CacheVersion] from a [versionName]
-  /// TODO: Remove directory check in favor of getAllVersions
-  static Future<CacheVersion> getByVersionName(String versionName) async {
+  static Future<CacheVersion?> getByVersionName(String versionName) async {
     final versionDir = versionCacheDir(versionName);
     // Return null if version does not exist
     if (!await versionDir.exists()) return null;
@@ -38,7 +37,11 @@ class CacheService {
     for (var version in versions) {
       if (isDirectory(version.path)) {
         final name = basename(version.path);
-        cacheVersions.add(await getByVersionName(name));
+        final cacheVersion = await getByVersionName(name);
+
+        if (cacheVersion != null) {
+          cacheVersions.add(cacheVersion);
+        }
       }
     }
 
@@ -63,13 +66,12 @@ class CacheService {
   }
 
   /// Caches version a [validVersion] and returns [CacheVersion]
-  static Future<CacheVersion> cacheVersion(ValidVersion validVersion) async {
+  static Future<void> cacheVersion(ValidVersion validVersion) async {
     await GitTools.cloneVersion(validVersion.name);
-    return isVersionCached(validVersion);
   }
 
   /// Gets Flutter SDK version from CacheVersion sync
-  static String getSdkVersionSync(CacheVersion version) {
+  static String? getSdkVersionSync(CacheVersion version) {
     final versionFile = File(join(version.dir.path, 'version'));
     if (versionFile.existsSync()) {
       return versionFile.readAsStringSync();
@@ -79,7 +81,9 @@ class CacheService {
   }
 
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
-  static Future<CacheVersion> isVersionCached(ValidVersion validVersion) async {
+  static Future<CacheVersion?> isVersionCached(
+    ValidVersion validVersion,
+  ) async {
     final cacheVersion = await CacheService.getByVersionName(validVersion.name);
     // Return false if not cached
     if (cacheVersion == null) return null;
@@ -87,7 +91,8 @@ class CacheService {
     // Check if version directory is from git
     if (!await CacheService.verifyIntegrity(cacheVersion)) {
       print(
-          '$validVersion exists but was not setup correctly. Doing cleanup...');
+        '$validVersion exists but was not setup correctly. Doing cleanup...',
+      );
       await CacheService.remove(cacheVersion);
       return null;
     }
@@ -102,7 +107,7 @@ class CacheService {
   }
 
   /// Returns a global [CacheVersion] if exists
-  static Future<CacheVersion> getGlobal() async {
+  static Future<CacheVersion?> getGlobal() async {
     if (await ctx.globalCacheLink.exists()) {
       // Get directory name
       final version = basename(await ctx.globalCacheLink.target());
@@ -125,7 +130,7 @@ class CacheService {
   }
 
   /// Returns a global [CacheVersion] if exists
-  static String getGlobalVersionSync() {
+  static String? getGlobalVersionSync() {
     if (ctx.globalCacheLink.existsSync()) {
       // Get directory name
       return basename(ctx.globalCacheLink.targetSync());
@@ -136,16 +141,12 @@ class CacheService {
 
   /// Checks if global version is configured correctly
   static Future<GlobalConfigured> isGlobalConfigured() async {
-    final currentPath = await which('flutter');
+    final currentPath = await which('flutter') ?? '';
     final binPath = await getParentDirPath(currentPath);
 
     /// Return false if link does not exist
     if (!await ctx.globalCacheLink.exists()) {
-      return GlobalConfigured(
-        isSetup: false,
-        currentPath: binPath,
-        correctPath: null,
-      );
+      return GlobalConfigured.notConfigured(binPath);
     }
 
     return GlobalConfigured(
@@ -164,15 +165,24 @@ class GlobalConfigured {
   final bool isSetup;
 
   /// Current path configured
-  final String currentPath;
+  final String? currentPath;
 
   /// Correct path to be configured
   final String correctPath;
 
   /// Constructor
   const GlobalConfigured({
-    this.isSetup,
-    this.currentPath,
-    this.correctPath,
+    required this.isSetup,
+    required this.currentPath,
+    required this.correctPath,
   });
+
+  /// Instance of GlobalConfigured with state not configured for [currentPath]
+  factory GlobalConfigured.notConfigured(String currentPath) {
+    return GlobalConfigured(
+      isSetup: false,
+      currentPath: currentPath,
+      correctPath: '',
+    );
+  }
 }

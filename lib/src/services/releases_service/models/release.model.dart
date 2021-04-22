@@ -5,13 +5,13 @@ import 'channels.model.dart';
 class Release {
   /// Constructor
   Release({
-    this.hash,
-    this.channel,
-    this.version,
-    this.releaseDate,
-    this.archive,
-    this.sha256,
-    this.activeChannel,
+    required this.hash,
+    required this.channel,
+    required this.version,
+    required this.releaseDate,
+    required this.archive,
+    required this.sha256,
+    this.activeChannel = false,
   });
 
   /// Release hash
@@ -43,7 +43,7 @@ class Release {
         releaseDate: DateTime.parse(map['release_date'] as String),
         archive: map['archive'] as String,
         sha256: map['sha256'] as String,
-        activeChannel: map['activeChannel'] as bool ?? false,
+        activeChannel: map['activeChannel'] as bool? ?? false,
       );
 
   /// Turns Release model into a map of values
