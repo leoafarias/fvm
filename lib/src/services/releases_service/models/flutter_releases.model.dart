@@ -48,11 +48,12 @@ class FlutterReleases {
     if (checkIsChannel(version)) {
       return channels[version];
     }
-    try {
-      return releases.firstWhere((v) => v.version == version);
-    } on Exception {
-      // Did not find any items
+
+    final foundIdx = releases.indexWhere((v) => v.version == version);
+    if (foundIdx < 0) {
       return null;
+    } else {
+      releases[foundIdx];
     }
   }
 
