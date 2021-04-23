@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:io/ansi.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../version.dart';
+import 'helpers.dart';
 import 'http.dart';
 
 const _packageUrl = 'https://pub.dev/api/packages/fvm';
@@ -23,12 +23,10 @@ Future<bool> checkIfLatestVersion({String? currentVersion}) async {
   try {
     final latestVersion = await _fetchLatestVersion();
 
-    final latestSemVer = Version.parse(latestVersion);
-    var needUpdate = false;
+    final comparison = compareSemver(currentVersion, latestVersion);
 
-    final current = Version.parse(currentVersion);
     // Check as need update if latest version is higher
-    needUpdate = latestSemVer > current;
+    final needUpdate = comparison < 0;
 
     if (needUpdate) {
       final updateCmd = cyan.wrap('pub global activate fvm');
