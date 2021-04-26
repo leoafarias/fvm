@@ -90,8 +90,8 @@ Future<String> flutterCmdSimple(
   // Get exec path for flutter
   final execPath = whichSync('flutter') ?? '';
   final result = await runExecutableArguments(execPath, args);
-  final code = await result.exitCode;
-  if (code == 0) {
+
+  if (result.exitCode == 0) {
     return result.stdout as String;
   } else {
     return result.stderr as String;
