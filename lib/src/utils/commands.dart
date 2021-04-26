@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:process_run/cmd_run.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -81,21 +80,6 @@ Future<int> flutterGlobalCmd(List<String> args) async {
     execPath,
     args: args,
   );
-}
-
-/// Runs a simple Flutter cmd
-Future<String> flutterCmdSimple(
-  List<String> args,
-) async {
-  // Get exec path for flutter
-  final execPath = whichSync('flutter') ?? '';
-  final result = await runExecutableArguments(execPath, args);
-
-  if (result.exitCode == 0) {
-    return result.stdout as String;
-  } else {
-    return result.stderr as String;
-  }
 }
 
 Future<int> _runCmd(

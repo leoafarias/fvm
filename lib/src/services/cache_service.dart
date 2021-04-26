@@ -129,7 +129,7 @@ class CacheService {
     }
   }
 
-  /// Returns a global [CacheVersion] if exists
+  /// Returns a global version name if exists
   static String? getGlobalVersionSync() {
     if (ctx.globalCacheLink.existsSync()) {
       // Get directory name

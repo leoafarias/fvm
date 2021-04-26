@@ -6,7 +6,6 @@ import '../models/valid_version_model.dart';
 import '../utils/commands.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
-import '../utils/matchers.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
@@ -26,70 +25,6 @@ class FlutterTools {
   static Future<void> setupSdk(CacheVersion version) async {
     try {
       await flutterCmd(version, ['--version']);
-    } on Exception catch (err) {
-      logger.trace(err.toString());
-      throw const FvmInternalError('Could not finish setting up Flutter sdk');
-    }
-  }
-
-  /// Sets Flutter config
-  // ignore: avoid_positional_boolean_parameters
-  static Future<void> setFluterConfig(Map<String, bool> config) async {
-    final analytics =
-        config['analytics'] == true ? '--analytics' : '--no-analytics';
-    final web = config['web'] == true ? '--enable-web' : '--no-enable-web';
-    final macos = config['macos'] == true
-        ? '--enable-macos-desktop'
-        : '--no-enable-macos-desktop';
-    final windows = config['windows'] == true
-        ? '--enable-windows-desktop'
-        : '--no-enable-windows-desktop';
-    final linux = config['linux'] == true
-        ? '--enable-linux-desktop'
-        : '--no-enable-linux-desktop';
-
-    await flutterCmdSimple([
-      'config',
-      analytics,
-      macos,
-      windows,
-      linux,
-      web,
-    ]);
-  }
-
-  /// Returns configured Flutter settings
-  static Future<Map<String, bool>> getFlutterConfig() async {
-    try {
-      final result = await flutterCmdSimple(['config']);
-      final analytics = containsIgnoringWhitespace(
-        result,
-        'Analytics reporting is currently enabled',
-      );
-      final macos = containsIgnoringWhitespace(
-        result,
-        'enable-macos-desktop: true',
-      );
-      final windows = containsIgnoringWhitespace(
-        result,
-        'enable-windows-desktop: true',
-      );
-      final linux = containsIgnoringWhitespace(
-        result,
-        'enable-linux-desktop: true',
-      );
-      final web = containsIgnoringWhitespace(
-        result,
-        'enable-web: true',
-      );
-
-      return {
-        'analytics': analytics,
-        'macos': macos,
-        'windows': windows,
-        'linux': linux,
-        'web': web,
-      };
     } on Exception catch (err) {
       logger.trace(err.toString());
       throw const FvmInternalError('Could not finish setting up Flutter sdk');
