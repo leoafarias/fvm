@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
@@ -67,7 +69,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
 
       // Command might be null
-      final cmd = _argResults?.command?.name;
+      final cmd = _argResults.command?.name;
 
       // Check if its running the latest version of FVM
       if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
@@ -95,11 +97,12 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on Exception catch (e) {
       print(e.toString());
+      return ExitCode.usage.code;
     }
   }
 
   @override
-  Future<int> runCommand(ArgResults topLevelResults) async {
+  Future<int?> runCommand(ArgResults topLevelResults) async {
     if (topLevelResults['version'] == true) {
       FvmLogger.info(packageVersion);
       return ExitCode.success.code;

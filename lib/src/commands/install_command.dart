@@ -35,10 +35,10 @@ class InstallCommand extends BaseCommand {
   Future<int> run() async {
     CacheVersion cacheVersion;
     final skipSetup = boolArg('skip-setup');
-    String version;
+    String? version;
 
     // If no version was passed as argument check project config.
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       version = await ProjectService.findVersion();
 
       // If no config found is version throw error
@@ -49,7 +49,7 @@ class InstallCommand extends BaseCommand {
         );
       }
     }
-    version ??= argResults.rest[0];
+    version ??= argResults!.rest[0];
 
     final validVersion = await FlutterTools.inferValidVersion(version);
     cacheVersion =

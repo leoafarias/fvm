@@ -1,8 +1,7 @@
 import 'dart:io';
 
-import 'package:http/http.dart' as http;
-
 import '../../../exceptions.dart';
+import '../../utils/http.dart';
 import 'models/flutter_releases.model.dart';
 
 const _storageDefaultBase = 'https://storage.googleapis.com';
@@ -18,26 +17,31 @@ String get storageUrl {
 /// Gets platform specific release URL for a [platform]
 /// Defaults to the platform's OS.
 /// returns [url] for the list of the platform releases.
-String getReleasesUrl({String platform}) {
+String getReleasesUrl({String? platform}) {
   platform ??= Platform.operatingSystem;
   return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
-FlutterReleases _cacheReleasesRes;
+FlutterReleases? _cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
 /// Can use memory [cache] if it exists.
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
-    if (_cacheReleasesRes != null && cache) return _cacheReleasesRes;
-    final response = await http.get(getReleasesUrl());
-    _cacheReleasesRes = FlutterReleases.fromJson(response.body);
-    return _cacheReleasesRes;
-  } on Exception {
+    if (_cacheReleasesRes != null && cache) {
+      return Future.value(_cacheReleasesRes);
+    }
+    final response = await fetch(getReleasesUrl());
+    _cacheReleasesRes = FlutterReleases.fromJson(response);
+    return Future.value(_cacheReleasesRes);
+  } on Exception catch (err) {
+    print(err);
     throw FvmInternalError(
-      '''Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n Fvm will use the value set on env FLUTTER_STORAGE_BASE_URL to check versions.\nif you're located in China, please see this page:
-https://flutter.dev/community/china''',
+      'Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n'
+      'Fvm will use the value set on '
+      'env FLUTTER_STORAGE_BASE_URL to check versions\n'
+      'if you are located in China, please see this page: https://flutter.dev/community/china',
     );
   }
 }

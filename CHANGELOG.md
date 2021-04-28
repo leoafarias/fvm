@@ -1,9 +1,11 @@
-## 2.0.0-dev.6
+## 2.0.0-dev.9
 
 - Feature: Environments - Set Flutter sdk versions per project environment.
 - Feature: Doctor - Easily view the Flutter version configure for the project and configuration state
 - Feature: Spawn - Easily proxy Flutter commands through any cached version
 - Feature: Commits - Ability to install/use commits as the pinned SDK version.
+- Feature: Custom versions - Manage custom sdk versions by add `custom_` in front of the version.
+- Improvements: null-safety
 - Improvements: Global - Create own command to set global versions. Deprecated "--global" flag.
 - Improvements: Flutter command proxy now defaults to FVM global configured version before looking for one configured on PATH
 - Improvements: Better error messaging, notifications and logging

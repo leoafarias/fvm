@@ -18,8 +18,6 @@ Future<CacheVersion> ensureCacheWorkflow(
   bool skipConfirmation = false,
 }) async {
   try {
-    assert(validVersion != null);
-
     // If it's installed correctly just return and use cached
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
@@ -35,12 +33,25 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     FvmLogger.info('Flutter "$validVersion" is not installed.');
 
+    // If its a custom version do not proceed on install process
+    if (validVersion.custom == true) {
+      exit(ExitCode.success.code);
+    }
+
     // Install if input is confirmed
     // allows ot skip confirmation for testing purpose
     if (skipConfirmation || await confirm('Would you like to install it?')) {
       FvmLogger.spacer();
       FvmLogger.fine('Installing version: $validVersion...');
-      return await CacheService.cacheVersion(validVersion);
+
+      // Cache version locally
+      await CacheService.cacheVersion(validVersion);
+
+      final cacheVersion = await CacheService.isVersionCached(validVersion);
+      if (cacheVersion == null) {
+        throw FvmInternalError('Could not cache version $validVersion');
+      }
+      return cacheVersion;
     } else {
       // Exit if don't want to install
       exit(ExitCode.success.code);

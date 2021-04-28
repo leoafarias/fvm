@@ -29,9 +29,9 @@ class DoctorCommand extends BaseCommand {
     // dart exec path
     final dartWhich = await which('dart');
 
-    if (project != null && project.pinnedVersion != null) {
+    if (project.pinnedVersion != null) {
       final cacheVersion =
-          await CacheService.getByVersionName(project.pinnedVersion);
+          await CacheService.getByVersionName(project.pinnedVersion!);
       FvmLogger.spacer();
       FvmLogger.fine('FVM config found:');
       FvmLogger.divider();

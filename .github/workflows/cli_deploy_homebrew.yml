@@ -24,14 +24,11 @@ jobs:
       - name: Install dependencies
         run: pub get
 
-
       - name: Build Version Number
         run: pub run build_runner build --delete-conflicting-outputs
-        
-      - name: Test 
+
+      - name: Test
         run: pub run test
 
       - name: Deploy to Homebrew
         run: pub run grinder pkg-homebrew-update
-
-      

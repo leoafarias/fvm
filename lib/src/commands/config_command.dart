@@ -47,19 +47,19 @@ class ConfigCommand extends BaseCommand {
     var shouldSave = false;
 
     // Cache path was set
-    if (argResults.wasParsed('cache-path')) {
+    if (argResults!.wasParsed('cache-path')) {
       settings.cachePath = stringArg('cache-path');
       shouldSave = true;
     }
 
     // Git cache option has changed
-    if (argResults.wasParsed('git-cache')) {
+    if (argResults!.wasParsed('git-cache')) {
       settings.gitCache = boolArg('git-cache');
       shouldSave = true;
     }
 
     // Skip setup option has changed
-    if (argResults.wasParsed('skip-setup')) {
+    if (argResults!.wasParsed('skip-setup')) {
       settings.skipSetup = boolArg('skip-setup');
       shouldSave = true;
     }

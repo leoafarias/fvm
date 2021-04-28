@@ -31,9 +31,6 @@ void main() {
         final emptyProject =
             await ProjectService.findAncestor(directory: kEmptyDir);
 
-        expect(dartPackage != null, true);
-        expect(emptyProject != null, true);
-        expect(flutterProject != null, true);
         expect(flutterProject.name, 'flutter_app');
         expect(flutterProject.projectDir.path, kFlutterAppDir.path);
 

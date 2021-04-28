@@ -7,9 +7,8 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
-import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec_yaml/pubspec_yaml.dart';
 import 'package:test/test.dart';
+import 'package:yaml/yaml.dart';
 
 Future<String> _inferVersionString(String version) async {
   final valid = await FlutterTools.inferValidVersion(version);
@@ -49,10 +48,11 @@ void main() {
   });
 
   test('Does CLI version match', () async {
-    final pubspec = File(
+    final yaml = File(
       join(kWorkingDirectory.path, 'pubspec.yaml'),
-    ).readAsStringSync().toPubspecYaml();
-    expect(pubspec.version.valueOr(() => null), packageVersion);
+    ).readAsStringSync();
+    final pubspec = loadYamlNode(yaml);
+    expect(pubspec.value['version'], packageVersion);
   });
 
   test('Test update env variables', () async {
@@ -64,20 +64,20 @@ void main() {
     final newEnvVar = updateFlutterEnvVariables('FAKE_PATH');
 
     // expect(newEnvVar[envName], envVars[envName]);
-    expect(newEnvVar[envName].contains(fakePath), true);
+    expect(newEnvVar[envName]!.contains(fakePath), true);
     expect(envVars, isNot(newEnvVar));
   });
 
   test('Assigns version weights', () async {
-    expect(Version.parse('500.0.0'), assignVersionWeight('0941968447'));
-    expect(Version.parse('500.0.0'), assignVersionWeight('ce18d702e9'));
+    expect('500.0.0', assignVersionWeight('0941968447'));
+    expect('500.0.0', assignVersionWeight('ce18d702e9'));
     expect(
-      Version.parse('500.0.0'),
+      '500.0.0',
       assignVersionWeight('ce18d702e90d3dff9fee53d61a770c94f14f2811'),
     );
-    expect(Version.parse('400.0.0'), assignVersionWeight('master'));
-    expect(Version.parse('300.0.0'), assignVersionWeight('stable'));
-    expect(Version.parse('200.0.0'), assignVersionWeight('beta'));
-    expect(Version.parse('100.0.0'), assignVersionWeight('dev'));
+    expect('400.0.0', assignVersionWeight('master'));
+    expect('300.0.0', assignVersionWeight('stable'));
+    expect('200.0.0', assignVersionWeight('beta'));
+    expect('100.0.0', assignVersionWeight('dev'));
   });
 }

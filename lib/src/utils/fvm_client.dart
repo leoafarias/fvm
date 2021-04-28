@@ -45,19 +45,12 @@ class FVMClient {
     await FlutterTools.setupSdk(cacheVersion);
   }
 
-  /// Updates Flutter config options
-  static final setFlutterConfig = FlutterTools.setFluterConfig;
-
-  /// Get Flutter confg
-  static final getFlutterConfig = FlutterTools.getFlutterConfig;
-
   /// Upgrades cached channel [version]
   static final upgradeChannel = FlutterTools.upgradeChannel;
 
   /// Returns the setup sdk version of a [versionName]
-  static String getSdkVersionSync(CacheVersion cacheVersion) {
+  static String? getSdkVersionSync(CacheVersion cacheVersion) {
     // Do a null check for cleaner sidekick implementation
-    if (cacheVersion == null) return null;
 
     return CacheService.getSdkVersionSync(cacheVersion);
   }
@@ -74,8 +67,11 @@ class FVMClient {
   /// Returns true if FVM global version is configured corretly
   static final checkIfGlobalConfigured = CacheService.isGlobalConfigured;
 
-  /// Returns a global version name if its configured
+  /// Returns sync a global configured cache version
   static final getGlobalVersionSync = CacheService.getGlobalVersionSync;
+
+  /// Returns async a global configured cache version
+  static final getGlobal = CacheService.getGlobal;
 
   /// Sets a [version] as global
   static final setGlobalVersion = CacheService.setGlobal;

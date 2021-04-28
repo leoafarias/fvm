@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
-import 'package:process_run/cmd_run.dart' as process;
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -49,7 +47,7 @@ Future<int> dartCmd(CacheVersion version, List<String> args) async {
 /// Runs dart from global version
 Future<int> dartGlobalCmd(List<String> args) async {
   // Get exec path for dart
-  final execPath = whichSync('dart');
+  final execPath = whichSync('dart') ?? '';
 
   // Run command
   return await _runCmd(
@@ -70,7 +68,7 @@ Future<int> flutterGlobalCmd(List<String> args) async {
       'FVM: Running global configured version "${cacheVersion.name}"',
     );
   } else {
-    execPath = whichSync('flutter');
+    execPath = whichSync('flutter') ?? '';
     FvmLogger.info(
       'FVM: Running Flutter SDK configured on environment PATH. $execPath',
     );
@@ -84,20 +82,10 @@ Future<int> flutterGlobalCmd(List<String> args) async {
   );
 }
 
-/// Runs a simple Flutter cmd
-Future<String> flutterCmdSimple(
-  List<String> args,
-) async {
-  // Get exec path for flutter
-  final execPath = whichSync('flutter');
-  final result = await process.run(execPath, args);
-  return result.stdout as String;
-}
-
 Future<int> _runCmd(
   String execPath, {
   List<String> args = const [],
-  Map<String, String> environment,
+  Map<String, String>? environment,
 }) async {
   // Project again a non executable path
   await Guards.canExecute(execPath);

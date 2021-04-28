@@ -23,16 +23,16 @@ class EnvCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    String environment;
+    String? environment;
     final project = await ProjectService.findAncestor();
 
     // If project use check that is Flutter project
-    if (project == null) {
+    if (project.config.exists == false) {
       throw FvmUsageException(
         'Cannot find any FVM config in project.',
       );
     }
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       environment = await projectEnvSeletor(project);
       if (environment == null) {
         throw FvmUsageException(
@@ -42,11 +42,11 @@ class EnvCommand extends BaseCommand {
     }
 
     // Gets env from param if not yet selected
-    environment ??= argResults.rest[0];
+    environment ??= argResults!.rest[0];
 
     // Gets environment version
     final envs = project.config.environment;
-    final envVersion = envs[environment] as String;
+    final envVersion = envs[environment] as String?;
 
     // Check if env confi exists
     if (envVersion == null) {

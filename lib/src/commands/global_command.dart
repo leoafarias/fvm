@@ -20,15 +20,15 @@ class GlobalCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    String version;
+    String? version;
 
     // Show chooser if not version is provided
-    if (argResults.rest.isEmpty) {
+    if (argResults!.rest.isEmpty) {
       version = await cacheVersionSelector();
     }
 
     // Get first arg if it was not empty
-    version ??= argResults.rest[0];
+    version ??= argResults!.rest[0];
 
     // Get valid flutter version
     final validVersion = await FlutterTools.inferValidVersion(version);
@@ -52,7 +52,7 @@ class GlobalCommand extends BaseCommand {
       FvmLogger.info(
         'to use global Flutter SDK through FVM you should change it to:\n',
       );
-      FvmLogger.info(configured.newPath);
+      FvmLogger.info(configured.correctPath);
     }
 
     return ExitCode.success.code;

@@ -33,7 +33,8 @@ void main() {
         unsortedList.map((version) => CacheVersion(version)).toList();
     versionUnsorted.sort((a, b) => a.compareTo(b));
 
-    final afterUnsorted = versionUnsorted.reversed.toList().map((e) => e.name);
+    final afterUnsorted =
+        versionUnsorted.reversed.toList().map((e) => e.name).toList();
 
     expect(afterUnsorted, sortedList);
   });
