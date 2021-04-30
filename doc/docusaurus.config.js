@@ -2,14 +2,15 @@
 module.exports = {
   title: 'Flutter Version Management (fvm)',
   tagline: 'A simple CLI to manage Flutter SDK versions.',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://fvm.app',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'leoafarias', // Usually your GitHub org/user name.
+  projectName: 'fvm', // Usually your repo name.
   themeConfig: {
+    sidebarCollapsible: false,
     navbar: {
       title: 'fvm',
       logo: {
@@ -17,13 +18,19 @@ module.exports = {
         src: 'img/logo.svg',
       },
       items: [
+        
         {
           type: 'doc',
-          docId: 'overview',
+          docId: 'getting_started/overview',
           position: 'left',
-          label: 'Docs',
+          label: 'Getting Started',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        {
+          type: 'doc',
+          docId: 'guides/basic_commands',
+          position: 'left',
+          label: 'Guides',
+        },
         {
           href: 'https://github.com/leoafarias/fvm',
           label: 'GitHub',
@@ -38,35 +45,44 @@ module.exports = {
           title: 'Docs',
           items: [
             {
-              label: 'Docs',
-              to: '/docs/overview',
+              label: 'Getting Started',
+              to: '/docs/getting_started/overview',
+            },
+
+            {
+              label: 'Guides',
+              to: '/docs/guides/basic_commands',
+            },
+
+            {
+              label: 'Advanced',
+              to: '/docs/advanced/custom_version',
             },
           ],
         },
         {
-          title: 'Community',
+          title: 'Info',
           items: [
             {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+              label: 'Bugs & Issues',
+              href: 'https://github.com/leoafarias/fvm/issues',
             },
             {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
+              label: 'GUI for FVM',
+              href: 'https://github.com/leoafarias/sidekick',
             },
+          
+          ],
+        },
+        {
+          title: 'Links',
+          items: [
+          
             {
               label: 'Twitter',
-              href: 'https://twitter.com/docusaurus',
+              href: 'https://twitter.com/leoafarias',
             },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
+
             {
               label: 'GitHub',
               href: 'https://github.com/facebook/docusaurus',
@@ -74,7 +90,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Leo Farias. `,
     },
   },
   presets: [
@@ -85,13 +101,13 @@ module.exports = {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/',
+            'https://github.com/leoafarias/fvm/edit/master/doc/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://github.com/facebook/docusaurus/edit/master/website/blog/',
+            'https://github.com/leoafarias/fvm/edit/master/doc/blog/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),

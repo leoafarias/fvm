@@ -19,6 +19,9 @@ class GlobalCommand extends BaseCommand {
   GlobalCommand();
 
   @override
+  String get invocation => 'fvm global {version}';
+
+  @override
   Future<int> run() async {
     String? version;
 

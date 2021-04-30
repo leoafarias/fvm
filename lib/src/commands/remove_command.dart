@@ -16,7 +16,7 @@ class RemoveCommand extends BaseCommand {
   final description = 'Removes Flutter SDK Version';
 
   @override
-  String get invocation => 'fvm remove <version>';
+  String get invocation => 'fvm remove {version}';
 
   /// Constructor
 

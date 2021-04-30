@@ -55,7 +55,7 @@ FVM gives you the ability to install many Flutter **releases** or **channels**.
 - `--skip-setup` - will skip Flutter setup after install
 
 ```bash
-> fvm install <version>
+> fvm install {version}
 ```
 
 #### Project Config SDK Version
@@ -73,7 +73,7 @@ Check out `use` command to see how to configure a version per project.
 You can use different Flutter SDK versions per project. To do that you have to go into the root of the project and:
 
 ```bash
-> fvm use <version>
+> fvm use {version}
 ```
 
 **Set Global Version**
@@ -83,7 +83,7 @@ If you want to use a specific version by default in your machine, you can specif
 :warning: **Do not activate fvm using `flutter pub global activate`** if you plan on using the `--global` flag. Only activate fvm using `pub global activate fvm`.
 
 ```bash
-> fvm use <version> --global
+> fvm use {version} --global
 ```
 
 **Force Flag**
@@ -93,7 +93,7 @@ Fvm only allows to call the use command on Flutter projects. However if you want
 If you are starting a new project and plan on using `fvm flutter create` you wil have to use the `--force` flag
 
 ```bash
-> fvm use <version> --force
+> fvm use {version} --force
 ```
 
 ### Remove a SDK Version
@@ -101,7 +101,7 @@ If you are starting a new project and plan on using `fvm flutter create` you wil
 Using the remove command will uninstall the SDK version locally, this will impact any projects that depend on that version of the SDK.
 
 ```bash
-> fvm remove <version>
+> fvm remove {version}
 ```
 
 ### Upgrade the current SDK Version

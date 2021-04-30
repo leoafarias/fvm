@@ -8,22 +8,25 @@ import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
-/// Configure different flutter version per environment
-class EnvCommand extends BaseCommand {
+/// Configure different flutter version per flavor
+class FlavorCommand extends BaseCommand {
   @override
-  final name = 'env';
+  final name = 'flavor';
   @override
-  final description = 'Switches between different project environments';
+  final description = 'Switches between different project flavors';
 
   @override
-  final invocation = 'fvm env <environment_name>';
+  final invocation = 'fvm flavor {flavor_name}';
+
+  @override
+  final aliases = ['env', 'environment'];
 
   /// Constructor
-  EnvCommand();
+  FlavorCommand();
 
   @override
   Future<int> run() async {
-    String? environment;
+    String? flavor;
     final project = await ProjectService.findAncestor();
 
     // If project use check that is Flutter project
@@ -33,25 +36,25 @@ class EnvCommand extends BaseCommand {
       );
     }
     if (argResults!.rest.isEmpty) {
-      environment = await projectEnvSeletor(project);
-      if (environment == null) {
+      flavor = await projectFlavorSelector(project);
+      if (flavor == null) {
         throw FvmUsageException(
-          'No envs are configured in the project',
+          'No flavors configured in the project',
         );
       }
     }
 
     // Gets env from param if not yet selected
-    environment ??= argResults!.rest[0];
+    flavor ??= argResults!.rest[0];
 
-    // Gets environment version
-    final envs = project.config.environment;
-    final envVersion = envs[environment] as String?;
+    // Gets flavor version
+    final envs = project.config.flavors;
+    final envVersion = envs[flavor] as String?;
 
     // Check if env confi exists
     if (envVersion == null) {
       throw FvmUsageException(
-        'Environment: "$environment" is not configured',
+        'Flavor: "$flavor" is not configured',
       );
     }
 
@@ -59,7 +62,7 @@ class EnvCommand extends BaseCommand {
     final validVersion = await FlutterTools.inferValidVersion(envVersion);
 
     FvmLogger.info(
-      'Switching to [$environment] environment, '
+      'Switching to [$flavor] flavor, '
       'which uses [${validVersion.name}] Flutter sdk.',
     );
 
@@ -70,7 +73,7 @@ class EnvCommand extends BaseCommand {
     await ProjectService.pinVersion(project, validVersion);
 
     FvmLogger.fine(
-      'Now using [$environment] environment. '
+      'Now using [$flavor] flavor. '
       'Flutter version [${validVersion.name}].\n',
     );
 

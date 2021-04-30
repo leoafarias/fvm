@@ -16,14 +16,14 @@ class FvmConfig {
   /// Flutter SDK version configured
   String? flutterSdkVersion;
 
-  /// Environments configured
-  Map<String, dynamic> environment;
+  /// Flavors configured
+  Map<String, dynamic> flavors;
 
   /// Constructor
   FvmConfig({
     required this.configDir,
     required this.flutterSdkVersion,
-    required this.environment,
+    required this.flavors,
   });
 
   /// Returns FvmConfig in [directory] from [jsonString]
@@ -39,7 +39,7 @@ class FvmConfig {
     return FvmConfig(
       configDir: directory,
       flutterSdkVersion: map['flutterSdkVersion'] as String,
-      environment: map['environment'] as Map<String, dynamic>? ?? {},
+      flavors: map['flavors'] as Map<String, dynamic>? ?? {},
     );
   }
 
@@ -48,10 +48,10 @@ class FvmConfig {
     return join(ctx.cacheDir.path, flutterSdkVersion);
   }
 
-  /// Returns the active configured environment
-  String? get activeEnv {
-    final env = environment.keys.firstWhere(
-      (key) => environment[key] == flutterSdkVersion,
+  /// Returns the active configured flavor
+  String? get activeFlavor {
+    final env = flavors.keys.firstWhere(
+      (key) => flavors[key] == flutterSdkVersion,
       orElse: () => '',
     );
 
@@ -82,7 +82,7 @@ class FvmConfig {
   Map<String, dynamic> toMap() {
     return {
       'flutterSdkVersion': flutterSdkVersion,
-      'environment': environment,
+      'flavors': flavors,
     };
   }
 }

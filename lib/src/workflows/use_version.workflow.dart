@@ -9,7 +9,7 @@ import 'ensure_cache.workflow.dart';
 Future<void> useVersionWorkflow(
   ValidVersion validVersion, {
   bool force = false,
-  String? environment,
+  String? flavor,
 }) async {
   // Get project from working directory
   final project = await ProjectService.getByDirectory(kWorkingDirectory);
@@ -28,14 +28,14 @@ Future<void> useVersionWorkflow(
   await ProjectService.pinVersion(
     project,
     validVersion,
-    environment: environment,
+    flavor: flavor,
   );
 
   // Different message if configured environment
-  if (environment != null) {
+  if (flavor != null) {
     FvmLogger.fine(
       'Project now uses Flutter [$validVersion]'
-      ' on [$environment] environment.\n',
+      ' on [$flavor] flavor.\n',
     );
   } else {
     FvmLogger.fine('Project now uses Flutter [$validVersion]\n');
