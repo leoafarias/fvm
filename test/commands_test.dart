@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 
 import 'test_utils.dart';
 
-const key = 'commands_test';
+const key = Key('commands_test');
 void main() {
   group('Channel Workflow:', () {
     tearDownAll(() {
@@ -88,7 +88,7 @@ void main() {
       }
     });
 
-    testWithContext(key, 'Remove Channel Command', () async {
+    testWithContext('Remove Channel Command', key, () async {
       try {
         await FvmCommandRunner()
             .run(['remove', channel, '--verbose', '--force']);
@@ -154,7 +154,7 @@ void main() {
   });
 
   group('Commands', () {
-    testWithContext(key, 'Get Version', () async {
+    testWithContext('Get Version', key, () async {
       expect(
         await FvmCommandRunner().run(['--version']),
         ExitCode.success.code,

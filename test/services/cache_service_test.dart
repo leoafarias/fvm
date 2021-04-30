@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-const key = 'cache_service_test';
+const key = Key('cache_service_test');
 const _channel = 'beta';
 const _version = '1.20.2';
 void main() {
@@ -65,26 +65,6 @@ void main() {
       expect(isVersionValid, true);
       expect(isInvalidValid, false);
     });
-    // Need to run setup first to check this
-    // testWithContext(key, 'Get Cache Sdk Version', () async {
-    //   final channel = await CacheService.getByVersionName(_channel);
-    //   // Get latest version of channel
-    //   final channelRelease = await FlutterTools.inferValidVersion(
-    //     _channel,
-    //     forceRelease: true,
-    //   );
-
-    //   final version = await CacheService.getByVersionName(_version);
-    //   final invalidCache = CacheVersion('invalid_version');
-
-    //   final channelVersion = await CacheService.getSdkVersionSync(channel);
-    //   final releaseVersion = await CacheService.getSdkVersionSync(version);
-    //   final isInvalidValid = await CacheService.getSdkVersionSync(invalidCache);
-
-    //   expect(channelVersion, channelRelease.name);
-    //   expect(releaseVersion, _version);
-    //   expect(isInvalidValid, null);
-    // });
 
     testWithContext('Set/Get Global Cache Version ', key, () async {
       CacheVersion? globalVersion;

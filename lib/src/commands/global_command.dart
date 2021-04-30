@@ -41,9 +41,8 @@ class GlobalCommand extends BaseCommand {
 
     final configured = await CacheService.isGlobalConfigured();
 
-    FvmLogger.fine('Flutter "$validVersion" has been set as global\n');
+    FvmLogger.fine('Flutter "$validVersion" has been set as global');
     if (!configured.isSetup) {
-      FvmLogger.divider();
       FvmLogger.warning('However your "flutter" path current points to:\n');
 
       FvmLogger.info(

@@ -40,6 +40,11 @@ class FvmContext {
     return File(join(_fvmDir.path, '.settings'));
   }
 
+  /// FVM Home dir
+  Directory get fvmHome {
+    return _fvmDir;
+  }
+
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
     final _settings = SettingsService.readSync();
@@ -69,6 +74,14 @@ class FvmContext {
 
   /// Where Default Flutter SDK is stored
   Link get globalCacheLink => Link(join(_fvmDir.path, 'default'));
+
+  /// Used to test that it can link
+  Link get testLinkSource => Link(join(_fvmDir.path, '.test_link'));
+
+  /// Used to test it links to target
+  Directory get testLinkTarget => Directory(
+        join(_fvmDir.path, '.test_link_target'),
+      );
 
   /// Directory for Global Flutter SDK bin
   String get globalCacheBinPath => join(

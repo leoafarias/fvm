@@ -5,7 +5,6 @@ import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
-import '../../exceptions.dart';
 import '../services/context.dart';
 import 'logger.dart';
 
@@ -56,15 +55,13 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
     if (await source.exists()) {
       await source.delete();
     }
-    await source.create(target.path);
+    await source.create(
+      target.path,
+      recursive: true,
+    );
   } on FileSystemException catch (e) {
     logger.trace(e.message);
-    if (Platform.isWindows) {
-      throw const FvmInternalError(
-        'On Windows FVM requires to run in'
-        'developer mode or as an administrator',
-      );
-    }
+    rethrow;
   }
 }
 
