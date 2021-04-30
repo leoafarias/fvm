@@ -35,3 +35,4 @@ coverage/lcov.info
 packages/cli/test/.test_coverage.dart
 packages/cli/.env
 .env
+node_modules
