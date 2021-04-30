@@ -4,6 +4,7 @@ import 'package:io/io.dart';
 import '../../exceptions.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
+import '../utils/guards.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import '../utils/messages.dart';
@@ -56,6 +57,8 @@ class UseCommand extends BaseCommand {
   }
   @override
   Future<int> run() async {
+    // Check that can symlink
+    await Guards.canSymlink();
     // final global = argResults['global'] == true;
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');

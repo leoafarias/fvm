@@ -1,6 +1,3 @@
-import 'dart:io';
-
-import 'package:fvm/src/utils/permissions.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
@@ -87,12 +84,6 @@ class DoctorCommand extends BaseCommand {
     FvmLogger.info('Dart:');
     FvmLogger.info(dartWhich ?? '');
     FvmLogger.spacer();
-
-    if (Platform.isWindows) {
-      final priviledge = await hasPermission();
-      FvmLogger.info('Has privileded access:');
-      FvmLogger.info(priviledge.toString());
-    }
 
     return ExitCode.success.code;
   }

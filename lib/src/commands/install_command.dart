@@ -6,6 +6,7 @@ import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
+import '../utils/guards.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -33,6 +34,8 @@ class InstallCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
+    // Check that can symlink
+    await Guards.canSymlink();
     CacheVersion cacheVersion;
     final skipSetup = boolArg('skip-setup');
     String? version;
