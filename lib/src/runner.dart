@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
+import 'package:fvm/src/utils/guards.dart';
 import 'package:io/io.dart';
 
 import '../exceptions.dart';
@@ -65,6 +66,9 @@ class FvmCommandRunner extends CommandRunner<int> {
     try {
       ConsoleController.isCli = true;
       final _argResults = parse(args);
+
+      // Check that can symlink
+      await Guards.canSymlink();
 
       final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
 

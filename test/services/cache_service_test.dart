@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import '../test_utils.dart';
 
-const key = 'cache_service_test';
+const key = Key('cache_service_test');
 const _channel = 'beta';
 const _version = '1.20.2';
 void main() {

@@ -55,7 +55,10 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
     if (await source.exists()) {
       await source.delete();
     }
-    await source.create(target.path);
+    await source.create(
+      target.path,
+      recursive: true,
+    );
   } on FileSystemException catch (e) {
     logger.trace(e.message);
     rethrow;

@@ -19,8 +19,8 @@ const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
 String? channelVersion;
 
-Directory getFvmTestDir(String key) {
-  return Directory(join(kUserHome, 'fvmTest', key));
+Directory getFvmTestDir(Key key) {
+  return Directory(join(kUserHome, 'fvmTest', key.key));
 }
 
 final kTestAssetsDir =
@@ -56,10 +56,15 @@ void cleanup() {
   }
 }
 
+class Key {
+  final String key;
+  const Key(this.key);
+}
+
 @isTest
 void testWithContext(
   String description,
-  String key,
+  Key key,
   void Function() body, {
   String? testOn,
   Timeout? timeout,
@@ -72,7 +77,7 @@ void testWithContext(
     description,
     () async {
       return ctx.run(
-        name: key,
+        name: key.key,
         fvmDir: getFvmTestDir(key),
         body: body,
       );

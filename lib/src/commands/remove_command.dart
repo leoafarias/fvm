@@ -3,7 +3,6 @@ import 'package:io/io.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
-import '../utils/guards.dart';
 import '../utils/logger.dart';
 import '../workflows/remove_version.workflow.dart';
 import 'base_command.dart';
@@ -31,8 +30,6 @@ class RemoveCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    // Check that can symlink
-    await Guards.canSymlink();
     final force = boolArg('force');
     String? version;
 
