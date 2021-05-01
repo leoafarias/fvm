@@ -22,13 +22,13 @@ module.exports = {
         {
           type: 'doc',
           docId: 'getting_started/overview',
-          position: 'left',
+          position: 'right',
           label: 'Getting Started',
         },
         {
           type: 'doc',
           docId: 'guides/basic_commands',
-          position: 'left',
+          position: 'right',
           label: 'Guides',
         },
         {
@@ -36,6 +36,7 @@ module.exports = {
           label: 'GitHub',
           position: 'right',
         },
+
       ],
     },
     footer: {
