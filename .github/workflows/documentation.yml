@@ -6,10 +6,15 @@ on:
   push:
     branches: [documentation]
 
+defaults:
+  run:
+    working-directory: ./website
+
 jobs:
   checks:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
