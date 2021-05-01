@@ -11,6 +11,10 @@ module.exports = {
   projectName: 'fvm', // Usually your repo name.
   themeConfig: {
     sidebarCollapsible: false,
+    colorMode:{
+      defaultMode: 'dark',
+    },
+
     navbar: {
       title: 'fvm',
       logo: {

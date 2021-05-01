@@ -15,6 +15,12 @@
   --ifm-color-primary-lighter: rgb(102, 212, 189);
   --ifm-color-primary-lightest: rgb(146, 224, 208);
   --ifm-code-font-size: 95%;
+
+  /* Alerts */
+  --ifm-color-success: rgb(103, 185, 153);
+  --ifm-color-warning: rgb(255, 222, 36);
+  --ifm-color-danger: rgb(206, 53, 99);
+  --ifm-color-info: rgb(160, 160, 160);
 }
 
 .hero {
@@ -40,4 +46,24 @@
   display: block;
   margin: 0 calc(-1 * var(--ifm-pre-padding));
   padding: 0 var(--ifm-pre-padding);
+}
+
+.alert--success {
+  --ifm-alert-background-color: var(--ifm-color-success);
+  --ifm-alert-border-color: var(--ifm-color-success);
+}
+
+.alert--info {
+  --ifm-alert-background-color: var(--ifm-color-info);
+  --ifm-alert-border-color: var(--ifm-color-info);
+}
+
+.alert--warning {
+  --ifm-alert-background-color: var(--ifm-color-warning);
+  --ifm-alert-border-color: var(--ifm-color-warning);
+}
+
+.alert--danger {
+  --ifm-alert-background-color: var(--ifm-color-danger);
+  --ifm-alert-border-color: var(--ifm-color-danger);
 }
