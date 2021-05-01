@@ -17,9 +17,13 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
 
         <div className={styles.buttons}>
-          <img src="https://img.shields.io/badge/dynamic/json?color=blue&label=Pub Likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=for-the-badge&cacheSeconds=90000" />
+          <Link to="https://pub.dev/packages/fvm">
+            <img src="https://img.shields.io/badge/dynamic/json?color=blue&label=Pub Likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=for-the-badge&cacheSeconds=90000" />
+          </Link>
           <Spacer />
-          <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm?style=for-the-badge" />
+          <Link to="https://github.com/leoafarias/fvm/graphs/contributors">
+            <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm?style=for-the-badge" />
+          </Link>
           <Spacer />
           <TwitterButton />
           <Spacer />

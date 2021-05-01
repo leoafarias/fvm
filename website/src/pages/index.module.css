@@ -24,11 +24,3 @@
   align-items: center;
   justify-content: center;
 }
-
-.buttons iframe {
-  display: block;
-}
-
-.buttons .github-button span {
-  display: block;
-}
