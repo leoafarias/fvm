@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Fix issue when retrieving settings [#281](https://github.com/leoafarias/fvm/issues/281)
+
 ## 2.0.0
 
 - Feature: Environments - Set Flutter sdk versions per project environment.
