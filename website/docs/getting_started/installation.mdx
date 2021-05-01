@@ -1,0 +1,55 @@
+---
+id: installation
+title: Installation
+sidebar_position: 1
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+There are a few ways to install FVM and we are working on other ways to make it even simpler.
+
+## Pub package
+
+```bash
+dart pub global activate fvm
+```
+
+## Standalone
+
+You can download the standalone packages from the GitHub repo [here](https://github.com/leoafarias/fvm/releases).
+
+:::info
+Other package manager support is still work in progress
+:::
+
+<Tabs
+  defaultValue="macos"
+  values={[
+    { label: "MacOS", value: "macos" },
+    { label: "Windows", value: "windows" },
+    { label: "Linux", value: "linux" },
+  ]}
+>
+  <TabItem value="macos">
+
+Install
+
+```
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+Uninstall
+
+```
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+  </TabItem>
+  <TabItem value="windows">
+ Coming soon Chocolatey
+    </TabItem>
+  <TabItem value="linux">Coming soon</TabItem>
+</Tabs>

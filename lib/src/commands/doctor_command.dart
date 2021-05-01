@@ -13,8 +13,8 @@ class DoctorCommand extends BaseCommand {
   final name = 'doctor';
 
   @override
-  final description = 'Output info about fvm, and the environment '
-      'configuration in a specific project';
+  final description = 'Shows information about environment, '
+      'and project configuration.';
 
   /// Constructor
   DoctorCommand();
@@ -39,7 +39,7 @@ class DoctorCommand extends BaseCommand {
       FvmLogger.info('Directory: ${project.projectDir.path}');
       FvmLogger.info('Version: ${project.pinnedVersion}');
       FvmLogger.info(
-        'Project Environment: ${(project.config.activeEnv) ?? "None selected"}',
+        'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
       );
       FvmLogger.divider();
       if (cacheVersion == null) {

@@ -1,12 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
-import '../../exceptions.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
-import '../utils/messages.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
@@ -16,24 +14,16 @@ class UseCommand extends BaseCommand {
   final name = 'use';
 
   @override
-  String description = 'Which Flutter SDK Version you would like to use';
+  String description =
+      'Sets Flutter SDK Version you would like to use in a project';
 
   @override
-  String get invocation => 'fvm use <version>';
+  String get invocation => 'fvm use {version}';
 
   /// Constructor
   UseCommand() {
     // DEPRECATED: Global is Deprecated remove it later
     argParser
-      ..addFlag(
-        'global',
-        help: 'Deprecated: Use "fvm global <version>"',
-        negatable: false,
-        callback: (flag) {
-          if (!flag) return;
-          throw const FvmUsageException(Messages.useGlobalDeprecation);
-        },
-      )
       ..addFlag(
         'force',
         help: 'Skips command guards that does Flutter project checks.',
@@ -43,14 +33,13 @@ class UseCommand extends BaseCommand {
       ..addFlag(
         'pin',
         help:
-            '''If version provided is a channel. Will pin the release version of the channel''',
+            '''If version provided is a channel. Will pin the latest release of the channel''',
         abbr: 'p',
         negatable: false,
       )
       ..addOption(
-        'env',
-        help: 'Project environment you want to use this version in',
-        abbr: 'e',
+        'flavor',
+        help: 'Sets version for a project flavor',
         defaultsTo: null,
       );
   }
@@ -59,7 +48,7 @@ class UseCommand extends BaseCommand {
     // final global = argResults['global'] == true;
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
-    final envOption = stringArg('env');
+    final flavorOption = stringArg('flavor');
 
     String? version;
 
@@ -99,7 +88,7 @@ class UseCommand extends BaseCommand {
     await useVersionWorkflow(
       validVersion,
       force: forceOption,
-      environment: envOption,
+      flavor: flavorOption,
     );
 
     return ExitCode.success.code;

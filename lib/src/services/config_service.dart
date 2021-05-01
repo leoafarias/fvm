@@ -23,7 +23,7 @@ class ConfigService {
       return FvmConfig(
         configDir: configDir,
         flutterSdkVersion: null,
-        environment: {},
+        flavors: {},
       );
     }
   }

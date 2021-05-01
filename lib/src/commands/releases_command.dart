@@ -13,7 +13,7 @@ class ReleasesCommand extends BaseCommand {
   final name = 'releases';
 
   @override
-  final description = 'View Flutter SDK releases.';
+  final description = 'View all Flutter SDK releases available for install.';
 
   /// Constructor
   ReleasesCommand();

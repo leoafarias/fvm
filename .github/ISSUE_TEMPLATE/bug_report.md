@@ -10,7 +10,7 @@ assignees: ""
 
 - [ ] You have installed fvm using `pub global activate fvm` not `flutter pub...`
 - [ ] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.
-- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions when using the `fvm use <version>` command.
+- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions when using the `fvm use {version}` command.
 
 **Describe the bug**
 A clear and concise description of what the bug is.

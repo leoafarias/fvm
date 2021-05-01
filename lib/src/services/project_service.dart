@@ -69,19 +69,19 @@ class ProjectService {
   }
 
   /// Pins a [validVersion] to a Flutter [project].
-  /// Can pin to a specific [environment] if provided
+  /// Can pin to a specific [flavor] if provided
   static Future<void> pinVersion(
     Project project,
     ValidVersion validVersion, {
-    String? environment,
+    String? flavor,
   }) async {
     final config = project.config;
-    // Attach as main version if no environment is set
-    if (environment == null) {
+    // Attach as main version if no flavor is set
+    if (flavor == null) {
       config.flutterSdkVersion = validVersion.name;
     } else {
-      // Pin as an environment version
-      config.environment[environment] = validVersion.name;
+      // Pin as an flavor version
+      config.flavors[flavor] = validVersion.name;
     }
     await ConfigService.save(config);
   }

@@ -2,5 +2,5 @@
 class Messages {
   /// Message for global deprecation
   static const useGlobalDeprecation =
-      '''Use command option "--global" has been deprecated. Please use "flutter global <version>"''';
+      '''Use command option "--global" has been deprecated. Please use "flutter global {version}"''';
 }

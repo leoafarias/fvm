@@ -35,7 +35,7 @@ Future<String> cacheVersionSelector() async {
   if (cacheVersions.isEmpty) {
     throw const FvmUsageException(
       'No versions installed. Please install'
-      ' a version. "fvm install <version>". ',
+      ' a version. "fvm install {version}". ',
     );
   }
 
@@ -55,10 +55,10 @@ Future<String> cacheVersionSelector() async {
   return version;
 }
 
-/// Select from project environments
-Future<String?> projectEnvSeletor(Project project) async {
+/// Select from project flavors
+Future<String?> projectFlavorSelector(Project project) async {
   // Gets environment version
-  final envs = project.config.environment;
+  final envs = project.config.flavors;
 
   final envList = envs.keys.toList();
 
@@ -67,7 +67,7 @@ Future<String?> projectEnvSeletor(Project project) async {
     return null;
   }
 
-  FvmLogger.fine('Project Environments configured for "${project.name}":\n');
+  FvmLogger.fine('Project flavors configured for "${project.name}":\n');
 
   final chooser = Chooser<String>(
     envList,

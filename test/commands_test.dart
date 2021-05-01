@@ -168,7 +168,7 @@ void main() {
       );
     });
 
-    testWithContext('Env Command', key, () async {
+    testWithContext('Flavor Command', key, () async {
       await ensureCacheWorkflow(
         ValidVersion(channel),
         skipConfirmation: true,
@@ -176,12 +176,12 @@ void main() {
 
       expect(
         await FvmCommandRunner()
-            .run(['use', channel, '--env', 'production', '--force']),
+            .run(['use', channel, '--flavor', 'production', '--force']),
         ExitCode.success.code,
       );
 
       expect(
-        await FvmCommandRunner().run(['env', 'production']),
+        await FvmCommandRunner().run(['flavor', 'production']),
         ExitCode.success.code,
       );
     });

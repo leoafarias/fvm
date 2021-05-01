@@ -1,0 +1,106 @@
+---
+id: configuration
+title: Configuration
+sidebar_position: 2
+---
+
+Configure FVM and IDEs for better support for different development environments.
+
+## Project
+
+FVM will create a relative symlink in your project from `.fvm/flutter_sdk` to the cache of the selected version. Make sure the following is added to your `.gitignore`
+
+```yaml title=".gitignore"
+.fvm/flutter_sdk
+```
+
+## FVM
+
+### Cache Directory
+
+You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
+
+### Config
+
+There are some configurations which you are able to set on FVM. **All settings set on CLI are compatible with the App(GUI)**.
+
+### Different Flutter Repo
+
+You are able to use a different Flutter repo, a fork or as a local cache, by setting the `FVM_GIT_CACHE` environment variable.
+
+#### List config
+
+```bash
+> fvm config
+```
+
+#### Set cache path
+
+Location where Flutter SDK versions will be stored. If nothing is set, default will be used.
+
+```bash
+> fvm config --cache-path <CACHE_PATH>
+```
+
+## IDE
+
+:::info
+In some situations you might have to restart your IDE and the Flutter debugger to make sure it uses the latest version of the configurations.
+:::
+
+### VS Code
+
+#### Option 1 - Automatic Switching (Recommended)
+
+You can add the version symlink for dynamic switch. VS Code will always use the version selected within the project, for all IDE tooling. Also remove the flutter sdk from search to make things easier
+
+```json title=".vscode/settings.json"
+{
+  "dart.flutterSdkPath": ".fvm/flutter_sdk",
+  // Remove .fvm files from search
+  "search.exclude": {
+    "**/.fvm": true
+  }
+}
+```
+
+#### Option 2 - View all SDKs (Manual switching)
+
+VSCode has the ability for you to switch between all cached Flutter SDKs using `Flutter: Change SDK`.
+
+:::info
+
+Use command `fvm list` to show you the cache path to the versions.
+:::
+
+#### List all versions installed by FVM
+
+You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory:
+
+```json
+{
+  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+}
+```
+
+Alternatively, you can specify only selected versions. The following snippet will cause VS Code to show only `stable` and `dev` versions of Flutter.
+
+```json
+{
+  "dart.flutterSdkPaths": [
+    "/Users/usr/fvm/versions/stable",
+    "/Users/usr/fvm/versions/dev"
+  ]
+}
+```
+
+To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette. You should see all the versions as depicted in the following screenshot.
+
+### Android Studio
+
+1. Go to `Languages & Frameworks -> Flutter` or search for Flutter and change Flutter SDK path.
+2. Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute-path/.fvm/flutter_sdk`
+3. Apply the changes.
+4. Restart Android Studio to see the new settings applied.
+
+You now can Run and Debug with the selected versions of Flutter.

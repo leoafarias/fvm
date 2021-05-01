@@ -32,7 +32,7 @@ class ListCommand extends BaseCommand {
     }
 
     // Print where versions are stored
-    FvmLogger.info('Cache Path:  ${yellow.wrap(ctx.cacheDir.path)}\n');
+    FvmLogger.info('Cache Directory:  ${yellow.wrap(ctx.cacheDir.path)}\n');
 
     // Get current project
     final project = await ProjectService.findAncestor();

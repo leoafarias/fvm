@@ -25,7 +25,7 @@ class ConfigCommand extends BaseCommand {
       )
       ..addFlag(
         'skip-setup',
-        help: '''Will skip setup after a version install.''',
+        help: 'Skip setup after a version install.',
         abbr: 's',
         negatable: true,
         defaultsTo: null,

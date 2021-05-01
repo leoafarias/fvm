@@ -10,7 +10,7 @@ import '../exceptions.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/doctor_command.dart';
-import 'commands/env_command.dart';
+import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
 import 'commands/global_command.dart';
 import 'commands/install_command.dart';
@@ -58,7 +58,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(DoctorCommand());
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
-    addCommand(EnvCommand());
+    addCommand(FlavorCommand());
   }
 
   @override
