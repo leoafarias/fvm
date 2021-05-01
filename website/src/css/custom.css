@@ -15,6 +15,9 @@
   --ifm-color-primary-lighter: rgb(102, 212, 189);
   --ifm-color-primary-lightest: rgb(146, 224, 208);
   --ifm-code-font-size: 95%;
+  /* Alerts */
+  --ifm-color-info: rgb(160, 160, 160);
+  --ifm-color-success: rgb(70, 203, 174);
 }
 
 .hero {
