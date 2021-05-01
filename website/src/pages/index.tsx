@@ -17,6 +17,8 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
 
         <div className={styles.buttons}>
+          <GitHubStarButton />
+          <Spacer />
           <Link to="https://pub.dev/packages/fvm">
             <img src="https://img.shields.io/badge/dynamic/json?color=blue&label=Pub Likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=for-the-badge&cacheSeconds=90000" />
           </Link>
@@ -26,8 +28,6 @@ function HomepageHeader() {
           </Link>
           <Spacer />
           <TwitterButton />
-          <Spacer />
-          <GitHubStarButton />
         </div>
         <Spacer />
         <Spacer />
