@@ -29,8 +29,8 @@ class FvmSettings {
   factory FvmSettings.fromMap(Map<String, dynamic> map) {
     return FvmSettings(
       cachePath: map['cachePath'] as String?,
-      skipSetup: map['skipSetup'] as bool,
-      gitCache: map['gitCache'] as bool,
+      skipSetup: map['skipSetup'] as bool? ?? false,
+      gitCache: map['gitCache'] as bool? ?? false,
     );
   }
 
