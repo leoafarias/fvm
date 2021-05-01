@@ -1,6 +1,6 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'Flutter Version Management (fvm)',
+  title: 'Flutter Version Management',
   tagline: 'A simple CLI to manage Flutter SDK versions.',
   url: 'https://fvm.app',
   baseUrl: '/',
@@ -8,11 +8,12 @@ module.exports = {
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'leoafarias', // Usually your GitHub org/user name.
-  projectName: 'fvm', // Usually your repo name.
+  projectName: 'FVM', // Usually your repo name.
   themeConfig: {
+    image:'img/share-image.png',
     sidebarCollapsible: false,
     navbar: {
-      title: 'fvm',
+      title: 'FVM',
       logo: {
         alt: 'FVM Logo',
         src: 'img/logo.svg',
