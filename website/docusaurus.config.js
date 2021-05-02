@@ -9,7 +9,12 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'leoafarias', // Usually your GitHub org/user name.
   projectName: 'FVM', // Usually your repo name.
+  plugins: ['@docusaurus/plugin-google-analytics'],
   themeConfig: {
+    googleAnalytics: {
+      trackingID: 'UA-175155757-1',
+      anonymizeIP: true, // Should IPs be anonymized?
+    },
     image:'img/share-image.png',
     sidebarCollapsible: false,
     navbar: {
