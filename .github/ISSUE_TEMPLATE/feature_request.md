@@ -3,9 +3,10 @@ name: Feature request
 about: Suggest an idea for this project
 title: "[Feature Request]"
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
+
+## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/docs/getting_started/overview#principles)
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]

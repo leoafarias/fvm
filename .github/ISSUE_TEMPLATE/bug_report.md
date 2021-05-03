@@ -8,9 +8,10 @@ assignees: ""
 
 **Before creating a bug report please make check the following**
 
-- [ ] You have installed fvm using `pub global activate fvm` not `flutter pub...`
+- [ ] You have read our [FAQ](https://fvm.app/docs/guides/faq)
 - [ ] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.
-- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions when using the `fvm use {version}` command.
+- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.
+- [ ] Run `fvm doctor` if possible and add the output to the issue.
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -28,9 +29,6 @@ A clear and concise description of what you expected to happen.
 
 **Logs**
 Please provide the verbose logs by running `--verbose` after the command.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
 
