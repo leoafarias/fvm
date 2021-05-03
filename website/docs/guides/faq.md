@@ -6,7 +6,7 @@ sidebar_position: 4
 
 ### Upgrade Flutter Channel
 
-As described in our [Principles](../getting_started/overview/#principles) FVM does not override standard Flutter behavior. Therefore to upgrade a channel you will have to use standard `flutter upgrade`. You can find more about it in the [Running Flutter](../running_flutter) section.
+As described in our [Principles](../getting_started/overview/#principles) FVM does not override standard Flutter behavior. Therefore to upgrade a channel you will have to use standard `flutter upgrade`. You can find more about it in the [Running Flutter](/docs/guides/running_flutter) section.
 
 ---
 
