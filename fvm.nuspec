@@ -29,7 +29,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <!-- <version>AUTOMATICALLY_ADDED</version> -->
     <packageSourceUrl>https://github.com/leoafarias/fvm</packageSourceUrl>
     <!-- owners is a poor name for maintainers of the package. It sticks around by this name for compatibility reasons. It basically means you. -->
-    <!--<owners>__REPLACE_YOUR_NAME__</owners>-->
+    <owners>@leoafarias</owners>
     <!-- ============================== -->
 
     <!-- == SOFTWARE SPECIFIC SECTION == -->
@@ -45,12 +45,13 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--<projectSourceUrl>Software Source Location - is the software FOSS somewhere? Link to it with this</projectSourceUrl>-->
     <docsUrl>https://fvm.app</docsUrl>
+    <!-- <iconUrl>http://cdn.rawgit.com/leoafarias/fvm/master/docs/fvm-logo.png</iconUrl> -->
     <!--<mailingListUrl></mailingListUrl>-->
     <!--<bugTrackerUrl></bugTrackerUrl>-->
     <tags>fvm flutter versions sdk</tags>
     <summary>Flutter Version Management: A simple cli to manage Flutter SDK versions per project</summary>
     <description>FVM helps with the need for a consistent app builds by allowing to reference Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time. </description>
-    <releaseNotes>https://github.com/leoafarias/fvm/blob/master/packages/cli/CHANGELOG.md</releaseNotes>
+    <releaseNotes>https://github.com/leoafarias/fvm/blob/master/CHANGELOG.md</releaseNotes>
     <!-- =============================== -->      
 
     <!-- Specifying dependencies and version ranges? https://docs.nuget.org/create/versioning#specifying-version-ranges-in-.nuspec-files -->
