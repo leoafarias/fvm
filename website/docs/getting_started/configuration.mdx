@@ -8,7 +8,7 @@ Configure FVM and IDEs for better support for different development environments
 
 ## Project
 
-FVM will create a relative symlink in your project from `.fvm/flutter_sdk` to the cache of the selected version. Make sure the following is added to your `.gitignore`
+FVM will create a relative symlink in your project from `.fvm/flutter_sdk` to the cache of the selected version. Add it to your `.gitignore`
 
 ```yaml title=".gitignore"
 .fvm/flutter_sdk
@@ -18,15 +18,15 @@ FVM will create a relative symlink in your project from `.fvm/flutter_sdk` to th
 
 ### Cache Directory
 
-You are able to configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
+You can configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
 
 ### Config
 
-There are some configurations which you are able to set on FVM. **All settings set on CLI are compatible with the App(GUI)**.
+There are some configurations which you can change on FVM. **All settings set on CLI are compatible with the Sidekick(GUI)**.
 
 ### Different Flutter Repo
 
-You are able to use a different Flutter repo, a fork or as a local cache, by setting the `FVM_GIT_CACHE` environment variable.
+You can use a different Flutter repo, a fork or as a local cache, by setting the `FVM_GIT_CACHE` environment variable.
 
 #### List config
 
@@ -36,7 +36,7 @@ You are able to use a different Flutter repo, a fork or as a local cache, by set
 
 #### Set cache path
 
-Location where Flutter SDK versions will be stored. If nothing is set, default will be used.
+Location where Flutter SDK versions will be stored. If nothing is set, the default will be used.
 
 ```bash
 > fvm config --cache-path <CACHE_PATH>
@@ -45,14 +45,14 @@ Location where Flutter SDK versions will be stored. If nothing is set, default w
 ## IDE
 
 :::info
-In some situations you might have to restart your IDE and the Flutter debugger to make sure it uses the latest version of the configurations.
+You might have to restart your IDE and the Flutter debugger to make sure it uses the latest version of the configurations in some situations.
 :::
 
 ### VS Code
 
 #### Option 1 - Automatic Switching (Recommended)
 
-You can add the version symlink for dynamic switch. VS Code will always use the version selected within the project, for all IDE tooling. Also remove the flutter sdk from search to make things easier
+You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the flutter SDK from search to make things easier.
 
 ```json title=".vscode/settings.json"
 {
