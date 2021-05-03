@@ -38,13 +38,13 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <authors>@leoafarias</authors>
     <!-- projectUrl is required for the community feed -->
     <projectUrl>https://github.com/leoafarias/fvm</projectUrl>
-    <iconUrl>http://cdn.rawgit.com/leoafarias/fvm/master/docs/fvm-logo.png</iconUrl>
+    
     <!-- <copyright>Year Software Vendor</copyright> -->
     <!-- If there is a license Url available, it is required for the community feed -->
     <licenseUrl>https://github.com/leoafarias/fvm/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--<projectSourceUrl>Software Source Location - is the software FOSS somewhere? Link to it with this</projectSourceUrl>-->
-    <docsUrl>https://github.com/leoafarias/fvm/tree/master/packages/cli</docsUrl>
+    <docsUrl>https://fvm.app</docsUrl>
     <!--<mailingListUrl></mailingListUrl>-->
     <!--<bugTrackerUrl></bugTrackerUrl>-->
     <tags>fvm flutter versions sdk</tags>
