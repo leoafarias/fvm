@@ -12,7 +12,6 @@ jobs:
   deploy-windows:
     name: Cholatey Deploy (Windows)
     runs-on: windows-latest
-    needs: release
     env:
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
     steps:
