@@ -4,7 +4,7 @@ title: Running Flutter
 sidebar_position: 1
 ---
 
-There are a few ways you can interact with the Flutter SDK setup. These will depand mostly on preference.
+There are a few ways you can interact with the Flutter SDK setup. These will depend primarily on preference.
 
 ## Proxy Commands
 

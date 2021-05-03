@@ -4,9 +4,9 @@ title: Project Flavors
 sidebar_position: 3
 ---
 
-You are able to have multiple Flutter SDK versions configured per project environment or release type. FVM follows the same convention of Flutter and calls this `flavors`.
+You can have multiple Flutter SDK versions configured per project environment or release type. FVM follows the same convention of Flutter and calls this `flavors`.
 
-This allows you to create the following configuration for your project.
+It allows you to create the following configuration for your project.
 
 ```json
 {

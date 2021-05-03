@@ -9,9 +9,22 @@ module.exports = {
   favicon: 'img/favicon.ico',
   organizationName: 'leoafarias', // Usually your GitHub org/user name.
   projectName: 'FVM', // Usually your repo name.
+  
   themeConfig: {
+    googleAnalytics: {
+      trackingID: 'UA-175155757-1',
+      anonymizeIP: true, // Should IPs be anonymized?
+    },
     image:'img/share-image.png',
     sidebarCollapsible: false,
+    announcementBar: {
+      id: 'support_us', // Any value that will identify this message.
+      content:
+        "⭐ If you like FVM, give it a star on <a target='_blank' rel='noopener noreferrer' href='https://github.com/leoafarias/fvm'>GitHub</a> ⭐",
+      backgroundColor: '#fff', // Defaults to `#fff`.
+      textColor: '#000', // Defaults to `#000`.
+      isCloseable: true,
+    },
     navbar: {
       title: 'FVM',
       logo: {
@@ -31,6 +44,10 @@ module.exports = {
           docId: 'guides/basic_commands',
           position: 'right',
           label: 'Guides',
+        },
+        {
+          type: 'search',
+          position: 'right',
         },
         {
           href: 'https://github.com/leoafarias/fvm',
