@@ -29,13 +29,13 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <!-- <version>AUTOMATICALLY_ADDED</version> -->
     <packageSourceUrl>https://github.com/leoafarias/fvm</packageSourceUrl>
     <!-- owners is a poor name for maintainers of the package. It sticks around by this name for compatibility reasons. It basically means you. -->
-    <owners>@leoafarias</owners>
+    <owners>leochocolatey</owners>
     <!-- ============================== -->
 
     <!-- == SOFTWARE SPECIFIC SECTION == -->
     <!-- This section is about the software itself -->
     <title>fvm (Install)</title>
-    <authors>@leoafarias</authors>
+    <authors>leochocolatey</authors>
     <!-- projectUrl is required for the community feed -->
     <projectUrl>https://github.com/leoafarias/fvm</projectUrl>
     
