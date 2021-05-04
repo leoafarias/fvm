@@ -14,14 +14,19 @@ class CacheVersion {
   /// Constructor
   CacheVersion(this.name);
 
+  /// Get version bin path
+  String get binPath {
+    return join(dir.path, 'bin');
+  }
+
   /// Returns dart exec file for cache version
   String get dartExec {
-    return join(dir.path, 'bin', dartBinFileName);
+    return join(binPath, dartBinFileName);
   }
 
   /// Returns flutter exec file for cache version
   String get flutterExec {
-    return join(dir.path, 'bin', flutterBinFileName);
+    return join(binPath, flutterBinFileName);
   }
 
   /// Returns CacheVersion directory

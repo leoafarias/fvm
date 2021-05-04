@@ -66,18 +66,18 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
 }
 
 /// Returns updated environment for Flutter with [execPath]
-Map<String, String> updateFlutterEnvVariables(String execPath) {
-  return _updateEnvVariables('flutter', execPath);
+Map<String, String> updateFlutterEnvVariables(String binPath) {
+  return _updateEnvVariables('flutter', binPath);
 }
 
-/// Returns updated environment for Dark with [execPath]
-Map<String, String> updateDartEnvVariables(String execPath) {
-  return _updateEnvVariables('dart', execPath);
+/// Returns updated environment for Dark with [binPath]
+Map<String, String> updateDartEnvVariables(String binPath) {
+  return _updateEnvVariables('dart', binPath);
 }
 
 Map<String, String> _updateEnvVariables(
   String key,
-  String execPath,
+  String binPath,
 ) {
   final envPath = kEnvVars['PATH'] ?? '';
 
@@ -92,7 +92,7 @@ Map<String, String> _updateEnvVariables(
   final newEnv = pathEnvList.join(':');
 
   return Map<String, String>.from(kEnvVars)
-    ..addAll({'PATH': '$newEnv:$execPath'});
+    ..addAll({'PATH': '$newEnv:$binPath'});
 }
 
 /// Compares a [version] against [other]

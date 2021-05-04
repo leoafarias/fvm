@@ -1,3 +1,7 @@
+## 2.0.3
+
+- Fixes monorepo compatibility [#285](https://github.com/leoafarias/fvm/issues/285)
+
 ## 2.0.2
 
 - Fixes regression when running `fvm install`
