@@ -24,12 +24,10 @@ Future<CacheVersion> ensureCacheWorkflow(
     // Returns cache if already exists
     if (cacheVersion != null) {
       logger.trace('Version: $validVersion - already installed.');
+      // Ensure the config link and symlink are updated
+      await ProjectService.updateLink();
       return cacheVersion;
     }
-
-    // Ensure the config link and symlink are updated
-    // If there is an app
-    await ProjectService.updateLink();
 
     FvmLogger.info('Flutter "$validVersion" is not installed.');
 
@@ -51,6 +49,8 @@ Future<CacheVersion> ensureCacheWorkflow(
       if (cacheVersion == null) {
         throw FvmInternalError('Could not cache version $validVersion');
       }
+      // Ensure the config link and symlink are updated
+      await ProjectService.updateLink();
       return cacheVersion;
     } else {
       // Exit if don't want to install

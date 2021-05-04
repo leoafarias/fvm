@@ -1,3 +1,7 @@
+## 2.0.2-dev.0
+
+- Fixes regression when running `fvm install`
+
 ## 2.0.1
 
 - Fix issue when retrieving settings [#281](https://github.com/leoafarias/fvm/issues/281)
@@ -5,19 +9,29 @@
 ## 2.0.0
 
 - Feature: Environments - Set Flutter sdk versions per project environment.
+
 - Feature: Doctor - Easily view the Flutter version configure for the project and configuration state
+
 - Feature: Spawn - Easily proxy Flutter commands through any cached version
+
 - Feature: Commits - Ability to install/use commits as the pinned SDK version.
+
 - Feature: Custom versions - Manage custom sdk versions by add `custom_` in front of the version.
+
 - Improvements: null-safety
+
 - Improvements: Global - Create own command to set global versions. Deprecated "--global" flag.
+
 - Improvements: Flutter command proxy now defaults to FVM global configured version before looking for one configured on PATH
+
 - Improvements: Better error messaging, notifications and logging
+
 - Improvements: Many quality of life improvements
 
 ## 1.3.8
 
 - Issue on install [#242](https://github.com/leoafarias/fvm/issues/242)
+
 - Auto linking[#207](https://github.com/leoafarias/fvm/issues/207)
 
 ## 1.3.7
@@ -27,7 +41,9 @@
 ## 1.3.6
 
 - Enhancement: Added PATH env on Flutter processs. For better third party tooling support.
+
 - Fix: Updated Grinder dependencies
+
 - Fix: Better ancestor lookup logic for monorepo setups. [#180](https://github.com/leoafarias/fvm/issues/180)
 
 ## 1.3.5+1
@@ -54,9 +70,13 @@
 ## 1.3.0
 
 - Bug fixes and improvements 😂
+
 - Implemented ability to change cachePath` on settings [#101](https://github.com/leoafarias/fvm/issues/101)
+
 - Improved UX with Flutter run command [#124](https://github.com/leoafarias/fvm/issues/124)
+
 - Added a notice on Windows to run as developer mode or administrator
+
 - Ability to set Flutter Git Repo URL (Advanced)
 
 ## 1.2.3
