@@ -4,7 +4,8 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "files": [
-    "README.md"
+    "README.md",
+    "website/docs/getting_started/overview.md"
   ],
   "imageSize": 50,
   "commit": false,
