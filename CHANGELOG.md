@@ -1,4 +1,4 @@
-## 2.0.2-dev.0
+## 2.0.2
 
 - Fixes regression when running `fvm install`
 
