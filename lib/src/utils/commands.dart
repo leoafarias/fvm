@@ -16,14 +16,11 @@ Future<int> flutterCmd(
   CacheVersion version,
   List<String> args,
 ) async {
-  // Get exec path for flutter
-  final execPath = version.flutterExec;
-
   // Update environment variables
-  final environment = updateFlutterEnvVariables(execPath);
+  final environment = updateFlutterEnvVariables(version.binPath);
   // Run command
   return await _runCmd(
-    execPath,
+    version.flutterExec,
     args: args,
     environment: environment,
   );
