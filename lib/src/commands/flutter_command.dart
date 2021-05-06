@@ -29,7 +29,7 @@ class FlutterCommand extends BaseCommand {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-      FvmLogger.info('fvm: running version "$version"\n');
+      logger.trace('fvm: running version "$version"\n');
 
       // Runs flutter command with pinned version
       return await flutterCmd(cacheVersion, args);

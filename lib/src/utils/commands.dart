@@ -61,12 +61,12 @@ Future<int> flutterGlobalCmd(List<String> args) async {
   // Get exec path for flutter
   if (cacheVersion != null) {
     execPath = cacheVersion.flutterExec;
-    FvmLogger.info(
+    logger.trace(
       'FVM: Running global configured version "${cacheVersion.name}"',
     );
   } else {
     execPath = whichSync('flutter') ?? '';
-    FvmLogger.info(
+    logger.trace(
       'FVM: Running Flutter SDK configured on environment PATH. $execPath',
     );
   }
