@@ -1,3 +1,7 @@
+## Next
+
+- Added cli_notify to check for new version updates
+
 ## 2.0.4
 
 - FVM only outputs information about version running when using `--verbose` [#288](https://github.com/leoafarias/fvm/issues/288)
