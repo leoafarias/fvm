@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/pubdev.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -37,14 +36,6 @@ void main() {
   test('Not Valid Flutter Version', () async {
     expect(_inferVersionString('1.8.0.2'), throwsA(anything));
     expect(_inferVersionString('v1.17.0-dev.3.1'), throwsA(anything));
-  });
-
-  test('Check if FVM latest version', () async {
-    var isLatest = await checkIfLatestVersion(currentVersion: '1.0.0');
-    expect(isLatest, false);
-
-    isLatest = await checkIfLatestVersion(currentVersion: '5.0.0');
-    expect(isLatest, true);
   });
 
   test('Does CLI version match', () async {

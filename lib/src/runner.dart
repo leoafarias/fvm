@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
-import 'package:fvm/src/utils/guards.dart';
 import 'package:io/io.dart';
 
 import '../exceptions.dart';
@@ -19,8 +18,9 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
+import 'utils/guards.dart';
+import 'utils/helpers.dart';
 import 'utils/logger.dart';
-import 'utils/pubdev.dart';
 import 'version.dart';
 
 /// Command Runner for FVM
@@ -77,7 +77,8 @@ class FvmCommandRunner extends CommandRunner<int> {
 
       // Check if its running the latest version of FVM
       if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
-        await checkIfLatestVersion();
+        // Check if there is an update fofr FVM
+        await checkForFvmUpdate();
       }
       return exitCode;
     } on FvmUsageException catch (e) {

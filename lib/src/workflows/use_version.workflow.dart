@@ -35,9 +35,9 @@ Future<void> useVersionWorkflow(
   if (flavor != null) {
     FvmLogger.fine(
       'Project now uses Flutter [$validVersion]'
-      ' on [$flavor] flavor.\n',
+      ' on [$flavor] flavor.',
     );
   } else {
-    FvmLogger.fine('Project now uses Flutter [$validVersion]\n');
+    FvmLogger.fine('Project now uses Flutter [$validVersion]');
   }
 }

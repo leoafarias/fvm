@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:cli_notify/cli_notify.dart';
+import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
@@ -168,4 +170,12 @@ String assignVersionWeight(String version) {
   }
 
   return version;
+}
+
+/// Check if there is an update for FVM
+Future<void> checkForFvmUpdate() async {
+  await Notify(
+    packageName: 'fvm',
+    currentVersion: packageVersion,
+  ).update();
 }
