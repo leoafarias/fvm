@@ -1,5 +1,6 @@
 import '../../exceptions.dart';
 import '../../fvm.dart';
+import '../utils/logger.dart';
 import 'context.dart';
 
 /// Service for FVM settings
@@ -27,11 +28,11 @@ class SettingsService {
       if (_settings == null) {
         final payload = ctx.settingsFile.readAsStringSync();
         // Store in memory
-        return FvmSettings.fromJson(payload);
-      } else {
-        return _settings!;
+        _settings = FvmSettings.fromJson(payload);
       }
-    } on Exception {
+      return _settings!;
+    } on Exception catch (err) {
+      logger.trace(err.toString());
       return FvmSettings();
     }
   }
