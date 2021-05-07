@@ -1,35 +1,36 @@
 # This is a basic workflow that is manually triggered
 
-name: Chocolatey Deploy
+name: Homebrew Deploy
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
 on:
   workflow_dispatch:
+  release:
+    types:
+      - published
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  deploy-windows:
-    name: Cholatey Deploy (Windows)
-    runs-on: windows-latest
+  deploy:
+    name: Deploy Homebrew
+    runs-on: ubuntu-latest
     env:
-      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+    container:
+      image: google/dart:latest
     steps:
       - uses: actions/checkout@v1
-
-      - name: Setup Dart
-        uses: DanTup/gh-actions/setup-dart@master
-        with:
-          channel: stable
 
       - name: Install dependencies
         run: pub get
 
-      - name: Run Builder for Version
+      - name: Build Version Number
         run: pub run build_runner build --delete-conflicting-outputs
 
-      - name: Run Test
+      - name: Test
         run: pub run test
 
-      - name: Deploy Chocolatey (Windows)
-        run: pub run grinder pkg-chocolatey-deploy
+      - name: Deploy to Homebrew
+        run: pub run grinder pkg-homebrew-update
