@@ -10,6 +10,14 @@ As described in our [Principles](../getting_started/overview/#principles) FVM do
 
 ---
 
+### Monorepo support
+
+Suppose you have a nested package(s) that you want to share the same Flutter version. You can set up the FVM config at the root of the monorepo.
+
+FVM will do an ancestor look-up to find the config and use it as the default.
+
+---
+
 ### Cannot install latest version of FVM
 
 When running `pub global activate fvm`, pub will grab the latest FVM version that is compatible with the installed dart-sdk. Upgrade to the latest version of the Dart, and run the command again. Go to https://dart.dev/get-dart for more information.
