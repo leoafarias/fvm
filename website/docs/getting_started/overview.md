@@ -15,6 +15,12 @@ FVM helps with the need for consistent app builds by referencing the Flutter SDK
 - Major Flutter updates require migration of all Flutter apps in the machine.
 - Inconsistent development environments between other devs in the team.
 
+## Video Guides & Walkthroughs
+
+You can view a playlist of many Youtube guides & walkthroughs done by the incredible Flutter community in many different languages.
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLVnlSO6aQelAAddOFQVJNoaRGZ1mMsj2Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Principles
 
 We follow these principles when building and adding new features to FVM.
