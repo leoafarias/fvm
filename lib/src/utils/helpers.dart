@@ -54,9 +54,18 @@ Future<String> getParentDirPath(String filePath) async {
 /// Creates a symlink from [source] to the [target]
 Future<void> createLink(Link source, FileSystemEntity target) async {
   try {
-    if (await source.exists()) {
+    // Check if needs to do anything
+    // TODO: Move this check higher up the stack
+    final sourceExists = await source.exists();
+    if (sourceExists && await source.target() == target.path) {
+      logger.trace('Link is setup correctly');
+      return;
+    }
+
+    if (sourceExists) {
       await source.delete();
     }
+
     await source.create(
       target.path,
       recursive: true,

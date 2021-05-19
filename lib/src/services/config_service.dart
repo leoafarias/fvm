@@ -30,7 +30,7 @@ class ConfigService {
 
   /// Updates link for the project SDK from the [config]
   static Future<void> updateSdkLink(FvmConfig config) async {
-    await createLink(config.sdkSymlink, File(config.flutterSdkPath));
+    await createLink(config.sdkSymlink, Directory(config.flutterSdkPath));
   }
 
   /// Saves a fvm [config]
