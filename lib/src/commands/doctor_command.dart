@@ -1,3 +1,4 @@
+import 'package:fvm/src/version.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
@@ -33,6 +34,9 @@ class DoctorCommand extends BaseCommand {
       final cacheVersion =
           await CacheService.getByVersionName(project.pinnedVersion!);
       FvmLogger.spacer();
+
+      FvmLogger.info('FVM Version: $packageVersion');
+      FvmLogger.divider();
       FvmLogger.fine('FVM config found:');
       FvmLogger.divider();
       FvmLogger.info('Project: ${project.name}');
@@ -83,6 +87,9 @@ class DoctorCommand extends BaseCommand {
     FvmLogger.spacer();
     FvmLogger.info('Dart:');
     FvmLogger.info(dartWhich ?? '');
+    FvmLogger.spacer();
+    FvmLogger.info('FVM_HOME:');
+    FvmLogger.info(kEnvVars['FVM_HOME'] ?? 'not set');
     FvmLogger.spacer();
 
     return ExitCode.success.code;
