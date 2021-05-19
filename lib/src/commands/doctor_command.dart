@@ -1,4 +1,3 @@
-import 'package:fvm/src/version.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
@@ -6,6 +5,7 @@ import '../../constants.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
+import '../version.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment

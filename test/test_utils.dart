@@ -68,7 +68,7 @@ void testWithContext(
   void Function() body, {
   String? testOn,
   Timeout? timeout,
-  dynamic? skip,
+  dynamic skip,
   List<String>? tags,
   Map<String, dynamic>? onPlatform,
   int? retry,
