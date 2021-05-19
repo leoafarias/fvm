@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cli_notify/cli_notify.dart';
-import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../services/context.dart';
+import '../version.dart';
 import 'logger.dart';
 
 /// Checks if [name] is a channel

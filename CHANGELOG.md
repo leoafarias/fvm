@@ -1,5 +1,3 @@
-# Changelog
-
 ## 2.0.5
 
 - Fix concurrently Flutter commands on monorepo [#296](https://github.com/leoafarias/fvm/issues/296)
