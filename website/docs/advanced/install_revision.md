@@ -1,6 +1,6 @@
 ---
 id: install_revision
-title: Install Specfic Revision
+title: Install Specific Revision
 sidebar_position: 0
 ---
 
