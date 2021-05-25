@@ -16,7 +16,7 @@ module.exports = {
       anonymizeIP: true, // Should IPs be anonymized?
     },
     algolia:{
-      apiKey: '7e098fd1631f47db1b8bc08a956968b3',
+      apiKey: '178209eec41c198e123e8280e47275f5',
       indexName: 'fvm'
     },
 
