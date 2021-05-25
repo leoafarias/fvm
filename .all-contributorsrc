@@ -228,6 +228,15 @@
         "infra",
         "ideas"
       ]
+    },
+    {
+      "login": "jmewes",
+      "name": "Jan Mewes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5235584?v=4",
+      "profile": "http://www.experimental-software.com",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
