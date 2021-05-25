@@ -15,6 +15,11 @@ module.exports = {
       trackingID: 'UA-175155757-1',
       anonymizeIP: true, // Should IPs be anonymized?
     },
+    algolia:{
+      apiKey: '7e098fd1631f47db1b8bc08a956968b3',
+      indexName: 'fvm'
+    },
+
     image:'img/share-image.png',
     sidebarCollapsible: false,
     announcementBar: {
