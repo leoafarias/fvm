@@ -26,7 +26,7 @@ String getReleasesUrl({String? platform}) {
 
 String _getBackupReleaseUrl({String? platform}) {
   platform ??= Platform.operatingSystem;
-  return 'https://raw.githubusercontent.com/leoafarias/fvm/master/assets/releases_$platform.json';
+  return 'https://raw.githubusercontent.com/leoafarias/flutter_flat_data/main/releases_$platform.json';
 }
 
 FlutterReleases? _cacheReleasesRes;
