@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:fvm/src/utils/logger.dart';
+
 import '../../../exceptions.dart';
 import '../../utils/http.dart';
 import 'models/flutter_releases.model.dart';
@@ -22,10 +24,16 @@ String getReleasesUrl({String? platform}) {
   return '$storageUrl/flutter_infra/releases/releases_$platform.json';
 }
 
+String _getBackupReleaseUrl({String? platform}) {
+  platform ??= Platform.operatingSystem;
+  return 'https://raw.githubusercontent.com/leoafarias/fvm/master/assets/releases_$platform.json';
+}
+
 FlutterReleases? _cacheReleasesRes;
 
 /// Gets Flutter SDK Releases
 /// Can use memory [cache] if it exists.
+
 Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
   try {
     // If has been cached return
@@ -36,12 +44,19 @@ Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
     _cacheReleasesRes = FlutterReleases.fromJson(response);
     return Future.value(_cacheReleasesRes);
   } on Exception catch (err) {
-    print(err);
-    throw FvmInternalError(
-      'Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n'
-      'Fvm will use the value set on '
-      'env FLUTTER_STORAGE_BASE_URL to check versions\n'
-      'if you are located in China, please see this page: https://flutter.dev/community/china',
-    );
+    logger.trace(err.toString());
+
+    try {
+      final response = await fetch(_getBackupReleaseUrl());
+      _cacheReleasesRes = FlutterReleases.fromJson(response);
+      return Future.value(_cacheReleasesRes);
+    } on Exception {
+      throw FvmInternalError(
+        'Failed to retrieve the Flutter SDK from: ${getReleasesUrl()}\n'
+        'Fvm will use the value set on '
+        'env FLUTTER_STORAGE_BASE_URL to check versions\n'
+        'if you are located in China, please see this page: https://flutter.dev/community/china',
+      );
+    }
   }
 }
