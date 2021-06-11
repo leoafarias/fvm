@@ -20,11 +20,11 @@ function HomepageHeader() {
           <GitHubStarButton />
           <Spacer />
           <Link to="https://pub.dev/packages/fvm">
-            <img src="https://img.shields.io/badge/dynamic/json?color=blue&label=Pub Likes&query=likes&url=http://www.pubscore.gq/likes?package=fvm&style=for-the-badge&cacheSeconds=90000" />
+            <img src="https://badges.bar/fvm/likes" />
           </Link>
           <Spacer />
           <Link to="https://github.com/leoafarias/fvm/graphs/contributors">
-            <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm?style=for-the-badge" />
+            <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm" />
           </Link>
           <Spacer />
           <TwitterButton />
@@ -54,7 +54,7 @@ function TwitterButton() {
       username="leoafarias"
       options={{
         dnt: true,
-        size: "large",
+        size: "small",
         showCount: false,
         showScreenName: false,
       }}
@@ -68,7 +68,7 @@ function GitHubStarButton() {
       <GitHubButton
         href="https://github.com/leoafarias/fvm"
         data-show-count="true"
-        data-size="large"
+        // data-size="large"
         aria-label="Star leoafarias/fvm on GitHub"
       >
         Star
