@@ -8,6 +8,10 @@ Future<String> fetch(String url) async {
 
   final response = await request.close();
 
+  if (response.statusCode >= 400) {
+    throw HttpException(response.reasonPhrase);
+  }
+
   final stream = response.transform(Utf8Decoder());
 
   var res = '';
