@@ -1,3 +1,7 @@
+## 2.1.0
+
+- Removed Windows permission check
+
 ## 2.0.7
 
 - Updated Flutter releases URL
