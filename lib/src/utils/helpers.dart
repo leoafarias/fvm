@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cli_notify/cli_notify.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
@@ -71,8 +72,18 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
       recursive: true,
     );
   } on FileSystemException catch (e) {
-    logger.trace(e.message);
-    rethrow;
+    logger.trace(e.toString());
+
+    var message = '';
+    if (Platform.isWindows) {
+      message = 'On Windows FVM requires to run as an administrator '
+          'or turn on developer mode: https://bit.ly/3vxRr2M';
+    }
+
+    throw FvmUsageException(
+      "Seems you don't have the required permissions on ${ctx.fvmHome.path}"
+      ' $message',
+    );
   }
 }
 
