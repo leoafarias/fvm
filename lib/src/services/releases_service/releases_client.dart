@@ -21,7 +21,7 @@ String get storageUrl {
 /// returns [url] for the list of the platform releases.
 String getReleasesUrl({String? platform}) {
   platform ??= Platform.operatingSystem;
-  return '$storageUrl/flutter_infra/releases/releases_$platform.json';
+  return '$storageUrl/flutter_infra_release/releases/releases_$platform.json';
 }
 
 String _getBackupReleaseUrl({String? platform}) {
