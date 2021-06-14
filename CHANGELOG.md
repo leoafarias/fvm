@@ -1,3 +1,7 @@
+## 2.0.7
+
+- Updated Flutter releases URL
+
 ## 2.0.6
 
 - Added fallback if Flutter Release API is down
