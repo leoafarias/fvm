@@ -1,3 +1,8 @@
+## 2.1.1
+
+- Removed Flutter version validation check
+- Now works offline
+
 ## 2.1.0
 
 - Removed Windows permission check
