@@ -1,7 +1,7 @@
 import 'package:io/io.dart';
 
+import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/remove_version.workflow.dart';
@@ -38,7 +38,7 @@ class RemoveCommand extends BaseCommand {
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
-    final validVersion = await FlutterTools.inferValidVersion(version);
+    final validVersion = ValidVersion(version);
     final cacheVersion = await CacheService.isVersionCached(validVersion);
 
     // Check if version is installed

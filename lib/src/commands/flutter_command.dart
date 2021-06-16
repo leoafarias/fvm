@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
 
-import '../services/flutter_tools.dart';
+import '../models/valid_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
@@ -25,7 +25,7 @@ class FlutterCommand extends BaseCommand {
     final args = argResults!.arguments;
 
     if (version != null) {
-      final validVersion = await FlutterTools.inferValidVersion(version);
+      final validVersion = ValidVersion(version);
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

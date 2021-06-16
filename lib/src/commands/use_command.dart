@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
+import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
-import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
@@ -64,10 +64,7 @@ class UseCommand extends BaseCommand {
     // throw UsageException('Usage exception', usage.);
 
     // Get valid flutter version. Force version if is to be pinned.
-    final validVersion = await FlutterTools.inferValidVersion(
-      version,
-      forceRelease: pinOption,
-    );
+    var validVersion = ValidVersion(version);
 
     /// Cannot pin master channel
     if (pinOption && validVersion.isMaster) {
@@ -77,11 +74,12 @@ class UseCommand extends BaseCommand {
       );
     }
 
-    /// Print pin message if its pinning
-    if (pinOption && checkIsChannel(version)) {
+    /// Pin release to channel
+    if (pinOption && validVersion.isChannel) {
       FvmLogger.info(
         'Pinning version $validVersion fron "$version" release channel...',
       );
+      validVersion = await FlutterTools.inferReleaseFromChannel(validVersion);
     }
 
     /// Run use workflow

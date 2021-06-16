@@ -7,7 +7,6 @@ import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
 import '../utils/helpers.dart';
 import 'context.dart';
-import 'flutter_tools.dart';
 import 'git_tools.dart';
 
 /// Service to interact with FVM Cache
@@ -112,7 +111,7 @@ class CacheService {
       // Get directory name
       final version = basename(await ctx.globalCacheLink.target());
       // Make sure its a valid version
-      final validVersion = await FlutterTools.inferValidVersion(version);
+      final validVersion = ValidVersion(version);
       // Verify version is cached
       return await CacheService.isVersionCached(validVersion);
     } else {

@@ -4,7 +4,6 @@ import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../models/valid_version_model.dart';
 import '../utils/commands.dart';
-import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'releases_service/releases_client.dart';
 
@@ -31,52 +30,19 @@ class FlutterTools {
     }
   }
 
-  /// Returns a [ValidVersion] from [name]
-  /// Returns the latest release version
-  /// for a channel if [forceRelease] is true
-  static Future<ValidVersion> inferValidVersion(
-    String name, {
-    bool forceRelease = false,
-  }) async {
+  /// Returns a [ValidVersion] release from channel [version]
+  static Future<ValidVersion> inferReleaseFromChannel(
+    ValidVersion version,
+  ) async {
+    if (!version.isChannel) {
+      throw Exception('Can only infer release on valid channel');
+    }
+
     final releases = await fetchFlutterReleases();
-    // Not case sensitve
-    name = name.toLowerCase();
-    final prefixedVersion = 'v$name';
 
-    // Check if its master or a valid release version
-    if (name == 'master' || releases.containsVersion(name)) {
-      // Return if its flutter channel
-      return ValidVersion(name);
-    }
+    final channel = releases.channels[version.name];
 
-    // Is a valid prefixed release
-    if (releases.containsVersion(prefixedVersion)) {
-      return ValidVersion(prefixedVersion);
-    }
-
-    /// Check that is a channel with a release
-    if (checkIsReleaseChannel(name)) {
-      final channel = releases.channels[name];
-
-      /// Return channel version instead of channel if flag is there
-      final version = forceRelease ? channel.version : name;
-      // Returns valid version
-      return ValidVersion(version);
-    }
-
-    // Check whether it's a git short hash
-    if (checkIsGitHash(name)) {
-      return ValidVersion(name);
-    }
-
-    // Allow custom versoin
-    if (checkIsCustom(name)) {
-      return ValidVersion(name, custom: true);
-    }
-
-    // Throws exception if is not in any above condition
-    throw FvmUsageException(
-      '$name is not a valid Flutter channel or release',
-    );
+    // Returns valid version
+    return ValidVersion(channel.version);
   }
 }

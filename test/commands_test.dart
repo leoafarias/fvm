@@ -3,7 +3,6 @@ import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/helpers.dart';
@@ -102,7 +101,7 @@ void main() {
       try {
         await FvmCommandRunner()
             .run(['install', release, '--verbose', '--skip-setup']);
-        final valid = await FlutterTools.inferValidVersion(release);
+        final valid = ValidVersion(release);
         final existingRelease = await GitTools.getBranchOrTag(valid.name);
 
         final cacheVersion = await CacheService.isVersionCached(valid);
@@ -126,7 +125,7 @@ void main() {
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetPath = project.config.sdkSymlink.targetSync();
-        final valid = await FlutterTools.inferValidVersion(release);
+        final valid = await ValidVersion(release);
         final versionDir = versionCacheDir(valid.name);
 
         expect(targetPath == versionDir.path, true);

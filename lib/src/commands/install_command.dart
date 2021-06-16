@@ -4,6 +4,7 @@ import 'package:io/io.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
+import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -51,7 +52,7 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = await FlutterTools.inferValidVersion(version);
+    final validVersion = ValidVersion(version);
     cacheVersion =
         await ensureCacheWorkflow(validVersion, skipConfirmation: true);
 

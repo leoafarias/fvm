@@ -1,7 +1,7 @@
 import 'package:io/io.dart';
 
+import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/flutter_tools.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -34,7 +34,7 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version
-    final validVersion = await FlutterTools.inferValidVersion(version);
+    final validVersion = ValidVersion(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);
