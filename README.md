@@ -54,7 +54,7 @@ pub run test_cov
 ## Troubleshooting
 
 1. On Windows make sure you are running as an administrator
-2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`.
+2. If you get errors with messages `invalid kernel binary` or `invalid sdk hash` it means you activated `fvm` using `flutter pub global activate fvm`. Only activate `fvm` using `pub global activate fvm`. If you get `Command 'pub' not found`, then make sure to append `export PATH="$PATH:/usr/lib/dart/bin"` to your `~/.bashrc` (gets reiniated each time you open a bash shell) or `~/.profile` (only read at login) file.
 
 ## License
 
