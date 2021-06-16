@@ -82,12 +82,16 @@ class FvmCommandRunner extends CommandRunner<int> {
       FvmLogger.warning(e.message);
       FvmLogger.spacer();
       return ExitCode.usage.code;
-    } on FvmInternalError catch (e, stackTrace) {
+    } on FvmInternalError catch (e) {
       FvmLogger.spacer();
-      FvmLogger.warning(e.message);
+      FvmLogger.error(e.message);
       FvmLogger.spacer();
-      FvmLogger.error('$stackTrace');
+
+      FvmLogger.info(
+        'Please run command with  --verbose if you want more information',
+      );
       FvmLogger.spacer();
+
       return ExitCode.usage.code;
     } on UsageException catch (e) {
       FvmLogger.spacer();

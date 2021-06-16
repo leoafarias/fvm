@@ -1,7 +1,7 @@
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../services/flutter_tools.dart';
+import '../models/valid_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -59,7 +59,7 @@ class FlavorCommand extends BaseCommand {
     }
 
     // Makes sure that is a valid version
-    final validVersion = await FlutterTools.inferValidVersion(envVersion);
+    final validVersion = ValidVersion(envVersion);
 
     FvmLogger.info(
       'Switching to [$flavor] flavor, '
