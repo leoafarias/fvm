@@ -237,6 +237,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "allanlaal",
+      "name": "Allan Laal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/740826?v=4",
+      "profile": "https://permanent.ee",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
