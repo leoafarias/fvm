@@ -5,6 +5,7 @@ import 'package:process_run/cmd_run.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
+import '../models/valid_version_model.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'context.dart';
@@ -16,30 +17,36 @@ class GitTools {
 
   /// Clones Flutter SDK from Version Number or Channel
 
-  static Future<void> cloneVersion(String version) async {
-    final versionDir = versionCacheDir(version);
+  static Future<void> cloneVersion(ValidVersion version) async {
+    final versionDir = versionCacheDir(version.name);
     await versionDir.create(recursive: true);
 
     // Check if its git commit
-    final isCommit = checkIsGitHash(version);
 
     String? channel;
 
-    if (checkIsChannel(version)) {
-      channel = version;
-    } else if (!isCommit) {
-      final flutterReleases = await fetchFlutterReleases();
-      channel = flutterReleases.getChannelFromVersion(version);
+    if (version.isChannel) {
+      channel = version.name;
+      // If its not a commit hash
+    } else if (version.isRelease) {
+      if (version.forceChannel != null) {
+        // Version name forces channel version
+        channel = version.forceChannel;
+      } else {
+        // Fetches the channel of version by priority
+        final flutterReleases = await fetchFlutterReleases();
+        channel = flutterReleases.getChannelFromVersion(version.name);
+      }
     }
 
     final args = [
       'clone',
       '--progress',
-      if (!isCommit) ...[
+      if (!version.isGitHash) ...[
         '-c',
         'advice.detachedHead=false',
         '-b',
-        channel ?? version,
+        channel ?? version.name,
       ],
       kFlutterRepo,
       versionDir.path
@@ -60,9 +67,9 @@ class GitTools {
     }
 
     /// If version has a channel reset
-    if (channel != version) {
+    if (version.needReset) {
       try {
-        await _resetRepository(versionDir, version: version);
+        await _resetRepository(versionDir, version: version.version);
       } on FvmInternalError {
         await _cleanupVersionDir(versionDir);
         rethrow;
