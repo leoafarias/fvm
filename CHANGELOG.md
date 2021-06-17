@@ -1,3 +1,7 @@
+## 2.1.2-dev.0
+
+- Resolves channel unknown when pulling release version
+
 ## 2.1.1
 
 - Removed Flutter version validation check
