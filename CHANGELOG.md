@@ -1,4 +1,4 @@
-## 2.1.2-dev.0
+## 2.1.2-dev.1
 
 - Resolves channel unknown when pulling release version
 
