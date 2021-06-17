@@ -56,10 +56,26 @@ class FlutterReleases {
       return channels[version];
     }
 
-    final foundIdx = releases.indexWhere((v) => v.version == version);
+    int findReleaseIdx(Channel channel) {
+      return releases.indexWhere(
+        (v) => v.version == version && v.channel == channel,
+      );
+    }
+
+    // Versions can be in multiple versions
+    // Prioritize by order of maturity
+    // TODO: could be optimized and avoid multiple loops
+    final stableIndex = findReleaseIdx(Channel.stable);
+    final betaIndex = findReleaseIdx(Channel.beta);
+    final devIndex = findReleaseIdx(Channel.dev);
+
     Release? release;
-    if (foundIdx >= 0) {
-      release = releases[foundIdx];
+    if (stableIndex >= 0) {
+      release = releases[stableIndex];
+    } else if (betaIndex >= 0) {
+      release = releases[betaIndex];
+    } else if (devIndex >= 0) {
+      release = releases[devIndex];
     }
 
     return release;
