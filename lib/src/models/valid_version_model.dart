@@ -23,8 +23,8 @@ class ValidVersion {
       return name;
     } else {
       // Return version number without channel
-      final channelPart = '$forceChannel@';
-      return name.substring(channelPart.length);
+      final channel = '@$forceChannel';
+      return name.substring(0, name.length - channel.length);
     }
   }
 
@@ -54,12 +54,13 @@ class ValidVersion {
     if (checkIsChannel(name)) {
       return null;
     }
-    // Check if name starts with channel name
-    // i.e. beta-2.2.2
+
+    // Check if last part is channel
+    // i.e. 2.2.2@beta
     final parts = name.split('@');
-    final channel = parts[0];
-    if (checkIsChannel(channel)) {
-      return channel;
+
+    if (checkIsChannel(parts.last)) {
+      return parts.last;
     } else {
       return null;
     }

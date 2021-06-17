@@ -1,4 +1,5 @@
 import 'package:args/args.dart';
+import 'package:fvm/exceptions.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
@@ -34,6 +35,7 @@ class FlutterCommand extends BaseCommand {
       // If its not a channel silence version check
       if (!validVersion.isChannel) {
         args.add('--no-version-check');
+        _checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
       return await flutterCmd(cacheVersion, args);
@@ -50,6 +52,7 @@ class FlutterCommand extends BaseCommand {
         // If its not a channel silence version check
         if (!validVersion.isChannel) {
           args.add('--no-version-check');
+          _checkIfUpgradeCommand(args);
         }
         return await flutterCmd(cacheVersion, args);
       } else {
@@ -57,5 +60,14 @@ class FlutterCommand extends BaseCommand {
         return await flutterGlobalCmd(args);
       }
     }
+  }
+}
+
+void _checkIfUpgradeCommand(List<String> args) {
+  if (args.first == 'upgrade') {
+    throw FvmUsageException(
+      'You should not upgrade a release version. '
+      'Please install a channel instead to upgrade it. ',
+    );
   }
 }
