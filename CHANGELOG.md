@@ -1,3 +1,8 @@
+## 2.2.0
+
+- Resolves channel unknown when pulling release version
+- Allows for release install of different channels [Read more](https://fvm.app/docs/advanced/release_multiple_channels)
+
 ## 2.1.1
 
 - Removed Flutter version validation check

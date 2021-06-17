@@ -30,11 +30,6 @@ bool checkIsGitHash(String name) {
   return shortHash || hash;
 }
 
-/// Checks if [name] is a custom version
-bool checkIsCustom(String name) {
-  return name.startsWith('custom_');
-}
-
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
   return Directory(join(ctx.cacheDir.path, version));
@@ -56,7 +51,7 @@ Future<String> getParentDirPath(String filePath) async {
 Future<void> createLink(Link source, FileSystemEntity target) async {
   try {
     // Check if needs to do anything
-    // TODO: Move this check higher up the stack
+
     final sourceExists = await source.exists();
     if (sourceExists && await source.target() == target.path) {
       logger.trace('Link is setup correctly');

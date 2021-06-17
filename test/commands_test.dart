@@ -32,7 +32,7 @@ void main() {
         '--skip-setup',
       ]);
 
-      final existingChannel = await GitTools.getBranchOrTag(channel);
+      final existingChannel = await GitTools.getBranch(channel);
 
       final cacheVersion =
           await CacheService.isVersionCached(ValidVersion(channel));
@@ -102,7 +102,7 @@ void main() {
         await FvmCommandRunner()
             .run(['install', release, '--verbose', '--skip-setup']);
         final valid = ValidVersion(release);
-        final existingRelease = await GitTools.getBranchOrTag(valid.name);
+        final existingRelease = await GitTools.getTag(valid.name);
 
         final cacheVersion = await CacheService.isVersionCached(valid);
 

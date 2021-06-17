@@ -66,7 +66,7 @@ class CacheService {
 
   /// Caches version a [validVersion] and returns [CacheVersion]
   static Future<void> cacheVersion(ValidVersion validVersion) async {
-    await GitTools.cloneVersion(validVersion.name);
+    await GitTools.cloneVersion(validVersion);
   }
 
   /// Gets Flutter SDK version from CacheVersion sync
