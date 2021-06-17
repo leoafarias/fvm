@@ -4,7 +4,6 @@ import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
-import '../services/cache_service.dart';
 import 'console_utils.dart';
 import 'guards.dart';
 import 'helpers.dart';
@@ -55,22 +54,10 @@ Future<int> dartGlobalCmd(List<String> args) async {
 
 /// Runs flutter from global version
 Future<int> flutterGlobalCmd(List<String> args) async {
-  String execPath;
-  // Try to get fvm global version
-  final cacheVersion = await CacheService.getGlobal();
-  // Get exec path for flutter
-  if (cacheVersion != null) {
-    execPath = cacheVersion.flutterExec;
-    logger.trace(
-      'FVM: Running global configured version "${cacheVersion.name}"',
-    );
-  } else {
-    execPath = whichSync('flutter') ?? '';
-    logger.trace(
-      'FVM: Running Flutter SDK configured on environment PATH. $execPath',
-    );
-  }
-  FvmLogger.spacer();
+  final execPath = whichSync('flutter') ?? '';
+  logger.trace(
+    'FVM: Running Flutter SDK configured on environment PATH. $execPath',
+  );
 
   // Run command
   return await _runCmd(

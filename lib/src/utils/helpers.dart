@@ -51,7 +51,7 @@ Future<String> getParentDirPath(String filePath) async {
 Future<void> createLink(Link source, FileSystemEntity target) async {
   try {
     // Check if needs to do anything
-    // TODO: Move this check higher up the stack
+
     final sourceExists = await source.exists();
     if (sourceExists && await source.target() == target.path) {
       logger.trace('Link is setup correctly');

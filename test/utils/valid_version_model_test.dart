@@ -5,7 +5,7 @@ void main() {
   test('Valid Version behaves correctly', () async {
     final master = ValidVersion('master');
     final beta = ValidVersion('beta');
-    final channelWithVersion = ValidVersion('beta-2.2.2');
+    final channelWithVersion = ValidVersion('beta@2.2.2');
     final version = ValidVersion('2.2.0');
     final gitHash = ValidVersion('f4c74a6ec3');
 

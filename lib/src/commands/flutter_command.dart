@@ -1,6 +1,7 @@
 import 'package:args/args.dart';
 
 import '../models/valid_version_model.dart';
+import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
@@ -22,7 +23,7 @@ class FlutterCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final version = await ProjectService.findVersion();
-    final args = argResults!.arguments;
+    final args = [...argResults!.arguments];
 
     if (version != null) {
       final validVersion = ValidVersion(version);
@@ -30,12 +31,31 @@ class FlutterCommand extends BaseCommand {
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
       logger.trace('fvm: running version "$version"\n');
-
+      // If its not a channel silence version check
+      if (!validVersion.isChannel) {
+        args.add('--no-version-check');
+      }
       // Runs flutter command with pinned version
       return await flutterCmd(cacheVersion, args);
     } else {
-      // Running null will default to flutter version on paths
-      return await flutterGlobalCmd(args);
+      // Try to get fvm global version
+      final cacheVersion = await CacheService.getGlobal();
+
+      // Get exec path for flutter
+      if (cacheVersion != null) {
+        logger.trace(
+          'FVM: Running global configured version "${cacheVersion.name}"',
+        );
+        final validVersion = ValidVersion(cacheVersion.name);
+        // If its not a channel silence version check
+        if (!validVersion.isChannel) {
+          args.add('--no-version-check');
+        }
+        return await flutterCmd(cacheVersion, args);
+      } else {
+        // Running null will default to flutter version on paths
+        return await flutterGlobalCmd(args);
+      }
     }
   }
 }

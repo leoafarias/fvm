@@ -1,6 +1,5 @@
-import 'package:fvm/src/utils/helpers.dart';
-
 import '../../constants.dart';
+import '../utils/helpers.dart';
 
 /// Model for valid Flutter versions.
 /// User for type safety across FVM
@@ -24,7 +23,7 @@ class ValidVersion {
       return name;
     } else {
       // Return version number without channel
-      final channelPart = '$forceChannel-';
+      final channelPart = '$forceChannel@';
       return name.substring(channelPart.length);
     }
   }
@@ -57,7 +56,7 @@ class ValidVersion {
     }
     // Check if name starts with channel name
     // i.e. beta-2.2.2
-    final parts = name.split('-');
+    final parts = name.split('@');
     final channel = parts[0];
     if (checkIsChannel(channel)) {
       return channel;
