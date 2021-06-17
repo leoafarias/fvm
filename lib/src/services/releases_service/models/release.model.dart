@@ -59,7 +59,7 @@ class Release {
 
   /// Returns channel name of the release
   String get channelName {
-    return channel.toString().split('.').last;
+    return channel.name;
   }
 
   /// Returns archive url of the release

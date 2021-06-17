@@ -8,86 +8,16 @@ import '../../exceptions.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'context.dart';
-import 'settings_service.dart';
 
 /// Tools  and helpers used for interacting with git
 class GitTools {
   GitTools._();
 
-  /// Check if Git is installed
-  static Future<void> canRun() async {
-    try {
-      await runExecutableArguments('git', ['--version'],
-          workingDirectory: kWorkingDirectory.path);
-    } on ProcessException {
-      throw Exception(
-        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
-      );
-    }
-  }
-
-  /// Creates local git cache of Flutter repo.
-  static Future<void> createCache() async {
-    try {
-      if (await ctx.gitCacheDir.exists()) {
-        await ctx.gitCacheDir.delete();
-      }
-
-      final args = [
-        'clone',
-        '--mirror',
-        kFlutterRepo,
-        _cacheRepo,
-      ];
-
-      await runExecutableArguments(
-        'git',
-        args,
-        workingDirectory: kWorkingDirectory.path,
-        stdout: consoleController.stdoutSink,
-        stderr: consoleController.stderrSink,
-      );
-    } on ProcessException {
-      throw Exception(
-        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
-      );
-    }
-  }
-
-  /// Updates local Flutter cache with 'remote update'.
-  static Future<void> updateCache() async {
-    try {
-      final args = ['remote', 'update'];
-      await runExecutableArguments(
-        'git',
-        args,
-        workingDirectory: _cacheRepo,
-        stdout: consoleController.stdoutSink,
-        stderr: consoleController.stderrSink,
-      );
-    } on ProcessException {
-      throw Exception(
-        'You need Git Installed to run fvm. Go to https://git-scm.com/downloads',
-      );
-    }
-  }
-
-  /// Gets the Flutter repo if configured on FVM settings
-  static String get _cacheRepo {
-    /// Loads settings file
-    final settings = SettingsService.readSync();
-    if (settings.gitCache) {
-      return ctx.gitCacheDir.path;
-    }
-    return kFlutterRepo;
-  }
-
   /// Clones Flutter SDK from Version Number or Channel
   /// Returns exists:true if comes from cache or false if its new fetch.
   static Future<void> cloneVersion(String version) async {
-    await canRun();
-    final versionDirectory = versionCacheDir(version);
-    await versionDirectory.create(recursive: true);
+    final versionDir = versionCacheDir(version);
+    await versionDir.create(recursive: true);
 
     final isCommit = checkIsGitHash(version);
 
@@ -97,12 +27,11 @@ class GitTools {
       if (!isCommit) ...[
         '-c',
         'advice.detachedHead=false',
-        '--single-branch',
         '-b',
         version,
       ],
       kFlutterRepo,
-      versionDirectory.path
+      versionDir.path
     ];
 
     final process = await runExecutableArguments(
@@ -114,11 +43,7 @@ class GitTools {
 
     if (process.exitCode != 0) {
       // Did not cleanly exit clean up directory
-      if (process.exitCode == 128) {
-        if (await versionDirectory.exists()) {
-          await versionDirectory.delete();
-        }
-      }
+      await _cleanupVersionDir(versionDir);
 
       logger.trace(process.stderr.toString());
       throw FvmInternalError('Could not git clone $version');
@@ -126,17 +51,21 @@ class GitTools {
 
     if (isCommit) {
       try {
-        await _resetRepository(versionDirectory, commitHash: version);
+        await _resetRepository(versionDir, commitHash: version);
       } on FvmInternalError catch (_) {
-        if (await versionDirectory.exists()) {
-          await versionDirectory.delete(recursive: true);
-        }
+        await _cleanupVersionDir(versionDir);
 
         rethrow;
       }
     }
 
     return;
+  }
+
+  static Future<void> _cleanupVersionDir(Directory versionDir) async {
+    if (await versionDir.exists()) {
+      await versionDir.delete();
+    }
   }
 
   /// Lists repository tags

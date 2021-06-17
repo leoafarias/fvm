@@ -43,6 +43,13 @@ class FlutterReleases {
     );
   }
 
+  /// Get channel of release
+  String? getChannelFromVersion(String version) {
+    final release = getReleaseFromVersion(version);
+
+    return release?.channelName;
+  }
+
   /// Retrieves version information
   Release? getReleaseFromVersion(String version) {
     if (checkIsChannel(version)) {
@@ -50,11 +57,12 @@ class FlutterReleases {
     }
 
     final foundIdx = releases.indexWhere((v) => v.version == version);
-    if (foundIdx < 0) {
-      return null;
-    } else {
-      releases[foundIdx];
+    Release? release;
+    if (foundIdx >= 0) {
+      release = releases[foundIdx];
     }
+
+    return release;
   }
 
   /// Checks if version is a release

@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
-String release = '1.17.4';
+String release = '2.2.1';
 const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
 String? channelVersion;
