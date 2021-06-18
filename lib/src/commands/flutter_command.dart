@@ -62,7 +62,7 @@ class FlutterCommand extends BaseCommand {
 }
 
 void _checkIfUpgradeCommand(List<String> args) {
-  if (args.first == 'upgrade') {
+  if (args.isNotEmpty && args.first == 'upgrade') {
     throw FvmUsageException(
       'You should not upgrade a release version. '
       'Please install a channel instead to upgrade it. ',
