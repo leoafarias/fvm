@@ -1,6 +1,6 @@
 import 'package:args/args.dart';
-import 'package:fvm/exceptions.dart';
 
+import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
@@ -34,7 +34,6 @@ class FlutterCommand extends BaseCommand {
       logger.trace('fvm: running version "$version"\n');
       // If its not a channel silence version check
       if (!validVersion.isChannel) {
-        args.add('--no-version-check');
         _checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
@@ -51,7 +50,6 @@ class FlutterCommand extends BaseCommand {
         final validVersion = ValidVersion(cacheVersion.name);
         // If its not a channel silence version check
         if (!validVersion.isChannel) {
-          args.add('--no-version-check');
           _checkIfUpgradeCommand(args);
         }
         return await flutterCmd(cacheVersion, args);
