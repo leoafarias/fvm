@@ -246,6 +246,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "rhalff",
+      "name": "Rob Halff",
+      "avatar_url": "https://avatars.githubusercontent.com/u/274358?v=4",
+      "profile": "https://github.com/rhalff",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
