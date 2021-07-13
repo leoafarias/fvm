@@ -31,7 +31,7 @@ jobs:
       #     channel: ${{ matrix.sdk-version }}
 
       - name: Install dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Run Test and Builder
-        run: pub run build_runner test --delete-conflicting-outputs
+        run: dart pub run build_runner test --delete-conflicting-outputs
