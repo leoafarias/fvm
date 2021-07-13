@@ -32,10 +32,10 @@ jobs:
           channel: ${{ matrix.sdk-version }}
 
       - name: Install dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Run Test and Builder
-        run: pub run build_runner test --delete-conflicting-outputs
+        run: dart pub run build_runner test --delete-conflicting-outputs
 
   release:
     name: Release
@@ -52,13 +52,13 @@ jobs:
           fetch-depth: 0
 
       - name: Install dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Build Version Number
-        run: pub run build_runner build --delete-conflicting-outputs
+        run: dart pub run build_runner build --delete-conflicting-outputs
 
       - name: Deploy Github
-        run: pub run grinder pkg-github-all
+        run: dart pub run grinder pkg-github-all
 
       - name: Deploy to Pub
-        run: pub run grinder pkg-pub-deploy
+        run: dart pub run grinder pkg-pub-deploy
