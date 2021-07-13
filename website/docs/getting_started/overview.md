@@ -72,6 +72,9 @@ We follow these principles when building and adding new features to FVM.
     <td align="center"><a href="https://permanent.ee"><img src="https://avatars.githubusercontent.com/u/740826?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Allan Laal</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=allanlaal" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/rhalff"><img src="https://avatars.githubusercontent.com/u/274358?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Rob Halff</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=rhalff" title="Documentation">📖</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://sharezone.net"><img src="https://avatars.githubusercontent.com/u/24459435?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Nils Reichardt</b></sub></a><br /><a href="#infra-nilsreichardt" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/leoafarias/fvm/commits?author=nilsreichardt" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
