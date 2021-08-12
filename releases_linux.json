@@ -1,11 +1,19 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "f18b9281c2280c2646aa3d4348715ed5bb9446c8",
+    "beta": "65cf7de5f45140010a5d2989f5abbbf530708a6b",
     "dev": "0f465e5b2a3ed2431321b490a614c3d15089854c",
     "stable": "f4abaa0735eba4dfd8f33f73363911d63931fe03"
   },
   "releases": [
+    {
+      "hash": "65cf7de5f45140010a5d2989f5abbbf530708a6b",
+      "channel": "beta",
+      "version": "2.5.0-5.1.pre",
+      "release_date": "2021-08-12T00:33:41.428591Z",
+      "archive": "beta/linux/flutter_linux_2.5.0-5.1.pre-beta.tar.xz",
+      "sha256": "042dccbbf51837c253a7588dc334de0d5e30f4ac6e674938356e64d5d5755512"
+    },
     {
       "hash": "0f465e5b2a3ed2431321b490a614c3d15089854c",
       "channel": "dev",
