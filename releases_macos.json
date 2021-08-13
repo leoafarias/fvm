@@ -2,10 +2,18 @@
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
     "beta": "65cf7de5f45140010a5d2989f5abbbf530708a6b",
-    "dev": "0f465e5b2a3ed2431321b490a614c3d15089854c",
+    "dev": "225a43d941ddd1753765fec3682011e9ddffb11d",
     "stable": "f4abaa0735eba4dfd8f33f73363911d63931fe03"
   },
   "releases": [
+    {
+      "hash": "225a43d941ddd1753765fec3682011e9ddffb11d",
+      "channel": "dev",
+      "version": "2.5.0-6.0.pre",
+      "release_date": "2021-08-12T23:38:10.272190Z",
+      "archive": "dev/macos/flutter_macos_2.5.0-6.0.pre-dev.zip",
+      "sha256": "379cf24882c30831f90277f2a42cebd39684ae16e20207375ca37ab972ce4c5b"
+    },
     {
       "hash": "65cf7de5f45140010a5d2989f5abbbf530708a6b",
       "channel": "beta",
