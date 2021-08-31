@@ -64,6 +64,6 @@ class Release {
 
   /// Returns archive url of the release
   String get archiveUrl {
-    return '$storageUrl/flutter_infra/releases/$archive';
+    return '$storageUrl/flutter_infra_release/releases/$archive';
   }
 }
