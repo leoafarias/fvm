@@ -1,3 +1,7 @@
+## 2.2.3
+
+- Fix archive url from release info
+
 ## 2.2.2
 
 - Small fix when checking for upgrade
