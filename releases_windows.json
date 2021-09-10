@@ -1,11 +1,19 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "a7fb06d6faa2f0ad0da124c79a4eb26ae091baa5",
+    "beta": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
     "dev": "83b9e99cfbb8be5215514d7fa21191961b4a620d",
     "stable": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e"
   },
   "releases": [
+    {
+      "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
+      "channel": "beta",
+      "version": "2.5.0",
+      "release_date": "2021-09-10T22:00:53.453802Z",
+      "archive": "beta/windows/flutter_windows_2.5.0-beta.zip",
+      "sha256": "0f2208bd00205b55831bc0eef837efb310834572d7dab13bb5b40647f1da1973"
+    },
     {
       "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
       "channel": "stable",
