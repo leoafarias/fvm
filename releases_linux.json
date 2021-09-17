@@ -3,9 +3,17 @@
   "current_release": {
     "beta": "400608f101bcfb21db99ac4d5df763a80c279337",
     "dev": "f2903d3da5710368d169577ae4682937fb4f7bc9",
-    "stable": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e"
+    "stable": "ffb2ecea5223acdd139a5039be2f9c796962833d"
   },
   "releases": [
+    {
+      "hash": "ffb2ecea5223acdd139a5039be2f9c796962833d",
+      "channel": "stable",
+      "version": "2.5.1",
+      "release_date": "2021-09-17T21:54:22.188763Z",
+      "archive": "stable/linux/flutter_linux_2.5.1-stable.tar.xz",
+      "sha256": "6267b686d8d1c9297265a8eb3788fa234a4fa9a125e56f58ba8965ade2f9cc8b"
+    },
     {
       "hash": "400608f101bcfb21db99ac4d5df763a80c279337",
       "channel": "beta",
