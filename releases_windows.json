@@ -2,10 +2,18 @@
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
     "beta": "400608f101bcfb21db99ac4d5df763a80c279337",
-    "dev": "f2903d3da5710368d169577ae4682937fb4f7bc9",
+    "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
     "stable": "ffb2ecea5223acdd139a5039be2f9c796962833d"
   },
   "releases": [
+    {
+      "hash": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+      "channel": "dev",
+      "version": "2.6.0-11.0.pre",
+      "release_date": "2021-09-25T04:22:45.441336Z",
+      "archive": "dev/windows/flutter_windows_2.6.0-11.0.pre-dev.zip",
+      "sha256": "e9fdb8f7a27840c6a74b8ea567f318e6bbbf40820cec6ca95859cf776083ad36"
+    },
     {
       "hash": "ffb2ecea5223acdd139a5039be2f9c796962833d",
       "channel": "stable",
