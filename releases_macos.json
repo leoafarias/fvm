@@ -3,9 +3,17 @@
   "current_release": {
     "beta": "400608f101bcfb21db99ac4d5df763a80c279337",
     "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
-    "stable": "ffb2ecea5223acdd139a5039be2f9c796962833d"
+    "stable": "3595343e20a61ff16d14e8ecc25f364276bb1b8b"
   },
   "releases": [
+    {
+      "hash": "3595343e20a61ff16d14e8ecc25f364276bb1b8b",
+      "channel": "stable",
+      "version": "2.5.2",
+      "release_date": "2021-09-30T23:39:47.026536Z",
+      "archive": "stable/macos/flutter_macos_2.5.2-stable.zip",
+      "sha256": "4cff538a2ce3ca4ad5989d6f098c5124db39821978b3622c1f88f74652aeff3d"
+    },
     {
       "hash": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
       "channel": "dev",

@@ -3,9 +3,17 @@
   "current_release": {
     "beta": "400608f101bcfb21db99ac4d5df763a80c279337",
     "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
-    "stable": "ffb2ecea5223acdd139a5039be2f9c796962833d"
+    "stable": "3595343e20a61ff16d14e8ecc25f364276bb1b8b"
   },
   "releases": [
+    {
+      "hash": "3595343e20a61ff16d14e8ecc25f364276bb1b8b",
+      "channel": "stable",
+      "version": "2.5.2",
+      "release_date": "2021-09-30T23:44:42.470277Z",
+      "archive": "stable/windows/flutter_windows_2.5.2-stable.zip",
+      "sha256": "ef0635b4c0d89cf92c35182375ca7f8e4635ba31ff1ea2187926b57ad04185c8"
+    },
     {
       "hash": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
       "channel": "dev",
