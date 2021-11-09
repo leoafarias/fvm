@@ -57,7 +57,13 @@ void main() {
       try {
         // Run foce to test within fvm
 
-        await FvmCommandRunner().run(['use', channel, '--force', '--verbose']);
+        await FvmCommandRunner().run([
+          'use',
+          channel,
+          '--force',
+          '--verbose',
+          '--skip-setup',
+        ]);
         final project = await ProjectService.findAncestor();
 
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -119,7 +125,13 @@ void main() {
     testWithContext('Use Release', key, () async {
       try {
         await FvmCommandRunner().run(
-          ['use', release, '--force', '--verbose'],
+          [
+            'use',
+            release,
+            '--force',
+            '--verbose',
+            '--skip-setup',
+          ],
         );
         final project = await ProjectService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -174,8 +186,14 @@ void main() {
       );
 
       expect(
-        await FvmCommandRunner()
-            .run(['use', channel, '--flavor', 'production', '--force']),
+        await FvmCommandRunner().run([
+          'use',
+          channel,
+          '--flavor',
+          'production',
+          '--force',
+          '--skip-setup',
+        ]),
         ExitCode.success.code,
       );
 

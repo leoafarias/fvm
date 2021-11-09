@@ -23,11 +23,18 @@ Directory getFvmTestDir(Key key) {
   return Directory(join(kUserHome, 'fvmTest', key.key));
 }
 
-final kTestAssetsDir =
-    Directory(join(kWorkingDirectory.path, 'test', 'support_assets'));
-final kFlutterAppDir = Directory(join(kTestAssetsDir.path, 'flutter_app'));
-final kDartPackageDir = Directory(join(kTestAssetsDir.path, 'dart_package'));
-final kEmptyDir = Directory(join(kTestAssetsDir.path, 'empty_folder'));
+final kTestAssetsDir = Directory(
+  join(kWorkingDirectory.path, 'test', 'support_assets'),
+);
+final kFlutterAppDir = Directory(
+  join(kTestAssetsDir.path, 'flutter_app'),
+);
+final kDartPackageDir = Directory(
+  join(kTestAssetsDir.path, 'dart_package'),
+);
+final kEmptyDir = Directory(
+  join(kTestAssetsDir.path, 'empty_folder'),
+);
 
 Future<ValidVersion> getRandomFlutterVersion() async {
   final payload = await fetchFlutterReleases();

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -8,7 +9,6 @@ import 'console_utils.dart';
 import 'guards.dart';
 import 'helpers.dart';
 import 'logger.dart';
-import 'process_manager.dart';
 
 /// Runs Flutter cmd
 Future<int> flutterCmd(
@@ -73,10 +73,10 @@ Future<int> _runCmd(
 }) async {
   // Project again a non executable path
   await Guards.canExecute(execPath);
+  final processManager = ProcessManager();
 
   // Switch off line mode
   switchLineMode(false, args);
-
   final process = await processManager.spawn(
     execPath,
     args,
@@ -84,14 +84,15 @@ Future<int> _runCmd(
     workingDirectory: kWorkingDirectory.path,
   );
 
+  if (!ConsoleController.isCli) {
+    process.stdout.listen(consoleController.stdout.add);
+    process.stderr.listen(consoleController.stderr.add);
+  }
+
   exitCode = await process.exitCode;
 
   // Switch on line mode
   switchLineMode(true, args);
-
-  if (ConsoleController.isCli) {
-    await sharedStdIn.terminate();
-  }
 
   return exitCode;
 }
