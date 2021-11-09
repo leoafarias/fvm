@@ -102,9 +102,17 @@ To change current Flutter version open a project and select `Flutter: Change SDK
 
 ### Android Studio
 
-1. Go to `Languages & Frameworks -> Flutter` or search for Flutter and change Flutter SDK path.
-2. Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute-path/.fvm/flutter_sdk`
+1. Go to `Languages & Frameworks > Flutter` or search for Flutter and change Flutter SDK path.
+2. Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute-project-path/.fvm/flutter_sdk`
 3. Apply the changes.
 4. Restart Android Studio to see the new settings applied.
+
+:::important
+For Android Studio to detect the dynamic change of SDKs, the installed SDK must have finished setup.
+
+Using `fvm use <VERSION>` will ensure that setup is complete before switching.
+
+Android Studio might take a few seconds to detect the dynamic SDK change.
+:::
 
 You now can Run and Debug with the selected versions of Flutter.

@@ -41,6 +41,12 @@ class UseCommand extends BaseCommand {
         'flavor',
         help: 'Sets version for a project flavor',
         defaultsTo: null,
+      )
+      ..addFlag(
+        'skip-setup',
+        help: 'Skips Flutter setup after install',
+        abbr: 's',
+        negatable: false,
       );
   }
   @override
@@ -49,6 +55,7 @@ class UseCommand extends BaseCommand {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
+    final skipSetup = boolArg('skip-setup');
 
     String? version;
 
@@ -87,6 +94,7 @@ class UseCommand extends BaseCommand {
       validVersion,
       force: forceOption,
       flavor: flavorOption,
+      skipSetup: skipSetup,
     );
 
     return ExitCode.success.code;

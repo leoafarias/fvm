@@ -13,7 +13,7 @@ executables:
 dependencies:
   args: ^2.1.0
   cli_notify: ^0.0.3
-  cli_util: ^0.3.0
+  cli_util: ^0.3.5
   console: ^4.1.0
   date_format: ^2.0.2
   io: ^1.0.0

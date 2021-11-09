@@ -33,7 +33,7 @@ class SettingsService {
       return _settings!;
     } on Exception catch (err) {
       logger.trace(err.toString());
-      return FvmSettings();
+      return _settings = FvmSettings();
     }
   }
 

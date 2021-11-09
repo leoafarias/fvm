@@ -10,6 +10,8 @@ Logger logger = Logger.standard();
 
 /// Logger for FVM
 class FvmLogger {
+  FvmLogger._();
+
   /// Prints sucess message
   static void fine(String message) {
     print(cyan.wrap(message));

@@ -79,6 +79,11 @@ class CacheService {
     }
   }
 
+  /// Verifies that cacheVersion has been setup
+  static bool isCacheVersionSetup(CacheVersion version) {
+    return getSdkVersionSync(version) != null;
+  }
+
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
   static Future<CacheVersion?> isVersionCached(
     ValidVersion validVersion,
