@@ -37,7 +37,14 @@ There are a few reasons this can happen. However it means that the FVM snapshot 
 Please do the following:
 
 1. On Windows make sure your env variables are in the following order as described [here](#environment-variables-order-for-windows-in-path).
-2. Run `dart pub cache repair`
+2. Run `dart pub global deactivate fvm`
+3. Run `dart pub global activate fvm`
+
+---
+
+### Command 'pub' not found
+
+If you get `Command 'pub' not found`, then make sure to append `export PATH="$PATH:/usr/lib/dart/bin"` to your `~/.bashrc` (gets reiniated each time you open a bash shell) or `~/.profile` (only read at login) file.
 
 ---
 
