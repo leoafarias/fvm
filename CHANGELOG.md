@@ -1,3 +1,7 @@
+## 2.2.4
+
+- Ensures SDK is setup when running `use` command.
+
 ## 2.2.3
 
 - Fix archive url from release info
