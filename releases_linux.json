@@ -1,11 +1,99 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "19c61fed0da681ba2068c97e22add3bde38e51e4",
-    "dev": "83b9e99cfbb8be5215514d7fa21191961b4a620d",
-    "stable": "f4abaa0735eba4dfd8f33f73363911d63931fe03"
+    "beta": "fc7015e35aac7ab785e7ae15a47db5c9e669ec7f",
+    "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+    "stable": "18116933e77adc82f80866c928266a5b4f1ed645"
   },
   "releases": [
+    {
+      "hash": "fc7015e35aac7ab785e7ae15a47db5c9e669ec7f",
+      "channel": "beta",
+      "version": "2.7.0-3.1.pre",
+      "release_date": "2021-10-28T01:23:19.625915Z",
+      "archive": "beta/linux/flutter_linux_2.7.0-3.1.pre-beta.tar.xz",
+      "sha256": "f601bfac32ca67729fa86e91a061e230732572285d878480fdeff42de880eed6"
+    },
+    {
+      "hash": "c19845a8c347adebc2c672f5e51b74855e645be2",
+      "channel": "beta",
+      "version": "2.7.0-3.0.pre",
+      "release_date": "2021-10-20T15:31:44.689523Z",
+      "archive": "beta/linux/flutter_linux_2.7.0-3.0.pre-beta.tar.xz",
+      "sha256": "1dbc4da6c23b0ab4f445779fcd370d83f1ee9dee99e569e704552bf23cbcf125"
+    },
+    {
+      "hash": "18116933e77adc82f80866c928266a5b4f1ed645",
+      "channel": "stable",
+      "version": "2.5.3",
+      "release_date": "2021-10-15T20:49:17.899307Z",
+      "archive": "stable/linux/flutter_linux_2.5.3-stable.tar.xz",
+      "sha256": "b32d04a9fa5709326b4e724e0de64ff1b2b70268f89dd3c748e6360ac937fe01"
+    },
+    {
+      "hash": "3595343e20a61ff16d14e8ecc25f364276bb1b8b",
+      "channel": "stable",
+      "version": "2.5.2",
+      "release_date": "2021-09-30T23:48:47.983504Z",
+      "archive": "stable/linux/flutter_linux_2.5.2-stable.tar.xz",
+      "sha256": "371234b5b9c127fcd3053b4b04e45c0024657d95f7371eb9d9422a7da5297717"
+    },
+    {
+      "hash": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+      "channel": "dev",
+      "version": "2.6.0-11.0.pre",
+      "release_date": "2021-09-25T04:23:04.133746Z",
+      "archive": "dev/linux/flutter_linux_2.6.0-11.0.pre-dev.tar.xz",
+      "sha256": "e0ecdd71671aa5cfabc4ff951fd33c47c89edce375d4bb203c7dc9a882941c94"
+    },
+    {
+      "hash": "ffb2ecea5223acdd139a5039be2f9c796962833d",
+      "channel": "stable",
+      "version": "2.5.1",
+      "release_date": "2021-09-17T21:54:22.188763Z",
+      "archive": "stable/linux/flutter_linux_2.5.1-stable.tar.xz",
+      "sha256": "6267b686d8d1c9297265a8eb3788fa234a4fa9a125e56f58ba8965ade2f9cc8b"
+    },
+    {
+      "hash": "400608f101bcfb21db99ac4d5df763a80c279337",
+      "channel": "beta",
+      "version": "2.6.0-5.2.pre",
+      "release_date": "2021-09-16T01:31:55.213255Z",
+      "archive": "beta/linux/flutter_linux_2.6.0-5.2.pre-beta.tar.xz",
+      "sha256": "1a2d82b9a7934d00d680b6a0a9e09697264dd86ba37d984812c73297f33458e2"
+    },
+    {
+      "hash": "f2903d3da5710368d169577ae4682937fb4f7bc9",
+      "channel": "dev",
+      "version": "2.6.0-5.1.pre",
+      "release_date": "2021-09-13T19:01:48.167401Z",
+      "archive": "dev/linux/flutter_linux_2.6.0-5.1.pre-dev.tar.xz",
+      "sha256": "fbf606acbe6929dadf55a57fe2e9dbfa1e5db877a4db1fdae776ef5079212637"
+    },
+    {
+      "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
+      "channel": "beta",
+      "version": "2.5.0",
+      "release_date": "2021-09-10T22:05:24.891384Z",
+      "archive": "beta/linux/flutter_linux_2.5.0-beta.tar.xz",
+      "sha256": "dfbeb9ff78af162f4ae7b14bf863d9e9619cf55fcedf0eb6e396211caeb270fb"
+    },
+    {
+      "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
+      "channel": "stable",
+      "version": "2.5.0",
+      "release_date": "2021-09-08T15:47:00.801389Z",
+      "archive": "stable/linux/flutter_linux_2.5.0-stable.tar.xz",
+      "sha256": "ede0f3e947be5b83a2593804b0aeef6f170ca333abc8fefb8b318d9603b9ffda"
+    },
+    {
+      "hash": "a7fb06d6faa2f0ad0da124c79a4eb26ae091baa5",
+      "channel": "beta",
+      "version": "2.5.0-5.3.pre",
+      "release_date": "2021-09-02T17:36:07.377135Z",
+      "archive": "beta/linux/flutter_linux_2.5.0-5.3.pre-beta.tar.xz",
+      "sha256": "ea44bead8c6928e0c1ff5fb4cc943ef35393f6df42ffe1da049d859679137dc7"
+    },
     {
       "hash": "83b9e99cfbb8be5215514d7fa21191961b4a620d",
       "channel": "dev",

@@ -1,11 +1,99 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "19c61fed0da681ba2068c97e22add3bde38e51e4",
-    "dev": "83b9e99cfbb8be5215514d7fa21191961b4a620d",
-    "stable": "f4abaa0735eba4dfd8f33f73363911d63931fe03"
+    "beta": "fc7015e35aac7ab785e7ae15a47db5c9e669ec7f",
+    "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+    "stable": "18116933e77adc82f80866c928266a5b4f1ed645"
   },
   "releases": [
+    {
+      "hash": "fc7015e35aac7ab785e7ae15a47db5c9e669ec7f",
+      "channel": "beta",
+      "version": "2.7.0-3.1.pre",
+      "release_date": "2021-10-28T01:15:09.492618Z",
+      "archive": "beta/macos/flutter_macos_2.7.0-3.1.pre-beta.zip",
+      "sha256": "ad159e85d2aa35d5ca39706fa095138bad63642aa4321a75d428e8d69c6cdacd"
+    },
+    {
+      "hash": "c19845a8c347adebc2c672f5e51b74855e645be2",
+      "channel": "beta",
+      "version": "2.7.0-3.0.pre",
+      "release_date": "2021-10-20T15:19:29.387947Z",
+      "archive": "beta/macos/flutter_macos_2.7.0-3.0.pre-beta.zip",
+      "sha256": "120e49fa158f692aed8ea4fc2da2816ff5c2e1676b796fa9910f395dd114ca6c"
+    },
+    {
+      "hash": "18116933e77adc82f80866c928266a5b4f1ed645",
+      "channel": "stable",
+      "version": "2.5.3",
+      "release_date": "2021-10-15T20:44:20.775267Z",
+      "archive": "stable/macos/flutter_macos_2.5.3-stable.zip",
+      "sha256": "69923f2c19b623128416a4e4d8d614040267c3e35446c1c7e0dbe6558c3fab42"
+    },
+    {
+      "hash": "3595343e20a61ff16d14e8ecc25f364276bb1b8b",
+      "channel": "stable",
+      "version": "2.5.2",
+      "release_date": "2021-09-30T23:39:47.026536Z",
+      "archive": "stable/macos/flutter_macos_2.5.2-stable.zip",
+      "sha256": "4cff538a2ce3ca4ad5989d6f098c5124db39821978b3622c1f88f74652aeff3d"
+    },
+    {
+      "hash": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+      "channel": "dev",
+      "version": "2.6.0-11.0.pre",
+      "release_date": "2021-09-25T04:11:57.636955Z",
+      "archive": "dev/macos/flutter_macos_2.6.0-11.0.pre-dev.zip",
+      "sha256": "4453ff0afd3c600826035c8b0dc9c19ddf2566bdfc33d9d873ae4c43a06a5fe6"
+    },
+    {
+      "hash": "ffb2ecea5223acdd139a5039be2f9c796962833d",
+      "channel": "stable",
+      "version": "2.5.1",
+      "release_date": "2021-09-17T21:41:35.135224Z",
+      "archive": "stable/macos/flutter_macos_2.5.1-stable.zip",
+      "sha256": "fff71096cf287750f4dbab3463a9db3f448723c087687cbc966d3bc326caf52d"
+    },
+    {
+      "hash": "400608f101bcfb21db99ac4d5df763a80c279337",
+      "channel": "beta",
+      "version": "2.6.0-5.2.pre",
+      "release_date": "2021-09-16T01:23:23.040969Z",
+      "archive": "beta/macos/flutter_macos_2.6.0-5.2.pre-beta.zip",
+      "sha256": "43894733c47cc455a381d642864d2733ae36a326384491601fda637c7eb2c2d5"
+    },
+    {
+      "hash": "f2903d3da5710368d169577ae4682937fb4f7bc9",
+      "channel": "dev",
+      "version": "2.6.0-5.1.pre",
+      "release_date": "2021-09-13T18:53:15.796395Z",
+      "archive": "dev/macos/flutter_macos_2.6.0-5.1.pre-dev.zip",
+      "sha256": "02d1be372d54014ac1d0503ad712d93670b4dfa3532b3ec3a9ec37fe341878d6"
+    },
+    {
+      "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
+      "channel": "beta",
+      "version": "2.5.0",
+      "release_date": "2021-09-10T21:59:44.874148Z",
+      "archive": "beta/macos/flutter_macos_2.5.0-beta.zip",
+      "sha256": "d98bf934404a3fc77efeb982b1c83aa245f3aa31e8ea8b0829f1e02415ee6e52"
+    },
+    {
+      "hash": "4cc385b4b84ac2f816d939a49ea1f328c4e0b48e",
+      "channel": "stable",
+      "version": "2.5.0",
+      "release_date": "2021-09-08T15:37:17.372250Z",
+      "archive": "stable/macos/flutter_macos_2.5.0-stable.zip",
+      "sha256": "ed986378be1bca08ec04748475a2c738ee1126258a9252d1dc400ba3cd00d0bf"
+    },
+    {
+      "hash": "a7fb06d6faa2f0ad0da124c79a4eb26ae091baa5",
+      "channel": "beta",
+      "version": "2.5.0-5.3.pre",
+      "release_date": "2021-09-02T17:31:08.651378Z",
+      "archive": "beta/macos/flutter_macos_2.5.0-5.3.pre-beta.zip",
+      "sha256": "51f56a9f4e3598ce87409fe0569539b39a892569d200876eae973ee1d150e38b"
+    },
     {
       "hash": "83b9e99cfbb8be5215514d7fa21191961b4a620d",
       "channel": "dev",
