@@ -16,7 +16,20 @@ class CacheVersion {
 
   /// Get version bin path
   String get binPath {
-    return join(dir.path, 'bin');
+    /// Get old bin path
+    /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
+
+    if (hasOldBinPath) {
+      return join(dir.path, 'bin', 'cache', 'dart-sdk', 'bin');
+    } else {
+      return join(dir.path, 'bin');
+    }
+  }
+
+  /// Has old dart path structure
+  bool get hasOldBinPath {
+    // Last version with the old dart path structure
+    return compareSemver(versionWeight, '1.17.5') <= 0;
   }
 
   /// Returns dart exec file for cache version
@@ -41,9 +54,13 @@ class CacheVersion {
 
   /// Compares CacheVersion with [other]
   int compareTo(CacheVersion other) {
-    final version = assignVersionWeight(name);
     final otherVersion = assignVersionWeight(other.name);
-    return compareSemver(version, otherVersion);
+    return compareSemver(versionWeight, otherVersion);
+  }
+
+  /// Returns true if CacheVersion is compatible with [other]
+  String get versionWeight {
+    return assignVersionWeight(name);
   }
 
   String toString() {
