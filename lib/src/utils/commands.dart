@@ -72,7 +72,8 @@ Future<int> _runCmd(
   Map<String, String>? environment,
 }) async {
   // Project again a non executable path
-  await Guards.canExecute(execPath);
+  await Guards.canExecute(execPath, args);
+
   final processManager = ProcessManager();
 
   // Switch off line mode

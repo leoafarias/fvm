@@ -1,13 +1,37 @@
+import 'dart:io' show Platform;
+
 import 'package:io/io.dart';
 
+import '../../constants.dart';
 import '../../exceptions.dart';
+import 'logger.dart';
 
 /// Guards against certain action by validatin and throwing errors
 class Guards {
+  Guards._();
+
   /// Check if can execute path or throws error
-  static Future<void> canExecute(String execPath) async {
+  static Future<void> canExecute(String execPath, List<String> args) async {
     if (!await isExecutable(execPath)) {
       throw FvmInternalError('Cannot execute $execPath');
     }
+    if (Guards.shouldRunDetached(args)) {
+      FvmLogger.spacer();
+      FvmLogger.info(
+          '''This command ${args.join(" ")} will modify FVM installation.''');
+      FvmLogger.info(
+          '''Because of that is suggested you run the following command in your terminal directly''');
+      FvmLogger.spacer();
+      FvmLogger.fine("$execPath ${args.join(' ')}");
+
+      throw FvmUsageException('Command needs to run outside of FVM proxy');
+    }
+  }
+
+  /// Check if command needs to be run detached
+  static bool shouldRunDetached(List<String> args) {
+    final argString = args.join(' ');
+
+    return kDetachedCommands.any(argString.contains);
   }
 }
