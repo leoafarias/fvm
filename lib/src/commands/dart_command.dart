@@ -1,4 +1,5 @@
 import 'package:args/args.dart';
+import 'package:fvm/src/services/cache_service.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/project_service.dart';
@@ -32,10 +33,24 @@ class DartCommand extends BaseCommand {
       // Runs flutter command with pinned version
       return await dartCmd(cacheVersion, args);
     } else {
-      logger.trace('Running using Flutter version configured in path.\n');
+      // Try to get fvm global version
+      final cacheVersion = await CacheService.getGlobal();
 
-      // Running null will default to flutter version on path
-      return await dartGlobalCmd(args);
+      // Get exec path for flutter
+      if (cacheVersion != null) {
+        logger.trace(
+          'FVM: Running global configured version "${cacheVersion.name}\n"',
+        );
+
+        return await dartCmd(cacheVersion, args);
+      } else {
+        logger.trace(
+          'Running using Dart/Flutter version configured in path.\n',
+        );
+
+        // Running null will default to dart version on path
+        return await dartGlobalCmd(args);
+      }
     }
   }
 }
