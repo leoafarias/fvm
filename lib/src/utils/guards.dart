@@ -1,9 +1,7 @@
-import 'dart:io' show Platform;
-
 import 'package:io/io.dart';
 
-import '../../constants.dart';
 import '../../exceptions.dart';
+import 'helpers.dart';
 import 'logger.dart';
 
 /// Guards against certain action by validatin and throwing errors
@@ -15,11 +13,10 @@ class Guards {
     if (!await isExecutable(execPath)) {
       throw FvmInternalError('Cannot execute $execPath');
     }
-    if (Guards.shouldRunDetached(args)) {
-      logger.trace(Platform.script.path);
+    if (shouldRunDetached(args)) {
       FvmLogger.spacer();
       FvmLogger.info(
-        'This command ${args.join(" ")} will modify FVM installation.',
+        'This command "${args.join(" ")}" will modify FVM installation.',
       );
       FvmLogger.info(
         '''Because of that is suggested you run the following command in your terminal directly''',
@@ -38,12 +35,5 @@ class Guards {
 
       throw FvmUsageException('Command needs to run outside of FVM proxy');
     }
-  }
-
-  /// Check if command needs to be run detached
-  static bool shouldRunDetached(List<String> args) {
-    final argString = args.join(' ');
-
-    return kDetachedCommands.any(argString.contains);
   }
 }
