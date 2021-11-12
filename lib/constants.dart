@@ -50,3 +50,7 @@ String get kFvmHome {
 
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
+/// List of Flutter/Dart commands that need to run detached to avoid fvm errors.
+const kDetachedCommands = [
+  'pub cache repair',
+];
