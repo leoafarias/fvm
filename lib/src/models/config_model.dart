@@ -38,7 +38,7 @@ class FvmConfig {
   factory FvmConfig.fromMap(Directory directory, Map<String, dynamic> map) {
     return FvmConfig(
       configDir: directory,
-      flutterSdkVersion: map['flutterSdkVersion'] as String,
+      flutterSdkVersion: map['flutterSdkVersion'] as String?,
       flavors: map['flavors'] as Map<String, dynamic>? ?? {},
     );
   }
