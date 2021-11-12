@@ -1,3 +1,7 @@
+## NEXT
+
+- Clean dart command output stdout [#361](https://github.com/leoafarias/fvm/issues/361)
+
 ## 2.2.4
 
 - Ensures SDK is setup when running `use` command.
