@@ -1,6 +1,7 @@
 ## NEXT
 
 - Clean dart command output stdout [#361](https://github.com/leoafarias/fvm/issues/361)
+- Better experience when running `dart pub cache repair` [#352](https://github.com/leoafarias/fvm/issues/352)
 
 ## 2.2.4
 
