@@ -194,3 +194,23 @@ Future<void> checkForFvmUpdate() async {
     currentVersion: packageVersion,
   ).update();
 }
+
+/// Check if fvm is in cache directory
+bool isFvmInstalledGlobally() {
+  /// Segment of the path where Pub caches global packages
+  final pubCacheSegment = Platform.isWindows ? "Pub\Cache" : ".pub-cache";
+  logger.trace(Platform.script.path);
+  return Platform.script.path.contains(pubCacheSegment);
+}
+
+/// Check if command needs to be run detached
+bool shouldRunDetached(List<String> args) {
+  /// List of Flutter/Dart commands that need to run detached to avoid fvm errors.
+  const shouldDetachCommands = [
+    'pub cache repair',
+    'pub cache clean',
+  ];
+  final argString = args.join(' ');
+  final shouldDetach = shouldDetachCommands.any(argString.contains);
+  return shouldDetach && isFvmInstalledGlobally();
+}
