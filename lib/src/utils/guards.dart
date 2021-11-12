@@ -15,6 +15,7 @@ class Guards {
     if (!await isExecutable(execPath)) {
       throw FvmInternalError('Cannot execute $execPath');
     }
+    print(Platform.script.path);
     if (Guards.shouldRunDetached(args)) {
       FvmLogger.spacer();
       FvmLogger.info(
