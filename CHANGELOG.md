@@ -3,6 +3,7 @@
 - Clean dart command output stdout [#361](https://github.com/leoafarias/fvm/issues/361)
 - Better experience when running `dart pub cache repair` [#352](https://github.com/leoafarias/fvm/issues/352)
 - Dart proxy points to correct path when version is older than 1.20.0 [#348](https://github.com/leoafarias/fvm/issues/348)
+- Favors equence of command cause Null check exception [#358](https://github.com/leoafarias/fvm/issues/358)
 
 ## 2.2.4
 
