@@ -19,7 +19,10 @@ class Guards {
         'This command "${args.join(" ")}" will modify FVM installation.',
       );
       FvmLogger.info(
-        '''Because of that is suggested you run the following command in your terminal directly''',
+        '''Because of that, it is recommended you run the following command''',
+      );
+      FvmLogger.info(
+        '''in your terminal directly pointing to the cached version.''',
       );
       FvmLogger.spacer();
       FvmLogger.fine("$execPath ${args.join(' ')}");
