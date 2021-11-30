@@ -37,3 +37,4 @@ packages/cli/.env
 .env
 node_modules
 test/.test_cov.dart
+test/support_assets/dart_package/lib/src/version.dart
