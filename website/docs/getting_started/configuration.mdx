@@ -115,5 +115,14 @@ Using `fvm install <VERSION>` will ensure that setup during install.
 If you have installed through another command and setup was not completed. You can finish by just running `fvm flutter --version`
 
 Android Studio might take a few seconds to detect the dynamic SDK change.
-
 :::
+
+If you want to ignore the Flutter SDK root directory within Android Studio you can add the following to `.idea/workspace.xml`.
+
+```xml
+<component name="VcsManagerConfiguration">
+  <ignored-roots>
+    <path value="$PROJECT_DIR$/.fvm/flutter_sdk" />
+  </ignored-roots>
+...
+```
