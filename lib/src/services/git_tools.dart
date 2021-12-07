@@ -45,6 +45,8 @@ class GitTools {
       if (!version.isGitHash) ...[
         '-c',
         'advice.detachedHead=false',
+        '--depth=1',
+        '--no-single-branch',
         '-b',
         channel ?? version.name,
       ],
