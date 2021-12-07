@@ -2,7 +2,7 @@ name: documentation
 
 on:
   push:
-    branches: [documentation]
+    branches: [main]
 
 defaults:
   run:
