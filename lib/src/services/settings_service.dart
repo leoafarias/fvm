@@ -12,13 +12,18 @@ class SettingsService {
   static Future<FvmSettings> read() async {
     try {
       if (_settings == null) {
-        final payload = await ctx.settingsFile.readAsString();
-        // Store in memory
-        _settings = FvmSettings.fromJson(payload);
+        if (await ctx.settingsFile.exists()) {
+          final payload = await ctx.settingsFile.readAsString();
+          // Store in memory
+          _settings = FvmSettings.fromJson(payload);
+        } else {
+          _settings = FvmSettings();
+        }
       }
       return Future.value(_settings);
-    } on Exception {
-      return FvmSettings();
+    } on Exception catch (err) {
+      logger.trace(err.toString());
+      return _settings = FvmSettings();
     }
   }
 
@@ -26,9 +31,13 @@ class SettingsService {
   static FvmSettings readSync() {
     try {
       if (_settings == null) {
-        final payload = ctx.settingsFile.readAsStringSync();
-        // Store in memory
-        _settings = FvmSettings.fromJson(payload);
+        if (ctx.settingsFile.existsSync()) {
+          final payload = ctx.settingsFile.readAsStringSync();
+          // Store in memory
+          _settings = FvmSettings.fromJson(payload);
+        } else {
+          _settings = FvmSettings();
+        }
       }
       return _settings!;
     } on Exception catch (err) {

@@ -198,7 +198,9 @@ Future<void> checkForFvmUpdate() async {
 /// Check if fvm is in cache directory
 bool isFvmInstalledGlobally() {
   /// Segment of the path where Pub caches global packages
-  final pubCacheSegment = Platform.isWindows ? "Pub\Cache" : ".pub-cache";
+
+  logger.trace(Platform.isWindows.toString());
+  final pubCacheSegment = Platform.isWindows ? 'Pub/Cache' : ".pub-cache";
   logger.trace(Platform.script.path);
   return Platform.script.path.contains(pubCacheSegment);
 }

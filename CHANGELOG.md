@@ -1,4 +1,4 @@
-## 2.2.5-dev.1
+## 2.2.5-dev.4
 
 - Clean dart command output stdout [#361](https://github.com/leoafarias/fvm/issues/361)
 - Better experience when running `dart pub cache repair` [#352](https://github.com/leoafarias/fvm/issues/352)
