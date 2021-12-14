@@ -1,3 +1,7 @@
+## 2.2.6
+
+- Fixed issue with routing to older Dart SDK directory path (before 1.17.5)
+
 ## 2.2.5
 
 - Clean dart command output stdout [#361](https://github.com/leoafarias/fvm/issues/361)
