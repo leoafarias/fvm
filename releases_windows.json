@@ -1,11 +1,27 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "262b70ece1aebf84f132c51ec4cf90be605ce61b",
-    "dev": "4b330ddbedab445481cc73d50a4695b9154b4e4f",
+    "beta": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
+    "dev": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
     "stable": "cf4400006550b70f28e4b4af815151d1e74846c6"
   },
   "releases": [
+    {
+      "hash": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
+      "channel": "beta",
+      "version": "2.9.0-0.1.pre",
+      "release_date": "2021-12-15T00:49:18.031647Z",
+      "archive": "beta/windows/flutter_windows_2.9.0-0.1.pre-beta.zip",
+      "sha256": "e42d9407ddbc88499a0adbd96c93a9e237e6e4371abc0bf3c5ec523168077a36"
+    },
+    {
+      "hash": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
+      "channel": "dev",
+      "version": "2.9.0-0.1.pre",
+      "release_date": "2021-12-15T00:47:35.486345Z",
+      "archive": "dev/windows/flutter_windows_2.9.0-0.1.pre-dev.zip",
+      "sha256": "fde151e4bd8a45a391d4b64d18fb795e95c9bb095e0133bc1d87441c38fe818b"
+    },
     {
       "hash": "cf4400006550b70f28e4b4af815151d1e74846c6",
       "channel": "stable",
