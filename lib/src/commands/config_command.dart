@@ -67,23 +67,23 @@ class ConfigCommand extends BaseCommand {
     // Save
     if (shouldSave) {
       await SettingsService.save(settings);
-      FvmLogger.fine('Settings saved.');
+      Logger.fine('Settings saved.');
     } else {
-      FvmLogger.spacer();
-      FvmLogger.fine('FVM Settings:');
-      FvmLogger.info('Located at ${ctx.settingsFile.path}\n');
+      Logger.spacer();
+      Logger.fine('FVM Settings:');
+      Logger.info('Located at ${ctx.settingsFile.path}\n');
 
       final options = settings.toMap();
 
       if (options.keys.isEmpty) {
-        FvmLogger.info('No settings have been configured.\n');
+        Logger.info('No settings have been configured.\n');
       } else {
         // Print options and it's values
         for (var key in options.keys) {
           final value = options[key];
           if (value != null) {
             final valuePrint = yellow.wrap(value.toString());
-            FvmLogger.info('$key: $valuePrint');
+            Logger.info('$key: $valuePrint');
           }
         }
       }

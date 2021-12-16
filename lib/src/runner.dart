@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:cli_util/cli_logging.dart';
 import 'package:io/io.dart';
 
 import '../exceptions.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
+import 'commands/destroy_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
@@ -35,9 +35,7 @@ class FvmCommandRunner extends CommandRunner<int> {
         negatable: false,
         callback: (verbose) {
           if (verbose) {
-            logger = Logger.verbose();
-          } else {
-            logger = Logger.standard();
+            Logger.setVerbose();
           }
         },
       )
@@ -58,6 +56,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(FlavorCommand());
+    addCommand(DestroyCommand());
   }
 
   @override
@@ -78,27 +77,27 @@ class FvmCommandRunner extends CommandRunner<int> {
       }
       return exitCode;
     } on FvmUsageException catch (e) {
-      FvmLogger.spacer();
-      FvmLogger.warning(e.message);
-      FvmLogger.spacer();
+      Logger.spacer();
+      Logger.warning(e.message);
+      Logger.spacer();
       return ExitCode.usage.code;
     } on FvmInternalError catch (e) {
-      FvmLogger.spacer();
-      FvmLogger.error(e.message);
-      FvmLogger.spacer();
+      Logger.spacer();
+      Logger.error(e.message);
+      Logger.spacer();
 
-      FvmLogger.info(
+      Logger.info(
         'Please run command with  --verbose if you want more information',
       );
-      FvmLogger.spacer();
+      Logger.spacer();
 
       return ExitCode.usage.code;
     } on UsageException catch (e) {
-      FvmLogger.spacer();
-      FvmLogger.warning(e.message);
-      FvmLogger.spacer();
-      FvmLogger.info(e.usage);
-      FvmLogger.spacer();
+      Logger.spacer();
+      Logger.warning(e.message);
+      Logger.spacer();
+      Logger.info(e.usage);
+      Logger.spacer();
       return ExitCode.usage.code;
     } on Exception catch (e) {
       print(e.toString());
@@ -109,7 +108,7 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     if (topLevelResults['version'] == true) {
-      FvmLogger.info(packageVersion);
+      Logger.info(packageVersion);
       return ExitCode.success.code;
     }
 

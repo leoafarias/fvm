@@ -29,7 +29,7 @@ Future<CacheVersion> ensureCacheWorkflow(
       return cacheVersion;
     }
 
-    FvmLogger.info('Flutter "$validVersion" is not installed.');
+    Logger.info('Flutter "$validVersion" is not installed.');
 
     // If its a custom version do not proceed on install process
     if (validVersion.custom == true) {
@@ -39,8 +39,8 @@ Future<CacheVersion> ensureCacheWorkflow(
     // Install if input is confirmed
     // allows ot skip confirmation for testing purpose
     if (skipConfirmation || await confirm('Would you like to install it?')) {
-      FvmLogger.spacer();
-      FvmLogger.fine('Installing version: $validVersion...');
+      Logger.spacer();
+      Logger.fine('Installing version: $validVersion...');
 
       // Cache version locally
       await CacheService.cacheVersion(validVersion);

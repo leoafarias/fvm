@@ -9,10 +9,24 @@ import '../services/cache_service.dart';
 import 'logger.dart';
 
 /// Displays notice for confirmation
-Future<bool> confirm(String message) async {
-  final response = await readInput('$message Y/n: ');
-  // Return true unless 'n'
-  return !response.contains('n');
+Future<bool> confirm(String message, {bool defaultConfirmation = true}) async {
+  final choices = defaultConfirmation ? 'Y/n' : 'y/N';
+  final response = await readInput('$message $choices: ');
+  final lowercase = response.toLowerCase();
+
+  if (response.isEmpty) {
+    return defaultConfirmation;
+  }
+
+  if (lowercase == 'n') {
+    return false;
+  }
+
+  if (lowercase == 'y') {
+    return true;
+  }
+
+  return false;
 }
 
 /// Prints out versions on FVM and it's status
@@ -25,7 +39,7 @@ Future<void> printVersionStatus(CacheVersion version, Project project) async {
   if (await CacheService.isGlobal(version)) {
     printVersion = '$printVersion (global)';
   }
-  FvmLogger.info(printVersion);
+  Logger.info(printVersion);
 }
 
 /// Allows to select from cached sdks.
@@ -44,7 +58,7 @@ Future<String> cacheVersionSelector() async {
   final versionsList = cacheVersions.map((version) => version.name).toList();
 
   // Better legibility
-  FvmLogger.spacer();
+  Logger.spacer();
 
   final chooser = Chooser<String>(
     versionsList,
@@ -67,7 +81,7 @@ Future<String?> projectFlavorSelector(Project project) async {
     return null;
   }
 
-  FvmLogger.fine('Project flavors configured for "${project.name}":\n');
+  Logger.fine('Project flavors configured for "${project.name}":\n');
 
   final chooser = Chooser<String>(
     envList,

@@ -14,27 +14,27 @@ class Guards {
       throw FvmInternalError('Cannot execute $execPath');
     }
     if (shouldRunDetached(args)) {
-      FvmLogger.spacer();
-      FvmLogger.info(
+      Logger.spacer();
+      Logger.info(
         'This command "${args.join(" ")}" will modify FVM installation.',
       );
-      FvmLogger.info(
+      Logger.info(
         '''Because of that, it is recommended you run the following command''',
       );
-      FvmLogger.info(
+      Logger.info(
         '''in your terminal directly pointing to the cached version.''',
       );
-      FvmLogger.spacer();
-      FvmLogger.fine("$execPath ${args.join(' ')}");
+      Logger.spacer();
+      Logger.fine("$execPath ${args.join(' ')}");
 
-      FvmLogger.spacer();
+      Logger.spacer();
 
-      FvmLogger.info(
+      Logger.info(
         '''If after this command FVM cannot be found in your terminal. Please run the following:''',
       );
 
-      FvmLogger.spacer();
-      FvmLogger.fine("$execPath pub global activate fvm");
+      Logger.spacer();
+      Logger.fine("$execPath pub global activate fvm");
 
       throw FvmUsageException('Command needs to run outside of FVM proxy');
     }

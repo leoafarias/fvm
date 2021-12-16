@@ -2,15 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'package:cli_util/cli_logging.dart';
+import 'package:cli_util/cli_logging.dart' as log;
 import 'package:io/ansi.dart';
 
 /// Sets default logger mode
-Logger logger = Logger.standard();
+log.Logger logger = log.Logger.standard();
 
 /// Logger for FVM
-class FvmLogger {
-  FvmLogger._();
+class Logger {
+  Logger._();
+
+  /// Sets logger to verbose
+  static void setVerbose() {
+    logger = log.Logger.verbose();
+  }
 
   /// Prints sucess message
   static void fine(String message) {

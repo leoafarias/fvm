@@ -44,17 +44,17 @@ class GlobalCommand extends BaseCommand {
 
     final configured = await CacheService.isGlobalConfigured();
 
-    FvmLogger.fine('Flutter "$validVersion" has been set as global');
+    Logger.fine('Flutter "$validVersion" has been set as global');
     if (!configured.isSetup) {
-      FvmLogger.warning('However your "flutter" path current points to:\n');
+      Logger.warning('However your "flutter" path current points to:\n');
 
-      FvmLogger.info(
+      Logger.info(
         configured.currentPath ?? 'No version is configured on path.',
       );
-      FvmLogger.info(
+      Logger.info(
         'to use global Flutter SDK through FVM you should change it to:\n',
       );
-      FvmLogger.info(configured.correctPath);
+      Logger.info(configured.correctPath);
     }
 
     return ExitCode.success.code;

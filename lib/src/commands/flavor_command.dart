@@ -61,7 +61,7 @@ class FlavorCommand extends BaseCommand {
     // Makes sure that is a valid version
     final validVersion = ValidVersion(envVersion);
 
-    FvmLogger.info(
+    Logger.info(
       'Switching to [$flavor] flavor, '
       'which uses [${validVersion.name}] Flutter sdk.',
     );
@@ -72,7 +72,7 @@ class FlavorCommand extends BaseCommand {
     // Pin version to project
     await ProjectService.pinVersion(project, validVersion);
 
-    FvmLogger.fine(
+    Logger.fine(
       'Now using [$flavor] flavor. '
       'Flutter version [${validVersion.name}].\n',
     );

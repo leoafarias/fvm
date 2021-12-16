@@ -33,64 +33,64 @@ class DoctorCommand extends BaseCommand {
     if (project.pinnedVersion != null) {
       final cacheVersion =
           await CacheService.getByVersionName(project.pinnedVersion!);
-      FvmLogger.spacer();
+      Logger.spacer();
 
-      FvmLogger.info('FVM Version: $packageVersion');
-      FvmLogger.divider();
-      FvmLogger.fine('FVM config found:');
-      FvmLogger.divider();
-      FvmLogger.info('Project: ${project.name}');
-      FvmLogger.info('Directory: ${project.projectDir.path}');
-      FvmLogger.info('Version: ${project.pinnedVersion}');
-      FvmLogger.info(
+      Logger.info('FVM Version: $packageVersion');
+      Logger.divider();
+      Logger.fine('FVM config found:');
+      Logger.divider();
+      Logger.info('Project: ${project.name}');
+      Logger.info('Directory: ${project.projectDir.path}');
+      Logger.info('Version: ${project.pinnedVersion}');
+      Logger.info(
         'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
       );
-      FvmLogger.divider();
+      Logger.divider();
       if (cacheVersion == null) {
-        FvmLogger.warning(
+        Logger.warning(
           'Version is not currently cached. Run "fvm install" on this'
           ' directory, or "fvm install ${project.pinnedVersion}" anywhere.',
         );
       } else {
-        FvmLogger.fine('Version is currently cached locally.');
-        FvmLogger.spacer();
-        FvmLogger.info('Cache Path: ${cacheVersion.dir.path}');
-        FvmLogger.info('Channel: ${cacheVersion.isChannel}');
+        Logger.fine('Version is currently cached locally.');
+        Logger.spacer();
+        Logger.info('Cache Path: ${cacheVersion.dir.path}');
+        Logger.info('Channel: ${cacheVersion.isChannel}');
 
         final sdkVersion = CacheService.getSdkVersionSync(cacheVersion);
         if (sdkVersion != null) {
-          FvmLogger.info('SDK Version: $sdkVersion');
+          Logger.info('SDK Version: $sdkVersion');
         } else {
-          FvmLogger.warning(
+          Logger.warning(
             'SDK Version: Need to finish setup. Run "fvm flutter doctor"',
           );
         }
       }
-      FvmLogger.spacer();
-      FvmLogger.info('IDE Links');
-      FvmLogger.info('VSCode: .fvm/flutter_sdk');
-      FvmLogger.info('Android Studio: ${project.config.sdkSymlink.path}');
-      FvmLogger.spacer();
+      Logger.spacer();
+      Logger.info('IDE Links');
+      Logger.info('VSCode: .fvm/flutter_sdk');
+      Logger.info('Android Studio: ${project.config.sdkSymlink.path}');
+      Logger.spacer();
     } else {
-      FvmLogger.spacer();
-      FvmLogger.fine('No FVM config found:');
-      FvmLogger.info(kWorkingDirectory.path);
-      FvmLogger.info(
+      Logger.spacer();
+      Logger.fine('No FVM config found:');
+      Logger.info(kWorkingDirectory.path);
+      Logger.info(
         'Fvm will run the version in your PATH env: $flutterWhich',
       );
     }
-    FvmLogger.spacer();
-    FvmLogger.fine('Configured env paths:');
-    FvmLogger.divider();
-    FvmLogger.info('Flutter:');
-    FvmLogger.info(flutterWhich ?? '');
-    FvmLogger.spacer();
-    FvmLogger.info('Dart:');
-    FvmLogger.info(dartWhich ?? '');
-    FvmLogger.spacer();
-    FvmLogger.info('FVM_HOME:');
-    FvmLogger.info(kEnvVars['FVM_HOME'] ?? 'not set');
-    FvmLogger.spacer();
+    Logger.spacer();
+    Logger.fine('Configured env paths:');
+    Logger.divider();
+    Logger.info('Flutter:');
+    Logger.info(flutterWhich ?? '');
+    Logger.spacer();
+    Logger.info('Dart:');
+    Logger.info(dartWhich ?? '');
+    Logger.spacer();
+    Logger.info('FVM_HOME:');
+    Logger.info(kEnvVars['FVM_HOME'] ?? 'not set');
+    Logger.spacer();
 
     return ExitCode.success.code;
   }

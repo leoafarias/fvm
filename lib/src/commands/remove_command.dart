@@ -43,7 +43,7 @@ class RemoveCommand extends BaseCommand {
 
     // Check if version is installed
     if (cacheVersion == null) {
-      FvmLogger.info('Flutter SDK: $validVersion is not installed');
+      Logger.info('Flutter SDK: $validVersion is not installed');
       return ExitCode.success.code;
     }
 

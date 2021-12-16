@@ -32,11 +32,11 @@ class ReleasesCommand extends BaseCommand {
 
       if (release.activeChannel) {
         final channel = release.channel.toString().split('.').last;
-        FvmLogger.info('--------------------------------------');
-        FvmLogger.info('$friendlyDate $pipe $version $channel');
-        FvmLogger.info('--------------------------------------');
+        Logger.info('--------------------------------------');
+        Logger.info('$friendlyDate $pipe $version $channel');
+        Logger.info('--------------------------------------');
       } else {
-        FvmLogger.info('$friendlyDate $pipe $version');
+        Logger.info('$friendlyDate $pipe $version');
       }
     }
 
