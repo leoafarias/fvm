@@ -7,21 +7,11 @@ sidebar_position: 1
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-There are a few ways to install FVM, and we are working on other ways to make it even simpler.
+There are a few ways to install FVM, and we are working on other ways to make it even simpler. 
 
-## Pub package
-
-```bash
-dart pub global activate fvm
-```
-
-## Standalone
+## Standalone (Recommended)
 
 You can download the standalone packages from the GitHub repo [here](https://github.com/leoafarias/fvm/releases).
-
-:::info
-Other package manager support is still work in progress
-:::
 
 <Tabs
   defaultValue="macos"
@@ -80,3 +70,15 @@ brew untap leoafarias/fvm
 
 </TabItem>
 </Tabs>
+
+
+## Pub package
+
+You are able to also install FVM as a [pub package](https://pub.dev/packages/fvm). 
+
+However if you plan on using FVM to manage your [global Flutter install](/docs/guides/global_version) we recommend installing as a standalone.
+
+```bash
+dart pub global activate fvm
+```
+
