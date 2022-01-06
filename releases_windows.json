@@ -3,9 +3,17 @@
   "current_release": {
     "beta": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
     "dev": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
-    "stable": "cf4400006550b70f28e4b4af815151d1e74846c6"
+    "stable": "77d935af4db863f6abd0b9c31c7e6df2a13de57b"
   },
   "releases": [
+    {
+      "hash": "77d935af4db863f6abd0b9c31c7e6df2a13de57b",
+      "channel": "stable",
+      "version": "2.8.1",
+      "release_date": "2021-12-16T19:43:08.108328Z",
+      "archive": "stable/windows/flutter_windows_2.8.1-stable.zip",
+      "sha256": "69f48fccf99e961d19ab6170455c68e39bbe8ad2c4b732597927c0610aaac100"
+    },
     {
       "hash": "8f1f9c10f04b8f106d78275e93ceead8ea837d8b",
       "channel": "beta",
