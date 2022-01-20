@@ -4,7 +4,7 @@ title: Tools
 sidebar_position: 4
 ---
 
-There are a few tools that make it easier for implementing FVM in your workflow. Below is a non-exhaustive list.
+There are a few tools that make it easier to implement or use FVM in your workflow. Below is a non-exhaustive list. If there is a tool which is not listed feel free to [open a pull-request](https://github.com/leoafarias/fvm/pulls) with it.
 
 ## Desktop Apps
 
