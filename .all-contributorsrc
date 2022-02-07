@@ -265,6 +265,16 @@
         "infra",
         "code"
       ]
+    },
+    {
+      "login": "rcjuancarlosuwu",
+      "name": "Juan Carlos Ramón Condezo",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67658540?v=4",
+      "profile": "https://rcjuancarlosuwu.medium.com",
+      "contributions": [
+        "doc",
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 5,
