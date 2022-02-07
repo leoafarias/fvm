@@ -104,6 +104,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   </tr>
   <tr>
     <td align="center"><a href="https://sharezone.net"><img src="https://avatars.githubusercontent.com/u/24459435?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Nils Reichardt</b></sub></a><br /><a href="#infra-nilsreichardt" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/leoafarias/fvm/commits?author=nilsreichardt" title="Code">💻</a></td>
+    <td align="center"><a href="https://rcjuancarlosuwu.medium.com"><img src="https://avatars.githubusercontent.com/u/67658540?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Juan Carlos Ramón Condezo</b></sub></a><br /><a href="https://github.com/leoafarias/fvm/commits?author=rcjuancarlosuwu" title="Documentation">📖</a> <a href="#translation-rcjuancarlosuwu" title="Translation">🌍</a></td>
   </tr>
 </table>
 
