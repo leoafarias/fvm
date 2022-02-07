@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://fvm.app/blog</id>
+    <title>Flutter Version Management Blog</title>
+    <updated>2015-10-25T23:29:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://fvm.app/blog"/>
+    <subtitle>Flutter Version Management Blog</subtitle>
+    <icon>https://fvm.app/img/favicon.ico</icon>
+</feed>
