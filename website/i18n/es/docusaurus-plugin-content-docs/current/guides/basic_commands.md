@@ -1,12 +1,12 @@
 ---
 id: basic_commands
-title: Basic Commands
+title: "Comandos Básicos"
 sidebar_position: 0
 ---
 
-## Use
+## Uso
 
-Sets Flutter SDK Version you would like to use in a project. If version does not exist it will ask if you want to install.
+Establece la versión del SDK de Flutter que le gustaría usar en un proyecto. Si la versión no existe, le preguntará si desea instalarla.
 
 ```bash
 Usage:
@@ -19,16 +19,16 @@ Option:
         --flavor   Sets version for a project flavor
 ```
 
-If you are starting a new project and plan on using `fvm flutter create` you wil have to use the `--force` flag
+Si está comenzando un nuevo proyecto y planea usar `fvm flutter create`, tendrá que usar el flag `--force`
 
 ## Install
 
-Installs Flutter SDK Version. Gives you the ability to install Flutter releases or channels.
+Instala la versión del SDK de Flutter. Te da la posibilidad de instalar lanzamientos o canales de Flutter.
 
 ```bash
 Usage:
-    fvm install - # Installs version found in project config
-    fvm install {version} - # Installs specific version
+    fvm install - # Instala la versión encontrada en la configuración del proyecto
+    fvm install {version} - # Instalar versión específica
 
 Option:
     -h, --help          Print this usage information.
@@ -37,7 +37,7 @@ Option:
 
 ## Remove
 
-Removes Flutter SDK Version. Will impact any projects that depend on that version of the SDK.
+Elimina la versión del SDK de Flutter. Afectará a cualquier proyecto que dependa de esa versión del SDK.
 
 ```bash
 Usage:
@@ -50,7 +50,7 @@ Option:
 
 ## List
 
-Lists installed Flutter SDK Versions. Will also print the cache directory used by FVM.
+Enumera las versiones instaladas del SDK de Flutter. También imprimirá el directorio de caché utilizado por FVM.
 
 ```bash
 Usage:
@@ -62,7 +62,7 @@ Option:
 
 ## Releases
 
-View all Flutter SDK releases available for install.
+Vea todas las versiones del SDK de Flutter disponibles para instalar.
 
 ```bash
 Usage:
@@ -74,7 +74,7 @@ Option:
 
 ## Doctor
 
-Shows information about environment, and project configuration.
+Muestra información sobre el entorno y la configuración del proyecto.
 
 ```bash
 Usage:
