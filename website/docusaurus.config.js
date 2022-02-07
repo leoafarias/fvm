@@ -10,17 +10,21 @@ module.exports = {
   organizationName: 'leoafarias', // Usually your GitHub org/user name.
   projectName: 'FVM', // Usually your repo name.
   
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "es"],
+  },
   themeConfig: {
     googleAnalytics: {
       trackingID: 'UA-175155757-1',
       anonymizeIP: true, // Should IPs be anonymized?
     },
-    algolia:{
+    algolia: {
       apiKey: '178209eec41c198e123e8280e47275f5',
       indexName: 'fvm'
     },
 
-    image:'img/share-image.png',
+    image: 'img/share-image.png',
     sidebarCollapsible: false,
     announcementBar: {
       id: 'support_us', // Any value that will identify this message.
@@ -37,7 +41,7 @@ module.exports = {
         src: 'img/logo.svg',
       },
       items: [
-        
+
         {
           type: 'doc',
           docId: 'getting_started/overview',
@@ -49,6 +53,10 @@ module.exports = {
           docId: 'guides/basic_commands',
           position: 'right',
           label: 'Guides',
+        },
+        {
+          type: "localeDropdown",
+          position: "right",
         },
         {
           type: 'search',
@@ -95,13 +103,13 @@ module.exports = {
               label: 'GUI for FVM',
               href: 'https://github.com/leoafarias/sidekick',
             },
-          
+
           ],
         },
         {
           title: 'Links',
           items: [
-          
+
             {
               label: 'Twitter',
               href: 'https://twitter.com/leoafarias',
@@ -122,6 +130,7 @@ module.exports = {
       '@docusaurus/preset-classic',
       {
         docs: {
+          editLocalizedFiles: true,
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
             'https://github.com/leoafarias/fvm/edit/master/website/',

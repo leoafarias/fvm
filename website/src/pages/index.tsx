@@ -1,4 +1,5 @@
 import Link from "@docusaurus/Link";
+import Translate, { translate } from "@docusaurus/Translate";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import clsx from "clsx";
@@ -14,7 +15,11 @@ function HomepageHeader() {
     <header className={clsx("hero hero--dark", styles.heroBanner)}>
       <div className="container">
         <h1 className="hero__title">{siteConfig.title}</h1>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+        <p className="hero__subtitle">
+          <Translate id="home.tagline">
+            A simple CLI to manage Flutter SDK versions.
+          </Translate>
+        </p>
 
         <div className={styles.buttons}>
           <GitHubStarButton />
@@ -36,7 +41,7 @@ function HomepageHeader() {
             className="button button--secondary button--lg"
             to="/docs/getting_started/overview"
           >
-            Getting Started
+            <Translate id="home.get_started">Getting Started</Translate>
           </Link>
         </div>
       </div>
@@ -57,6 +62,10 @@ function TwitterButton() {
         size: "small",
         showCount: false,
         showScreenName: false,
+        lang: translate({
+          id: "home.twitter_locale",
+          message: "en",
+        }),
       }}
     />
   );

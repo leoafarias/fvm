@@ -1,39 +1,49 @@
+import Translate, { translate } from "@docusaurus/Translate";
 import clsx from "clsx";
 import React from "react";
 import styles from "./HomepageFeatures.module.css";
 
 const FeatureList = [
   {
-    title: "Multiple Flutter SDKs",
+    title: translate({
+      id: "home.feature_multiple_flutter_sdk_title",
+      message: "Multiple Flutter SDKs",
+    }),
     Svg: require("../../static/img/multiple_versions.svg").default,
     description: (
-      <>
+      <Translate id="home.feature_multiple_flutter_sdk">
         Ability to manage and cache multiple Flutter SDK Versions. Fast
         switching between channels & releases. View available channels &
         releases.
-      </>
+      </Translate>
     ),
   },
   {
-    title: "Project Versioning",
+    title: translate({
+      id: "home.feature_project_versioning_title",
+      message: "Project Versioning",
+    }),
     Svg: require("../../static/img/project_versioning.svg").default,
     description: (
-      <>
+      <Translate id="home.feature_project_versioning">
         Configure and use Flutter SDK version per project. Dynamic SDK paths for
         IDE debugging support. Allows for consistency across teams and CI
         environments.
-      </>
+      </Translate>
     ),
   },
   {
-    title: "Advanced Tooling",
+    title: translate({
+      id: "home.feature_advanced_tooling_title",
+      message: "Advanced Tooling",
+    }),
     Svg: require("../../static/img/advanced_tooling.svg").default,
     description: (
-      <>
+      <Translate id="home.feature_advanced_tooling">
         Manage global Flutter SDK version. Spawn processes in any Flutter SDK
         version. Docker images for CI & dev workflow. Install Flutter from
         specific commits.
-      </>
+      </Translate>
     ),
   },
 ];

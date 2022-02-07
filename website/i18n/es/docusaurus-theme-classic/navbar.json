@@ -1,0 +1,18 @@
+{
+  "title": {
+    "message": "FVM",
+    "description": "The title in the navbar"
+  },
+  "item.label.Getting Started": {
+    "message": "Empezar",
+    "description": "Navbar item with label Getting Started"
+  },
+  "item.label.Guides": {
+    "message": "Guía",
+    "description": "Navbar item with label Guides"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

@@ -1,0 +1,128 @@
+---
+id: configuration
+title: "Configuración"
+sidebar_position: 2
+---
+
+Configure FVM e IDE para una mejor compatibilidad con diferentes entornos de desarrollo.
+
+## Proyecto
+
+FVM creará un enlace simbólico relativo en su proyecto desde `.fvm/flutter_sdk` al caché de la versión seleccionada. Agrégalo a tu `.gitignore`
+
+```yaml title=".gitignore"
+.fvm/flutter_sdk
+```
+
+## FVM
+
+### Directorio de caché
+
+Puede configurar el directorio de caché **fvm** configurando la variable de entorno `FVM_HOME`. Si no se establece nada, se utilizará la ruta **fvm** predeterminada. También puede cambiar el directorio configurando `--cache-path` en la configuración. Vea abajo
+
+### Configurar
+
+Hay algunas configuraciones que puede cambiar en FVM. **Todas las configuraciones establecidas en CLI son compatibles con Sidekick (GUI)**.
+
+### Repositorio de Flutter Diferente
+
+Puedes usar un repositorio de Flutter diferente, una fork o como un caché local, configurando la variable de entorno `FVM_GIT_CACHE`.
+
+#### Configuración de lista
+
+```bash
+> fvm config
+```
+
+#### Establecer la ruta de caché
+
+Ubicación donde se almacenarán las versiones del SDK de Flutter. Si no se establece nada, se utilizará el valor predeterminado.
+
+```bash
+> fvm config --cache-path <CACHE_PATH>
+```
+
+## IDE
+
+:::info Información
+Es posible que deba reiniciar su IDE y el depurador de Flutter para asegurarse de que use la última versión de las configuraciones en algunas situaciones.
+:::
+
+### VS Code
+
+#### Opción 1: Cambio Automático (recomendado)
+
+Puedes agregar el enlace simbólico de la versión para un cambio dinámico. VS Code siempre usará la versión seleccionada dentro del proyecto para todas las herramientas IDE. Además, elimine el SDK de flutter de la búsqueda para facilitar las cosas.
+
+```json title=".vscode/settings.json"
+{
+  "dart.flutterSdkPath": ".fvm/flutter_sdk",
+  //Eliminar archivos .fvm de búsqueda
+  "search.exclude": {
+    "**/.fvm": true
+  },
+  // Eliminar de la observación de archivos
+  "files.watcherExclude": {
+    "**/.fvm": true
+  }
+}
+```
+
+#### Opción 2 - Ver todos los SDKs (Cambio manual)
+
+VSCode tiene la capacidad de cambiar entre todos los SDK de Flutter almacenados en caché usando `Flutter: Change SDK`.
+
+:::info Información
+
+Use el comando `fvm list` para mostrar la ruta de caché a las versiones.
+:::
+
+#### Listar todas las versiones instaladas por FVM
+
+Puedes ver todas las versiones instaladas por FVM en VS Code simplemente proporcionando la ruta al directorio de `versions`:
+
+```json
+{
+  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+}
+```
+
+Como alternativa, puede especificar solo las versiones seleccionadas. El siguiente fragmento hará que VS Code muestre solo versiones `stable` y `dev` de Flutter.
+
+```json
+{
+  "dart.flutterSdkPaths": [
+    "/Users/usr/fvm/versions/stable",
+    "/Users/usr/fvm/versions/dev"
+  ]
+}
+```
+
+Para cambiar la versión actual de Flutter, abra un proyecto y seleccione `Flutter: Change SDK` en la paleta de comandos. Deberías de ver todas las versiones como se muestra en la siguiente captura de pantalla.
+
+### Android Studio
+
+1. Ve a `Languages & Frameworks > Flutter` o busque Flutter y cambie la ruta del SDK de Flutter.
+2. Copie la ruta **_absoluta_** del enlace simbólico fvm en el directorio de su proyecto raíz. Ejemplo `/absolute-project-path/.fvm/flutter_sdk`
+3. Aplicar los cambios.
+4. Reinicie Android Studio para ver la nueva configuración aplicada.
+
+:::important IMPORTANTE
+Para que Android Studio detecte el cambio dinámico de los SDK, el SDK instalado debe haber finalizado la configuración.
+
+El uso de `fvm install <VERSION>` garantizará la configuración durante la instalación.
+
+Si ha instalado a través de otro comando y la configuración no se completó. Puedes terminar simplemente ejecutando `fvm flutter --version`
+
+Android Studio puede tardar unos segundos en detectar el cambio de SDK dinámico.
+:::
+
+Si deseas ignorar el directorio raíz del SDK de Flutter dentro de Android Studio, puede agregar lo siguiente a `.idea/workspace.xml`.
+
+```xml
+<component name="VcsManagerConfiguration">
+  <ignored-roots>
+    <path value="$PROJECT_DIR$/.fvm/flutter_sdk" />
+  </ignored-roots>
+...
+```

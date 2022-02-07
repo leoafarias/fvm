@@ -29,6 +29,8 @@ When running `pub global activate fvm`, pub will grab the latest FVM version tha
 Run command `fvm list` this will output the directory used for Flutter cache. Delete that directory.
 If you installed using pub run `dart pub global deactivate fvm`, if you used a standalone installation please follow its instructions.
 
+---
+
 ### Commands run twice on Windows
 
 This happens due to a pub issue https://github.com/dart-lang/pub/issues/2934. To avoid this issue from happening make sure you PATH is in the following order. [Please read the following](#environment-variables-order-for-windows-in-path).

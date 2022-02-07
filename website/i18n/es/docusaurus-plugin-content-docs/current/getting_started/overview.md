@@ -1,37 +1,37 @@
 ---
 id: overview
-title: Overview
+title: "Descripción general"
 sidebar_position: 0
 ---
 
-FVM helps with the need for consistent app builds by referencing the Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps without waiting for Flutter installation every time.
+FVM ayuda con la necesidad de compilaciones coherentes de aplicaciones al hacer referencia a la versión del SDK de Flutter utilizada por proyecto. También te permite tener varias versiones de Flutter instaladas para validar y probar rápidamente los próximos lanzamientos de Flutter con sus aplicaciones sin tener que esperar la instalación de Flutter cada vez.
 
-## Motivation
+## Motivación
 
-- We need to have more than one Flutter SDK at a time.
-- Testing new SDK features requires switching between [Channels](https://flutter.dev/docs/development/tools/sdk/releases).
-- The switch between channels is slow and requires reinstalling every time.
-- No way of keeping track of the latest working/used version of the SDK in an app.
-- Major Flutter updates require migration of all Flutter apps in the machine.
-- Inconsistent development environments between other devs in the team.
+- Necesitamos tener más de un SDK de Flutter a la vez.
+- Probar nuevas funciones SDK requiere cambiar entre [Canales](https://flutter.dev/docs/development/tools/sdk/releases).
+- El cambio entre canales es lento y requiere una reinstalación cada vez.
+- No hay forma de realizar un seguimiento de la última versión funcional/utilizada del SDK en una aplicación.
+- Las actualizaciones importantes de Flutter requieren la migración de todas las aplicaciones de Flutter en la máquina.
+- Entornos de desarrollo inconsistentes entre otros desarrolladores en el equipo.
 
-## Video Guides & Walkthroughs
+## Video guías y tutoriales
 
-You can view a playlist of many Youtube guides & walkthroughs done by the incredible Flutter community in many different languages.
+Puede ver una lista de reproducción de muchas guías y tutoriales de Youtube realizados por la increíble comunidad de Flutter en muchos idiomas diferentes.
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/videoseries?list=PLVnlSO6aQelAAddOFQVJNoaRGZ1mMsj2Q" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-## Principles
+## Principios
 
-We follow these principles when building and adding new features to FVM.
+Seguimos estos principios cuando construimos y agregamos nuevas funciones a FVM.
 
-- Always use Flutter tools when interacting with the SDK.
-- Do not override any Flutter CLI commands.
-- Follow Flutter suggested installation instructions accomplish caching.
-- Should extend Flutter behavior and not modify them.
-- API should be simple and easy to understand.
+- Utilizar siempre las herramientas de Flutter cuando interactúe con el SDK.
+- No sobrescribir ningún comando de la CLI de Flutter.
+- Seguir las instrucciones de instalación sugeridas por Flutter para lograr el almacenamiento en caché.
+- Extender el comportamiento de Flutter y no modificarlos.
+- La API debe ser simple y fácil de entender.
 
-## Contributors
+## Colaboradores
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
