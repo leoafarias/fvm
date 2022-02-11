@@ -25,7 +25,7 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 
 Checkout Flutter Sidekick. [Read more about it here.](https://github.com/leoafarias/sidekick)
 
-[![FVM App Screenshot](https://raw.githubusercontent.com/leoafarias/sidekick/main/assets/screenshot.png)](https://github.com/leoafarias/sidekick)
+[![FVM App Screenshot](https://raw.githubusercontent.com/leoafarias/sidekick/main/assets/promo-gh/screenshot.png)](https://github.com/leoafarias/sidekick)
 
 ## Working with this repo
 
