@@ -3,9 +3,19 @@
   "current_release": {
     "beta": "b101bfe32f634566e7cb2791a9efe19cf8828b15",
     "dev": "b101bfe32f634566e7cb2791a9efe19cf8828b15",
-    "stable": "097d3313d8e2c7f901932d63e537c1acefb87800"
+    "stable": "7e9793dee1b85a243edd0e06cb1658e98b077561"
   },
   "releases": [
+    {
+      "hash": "7e9793dee1b85a243edd0e06cb1658e98b077561",
+      "channel": "stable",
+      "version": "2.10.3",
+      "dart_sdk_version": "2.16.1",
+      "dart_sdk_arch": "x64",
+      "release_date": "2022-03-03T03:39:06.481301Z",
+      "archive": "stable/macos/flutter_macos_2.10.3-stable.zip",
+      "sha256": "77475dd7e674bf2079a2000183478c19ca9b2eeb404d4819777b1fc12b87ca4a"
+    },
     {
       "hash": "097d3313d8e2c7f901932d63e537c1acefb87800",
       "channel": "stable",
