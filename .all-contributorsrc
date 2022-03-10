@@ -275,6 +275,15 @@
         "doc",
         "translation"
       ]
+    },
+    {
+      "login": "zeshuaro",
+      "name": "zeshuaro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12210067?v=4",
+      "profile": "https://github.com/zeshuaro",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,
