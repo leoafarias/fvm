@@ -58,6 +58,8 @@ class FvmConfig {
     if (env.isEmpty) {
       return null;
     }
+
+    return env;
   }
 
   /// Check if config file exists

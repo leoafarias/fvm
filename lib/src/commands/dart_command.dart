@@ -1,7 +1,7 @@
 import 'package:args/args.dart';
-import 'package:fvm/src/services/cache_service.dart';
 
 import '../models/valid_version_model.dart';
+import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
