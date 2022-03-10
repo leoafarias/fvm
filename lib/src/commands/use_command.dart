@@ -3,6 +3,7 @@ import 'package:io/io.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
+import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/use_version.workflow.dart';
@@ -59,10 +60,14 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    // Show chooser if not version is provided
+    // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      /// Ask which version to select
-      version = await cacheVersionSelector();
+      version = await ProjectService.findVersion();
+
+      // If no config found, ask which version to select.
+      if (version == null) {
+        version = await cacheVersionSelector();
+      }
     }
 
     // Get version from first arg
