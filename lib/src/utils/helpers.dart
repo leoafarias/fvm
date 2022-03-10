@@ -83,20 +83,25 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
 }
 
 /// Returns updated environment for Flutter with [execPath]
-Map<String, String> updateFlutterEnvVariables(String binPath) {
-  return _updateEnvVariables('flutter', binPath);
+Map<String, String> updateFlutterEnvVariables(String binPath,
+    [Map<String, String>? env]) {
+  return _updateEnvVariables('flutter', binPath, env: env);
 }
 
 /// Returns updated environment for Dark with [binPath]
-Map<String, String> updateDartEnvVariables(String binPath) {
-  return _updateEnvVariables('dart', binPath);
+Map<String, String> updateDartEnvVariables(String binPath,
+    [Map<String, String>? env]) {
+  return _updateEnvVariables('dart', binPath, env: env);
 }
 
 Map<String, String> _updateEnvVariables(
   String key,
-  String binPath,
-) {
-  final envPath = kEnvVars['PATH'] ?? '';
+  String binPath, {
+  Map<String, String>? env,
+}) {
+  // Use env passed in param or get from current process
+  final envMap = env ?? kEnvVars;
+  final envPath = envMap['PATH'] ?? '';
 
   /// Remove exec path that does not match
   final pathEnvList = envPath

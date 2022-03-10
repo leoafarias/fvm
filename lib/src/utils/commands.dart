@@ -25,12 +25,36 @@ Future<int> flutterCmd(
   );
 }
 
+/// Exec commands with the Flutter env
+Future<int> execCmd(
+  String execPath,
+  CacheVersion? version,
+  List<String> args,
+) async {
+  // Update environment variables
+  final binPath = version?.binPath ?? whichSync('flutter') ?? '';
+  final dartBinPath = version?.dartBinPath ?? whichSync('dart') ?? '';
+
+  var environment = updateFlutterEnvVariables(binPath);
+
+  // Update environment with dart exec path
+  environment = updateDartEnvVariables(dartBinPath, environment);
+
+  // Run command
+  return await _runCmd(
+    execPath,
+    args: args,
+    environment: environment,
+    checkIfExecutable: false,
+  );
+}
+
 /// Runs dart cmd
 Future<int> dartCmd(CacheVersion version, List<String> args) async {
   // Get exec path for dart
   final execPath = version.dartExec;
   // Update environment
-  final environment = updateDartEnvVariables(execPath);
+  final environment = updateDartEnvVariables(version.dartBinPath);
 
   // Run command
   return await _runCmd(
@@ -70,9 +94,14 @@ Future<int> _runCmd(
   String execPath, {
   List<String> args = const [],
   Map<String, String>? environment,
+  // Checks if path can be executed
+  bool checkIfExecutable = true,
 }) async {
   // Project again a non executable path
-  await Guards.canExecute(execPath, args);
+
+  if (checkIfExecutable) {
+    await Guards.canExecute(execPath, args);
+  }
 
   final processManager = ProcessManager();
 

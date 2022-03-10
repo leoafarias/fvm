@@ -26,14 +26,19 @@ class CacheVersion {
   }
 
   /// Returns dart exec file for cache version
-  String get dartExec {
+  String get dartBinPath {
     /// Get old bin path
     /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
     if (hasOldBinPath) {
-      return join(binPath, 'cache', 'dart-sdk', 'bin', dartBinFileName);
+      return join(binPath, 'cache', 'dart-sdk', 'bin');
     } else {
-      return join(binPath, dartBinFileName);
+      return binPath;
     }
+  }
+
+  /// Returns dart exec file for cache version
+  String get dartExec {
+    return join(dartBinPath, dartBinFileName);
   }
 
   /// Returns flutter exec file for cache version

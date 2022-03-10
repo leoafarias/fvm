@@ -9,6 +9,7 @@ import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/destroy_command.dart';
 import 'commands/doctor_command.dart';
+import 'commands/exec_command.dart';
 import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
 import 'commands/global_command.dart';
@@ -57,6 +58,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(ConfigCommand());
     addCommand(FlavorCommand());
     addCommand(DestroyCommand());
+    addCommand(ExecCommand());
   }
 
   @override
