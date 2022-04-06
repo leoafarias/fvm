@@ -1,4 +1,4 @@
-## 2.3.0-dev.0
+## 2.3.0
 
 - Implemented `fvm exec` command. Execute terminal commands with the configured Flutter/Dart SDK version in the environment.
 - Use command will install configured version by default if not version is provided.
