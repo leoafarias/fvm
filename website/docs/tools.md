@@ -12,7 +12,7 @@ There are a few tools that make it easier to implement or use FVM in your workfl
 
 Sidekick is an app that provides a simple desktop interface to tools that enhance Flutter development experience to make it even more delightful.
 
-## Github Actions
+## GitHub Actions
 
 ### [fvm-config-action](https://github.com/kuhnroyal/flutter-fvm-config-action)
 
