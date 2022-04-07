@@ -26,7 +26,7 @@ String getGoogleReleaseUrl({String? platform}) {
 String getReleasesUrl({String? platform}) {
   platform ??= Platform.operatingSystem;
   return _envVars['FLUTTER_RELEASES_URL'] ??
-      'https://raw.githubusercontent.com/leoafarias/fvm/main/releases_$platform.json';
+      'https://raw.githubusercontent.com/fluttertools/fvm/main/releases_$platform.json';
 }
 
 FlutterReleases? _cacheReleasesRes;
