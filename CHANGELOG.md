@@ -1,8 +1,11 @@
+## 2.3.1
+
+- Update Flutter releases endpoint
+
 ## 2.3.0
 
 - Implemented `fvm exec` command. Execute terminal commands with the configured Flutter/Dart SDK version in the environment.
 - Use command will install configured version by default if not version is provided.
-
 ## 2.2.6
 
 - Fixed issue with routing to older Dart SDK directory path (before 1.17.5)
