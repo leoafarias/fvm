@@ -1,11 +1,31 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "8662e22bac54c71bc4fa5a4f37e9ee80bfd08a4e",
+    "beta": "5293f3cd4427b4b48ed155e7a3852c6b3c53d94a",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
     "stable": "5464c5bac742001448fe4fc0597be939379f88ea"
   },
   "releases": [
+    {
+      "hash": "5293f3cd4427b4b48ed155e7a3852c6b3c53d94a",
+      "channel": "beta",
+      "version": "2.13.0-0.3.pre",
+      "dart_sdk_version": "2.17.0 (build 2.17.0-266.7.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2022-04-27T22:39:20.827808Z",
+      "archive": "beta/macos/flutter_macos_2.13.0-0.3.pre-beta.zip",
+      "sha256": "250f99ce455c3df22c4ddc2cec121b5bf853c561ea273cdf242576ba671141e1"
+    },
+    {
+      "hash": "5293f3cd4427b4b48ed155e7a3852c6b3c53d94a",
+      "channel": "beta",
+      "version": "2.13.0-0.3.pre",
+      "dart_sdk_version": "2.17.0 (build 2.17.0-266.7.beta)",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2022-04-27T22:36:26.823994Z",
+      "archive": "beta/macos/flutter_macos_arm64_2.13.0-0.3.pre-beta.zip",
+      "sha256": "ab43de77b5463e04a5dcacb39e0e689ccf053f20cf474f99859ee88b9ab1b93c"
+    },
     {
       "hash": "8662e22bac54c71bc4fa5a4f37e9ee80bfd08a4e",
       "channel": "beta",
