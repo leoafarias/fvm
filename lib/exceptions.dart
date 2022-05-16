@@ -1,6 +1,6 @@
 /// Exception for internal FVM Errors
 class FvmInternalError implements Exception {
-  /// Message of erro
+  /// Message of error
   final String message;
 
   /// Constructor
