@@ -79,11 +79,11 @@ Use command `fvm list` to show you the cache path to the versions.
 
 #### List all versions installed by FVM
 
-You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory:
+You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory. In the following example path for macOS, replace `$USER` with your username:
 
 ```json
 {
-  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+  "dart.flutterSdkPaths": ["/Users/$USER/fvm/versions"]
 }
 ```
 
@@ -92,8 +92,8 @@ Alternatively, you can specify only selected versions. The following snippet wil
 ```json
 {
   "dart.flutterSdkPaths": [
-    "/Users/usr/fvm/versions/stable",
-    "/Users/usr/fvm/versions/dev"
+    "/Users/$USER/fvm/versions/stable",
+    "/Users/$USER/fvm/versions/dev"
   ]
 }
 ```
