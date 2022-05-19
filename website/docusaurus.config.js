@@ -133,13 +133,13 @@ module.exports = {
           editLocalizedFiles: true,
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
-            'https://github.com/leoafarias/fvm/edit/master/website/',
+            'https://github.com/leoafarias/fvm/edit/main/website/',
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           editUrl:
-            'https://github.com/leoafarias/fvm/edit/master/doc/blog/',
+            'https://github.com/leoafarias/fvm/edit/main/doc/blog/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
