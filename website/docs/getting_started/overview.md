@@ -77,6 +77,7 @@ We follow these principles when building and adding new features to FVM.
     <td align="center"><a href="https://rcjuancarlosuwu.medium.com"><img src="https://avatars.githubusercontent.com/u/67658540?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Juan Carlos Ramón Condezo</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=rcjuancarlosuwu" title="Documentation">📖</a> <a href="#translation-rcjuancarlosuwu" title="Translation">🌍</a></td>
     <td align="center"><a href="https://github.com/zeshuaro"><img src="https://avatars.githubusercontent.com/u/12210067?v=4?s=50" width="50px;" alt=""/><br /><sub><b>zeshuaro</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=zeshuaro" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ziehlke"><img src="https://avatars.githubusercontent.com/u/10786117?v=4?s=50" width="50px;" alt=""/><br /><sub><b>ziehlke</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=ziehlke" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/fpinzn"><img src="https://avatars.githubusercontent.com/u/345207?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Francisco Pinzón</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=fpinzn" title="Documentation">📖</a></td>
   </tr>
 </table>
 
