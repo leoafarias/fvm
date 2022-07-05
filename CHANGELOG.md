@@ -1,3 +1,7 @@
+## 2.4.0
+
+- Upgraded minimum Dart version to 2.17.0 for better Flutter 3.0 compatibility
+
 ## 2.3.1
 
 - Update Flutter releases endpoint
