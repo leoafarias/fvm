@@ -302,6 +302,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "th0rgall",
+      "name": "Thor Galle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11543641?v=4",
+      "profile": "http://thorgalle.me",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
