@@ -293,6 +293,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "fpinzn",
+      "name": "Francisco Pinzón",
+      "avatar_url": "https://avatars.githubusercontent.com/u/345207?v=4",
+      "profile": "https://github.com/fpinzn",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
