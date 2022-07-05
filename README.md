@@ -109,6 +109,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/ziehlke"><img src="https://avatars.githubusercontent.com/u/10786117?v=4?s=50" width="50px;" alt=""/><br /><sub><b>ziehlke</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=ziehlke" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/fpinzn"><img src="https://avatars.githubusercontent.com/u/345207?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Francisco Pinzón</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=fpinzn" title="Documentation">📖</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="http://thorgalle.me"><img src="https://avatars.githubusercontent.com/u/11543641?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Thor Galle</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=th0rgall" title="Documentation">📖</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->
