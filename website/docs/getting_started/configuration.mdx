@@ -52,7 +52,7 @@ You might have to restart your IDE and the Flutter debugger to make sure it uses
 
 #### Option 1 - Automatic Switching (Recommended)
 
-You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the flutter SDK from search to make things easier.
+You can add the version symlink for a dynamic switch. Simply execute `fvm use <desired version>` in the project root directory and fvm will create the following file:
 
 ```json title=".vscode/settings.json"
 {
@@ -67,6 +67,9 @@ You can add the version symlink for a dynamic switch. VS Code will always use th
   }
 }
 ```
+
+VS Code will always use the version selected within the project for all IDE tooling. Also, remove the flutter SDK from search to make things easier.
+
 
 #### Option 2 - View all SDKs (Manual switching)
 
