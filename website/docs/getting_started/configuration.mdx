@@ -54,6 +54,7 @@ You might have to restart your IDE and the Flutter debugger to make sure it uses
 
 You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the flutter SDK from search to make things easier. Just create a folder inside the project called `.vscode` and then create a file called `settings.json` and add the following file:
 
+
 ```json title=".vscode/settings.json"
 {
   "dart.flutterSdkPath": ".fvm/flutter_sdk",
@@ -68,6 +69,9 @@ You can add the version symlink for a dynamic switch. VS Code will always use th
 }
 ```
 
+Simply execute `fvm use <desired version>` in the project root directory. This will now change the version. If you're still having issues, just click on the Flutter version text on status bar of vs code and it'll show you all the current SDKs installed in your computer.Eather select auto detect which will check `.vscode` dir inside your project and then change your flutter SDK depending on the fvm config or just manually select the flutter SDK from fvm and next time onwards use flutter use command to switch to different SDKs.
+
+
 #### Option 2 - View all SDKs (Manual switching)
 
 VSCode has the ability for you to switch between all cached Flutter SDKs using `Flutter: Change SDK`.
@@ -79,11 +83,11 @@ Use command `fvm list` to show you the cache path to the versions.
 
 #### List all versions installed by FVM
 
-You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory:
+You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory. In the following example path for macOS, replace `$USER` with your username:
 
 ```json
 {
-  "dart.flutterSdkPaths": ["/Users/usr/fvm/versions"]
+  "dart.flutterSdkPaths": ["/Users/$USER/fvm/versions"]
 }
 ```
 
@@ -92,8 +96,8 @@ Alternatively, you can specify only selected versions. The following snippet wil
 ```json
 {
   "dart.flutterSdkPaths": [
-    "/Users/usr/fvm/versions/stable",
-    "/Users/usr/fvm/versions/dev"
+    "/Users/$USER/fvm/versions/stable",
+    "/Users/$USER/fvm/versions/dev"
   ]
 }
 ```
@@ -127,3 +131,6 @@ If you want to ignore the Flutter SDK root directory within Android Studio you c
 </component>
 ...
 ```
+
+If that doesn't work, go to Android Studio -> Preferences -> Editor -> File Types -> Ignored Files and Folders and add `flutter_sdk`:
+![Android Studio Configuration](../../../assets/android-studio-config.png)

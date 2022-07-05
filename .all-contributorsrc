@@ -263,7 +263,8 @@
       "profile": "https://sharezone.net",
       "contributions": [
         "infra",
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -290,6 +291,33 @@
       "name": "ziehlke",
       "avatar_url": "https://avatars.githubusercontent.com/u/10786117?v=4",
       "profile": "https://github.com/ziehlke",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "fpinzn",
+      "name": "Francisco Pinzón",
+      "avatar_url": "https://avatars.githubusercontent.com/u/345207?v=4",
+      "profile": "https://github.com/fpinzn",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "th0rgall",
+      "name": "Thor Galle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/11543641?v=4",
+      "profile": "http://thorgalle.me",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Giuspepe",
+      "name": "Giuseppe Cianci",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39117631?v=4",
+      "profile": "https://www.linkedin.com/in/giuseppe-cianci/",
       "contributions": [
         "doc"
       ]
