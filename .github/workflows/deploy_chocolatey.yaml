@@ -26,13 +26,13 @@ jobs:
           channel: stable
 
       - name: Install dependencies
-        run: pub get
+        run: dart pub get
 
       - name: Run Builder for Version
-        run: pub run build_runner build --delete-conflicting-outputs
+        run: dart pub run build_runner build --delete-conflicting-outputs
 
       - name: Run Test
-        run: pub run test
+        run: dart pub run test
 
       - name: Deploy Chocolatey (Windows)
-        run: pub run grinder pkg-chocolatey-deploy
+        run: dart pub run grinder pkg-chocolatey-deploy

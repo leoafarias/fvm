@@ -18,10 +18,13 @@ jobs:
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-    container:
-      image: google/dart:latest
+
     steps:
       - uses: actions/checkout@v1
+      - name: Setup Dart
+        uses: DanTup/gh-actions/setup-dart@master
+        with:
+          channel: stable
 
       - name: Install dependencies
         run: dart pub get
