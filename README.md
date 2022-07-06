@@ -112,6 +112,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="http://thorgalle.me"><img src="https://avatars.githubusercontent.com/u/11543641?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Thor Galle</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=th0rgall" title="Documentation">📖</a></td>
     <td align="center"><a href="https://www.linkedin.com/in/giuseppe-cianci/"><img src="https://avatars.githubusercontent.com/u/39117631?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Giuseppe Cianci</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=Giuspepe" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://shreyam.ml"><img src="https://avatars.githubusercontent.com/u/38105595?v=4?s=50" width="50px;" alt=""/><br /><sub><b>Shreyam Maity</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=ShreyamMaity" title="Documentation">📖</a></td>
   </tr>
 </table>
 
