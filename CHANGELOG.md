@@ -1,3 +1,7 @@
+## 2.4.1
+
+- Filter out Mac releases based on architecture.
+
 ## 2.4.0
 
 - Upgraded minimum Dart version to 2.17.0 for better Flutter 3.0 compatibility
