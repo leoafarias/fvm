@@ -1,27 +1,30 @@
 import 'dart:io';
 
-const arm = 'arm';
-const arm64 = 'arm64';
-const ia32 = 'ia32';
-const x64 = 'x64';
+const _arm = 'arm';
+const _arm64 = 'arm64';
+const _ia32 = 'ia32';
+const _x64 = 'x64';
+
+/// Parsed release model
+class ParsedReleases {
+  /// Constructor
+  const ParsedReleases({required this.channels, required this.releases});
+
+  /// Channels
+  final Map<String, dynamic> channels;
+
+  /// Releases
+  final List<dynamic> releases;
+}
 
 /// Goes through the current_release payload.
 /// Finds the proper release base on the hash
 /// Assings to the current_release
-Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
+ParsedReleases parseCurrentReleases(Map<String, dynamic> json) {
   final currentRelease = json['current_release'] as Map<String, dynamic>;
   final releases = json['releases'] as List<dynamic>;
 
-  final systemArch = _architecture();
-
-  if (Platform.isMacOS) {
-    // Filter out releases based on architecture
-    // Remove if architecture is not compatible
-    releases.removeWhere((release) {
-      final arch = release['dart_sdk_arch'];
-      return arch != systemArch && arch != null;
-    });
-  }
+  final systemArch = 'x64';
 
   // Filter out channel/currentRelease versions
   // Could be more efficient
@@ -35,20 +38,33 @@ Map<String, dynamic> parseCurrentReleases(Map<String, dynamic> json) {
     }
   }
 
-  return currentRelease;
+  if (Platform.isMacOS) {
+    // Filter out releases based on architecture
+    // Remove if architecture is not compatible
+    releases.removeWhere((release) {
+      final arch = release['dart_sdk_arch'];
+      final isActiveChanel = release['activeChannel'] == true;
+      return arch != systemArch && arch != null && !isActiveChanel;
+    });
+  }
+
+  return ParsedReleases(
+    channels: currentRelease,
+    releases: releases,
+  );
 }
 
 // https://stackoverflow.com/questions/45125516/possible-values-for-uname-m
 final _unames = {
-  'arm': arm,
-  'arm64': arm64,
-  'aarch64_be': arm64,
-  'aarch64': arm64,
-  'armv8b': arm64,
-  'armv8l': arm64,
-  'i386': ia32,
-  'i686': ia32,
-  'x86_64': x64,
+  'arm': _arm,
+  'arm64': _arm64,
+  'aarch64_be': _arm64,
+  'aarch64': _arm64,
+  'armv8b': _arm64,
+  'armv8l': _arm64,
+  'i386': _ia32,
+  'i686': _ia32,
+  'x86_64': _x64,
 };
 
 String _architecture() {

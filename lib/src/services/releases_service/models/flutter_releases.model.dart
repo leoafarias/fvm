@@ -31,14 +31,14 @@ class FlutterReleases {
 
   /// Create FlutterRelease from a map of values
   factory FlutterReleases.fromMap(Map<String, dynamic> json) {
-    final currentRelease = parseCurrentReleases(json);
+    final parsedResults = parseCurrentReleases(json);
     return FlutterReleases(
       baseUrl: json['base_url'] as String,
-      channels: Channels.fromMap(currentRelease),
+      channels: Channels.fromMap(parsedResults.channels),
       releases: List<Release>.from(
-        json['releases'].map(
+        parsedResults.releases.map(
           (release) => Release.fromMap(release as Map<String, dynamic>),
-        ) as Iterable<dynamic>,
+        ),
       ),
     );
   }
