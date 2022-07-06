@@ -52,7 +52,7 @@ You might have to restart your IDE and the Flutter debugger to make sure it uses
 
 #### Option 1 - Automatic Switching (Recommended)
 
-You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the flutter SDK from search to make things easier. Just create a folder inside the project called `.vscode` and then create a file called `settings.json` and add the following file:
+You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the Flutter SDK from search to make things easier. Just create a folder inside the project called `.vscode` and then create a file called `settings.json` and add the following file:
 
 
 ```json title=".vscode/settings.json"
@@ -69,7 +69,7 @@ You can add the version symlink for a dynamic switch. VS Code will always use th
 }
 ```
 
-Simply execute `fvm use <desired version>` in the project root directory. This will now change the version. If you're still having issues, just click on the Flutter version text on status bar of vs code and it'll show you all the current SDKs installed in your computer.Eather select auto detect which will check `.vscode` dir inside your project and then change your flutter SDK depending on the fvm config or just manually select the flutter SDK from fvm and next time onwards use flutter use command to switch to different SDKs.
+Execute `fvm use <desired version>` in the project root directory; If configured correctly, this will switch the version used on VSCode. If you are having issues, click on the Flutter version text on the status bar of VSCode, to show all the current SDKs installed on your machine. Select auto-detect, which will check `.vscode` dir inside your project and then change your Flutter SDK depending on the fvm config or manually select the Flutter SDK from fvm cache directory.
 
 
 #### Option 2 - View all SDKs (Manual switching)
