@@ -321,6 +321,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "ShreyamMaity",
+      "name": "Shreyam Maity",
+      "avatar_url": "https://avatars.githubusercontent.com/u/38105595?v=4",
+      "profile": "https://shreyam.ml",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
