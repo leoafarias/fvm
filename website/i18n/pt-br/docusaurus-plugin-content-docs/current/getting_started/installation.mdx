@@ -1,0 +1,84 @@
+---
+id: installation
+title: Instalação
+sidebar_position: 1
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+Existem algumas maneiras de instalar o FVM e estamos trabalhando em outras maneiras de torná-lo ainda mais simples.
+
+## Standalone (Recomendado) {#standalone-recommended}
+
+Você pode baixar os pacotes autônomos do repositório GitHub [aqui](https://github.com/leoafarias/fvm/releases).
+
+<Tabs
+  defaultValue="macos"
+  values={[
+    { label: "MacOS", value: "macos" },
+    { label: "Windows", value: "windows" },
+    { label: "Linux", value: "linux" },
+  ]}
+>
+  <TabItem value="macos">
+
+Se você usa o [gerenciador de pacotes Homebrew](https://brew.sh) para Mac OS X, você pode instalar o FVM executando
+
+Instalar
+
+```
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+Desinstalar
+
+```
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+  </TabItem>
+  <TabItem value="windows">
+
+Para instalar o fvm, execute o seguinte comando na linha de comando ou no PowerShell:
+
+```bash
+choco install fvm
+```
+
+  </TabItem>
+
+  <TabItem value="linux">
+
+Se você usa o [gerenciador de pacotes Homebrew](https://brew.sh) para Linux, você pode instalar o FVM executando
+
+Instalar
+
+```
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+Desinstalar
+
+```
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+</TabItem>
+</Tabs>
+
+
+## Pub package {#pub-package}
+
+Você também pode instalar o FVM como um [pacote pub](https://pub.dev/packages/fvm).
+
+No entanto, se você planeja usar o FVM para gerenciar sua [instalação global do Flutter](/docs/guides/global_version), recomendamos instalar como autônomo.
+
+```bash
+dart pub global activate fvm
+```
+

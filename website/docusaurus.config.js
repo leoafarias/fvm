@@ -12,7 +12,7 @@ module.exports = {
   
   i18n: {
     defaultLocale: "en",
-    locales: ["en", "es"],
+    locales: ["en", "es", "pt-br"],
   },
   themeConfig: {
     googleAnalytics: {
