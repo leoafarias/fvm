@@ -159,4 +159,23 @@ class GitTools {
       );
     }
   }
+
+  /// Add `` to `.gitignore` file
+  static Future<void> writeFVM2Ignore() async {
+    const ignoreStr = '.fvm/flutter_sdk';
+    final gitIgnoreFile = File('.gitignore');
+    if (!await gitIgnoreFile.exists()) {
+      await gitIgnoreFile.create();
+    }
+
+    final content = await gitIgnoreFile.readAsString();
+    if (!content.contains(ignoreStr)) {
+      await gitIgnoreFile.writeAsString(
+        '${content.endsWith('\n') ? "" : "\n"}.fvm/flutter_sdk',
+        mode: FileMode.append,
+      );
+    }
+    Logger.fine('Added ".fvm/flutter_sdk" to .gitignore.');
+    Logger.spacer();
+  }
 }

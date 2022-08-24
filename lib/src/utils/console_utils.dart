@@ -11,7 +11,7 @@ import 'logger.dart';
 /// Displays notice for confirmation
 Future<bool> confirm(String message, {bool defaultConfirmation = true}) async {
   final choices = defaultConfirmation ? 'Y/n' : 'y/N';
-  final response = await readInput('$message $choices: ');
+  final response = await readInput('$message ($choices): ');
   final lowercase = response.toLowerCase();
 
   if (response.isEmpty) {
