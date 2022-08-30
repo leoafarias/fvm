@@ -11,6 +11,16 @@
       "channel": "stable",
       "version": "3.3.0",
       "dart_sdk_version": "2.18.0",
+      "dart_sdk_arch": "x64",
+      "release_date": "2022-08-30T17:11:09.790844Z",
+      "archive": "stable/macos/flutter_macos_3.3.0-stable.zip",
+      "sha256": "f461df043b4a1b2dedcf31c11db5e5286b2b014804d2df445b85c6bb6ce0844b"
+    },
+    {
+      "hash": "ffccd96b62ee8cec7740dab303538c5fc26ac543",
+      "channel": "stable",
+      "version": "3.3.0",
+      "dart_sdk_version": "2.18.0",
       "dart_sdk_arch": "arm64",
       "release_date": "2022-08-30T17:08:26.835930Z",
       "archive": "stable/macos/flutter_macos_arm64_3.3.0-stable.zip",
