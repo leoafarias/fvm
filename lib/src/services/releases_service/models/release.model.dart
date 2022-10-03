@@ -11,6 +11,8 @@ class Release {
     required this.releaseDate,
     required this.archive,
     required this.sha256,
+    required this.dartSdkArch,
+    required this.dartSdkVersion,
     this.activeChannel = false,
   });
 
@@ -35,12 +37,20 @@ class Release {
   /// Is release active in a channel
   final bool activeChannel;
 
+  /// Version of the Dart SDK
+  final String? dartSdkVersion;
+
+  /// Dart SDK architecture
+  final String? dartSdkArch;
+
   /// Creates a release from a map of values
   factory Release.fromMap(Map<String, dynamic> map) => Release(
         hash: map['hash'] as String,
         channel: channelFromName(map['channel'] as String),
         version: map['version'] as String,
         releaseDate: DateTime.parse(map['release_date'] as String),
+        dartSdkArch: map['dart_sdk_arch'] as String?,
+        dartSdkVersion: map['dart_sdk_version'] as String?,
         archive: map['archive'] as String,
         sha256: map['sha256'] as String,
         activeChannel: map['activeChannel'] as bool? ?? false,
@@ -55,6 +65,8 @@ class Release {
         'archive': archive,
         'sha256': sha256,
         'activeChannel': activeChannel,
+        'dart_sdk_arch': dartSdkArch,
+        'dart_sdk_version': dartSdkVersion,
       };
 
   /// Returns channel name of the release
