@@ -4,6 +4,7 @@ import 'dart:io';
 import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
+import '../utils/pretty_json.dart';
 
 /// Default VSCode config
 const _defaultConfig = {
@@ -56,13 +57,15 @@ class IDEService {
       ..._defaultConfig,
     };
 
-    final newSettingsStr = JsonEncoder.withIndent('  ').convert(newSettings);
+    final newSettingsStr = prettyJson(newSettings);
+    final oldSettingsStr = prettyJson(settings);
 
     /// Already exists && newSettings != settings
     if (settings.keys.isNotEmpty && !mapEquals(_defaultConfig, newSettings)) {
-      Logger.warning('VSCode settings already exist.\nAuto merge result:');
+      Logger.warning('VSCode settings already exist.');
+      Logger.info('Settings before merging:\n$oldSettingsStr');
       Logger.divider();
-      Logger.info(newSettingsStr);
+      Logger.info('Auto merged result:\n$newSettingsStr');
       Logger.divider();
       final resume = await confirm('Write merged result to file?');
       if (!resume) {
