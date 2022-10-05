@@ -2,8 +2,8 @@
 
 ![GitHub stars](https://img.shields.io/github/stars/leoafarias/fvm?style=social)
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=flat-square)](https://pub.dev/packages/fvm/changelog)
-[![Likes](https://badges.bar/fvm/likes)](https://pub.dev/packages/fvm/score)
-[![Pub points](https://badges.bar/fvm/pub%20points)](https://pub.dev/packages/fvm/score) ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true)
+![Pub Likes](https://img.shields.io/pub/likes/fvm?label=Pub%20Likes&style=flat-squar)
+![Pub Points](https://img.shields.io/pub/points/fvm?label=Pub%20Points&style=flat-squar)  ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true)
 [![Github All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=flat-square)](https://github.com/leoafarias/fvm/graphs/contributors) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
 Flutter Version Management: A simple cli to manage Flutter SDK versions.
