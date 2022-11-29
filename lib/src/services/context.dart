@@ -72,15 +72,6 @@ class FvmContext {
     return kFlutterRepo;
   }
 
-  /// Where Default Flutter SDK is stored
-  Link get globalCacheLink => Link(join(_fvmDir.path, 'default'));
-
-  /// Directory for Global Flutter SDK bin
-  String get globalCacheBinPath => join(
-        globalCacheLink.path,
-        'bin',
-      );
-
   @override
   String toString() {
     return name;
