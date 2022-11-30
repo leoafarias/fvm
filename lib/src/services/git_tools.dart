@@ -15,8 +15,48 @@ import 'releases_service/releases_client.dart';
 class GitTools {
   GitTools._();
 
-  /// Clones Flutter SDK from Version Number or Channel
+  /// Updates local Flutter repo mirror
+  static Future<void> updateLocalMirror() async {
+    if (await ctx.gitCacheDir.exists()) {
+      Logger.fine('Updating Flutter Mirror');
+      await runExecutableArguments(
+        'git',
+        ['remote', 'update'],
+        workingDirectory: ctx.gitCacheDir.path,
+        stdout: consoleController.stdoutSink,
+        stderr: consoleController.stderrSink,
+      );
 
+      Logger.fine('Finished updating mirror.');
+    }
+  }
+
+  /// Creates a local mirror of the Flutter repository
+  static Future<void> createLocalMirror() async {
+    // Delete if already exists
+    if (await ctx.gitCacheDir.exists()) {
+      await ctx.gitCacheDir.delete(recursive: true);
+    }
+    final args = [
+      'clone',
+      '--progress',
+      '--mirror',
+      kFlutterRepo,
+      ctx.gitCacheDir.path
+    ];
+    var process = await runExecutableArguments(
+      'git',
+      args,
+      stdout: consoleController.stdoutSink,
+      stderr: consoleController.stderrSink,
+    );
+
+    if (process.exitCode != 0) {
+      throw FvmInternalError('Could not create local mirror of Flutter repo');
+    }
+  }
+
+  /// Clones Flutter SDK from Version Number or Channel
   static Future<void> cloneVersion(ValidVersion version) async {
     final versionDir = versionCacheDir(version.name);
     await versionDir.create(recursive: true);
@@ -39,6 +79,12 @@ class GitTools {
       }
     }
 
+    if (!await ctx.gitCacheDir.exists()) {
+      await createLocalMirror();
+    }
+
+    await updateLocalMirror();
+
     final args = [
       'clone',
       '--progress',
@@ -48,6 +94,8 @@ class GitTools {
         '-b',
         channel ?? version.name,
       ],
+      '--reference',
+      ctx.gitCacheDir.path,
       kFlutterRepo,
       versionDir.path
     ];

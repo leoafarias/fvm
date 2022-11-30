@@ -64,7 +64,9 @@ class FvmContext {
 
   /// Directory for Flutter repo git cache
   Directory get gitCacheDir {
-    return Directory(join(_fvmDir.path, 'git-cache'));
+    return Directory(
+      join(_fvmDir.path, 'cache.git'),
+    );
   }
 
   /// Returns the configured Flutter repository
