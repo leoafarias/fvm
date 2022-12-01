@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
+import '../../fvm.dart';
 import 'settings_service.dart';
 
 /// The Zone key used to look up the [AppContext].
@@ -35,9 +36,11 @@ class FvmContext {
   final Directory _fvmDir;
   final Directory? _cacheDirOverride;
 
-  /// File for FVM Settings
-  File get settingsFile {
-    return File(join(_fvmDir.path, '.settings'));
+  SettingsDto? _settingsDto;
+
+  /// Returns settings or cached
+  SettingsDto get settings {
+    return _settingsDto ??= SettingsService.readSync();
   }
 
   /// FVM Home dir
@@ -47,25 +50,23 @@ class FvmContext {
 
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
-    final _settings = SettingsService.readSync();
-
     // Override cacheDir
     if (_cacheDirOverride != null) {
       return _cacheDirOverride!;
     }
     // If there is a cache
-    if (_settings.cachePath != null) {
-      return Directory(normalize(_settings.cachePath!));
+    if (settings.cachePath != null) {
+      return Directory(normalize(settings.cachePath!));
     }
 
     /// Default cache directory
-    return Directory(join(_fvmDir.path, 'versions'));
+    return Directory(join(fvmHome.path, 'versions'));
   }
 
   /// Directory for Flutter repo git cache
   Directory get gitCacheDir {
     return Directory(
-      join(_fvmDir.path, 'cache.git'),
+      join(fvmHome.path, 'cache.git'),
     );
   }
 

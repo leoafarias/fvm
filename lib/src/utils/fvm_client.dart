@@ -1,6 +1,6 @@
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
-import '../models/settings_model.dart';
+import '../models/settings_dto.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/context.dart';
@@ -83,7 +83,7 @@ class FVMClient {
   /// Get all cached Flutter SDK versions
   static final getCachedVersions = CacheService.getAllVersions;
 
-  /// Returns [FvmSettings]
+  /// Returns [SettingsDto]
   static final readSettings = SettingsService.read;
 
   /// Saves FVM [settings]
