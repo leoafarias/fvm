@@ -124,6 +124,10 @@ class GitTools {
       await _createLocalMirror();
     }
 
+    if (!ctx.settings.shouldUpdateGitCache) {
+      return;
+    }
+
     Logger.fine('Syncing Flutter repository');
     await runExecutableArguments(
       'git',

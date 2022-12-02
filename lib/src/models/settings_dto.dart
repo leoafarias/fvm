@@ -2,17 +2,17 @@ import 'dart:convert';
 
 import '../services/settings_service.dart';
 import '../utils/pretty_json.dart';
+import '../version.dart';
+
+const _defaultDurationHours = 24;
 
 /// Settings Dto
 class SettingsDto {
   /// Cache path configured in settings
   String? cachePath;
 
-  /// Settings if should skip setup
-  bool skipSetup;
-
   /// Installed version of FVM
-  String? fvmVersion;
+  String? version;
 
   /// If uses local git cache
   bool gitCacheDisabled;
@@ -20,14 +20,22 @@ class SettingsDto {
   /// Last git cache update
   DateTime? lastGitCacheUpdate;
 
+  /// Duration until next git cache update
+  Duration gitCacheUpdateInterval;
+
   /// Constructor
-  SettingsDto({
+  SettingsDto._({
     this.cachePath,
-    this.fvmVersion,
+    this.version,
     this.lastGitCacheUpdate,
-    this.skipSetup = false,
     this.gitCacheDisabled = false,
+    this.gitCacheUpdateInterval = const Duration(hours: _defaultDurationHours),
   });
+
+  /// Empty FvmSettings constructor
+  factory SettingsDto.empty() {
+    return SettingsDto._(version: packageVersion);
+  }
 
   /// Returns FvmSettings from [jsonString]
   factory SettingsDto.fromJson(String jsonString) {
@@ -45,20 +53,25 @@ class SettingsDto {
       gitCacheDisabled = map['gitCacheDisabled'] as bool? ?? false;
     }
 
-    return SettingsDto(
+// Interval in hours for gitCacheUpdate
+    final updateIntervalHours = map['gitCacheUpdateInterval'] as int?;
+
+    return SettingsDto._(
       cachePath: map['cachePath'] as String?,
-      fvmVersion: map['fvmVersion'] as String?,
-      skipSetup: map['skipSetup'] as bool? ?? false,
+      version: map['version'] as String?,
       gitCacheDisabled: gitCacheDisabled,
       lastGitCacheUpdate: map['lastGitCacheUpdate'] == null
           ? null
           : DateTime.parse(map['lastGitCacheUpdate'] as String),
+      gitCacheUpdateInterval: Duration(
+        hours: updateIntervalHours ?? _defaultDurationHours,
+      ),
     );
   }
 
   /// Returns the next date to update the git cache
   DateTime? get nextGitCacheUpdate {
-    return lastGitCacheUpdate?.add(const Duration(days: 7));
+    return lastGitCacheUpdate?.add(gitCacheUpdateInterval);
   }
 
   /// Returns if git cache should be updated
@@ -80,10 +93,10 @@ class SettingsDto {
   Map<String, dynamic> toMap() {
     return {
       'cachePath': cachePath,
-      'fvmVersion': fvmVersion,
-      'skipSetup': skipSetup,
+      'version': version,
       'gitCacheDisabled': gitCacheDisabled,
       'lastGitCacheUpdate': lastGitCacheUpdate?.toIso8601String(),
+      'gitCacheUpdateInterval': gitCacheUpdateInterval.inHours,
     };
   }
 }

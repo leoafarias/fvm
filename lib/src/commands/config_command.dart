@@ -24,13 +24,6 @@ class ConfigCommand extends BaseCommand {
         abbr: 'c',
       )
       ..addFlag(
-        'skip-setup',
-        help: 'Skip setup after a version install.',
-        abbr: 's',
-        negatable: true,
-        defaultsTo: null,
-      )
-      ..addFlag(
         'git-cache',
         help: 'ADVANCED: Will cache a local version of'
             ' Flutter repo for faster version install.',
@@ -53,12 +46,6 @@ class ConfigCommand extends BaseCommand {
     // Git cache option has changed
     if (argResults!.wasParsed('git-cache')) {
       ctx.settings.gitCacheDisabled = !boolArg('git-cache');
-      shouldSave = true;
-    }
-
-    // Skip setup option has changed
-    if (argResults!.wasParsed('skip-setup')) {
-      ctx.settings.skipSetup = boolArg('skip-setup');
       shouldSave = true;
     }
 

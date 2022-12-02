@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../utils/logger.dart';
+import '../version.dart';
 import 'context.dart';
 
 /// Service for FVM settings
@@ -26,13 +27,13 @@ class SettingsService {
           // Store in memory
           _settings = SettingsDto.fromJson(payload);
         } else {
-          _settings = SettingsDto();
+          _settings = SettingsDto.empty();
         }
       }
       return Future.value(_settings);
     } on Exception catch (err) {
       logger.trace(err.toString());
-      return _settings = SettingsDto();
+      return _settings = SettingsDto.empty();
     }
   }
 
@@ -45,13 +46,13 @@ class SettingsService {
           // Store in memory
           _settings = SettingsDto.fromJson(payload);
         } else {
-          _settings = SettingsDto();
+          _settings = SettingsDto.empty();
         }
       }
       return _settings!;
     } on Exception catch (err) {
       logger.trace(err.toString());
-      return _settings = SettingsDto();
+      return _settings = SettingsDto.empty();
     }
   }
 
@@ -61,6 +62,8 @@ class SettingsService {
       if (!await settingsFile.exists()) {
         await settingsFile.create(recursive: true);
       }
+
+      settings.version = packageVersion;
       await settingsFile.writeAsString(settings.toJson());
       // Store in memory
       _settings = settings;

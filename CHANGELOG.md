@@ -1,3 +1,9 @@
+## 3.0.0
+
+- Faster SDK downloads! Local Git Flutter repository caching is now enabled by default.
+- Removed `global` command. Recommended use is to use Flutter standard install globally.
+- Removed skip-setup configuration.
+
 ## 2.4.1
 
 - Filter out Mac releases based on architecture.
