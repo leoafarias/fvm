@@ -29,8 +29,7 @@ void main() {
       '1.3.1'
     ];
 
-    final versionUnsorted =
-        unsortedList.map((version) => CacheVersion(version)).toList();
+    final versionUnsorted = unsortedList.map(CacheVersion.new).toList();
     versionUnsorted.sort((a, b) => a.compareTo(b));
 
     final afterUnsorted =

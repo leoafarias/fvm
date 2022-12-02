@@ -23,7 +23,6 @@ class UseCommand extends BaseCommand {
 
   /// Constructor
   UseCommand() {
-    // DEPRECATED: Global is Deprecated remove it later
     argParser
       ..addFlag(
         'force',
@@ -52,7 +51,6 @@ class UseCommand extends BaseCommand {
   }
   @override
   Future<int> run() async {
-    // final global = argResults['global'] == true;
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
