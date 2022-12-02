@@ -17,7 +17,6 @@ FVM helps with the need for a consistent app builds by allowing to reference Flu
 - Fast switch between Flutter channels & versions
 - Dynamic SDK paths for IDE debugging support.
 - Version FVM config with a project for consistency across teams and CI environments.
-- Set global Flutter version across projects
 
 [Read the FVM documentation](https://fvm.app)
 

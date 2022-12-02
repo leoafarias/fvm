@@ -66,33 +66,35 @@ void main() {
       expect(isInvalidValid, false);
     });
 
-    testWithContext('Set/Get Global Cache Version ', key, () async {
-      CacheVersion? globalVersion;
-      bool isChanneGlobal, isVersionGlobal;
-      globalVersion = await CacheService.getGlobal();
-      expect(globalVersion, null);
+    // TODO: Remove after deprecation period
 
-      final channel = await CacheService.getByVersionName(_channel);
-      final version = await CacheService.getByVersionName(_version);
-      // Set channel as global
-      await CacheService.setGlobal(channel!);
-      globalVersion = await CacheService.getGlobal();
-      isChanneGlobal = await CacheService.isGlobal(channel);
-      isVersionGlobal = await CacheService.isGlobal(version!);
+    // testWithContext('Set/Get Global Cache Version ', key, () async {
+    //   CacheVersion? globalVersion;
+    //   bool isChanneGlobal, isVersionGlobal;
+    //   globalVersion = await CacheService.getGlobal();
+    //   expect(globalVersion, null);
 
-      expect(globalVersion!.name, channel.name);
-      expect(isChanneGlobal, true);
-      expect(isVersionGlobal, false);
+    //   final channel = await CacheService.getByVersionName(_channel);
+    //   final version = await CacheService.getByVersionName(_version);
+    //   // Set channel as global
+    //   await CacheService.setGlobal(channel!);
+    //   globalVersion = await CacheService.getGlobal();
+    //   isChanneGlobal = await CacheService.isGlobal(channel);
+    //   isVersionGlobal = await CacheService.isGlobal(version!);
 
-      // Set version as global
-      await CacheService.setGlobal(version);
-      globalVersion = await CacheService.getGlobal();
-      isChanneGlobal = await CacheService.isGlobal(channel);
-      isVersionGlobal = await CacheService.isGlobal(version);
+    //   expect(globalVersion!.name, channel.name);
+    //   expect(isChanneGlobal, true);
+    //   expect(isVersionGlobal, false);
 
-      expect(globalVersion!.name, version.name);
-      expect(isChanneGlobal, false);
-      expect(isVersionGlobal, true);
-    });
+    //   // Set version as global
+    //   await CacheService.setGlobal(version);
+    //   globalVersion = await CacheService.getGlobal();
+    //   isChanneGlobal = await CacheService.isGlobal(channel);
+    //   isVersionGlobal = await CacheService.isGlobal(version);
+
+    //   expect(globalVersion!.name, version.name);
+    //   expect(isChanneGlobal, false);
+    //   expect(isVersionGlobal, true);
+    // });
   });
 }

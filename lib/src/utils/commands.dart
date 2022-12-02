@@ -28,10 +28,11 @@ Future<int> flutterCmd(
 /// Exec commands with the Flutter env
 Future<int> execCmd(
   String execPath,
-  CacheVersion? version,
   List<String> args,
+  CacheVersion? version,
 ) async {
   // Update environment variables
+  // If execPath is not provided will get the path configured version
   final binPath = version?.binPath ?? whichSync('flutter') ?? '';
   final dartBinPath = version?.dartBinPath ?? whichSync('dart') ?? '';
 
@@ -69,6 +70,10 @@ Future<int> dartGlobalCmd(List<String> args) async {
   // Get exec path for dart
   final execPath = whichSync('dart') ?? '';
 
+  logger.trace(
+    'fvm: Running using Dart/Flutter version configured in path.\n',
+  );
+
   // Run command
   return await _runCmd(
     execPath,
@@ -80,7 +85,7 @@ Future<int> dartGlobalCmd(List<String> args) async {
 Future<int> flutterGlobalCmd(List<String> args) async {
   final execPath = whichSync('flutter') ?? '';
   logger.trace(
-    'FVM: Running Flutter SDK configured on environment PATH. $execPath',
+    'fvm: Running Flutter SDK configured on environment PATH. $execPath',
   );
 
   // Run command
