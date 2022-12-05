@@ -221,3 +221,23 @@ bool shouldRunDetached(List<String> args) {
   final shouldDetach = shouldDetachCommands.any(argString.contains);
   return shouldDetach && isFvmInstalledGlobally();
 }
+
+/// Returns map equality.
+/// Copy from [Github](https://github.com/flutter/flutter/blob/f1875d570e/packages/flutter/lib/src/foundation/collections.dart#L80)
+bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
+  if (a == null) {
+    return b == null;
+  }
+  if (b == null || a.length != b.length) {
+    return false;
+  }
+  if (identical(a, b)) {
+    return true;
+  }
+  for (final key in a.keys) {
+    if (!b.containsKey(key) || b[key] != a[key]) {
+      return false;
+    }
+  }
+  return true;
+}
