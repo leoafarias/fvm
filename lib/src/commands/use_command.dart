@@ -3,6 +3,8 @@ import 'package:io/io.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
+import '../services/git_tools.dart';
+import '../services/ide_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -99,12 +101,20 @@ class UseCommand extends BaseCommand {
       validVersion = await FlutterTools.inferReleaseFromChannel(validVersion);
     }
 
+    if (configVSC) {
+      await IDEService.configureVsCodeSettings();
+    }
+
+    // Checks if should write gitignore file
+    await GitTools.writeGitIgnore();
+
     /// Run use workflow
-    await useVersionWorkflow(validVersion,
-        force: forceOption,
-        flavor: flavorOption,
-        skipSetup: skipSetup,
-        configVSC: configVSC);
+    await useVersionWorkflow(
+      validVersion,
+      force: forceOption,
+      flavor: flavorOption,
+      skipSetup: skipSetup,
+    );
 
     return ExitCode.success.code;
   }

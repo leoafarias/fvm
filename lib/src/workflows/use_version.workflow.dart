@@ -3,8 +3,6 @@ import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_tools.dart';
-import '../services/git_tools.dart';
-import '../services/ide_service.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
 import 'ensure_cache.workflow.dart';
@@ -15,7 +13,6 @@ Future<void> useVersionWorkflow(
   bool force = false,
   String? flavor,
   bool skipSetup = false,
-  bool configVSC = false,
 }) async {
   // Get project from working directory
   final project = await ProjectService.getByDirectory(kWorkingDirectory);
@@ -41,9 +38,6 @@ Future<void> useVersionWorkflow(
     validVersion,
     flavor: flavor,
   );
-
-  await IDEService.updateSetting(ask: !configVSC);
-  await GitTools.writeFVM2Ignore();
 
   // Different message if configured environment
   if (flavor != null) {

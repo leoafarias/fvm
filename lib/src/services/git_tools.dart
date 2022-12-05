@@ -6,6 +6,7 @@ import 'package:process_run/cmd_run.dart';
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
+import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'context.dart';
@@ -161,21 +162,29 @@ class GitTools {
   }
 
   /// Add `` to `.gitignore` file
-  static Future<void> writeFVM2Ignore() async {
-    const ignoreStr = '.fvm/flutter_sdk';
+  static Future<void> writeGitIgnore() async {
+    const ignoreStr = '\n.fvm/flutter_sdk';
     final gitIgnoreFile = File('.gitignore');
     if (!await gitIgnoreFile.exists()) {
-      await gitIgnoreFile.create();
+      // If no gitIgnore file exists skip
+      return;
     }
 
     final content = await gitIgnoreFile.readAsString();
-    if (!content.contains(ignoreStr)) {
+
+    if (!content.contains(ignoreStr) &&
+        await confirm(
+          'You should have .fvm/flutter_sdk in your .gitignore. Would you like to do this now?',
+        )) {
+      final writeContent =
+          '${content.endsWith('\n') ? "" : "\n"}\n# FVM \n.fvm/flutter_sdk';
+
       await gitIgnoreFile.writeAsString(
-        '${content.endsWith('\n') ? "" : "\n"}.fvm/flutter_sdk',
+        writeContent,
         mode: FileMode.append,
       );
+      Logger.fine('Added ".fvm/flutter_sdk" to .gitignore.');
     }
-    Logger.fine('Added ".fvm/flutter_sdk" to .gitignore.');
     Logger.spacer();
   }
 }

@@ -21,23 +21,8 @@ const _vscSettingPath = '.vscode/settings.json';
 class IDEService {
   IDEService._();
 
-  /// Configure IDEs for better support for different development environments.
-  /// [ask] : ask for confirmation
-  static Future<void> updateSetting({bool ask = true}) async {
-    if (ask) {
-      final resume =
-          await confirm('Would you like to configure VSCode for FVM?');
-      Logger.spacer();
-      if (!resume) {
-        return;
-      }
-    }
-
-    await _updateVSCodeSetting();
-  }
-
   /// Write `dart.flutterSdkPath` to `.vscode/setting.json`
-  static Future<void> _updateVSCodeSetting() async {
+  static Future<void> configureVsCodeSettings() async {
     /// Read now settings
     final file = File(_vscSettingPath);
     var settingFile = '{}';
