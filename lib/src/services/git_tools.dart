@@ -170,6 +170,9 @@ class GitTools {
       return;
     }
 
+    // If in test mode skip
+    if (ctx.isTest) return;
+
     final content = await gitIgnoreFile.readAsString();
 
     if (!content.contains(ignoreStr) &&
