@@ -97,6 +97,7 @@ class FvmContext {
       name,
       fvmDir: fvmDir,
       cacheDir: cacheDir,
+      isTest: isTest,
     );
     return runZoned<FutureOr<V>>(
       () async => await body(),
