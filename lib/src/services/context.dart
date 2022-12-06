@@ -27,13 +27,20 @@ class FvmContext {
     this.name, {
     Directory? fvmDir,
     Directory? cacheDir,
+    bool isTest = false,
   })  : _fvmDir = fvmDir ?? Directory(kFvmHome),
+        _isTest = isTest,
         _cacheDirOverride = cacheDir;
 
   /// Name of the context
   final String name;
   final Directory _fvmDir;
   final Directory? _cacheDirOverride;
+
+  final bool _isTest;
+
+  /// Flag to determine if context is running in a test
+  bool get isTest => _isTest;
 
   /// File for FVM Settings
   File get settingsFile {
@@ -83,12 +90,14 @@ class FvmContext {
     required String name,
     final Directory? fvmDir,
     final Directory? cacheDir,
+    bool isTest = false,
     ZoneSpecification? zoneSpecification,
   }) async {
     final child = FvmContext._(
       name,
       fvmDir: fvmDir,
       cacheDir: cacheDir,
+      isTest: isTest,
     );
     return runZoned<FutureOr<V>>(
       () async => await body(),
