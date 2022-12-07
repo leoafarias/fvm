@@ -61,6 +61,7 @@ void main() {
           '--force',
           '--verbose',
           '--skip-setup',
+          '--config-vsc'
         ]);
         final project = await ProjectService.findAncestor();
 

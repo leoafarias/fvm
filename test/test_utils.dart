@@ -87,6 +87,7 @@ void testWithContext(
         name: key.key,
         fvmDir: getFvmTestDir(key),
         body: body,
+        isTest: true,
       );
     },
     timeout: timeout,

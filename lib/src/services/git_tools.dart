@@ -6,6 +6,7 @@ import 'package:process_run/cmd_run.dart';
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
+import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'context.dart';
@@ -224,5 +225,35 @@ class GitTools {
         'Could not git reset $version: ${reset.exitCode}',
       );
     }
+  }
+
+  /// Add `` to `.gitignore` file
+  static Future<void> writeGitIgnore() async {
+    const ignoreStr = '\n.fvm/flutter_sdk';
+    final gitIgnoreFile = File('.gitignore');
+    if (!await gitIgnoreFile.exists()) {
+      // If no gitIgnore file exists skip
+      return;
+    }
+
+    // If in test mode skip
+    if (ctx.isTest) return;
+
+    final content = await gitIgnoreFile.readAsString();
+
+    if (!content.contains(ignoreStr) &&
+        await confirm(
+          'You should have .fvm/flutter_sdk in your .gitignore. Would you like to do this now?',
+        )) {
+      final writeContent =
+          '${content.endsWith('\n') ? "" : "\n"}\n# FVM \n.fvm/flutter_sdk';
+
+      await gitIgnoreFile.writeAsString(
+        writeContent,
+        mode: FileMode.append,
+      );
+      Logger.fine('Added ".fvm/flutter_sdk" to .gitignore.');
+    }
+    Logger.spacer();
   }
 }
