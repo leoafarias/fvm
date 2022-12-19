@@ -1,11 +1,51 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "75927305ff855f76a9ef704f9b4a86fa2fce7292",
+    "beta": "e599f02c7af4aa8aba0e8e96f71c737f85be3c6e",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "b8f7f1f9869bb2d116aa6a70dbeac61000b52849"
+    "stable": "135454af32477f815a7525073027a3ff9eff1bfd"
   },
   "releases": [
+    {
+      "hash": "135454af32477f815a7525073027a3ff9eff1bfd",
+      "channel": "stable",
+      "version": "3.3.10",
+      "dart_sdk_version": "2.18.6",
+      "dart_sdk_arch": "x64",
+      "release_date": "2022-12-15T21:58:01.550028Z",
+      "archive": "stable/macos/flutter_macos_3.3.10-stable.zip",
+      "sha256": "5429d0f71bf3bfbe84c31f3ecf4c721babf51bce1b301ef2be5cbbaafa94410c"
+    },
+    {
+      "hash": "135454af32477f815a7525073027a3ff9eff1bfd",
+      "channel": "stable",
+      "version": "3.3.10",
+      "dart_sdk_version": "2.18.6",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2022-12-15T21:55:11.427687Z",
+      "archive": "stable/macos/flutter_macos_arm64_3.3.10-stable.zip",
+      "sha256": "af7e59fdfe8ac24cf553a65a89c22ac364d7bf6b35c73631254f19e2c1e4cbc1"
+    },
+    {
+      "hash": "e599f02c7af4aa8aba0e8e96f71c737f85be3c6e",
+      "channel": "beta",
+      "version": "3.7.0-1.1.pre",
+      "dart_sdk_version": "2.19.0 (build 2.19.0-444.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2022-12-08T18:01:09.182464Z",
+      "archive": "beta/macos/flutter_macos_3.7.0-1.1.pre-beta.zip",
+      "sha256": "0faa94be887f48883509588309b4f3f47850443d430304e3c536e9ab6af7d41a"
+    },
+    {
+      "hash": "e599f02c7af4aa8aba0e8e96f71c737f85be3c6e",
+      "channel": "beta",
+      "version": "3.7.0-1.1.pre",
+      "dart_sdk_version": "2.19.0 (build 2.19.0-444.1.beta)",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2022-12-08T17:57:35.704951Z",
+      "archive": "beta/macos/flutter_macos_arm64_3.7.0-1.1.pre-beta.zip",
+      "sha256": "157d3ce05b7eca0b249370b6a81bcc48544884f9b9d9555aa8a42f0dd7132503"
+    },
     {
       "hash": "b8f7f1f9869bb2d116aa6a70dbeac61000b52849",
       "channel": "stable",
