@@ -3,7 +3,7 @@
 - Global version has been deprecated. For more info go [here](https://fvm.app/docs/guides/global_version)
 
 ## 2.4.2
-- Bump Dart version to 2.18.6.
+- Bump Dart version to 2.19.1
 
 ## 2.4.1
 
