@@ -22,6 +22,9 @@ class InstallCommand extends BaseCommand {
   String get invocation => 'fvm install {version}, if no {version}'
       ' is provided will install version configured in project.';
 
+  @override
+  List<String> get aliases => ['i'];
+
   /// Constructor
   InstallCommand() {
     argParser.addFlag(
