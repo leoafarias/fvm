@@ -17,6 +17,9 @@ class ListCommand extends BaseCommand {
   @override
   final description = 'Lists installed Flutter SDK Versions';
 
+  @override
+  List<String> get aliases => ['ls'];
+
   /// Constructor
   ListCommand();
 
