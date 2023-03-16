@@ -27,7 +27,7 @@ class FlutterCommand extends BaseCommand {
 
     if (version != null) {
       final validVersion = ValidVersion(version);
-      // Will install version if not already instaled
+      // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
       logger.trace('fvm: running version "$version"\n');
