@@ -20,7 +20,7 @@ class ConfigCommand extends BaseCommand {
       ..addOption(
         'cache-path',
         help: 'Set the path which FVM will cache the version.'
-            'Priority over FVM_HOME.',
+            ' Priority over FVM_HOME.',
         abbr: 'c',
       )
       ..addFlag(
