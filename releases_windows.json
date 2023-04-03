@@ -7,6 +7,16 @@
   },
   "releases": [
     {
+      "hash": "0df8557c56a182d31fa024eeb08c428ae52edf7f",
+      "channel": "beta",
+      "version": "3.9.0-0.2.pre",
+      "dart_sdk_version": "3.0.0 (build 3.0.0-290.3.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2023-04-03T21:44:05.905469Z",
+      "archive": "beta/windows/flutter_windows_3.9.0-0.2.pre-beta.zip",
+      "sha256": "b22bc82e45c4ef3f1ac14af902828b905b426d23a021c44b6f423cc68f9fde73"
+    },
+    {
       "hash": "62bd79521d8d007524e351747471ba66696fc2d4",
       "channel": "stable",
       "version": "3.7.9",
@@ -15,16 +25,6 @@
       "release_date": "2023-03-30T19:52:06.291089Z",
       "archive": "stable/windows/flutter_windows_3.7.9-stable.zip",
       "sha256": "4581276e1280cc78b84caec5b3093c686c02974b941f29460fca16b7fdc97eed"
-    },
-    {
-      "hash": "0df8557c56a182d31fa024eeb08c428ae52edf7f",
-      "channel": "beta",
-      "version": "3.9.0-0.2.pre",
-      "dart_sdk_version": "3.0.0 (build 3.0.0-290.3.beta)",
-      "dart_sdk_arch": "x64",
-      "release_date": "2023-03-24T18:35:26.259406Z",
-      "archive": "beta/windows/flutter_windows_3.9.0-0.2.pre-beta.zip",
-      "sha256": "f07569eab6b3fe90425b6a3a5d7028d2b33b22843f56c4be5a3463506011dd65"
     },
     {
       "hash": "90c64ed42ba53a52d18f0cb3b17666c8662ed2a0",
