@@ -330,6 +330,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "BrianRigii",
+      "name": "John Brian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51914354?v=4",
+      "profile": "https://github.com/BrianRigii",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
