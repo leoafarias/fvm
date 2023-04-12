@@ -12,7 +12,7 @@ For example version `2.2.2` exists in both stable, and beta channels. That means
 fvm use 2.2.2 # Installs 2.2.2 from stable
 ```
 
-However if you want to force a version to be installed from a specific channel you can do `fvm install CHANNEL@VERSION`. This looks like the following.
+However if you want to force a version to be installed from a specific channel you can do `fvm install VERSION@CHANNEL`. This looks like the following.
 
 ```bash
 fvm use 2.2.2@beta # Installs 2.2.2 from beta
