@@ -338,7 +338,8 @@
       "profile": "https://jns.io/",
       "contributions": [
         "code",
-        "ideas"
+        "ideas",
+        "bug"
       ]
     }
   ],
