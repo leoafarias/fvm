@@ -341,6 +341,34 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "gonzalogauto",
+      "name": "Gonzalo Gauto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44684314?v=4",
+      "profile": "https://github.com/gonzalogauto",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "Kiruel",
+      "name": "Etienne Théodore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8250175?v=4",
+      "profile": "https://www.etiennetheodore.com/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "BrianRigii",
+      "name": "John Brian",
+      "avatar_url": "https://avatars.githubusercontent.com/u/51914354?v=4",
+      "profile": "https://github.com/BrianRigii",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
