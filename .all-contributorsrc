@@ -330,6 +330,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "for",
+      "name": "John",
+      "avatar_url": "https://avatars.githubusercontent.com/u/7262123?v=4",
+      "profile": "https://github.com/for",
+      "contributions": [
+        "code",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 5,
