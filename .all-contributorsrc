@@ -341,6 +341,15 @@
         "ideas",
         "bug"
       ]
+    },
+    {
+      "login": "bryanoltman",
+      "name": "Bryan Oltman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/581764?v=4",
+      "profile": "https://github.com/bryanoltman",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
