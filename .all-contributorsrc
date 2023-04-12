@@ -330,6 +330,17 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jnschulze",
+      "name": "Niklas Schulze",
+      "avatar_url": "https://avatars.githubusercontent.com/u/720469?v=4",
+      "profile": "https://jns.io/",
+      "contributions": [
+        "code",
+        "ideas",
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 5,
