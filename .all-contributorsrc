@@ -330,6 +330,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "gonzalogauto",
+      "name": "Gonzalo Gauto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44684314?v=4",
+      "profile": "https://github.com/gonzalogauto",
+      "contributions": [
+        "ideas",
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 5,
