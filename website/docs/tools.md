@@ -18,6 +18,10 @@ Sidekick is an app that provides a simple desktop interface to tools that enhanc
 
 An action that parses an FVM config file into environment variables which can then be used to configure the https://github.com/subosito/flutter-action.
 
+## Codemagic CI
+
+Codemagic now has built-in support for using a FVM config file to select the Flutter version used to build a workflow. More details on how to use this feature can be found in the [Codemagic documentation for the Workflow Editor](https://docs.codemagic.io/flutter-configuration/flutter-projects/#setting-the-flutter-version) and when [using a YAML file](https://docs.codemagic.io/yaml-quick-start/building-a-flutter-app/#setting-the-flutter-version).
+
 ## Docker Images
 
 ### [Official Images](https://github.com/leoafarias/fvm/tree/main/.docker)
