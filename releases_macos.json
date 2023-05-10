@@ -1,11 +1,51 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "b1c77b7ed32346fe829c0ca97bd85d19290d54ae",
+    "beta": "74e4b092e5212ebf8292dde2a48d3da960c0920b",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "4d9e56e694b656610ab87fcf2efbcd226e0ed8cf"
+    "stable": "84a1e904f44f9b0e9c4510138010edcc653163f8"
   },
   "releases": [
+    {
+      "hash": "74e4b092e5212ebf8292dde2a48d3da960c0920b",
+      "channel": "beta",
+      "version": "3.11.0-0.0.pre",
+      "dart_sdk_version": "3.1.0 (build 3.1.0-63.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2023-05-10T16:47:34.696338Z",
+      "archive": "beta/macos/flutter_macos_3.11.0-0.0.pre-beta.zip",
+      "sha256": "cf2ecaeafef1591e3ec90d2062fedebe51d513cdfb080c6aef1b1f1e0b72b649"
+    },
+    {
+      "hash": "74e4b092e5212ebf8292dde2a48d3da960c0920b",
+      "channel": "beta",
+      "version": "3.11.0-0.0.pre",
+      "dart_sdk_version": "3.1.0 (build 3.1.0-63.1.beta)",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2023-05-10T16:45:02.094830Z",
+      "archive": "beta/macos/flutter_macos_arm64_3.11.0-0.0.pre-beta.zip",
+      "sha256": "485375388285d606829ebcdd5a2d2e86d28656217faa9a7852c71c5c63e1e86a"
+    },
+    {
+      "hash": "84a1e904f44f9b0e9c4510138010edcc653163f8",
+      "channel": "stable",
+      "version": "3.10.0",
+      "dart_sdk_version": "3.0.0",
+      "dart_sdk_arch": "x64",
+      "release_date": "2023-05-10T16:20:14.154309Z",
+      "archive": "stable/macos/flutter_macos_3.10.0-stable.zip",
+      "sha256": "ea7d1053b94dde298605f8fe5aa199c1387009bce82bd4a726783e27f417752f"
+    },
+    {
+      "hash": "84a1e904f44f9b0e9c4510138010edcc653163f8",
+      "channel": "stable",
+      "version": "3.10.0",
+      "dart_sdk_version": "3.0.0",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2023-05-10T16:17:47.423413Z",
+      "archive": "stable/macos/flutter_macos_arm64_3.10.0-stable.zip",
+      "sha256": "11462570b07d98ca7284295792acb6ed39258efd262dbce48f0398471af43169"
+    },
     {
       "hash": "b1c77b7ed32346fe829c0ca97bd85d19290d54ae",
       "channel": "beta",
