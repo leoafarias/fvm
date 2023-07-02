@@ -26,4 +26,4 @@ jobs:
         run: dart pub get
 
       - name: Run Test and Builder
-        run: dart run build_runner test --delete-conflicting-outputs
+        run: dart test
