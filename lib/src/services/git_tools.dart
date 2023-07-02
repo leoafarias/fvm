@@ -17,7 +17,6 @@ class GitTools {
   GitTools._();
 
   /// Clones Flutter SDK from Version Number or Channel
-
   static Future<void> cloneVersion(ValidVersion version) async {
     final versionDir = versionCacheDir(version.name);
     await versionDir.create(recursive: true);
@@ -40,14 +39,26 @@ class GitTools {
       }
     }
 
+    final shouldUseCache = !ctx.settings.gitCacheDisabled;
+
+    if (shouldUseCache) {
+      await _updateLocalGitMirror();
+    }
+
     final args = [
       'clone',
       '--progress',
+      //If its not git hash
       if (!version.isGitHash) ...[
         '-c',
         'advice.detachedHead=false',
         '-b',
         channel ?? version.name,
+      ],
+      // If should use cache
+      if (shouldUseCache) ...[
+        '--reference',
+        ctx.gitCacheDir.path,
       ],
       kFlutterRepo,
       versionDir.path
@@ -78,6 +89,61 @@ class GitTools {
     }
 
     return;
+  }
+
+  /// Creates a local mirror of the Flutter repository
+  static Future<void> _createLocalMirror() async {
+    // Delete if already exists
+    if (await ctx.gitCacheDir.exists()) {
+      await ctx.gitCacheDir.delete(recursive: true);
+    }
+    final args = [
+      'clone',
+      '--progress',
+      '--mirror',
+      kFlutterRepo,
+      ctx.gitCacheDir.path
+    ];
+    var process = await runExecutableArguments(
+      'git',
+      args,
+      stdout: consoleController.stdoutSink,
+      stderr: consoleController.stderrSink,
+    );
+
+    if (process.exitCode != 0) {
+      throw FvmInternalError('Could not create local mirror of Flutter repo');
+    }
+  }
+
+  /// Updates local Flutter repo mirror
+  static Future<void> _updateLocalGitMirror() async {
+    final cacheExists = await ctx.gitCacheDir.exists();
+
+    // If cache file does not exists create it
+    if (!cacheExists) {
+      await _createLocalMirror();
+    }
+
+    if (!ctx.settings.shouldUpdateGitCache) {
+      return;
+    }
+
+    Logger.fine('Syncing Flutter repository');
+    await runExecutableArguments(
+      'git',
+      ['remote', 'update'],
+      workingDirectory: ctx.gitCacheDir.path,
+      stdout: consoleController.stdoutSink,
+      stderr: consoleController.stderrSink,
+    );
+
+    // Update lastGitCacheUpdate dateTime
+    ctx.settings.lastGitCacheUpdate = DateTime.now();
+    // Update settings
+    await ctx.settings.save();
+
+    Logger.fine('Done');
   }
 
   static Future<void> _cleanupVersionDir(Directory versionDir) async {

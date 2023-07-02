@@ -1,6 +1,8 @@
 ## 3.0.0
 
-- Global version has been deprecated. For more info go [here](https://fvm.app/docs/guides/global_version)
+- Faster SDK downloads! Local Git Flutter repository caching is now enabled by default.
+- Global version has been deprecated. For more info go [here](https://fvm.app/docs/guides/global_version).
+- Removed skip-setup configuration.
 
 ## 2.4.1
 
