@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   test:
-    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    name: "${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -20,10 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Setup Dart ${{ matrix.sdk-version }}
-        uses: DanTup/gh-actions/setup-dart@master
-        with:
-          channel: ${{ matrix.sdk-version }}
+      - uses: dart-lang/setup-dart@v1
 
       - name: Install dependencies
         run: dart pub get
