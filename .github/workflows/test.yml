@@ -20,18 +20,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Setup Dart ${{ matrix.dart-version }}
+      - name: Setup Dart ${{ matrix.sdk-version }}
         uses: DanTup/gh-actions/setup-dart@master
         with:
           channel: ${{ matrix.sdk-version }}
-
-      # - name: Setup Flutter ${{ matrix.sdk-version }}
-      #   uses: DanTup/gh-actions/setup-flutter@master
-      #   with:
-      #     channel: ${{ matrix.sdk-version }}
 
       - name: Install dependencies
         run: dart pub get
 
       - name: Run Test and Builder
-        run: dart pub run build_runner test --delete-conflicting-outputs
+        run: dart run build_runner test --delete-conflicting-outputs
