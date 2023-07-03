@@ -10,7 +10,6 @@ import '../services/releases_service/releases_client.dart';
 import '../services/settings_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/remove_version.workflow.dart';
-import 'logger.dart';
 
 // ignore: avoid_classes_with_only_static_members
 /// Client for FVM APIs for other apps or packages.
@@ -73,9 +72,6 @@ class FVMClient {
 
   /// Saves FVM [settings]
   static final saveSettings = SettingsService.save;
-
-  /// Console controller for streams of process output
-  static final console = consoleController;
 
   /// Fetches all flutter releases
   static final getFlutterReleases = fetchFlutterReleases;

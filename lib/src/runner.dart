@@ -62,7 +62,6 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      ConsoleController.isCli = true;
       final _argResults = parse(args);
 
       // Command might be null

@@ -67,8 +67,6 @@ class GitTools {
     var process = await runExecutableArguments(
       'git',
       args,
-      stdout: consoleController.stdoutSink,
-      stderr: consoleController.stderrSink,
     );
 
     if (process.exitCode != 0) {
@@ -107,8 +105,6 @@ class GitTools {
     var process = await runExecutableArguments(
       'git',
       args,
-      stdout: consoleController.stdoutSink,
-      stderr: consoleController.stderrSink,
     );
 
     if (process.exitCode != 0) {
@@ -134,8 +130,6 @@ class GitTools {
       'git',
       ['remote', 'update'],
       workingDirectory: ctx.gitCacheDir.path,
-      stdout: consoleController.stdoutSink,
-      stderr: consoleController.stderrSink,
     );
 
     // Update lastGitCacheUpdate dateTime
@@ -214,8 +208,6 @@ class GitTools {
         version,
       ],
       workingDirectory: directory.path,
-      stdout: consoleController.stdoutSink,
-      stderr: consoleController.stderrSink,
     );
 
     if (reset.exitCode != 0) {

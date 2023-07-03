@@ -97,7 +97,7 @@ void switchLineMode(bool active, List<String> args) {
   // Don't do anything if its not terminal
   // or if it's not run command
 
-  if (!ConsoleController.isTerminal || args.isEmpty || args.first != 'run') {
+  if (args.isEmpty || args.first != 'run') {
     return;
   }
   // Seems incompatible with different shells. Silent error

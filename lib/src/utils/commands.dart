@@ -119,11 +119,6 @@ Future<int> _runCmd(
     workingDirectory: kWorkingDirectory.path,
   );
 
-  if (!ConsoleController.isCli) {
-    process.stdout.listen(consoleController.stdout.add);
-    process.stderr.listen(consoleController.stderr.add);
-  }
-
   exitCode = await process.exitCode;
 
   // Switch on line mode
