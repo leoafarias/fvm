@@ -83,7 +83,9 @@ class ConsoleController {
   static bool isCli = false;
 
   /// Checks if its running on terminal
-  static bool get isTerminal => isCli && io.stdin.hasTerminal;
+  static bool get isTerminal {
+    return isCli && io.stdin.hasTerminal;
+  }
 
   /// stdout stream sink
   StreamSink<List<int>> get stdoutSink {

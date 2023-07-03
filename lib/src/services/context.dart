@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
+import '../../fvm.dart';
 import 'settings_service.dart';
 
 /// The Zone key used to look up the [AppContext].
@@ -37,7 +38,14 @@ class FvmContext {
   final Directory _fvmDir;
   final Directory? _cacheDirOverride;
 
+  SettingsDto? _settingsDto;
+
   final bool _isTest;
+
+  /// Returns settings or cached
+  SettingsDto get settings {
+    return _settingsDto ??= SettingsService.readSync();
+  }
 
   /// Flag to determine if context is running in a test
   bool get isTest => _isTest;
@@ -54,24 +62,24 @@ class FvmContext {
 
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
-    final _settings = SettingsService.readSync();
-
     // Override cacheDir
     if (_cacheDirOverride != null) {
       return _cacheDirOverride!;
     }
     // If there is a cache
-    if (_settings.cachePath != null) {
-      return Directory(normalize(_settings.cachePath!));
+    if (settings.cachePath != null) {
+      return Directory(normalize(settings.cachePath!));
     }
 
     /// Default cache directory
-    return Directory(join(_fvmDir.path, 'versions'));
+    return Directory(join(fvmHome.path, 'versions'));
   }
 
   /// Directory for Flutter repo git cache
   Directory get gitCacheDir {
-    return Directory(join(_fvmDir.path, 'git-cache'));
+    return Directory(
+      join(fvmHome.path, 'cache.git'),
+    );
   }
 
   /// Returns the configured Flutter repository

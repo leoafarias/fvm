@@ -20,15 +20,8 @@ class ConfigCommand extends BaseCommand {
       ..addOption(
         'cache-path',
         help: 'Set the path which FVM will cache the version.'
-            'Priority over FVM_HOME.',
+            ' Priority over FVM_HOME.',
         abbr: 'c',
-      )
-      ..addFlag(
-        'skip-setup',
-        help: 'Skip setup after a version install.',
-        abbr: 's',
-        negatable: true,
-        defaultsTo: null,
       )
       ..addFlag(
         'git-cache',
@@ -41,39 +34,32 @@ class ConfigCommand extends BaseCommand {
   }
   @override
   Future<int> run() async {
-    final settings = SettingsService.readSync();
-
     // Flag if settings should be saved
     var shouldSave = false;
 
     // Cache path was set
     if (argResults!.wasParsed('cache-path')) {
-      settings.cachePath = stringArg('cache-path');
+      ctx.settings.cachePath = stringArg('cache-path');
       shouldSave = true;
     }
 
     // Git cache option has changed
     if (argResults!.wasParsed('git-cache')) {
-      settings.gitCache = boolArg('git-cache');
-      shouldSave = true;
-    }
-
-    // Skip setup option has changed
-    if (argResults!.wasParsed('skip-setup')) {
-      settings.skipSetup = boolArg('skip-setup');
+      ctx.settings.gitCacheDisabled = !boolArg('git-cache');
       shouldSave = true;
     }
 
     // Save
     if (shouldSave) {
-      await SettingsService.save(settings);
+      // Update settings
+      await ctx.settings.save();
       Logger.fine('Settings saved.');
     } else {
       Logger.spacer();
       Logger.fine('FVM Settings:');
-      Logger.info('Located at ${ctx.settingsFile.path}\n');
+      Logger.info('Located at ${SettingsService.settingsFile.path}\n');
 
-      final options = settings.toMap();
+      final options = ctx.settings.toMap();
 
       if (options.keys.isEmpty) {
         Logger.info('No settings have been configured.\n');
