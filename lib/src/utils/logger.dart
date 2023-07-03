@@ -61,8 +61,6 @@ final consoleController = ConsoleController();
 
 /// Console Controller
 class ConsoleController {
-  static bool? _isTerminal;
-
   /// stdout stream
   final stdout = StreamController<List<int>>();
 
@@ -86,9 +84,7 @@ class ConsoleController {
 
   /// Checks if its running on terminal
   static bool get isTerminal {
-    // Workaround for https://github.com/fluttertools/fvm/issues/483
-    _isTerminal ??= isCli && io.stdin.hasTerminal;
-    return _isTerminal!;
+    return isCli && io.stdin.hasTerminal;
   }
 
   /// stdout stream sink

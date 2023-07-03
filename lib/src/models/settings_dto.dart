@@ -28,7 +28,7 @@ class SettingsDto {
     this.cachePath,
     this.version,
     this.lastGitCacheUpdate,
-    this.gitCacheDisabled = false,
+    this.gitCacheDisabled = true,
     this.gitCacheUpdateInterval = const Duration(hours: _defaultDurationHours),
   });
 
