@@ -16,7 +16,6 @@ dependencies:
   cli_util: ^0.4.0
   console: ^4.1.0
   date_format: ^2.0.6
-  io: ^1.0.4
   meta: ^1.9.1
   path: ^1.8.3
   process_run: ^0.13.0
