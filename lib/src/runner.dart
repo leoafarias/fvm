@@ -71,7 +71,7 @@ class FvmCommandRunner extends CommandRunner<int> {
 
       // Check if its running the latest version of FVM
       if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
-        // Check if there is an update fofr FVM
+        // Check if there is an update for FVM
         await checkForFvmUpdate();
       }
       return exitCode;

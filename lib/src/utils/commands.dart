@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -82,14 +81,14 @@ Future<int> dartGlobalCmd(List<String> args) async {
 }
 
 /// Runs flutter from global version
-Future<int> flutterGlobalCmd(List<String> args) async {
+Future<int> flutterGlobalCmd(List<String> args) {
   final execPath = whichSync('flutter') ?? '';
   logger.trace(
     'fvm: Running Flutter SDK configured on environment PATH. $execPath',
   );
 
   // Run command
-  return await _runCmd(
+  return _runCmd(
     execPath,
     args: args,
   );
@@ -108,15 +107,17 @@ Future<int> _runCmd(
     await Guards.canExecute(execPath, args);
   }
 
-  final processManager = ProcessManager();
-
   // Switch off line mode
   switchLineMode(false, args);
-  final process = await processManager.spawn(
+
+  final process = await Process.start(
     execPath,
     args,
     environment: environment,
     workingDirectory: kWorkingDirectory.path,
+    mode: ConsoleController.isCli
+        ? ProcessStartMode.inheritStdio
+        : ProcessStartMode.normal,
   );
 
   exitCode = await process.exitCode;

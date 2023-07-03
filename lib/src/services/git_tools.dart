@@ -39,12 +39,6 @@ class GitTools {
       }
     }
 
-    final shouldUseCache = !ctx.settings.gitCacheDisabled;
-
-    if (shouldUseCache) {
-      await _updateLocalGitMirror();
-    }
-
     final args = [
       'clone',
       '--progress',
@@ -55,11 +49,7 @@ class GitTools {
         '-b',
         channel ?? version.name,
       ],
-      // If should use cache
-      if (shouldUseCache) ...[
-        '--reference',
-        ctx.gitCacheDir.path,
-      ],
+
       kFlutterRepo,
       versionDir.path
     ];

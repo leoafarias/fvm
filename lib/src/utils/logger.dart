@@ -60,8 +60,6 @@ final consoleController = ConsoleController();
 
 /// Console Controller
 class ConsoleController {
-  static bool? _isTerminal;
-
   /// stdout stream
   final stdout = StreamController<List<int>>();
 
