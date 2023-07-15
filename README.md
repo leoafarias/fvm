@@ -6,19 +6,19 @@
 ![Pub Points](https://img.shields.io/pub/points/fvm?label=Pub%20Points&style=flat-squar)  ![Coverage](https://raw.githubusercontent.com/leoafarias/fvm/master/coverage_badge.svg?sanitize=true)
 [![Github All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=flat-square)](https://github.com/leoafarias/fvm/graphs/contributors) [![MIT Licence](https://img.shields.io/github/license/leoafarias/fvm?style=flat-square&longCache=true)](https://opensource.org/licenses/mit-license.php) [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-purple?longCache=true&style=flat-square)](https://github.com/Solido/awesome-flutter)
 
-Flutter Version Management: A simple cli to manage Flutter SDK versions.
+Flutter Version Management (FVM): A simple CLI tool to manage Flutter SDK versions.
 
-FVM helps with the need for a consistent app builds by allowing to reference Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time.
+FVM helps with the need for consistent app builds by allowing to reference a Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps, without waiting for Flutter installation every time.
 
 **Features:**
 
-- Configure and use Flutter SDK version per project
-- Ability to install and cache multiple Flutter SDK Versions
-- Fast switch between Flutter channels & versions
-- Dynamic SDK paths for IDE debugging support.
-- Version FVM config with a project for consistency across teams and CI environments.
+- Configure and use any Flutter SDK version per project.
+- Ability to install and locally cache multiple Flutter SDK versions.
+- Fast switch between Flutter channels and SDK versions.
+- Dynamic Flutter SDK paths for IDE debugging support.
+- Version FVM config with your project for consistency across teams and CI environments.
 
-[Read the FVM documentation](https://fvm.app)
+For more information, read [FVM documentation](https://fvm.app).
 
 ---
 
@@ -34,9 +34,9 @@ Checkout Flutter Sidekick. [Read more about it here.](https://github.com/leoafar
 pub run test
 ```
 
-### Publishing package
+### Publishing the package
 
-Before pushing package to pub.dev. Run command to create version constant.
+Before pushing the package to [pub.dev](https://pub.dev), run the following command to create a version constant:
 
 ```bash
 pub run build_runner build
@@ -44,7 +44,7 @@ pub run build_runner build
 
 ### Update test coverage
 
-To update test coverage run the following command.
+To update test coverage, run the following command:
 
 ```bash
 pub run test_cov
@@ -52,15 +52,15 @@ pub run test_cov
 
 ## Troubleshooting
 
-Please view our [FAQ](https://fvm.app/docs/guides/faq)
+Please view our [FAQ](https://fvm.app/docs/guides/faq).
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License; see [LICENSE](LICENSE) file for details.
 
 ## Contributors ✨
 
-Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+A sincere thank you goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
@@ -129,4 +129,4 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind are very welcome!
