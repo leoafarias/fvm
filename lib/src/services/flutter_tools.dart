@@ -30,6 +30,16 @@ class FlutterTools {
     }
   }
 
+  /// Runs pub get
+  static Future<void> pubGet(CacheVersion version) async {
+    try {
+      await flutterCmd(version, ['pub', 'get']);
+    } on Exception catch (err) {
+      logger.trace(err.toString());
+      throw const FvmInternalError('Could not run pub get');
+    }
+  }
+
   /// Returns a [ValidVersion] release from channel [version]
   static Future<ValidVersion> inferReleaseFromChannel(
     ValidVersion version,
