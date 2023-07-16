@@ -97,6 +97,25 @@ class ProjectService {
     }
   }
 
+  /// Get dart_tool version from project directory
+  static Future<String?> getDartToolVersion(
+    Project project,
+  ) async {
+    final dartToolFile = File(
+      join(
+        project.projectDir.path,
+        '.dart_tool',
+        'version',
+      ),
+    );
+    if (await dartToolFile.exists()) {
+      final dartToolVersion = await dartToolFile.readAsString();
+      return dartToolVersion;
+    } else {
+      return null;
+    }
+  }
+
   /// Checks if flutter [directory] is a Flutter project
   static Future<bool> isFlutterProject(Directory directory) async {
     try {

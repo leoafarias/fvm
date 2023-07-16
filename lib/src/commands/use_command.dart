@@ -45,12 +45,6 @@ class UseCommand extends BaseCommand {
         defaultsTo: null,
       )
       ..addFlag(
-        'skip-setup',
-        help: 'Skips Flutter setup after install',
-        abbr: 's',
-        negatable: false,
-      )
-      ..addFlag(
         'config-vsc',
         help: 'Configures VSCode to use FVM',
         abbr: 'c',
@@ -62,7 +56,6 @@ class UseCommand extends BaseCommand {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
-    final skipSetup = boolArg('skip-setup');
     final configVSC = boolArg('config-vsc');
 
     String? version;
@@ -113,7 +106,6 @@ class UseCommand extends BaseCommand {
       validVersion,
       force: forceOption,
       flavor: flavorOption,
-      skipSetup: skipSetup,
     );
 
     return ExitCode.success.code;

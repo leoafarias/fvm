@@ -108,16 +108,15 @@ Future<int> _runCmd(
   }
 
   // Switch off line mode
-  switchLineMode(false, args);
 
+  switchLineMode(false, args);
   final process = await Process.start(
     execPath,
     args,
+    runInShell: true,
     environment: environment,
     workingDirectory: kWorkingDirectory.path,
-    mode: ConsoleController.isCli
-        ? ProcessStartMode.inheritStdio
-        : ProcessStartMode.normal,
+    mode: ProcessStartMode.inheritStdio,
   );
 
   exitCode = await process.exitCode;
