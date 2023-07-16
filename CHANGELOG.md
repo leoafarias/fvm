@@ -1,5 +1,9 @@
 # Changelog
 
+## Next
+
+- Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`
+
 ## 3.0.0
 
 - Faster SDK downloads! Local Git Flutter repository caching is now enabled by default.
