@@ -124,7 +124,6 @@ void main() {
             release,
             '--force',
             '--verbose',
-            '--skip-setup',
           ],
         );
         final project = await ProjectService.findAncestor();
