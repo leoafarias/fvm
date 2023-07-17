@@ -16,12 +16,6 @@ bool checkIsChannel(String name) {
   return kFlutterChannels.contains(name);
 }
 
-/// Checks if [name] is a channel with a release
-/// master channels do not have releases
-bool checkIsReleaseChannel(String name) {
-  return kFlutterChannels.contains(name) && name != 'master';
-}
-
 /// Checks if [name] is a short hash of a specific framework commit.
 /// This hash is also shown in the `flutter --version` command.
 bool checkIsGitHash(String name) {
@@ -38,13 +32,6 @@ Directory versionCacheDir(String version) {
 /// Returns true if [path] is a directory
 bool isDirectory(String path) {
   return FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
-}
-
-/// Get the parent directory path of a [filePath]
-Future<String> getParentDirPath(String filePath) async {
-  final file = File(filePath);
-
-  return file.parent.path;
 }
 
 /// Creates a symlink from [source] to the [target]
