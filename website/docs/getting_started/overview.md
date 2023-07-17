@@ -91,6 +91,7 @@ We follow these principles when building and adding new features to FVM.
       <td align="center" valign="top" width="20%"><a href="https://www.etiennetheodore.com/"><img src="https://avatars.githubusercontent.com/u/8250175?v=4?s=50" width="50px;" alt="Etienne Théodore"/><br /><sub><b>Etienne Théodore</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=Kiruel" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="20%"><a href="https://github.com/BrianRigii"><img src="https://avatars.githubusercontent.com/u/51914354?v=4?s=50" width="50px;" alt="John Brian"/><br /><sub><b>John Brian</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=BrianRigii" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="20%"><a href="https://github.com/bryanoltman"><img src="https://avatars.githubusercontent.com/u/581764?v=4?s=50" width="50px;" alt="Bryan Oltman"/><br /><sub><b>Bryan Oltman</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=bryanoltman" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="20%"><a href="https://github.com/Inlesco"><img src="https://avatars.githubusercontent.com/u/5101235?v=4?s=50" width="50px;" alt="Dovydas Stepona"/><br /><sub><b>Dovydas Stepona</b></sub></a><br /><a href="https://github.com/fluttertools/fvm/commits?author=Inlesco" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
