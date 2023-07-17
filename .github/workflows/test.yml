@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - uses: dart-lang/setup-dart@v1
+      - uses: dart-lang/setup-dart@v1.5.0
 
       - name: Install dependencies
         run: dart pub get
