@@ -22,8 +22,7 @@ jobs:
       - uses: actions/checkout@v1
       - uses: dart-lang/setup-dart@v1
 
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Run Test and Builder
-        run: dart test
+      - run: dart pub get
+      - run: dart pub run build_runner build --delete-conflicting-outputs
+      - run: dart analyze --fatal-infos --fatal-warnings .
+      - run: dart test
