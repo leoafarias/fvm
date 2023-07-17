@@ -140,7 +140,7 @@ class GitTools {
   static Future<List<String>> getFlutterTags() async {
     final result = await runExecutableArguments(
       'git',
-      ['ls-remote', '--tags', '$kFlutterRepo'],
+      ['ls-remote', '--tags', kFlutterRepo],
     );
 
     if (result.exitCode != 0) {

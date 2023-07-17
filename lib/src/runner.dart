@@ -62,12 +62,12 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      final _argResults = parse(args);
+      final argResults = parse(args);
 
       // Command might be null
-      final cmd = _argResults.command?.name;
+      final cmd = argResults.command?.name;
 
-      final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
+      final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       // Check if its running the latest version of FVM
       if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {

@@ -65,9 +65,7 @@ class UseCommand extends BaseCommand {
       version = await ProjectService.findVersion();
 
       // If no config found, ask which version to select.
-      if (version == null) {
-        version = await cacheVersionSelector();
-      }
+      version ??= await cacheVersionSelector();
     }
 
     // Get version from first arg
