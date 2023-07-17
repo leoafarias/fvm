@@ -378,8 +378,18 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "Inlesco",
+      "name": "Dovydas Stepona",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5101235?v=4",
+      "profile": "https://github.com/Inlesco",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 5,
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs"
 }
