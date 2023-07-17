@@ -39,7 +39,7 @@ Future<void> useVersionWorkflow(
   );
 
   final dartToolVersion = await ProjectService.getDartToolVersion(project);
-  final flutterSdkVersion = await CacheService.getSdkVersionSync(cacheVersion);
+  final flutterSdkVersion = CacheService.getSdkVersionSync(cacheVersion);
 
   if (dartToolVersion != flutterSdkVersion) {
     // Run pub get after pinning version
