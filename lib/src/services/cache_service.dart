@@ -60,6 +60,7 @@ class CacheService {
   static Future<bool> verifyIntegrity(CacheVersion version) async {
     final gitDir = Directory(join(version.dir.path, '.github'));
     final flutterBin = Directory(join(version.dir.path, 'bin'));
+
     return await gitDir.exists() && await flutterBin.exists();
   }
 

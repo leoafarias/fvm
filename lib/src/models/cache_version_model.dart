@@ -67,6 +67,7 @@ class CacheVersion {
     return assignVersionWeight(name);
   }
 
+  @override
   String toString() {
     return name;
   }

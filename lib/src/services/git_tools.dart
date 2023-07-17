@@ -103,7 +103,8 @@ class GitTools {
   }
 
   /// Updates local Flutter repo mirror
-  static Future<void> _updateLocalGitMirror() async {
+  /// Will be used mostly for testing
+  static Future<void> updateLocalGitMirror() async {
     final cacheExists = await ctx.gitCacheDir.exists();
 
     // If cache file does not exists create it
@@ -140,7 +141,7 @@ class GitTools {
   static Future<List<String>> getFlutterTags() async {
     final result = await runExecutableArguments(
       'git',
-      ['ls-remote', '--tags', '$kFlutterRepo'],
+      ['ls-remote', '--tags', kFlutterRepo],
     );
 
     if (result.exitCode != 0) {

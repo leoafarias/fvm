@@ -130,7 +130,7 @@ void main() {
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetPath = project.config.sdkSymlink.targetSync();
-        final valid = await ValidVersion(release);
+        final valid = ValidVersion(release);
         final versionDir = versionCacheDir(valid.name);
 
         expect(targetPath == versionDir.path, true);
