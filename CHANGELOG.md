@@ -1,14 +1,12 @@
 # Changelog
 
-## Next
-
-- Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`
-
 ## 3.0.0
 
-- Faster SDK downloads! Local Git Flutter repository caching is now enabled by default.
-- Global version has been deprecated. For more details, go [here](https://fvm.app/docs/guides/global_version).
 - Removed skip-setup configuration.
+- Implemented .gitignore notice to setup `fvm`
+- Configure VsCode command
+- Global version has been deprecated. For more details, go [here](https://fvm.app/docs/guides/global_version).
+- Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`
 
 ## 2.4.1
 
