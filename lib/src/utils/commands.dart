@@ -4,13 +4,12 @@ import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
-import 'console_utils.dart';
 import 'guards.dart';
 import 'helpers.dart';
 import 'logger.dart';
 
 /// Runs Flutter cmd
-Future<int> flutterCmd(
+Future<int> runFlutter(
   CacheVersion version,
   List<String> args,
 ) async {
@@ -50,7 +49,7 @@ Future<int> execCmd(
 }
 
 /// Runs dart cmd
-Future<int> dartCmd(CacheVersion version, List<String> args) async {
+Future<int> runDart(CacheVersion version, List<String> args) async {
   // Get exec path for dart
   final execPath = version.dartExec;
   // Update environment
@@ -65,7 +64,7 @@ Future<int> dartCmd(CacheVersion version, List<String> args) async {
 }
 
 /// Runs dart from global version
-Future<int> dartGlobalCmd(List<String> args) async {
+Future<int> runDartGlobal(List<String> args) async {
   // Get exec path for dart
   final execPath = whichSync('dart') ?? '';
 
@@ -81,7 +80,7 @@ Future<int> dartGlobalCmd(List<String> args) async {
 }
 
 /// Runs flutter from global version
-Future<int> flutterGlobalCmd(List<String> args) {
+Future<int> runFlutterGlobal(List<String> args) {
   final execPath = whichSync('flutter') ?? '';
   logger.trace(
     'fvm: Running Flutter SDK configured on environment PATH. $execPath',
@@ -107,9 +106,6 @@ Future<int> _runCmd(
     await Guards.canExecute(execPath, args);
   }
 
-  // Switch off line mode
-
-  switchLineMode(false, args);
   final process = await Process.start(
     execPath,
     args,
@@ -120,9 +116,6 @@ Future<int> _runCmd(
   );
 
   exitCode = await process.exitCode;
-
-  // Switch on line mode
-  switchLineMode(true, args);
 
   return exitCode;
 }

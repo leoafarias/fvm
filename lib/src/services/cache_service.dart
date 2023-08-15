@@ -69,21 +69,6 @@ class CacheService {
     await GitTools.cloneVersion(validVersion);
   }
 
-  /// Gets Flutter SDK version from CacheVersion sync
-  static String? getSdkVersionSync(CacheVersion version) {
-    final versionFile = File(join(version.dir.path, 'version'));
-    if (versionFile.existsSync()) {
-      return versionFile.readAsStringSync();
-    } else {
-      return null;
-    }
-  }
-
-  /// Verifies that cacheVersion has been setup
-  static bool isCacheVersionSetup(CacheVersion version) {
-    return getSdkVersionSync(version) != null;
-  }
-
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
   static Future<CacheVersion?> isVersionCached(
     ValidVersion validVersion,

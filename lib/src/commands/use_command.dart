@@ -71,8 +71,6 @@ class UseCommand extends BaseCommand {
     // Get version from first arg
     version ??= argResults!.rest[0];
 
-    // throw UsageException('Usage exception', usage.);
-
     // Get valid flutter version. Force version if is to be pinned.
     var validVersion = ValidVersion(version);
 

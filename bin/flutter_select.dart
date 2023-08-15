@@ -1,3 +1,5 @@
+#!/usr/bin/env dart
+
 import 'dart:io';
 
 import 'package:fvm/src/runner.dart';

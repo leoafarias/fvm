@@ -6,7 +6,6 @@ import '../../exceptions.dart';
 import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 
@@ -23,13 +22,12 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     // Returns cache if already exists
     if (cacheVersion != null) {
-      logger.trace('Version: $validVersion - already installed.');
-      // Ensure the config link and symlink are updated
-      await ProjectService.updateLink();
+      Logger.fine('Flutter SDK: $validVersion - already installed.');
+
       return cacheVersion;
     }
 
-    Logger.info('Flutter "$validVersion" is not installed.');
+    Logger.info('Flutter SDK: $validVersion is not installed.');
 
     // If its a custom version do not proceed on install process
     if (validVersion.custom == true) {
@@ -49,8 +47,7 @@ Future<CacheVersion> ensureCacheWorkflow(
       if (cacheVersion == null) {
         throw FvmInternalError('Could not cache version $validVersion');
       }
-      // Ensure the config link and symlink are updated
-      await ProjectService.updateLink();
+
       return cacheVersion;
     } else {
       // Exit if don't want to install

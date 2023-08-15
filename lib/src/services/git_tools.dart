@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:fvm/src/utils/run_command.dart';
 import 'package:path/path.dart';
-import 'package:process_run/cmd_run.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
@@ -22,7 +22,6 @@ class GitTools {
     await versionDir.create(recursive: true);
 
     // Check if its git commit
-
     String? channel;
 
     if (version.isChannel) {
@@ -39,24 +38,33 @@ class GitTools {
       }
     }
 
-    final args = [
-      'clone',
-      '--progress',
-      //If its not git hash
-      if (!version.isGitHash) ...[
-        '-c',
-        'advice.detachedHead=false',
-        '-b',
-        channel ?? version.name,
-      ],
+    if (ctx.useGitCache) {
+      await updateFlutterRepoMirror();
+    }
 
-      kFlutterRepo,
-      versionDir.path
+    final versionCloneParams = [
+      '-c',
+      'advice.detachedHead=false',
+      '-b',
+      channel ?? version.name,
     ];
 
-    var process = await runExecutableArguments(
-      'git',
-      args,
+    final useMirrorParams = [
+      '--reference',
+      ctx.gitCacheDir.path,
+      '--dissociate',
+    ];
+
+    final cloneArgs = [
+      //if its a git hash
+      if (!version.isGitHash) ...versionCloneParams,
+      if (ctx.useGitCache) ...useMirrorParams,
+      kFlutterRepo,
+      versionDir.path,
+    ].join(' ');
+
+    final process = await runProcess(
+      'git clone --progress $cloneArgs',
     );
 
     if (process.exitCode != 0) {
@@ -79,56 +87,44 @@ class GitTools {
     return;
   }
 
-  /// Creates a local mirror of the Flutter repository
-  static Future<void> _createLocalMirror() async {
+  /// Creates a local git mirror of the Flutter repository
+  static Future<void> _createFlutterRepoMirror() async {
     // Delete if already exists
     if (await ctx.gitCacheDir.exists()) {
       await ctx.gitCacheDir.delete(recursive: true);
     }
-    final args = [
-      'clone',
-      '--progress',
-      '--mirror',
-      kFlutterRepo,
-      ctx.gitCacheDir.path
-    ];
-    var process = await runExecutableArguments(
-      'git',
-      args,
+
+    await ctx.gitCacheDir.create(recursive: true);
+
+    final process = await runProcess(
+      'git clone --progress --mirror $kFlutterRepo ${ctx.gitCacheDir.path}',
     );
 
     if (process.exitCode != 0) {
-      throw FvmInternalError('Could not create local mirror of Flutter repo');
+      throw FvmInternalError(
+        'Could not create local mirror of Flutter repo: ${process.stderr}}',
+      );
     }
   }
 
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
-  static Future<void> updateLocalGitMirror() async {
+  static Future<void> updateFlutterRepoMirror() async {
     final cacheExists = await ctx.gitCacheDir.exists();
 
     // If cache file does not exists create it
     if (!cacheExists) {
-      await _createLocalMirror();
+      Logger.info('Creating local mirror of Flutter repo...');
+      await _createFlutterRepoMirror();
+      Logger.fine('Creation complete.');
+    } else {
+      Logger.info('Updating local mirror of Flutter repo...');
+      await runProcess(
+        'git remote update',
+        workingDirectory: ctx.gitCacheDir.path,
+      );
+      Logger.fine('Update complete.');
     }
-
-    if (!ctx.settings.shouldUpdateGitCache) {
-      return;
-    }
-
-    Logger.fine('Syncing Flutter repository');
-    await runExecutableArguments(
-      'git',
-      ['remote', 'update'],
-      workingDirectory: ctx.gitCacheDir.path,
-    );
-
-    // Update lastGitCacheUpdate dateTime
-    ctx.settings.lastGitCacheUpdate = DateTime.now();
-    // Update settings
-    await ctx.settings.save();
-
-    Logger.fine('Done');
   }
 
   static Future<void> _cleanupVersionDir(Directory versionDir) async {
@@ -139,9 +135,8 @@ class GitTools {
 
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
-    final result = await runExecutableArguments(
-      'git',
-      ['ls-remote', '--tags', kFlutterRepo],
+    final result = await runGit(
+      'ls-remote --tags --refs $kFlutterRepo',
     );
 
     if (result.exitCode != 0) {
@@ -165,9 +160,8 @@ class GitTools {
   /// Returns the [name] of a branch or tag for a [version]
   static Future<String?> getBranch(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runExecutableArguments(
-      'git',
-      ['rev-parse', '--abbrev-ref', 'HEAD'],
+    final result = await runGit(
+      'rev-parse --abbrev-ref HEAD',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -176,9 +170,8 @@ class GitTools {
   /// Returns the [name] of a tag [version]
   static Future<String?> getTag(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runExecutableArguments(
-      'git',
-      ['describe', '--tags', '--exact-match'],
+    final result = await runGit(
+      'describe --tags --exact-match',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -191,13 +184,8 @@ class GitTools {
     Directory directory, {
     required String version,
   }) async {
-    final reset = await runExecutableArguments(
-      'git',
-      [
-        'reset',
-        '--hard',
-        version,
-      ],
+    final reset = await runGit(
+      'reset --hard $version',
       workingDirectory: directory.path,
     );
 

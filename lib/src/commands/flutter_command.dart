@@ -36,10 +36,10 @@ class FlutterCommand extends BaseCommand {
         _checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
-      return await flutterCmd(cacheVersion, args);
+      return await runFlutter(cacheVersion, args);
     } else {
       // Running null will default to flutter version on paths
-      return await flutterGlobalCmd(args);
+      return await runFlutterGlobal(args);
     }
   }
 }

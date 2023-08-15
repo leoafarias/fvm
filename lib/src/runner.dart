@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:fvm/src/commands/git_cache_command.dart';
 import 'package:io/io.dart';
 
 import '../exceptions.dart';
@@ -57,6 +58,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(FlavorCommand());
     addCommand(DestroyCommand());
     addCommand(ExecCommand());
+    addCommand(GitCacheCommand());
   }
 
   @override

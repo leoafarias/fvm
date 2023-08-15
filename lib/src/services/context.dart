@@ -1,42 +1,68 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
 import 'settings_service.dart';
 
-/// The Zone key used to look up the [AppContext].
-@visibleForTesting
-const Symbol contextKey = #fvmContext;
+/// The Zone key used to look up the [FvmContext].
+const _contextKey = #fvmContext;
+
+// Used for overriding and forcing zone
+FVMContext? _currentContextOverride;
 
 /// FVM Context
-FvmContext get ctx {
-  return Zone.current[contextKey] as FvmContext? ?? FvmContext._root;
+FVMContext get ctx {
+  return _currentContextOverride ??
+      Zone.current[_contextKey] as FVMContext? ??
+      FVMContext.root;
 }
 
 /// Returns current FVM context
-class FvmContext {
+class FVMContext {
   /// Bootstrap root context
-  static final FvmContext _root = FvmContext._('ROOT');
+  static final FVMContext root = FVMContext._('ROOT');
+
+  factory FVMContext.create(
+    String name, {
+    Directory? fvmHomeDir,
+    Directory? versionCacheDir,
+    bool useGitCache = true,
+    bool isTest = false,
+  }) {
+    final context = FVMContext._(
+      name,
+      fvmHomeDir: fvmHomeDir,
+      versionCacheDir: versionCacheDir,
+      useGitCache: useGitCache,
+      isTest: isTest,
+    );
+
+    _currentContextOverride = context;
+
+    return context;
+  }
 
   /// Constructor
   /// If nothing is provided set default
-  FvmContext._(
+  FVMContext._(
     this.name, {
-    Directory? fvmDir,
-    Directory? cacheDir,
+    Directory? fvmHomeDir,
+    Directory? versionCacheDir,
+    bool useGitCache = true,
     bool isTest = false,
-  })  : _fvmDir = fvmDir ?? Directory(kFvmHome),
+  })  : _fvmHomeDir = fvmHomeDir ?? Directory(kFvmHome),
         _isTest = isTest,
-        _cacheDirOverride = cacheDir;
+        _useGitCache = useGitCache,
+        _versionCacheDir = versionCacheDir;
 
   /// Name of the context
   final String name;
-  final Directory _fvmDir;
-  final Directory? _cacheDirOverride;
+  final Directory _fvmHomeDir;
+  final Directory? _versionCacheDir;
+  final bool _useGitCache;
 
   SettingsDto? _settingsDto;
 
@@ -50,24 +76,27 @@ class FvmContext {
   /// Flag to determine if context is running in a test
   bool get isTest => _isTest;
 
+  /// Flag to determine if should use git cache
+  bool get useGitCache => _useGitCache;
+
   /// File for FVM Settings
   File get settingsFile {
-    return File(join(_fvmDir.path, '.settings'));
+    return File(join(_fvmHomeDir.path, '.settings'));
   }
 
   /// FVM Home dir
   Directory get fvmHome {
-    return _fvmDir;
+    return _fvmHomeDir;
   }
 
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
     // Override cacheDir
-    if (_cacheDirOverride != null) {
-      return _cacheDirOverride!;
+    if (_versionCacheDir != null) {
+      return _versionCacheDir!;
     }
     // If there is a cache
-    if (settings.cachePath != null) {
+    if (settings.cachePath != null && !isTest) {
       return Directory(normalize(settings.cachePath!));
     }
 
@@ -93,24 +122,37 @@ class FvmContext {
   }
 
   /// Runs context zoned
-  FutureOr<V> run<V>({
-    required FutureOr<V> Function() body,
+  V run<V>({
+    required V Function() body,
     required String name,
-    final Directory? fvmDir,
+    final Directory? fvmHomeDir,
     final Directory? cacheDir,
     bool isTest = false,
     ZoneSpecification? zoneSpecification,
-  }) async {
-    final child = FvmContext._(
+  }) {
+    final ctx = FVMContext.create(
       name,
-      fvmDir: fvmDir,
-      cacheDir: cacheDir,
+      fvmHomeDir: fvmHomeDir,
+      versionCacheDir: cacheDir,
       isTest: isTest,
     );
-    return runZoned<FutureOr<V>>(
-      () async => await body(),
-      zoneValues: <Symbol, FvmContext>{contextKey: child},
+    // Set context key to respect the currentContext
+
+    return runZoned<V>(
+      body,
+      zoneValues: <Symbol, FVMContext>{_contextKey: ctx},
       zoneSpecification: zoneSpecification,
     );
+  }
+
+  static runOnRoot<V>(
+    FutureOr<V> Function() body,
+  ) async {
+    final response = await runZoned<FutureOr<V>>(
+      body,
+      zoneValues: <Symbol, FVMContext>{_contextKey: root},
+    );
+
+    return response;
   }
 }

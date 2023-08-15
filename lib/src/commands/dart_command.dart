@@ -30,10 +30,10 @@ class DartCommand extends BaseCommand {
       logger.trace('fvm: running Dart from Flutter "$version"\n');
 
       // Runs flutter command with pinned version
-      return await dartCmd(cacheVersion, args);
+      return await runDart(cacheVersion, args);
     } else {
       // Running null will default to dart version on path
-      return await dartGlobalCmd(args);
+      return await runDartGlobal(args);
     }
   }
 }

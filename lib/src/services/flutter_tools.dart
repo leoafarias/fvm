@@ -12,9 +12,9 @@ class FlutterTools {
   FlutterTools._();
 
   /// Upgrades a cached channel
-  static Future<void> upgradeChannel(CacheVersion version) async {
+  static Future<void> upgrade(CacheVersion version) async {
     if (version.isChannel) {
-      await flutterCmd(version, ['upgrade']);
+      await runFlutter(version, ['upgrade']);
     } else {
       throw Exception('Can only upgrade Flutter Channels');
     }
@@ -22,21 +22,28 @@ class FlutterTools {
 
   /// Runs triggers sdk setup/install
   static Future<void> setupSdk(CacheVersion version) async {
+    Logger.info('Setting up Flutter SDK: ${version.name}');
+    Logger.spacer();
     try {
-      await flutterCmd(version, ['--version']);
+      await runFlutter(version, ['doctor', '--version']);
     } on Exception catch (err) {
       logger.trace(err.toString());
-      throw const FvmInternalError('Could not finish setting up Flutter sdk');
+      throw const FvmInternalError(
+        'Could not finish setting up Flutter sdk. Use `--verbose` for more details',
+      );
     }
   }
 
   /// Runs pub get
   static Future<void> pubGet(CacheVersion version) async {
     try {
-      await flutterCmd(version, ['pub', 'get']);
+      await runFlutter(version, ['pub', 'get']);
     } on Exception catch (err) {
       logger.trace(err.toString());
-      throw const FvmInternalError('Could not run pub get');
+      logger.stderr(
+        'Could not resolve dependencies. Use `--verbose` for more details',
+      );
+      return;
     }
   }
 

@@ -2,7 +2,7 @@
 import 'package:fvm/src/services/project_service.dart';
 import 'package:test/test.dart';
 
-import 'test_utils.dart';
+import 'testing_utils.dart';
 
 void main() {
   group('Flutter Projects', () {
@@ -43,8 +43,9 @@ void main() {
     });
 
     test('Can find Flutter Project', () async {
-      final projects =
-          await ProjectService.scanDirectory(rootDir: kTestAssetsDir);
+      final projects = await ProjectService.scanDirectory(
+        rootDir: kSupportAssetsDir,
+      );
       expect(projects.length, 1);
     });
   });

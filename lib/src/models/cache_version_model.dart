@@ -56,6 +56,21 @@ class CacheVersion {
     return checkIsChannel(name);
   }
 
+  /// Gets Flutter SDK version from CacheVersion sync
+  String? get sdkVersion {
+    final versionFile = File(join(dir.path, 'version'));
+    if (versionFile.existsSync()) {
+      return versionFile.readAsStringSync();
+    } else {
+      return null;
+    }
+  }
+
+  /// Verifies that cacheVersion has been setup
+  bool get needSetup {
+    return sdkVersion == null;
+  }
+
   /// Compares CacheVersion with [other]
   int compareTo(CacheVersion other) {
     final otherVersion = assignVersionWeight(other.name);

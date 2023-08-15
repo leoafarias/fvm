@@ -8,7 +8,8 @@ environment:
   sdk: ">=2.19.0 <3.0.0"
 
 executables:
-  fvm: main
+  fvm: fvm
+  flutter-select: flutter_select
 
 dependencies:
   args: ^2.4.2
@@ -28,6 +29,5 @@ dev_dependencies:
   cli_pkg: ^2.4.7
   grinder: ^0.9.4
   test: ^1.24.4
-  build_test: ^2.2.0
-  test_cov: ^1.0.1
   lints: ^2.1.1
+  build_test: ^2.2.0

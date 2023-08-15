@@ -1,7 +1,6 @@
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
-import '../services/cache_service.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
@@ -28,7 +27,7 @@ Future<void> useVersionWorkflow(
   final cacheVersion = await ensureCacheWorkflow(validVersion);
 
   // Ensure that flutter tool is installed
-  if (!CacheService.isCacheVersionSetup(cacheVersion)) {
+  if (cacheVersion.needSetup) {
     await FlutterTools.setupSdk(cacheVersion);
   }
 
@@ -38,10 +37,12 @@ Future<void> useVersionWorkflow(
     flavor: flavor,
   );
 
-  final dartToolVersion = await ProjectService.getDartToolVersion(project);
-  final flutterSdkVersion = CacheService.getSdkVersionSync(cacheVersion);
+  // Ensure the config link and symlink are updated
+  await ProjectService.updateLink();
 
-  if (dartToolVersion != flutterSdkVersion) {
+  final dartToolVersion = await ProjectService.getDartToolVersion(project);
+
+  if (dartToolVersion != cacheVersion.sdkVersion) {
     // Run pub get after pinning version
     await FlutterTools.pubGet(cacheVersion);
   }

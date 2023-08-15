@@ -9,19 +9,11 @@ import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
-import 'test_utils.dart';
+import 'testing_utils.dart';
 
-const key = Key('commands_test');
 void main() {
-  group('Channel Workflow:', () {
-    tearDownAll(() {
-      final testDir = getFvmTestDir(key);
-      if (testDir.existsSync()) {
-        testDir.deleteSync(recursive: true);
-      }
-    });
-
-    testWithContext('Install Channel', key, () async {
+  groupWithContext('Channel Workflow:', () {
+    test('Install Channel', () async {
       // await testContextWrapper(contextKey, () async {
       await FvmCommandRunner().run([
         'install',
@@ -38,10 +30,9 @@ void main() {
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
-      // });
     });
 
-    testWithContext('List Channel', key, () async {
+    test('List Channel', () async {
       try {
         await FvmCommandRunner().run(['list']);
       } on Exception catch (e) {
@@ -51,7 +42,7 @@ void main() {
       expect(true, true);
     });
 
-    testWithContext('Use Channel', key, () async {
+    test('Use Channel', () async {
       try {
         // Run foce to test within fvm
 
@@ -73,7 +64,7 @@ void main() {
     });
 
     //TODO: Remove after deprecation period
-    // testWithContext('Use Flutter SDK globally', key, () async {
+    // test('Use Flutter SDK globally',  () async {
     //   try {
     //     await FvmCommandRunner().run(['global', channel]);
     //     final linkExists = ctx.globalCacheLink.existsSync();
@@ -87,7 +78,7 @@ void main() {
     //   }
     // });
 
-    testWithContext('Remove Channel Command', key, () async {
+    test('Remove Channel Command', () async {
       try {
         await FvmCommandRunner()
             .run(['remove', channel, '--verbose', '--force']);
@@ -96,8 +87,9 @@ void main() {
       }
     });
   });
-  group('Release Workflow', () {
-    testWithContext('Install Release', key, () async {
+
+  groupWithContext('Release Workflow', () {
+    test('Install Release', () async {
       try {
         await FvmCommandRunner()
             .run(['install', release, '--verbose', '--skip-setup']);
@@ -116,7 +108,7 @@ void main() {
       // expect(true, true);
     });
 
-    testWithContext('Use Release', key, () async {
+    test('Use Release', () async {
       try {
         await FvmCommandRunner().run(
           [
@@ -140,7 +132,7 @@ void main() {
       }
     });
 
-    testWithContext('List Command', key, () async {
+    test('List Command', () async {
       try {
         await FvmCommandRunner().run(['list', '--verbose']);
       } on Exception catch (e) {
@@ -150,29 +142,29 @@ void main() {
       expect(true, true);
     });
 
-    testWithContext('Remove Release', key, () async {
+    test('Remove Release', () async {
       await FvmCommandRunner().run(
         ['remove', release, '--verbose'],
       );
     });
   });
 
-  group('Commands', () {
-    testWithContext('Get Version', key, () async {
+  groupWithContext('Commands', () {
+    test('Get Version', () async {
       expect(
         await FvmCommandRunner().run(['--version']),
         ExitCode.success.code,
       );
     });
 
-    testWithContext('Doctor Command', key, () async {
+    test('Doctor Command', () async {
       expect(
         await FvmCommandRunner().run(['doctor']),
         ExitCode.success.code,
       );
     });
 
-    testWithContext('Flavor Command', key, () async {
+    test('Flavor Command', () async {
       await ensureCacheWorkflow(
         ValidVersion(channel),
         skipConfirmation: true,

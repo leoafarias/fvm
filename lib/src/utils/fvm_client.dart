@@ -46,13 +46,11 @@ class FVMClient {
   }
 
   /// Upgrades cached channel [version]
-  static final upgradeChannel = FlutterTools.upgradeChannel;
+  static final upgradeChannel = FlutterTools.upgrade;
 
   /// Returns the setup sdk version of a [versionName]
   static String? getSdkVersionSync(CacheVersion cacheVersion) {
-    // Do a null check for cleaner sidekick implementation
-
-    return CacheService.getSdkVersionSync(cacheVersion);
+    return cacheVersion.sdkVersion;
   }
 
   /// Returns projects by providing a [directory]

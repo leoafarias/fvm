@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../../fvm.dart';
 import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
@@ -28,8 +27,8 @@ class InstallCommand extends BaseCommand {
   /// Constructor
   InstallCommand() {
     argParser.addFlag(
-      'skip-setup',
-      help: 'Skips Flutter setup after install',
+      'setup',
+      help: 'Builds SDK after install after install',
       abbr: 's',
       negatable: false,
     );
@@ -37,8 +36,7 @@ class InstallCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    CacheVersion cacheVersion;
-    final skipSetup = boolArg('skip-setup');
+    final setup = boolArg('setup');
     String? version;
 
     // If no version was passed as argument check project config.
@@ -56,10 +54,12 @@ class InstallCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     final validVersion = ValidVersion(version);
-    cacheVersion =
-        await ensureCacheWorkflow(validVersion, skipConfirmation: true);
+    final cacheVersion = await ensureCacheWorkflow(
+      validVersion,
+      skipConfirmation: true,
+    );
 
-    if (!skipSetup) {
+    if (setup) {
       await FlutterTools.setupSdk(cacheVersion);
     }
 

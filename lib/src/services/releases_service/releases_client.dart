@@ -34,7 +34,9 @@ FlutterReleases? _cacheReleasesRes;
 /// Gets Flutter SDK Releases
 /// Can use memory [cache] if it exists.
 
-Future<FlutterReleases> fetchFlutterReleases({bool cache = true}) async {
+Future<FlutterReleases> fetchFlutterReleases({
+  bool cache = true,
+}) async {
   try {
     // If has been cached return
     if (_cacheReleasesRes != null && cache) {
