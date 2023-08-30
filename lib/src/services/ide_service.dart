@@ -47,22 +47,25 @@ class IDEService {
 
     /// Already exists && newSettings != settings
     if (settings.keys.isNotEmpty && !mapEquals(_defaultConfig, newSettings)) {
-      Logger.warning('VSCode settings already exist.');
-      Logger.info('Settings before merging:\n$oldSettingsStr');
-      Logger.divider();
-      Logger.info('Auto merged result:\n$newSettingsStr');
-      Logger.divider();
+      logger
+        ..warn('VSCode settings already exist.')
+        ..info('Settings before merging:\n$oldSettingsStr')
+        ..divider
+        ..info('Auto merged result:\n$newSettingsStr')
+        ..divider;
       final resume = await confirm('Write merged result to file?');
       if (!resume) {
-        Logger.info('VSCode settings not updated.');
-        Logger.spacer();
+        logger
+          ..info('VSCode settings not updated.')
+          ..spacer;
         return;
       }
     }
 
     /// Write result
     await file.writeAsString(newSettingsStr);
-    Logger.fine('VSCode settings updated.');
-    Logger.spacer();
+    logger
+      ..success('VSCode settings updated.')
+      ..spacer;
   }
 }

@@ -37,6 +37,10 @@ Future<void> printVersionStatus(CacheVersion version, Project project) async {
     printVersion = '$printVersion ✓';
   }
 
+  if (await CacheService.isGlobal(version)) {
+    printVersion = '$printVersion (global)';
+  }
+
   logger.info(printVersion);
 }
 

@@ -47,14 +47,14 @@ Future<FlutterReleases> fetchFlutterReleases({
     _cacheReleasesRes = FlutterReleases.fromJson(response);
     return Future.value(_cacheReleasesRes);
   } on Exception catch (err) {
-    logger.trace(err.toString());
+    logger.detail(err.toString());
 
     try {
       final response = await fetch(getGoogleReleaseUrl());
       _cacheReleasesRes = FlutterReleases.fromJson(response);
       return Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
-      logger.trace(err.toString());
+      logger.detail(err.toString());
       throw FvmError(
         'Failed to retrieve the Flutter SDK from: ${getGoogleReleaseUrl()}\n'
         'Fvm will use the value set on '

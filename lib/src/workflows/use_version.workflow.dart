@@ -49,11 +49,11 @@ Future<void> useVersionWorkflow(
 
   // Different message if configured environment
   if (flavor != null) {
-    Logger.fine(
+    logger.success(
       'Project now uses Flutter [$validVersion]'
       ' on [$flavor] flavor.',
     );
   } else {
-    Logger.fine('Project now uses Flutter [$validVersion]');
+    logger.success('Project now uses Flutter [$validVersion]');
   }
 }

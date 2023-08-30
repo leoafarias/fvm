@@ -34,35 +34,35 @@ class DoctorCommand extends BaseCommand {
       final cacheVersion = await CacheService.getByVersionName(
         project.pinnedVersion!,
       );
-      logger.info('');
+      logger
+        ..info('')
+        ..info('FVM Version: $packageVersion')
+        ..info('')
+        ..info('FVM Config found:')
+        ..info('')
+        ..info('Project: ${project.name}')
+        ..info('Directory: ${project.projectDir.path}')
+        ..info('Version: ${project.pinnedVersion}')
+        ..info(
+          'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
+        );
 
-      logger.info('FVM Version: $packageVersion');
-      logger.divider();
-      logger.fine('FVM config found:');
-      logger.divider();
-      logger.info('Project: ${project.name}');
-      logger.info('Directory: ${project.projectDir.path}');
-      logger.info('Version: ${project.pinnedVersion}');
-      logger.info(
-        'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
-      );
-      logger.divider();
       if (cacheVersion == null) {
-        logger.warning(
+        logger.warn(
           'Version is not currently cached. Run "fvm install" on this'
           ' directory, or "fvm install ${project.pinnedVersion}" anywhere.',
         );
       } else {
-        logger.fine('Version is currently cached locally.');
-        logger.spacer();
         logger
+          ..success('Version is currently cached locally.')
+          ..info('')
           ..info('Cache Path: ${cacheVersion.dir.path}')
           ..info('Channel: ${cacheVersion.isChannel}');
 
         if (cacheVersion.sdkVersion != null) {
           logger.info('SDK Version: ${cacheVersion.sdkVersion}');
         } else {
-          logger.warning(
+          logger.warn(
             'SDK Version: Need to finish setup. Run "fvm flutter doctor"',
           );
         }
@@ -80,20 +80,20 @@ class DoctorCommand extends BaseCommand {
         ..info(kWorkingDirectory.path)
         ..info('FVM will run the version in your PATH env: $flutterWhich');
     }
-    logger.info('');
-    logger.fine('Configured env paths:');
-    logger.divider();
-    logger.info('Flutter:');
-    logger.info(flutterWhich ?? '');
-    logger.info('');
-    logger.info('Dart:');
-    logger.info(dartWhich ?? '');
-    logger.info('');
-    logger.info('FVM_HOME:');
-    logger.info(kEnvVars['FVM_HOME'] ?? 'not set');
-    logger.info('');
-
-    logger.info('''
+    logger
+      ..spacer
+      ..success('Configured env paths:')
+      ..divider
+      ..info('Flutter:')
+      ..info(flutterWhich ?? '')
+      ..spacer
+      ..info('Dart:')
+      ..info(dartWhich ?? '')
+      ..spacer
+      ..info('FVM_HOME:')
+      ..info(kEnvVars['FVM_HOME'] ?? 'not set')
+      ..spacer
+      ..info('''
 ''');
 
     return ExitCode.success.code;

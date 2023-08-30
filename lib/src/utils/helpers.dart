@@ -67,6 +67,13 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
   }
 }
 
+/// Get the parent directory path of a [filePath]
+Future<String> getParentDirPath(String filePath) async {
+  final file = File(filePath);
+
+  return file.parent.path;
+}
+
 /// Returns updated environment for Flutter with [execPath]
 Map<String, String> updateFlutterEnvVariables(String binPath,
     [Map<String, String>? env]) {

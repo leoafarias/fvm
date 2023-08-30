@@ -1,10 +1,11 @@
 import 'dart:io';
 
+import 'package:fvm/exceptions.dart';
+import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
-import 'guards.dart';
 import 'helpers.dart';
 import 'logger.dart';
 
@@ -83,7 +84,7 @@ Future<int> runDartGlobal(List<String> args) async {
 Future<int> runFlutterGlobal(List<String> args) {
   final execPath = whichSync('flutter') ?? '';
   logger.detail(
-    'fvm: Running Flutter SDK configured on environment PATH. $execPath',
+    '$kPackageName: Running Flutter SDK configured on environment PATH. $execPath',
   );
 
   // Run command
@@ -103,7 +104,9 @@ Future<int> _runCmd(
   // Project again a non executable path
 
   if (checkIfExecutable) {
-    await Guards.canExecute(execPath, args);
+    if (!await isExecutable(execPath)) {
+      throw FvmError('Cannot execute $execPath');
+    }
   }
 
   final process = await Process.start(

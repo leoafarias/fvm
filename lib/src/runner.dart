@@ -70,13 +70,6 @@ class FvmCommandRunner extends CommandRunner<int> {
 
   @override
   Future<int> run(Iterable<String> args) async {
-    Logger()
-      ..info('info')
-      ..alert('alert')
-      ..err('error')
-      ..success('success')
-      ..warn('warning')
-      ..detail('detail');
     try {
       final argResults = parse(args);
       if (argResults['verbose'] == true) {
@@ -95,22 +88,32 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..info('')
         ..info(usage);
       return ExitCode.usage.code;
-    } on FvmUsageException catch (e) {
+    } on FvmError catch (e, stackTrace) {
       logger
-        ..err(e.message)
-        ..info('')
-        ..info(usage);
-      return ExitCode.usage.code;
-    } on FvmError catch (e) {
-      logger
-        ..err(e.message)
-        ..err(e.stackTrace)
-        ..info('')
-        ..info(
+        ..err(e.toString())
+        ..spacer
+        ..detail('$stackTrace\n');
+
+      if (logger.level != Level.verbose) {
+        logger.info(
           'Please run command with  --verbose if you want more information',
         );
+      }
 
-      return ExitCode.usage.code;
+      return ExitCode.unavailable.code;
+    } on FvmProcessRunnerException catch (e) {
+      logger
+        ..err(e.message)
+        ..spacer
+        ..detail(e.result.stderr.toString());
+
+      if (logger.level != Level.verbose) {
+        logger.info(
+          'Please run command with  --verbose if you want more information',
+        );
+      }
+
+      return e.result.exitCode;
     } on UsageException catch (e) {
       // On usage errors, show the commands usage message and
       // exit with an error code
@@ -121,8 +124,8 @@ class FvmCommandRunner extends CommandRunner<int> {
 
       return ExitCode.usage.code;
     } on Exception catch (e) {
-      print(e.toString());
-      return ExitCode.usage.code;
+      logger.err(e.toString());
+      return ExitCode.unavailable.code;
     }
   }
 
@@ -130,9 +133,9 @@ class FvmCommandRunner extends CommandRunner<int> {
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
     logger
-      ..info('')
+      ..spacer
       ..detail('Argument information:')
-      ..detail('  Top level options:');
+      ..detail('Top level options:');
     for (final option in topLevelResults.options) {
       if (topLevelResults.wasParsed(option)) {
         logger.detail('  - $option: ${topLevelResults[option]}');

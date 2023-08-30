@@ -63,52 +63,27 @@ class GitTools {
       versionDir.path,
     ].join(' ');
 
-    final process = await runProcess(
-      'git clone --progress $cloneArgs',
-    );
-
-    if (process.exitCode != 0) {
-      // Did not cleanly exit clean up directory
-      await _cleanupVersionDir(versionDir);
-
-      throw FvmError(
-        'Could not git clone $version',
-        errorMessage: process.stderr.toString(),
+    try {
+      await ProcessRunner.startOrThrow(
+        'git clone --progress $cloneArgs',
+        description: 'Cloning Flutter repository',
       );
+    } on Exception {
+      await _cleanupVersionDir(versionDir);
+      rethrow;
     }
 
     /// If version has a channel reset
     if (version.needReset) {
       try {
         await _resetRepository(versionDir, version: version.version);
-      } on FvmError {
+      } on FvmException {
         await _cleanupVersionDir(versionDir);
         rethrow;
       }
     }
 
     return;
-  }
-
-  /// Creates a local git mirror of the Flutter repository
-  static Future<void> _createFlutterRepoMirror() async {
-    // Delete if already exists
-    if (await ctx.gitCacheDir.exists()) {
-      await ctx.gitCacheDir.delete(recursive: true);
-    }
-
-    await ctx.gitCacheDir.create(recursive: true);
-
-    final process = await startProcess(
-      'git clone --progress --mirror $kFlutterRepo ${ctx.gitCacheDir.path}',
-    );
-
-    if (process.exitCode != 0) {
-      throw FvmError(
-        'Could not create local mirror of Flutter repository}',
-        errorMessage: process.stderr.toString(),
-      );
-    }
   }
 
   /// Updates local Flutter repo mirror
@@ -118,20 +93,17 @@ class GitTools {
 
     // If cache file does not exists create it
     if (!cacheExists) {
-      final progress = logger.progress(
-        'Creating local mirror of Flutter repo...',
+      await ctx.gitCacheDir.create(recursive: true);
+      await ProcessRunner.startOrThrow(
+        'git clone --progress --mirror $kFlutterRepo ${ctx.gitCacheDir.path}',
+        description: 'Creating local mirror of Flutter repository',
       );
-
-      await _createFlutterRepoMirror();
-      progress.complete('Mirror created.');
     } else {
-      final progress =
-          logger.progress('Updating local mirror of Flutter repo...');
-      await runProcess(
+      await ProcessRunner.startOrThrow(
         'git remote update',
+        description: 'Updating local Flutter repo mirror',
         workingDirectory: ctx.gitCacheDir.path,
       );
-      logger.success('Update complete.');
     }
   }
 
@@ -143,13 +115,10 @@ class GitTools {
 
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
-    final result = await runProcess(
+    final result = await ProcessRunner.runOrThrow(
       'git ls-remote --tags --refs $kFlutterRepo',
+      description: 'Fetching Flutter tags',
     );
-
-    if (result.exitCode != 0) {
-      throw Exception('Could not fetch list of available Flutter SDKs');
-    }
 
     var tags = result.stdout.split('\n') as List<String>;
 
@@ -168,8 +137,9 @@ class GitTools {
   /// Returns the [name] of a branch or tag for a [version]
   static Future<String?> getBranch(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runProcess(
+    final result = await ProcessRunner.runOrThrow(
       'git rev-parse --abbrev-ref HEAD',
+      description: 'Fetching Flutter branch',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -178,8 +148,9 @@ class GitTools {
   /// Returns the [name] of a tag [version]
   static Future<String?> getTag(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runProcess(
+    final result = await ProcessRunner.runOrThrow(
       'git describe --tags --exact-match',
+      description: 'Fetching Flutter tag',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -187,22 +158,16 @@ class GitTools {
 
   /// Resets the repository at [directory] to [version] using `git reset`
   ///
-  /// Throws [FvmError] if `git`'s exit code is not 0.
+  /// Throws [FvmException] if `git`'s exit code is not 0.
   static Future<void> _resetRepository(
     Directory directory, {
     required String version,
   }) async {
-    final process = await runProcess(
+    await ProcessRunner.runOrThrow(
       'git reset --hard $version',
+      description: 'Resetting cached Flutter repository',
       workingDirectory: directory.path,
     );
-
-    if (process.exitCode != 0) {
-      throw FvmError(
-        'Could not reset repository $version: ${process.exitCode}',
-        errorMessage: process.stderr.toString(),
-      );
-    }
   }
 
   /// Add `` to `.gitignore` file
@@ -230,8 +195,7 @@ class GitTools {
         writeContent,
         mode: FileMode.append,
       );
-      Logger.fine('Added ".fvm/flutter_sdk" to .gitignore.');
+      logger.success('Added ".fvm/flutter_sdk" to .gitignore.');
     }
-    Logger.spacer();
   }
 }

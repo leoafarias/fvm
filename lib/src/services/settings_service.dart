@@ -67,8 +67,9 @@ class SettingsService {
       await settingsFile.writeAsString(settings.toJson());
       // Store in memory
       _settings = settings;
-    } on Exception {
-      throw FvmError('Could not save FVM settings');
+    } on Exception catch (err, stackTrace) {
+      throw FvmExceptionStackTrace(
+          'Could not save FVM settings', err, stackTrace);
     }
   }
 }

@@ -16,20 +16,22 @@ class FlutterTools {
     if (version.isChannel) {
       await runFlutter(version, ['upgrade']);
     } else {
-      throw Exception('Can only upgrade Flutter Channels');
+      throw FvmUsageException('Can only upgrade Flutter Channels');
     }
   }
 
   /// Runs triggers sdk setup/install
   static Future<void> setupSdk(CacheVersion version) async {
-    Logger.info('Setting up Flutter SDK: ${version.name}');
-    Logger.spacer();
+    logger
+      ..info('Setting up Flutter SDK: ${version.name}')
+      ..spacer;
     try {
       await runFlutter(version, ['doctor', '--version']);
-    } on Exception catch (err) {
-      logger.trace(err.toString());
-      throw const FvmError(
+    } on Exception catch (err, stackTrace) {
+      throw FvmExceptionStackTrace(
         'Could not finish setting up Flutter sdk.',
+        err,
+        stackTrace,
       );
     }
   }

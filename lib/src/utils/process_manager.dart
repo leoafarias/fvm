@@ -58,11 +58,10 @@ class ProcessRunner {
     return result;
   }
 
-  static Future<void> runOrThrow(
+  static Future<ProcessResult> runOrThrow(
     String command, {
-    /// Error message to throw
-    /// Will also log stderr
-    required String errorMessage,
+    /// Description of the command
+    required String description,
     String? workingDirectory,
   }) async {
     final result = await run(
@@ -72,17 +71,17 @@ class ProcessRunner {
 
     if (result.exitCode != 0) {
       throw FvmProcessRunnerException(
-        errorMessage,
+        'Could not complete: $description',
         result: result,
       );
     }
+
+    return result;
   }
 
   static Future<void> startOrThrow(
     String command, {
-    /// Error message to throw
-    /// Will also log stderr
-    required String errorMessage,
+    required String description,
     String? workingDirectory,
   }) async {
     final result = await start(
@@ -92,13 +91,14 @@ class ProcessRunner {
 
     if (result.exitCode != 0) {
       throw FvmProcessRunnerException(
-        errorMessage,
+        'Could not: $description',
         result: result,
       );
     }
   }
 }
 
+@Deprecated('Use ProcessRunner')
 Future<ProcessResult> runProcess(
   String command, {
   String? workingDirectory,
@@ -109,6 +109,7 @@ Future<ProcessResult> runProcess(
   );
 }
 
+@Deprecated('Use ProcessRunner')
 Future<ProcessResult> startProcess(
   String command, {
   String? workingDirectory,

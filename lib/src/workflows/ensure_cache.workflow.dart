@@ -44,6 +44,7 @@ Future<CacheVersion> ensureCacheWorkflow(
 
       final cacheVersion = await CacheService.getVersionCache(validVersion);
       if (cacheVersion == null) {
+        progress.fail('Could not install $validVersion');
         throw FvmError('Could not cache version $validVersion');
       }
       progress.complete();
@@ -53,7 +54,10 @@ Future<CacheVersion> ensureCacheWorkflow(
       exit(ExitCode.success.code);
     }
   } on Exception catch (err) {
-    logger.detail(err.toString());
-    throw FvmError('Could not install $validVersion');
+    if (err is FvmException) {
+      rethrow;
+    } else {
+      throw FvmError('Failed to ensure $validVersion is cached.');
+    }
   }
 }

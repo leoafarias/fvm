@@ -85,9 +85,7 @@ class FVMContext {
   }
 
   /// FVM Home dir
-  Directory get fvmHome {
-    return _fvmHomeDir;
-  }
+  Directory get fvmHome => _fvmHomeDir;
 
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
@@ -112,14 +110,16 @@ class FVMContext {
   }
 
   /// Returns the configured Flutter repository
-  String get flutterRepo {
-    return kFlutterRepo;
-  }
+  String get flutterRepo => kFlutterRepo;
+
+  /// Where Default Flutter SDK is stored
+  Link get globalCacheLink => Link(join(_fvmHomeDir.path, 'default'));
+
+  /// Directory for Global Flutter SDK bin
+  String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
   @override
-  String toString() {
-    return name;
-  }
+  String toString() => name;
 
   /// Runs context zoned
   V run<V>({

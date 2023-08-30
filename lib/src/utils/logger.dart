@@ -5,6 +5,18 @@ import 'package:mason_logger/mason_logger.dart';
 /// Sets default logger mode
 final logger = Logger();
 
+extension LoggerExtension on Logger {
+  void get divider {
+    info(
+      '------------------------------------------------------------',
+    );
+  }
+
+  void get spacer {
+    info('');
+  }
+}
+
 /// Logger for FVM
 /// Console controller instance
 final consoleController = ConsoleController();

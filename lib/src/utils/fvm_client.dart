@@ -73,4 +73,19 @@ class FVMClient {
 
   /// Fetches all flutter releases
   static final getFlutterReleases = fetchFlutterReleases;
+
+  /// Returns true if [cacheVersion] is configured as global
+  static final checkIfGlobal = CacheService.isGlobal;
+
+  /// Returns true if FVM global version is configured corretly
+  static final checkIfGlobalConfigured = CacheService.isGlobalConfigured;
+
+  /// Returns sync a global configured cache version
+  static final getGlobalVersionSync = CacheService.getGlobalVersionSync;
+
+  /// Returns async a global configured cache version
+  static final getGlobal = CacheService.getGlobal;
+
+  /// Sets a [version] as global
+  static final setGlobalVersion = CacheService.setGlobal;
 }

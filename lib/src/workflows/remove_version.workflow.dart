@@ -18,8 +18,11 @@ Future<void> removeWorkflow(ValidVersion validVersion) async {
       logger.warn('Version is not installed: $validVersion');
     }
   } on Exception catch (err) {
-    logger.detail(err.toString());
     progress.fail('Could not remove $validVersion');
-    throw FvmError('Could not remove $validVersion');
+    if (err is FvmException) {
+      rethrow;
+    } else {
+      throw FvmError('Could not remove $validVersion');
+    }
   }
 }
