@@ -25,7 +25,7 @@ void main() {
       final existingChannel = await GitTools.getBranch(channel);
 
       final cacheVersion =
-          await CacheService.isVersionCached(ValidVersion(channel));
+          await CacheService.getVersionCache(ValidVersion(channel));
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
@@ -46,8 +46,9 @@ void main() {
       try {
         // Run foce to test within fvm
 
-        await FvmCommandRunner()
-            .run(['use', channel, '--force', '--verbose', '--config-vsc']);
+        await FvmCommandRunner().run(
+          ['use', channel, '--force', '--verbose'],
+        );
         final project = await ProjectService.findAncestor();
 
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -96,7 +97,7 @@ void main() {
         final valid = ValidVersion(release);
         final existingRelease = await GitTools.getTag(valid.name);
 
-        final cacheVersion = await CacheService.isVersionCached(valid);
+        final cacheVersion = await CacheService.getVersionCache(valid);
 
         expect(cacheVersion != null, true, reason: 'Install does not exist');
 

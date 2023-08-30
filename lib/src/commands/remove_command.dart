@@ -9,6 +9,8 @@ import 'base_command.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends BaseCommand {
+  RemoveCommand();
+
   @override
   final name = 'remove';
 
@@ -30,11 +32,11 @@ class RemoveCommand extends BaseCommand {
     // Assign if its empty
     version ??= argResults!.rest[0];
     final validVersion = ValidVersion(version);
-    final cacheVersion = await CacheService.isVersionCached(validVersion);
+    final cacheVersion = await CacheService.getVersionCache(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {
-      Logger.info('Flutter SDK: $validVersion is not installed');
+      logger.info('Flutter SDK: $validVersion is not installed');
       return ExitCode.success.code;
     }
 

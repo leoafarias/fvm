@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:path/path.dart';
 
 import '../models/cache_version_model.dart';
@@ -55,13 +53,11 @@ class CacheService {
     }
   }
 
-  /// Verifies that cache is correct
-  /// returns 'true' if cache is correct 'false' if its not
-  static Future<bool> verifyIntegrity(CacheVersion version) async {
-    final gitDir = Directory(join(version.dir.path, '.github'));
-    final flutterBin = Directory(join(version.dir.path, 'bin'));
-
-    return await gitDir.exists() && await flutterBin.exists();
+  // Verifies that the cache version name matches the flutter version
+  static Future<bool> verifyVersionMatch(CacheVersion version) async {
+    // If its a channel return true
+    if (version.isChannel) return true;
+    return version.sdkVersion == version.name;
   }
 
   /// Caches version a [validVersion] and returns [CacheVersion]
@@ -70,21 +66,12 @@ class CacheService {
   }
 
   /// Checks if a [validVersion] is cached correctly, and cleans up if its not
-  static Future<CacheVersion?> isVersionCached(
+  /// Returns the cache version if its valid
+  static Future<CacheVersion?> getVersionCache(
     ValidVersion validVersion,
   ) async {
-    final cacheVersion = await CacheService.getByVersionName(validVersion.name);
-    // Return false if not cached
-    if (cacheVersion == null) return null;
-
-    // Check if version directory is from git
-    if (!await CacheService.verifyIntegrity(cacheVersion)) {
-      print(
-        '$validVersion exists but was not setup correctly. Doing cleanup...',
-      );
-      await CacheService.remove(cacheVersion);
-      return null;
-    }
-    return cacheVersion;
+    return await CacheService.getByVersionName(
+      validVersion.name,
+    );
   }
 }

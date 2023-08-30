@@ -28,8 +28,8 @@ class FlutterTools {
       await runFlutter(version, ['doctor', '--version']);
     } on Exception catch (err) {
       logger.trace(err.toString());
-      throw const FvmInternalError(
-        'Could not finish setting up Flutter sdk. Use `--verbose` for more details',
+      throw const FvmError(
+        'Could not finish setting up Flutter sdk.',
       );
     }
   }
@@ -39,9 +39,9 @@ class FlutterTools {
     try {
       await runFlutter(version, ['pub', 'get']);
     } on Exception catch (err) {
-      logger.trace(err.toString());
-      logger.stderr(
-        'Could not resolve dependencies. Use `--verbose` for more details',
+      logger.detail(err.toString());
+      logger.err(
+        'Could not resolve dependencies.',
       );
       return;
     }

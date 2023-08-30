@@ -1,14 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cli_notify/cli_notify.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../services/context.dart';
-import '../version.dart';
 import 'logger.dart';
 
 /// Checks if [name] is a channel
@@ -41,7 +39,7 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
 
     final sourceExists = await source.exists();
     if (sourceExists && await source.target() == target.path) {
-      logger.trace('Link is setup correctly');
+      logger.detail('Link is setup correctly');
       return;
     }
 
@@ -54,7 +52,7 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
       recursive: true,
     );
   } on FileSystemException catch (e) {
-    logger.trace(e.toString());
+    logger.detail(e.toString());
 
     var message = '';
     if (Platform.isWindows) {
@@ -179,21 +177,13 @@ String assignVersionWeight(String version) {
   return version;
 }
 
-/// Check if there is an update for FVM
-Future<void> checkForFvmUpdate() async {
-  await Notify(
-    packageName: 'fvm',
-    currentVersion: packageVersion,
-  ).update();
-}
-
 /// Check if fvm is in cache directory
 bool isFvmInstalledGlobally() {
   /// Segment of the path where Pub caches global packages
 
-  logger.trace(Platform.isWindows.toString());
+  logger.detail(Platform.isWindows.toString());
   final pubCacheSegment = Platform.isWindows ? 'Pub/Cache' : ".pub-cache";
-  logger.trace(Platform.script.path);
+  logger.detail(Platform.script.path);
   return Platform.script.path.contains(pubCacheSegment);
 }
 

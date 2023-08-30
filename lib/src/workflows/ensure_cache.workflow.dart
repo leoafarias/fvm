@@ -18,16 +18,16 @@ Future<CacheVersion> ensureCacheWorkflow(
 }) async {
   try {
     // If it's installed correctly just return and use cached
-    final cacheVersion = await CacheService.isVersionCached(validVersion);
+    final cacheVersion = await CacheService.getVersionCache(validVersion);
 
     // Returns cache if already exists
     if (cacheVersion != null) {
-      Logger.fine('Flutter SDK: $validVersion - already installed.');
+      logger.info('Flutter SDK: $validVersion - already installed.');
 
       return cacheVersion;
     }
 
-    Logger.info('Flutter SDK: $validVersion is not installed.');
+    logger.info('Flutter SDK: $validVersion is not installed.');
 
     // If its a custom version do not proceed on install process
     if (validVersion.custom == true) {
@@ -37,24 +37,23 @@ Future<CacheVersion> ensureCacheWorkflow(
     // Install if input is confirmed
     // allows ot skip confirmation for testing purpose
     if (skipConfirmation || await confirm('Would you like to install it?')) {
-      Logger.spacer();
-      Logger.fine('Installing version: $validVersion...');
+      final progress = logger.progress('Installing version: $validVersion...');
 
       // Cache version locally
       await CacheService.cacheVersion(validVersion);
 
-      final cacheVersion = await CacheService.isVersionCached(validVersion);
+      final cacheVersion = await CacheService.getVersionCache(validVersion);
       if (cacheVersion == null) {
-        throw FvmInternalError('Could not cache version $validVersion');
+        throw FvmError('Could not cache version $validVersion');
       }
-
+      progress.complete();
       return cacheVersion;
     } else {
       // Exit if don't want to install
       exit(ExitCode.success.code);
     }
   } on Exception catch (err) {
-    logger.trace(err.toString());
-    throw FvmInternalError('Could not install $validVersion');
+    logger.detail(err.toString());
+    throw FvmError('Could not install $validVersion');
   }
 }

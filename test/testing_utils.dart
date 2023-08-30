@@ -151,11 +151,11 @@ void groupWithContext(
         isTest: true,
         body: () {
           setUpAll(() async {
-            groupSetUp();
+            await groupSetUp();
             await setUpAllFn?.call();
           });
           tearDownAll(() async {
-            groupTearDown();
+            await groupTearDown();
             await tearDownFn?.call();
           });
           body();

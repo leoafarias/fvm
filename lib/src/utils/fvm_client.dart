@@ -38,7 +38,7 @@ class FVMClient {
   /// Triggers finish setup (sdk dependency downloads) for [versionName]
   static Future<void> setup(String versionName) async {
     final validVersion = ValidVersion(versionName);
-    final cacheVersion = await CacheService.isVersionCached(validVersion);
+    final cacheVersion = await CacheService.getVersionCache(validVersion);
     if (cacheVersion == null) {
       throw Exception('Cannot setup version that is not in cache');
     }

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/run_command.dart';
+import 'package:fvm/src/utils/process_manager.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
@@ -70,15 +70,18 @@ class GitTools {
     if (process.exitCode != 0) {
       // Did not cleanly exit clean up directory
       await _cleanupVersionDir(versionDir);
-      logger.trace(process.stderr.toString());
-      throw FvmInternalError('Could not git clone $version');
+
+      throw FvmError(
+        'Could not git clone $version',
+        errorMessage: process.stderr.toString(),
+      );
     }
 
     /// If version has a channel reset
     if (version.needReset) {
       try {
         await _resetRepository(versionDir, version: version.version);
-      } on FvmInternalError {
+      } on FvmError {
         await _cleanupVersionDir(versionDir);
         rethrow;
       }
@@ -96,13 +99,14 @@ class GitTools {
 
     await ctx.gitCacheDir.create(recursive: true);
 
-    final process = await runProcess(
+    final process = await startProcess(
       'git clone --progress --mirror $kFlutterRepo ${ctx.gitCacheDir.path}',
     );
 
     if (process.exitCode != 0) {
-      throw FvmInternalError(
-        'Could not create local mirror of Flutter repo: ${process.stderr}}',
+      throw FvmError(
+        'Could not create local mirror of Flutter repository}',
+        errorMessage: process.stderr.toString(),
       );
     }
   }
@@ -114,16 +118,20 @@ class GitTools {
 
     // If cache file does not exists create it
     if (!cacheExists) {
-      Logger.info('Creating local mirror of Flutter repo...');
+      final progress = logger.progress(
+        'Creating local mirror of Flutter repo...',
+      );
+
       await _createFlutterRepoMirror();
-      Logger.fine('Creation complete.');
+      progress.complete('Mirror created.');
     } else {
-      Logger.info('Updating local mirror of Flutter repo...');
+      final progress =
+          logger.progress('Updating local mirror of Flutter repo...');
       await runProcess(
         'git remote update',
         workingDirectory: ctx.gitCacheDir.path,
       );
-      Logger.fine('Update complete.');
+      logger.success('Update complete.');
     }
   }
 
@@ -135,8 +143,8 @@ class GitTools {
 
   /// Lists repository tags
   static Future<List<String>> getFlutterTags() async {
-    final result = await runGit(
-      'ls-remote --tags --refs $kFlutterRepo',
+    final result = await runProcess(
+      'git ls-remote --tags --refs $kFlutterRepo',
     );
 
     if (result.exitCode != 0) {
@@ -160,8 +168,8 @@ class GitTools {
   /// Returns the [name] of a branch or tag for a [version]
   static Future<String?> getBranch(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runGit(
-      'rev-parse --abbrev-ref HEAD',
+    final result = await runProcess(
+      'git rev-parse --abbrev-ref HEAD',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -170,8 +178,8 @@ class GitTools {
   /// Returns the [name] of a tag [version]
   static Future<String?> getTag(String version) async {
     final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await runGit(
-      'describe --tags --exact-match',
+    final result = await runProcess(
+      'git describe --tags --exact-match',
       workingDirectory: versionDir.path,
     );
     return result.stdout.trim() as String;
@@ -179,21 +187,20 @@ class GitTools {
 
   /// Resets the repository at [directory] to [version] using `git reset`
   ///
-  /// Throws [FvmInternalError] if `git`'s exit code is not 0.
+  /// Throws [FvmError] if `git`'s exit code is not 0.
   static Future<void> _resetRepository(
     Directory directory, {
     required String version,
   }) async {
-    final reset = await runGit(
-      'reset --hard $version',
+    final process = await runProcess(
+      'git reset --hard $version',
       workingDirectory: directory.path,
     );
 
-    if (reset.exitCode != 0) {
-      logger.trace(reset.stderr.toString());
-
-      throw FvmInternalError(
-        'Could not git reset $version: ${reset.exitCode}',
+    if (process.exitCode != 0) {
+      throw FvmError(
+        'Could not reset repository $version: ${process.exitCode}',
+        errorMessage: process.stderr.toString(),
       );
     }
   }

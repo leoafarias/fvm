@@ -2,6 +2,8 @@ import 'package:args/command_runner.dart';
 
 /// Base Command
 abstract class BaseCommand extends Command<int> {
+  BaseCommand();
+
   @override
   String get invocation => 'fvm $name';
 

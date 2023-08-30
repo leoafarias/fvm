@@ -2,8 +2,12 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/src/commands/git_cache_command.dart';
-import 'package:io/io.dart';
+import 'package:fvm/src/commands/update_command.dart';
+import 'package:fvm/src/utils/logger.dart';
+import 'package:mason_logger/mason_logger.dart';
+import 'package:pub_updater/pub_updater.dart';
 
 import '../exceptions.dart';
 import 'commands/config_command.dart';
@@ -19,31 +23,28 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
-import 'utils/helpers.dart';
-import 'utils/logger.dart';
 import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
   /// Constructor
-  FvmCommandRunner()
-      : super('fvm',
-            '''Flutter Version Management: A cli to manage Flutter SDK versions.''') {
+  FvmCommandRunner({
+    PubUpdater? pubUpdater,
+  })  : _pubUpdater = pubUpdater ?? PubUpdater(),
+        super(
+          kPackageName,
+          kDescription,
+        ) {
     argParser
       ..addFlag(
         'verbose',
         help: 'Print verbose output.',
-        negatable: false,
-        callback: (verbose) {
-          if (verbose) {
-            Logger.setVerbose();
-          }
-        },
       )
       ..addFlag(
         'version',
-        help: 'current version',
+        abbr: 'v',
         negatable: false,
+        help: 'Print the current version.',
       );
     addCommand(InstallCommand());
     addCommand(UseCommand());
@@ -59,46 +60,65 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(DestroyCommand());
     addCommand(ExecCommand());
     addCommand(GitCacheCommand());
+    addCommand(UpdateCommand());
   }
+
+  final PubUpdater _pubUpdater;
+
+  @override
+  void printUsage() => logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
+    Logger()
+      ..info('info')
+      ..alert('alert')
+      ..err('error')
+      ..success('success')
+      ..warn('warning')
+      ..detail('detail');
     try {
       final argResults = parse(args);
-
-      // Command might be null
-      final cmd = argResults.command?.name;
+      if (argResults['verbose'] == true) {
+        logger.level = Level.verbose;
+      }
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
-      // Check if its running the latest version of FVM
-      if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
-        // Check if there is an update for FVM
-        await checkForFvmUpdate();
-      }
       return exitCode;
-    } on FvmUsageException catch (e) {
-      Logger.spacer();
-      Logger.warning(e.message);
-      Logger.spacer();
+    } on FormatException catch (e, stackTrace) {
+      // On format errors, show the commands error message, root usage and
+      // exit with an error code
+      logger
+        ..err(e.message)
+        ..err('$stackTrace')
+        ..info('')
+        ..info(usage);
       return ExitCode.usage.code;
-    } on FvmInternalError catch (e) {
-      Logger.spacer();
-      Logger.error(e.message);
-      Logger.spacer();
-
-      Logger.info(
-        'Please run command with  --verbose if you want more information',
-      );
-      Logger.spacer();
+    } on FvmUsageException catch (e) {
+      logger
+        ..err(e.message)
+        ..info('')
+        ..info(usage);
+      return ExitCode.usage.code;
+    } on FvmError catch (e) {
+      logger
+        ..err(e.message)
+        ..err(e.stackTrace)
+        ..info('')
+        ..info(
+          'Please run command with  --verbose if you want more information',
+        );
 
       return ExitCode.usage.code;
     } on UsageException catch (e) {
-      Logger.spacer();
-      Logger.warning(e.message);
-      Logger.spacer();
-      Logger.info(e.usage);
-      Logger.spacer();
+      // On usage errors, show the commands usage message and
+      // exit with an error code
+      logger
+        ..err(e.message)
+        ..info('')
+        ..info(e.usage);
+
       return ExitCode.usage.code;
     } on Exception catch (e) {
       print(e.toString());
@@ -108,11 +128,65 @@ class FvmCommandRunner extends CommandRunner<int> {
 
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
-    if (topLevelResults['version'] == true) {
-      Logger.info(packageVersion);
-      return ExitCode.success.code;
+    // Verbose logs
+    logger
+      ..info('')
+      ..detail('Argument information:')
+      ..detail('  Top level options:');
+    for (final option in topLevelResults.options) {
+      if (topLevelResults.wasParsed(option)) {
+        logger.detail('  - $option: ${topLevelResults[option]}');
+      }
+    }
+    if (topLevelResults.command != null) {
+      final commandResult = topLevelResults.command!;
+      logger
+        ..detail('  Command: ${commandResult.name}')
+        ..detail('    Command options:');
+      for (final option in commandResult.options) {
+        if (commandResult.wasParsed(option)) {
+          logger.detail('    - $option: ${commandResult[option]}');
+        }
+      }
     }
 
-    return super.runCommand(topLevelResults);
+    // Run the command or show version
+    final int? exitCode;
+    if (topLevelResults['version'] == true) {
+      logger.info(packageVersion);
+      exitCode = ExitCode.success.code;
+    } else {
+      exitCode = await super.runCommand(topLevelResults);
+    }
+
+    // Command might be null
+    final cmd = topLevelResults.command?.name;
+
+    // Check if its running the latest version of FVM
+    if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
+      // Check if there is an update for FVM
+      await _checkForUpdates();
+    }
+
+    return exitCode;
+  }
+
+  /// Checks if the current version (set by the build runner on the
+  /// version.dart file) is the most recent one. If not, show a prompt to the
+  /// user.
+  Future<void> _checkForUpdates() async {
+    try {
+      final latestVersion = await _pubUpdater.getLatestVersion(kDescription);
+      final isUpToDate = packageVersion == latestVersion;
+      if (!isUpToDate) {
+        logger
+          ..info('')
+          ..info(
+            '''
+${lightYellow.wrap('Update available!')} ${lightCyan.wrap(packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
+Run ${lightCyan.wrap('$executableName update')} to update''',
+          );
+      }
+    } catch (_) {}
   }
 }

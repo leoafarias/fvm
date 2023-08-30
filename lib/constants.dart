@@ -2,6 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
+const kPackageName = 'fvm';
+const kDescription =
+    'Flutter Version Management: A cli to manage Flutter SDK versions.';
+
 /// Project directory for fvm
 const kFvmDirName = '.fvm';
 

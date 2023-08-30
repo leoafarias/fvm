@@ -9,6 +9,8 @@ import 'base_command.dart';
 
 /// Proxies Dart Commands
 class DartCommand extends BaseCommand {
+  DartCommand();
+
   @override
   final name = 'dart';
   @override
@@ -27,7 +29,7 @@ class DartCommand extends BaseCommand {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-      logger.trace('fvm: running Dart from Flutter "$version"\n');
+      logger.detail('fvm: running Dart from Flutter "$version"\n');
 
       // Runs flutter command with pinned version
       return await runDart(cacheVersion, args);

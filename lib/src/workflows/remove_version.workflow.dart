@@ -5,20 +5,21 @@ import '../utils/logger.dart';
 
 /// Triggers the workflow to remove a [validVersion]
 Future<void> removeWorkflow(ValidVersion validVersion) async {
-  Logger.info('Removing $validVersion...');
+  final progress = logger.progress('Removing $validVersion...');
   try {
-    final cacheVersion = await CacheService.isVersionCached(validVersion);
+    final cacheVersion = await CacheService.getVersionCache(validVersion);
 
     /// Remove if version is cached
     if (cacheVersion != null) {
       await CacheService.remove(cacheVersion);
 
-      Logger.fine('$validVersion removed.');
+      progress.complete('$validVersion removed.');
     } else {
-      Logger.warning('Version is not installed: $validVersion');
+      logger.warn('Version is not installed: $validVersion');
     }
   } on Exception catch (err) {
-    logger.trace(err.toString());
-    throw FvmInternalError('Could not remove $validVersion');
+    logger.detail(err.toString());
+    progress.fail('Could not remove $validVersion');
+    throw FvmError('Could not remove $validVersion');
   }
 }

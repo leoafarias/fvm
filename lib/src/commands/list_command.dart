@@ -1,7 +1,6 @@
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
-import '../../exceptions.dart';
 import '../services/cache_service.dart';
 import '../services/context.dart';
 import '../services/project_service.dart';
@@ -28,14 +27,17 @@ class ListCommand extends BaseCommand {
     final cacheVersions = await CacheService.getAllVersions();
     ctx.cacheDir.path;
     if (cacheVersions.isEmpty) {
-      throw const FvmUsageException(
+      logger.info(
         'No SDKs have been installed yet. Flutter. SDKs'
         ' installed outside of fvm will not be displayed.',
       );
+      return ExitCode.success.code;
     }
 
     // Print where versions are stored
-    Logger.info('Cache Directory:  ${yellow.wrap(ctx.cacheDir.path)}\n');
+    logger
+      ..info('Cache Directory:  ${yellow.wrap(ctx.cacheDir.path)}')
+      ..info('');
 
     // Get current project
     final project = await ProjectService.findAncestor();

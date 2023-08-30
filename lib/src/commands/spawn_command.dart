@@ -37,7 +37,7 @@ class SpawnCommand extends BaseCommand {
     // Will install version if not already instaled
     final cacheVersion = await ensureCacheWorkflow(validVersion);
     // Runs flutter command with pinned version
-    Logger.info('Spawning version "$version"...');
+    logger.info('Spawning version "$version"...');
 
     return await runFlutter(cacheVersion, flutterArgs);
   }

@@ -46,7 +46,9 @@ class ProjectService {
   }
 
   /// Scans for Flutter projects found in the rootDir
-  static Future<List<Project>> scanDirectory({Directory? rootDir}) async {
+  static Future<List<Project>> scanDirectory({
+    Directory? rootDir,
+  }) async {
     final paths = <Directory>[];
 
     if (rootDir == null) {

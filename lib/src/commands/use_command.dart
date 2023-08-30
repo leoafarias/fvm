@@ -84,7 +84,7 @@ class UseCommand extends BaseCommand {
 
     /// Pin release to channel
     if (pinOption && validVersion.isChannel) {
-      Logger.info(
+      logger.info(
         'Pinning version $validVersion fron "$version" release channel...',
       );
       validVersion = await FlutterTools.inferReleaseFromChannel(validVersion);

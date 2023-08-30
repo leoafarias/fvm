@@ -41,7 +41,7 @@ class ExecCommand extends BaseCommand {
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-      logger.trace('fvm: running version "$version"\n');
+      logger.info('fvm: running version "$version"\n');
       // If its not a channel silence version check
 
       // Runs exec command with pinned version

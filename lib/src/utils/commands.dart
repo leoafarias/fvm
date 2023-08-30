@@ -68,7 +68,7 @@ Future<int> runDartGlobal(List<String> args) async {
   // Get exec path for dart
   final execPath = whichSync('dart') ?? '';
 
-  logger.trace(
+  logger.detail(
     'fvm: Running using Dart/Flutter version configured in path.\n',
   );
 
@@ -82,7 +82,7 @@ Future<int> runDartGlobal(List<String> args) async {
 /// Runs flutter from global version
 Future<int> runFlutterGlobal(List<String> args) {
   final execPath = whichSync('flutter') ?? '';
-  logger.trace(
+  logger.detail(
     'fvm: Running Flutter SDK configured on environment PATH. $execPath',
   );
 

@@ -45,7 +45,7 @@ void main() {
 
     /// Override valid version for testing purposes
     final cacheVersion =
-        await CacheService.isVersionCached(ValidVersion(invalidVersionName));
+        await CacheService.getVersionCache(ValidVersion(invalidVersionName));
     expect(cacheVersion != null, false);
   });
 }

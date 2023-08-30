@@ -55,7 +55,7 @@ Future<FlutterReleases> fetchFlutterReleases({
       return Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
       logger.trace(err.toString());
-      throw FvmInternalError(
+      throw FvmError(
         'Failed to retrieve the Flutter SDK from: ${getGoogleReleaseUrl()}\n'
         'Fvm will use the value set on '
         'env FLUTTER_STORAGE_BASE_URL to check versions\n'

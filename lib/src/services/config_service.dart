@@ -41,7 +41,7 @@ class ConfigService {
       }
       await config.configFile.writeAsString(config.toJson());
     } on Exception {
-      throw FvmInternalError('Could not save config changes');
+      throw FvmError('Could not save config changes');
     }
     await updateSdkLink(config);
   }

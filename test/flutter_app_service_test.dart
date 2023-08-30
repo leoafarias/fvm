@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'testing_utils.dart';
 
 void main() {
-  group('Flutter Projects', () {
+  groupWithContext('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
         final project = await ProjectService.getByDirectory(kFlutterAppDir);
@@ -44,7 +44,7 @@ void main() {
 
     test('Can find Flutter Project', () async {
       final projects = await ProjectService.scanDirectory(
-        rootDir: kSupportAssetsDir,
+        rootDir: getTempTestDirectory('apps'),
       );
       expect(projects.length, 1);
     });

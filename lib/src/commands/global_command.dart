@@ -19,7 +19,7 @@ class GlobalCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    Logger.fine(
+    logger.success(
       '''This command has been deprecated on version FVM 3.0.
       We recomend using a standard Flutter SDK setup for global Flutter version,
       and using FVM for project specific Flutter versions.\n

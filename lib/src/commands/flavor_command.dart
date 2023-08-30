@@ -1,6 +1,6 @@
+import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
-import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
@@ -31,16 +31,14 @@ class FlavorCommand extends BaseCommand {
 
     // If project use check that is Flutter project
     if (project.config.exists == false) {
-      throw FvmUsageException(
-        'Cannot find any FVM config in project.',
-      );
+      logger.info('Cannot find any FVM config in project.');
+      return ExitCode.success.code;
     }
     if (argResults!.rest.isEmpty) {
       flavor = await projectFlavorSelector(project);
       if (flavor == null) {
-        throw FvmUsageException(
-          'No flavors configured in the project',
-        );
+        logger.info('No flavors configured in the project');
+        return ExitCode.success.code;
       }
     }
 
@@ -53,15 +51,16 @@ class FlavorCommand extends BaseCommand {
 
     // Check if env confi exists
     if (envVersion == null) {
-      throw FvmUsageException(
+      throw UsageException(
         'Flavor: "$flavor" is not configured',
+        'Make sure $flavor exists within the configuration',
       );
     }
 
     // Makes sure that is a valid version
     final validVersion = ValidVersion(envVersion);
 
-    Logger.info(
+    logger.info(
       'Switching to [$flavor] flavor, '
       'which uses [${validVersion.name}] Flutter sdk.',
     );
@@ -72,10 +71,12 @@ class FlavorCommand extends BaseCommand {
     // Pin version to project
     await ProjectService.pinVersion(project, validVersion);
 
-    Logger.fine(
-      'Now using [$flavor] flavor. '
-      'Flutter version [${validVersion.name}].\n',
-    );
+    logger
+      ..success(
+        'Now using [$flavor] flavor. '
+        'Flutter version [${validVersion.name}].',
+      )
+      ..info('');
 
     return ExitCode.success.code;
   }

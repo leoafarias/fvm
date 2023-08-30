@@ -32,7 +32,7 @@ class SettingsService {
       }
       return Future.value(_settings);
     } on Exception catch (err) {
-      logger.trace(err.toString());
+      logger.detail(err.toString());
       return _settings = SettingsDto.empty();
     }
   }
@@ -51,7 +51,7 @@ class SettingsService {
       }
       return _settings!;
     } on Exception catch (err) {
-      logger.trace(err.toString());
+      logger.detail(err.toString());
       return _settings = SettingsDto.empty();
     }
   }
@@ -68,7 +68,7 @@ class SettingsService {
       // Store in memory
       _settings = settings;
     } on Exception {
-      throw FvmInternalError('Could not save FVM settings');
+      throw FvmError('Could not save FVM settings');
     }
   }
 }

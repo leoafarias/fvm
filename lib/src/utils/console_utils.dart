@@ -34,10 +34,10 @@ Future<void> printVersionStatus(CacheVersion version, Project project) async {
   var printVersion = version.name;
 
   if (project.pinnedVersion == version.name) {
-    printVersion = '$printVersion (active)';
+    printVersion = '$printVersion ✓';
   }
 
-  Logger.info(printVersion);
+  logger.info(printVersion);
 }
 
 /// Allows to select from cached sdks.
@@ -55,16 +55,12 @@ Future<String> cacheVersionSelector() async {
 
   final versionsList = cacheVersions.map((version) => version.name).toList();
 
-  // Better legibility
-  Logger.spacer();
-
-  final chooser = Chooser<String>(
-    versionsList,
-    message: '\nSelect a version:',
+  final choise = logger.chooseOne(
+    'Select a veresion:',
+    choices: versionsList,
   );
 
-  final version = chooser.chooseSync();
-  return version;
+  return choise;
 }
 
 /// Select from project flavors
@@ -79,15 +75,14 @@ Future<String?> projectFlavorSelector(Project project) async {
     return null;
   }
 
-  Logger.fine('Project flavors configured for "${project.name}":\n');
+  logger.success('Project flavors configured for "${project.name}":\n');
 
-  final chooser = Chooser<String>(
-    envList,
-    message: '\nSelect an environment: ',
+  final choise = logger.chooseOne(
+    'Select an environment',
+    choices: envList,
   );
 
-  final version = chooser.chooseSync();
-  return version;
+  return choise;
 }
 
 /// Replicate Flutter cli behavior during run
@@ -116,7 +111,7 @@ void switchLineMode(bool active, List<String> args) {
     }
   } on Exception catch (err) {
     // Trace but silent the error
-    logger.trace(err.toString());
+    logger.detail(err.toString());
     return;
   }
 }
