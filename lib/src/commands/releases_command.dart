@@ -1,4 +1,3 @@
-import 'package:console/console.dart';
 import 'package:date_format/date_format.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
@@ -27,7 +26,7 @@ class ReleasesCommand extends BaseCommand {
     for (var release in versions) {
       final version = yellow.wrap(release.version.padRight(17));
 
-      final pipe = Icon.PIPE_VERTICAL;
+      final pipe = '|';
       final friendlyDate =
           formatDate(release.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
 

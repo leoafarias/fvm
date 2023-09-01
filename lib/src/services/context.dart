@@ -1,158 +1,136 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
+import 'package:scope/scope.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
-import 'settings_service.dart';
 
-/// The Zone key used to look up the [FvmContext].
-const _contextKey = #fvmContext;
+final contextKey = ScopeKey<FVMContext>();
 
-// Used for overriding and forcing zone
-FVMContext? _currentContextOverride;
+FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
-/// FVM Context
-FVMContext get ctx {
-  return _currentContextOverride ??
-      Zone.current[_contextKey] as FVMContext? ??
-      FVMContext.root;
-}
-
-/// Returns current FVM context
 class FVMContext {
-  /// Bootstrap root context
-  static final FVMContext root = FVMContext._('ROOT');
-
+  static FVMContext main = FVMContext.create('MAIN');
   factory FVMContext.create(
     String name, {
-    Directory? fvmHomeDir,
-    Directory? versionCacheDir,
-    bool useGitCache = true,
+    Directory? fvmDir,
+    Directory? fvmVersionsDir,
+    bool? useGitCache,
+    Directory? gitCacheDir,
+    String? flutterRepo,
     bool isTest = false,
   }) {
-    final context = FVMContext._(
-      name,
-      fvmHomeDir: fvmHomeDir,
-      versionCacheDir: versionCacheDir,
-      useGitCache: useGitCache,
-      isTest: isTest,
+    flutterRepo ??=
+        kEnvVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
+
+    final fvmDirHomeEnv = kEnvVars['FVM_HOME'];
+    if (fvmDirHomeEnv != null) {
+      fvmDir ??= Directory(normalize(fvmDirHomeEnv));
+    } else {
+      fvmDir ??= Directory(kFvmDirDefault);
+    }
+
+    fvmVersionsDir ??= Directory(
+      join(fvmDir.path, 'versions'),
     );
 
-    _currentContextOverride = context;
+    final gitCacheDir = Directory(
+      join(fvmDir.path, 'cache.git'),
+    );
 
-    return context;
+    return FVMContext._(
+      name,
+      fvmDir: fvmDir,
+      fvmVersionsDir: fvmVersionsDir,
+      useGitCache: useGitCache ?? false,
+      isTest: isTest,
+      flutterRepo: flutterRepo,
+      gitCacheDir: gitCacheDir,
+    );
   }
 
   /// Constructor
   /// If nothing is provided set default
   FVMContext._(
     this.name, {
-    Directory? fvmHomeDir,
-    Directory? versionCacheDir,
-    bool useGitCache = true,
-    bool isTest = false,
-  })  : _fvmHomeDir = fvmHomeDir ?? Directory(kFvmHome),
-        _isTest = isTest,
-        _useGitCache = useGitCache,
-        _versionCacheDir = versionCacheDir;
+    required this.fvmDir,
+    required this.fvmVersionsDir,
+    required this.useGitCache,
+    required this.flutterRepo,
+    required this.gitCacheDir,
+    this.isTest = false,
+  });
 
   /// Name of the context
   final String name;
-  final Directory _fvmHomeDir;
-  final Directory? _versionCacheDir;
-  final bool _useGitCache;
 
-  SettingsDto? _settingsDto;
+  /// Flutter Git Repo
+  final String flutterRepo;
 
-  final bool _isTest;
+  /// Directory where FVM is stored
+  final Directory fvmDir;
 
-  /// Returns settings or cached
-  SettingsDto get settings {
-    return _settingsDto ??= SettingsService.readSync();
-  }
-
-  /// Flag to determine if context is running in a test
-  bool get isTest => _isTest;
+  /// Directory where FVM versions are stored
+  final Directory fvmVersionsDir;
 
   /// Flag to determine if should use git cache
-  bool get useGitCache => _useGitCache;
+  final bool useGitCache;
+
+  /// Directory for Flutter repo git cache
+  final Directory gitCacheDir;
+
+  /// Cached settings
+  SettingsDto? settings;
+
+  /// Flag to determine if context is running in a test
+  final bool isTest;
 
   /// File for FVM Settings
   File get settingsFile {
-    return File(join(_fvmHomeDir.path, '.settings'));
+    return File(join(fvmDir.path, '.settings'));
   }
 
-  /// FVM Home dir
-  Directory get fvmHome => _fvmHomeDir;
-
-  /// Where Flutter SDK Versions are stored
-  Directory get cacheDir {
-    // Override cacheDir
-    if (_versionCacheDir != null) {
-      return _versionCacheDir!;
-    }
-    // If there is a cache
-    if (settings.cachePath != null && !isTest) {
-      return Directory(normalize(settings.cachePath!));
-    }
-
-    /// Default cache directory
-    return Directory(join(fvmHome.path, 'versions'));
-  }
-
-  /// Directory for Flutter repo git cache
-  Directory get gitCacheDir {
-    return Directory(
-      join(fvmHome.path, 'cache.git'),
-    );
-  }
-
-  /// Returns the configured Flutter repository
-  String get flutterRepo => kFlutterRepo;
+  /// Environment variables
+  Map<String, String> get environment => Platform.environment;
 
   /// Where Default Flutter SDK is stored
-  Link get globalCacheLink => Link(join(_fvmHomeDir.path, 'default'));
+  Link get globalCacheLink => Link(join(fvmDir.path, 'default'));
 
   /// Directory for Global Flutter SDK bin
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
+  FVMContext copyWith({
+    String? name,
+    Directory? fvmDir,
+    Directory? fvmVersionsDir,
+    bool? useGitCache,
+    String? flutterRepo,
+    Directory? gitCacheDir,
+    bool? isTest,
+  }) {
+    return FVMContext._(
+      name ?? this.name,
+      fvmDir: fvmDir ?? this.fvmDir,
+      fvmVersionsDir: fvmVersionsDir ?? this.fvmVersionsDir,
+      useGitCache: useGitCache ?? this.useGitCache,
+      flutterRepo: flutterRepo ?? this.flutterRepo,
+      gitCacheDir: gitCacheDir ?? this.gitCacheDir,
+      isTest: isTest ?? this.isTest,
+    );
+  }
+
+  FVMContext merge([FVMContext? context]) {
+    return copyWith(
+      name: context?.name,
+      fvmDir: context?.fvmDir,
+      fvmVersionsDir: context?.fvmVersionsDir,
+      useGitCache: context?.useGitCache,
+      flutterRepo: context?.flutterRepo,
+      isTest: context?.isTest,
+    );
+  }
+
   @override
   String toString() => name;
-
-  /// Runs context zoned
-  V run<V>({
-    required V Function() body,
-    required String name,
-    final Directory? fvmHomeDir,
-    final Directory? cacheDir,
-    bool isTest = false,
-    ZoneSpecification? zoneSpecification,
-  }) {
-    final ctx = FVMContext.create(
-      name,
-      fvmHomeDir: fvmHomeDir,
-      versionCacheDir: cacheDir,
-      isTest: isTest,
-    );
-    // Set context key to respect the currentContext
-
-    return runZoned<V>(
-      body,
-      zoneValues: <Symbol, FVMContext>{_contextKey: ctx},
-      zoneSpecification: zoneSpecification,
-    );
-  }
-
-  static runOnRoot<V>(
-    FutureOr<V> Function() body,
-  ) async {
-    final response = await runZoned<FutureOr<V>>(
-      body,
-      zoneValues: <Symbol, FVMContext>{_contextKey: root},
-    );
-
-    return response;
-  }
 }

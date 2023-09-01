@@ -13,8 +13,8 @@ executables:
 
 dependencies:
   args: ^2.4.2
-  cli_util: ^0.4.0
-  console: ^4.1.0
+
+  cli_config: ^0.1.1
   date_format: ^2.0.7
   io: ^1.0.4
   mason_logger: ^0.2.8
@@ -23,6 +23,7 @@ dependencies:
   process: ^4.2.4
   process_run: ^0.13.0
   pub_updater: ^0.3.1
+  scope: ^4.1.0
   yaml: ^3.1.2
 
 dev_dependencies:

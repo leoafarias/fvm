@@ -44,13 +44,6 @@ void main() {
     expect(version.isRelease, true);
     expect(gitHash.isRelease, false);
 
-    // Check if needs reset
-    expect(master.needReset, false);
-    expect(beta.needReset, false);
-    expect(channelWithVersion.needReset, true);
-    expect(version.needReset, true);
-    expect(gitHash.needReset, true);
-
     // Checks version
     expect(master.version, 'master');
     expect(beta.version, 'beta');

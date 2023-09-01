@@ -56,7 +56,7 @@ class FvmProcessRunnerException extends FvmException {
 }
 
 /// Exception for internal FVM usage
-@Deprecated('Use UsageException instead')
+
 class FvmUsageException implements Exception {
   /// Message of the exception
   final String message;

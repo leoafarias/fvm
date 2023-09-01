@@ -48,7 +48,7 @@ class CacheVersion {
 
   /// Returns CacheVersion directory
   Directory get dir {
-    return Directory(join(ctx.cacheDir.path, name));
+    return Directory(join(ctx.fvmVersionsDir.path, name));
   }
 
   /// RCheck if version is a valid cache

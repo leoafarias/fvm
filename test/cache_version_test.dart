@@ -44,8 +44,9 @@ void main() {
     await dir.create(recursive: true);
 
     /// Override valid version for testing purposes
-    final cacheVersion =
-        await CacheService.getVersionCache(ValidVersion(invalidVersionName));
+    final cacheVersion = await CacheService.getVersionCache(
+      ValidVersion(invalidVersionName),
+    );
     expect(cacheVersion != null, false);
   });
 }

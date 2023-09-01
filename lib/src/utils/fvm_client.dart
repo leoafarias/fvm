@@ -20,7 +20,7 @@ class FVMClient {
   /// Triggers install workflow for [versionName]
   static Future<CacheVersion> install(String versionName) async {
     final validVersion = ValidVersion(versionName);
-    return await ensureCacheWorkflow(validVersion, skipConfirmation: true);
+    return await ensureCacheWorkflow(validVersion, shouldInstall: true);
   }
 
   /// Triggers remove
@@ -42,11 +42,11 @@ class FVMClient {
     if (cacheVersion == null) {
       throw Exception('Cannot setup version that is not in cache');
     }
-    await FlutterTools.setupSdk(cacheVersion);
+    await FlutterTools.runSetup(cacheVersion);
   }
 
   /// Upgrades cached channel [version]
-  static final upgradeChannel = FlutterTools.upgrade;
+  static final upgradeChannel = FlutterTools.runUpgrade;
 
   /// Returns the setup sdk version of a [versionName]
   static String? getSdkVersionSync(CacheVersion cacheVersion) {

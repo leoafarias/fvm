@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import '../utils/pretty_json.dart';
@@ -53,7 +52,10 @@ class IDEService {
         ..divider
         ..info('Auto merged result:\n$newSettingsStr')
         ..divider;
-      final resume = await confirm('Write merged result to file?');
+      final resume = logger.confirm(
+        'Write merged result to file?',
+        defaultValue: false,
+      );
       if (!resume) {
         logger
           ..info('VSCode settings not updated.')

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -53,14 +52,21 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = ValidVersion(version);
+    final validVersion = await FlutterTools.getValidVersion(version);
+
+    if (validVersion == null) {
+      throw FvmUsageException(
+        '$version is not a valid Flutter version',
+      );
+    }
+
     final cacheVersion = await ensureCacheWorkflow(
       validVersion,
-      skipConfirmation: true,
+      shouldInstall: true,
     );
 
     if (setup) {
-      await FlutterTools.setupSdk(cacheVersion);
+      await FlutterTools.runSetup(cacheVersion);
     }
 
     return ExitCode.success.code;

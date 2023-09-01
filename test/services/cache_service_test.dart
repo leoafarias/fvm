@@ -4,12 +4,10 @@ import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:test/test.dart';
 
-import '../testing_utils.dart';
-
 const _channel = 'beta';
 const _version = '1.20.2';
 void main() {
-  groupWithContext('Cache Service Test:', () {
+  group('Cache Service Test:', () {
     test('Cache Version', () async {
       var validChannel = await CacheService.getVersionCache(
         ValidVersion(_channel),
@@ -45,7 +43,7 @@ void main() {
       expect(invalidCache.isValidCache, false);
     });
 
-    testWithContext('Set/Get Global Cache Version ', () async {
+    test('Set/Get Global Cache Version ', () async {
       CacheVersion? globalVersion;
       bool isChanneGlobal, isVersionGlobal;
       globalVersion = await CacheService.getGlobal();

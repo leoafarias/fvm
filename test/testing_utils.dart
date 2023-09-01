@@ -4,24 +4,46 @@ import 'dart:math';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:scope/scope.dart';
 import 'package:test/test.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
+final _defaultTestContext = FVMContext.create(
+  'TEST',
+  fvmDir: getFvmTestHomeDir(),
+  isTest: true,
+).copyWith(
+  useGitCache: true,
+  // Use the existing gitCacheDir
+  gitCacheDir: FVMContext.main.gitCacheDir,
+);
+
+class TestFvmCommandRunner {
+  TestFvmCommandRunner();
+
+  Future<int> run(String command) async {
+    final args = command.split(' ');
+    final firstArg = args.removeAt(0);
+    if (firstArg != 'fvm') throw Exception('Include fvm in command');
+    return FvmCommandRunner(context: use(contextKey)).run(args);
+  }
+}
+
 String release = '2.2.1';
 const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
 String? channelVersion;
 
-Directory getFvmTestHomeDir(String key) {
-  return Directory(join(kUserHome, 'fvmTest', key));
+Directory getFvmTestHomeDir() {
+  return Directory(join(kUserHome, 'fvm-test'));
 }
 
 Directory getSupportAssetDir(String name) {
@@ -85,8 +107,8 @@ Future<ValidVersion> getRandomFlutterVersion() async {
 
 void cleanup() {
   // Remove all versions
-  if (ctx.cacheDir.existsSync()) {
-    final cacheDirList = ctx.cacheDir.listSync(recursive: true);
+  if (ctx.fvmVersionsDir.existsSync()) {
+    final cacheDirList = ctx.fvmVersionsDir.listSync(recursive: true);
     for (var dir in cacheDirList) {
       if (dir.existsSync()) {
         dir.deleteSync(recursive: true);
@@ -98,7 +120,7 @@ void cleanup() {
 @isTest
 void testWithContext(
   String description,
-  void Function() body, {
+  Future<void> Function() body, {
   String? id,
   String? testOn,
   Timeout? timeout,
@@ -108,17 +130,12 @@ void testWithContext(
   int? retry,
 }) {
   // Create random key if it does not exist
-  final uniqueId = id ?? DateTime.now().millisecondsSinceEpoch.toString();
+
+  final scope = Scope()..value(contextKey, _defaultTestContext);
+
   return test(
     description,
-    () async {
-      return ctx.run(
-        name: uniqueId,
-        fvmHomeDir: getFvmTestHomeDir(uniqueId),
-        body: body,
-        isTest: true,
-      );
-    },
+    () => scope.run(body),
     timeout: timeout,
     skip: skip,
     tags: tags,
@@ -131,62 +148,28 @@ void testWithContext(
 @isTestGroup
 void groupWithContext(
   String description,
-  void Function() body, {
-  FutureOr<void> Function()? setUpAllFn,
-  FutureOr<void> Function()? tearDownFn,
+  dynamic Function() body, {
   String? id,
   Timeout? timeout,
   dynamic skip,
   List<String>? tags,
   Map<String, dynamic>? onPlatform,
+  FVMContext? context,
   int? retry,
 }) {
-  final uniqueId = id ?? DateTime.now().millisecondsSinceEpoch.toString();
   return group(
     description,
-    () {
-      return ctx.run(
-        name: uniqueId,
-        fvmHomeDir: getFvmTestHomeDir(uniqueId),
-        isTest: true,
-        body: () {
-          setUpAll(() async {
-            await groupSetUp();
-            await setUpAllFn?.call();
-          });
-          tearDownAll(() async {
-            await groupTearDown();
-            await tearDownFn?.call();
-          });
-          body();
-        },
-      );
-    },
     timeout: timeout,
     skip: skip,
     tags: tags,
     onPlatform: onPlatform,
     retry: retry,
+    () {
+      Scope()
+        ..value(contextKey, _defaultTestContext.merge(context))
+        ..runSync(body);
+    },
   );
-}
-
-Future<void> groupTearDown() async {
-  if (ctx.fvmHome.existsSync()) {
-    ctx.fvmHome.deleteSync(recursive: true);
-  }
-}
-
-Future<void> groupSetUp() async {
-  await GitTools.updateFlutterRepoMirror();
-
-  // final defaultGitCache = FVMContext.root.gitCacheDir;
-
-  // // TODO: Improve this to avoid copying
-  // await copyDirectoryContents(defaultGitCache, ctx.gitCacheDir);
-
-  if (!ctx.fvmHome.existsSync()) {
-    ctx.fvmHome.createSync(recursive: true);
-  }
 }
 
 Future<void> copyFile(File source, String targetPath) async {
@@ -212,4 +195,47 @@ Future<void> copyDirectoryContents(
   }
 
   await Future.wait(tasks);
+}
+
+/// Lists repository tags
+Future<List<String>> getFlutterTags() async {
+  final result = await Process.run(
+    'git',
+    ['ls-remote', '--tags', '--refs', kFlutterRepo],
+  );
+
+  var tags = result.stdout.split('\n') as List<String>;
+
+  var versionsList = <String>[];
+  for (var tag in tags) {
+    final version = tag.split('refs/tags/');
+
+    if (version.length > 1) {
+      versionsList.add(version[1]);
+    }
+  }
+
+  return versionsList;
+}
+
+/// Returns the [name] of a branch or tag for a [version]
+Future<String?> getBranch(String version) async {
+  final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
+  final result = await Process.run(
+    'git',
+    ['rev-parse', '--abbrev-ref', 'HEAD'],
+    workingDirectory: versionDir.path,
+  );
+  return result.stdout.trim() as String;
+}
+
+/// Returns the [name] of a tag [version]
+Future<String?> getTag(String version) async {
+  final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
+  final result = await Process.run(
+    'git',
+    ['describe', '--tags', '--exact-match'],
+    workingDirectory: versionDir.path,
+  );
+  return result.stdout.trim() as String;
 }

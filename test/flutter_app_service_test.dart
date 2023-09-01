@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'testing_utils.dart';
 
 void main() {
-  groupWithContext('Flutter Projects', () {
+  group('Flutter Projects', () {
     test('Can set SDK version on Flutter Project', () async {
       try {
         final project = await ProjectService.getByDirectory(kFlutterAppDir);

@@ -56,6 +56,7 @@ class UseCommand extends BaseCommand {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
+    //TODO: Move this somewhere else
     final configVSC = boolArg('config-vsc');
 
     String? version;

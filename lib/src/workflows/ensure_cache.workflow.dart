@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
 import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
-import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 
 /// Triggers a workflow for [validVersion]
@@ -14,7 +13,7 @@ import '../utils/logger.dart';
 /// returns a [CacheVersion]
 Future<CacheVersion> ensureCacheWorkflow(
   ValidVersion validVersion, {
-  bool skipConfirmation = false,
+  bool shouldInstall = false,
 }) async {
   try {
     // If it's installed correctly just return and use cached
@@ -22,36 +21,68 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     // Returns cache if already exists
     if (cacheVersion != null) {
-      logger.info('Flutter SDK: $validVersion - already installed.');
+      final isVerified = await CacheService.verifyIntegrity(cacheVersion);
 
-      return cacheVersion;
+      if (isVerified) {
+        logger
+          ..info('Flutter SDK: $validVersion - is installed.')
+          ..spacer;
+
+        return cacheVersion;
+      }
+
+      logger
+        ..warn('Flutter SDK: $validVersion - is not installed correctly.')
+        ..info('Removing...')
+        ..spacer;
+
+      // Removing
+      await CacheService.remove(cacheVersion);
+
+      // Run ensure cache workflow.
+      return ensureCacheWorkflow(
+        validVersion,
+        shouldInstall: shouldInstall,
+      );
     }
-
-    logger.info('Flutter SDK: $validVersion is not installed.');
 
     // If its a custom version do not proceed on install process
     if (validVersion.custom == true) {
       exit(ExitCode.success.code);
     }
 
+    final shoulldInstall = shouldInstall ||
+        logger.confirm(
+          'Flutter SDK: ${validVersion.name} is not installed.',
+          defaultValue: true,
+        );
+
     // Install if input is confirmed
     // allows ot skip confirmation for testing purpose
-    if (skipConfirmation || await confirm('Would you like to install it?')) {
-      final progress = logger.progress('Installing version: $validVersion...');
+    if (!shoulldInstall) {
+      // Exit if don't want to install
+      exit(ExitCode.success.code);
+    } else {
+      final printVersionLabel = '${cyan.wrap(validVersion.printFriendlyName)}';
+
+      logger
+        ..info('Installing Flutter SDK: ${cyan.wrap(printVersionLabel)}')
+        ..spacer;
 
       // Cache version locally
       await CacheService.cacheVersion(validVersion);
 
       final cacheVersion = await CacheService.getVersionCache(validVersion);
       if (cacheVersion == null) {
-        progress.fail('Could not install $validVersion');
         throw FvmError('Could not cache version $validVersion');
       }
-      progress.complete();
+
+      logger
+        ..spacer
+        ..complete('Flutter SDK: ${cyan.wrap(printVersionLabel)} installed!')
+        ..spacer;
+
       return cacheVersion;
-    } else {
-      // Exit if don't want to install
-      exit(ExitCode.success.code);
     }
   } on Exception catch (err) {
     if (err is FvmException) {

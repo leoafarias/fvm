@@ -15,6 +15,12 @@ extension LoggerExtension on Logger {
   void get spacer {
     info('');
   }
+
+  void complete(String message) {
+    // \u2714
+    // info('✅ $message');
+    info('${green.wrap('\u2714')} $message');
+  }
 }
 
 /// Logger for FVM

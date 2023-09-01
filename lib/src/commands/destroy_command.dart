@@ -18,12 +18,12 @@ class DestroyCommand extends BaseCommand {
   @override
   Future<int> run() async {
     if (logger.confirm(
-      'Are you sure you want to destroy the directory "${ctx.fvmHome.path}" ?',
+      'Are you sure you want to destroy the directory "${ctx.fvmDir.path}" ?',
       defaultValue: false,
     )) {
-      if (ctx.fvmHome.existsSync()) {
-        ctx.fvmHome.deleteSync(recursive: true);
-        logger.success('FVM Directory ${ctx.fvmHome.path}\n has been deleted');
+      if (ctx.fvmDir.existsSync()) {
+        ctx.fvmDir.deleteSync(recursive: true);
+        logger.success('FVM Directory ${ctx.fvmDir.path} has been deleted');
       }
     }
 

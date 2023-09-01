@@ -1,5 +1,10 @@
 import 'dart:async';
 
+import 'package:fvm/constants.dart';
+import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/utils/process_manager.dart';
+
 import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../models/valid_version_model.dart';
@@ -12,7 +17,7 @@ class FlutterTools {
   FlutterTools._();
 
   /// Upgrades a cached channel
-  static Future<void> upgrade(CacheVersion version) async {
+  static Future<void> runUpgrade(CacheVersion version) async {
     if (version.isChannel) {
       await runFlutter(version, ['upgrade']);
     } else {
@@ -21,32 +26,21 @@ class FlutterTools {
   }
 
   /// Runs triggers sdk setup/install
-  static Future<void> setupSdk(CacheVersion version) async {
+  static Future<int> runSetup(CacheVersion version) async {
     logger
       ..info('Setting up Flutter SDK: ${version.name}')
       ..spacer;
-    try {
-      await runFlutter(version, ['doctor', '--version']);
-    } on Exception catch (err, stackTrace) {
-      throw FvmExceptionStackTrace(
-        'Could not finish setting up Flutter sdk.',
-        err,
-        stackTrace,
-      );
-    }
+
+    return runFlutter(version, ['doctor', '--version']);
   }
 
   /// Runs pub get
-  static Future<void> pubGet(CacheVersion version) async {
-    try {
-      await runFlutter(version, ['pub', 'get']);
-    } on Exception catch (err) {
-      logger.detail(err.toString());
-      logger.err(
-        'Could not resolve dependencies.',
-      );
-      return;
-    }
+  static Future<void> runPubGet(CacheVersion version) async {
+    await ProcessRunner.run(
+      'flutter pub get',
+      environment: updateEnvironmentVariables(version, ctx.environment),
+      listen: false,
+    );
   }
 
   /// Returns a [ValidVersion] release from channel [version]
@@ -63,5 +57,25 @@ class FlutterTools {
 
     // Returns valid version
     return ValidVersion(channel.version);
+  }
+
+  static Future<ValidVersion?> getValidVersion(String version) async {
+    if (kFlutterChannels.contains(version)) {
+      return ValidVersion(version);
+    }
+
+    if (checkIsGitHash(version)) {
+      return ValidVersion(version);
+    }
+
+    final releases = await fetchFlutterReleases();
+
+    final isVersion = releases.containsVersion(version);
+
+    if (isVersion) {
+      return ValidVersion(version);
+    }
+
+    return null;
   }
 }

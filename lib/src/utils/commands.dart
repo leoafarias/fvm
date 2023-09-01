@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
-import 'package:io/io.dart';
-import 'package:process_run/shell.dart';
+import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/process_manager.dart';
 
 import '../../constants.dart';
 import '../../fvm.dart';
@@ -15,7 +15,7 @@ Future<int> runFlutter(
   List<String> args,
 ) async {
   // Update environment variables
-  final environment = updateFlutterEnvVariables(version.binPath);
+  final environment = updateEnvironmentVariables(version, ctx.environment);
   // Run command
   return await _runCmd(
     version.flutterExec,
@@ -32,13 +32,10 @@ Future<int> execCmd(
 ) async {
   // Update environment variables
   // If execPath is not provided will get the path configured version
-  final binPath = version?.binPath ?? whichSync('flutter') ?? '';
-  final dartBinPath = version?.dartBinPath ?? whichSync('dart') ?? '';
-
-  var environment = updateFlutterEnvVariables(binPath);
-
-  // Update environment with dart exec path
-  environment = updateDartEnvVariables(dartBinPath, environment);
+  var environment = ctx.environment;
+  if (version != null) {
+    environment = updateEnvironmentVariables(version, ctx.environment);
+  }
 
   // Run command
   return await _runCmd(
@@ -54,7 +51,7 @@ Future<int> runDart(CacheVersion version, List<String> args) async {
   // Get exec path for dart
   final execPath = version.dartExec;
   // Update environment
-  final environment = updateDartEnvVariables(version.dartBinPath);
+  final environment = updateEnvironmentVariables(version, ctx.environment);
 
   // Run command
   return await _runCmd(
@@ -66,30 +63,26 @@ Future<int> runDart(CacheVersion version, List<String> args) async {
 
 /// Runs dart from global version
 Future<int> runDartGlobal(List<String> args) async {
-  // Get exec path for dart
-  final execPath = whichSync('dart') ?? '';
-
   logger.detail(
-    'fvm: Running using Dart/Flutter version configured in path.\n',
+    '$kPackageName: Running using Dart/Flutter version configured in path.\n',
   );
 
   // Run command
   return await _runCmd(
-    execPath,
+    'dart',
     args: args,
   );
 }
 
 /// Runs flutter from global version
 Future<int> runFlutterGlobal(List<String> args) {
-  final execPath = whichSync('flutter') ?? '';
   logger.detail(
-    '$kPackageName: Running Flutter SDK configured on environment PATH. $execPath',
+    '$kPackageName: Running Flutter SDK configured on environment PATH.\n',
   );
 
   // Run command
   return _runCmd(
-    execPath,
+    'flutter',
     args: args,
   );
 }
@@ -104,7 +97,7 @@ Future<int> _runCmd(
   // Project again a non executable path
 
   if (checkIfExecutable) {
-    if (!await isExecutable(execPath)) {
+    if (!FvmProcessManager.canRun(execPath)) {
       throw FvmError('Cannot execute $execPath');
     }
   }

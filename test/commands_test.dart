@@ -1,30 +1,26 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import 'testing_utils.dart';
 
+final runner = TestFvmCommandRunner();
+
 void main() {
   groupWithContext('Channel Workflow:', () {
-    test('Install Channel', () async {
-      // await testContextWrapper(contextKey, () async {
-      await FvmCommandRunner().run([
-        'install',
-        channel,
-        '--verbose',
-        '--skip-setup',
-      ]);
+    final runner = TestFvmCommandRunner();
 
-      final existingChannel = await GitTools.getBranch(channel);
+    testWithContext('Install Channel', () async {
+      // await testContextWrapper(contextKey, () async {
+      await runner.run('fvm install $channel');
+
+      final existingChannel = await getBranch(channel);
 
       final cacheVersion =
           await CacheService.getVersionCache(ValidVersion(channel));
@@ -34,23 +30,17 @@ void main() {
       expect(existingChannel, channel);
     });
 
-    test('List Channel', () async {
-      try {
-        await FvmCommandRunner().run(['list']);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+    testWithContext('List Channel', () async {
+      final exitCode = await runner.run('fvm list');
 
-      expect(true, true);
+      expect(exitCode, ExitCode.success.code);
     });
 
-    test('Use Channel', () async {
+    testWithContext('Use Channel', () async {
       try {
         // Run foce to test within fvm
+        await runner.run('fvm use $channel --force');
 
-        await FvmCommandRunner().run(
-          ['use', channel, '--force', '--verbose'],
-        );
         final project = await ProjectService.findAncestor();
 
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -66,10 +56,9 @@ void main() {
       }
     });
 
-    // TODO: Remove after deprecation period
-    test('Use Flutter SDK globally', () async {
+    testWithContext('Use Flutter SDK globally', () async {
       try {
-        await FvmCommandRunner().run(['global', channel]);
+        await runner.run('fvm global $channel');
         final linkExists = ctx.globalCacheLink.existsSync();
 
         final targetVersion = basename(await ctx.globalCacheLink.target());
@@ -81,10 +70,9 @@ void main() {
       }
     });
 
-    test('Remove Channel Command', () async {
+    testWithContext('Remove Channel Command', () async {
       try {
-        await FvmCommandRunner()
-            .run(['remove', channel, '--verbose', '--force']);
+        await runner.run('fvm remove $channel');
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -92,35 +80,24 @@ void main() {
   });
 
   groupWithContext('Release Workflow', () {
-    test('Install Release', () async {
-      try {
-        await FvmCommandRunner()
-            .run(['install', release, '--verbose', '--skip-setup']);
-        final valid = ValidVersion(release);
-        final existingRelease = await GitTools.getTag(valid.name);
+    testWithContext('Install Release', () async {
+      await runner.run('fvm install $release');
+      final valid = ValidVersion(release);
+      final existingRelease = await getTag(valid.name);
 
-        final cacheVersion = await CacheService.getVersionCache(valid);
+      final cacheVersion = await CacheService.getVersionCache(valid);
 
-        expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion != null, true, reason: 'Install does not exist');
 
-        expect(existingRelease, valid.name);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      expect(existingRelease, valid.name);
 
       // expect(true, true);
     });
 
-    test('Use Release', () async {
+    testWithContext('Use Release', () async {
       try {
-        await FvmCommandRunner().run(
-          [
-            'use',
-            release,
-            '--force',
-            '--verbose',
-          ],
-        );
+        await runner.run('fvm use $release --force');
+
         final project = await ProjectService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
@@ -135,9 +112,9 @@ void main() {
       }
     });
 
-    test('List Command', () async {
+    testWithContext('List Command', () async {
       try {
-        await FvmCommandRunner().run(['list', '--verbose']);
+        await runner.run('fvm list');
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -145,47 +122,43 @@ void main() {
       expect(true, true);
     });
 
-    test('Remove Release', () async {
-      await FvmCommandRunner().run(
-        ['remove', release, '--verbose'],
-      );
+    testWithContext('Remove Release', () async {
+      await runner.run('fvm remove $release');
     });
   });
 
   groupWithContext('Commands', () {
     test('Get Version', () async {
       expect(
-        await FvmCommandRunner().run(['--version']),
+        await runner.run('fvm --version'),
+        ExitCode.success.code,
+      );
+
+      expect(
+        await runner.run('fvm -v'),
         ExitCode.success.code,
       );
     });
 
-    test('Doctor Command', () async {
+    testWithContext('Doctor Command', () async {
       expect(
-        await FvmCommandRunner().run(['doctor']),
+        await runner.run('fvm doctor'),
         ExitCode.success.code,
       );
     });
 
-    test('Flavor Command', () async {
-      await ensureCacheWorkflow(
-        ValidVersion(channel),
-        skipConfirmation: true,
-      );
+    testWithContext('Flavor Command', () async {
+      await runner.run('fvm install $channel');
 
       expect(
-        await FvmCommandRunner().run([
-          'use',
-          channel,
-          '--flavor',
-          'production',
-          '--force',
-        ]),
+        await runner.run(
+          'fvm use $channel --flavor production --force',
+        ),
         ExitCode.success.code,
       );
 
       expect(
-        await FvmCommandRunner().run(['flavor', 'production']),
+        await runner.run('fvm flavor production'),
         ExitCode.success.code,
       );
     });

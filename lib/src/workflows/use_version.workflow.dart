@@ -1,3 +1,5 @@
+import 'package:mason_logger/mason_logger.dart';
+
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
@@ -26,9 +28,8 @@ Future<void> useVersionWorkflow(
   // Run install workflow
   final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-  // Ensure that flutter tool is installed
   if (cacheVersion.needSetup) {
-    await FlutterTools.setupSdk(cacheVersion);
+    await FlutterTools.runSetup(cacheVersion);
   }
 
   await ProjectService.pinVersion(
@@ -42,18 +43,44 @@ Future<void> useVersionWorkflow(
 
   final dartToolVersion = await ProjectService.getDartToolVersion(project);
 
+  print('dartToolVersion: $dartToolVersion');
+  print('cacheVersion.sdkVersion: ${cacheVersion.sdkVersion}\n');
+
   if (dartToolVersion != cacheVersion.sdkVersion) {
-    // Run pub get after pinning version
-    await FlutterTools.pubGet(cacheVersion);
+    logger
+      ..spacer
+      ..detail('dart_tool version mismatch.\n')
+      ..detail('Dart tool version: $dartToolVersion')
+      ..detail('SDK Version: ${cacheVersion.sdkVersion}\n');
+
+    final progress = logger.progress('Resolving dependencies...');
+    try {
+      await FlutterTools.runPubGet(cacheVersion);
+      progress.complete('Dependencies resolved.');
+    } on Exception {
+      final dartToolVersion = await ProjectService.getDartToolVersion(project);
+      if (dartToolVersion == cacheVersion.sdkVersion) {
+        progress.complete('Dependencies resolved.');
+      } else {
+        progress.fail('Could not resolve dependencies.');
+        rethrow;
+      }
+    }
+    await FlutterTools.runPubGet(cacheVersion);
   }
 
+  final versionLabel = cyan.wrap(validVersion.printFriendlyName);
   // Different message if configured environment
   if (flavor != null) {
-    logger.success(
-      'Project now uses Flutter [$validVersion]'
-      ' on [$flavor] flavor.',
-    );
+    logger
+      ..complete(
+          'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.')
+      ..spacer;
   } else {
-    logger.success('Project now uses Flutter [$validVersion]');
+    logger
+      ..complete(
+        'Project now uses Flutter SDK : $versionLabel',
+      )
+      ..spacer;
   }
 }

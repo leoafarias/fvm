@@ -1,33 +1,10 @@
 import 'dart:io';
 
-import 'package:console/console.dart';
-
 import '../../exceptions.dart';
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
 import '../services/cache_service.dart';
 import 'logger.dart';
-
-/// Displays notice for confirmation
-Future<bool> confirm(String message, {bool defaultConfirmation = true}) async {
-  final choices = defaultConfirmation ? 'Y/n' : 'y/N';
-  final response = await readInput('$message ($choices): ');
-  final lowercase = response.toLowerCase();
-
-  if (response.isEmpty) {
-    return defaultConfirmation;
-  }
-
-  if (lowercase == 'n') {
-    return false;
-  }
-
-  if (lowercase == 'y') {
-    return true;
-  }
-
-  return false;
-}
 
 /// Prints out versions on FVM and it's status
 Future<void> printVersionStatus(CacheVersion version, Project project) async {
@@ -60,7 +37,7 @@ Future<String> cacheVersionSelector() async {
   final versionsList = cacheVersions.map((version) => version.name).toList();
 
   final choise = logger.chooseOne(
-    'Select a veresion:',
+    'Select a version:',
     choices: versionsList,
   );
 

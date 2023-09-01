@@ -2,20 +2,29 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:process/process.dart';
 
+/// Default process manager to be used for all the processes
+// ignore: constant_identifier_names
+const FvmProcessManager = LocalProcessManager();
+
 class ProcessRunner {
-  static final LocalProcessManager _process = LocalProcessManager();
+  static final LocalProcessManager _process = FvmProcessManager;
   ProcessRunner._();
-  static Future<ProcessResult> start(
+  static Future<ProcessResult> run(
     String command, {
     /// Listen for stdout and stderr
     String? workingDirectory,
+    Map<String, String>? environment,
     bool listen = true,
   }) async {
     List<String> arguments = command.split(' ');
+
     final process = await _process.start(
       arguments,
+      environment: environment,
+      runInShell: true,
       workingDirectory: workingDirectory,
     );
     final StringBuffer stdoutBuffer = StringBuffer();
@@ -23,15 +32,17 @@ class ProcessRunner {
 
     process.stdout.transform(utf8.decoder).listen((data) {
       stdoutBuffer.write(data);
+
       if (listen) {
-        stdout.write('\r$data');
+        logger.write('\r$data');
       }
     });
 
     process.stderr.transform(utf8.decoder).listen((data) {
       stderrBuffer.write(data);
+
       if (listen) {
-        stderr.write('\r$data');
+        logger.write('\r$data');
       }
     });
 
@@ -45,79 +56,37 @@ class ProcessRunner {
     );
   }
 
-  static Future<ProcessResult> run(
-    String command, {
-    String? workingDirectory,
-  }) async {
-    List<String> arguments = command.split(' ');
-    final result = await _process.run(
-      arguments,
-      workingDirectory: workingDirectory,
-    );
-
-    return result;
-  }
-
-  static Future<ProcessResult> runOrThrow(
+  static Future<ProcessResult> runWithProgress(
     String command, {
     /// Description of the command
     required String description,
+    Map<String, String>? environment,
     String? workingDirectory,
   }) async {
+    logger
+      ..detail('\n Running: $description')
+      ..detail('command: $command \n');
+
+    final progress = logger.progress(description);
+
     final result = await run(
       command,
       workingDirectory: workingDirectory,
+      environment: environment,
+      listen: false,
     );
 
     if (result.exitCode != 0) {
+      progress.fail(description);
+
       throw FvmProcessRunnerException(
         'Could not complete: $description',
         result: result,
       );
     }
 
+    progress.complete(description);
+
     return result;
   }
-
-  static Future<void> startOrThrow(
-    String command, {
-    required String description,
-    String? workingDirectory,
-  }) async {
-    final result = await start(
-      command,
-      workingDirectory: workingDirectory,
-    );
-
-    if (result.exitCode != 0) {
-      throw FvmProcessRunnerException(
-        'Could not: $description',
-        result: result,
-      );
-    }
-  }
-}
-
-@Deprecated('Use ProcessRunner')
-Future<ProcessResult> runProcess(
-  String command, {
-  String? workingDirectory,
-}) async {
-  return await ProcessRunner.run(
-    command,
-    workingDirectory: workingDirectory,
-  );
-}
-
-@Deprecated('Use ProcessRunner')
-Future<ProcessResult> startProcess(
-  String command, {
-  String? workingDirectory,
-  bool listen = true,
-}) async {
-  return ProcessRunner.start(
-    command,
-    workingDirectory: workingDirectory,
-    listen: listen,
-  );
 }

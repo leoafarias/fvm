@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/commands/git_cache_command.dart';
+import 'package:fvm/src/commands/global_command.dart';
 import 'package:fvm/src/commands/update_command.dart';
+import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
+import 'package:scope/scope.dart';
 
 import '../exceptions.dart';
 import 'commands/config_command.dart';
@@ -29,8 +31,10 @@ import 'version.dart';
 class FvmCommandRunner extends CommandRunner<int> {
   /// Constructor
   FvmCommandRunner({
+    FVMContext? context,
     PubUpdater? pubUpdater,
   })  : _pubUpdater = pubUpdater ?? PubUpdater(),
+        _context = context ?? FVMContext.main,
         super(
           kPackageName,
           kDescription,
@@ -59,17 +63,23 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(FlavorCommand());
     addCommand(DestroyCommand());
     addCommand(ExecCommand());
-    addCommand(GitCacheCommand());
     addCommand(UpdateCommand());
+    addCommand(GlobalCommand());
   }
 
   final PubUpdater _pubUpdater;
+  final FVMContext _context;
 
   @override
   void printUsage() => logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
+    final scope = Scope()..value(contextKey, _context);
+    return scope.run(() => _run(args));
+  }
+
+  Future<int> _run(Iterable<String> args) async {
     try {
       final argResults = parse(args);
       if (argResults['verbose'] == true) {
@@ -90,7 +100,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on FvmError catch (e, stackTrace) {
       logger
-        ..err(e.toString())
+        ..err(e.message)
         ..spacer
         ..detail('$stackTrace\n');
 
@@ -103,17 +113,21 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.unavailable.code;
     } on FvmProcessRunnerException catch (e) {
       logger
+        ..spacer
         ..err(e.message)
         ..spacer
-        ..detail(e.result.stderr.toString());
-
-      if (logger.level != Level.verbose) {
-        logger.info(
-          'Please run command with  --verbose if you want more information',
-        );
-      }
+        ..err(e.result.stderr.toString())
+        ..spacer;
 
       return e.result.exitCode;
+    } on FvmUsageException catch (e) {
+      // On usage errors, show the commands usage message and
+      // exit with an error code
+      logger
+        ..info(e.message)
+        ..spacer;
+
+      return ExitCode.usage.code;
     } on UsageException catch (e) {
       // On usage errors, show the commands usage message and
       // exit with an error code

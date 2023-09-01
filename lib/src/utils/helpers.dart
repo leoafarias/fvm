@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:fvm/fvm.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
@@ -24,7 +25,7 @@ bool checkIsGitHash(String name) {
 
 /// Returns a cache [Directory] for a [version]
 Directory versionCacheDir(String version) {
-  return Directory(join(ctx.cacheDir.path, version));
+  return Directory(join(ctx.fvmVersionsDir.path, version));
 }
 
 /// Returns true if [path] is a directory
@@ -61,7 +62,7 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
     }
 
     throw FvmUsageException(
-      "Seems you don't have the required permissions on ${ctx.fvmHome.path}"
+      "Seems you don't have the required permissions on ${ctx.fvmDir.path}"
       ' $message',
     );
   }
@@ -74,39 +75,75 @@ Future<String> getParentDirPath(String filePath) async {
   return file.parent.path;
 }
 
-/// Returns updated environment for Flutter with [execPath]
-Map<String, String> updateFlutterEnvVariables(String binPath,
-    [Map<String, String>? env]) {
-  return _updateEnvVariables('flutter', binPath, env: env);
-}
+Map<String, String> updateEnvironmentVariables(
+  CacheVersion version,
+  Map<String, String> env,
+) {
+  logger.detail('Starting to update environment variables...');
 
-/// Returns updated environment for Dark with [binPath]
-Map<String, String> updateDartEnvVariables(String binPath,
-    [Map<String, String>? env]) {
-  return _updateEnvVariables('dart', binPath, env: env);
-}
+  // Check if binPath exists
+  if (!Directory(version.binPath).existsSync()) {
+    final errorMsg = "Directory '${version.binPath}' does not exist";
+    logger.err(errorMsg);
+    throw Exception(errorMsg);
+  }
 
-Map<String, String> _updateEnvVariables(
-  String key,
-  String binPath, {
-  Map<String, String>? env,
-}) {
-  // Use env passed in param or get from current process
-  final envMap = env ?? kEnvVars;
-  final envPath = envMap['PATH'] ?? '';
+  final envPath = env['PATH'] ?? '';
+  logger.detail('Current PATH: $envPath');
 
-  /// Remove exec path that does not match
-  final pathEnvList = envPath
-      .split(':')
+  final separator = Platform.isWindows ? ';' : ':';
+
+  var flutterPath = whichSync('flutter');
+  var dartPath = whichSync('dart');
+
+  if (flutterPath == null || dartPath == null) {
+    final errorMsg = "Unable to find 'flutter' or 'dart' executable in PATH";
+    logger.err(errorMsg);
+    throw Exception(errorMsg);
+  }
+
+  final resolvedFlutterPath = FileSystemEntity.isLinkSync(flutterPath)
+      ? File(flutterPath).resolveSymbolicLinksSync()
+      : flutterPath;
+
+  final resolvedDartPath = FileSystemEntity.isLinkSync(dartPath)
+      ? File(dartPath).resolveSymbolicLinksSync()
+      : dartPath;
+
+  logger.detail('Current Flutter path: $resolvedFlutterPath');
+  logger.detail('Current Dart path: $resolvedDartPath');
+
+  final newEnvPath = envPath
+      .split(separator)
       .where(
-        (e) => '$e/$key' != whichSync(key),
+        (p) =>
+            !p.endsWith('/flutter/bin') &&
+            !p.endsWith('/dart-sdk/bin') &&
+            !p.endsWith(flutterPath!) &&
+            !p.endsWith(dartPath!) &&
+            !p.endsWith(resolvedFlutterPath) &&
+            !p.endsWith(resolvedDartPath),
       )
       .toList();
 
-  final newEnv = pathEnvList.join(':');
+  if (!newEnvPath.contains(version.binPath)) {
+    newEnvPath.add(version.binPath);
+  }
 
-  return Map<String, String>.from(kEnvVars)
-    ..addAll({'PATH': '$newEnv:$binPath'});
+  final updatedPath = newEnvPath.join(separator);
+
+  final newEnvironment = {
+    ...env,
+    'PATH': updatedPath,
+  };
+
+  flutterPath = whichSync('flutter', environment: newEnvironment);
+  dartPath = whichSync('dart', environment: newEnvironment);
+
+  logger.detail('Updated Flutter path: $flutterPath');
+  logger.detail('Updated Dart path: $dartPath');
+
+  return newEnvironment;
 }
 
 /// Compares a [version] against [other]
@@ -148,7 +185,7 @@ int compareSemver(String version, String other) {
 
     return 0;
   } on Exception catch (err) {
-    print(err.toString());
+    logger.detail(err.toString());
     return 0;
   }
 }
@@ -224,4 +261,16 @@ bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
     }
   }
   return true;
+}
+
+extension ListExtension<T> on List<T> {
+  /// Returns firstWhereOrNull
+  T? firstWhereOrNull(bool Function(T) test) {
+    for (var element in this) {
+      if (test(element)) {
+        return element;
+      }
+    }
+    return null;
+  }
 }

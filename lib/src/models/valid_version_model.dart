@@ -39,11 +39,6 @@ class ValidVersion {
     return checkIsGitHash(name);
   }
 
-  /// Checks if need to reset after clone
-  bool get needReset {
-    return isGitHash || isRelease;
-  }
-
   /// Is valid version a channel
   bool get isChannel {
     return kFlutterChannels.contains(name);
@@ -71,8 +66,16 @@ class ValidVersion {
     return name == 'master';
   }
 
-  @override
-  String toString() {
-    return name;
+  String get printFriendlyName {
+    if (isChannel) {
+      return 'channel:$name';
+    } else if (isGitHash) {
+      return 'commit:$name';
+    } else {
+      return 'version:$name';
+    }
   }
+
+  @override
+  String toString() => name;
 }

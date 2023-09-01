@@ -6,7 +6,6 @@ import 'package:path/path.dart';
 import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
-import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../utils/logger.dart';
 import 'context.dart';
@@ -39,7 +38,7 @@ class GitTools {
     }
 
     if (ctx.useGitCache) {
-      await updateFlutterRepoMirror();
+      await _updateFlutterRepoCache();
     }
 
     final versionCloneParams = [
@@ -52,29 +51,25 @@ class GitTools {
     final useMirrorParams = [
       '--reference',
       ctx.gitCacheDir.path,
-      '--dissociate',
     ];
 
     final cloneArgs = [
       //if its a git hash
       if (!version.isGitHash) ...versionCloneParams,
       if (ctx.useGitCache) ...useMirrorParams,
-      kFlutterRepo,
-      versionDir.path,
     ].join(' ');
 
     try {
-      await ProcessRunner.startOrThrow(
-        'git clone --progress $cloneArgs',
-        description: 'Cloning Flutter repository',
+      await ProcessRunner.run(
+        'git clone --progress $cloneArgs ${ctx.flutterRepo} ${versionDir.path}',
       );
     } on Exception {
       await _cleanupVersionDir(versionDir);
       rethrow;
     }
 
-    /// If version has a channel reset
-    if (version.needReset) {
+    /// If version is not a channel reset to version
+    if (!version.isChannel) {
       try {
         await _resetRepository(versionDir, version: version.version);
       } on FvmException {
@@ -88,20 +83,26 @@ class GitTools {
 
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
-  static Future<void> updateFlutterRepoMirror() async {
-    final cacheExists = await ctx.gitCacheDir.exists();
-
+  static Future<void> _updateFlutterRepoCache() async {
     // If cache file does not exists create it
-    if (!cacheExists) {
+    if (!ctx.gitCacheDir.existsSync()) {
       await ctx.gitCacheDir.create(recursive: true);
-      await ProcessRunner.startOrThrow(
-        'git clone --progress --mirror $kFlutterRepo ${ctx.gitCacheDir.path}',
+      await ProcessRunner.runWithProgress(
+        'git clone --progress $kFlutterRepo ${ctx.gitCacheDir.path}',
         description: 'Creating local mirror of Flutter repository',
       );
     } else {
-      await ProcessRunner.startOrThrow(
+      final dotGitDir = Directory(join(ctx.gitCacheDir.path, '.git'));
+
+      if (!dotGitDir.existsSync()) {
+        ctx.gitCacheDir.deleteSync(recursive: true);
+        logger.info('Recreating mirror');
+        return _updateFlutterRepoCache();
+      }
+
+      await ProcessRunner.runWithProgress(
         'git remote update',
-        description: 'Updating local Flutter repo mirror',
+        description: 'Updating local Flutter repo cache',
         workingDirectory: ctx.gitCacheDir.path,
       );
     }
@@ -113,49 +114,6 @@ class GitTools {
     }
   }
 
-  /// Lists repository tags
-  static Future<List<String>> getFlutterTags() async {
-    final result = await ProcessRunner.runOrThrow(
-      'git ls-remote --tags --refs $kFlutterRepo',
-      description: 'Fetching Flutter tags',
-    );
-
-    var tags = result.stdout.split('\n') as List<String>;
-
-    var versionsList = <String>[];
-    for (var tag in tags) {
-      final version = tag.split('refs/tags/');
-
-      if (version.length > 1) {
-        versionsList.add(version[1]);
-      }
-    }
-
-    return versionsList;
-  }
-
-  /// Returns the [name] of a branch or tag for a [version]
-  static Future<String?> getBranch(String version) async {
-    final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await ProcessRunner.runOrThrow(
-      'git rev-parse --abbrev-ref HEAD',
-      description: 'Fetching Flutter branch',
-      workingDirectory: versionDir.path,
-    );
-    return result.stdout.trim() as String;
-  }
-
-  /// Returns the [name] of a tag [version]
-  static Future<String?> getTag(String version) async {
-    final versionDir = Directory(join(ctx.cacheDir.path, version));
-    final result = await ProcessRunner.runOrThrow(
-      'git describe --tags --exact-match',
-      description: 'Fetching Flutter tag',
-      workingDirectory: versionDir.path,
-    );
-    return result.stdout.trim() as String;
-  }
-
   /// Resets the repository at [directory] to [version] using `git reset`
   ///
   /// Throws [FvmException] if `git`'s exit code is not 0.
@@ -163,7 +121,7 @@ class GitTools {
     Directory directory, {
     required String version,
   }) async {
-    await ProcessRunner.runOrThrow(
+    await ProcessRunner.runWithProgress(
       'git reset --hard $version',
       description: 'Resetting cached Flutter repository',
       workingDirectory: directory.path,
@@ -185,7 +143,7 @@ class GitTools {
     final content = await gitIgnoreFile.readAsString();
 
     if (!content.contains(ignoreStr) &&
-        await confirm(
+        logger.confirm(
           'You should have .fvm/flutter_sdk in your .gitignore. Would you like to do this now?',
         )) {
       final writeContent =

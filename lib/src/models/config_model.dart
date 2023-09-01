@@ -45,7 +45,7 @@ class FvmConfig {
 
   /// Returns the path of the Flutter SDK
   String get flutterSdkPath {
-    return join(ctx.cacheDir.path, flutterSdkVersion);
+    return join(ctx.fvmVersionsDir.path, flutterSdkVersion);
   }
 
   /// Returns the active configured flavor

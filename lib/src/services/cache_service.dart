@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
@@ -25,9 +27,9 @@ class CacheService {
   /// Lists Installed Flutter SDK Version
   static Future<List<CacheVersion>> getAllVersions() async {
     // Returns empty array if directory does not exist
-    if (!await ctx.cacheDir.exists()) return [];
+    if (!await ctx.fvmVersionsDir.exists()) return [];
 
-    final versions = await ctx.cacheDir.list().toList();
+    final versions = await ctx.fvmVersionsDir.list().toList();
 
     final cacheVersions = <CacheVersion>[];
 
@@ -52,6 +54,14 @@ class CacheService {
     if (await version.dir.exists()) {
       await version.dir.delete(recursive: true);
     }
+  }
+
+  /// Verifies that cache is correct
+  /// returns 'true' if cache is correct 'false' if its not
+  static Future<bool> verifyIntegrity(CacheVersion version) async {
+    final gitDir = Directory(join(version.dir.path, '.github'));
+    final flutterBin = Directory(join(version.dir.path, 'bin'));
+    return await gitDir.exists() && await flutterBin.exists();
   }
 
   // Verifies that the cache version name matches the flutter version

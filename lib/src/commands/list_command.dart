@@ -1,5 +1,4 @@
-import 'package:io/ansi.dart';
-import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
 import '../services/context.dart';
@@ -25,7 +24,7 @@ class ListCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final cacheVersions = await CacheService.getAllVersions();
-    ctx.cacheDir.path;
+    ctx.fvmVersionsDir.path;
     if (cacheVersions.isEmpty) {
       logger.info(
         'No SDKs have been installed yet. Flutter. SDKs'
@@ -36,8 +35,8 @@ class ListCommand extends BaseCommand {
 
     // Print where versions are stored
     logger
-      ..info('Cache Directory:  ${yellow.wrap(ctx.cacheDir.path)}')
-      ..info('');
+      ..info('Cache directory:  ${cyan.wrap(ctx.fvmVersionsDir.path)}')
+      ..spacer;
 
     // Get current project
     final project = await ProjectService.findAncestor();

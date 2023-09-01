@@ -1,3 +1,4 @@
+import 'package:fvm/src/services/context.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
@@ -91,7 +92,7 @@ class DoctorCommand extends BaseCommand {
       ..info(dartWhich ?? '')
       ..spacer
       ..info('FVM_HOME:')
-      ..info(kEnvVars['FVM_HOME'] ?? 'not set')
+      ..info(ctx.environment['FVM_HOME'] ?? 'not set')
       ..spacer
       ..info('''
 ''');
