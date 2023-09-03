@@ -51,18 +51,6 @@ class CacheVersion {
     return Directory(join(ctx.fvmVersionsDir.path, name));
   }
 
-  /// RCheck if version is a valid cache
-  bool get isValidCache {
-    final flutterBin = Directory(join(dir.path, 'bin'));
-
-    // If sdkVersion is null, it might be pending setup, in this case ignore.
-    final sdkVersionMatch = sdkVersion == null ? true : sdkVersion == name;
-
-    final versionMatch = isChannel ? true : sdkVersionMatch;
-
-    return versionMatch && flutterBin.existsSync();
-  }
-
   /// Is CacheVersion a channel
   bool get isChannel {
     return checkIsChannel(name);

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fvm/src/workflows/ensure_cache_integrity.workflow.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
@@ -21,29 +22,25 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     // Returns cache if already exists
     if (cacheVersion != null) {
-      final isVerified = await CacheService.verifyIntegrity(cacheVersion);
-
-      if (isVerified) {
-        logger.detail('Flutter SDK: $validVersion - is installed.\n');
-
+      final integrity = await ensureCacheIntegrity(cacheVersion);
+      if (integrity.isValid) {
         return cacheVersion;
       }
 
-      logger
-        ..warn('Flutter SDK: $validVersion - is not installed correctly.')
-        ..info('Removing...')
-        ..spacer;
+      if (integrity.isNeedReinstall) {
+        return ensureCacheWorkflow(
+          validVersion,
+          shouldInstall: true,
+        );
+      }
 
-      // Removing
-      await CacheService.remove(cacheVersion);
-
-      // Run ensure cache workflow.
-      return ensureCacheWorkflow(
-        validVersion,
-        shouldInstall: shouldInstall,
-      );
+      if (integrity.isInvalid) {
+        logger.err('Flutter SDK: ${validVersion.name} is not valid.');
+        exit(ExitCode.success.code);
+      }
     }
 
+    // TODO: Review custom version logic
     // If its a custom version do not proceed on install process
     if (validVersion.custom == true) {
       exit(ExitCode.success.code);

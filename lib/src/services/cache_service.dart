@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:fvm/exceptions.dart';
+import 'package:io/io.dart';
 import 'package:path/path.dart';
 
 import '../models/cache_version_model.dart';
@@ -49,18 +51,18 @@ class CacheService {
   }
 
   /// Removes a Version of Flutter SDK
-  static Future<void> remove(CacheVersion version) async {
-    if (await version.dir.exists()) {
-      await version.dir.delete(recursive: true);
+  static void remove(CacheVersion version) {
+    if (version.dir.existsSync()) {
+      version.dir.deleteSync(recursive: true);
     }
   }
 
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
-  static Future<bool> verifyIntegrity(CacheVersion version) async {
-    final gitDir = Directory(join(version.dir.path, '.github'));
-    final flutterBin = Directory(join(version.dir.path, 'bin'));
-    return await gitDir.exists() && await flutterBin.exists();
+  static Future<bool> verifyIsExecutable(CacheVersion version) async {
+    final binExists = File(version.flutterExec).existsSync();
+
+    return binExists && await isExecutable(version.flutterExec);
   }
 
   // Verifies that the cache version name matches the flutter version
@@ -80,18 +82,9 @@ class CacheService {
   static Future<CacheVersion?> getVersionCache(
     ValidVersion validVersion,
   ) async {
-    final cacheVersion = await CacheService.getByVersionName(
+    return CacheService.getByVersionName(
       validVersion.name,
     );
-
-    if (cacheVersion == null) return null;
-    final isVerified = await CacheService.verifyIntegrity(cacheVersion);
-
-    if (!isVerified) {
-      await CacheService.remove(cacheVersion);
-      return null;
-    }
-    return cacheVersion;
   }
 
   /// Sets a [CacheVersion] as global
@@ -99,6 +92,24 @@ class CacheService {
     final versionDir = versionCacheDir(version.name);
 
     createLink(ctx.globalCacheLink, versionDir);
+  }
+
+  /// Moves a [CacheVersion] to the cache of [sdkVersion]
+
+  static void moveToSdkVersionDiretory(CacheVersion version) {
+    final sdkVersion = version.sdkVersion;
+    if (sdkVersion == null) {
+      throw FvmError(
+        'Cannot move to SDK version directory without a valid version',
+      );
+    }
+    final newDir = versionCacheDir(sdkVersion);
+    print('Moving to $newDir');
+    if (newDir.existsSync()) {
+      throw Exception('Version already exists');
+    }
+
+    version.dir.renameSync(newDir.path);
   }
 
   /// Returns a global [CacheVersion] if exists

@@ -4,7 +4,6 @@ import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
-import '../workflows/remove_version.workflow.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
@@ -40,7 +39,17 @@ class RemoveCommand extends BaseCommand {
       return ExitCode.success.code;
     }
 
-    await removeWorkflow(validVersion);
+    final progress = logger.progress('Removing $validVersion...');
+    try {
+      /// Remove if version is cached
+
+      CacheService.remove(cacheVersion);
+
+      progress.complete('$validVersion removed.');
+    } on Exception {
+      progress.fail('Could not remove $validVersion');
+      rethrow;
+    }
 
     return ExitCode.success.code;
   }

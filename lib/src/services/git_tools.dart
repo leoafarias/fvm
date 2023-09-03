@@ -120,9 +120,9 @@ class GitTools {
     Directory directory, {
     required String version,
   }) async {
-    await ProcessRunner.runWithProgress(
+    await ProcessRunner.run(
       'git reset --hard $version',
-      description: 'Resetting cached Flutter repository',
+      listen: false,
       workingDirectory: directory.path,
     );
   }
