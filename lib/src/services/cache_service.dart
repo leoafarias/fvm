@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
@@ -106,7 +107,11 @@ class CacheService {
     final newDir = versionCacheDir(sdkVersion);
     print('Moving to $newDir');
     if (newDir.existsSync()) {
-      throw Exception('Version already exists');
+      logger
+        ..spacer
+        ..info('Version directory already exists, removing...')
+        ..spacer;
+      newDir.deleteSync(recursive: true);
     }
 
     version.dir.renameSync(newDir.path);

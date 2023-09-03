@@ -23,20 +23,17 @@ Future<CacheVersion> ensureCacheWorkflow(
     // Returns cache if already exists
     if (cacheVersion != null) {
       final integrity = await ensureCacheIntegrity(cacheVersion);
-      if (integrity.isValid) {
-        return cacheVersion;
-      }
 
-      if (integrity.isNeedReinstall) {
-        return ensureCacheWorkflow(
-          validVersion,
-          shouldInstall: true,
-        );
-      }
-
-      if (integrity.isInvalid) {
-        logger.err('Flutter SDK: ${validVersion.name} is not valid.');
-        exit(ExitCode.success.code);
+      switch (integrity) {
+        case CacheIntegrity.valid:
+          return cacheVersion;
+        case CacheIntegrity.needReinstall:
+          return ensureCacheWorkflow(
+            validVersion,
+            shouldInstall: true,
+          );
+        case CacheIntegrity.invalid:
+          throw FvmError('Version: ${validVersion.name} is not valid');
       }
     }
 
