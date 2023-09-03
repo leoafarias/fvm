@@ -3,11 +3,14 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/models/cache_version_model.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/logger.dart';
 import 'package:meta/meta.dart';
+import 'package:mockito/mockito.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 import 'package:test/test.dart';
@@ -16,9 +19,10 @@ import 'package:test/test.dart';
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
+class MockLogger extends Mock implements FvmLogger {}
+
 final _defaultTestContext = FVMContext.create(
   'TEST',
-  fvmDir: getFvmTestHomeDir(),
   isTest: true,
 ).copyWith(
   useGitCache: true,
@@ -42,8 +46,8 @@ const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
 String? channelVersion;
 
-Directory getFvmTestHomeDir() {
-  return Directory(join(kUserHome, 'fvm-test'));
+Directory getFvmTestHomeDir(String path) {
+  return Directory(join(kUserHome, 'fvm-test', path));
 }
 
 Directory getSupportAssetDir(String name) {
@@ -116,7 +120,7 @@ void testWithContext(
 }) {
   // Create random key if it does not exist
 
-  final scope = Scope()..value(contextKey, _defaultTestContext);
+  final scope = Scope()..value(contextKey, ctx);
 
   return test(
     description,
@@ -142,6 +146,12 @@ void groupWithContext(
   FVMContext? context,
   int? retry,
 }) {
+  // lowecase description, and replace spaces with underscores
+  final contextId = description
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-zA-Z0-9_ ]'), '')
+      .replaceAll(' ', '_');
+
   return group(
     description,
     timeout: timeout,
@@ -150,9 +160,29 @@ void groupWithContext(
     onPlatform: onPlatform,
     retry: retry,
     () {
+      final testContext = FVMContext.create(
+        contextId,
+        fvmDir: getFvmTestHomeDir(contextId),
+        isTest: true,
+        gitCacheDir: FVMContext.main.gitCacheDir,
+      ).merge(context);
+
       Scope()
-        ..value(contextKey, _defaultTestContext.merge(context))
-        ..runSync(body);
+        ..value(contextKey, testContext)
+        ..runSync(() {
+          setUpAll(() {
+            if (testContext.fvmDir.existsSync()) {
+              testContext.fvmDir.deleteSync(recursive: true);
+            }
+          });
+
+          tearDownAll(() {
+            if (testContext.fvmDir.existsSync()) {
+              testContext.fvmDir.deleteSync(recursive: true);
+            }
+          });
+          body();
+        });
     },
   );
 }
@@ -186,7 +216,7 @@ Future<void> copyDirectoryContents(
 Future<List<String>> getFlutterTags() async {
   final result = await Process.run(
     'git',
-    ['ls-remote', '--tags', '--refs', kFlutterRepo],
+    ['ls-remote', '--tags', '--refs', ctx.flutterRepo],
   );
 
   var tags = result.stdout.split('\n') as List<String>;
@@ -223,4 +253,13 @@ Future<String?> getTag(String version) async {
     workingDirectory: versionDir.path,
   );
   return result.stdout.trim() as String;
+}
+
+/// update sdk version in a cache version
+void forceUpdateFlutterSdkVersionFile(
+  CacheVersion version,
+  String sdkVersion,
+) {
+  final sdkVersionFile = File(join(version.dir.path, 'version'));
+  sdkVersionFile.writeAsStringSync(sdkVersion);
 }

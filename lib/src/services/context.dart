@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fvm/src/utils/logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
@@ -17,6 +18,7 @@ class FVMContext {
     Directory? fvmDir,
     Directory? fvmVersionsDir,
     bool? useGitCache,
+    FvmLogger? logger,
     Directory? gitCacheDir,
     String? flutterRepo,
     bool isTest = false,
@@ -35,7 +37,7 @@ class FVMContext {
       join(fvmDir.path, 'versions'),
     );
 
-    final gitCacheDir = Directory(
+    gitCacheDir ??= Directory(
       join(fvmDir.path, 'cache.git'),
     );
 
@@ -127,6 +129,7 @@ class FVMContext {
       fvmVersionsDir: context?.fvmVersionsDir,
       useGitCache: context?.useGitCache,
       flutterRepo: context?.flutterRepo,
+      gitCacheDir: context?.gitCacheDir,
       isTest: context?.isTest,
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -66,6 +67,10 @@ class InstallCommand extends BaseCommand {
     );
 
     if (setup) {
+      logger
+        ..info('Setting up Flutter SDK: ${cacheVersion.name}')
+        ..spacer;
+
       await FlutterTools.runSetup(cacheVersion);
     }
 

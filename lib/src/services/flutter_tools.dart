@@ -10,7 +10,6 @@ import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../models/valid_version_model.dart';
 import '../utils/commands.dart';
-import '../utils/logger.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
@@ -28,10 +27,6 @@ class FlutterTools {
 
   /// Runs triggers sdk setup/install
   static Future<int> runSetup(CacheVersion version) async {
-    logger
-      ..info('Setting up Flutter SDK: ${version.name}')
-      ..spacer;
-
     return runFlutter(version, ['doctor', '--version']);
   }
 

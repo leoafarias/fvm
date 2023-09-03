@@ -36,3 +36,4 @@ dev_dependencies:
   test: ^1.24.4
   lints: ^2.1.1
   build_test: ^2.2.0
+  mockito: ^5.4.2

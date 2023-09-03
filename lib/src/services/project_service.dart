@@ -46,59 +46,13 @@ class ProjectService {
     );
   }
 
-  /// Pin version to project
-  /// Pin version to the project
-  static void updateSdkVersion(
-    Project project,
-    String sdkVersion, {
-    String? flavor,
-  }) {
-    var progress = logger.progress('Updating project config');
-
-    try {
-      final newConfig = project.config ?? ProjectConfig.empty();
-      // Attach as main version if no flavor is set
-      newConfig.flutter = sdkVersion;
-      if (flavor != null) {
-        newConfig.flavors ??= {};
-        newConfig.flavors![sdkVersion] = flavor;
-      }
-
-      if (!project.configFile.existsSync()) {
-        project.configFile.createSync(recursive: true);
-      }
-
-      project.configFile.writeAsStringSync(
-        prettyJson(newConfig.toMap()),
-      );
-
-      // Clean this up
-      project.config = newConfig;
-
-      progress.complete('Project config updated');
-    } on Exception catch (err) {
-      progress.fail('Failed to update project config');
-      throw FvmError(err.toString());
-    }
-    progress = logger.progress('Updating Flutter SDK links');
-    try {
-      _updateFlutterSdkReference(project);
-      _updateVscodeConfig(project);
-      progress.complete('Flutter SDK links updated');
-    } on Exception {
-      progress.fail('Failed to update SDK links');
-      rethrow;
-    }
-    _addToGitignore(project, '.fvm/versions');
-  }
-
   /// Returns a list of projects by providing a list of [paths]
   static Future<List<Project>> fetchProjects(List<Directory> paths) async {
     return Future.wait(paths.map(loadByDirectory));
   }
 
   /// Adds to .gitignore paths that should be ignored for fvm
-  static void _addToGitignore(Project project, String pathToAdd) {
+  static void addToGitignore(Project project, String pathToAdd) {
     bool alreadyExists = false;
 
     // Check if .gitignore exists, and if not, create it.
@@ -144,7 +98,7 @@ class ProjectService {
   }
 
   /// Updates the link to make sure its always correct
-  static void _updateFlutterSdkReference(Project project) {
+  static void updateFlutterSdkReference(Project project) {
     // Ensure the config link and symlink are updated
     final sdkVersion = project.pinnedVersion;
     if (sdkVersion == null) {
@@ -172,11 +126,11 @@ class ProjectService {
 
   /// Search for version configured
   static Future<String?> findVersion() async {
-    final project = await ProjectService.findAncestor();
+    final project = await findAncestor();
     return project.pinnedVersion;
   }
 
-  static void _updateVscodeConfig(
+  static void updateVsCodeConfig(
     Project project,
   ) {
     final settingsFile =
@@ -239,14 +193,10 @@ class ProjectService {
     final project = await loadByDirectory(directory);
 
     // If project has a config return it
-    if (project.hasConfig) {
-      return project;
-    }
+    if (project.hasConfig) return project;
 
     // Return working directory if has reached root
-    if (isRootDir) {
-      return await loadByDirectory(kWorkingDirectory);
-    }
+    if (isRootDir) loadByDirectory(kWorkingDirectory);
 
     return await findAncestor(directory: directory.parent);
   }

@@ -1,3 +1,4 @@
+import 'package:fvm/src/workflows/update_project_version.workflow.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../constants.dart';
@@ -30,10 +31,13 @@ Future<void> useVersionWorkflow(
   final cacheVersion = await ensureCacheWorkflow(validVersion);
 
   if (cacheVersion.needSetup) {
+    logger
+      ..info('Setting up Flutter SDK: ${cacheVersion.name}')
+      ..spacer;
+
     await FlutterTools.runSetup(cacheVersion);
   }
-
-  ProjectService.updateSdkVersion(
+  updateSdkVersionWorkflow(
     project,
     cacheVersion.name,
     flavor: flavor,

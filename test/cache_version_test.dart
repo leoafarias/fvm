@@ -1,6 +1,4 @@
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
-import 'package:fvm/src/utils/helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -35,17 +33,5 @@ void main() {
         versionUnsorted.reversed.toList().map((e) => e.name).toList();
 
     expect(afterUnsorted, sortedList);
-  });
-
-  test('Checks that install is not correct', () async {
-    final invalidVersionName = 'INVALID_VERSION';
-    final dir = versionCacheDir(invalidVersionName);
-    await dir.create(recursive: true);
-
-    /// Override valid version for testing purposes
-    final cacheVersion = await CacheService.getVersionCache(
-      ValidVersion(invalidVersionName),
-    );
-    expect(cacheVersion != null, false);
   });
 }

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
@@ -10,6 +9,12 @@ import '../models/valid_version_model.dart';
 import '../utils/helpers.dart';
 import 'context.dart';
 import 'git_tools.dart';
+
+enum CacheIntegrity {
+  valid,
+  invalid,
+  versionMismatch,
+}
 
 /// Service to interact with FVM Cache
 class CacheService {
@@ -60,16 +65,18 @@ class CacheService {
 
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
-  static Future<bool> verifyIsExecutable(CacheVersion version) async {
+  static Future<bool> _verifyIsExecutable(CacheVersion version) async {
     final binExists = File(version.flutterExec).existsSync();
 
     return binExists && await isExecutable(version.flutterExec);
   }
 
   // Verifies that the cache version name matches the flutter version
-  static Future<bool> verifyVersionMatch(CacheVersion version) async {
+  static Future<bool> _verifyVersionMatch(CacheVersion version) async {
     // If its a channel return true
     if (version.isChannel) return true;
+    // If sdkVersion is not available return true
+    if (version.sdkVersion == null) return true;
     return version.sdkVersion == version.name;
   }
 
@@ -95,8 +102,19 @@ class CacheService {
     createLink(ctx.globalCacheLink, versionDir);
   }
 
-  /// Moves a [CacheVersion] to the cache of [sdkVersion]
+  // Verifies that cache can be executed and matches version
+  static Future<CacheIntegrity> verifyCacheIntegrity(
+      CacheVersion version) async {
+    final isExecutable = await _verifyIsExecutable(version);
+    final versionsMatch = await _verifyVersionMatch(version);
 
+    if (!isExecutable) return CacheIntegrity.invalid;
+    if (!versionsMatch) return CacheIntegrity.versionMismatch;
+
+    return CacheIntegrity.valid;
+  }
+
+  /// Moves a [CacheVersion] to the cache of [sdkVersion]
   static void moveToSdkVersionDiretory(CacheVersion version) {
     final sdkVersion = version.sdkVersion;
     if (sdkVersion == null) {
@@ -107,10 +125,6 @@ class CacheService {
     final newDir = versionCacheDir(sdkVersion);
     print('Moving to $newDir');
     if (newDir.existsSync()) {
-      logger
-        ..spacer
-        ..info('Version directory already exists, removing...')
-        ..spacer;
       newDir.deleteSync(recursive: true);
     }
 
@@ -125,7 +139,7 @@ class CacheService {
       // Make sure its a valid version
       final validVersion = ValidVersion(version);
       // Verify version is cached
-      return await CacheService.getVersionCache(validVersion);
+      return CacheService.getVersionCache(validVersion);
     } else {
       return null;
     }

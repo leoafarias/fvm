@@ -1,21 +1,16 @@
 @Timeout(Duration(minutes: 5))
-import 'dart:io';
-
 import 'package:fvm/src/models/cache_version_model.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/context.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
 const _channel = 'beta';
 const _version = '1.20.2';
+
 void main() {
-  final customContext = FVMContext.create('cache_service_test',
-      fvmDir: Directory(join('fvm-test-test', 'cache_service_test')));
-  groupWithContext('Cache Service Test:', context: customContext, () {
+  groupWithContext('Cache Service Test:', () {
     testWithContext('Cache Version', () async {
       var validChannel = await CacheService.getVersionCache(
         ValidVersion(_channel),
@@ -26,29 +21,36 @@ void main() {
       expect(validChannel, null);
       expect(validVersion, null);
 
-      print('Cache channel');
-
       await CacheService.cacheVersion(ValidVersion(_channel));
-
-      print('Cache version');
       await CacheService.cacheVersion(ValidVersion(_version));
 
-      validChannel = await CacheService.getVersionCache(ValidVersion(_channel));
-      validVersion = await CacheService.getVersionCache(ValidVersion(_version));
-      expect(validChannel!.name, _channel);
-      expect(validVersion!.name, _version);
+      final cacheChannel =
+          await CacheService.getVersionCache(ValidVersion(_channel));
+
+      final cacheVersion =
+          await CacheService.getVersionCache(ValidVersion(_version));
+
+      final channelIntegrity =
+          await CacheService.verifyCacheIntegrity(cacheChannel!);
+      final versionIntegrity =
+          await CacheService.verifyCacheIntegrity(cacheVersion!);
+      final invalidIntegrity =
+          await CacheService.verifyCacheIntegrity(CacheVersion('invalid'));
 
       final versions = await CacheService.getAllVersions();
       expect(versions.length, 2);
 
-      expect(validChannel.name, _channel);
-      expect(validVersion.name, _version);
+      forceUpdateFlutterSdkVersionFile(cacheVersion, '2.7.0');
 
-      final invalidCache = CacheVersion('invalid_version');
+      final cacheVersion2 =
+          await CacheService.getVersionCache(ValidVersion(_version));
+      final versionIntegrity2 =
+          await CacheService.verifyCacheIntegrity(cacheVersion2!);
 
-      expect(validChannel.isValidCache, true);
-      expect(validVersion.isValidCache, true);
-      expect(invalidCache.isValidCache, false);
+      expect(versionIntegrity, CacheIntegrity.valid);
+      expect(channelIntegrity, CacheIntegrity.valid);
+      expect(invalidIntegrity, CacheIntegrity.invalid);
+      expect(versionIntegrity2, CacheIntegrity.versionMismatch);
     });
 
     testWithContext('Set/Get Global Cache Version ', () async {

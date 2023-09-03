@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:fvm/src/services/context.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 /// Sets default logger mode
-final logger = Logger();
+final logger = FvmLogger();
 
-extension LoggerExtension on Logger {
+class FvmLogger extends Logger {
   void get divider {
     info(
       '------------------------------------------------------------',
@@ -20,6 +21,16 @@ extension LoggerExtension on Logger {
     // \u2714
     // info('✅ $message');
     info('${green.wrap('\u2714')} $message');
+  }
+
+  @override
+  bool confirm(String? message, {bool defaultValue = false}) {
+    // When running tests, always return true.
+    if (ctx.isTest) return true;
+    return super.confirm(
+      message,
+      defaultValue: defaultValue,
+    );
   }
 
   void notice(String message) {
