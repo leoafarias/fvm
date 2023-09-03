@@ -1,11 +1,11 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
-import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
 /// Configure different flutter version per flavor
@@ -30,7 +30,7 @@ class FlavorCommand extends BaseCommand {
     final project = await ProjectService.findAncestor();
 
     // If project use check that is Flutter project
-    if (project.config.exists == false) {
+    if (project.hasConfig == false) {
       logger.info('Cannot find any FVM config in project.');
       return ExitCode.success.code;
     }
@@ -46,7 +46,7 @@ class FlavorCommand extends BaseCommand {
     flavor ??= argResults!.rest[0];
 
     // Gets flavor version
-    final envs = project.config.flavors;
+    final envs = project.flavors;
     final envVersion = envs[flavor] as String?;
 
     // Check if env confi exists
@@ -65,18 +65,14 @@ class FlavorCommand extends BaseCommand {
       'which uses [${validVersion.name}] Flutter sdk.',
     );
 
-    // Run install workflow
-    await ensureCacheWorkflow(validVersion);
-
-    // Pin version to project
-    await ProjectService.pinVersion(project, validVersion);
+    await useVersionWorkflow(
+      validVersion,
+      flavor: flavor,
+    );
 
     logger
-      ..success(
-        'Now using [$flavor] flavor. '
-        'Flutter version [${validVersion.name}].',
-      )
-      ..info('');
+      ..complete('Now using [$flavor] flavor.')
+      ..spacer;
 
     return ExitCode.success.code;
   }

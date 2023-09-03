@@ -47,7 +47,7 @@ Future<String> cacheVersionSelector() async {
 /// Select from project flavors
 Future<String?> projectFlavorSelector(Project project) async {
   // Gets environment version
-  final envs = project.config.flavors;
+  final envs = project.flavors;
 
   final envList = envs.keys.toList();
 

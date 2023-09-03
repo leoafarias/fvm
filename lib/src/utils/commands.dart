@@ -15,7 +15,10 @@ Future<int> runFlutter(
   List<String> args,
 ) async {
   // Update environment variables
-  final environment = updateEnvironmentVariables(version, ctx.environment);
+  final environment = updateEnvironmentVariables([
+    version.binPath,
+    version.dartBinPath,
+  ], ctx.environment);
   // Run command
   return await _runCmd(
     version.flutterExec,
@@ -34,7 +37,10 @@ Future<int> execCmd(
   // If execPath is not provided will get the path configured version
   var environment = ctx.environment;
   if (version != null) {
-    environment = updateEnvironmentVariables(version, ctx.environment);
+    environment = updateEnvironmentVariables([
+      version.binPath,
+      version.dartBinPath,
+    ], ctx.environment);
   }
 
   // Run command
@@ -51,7 +57,10 @@ Future<int> runDart(CacheVersion version, List<String> args) async {
   // Get exec path for dart
   final execPath = version.dartExec;
   // Update environment
-  final environment = updateEnvironmentVariables(version, ctx.environment);
+  final environment = updateEnvironmentVariables([
+    version.binPath,
+    version.binPath,
+  ], ctx.environment);
 
   // Run command
   return await _runCmd(

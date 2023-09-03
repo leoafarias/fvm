@@ -45,7 +45,7 @@ class DoctorCommand extends BaseCommand {
         ..info('Directory: ${project.projectDir.path}')
         ..info('Version: ${project.pinnedVersion}')
         ..info(
-          'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
+          'Project Flavor: ${(project.activeFlavor) ?? "None selected"}',
         );
 
       if (cacheVersion == null) {
@@ -72,7 +72,7 @@ class DoctorCommand extends BaseCommand {
         ..info('')
         ..info('IDE Links')
         ..info('VSCode: .fvm/flutter_sdk')
-        ..info('Android Studio: ${project.config.sdkSymlink.path}')
+        ..info('Android Studio: ${project.cacheVersionSymlink.path}')
         ..info('');
     } else {
       logger

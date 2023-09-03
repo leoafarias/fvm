@@ -56,47 +56,32 @@ Directory getTempTestDirectory(String path1, [String? path2, String? path3]) {
   return Directory(join(kWorkingDirectory.path, 'test', '.tmp', path1, path2));
 }
 
-final kFlutterAppDir = getTempTestDirectory('apps', 'flutter_app');
-final kDartPackageDir = getTempTestDirectory('apps', 'dart_app');
-final kEmptyDir = getTempTestDirectory('apps', 'empty_flutter_app');
-final kSamplePubspecDir = getTempTestDirectory('pubspecs');
-
 final List<Map<String, String?>> directories = [
   {
-    'path': kFlutterAppDir.path,
-    'pubspec': 'pubspec_flutter.yaml',
+    'tmp': getTempTestDirectory('flutter_app').path,
+    'asset': getSupportAssetDir('flutter_app').path,
   },
   {
-    'path': kDartPackageDir.path,
-    'pubspec': 'pubspec_dart.yaml',
+    'tmp': getTempTestDirectory('dart_package').path,
+    'asset': getSupportAssetDir('dart_package').path,
   },
   {
-    'path': kEmptyDir.path,
-    'pubspec': null,
+    'tmp': getTempTestDirectory('empty_folder').path,
+    'asset': getSupportAssetDir('empty_folder').path,
   },
 ];
 
-void prepareLocalProjects() {
+Future<void> prepareLocalProjects() async {
+  final promises = <Future<void>>[];
   for (var directory in directories) {
-    final dir = Directory(directory['path']!);
-    final pubspecFile = directory['pubspec'];
+    final assetDir = Directory(directory['asset']!);
+    final tmpDir = Directory(directory['tmp']!);
 
-    if (!dir.existsSync()) {
-      dir.createSync(recursive: true);
-      if (pubspecFile != null) {
-        final pubspec = File(join(dir.path, 'pubspec.yaml'));
-        final pubspecContent =
-            File(join(kSamplePubspecDir.path, pubspecFile)).readAsStringSync();
-        pubspec.writeAsStringSync(pubspecContent);
-      }
-    }
+    // Copy assetDir to tmpDir
+    promises.add(copyDirectoryContents(assetDir, tmpDir));
   }
-}
 
-void cleanupLocalProjects() {
-  // Remove fvm config from test projects
-  final appsDir = getSupportAssetDir('apps');
-  appsDir.deleteSync(recursive: true);
+  await Future.wait(promises);
 }
 
 Future<ValidVersion> getRandomFlutterVersion() async {

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:fvm/src/utils/process_manager.dart';
 import 'package:path/path.dart';
 
-import '../../constants.dart';
 import '../../exceptions.dart';
 import '../models/valid_version_model.dart';
 import '../utils/helpers.dart';
@@ -88,7 +87,7 @@ class GitTools {
     if (!ctx.gitCacheDir.existsSync()) {
       await ctx.gitCacheDir.create(recursive: true);
       await ProcessRunner.runWithProgress(
-        'git clone --progress $kFlutterRepo ${ctx.gitCacheDir.path}',
+        'git clone --progress ${ctx.flutterRepo} ${ctx.gitCacheDir.path}',
         description: 'Creating local mirror of Flutter repository',
       );
     } else {
@@ -126,34 +125,5 @@ class GitTools {
       description: 'Resetting cached Flutter repository',
       workingDirectory: directory.path,
     );
-  }
-
-  /// Add `` to `.gitignore` file
-  static Future<void> writeGitIgnore() async {
-    const ignoreStr = '\n.fvm/flutter_sdk';
-    final gitIgnoreFile = File('.gitignore');
-    if (!await gitIgnoreFile.exists()) {
-      // If no gitIgnore file exists skip
-      return;
-    }
-
-    // If in test mode skip
-    if (ctx.isTest) return;
-
-    final content = await gitIgnoreFile.readAsString();
-
-    if (!content.contains(ignoreStr) &&
-        logger.confirm(
-          'You should have .fvm/flutter_sdk in your .gitignore. Would you like to do this now?',
-        )) {
-      final writeContent =
-          '${content.endsWith('\n') ? "" : "\n"}\n# FVM \n.fvm/flutter_sdk';
-
-      await gitIgnoreFile.writeAsString(
-        writeContent,
-        mode: FileMode.append,
-      );
-      logger.success('Added ".fvm/flutter_sdk" to .gitignore.');
-    }
   }
 }

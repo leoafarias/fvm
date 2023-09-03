@@ -5,48 +5,40 @@ import 'package:test/test.dart';
 import 'testing_utils.dart';
 
 void main() {
-  group('Flutter Projects', () {
-    test('Can set SDK version on Flutter Project', () async {
+  groupWithContext('Flutter Projects', () {
+    setUpAll(() => prepareLocalProjects());
+    testWithContext('Can set SDK version on Flutter Project', () async {
       try {
-        final project = await ProjectService.getByDirectory(kFlutterAppDir);
+        final project = await ProjectService.loadByDirectory(
+            getTempTestDirectory('flutter_app'));
 
         final validVersion = await getRandomFlutterVersion();
 
-        await ProjectService.pinVersion(
-          project,
-          validVersion,
-        );
-
+        ProjectService.updateSdkVersion(project, validVersion.name);
         expect(project.pinnedVersion, validVersion.name);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
     });
-    test('Can find Flutter Project', () async {
+    testWithContext('Can find Flutter Project', () async {
       try {
-        final flutterProject =
-            await ProjectService.findAncestor(directory: kFlutterAppDir);
-        final dartPackage =
-            await ProjectService.findAncestor(directory: kDartPackageDir);
-        final emptyProject =
-            await ProjectService.findAncestor(directory: kEmptyDir);
+        final flutterProject = await ProjectService.findAncestor(
+            directory: getTempTestDirectory('flutter_app'));
+        final dartPackage = await ProjectService.findAncestor(
+            directory: getTempTestDirectory('dart_package'));
+        final emptyProject = await ProjectService.findAncestor(
+            directory: getTempTestDirectory('empty_folder'));
 
         expect(flutterProject.name, 'flutter_app');
-        expect(flutterProject.projectDir.path, kFlutterAppDir.path);
+        expect(flutterProject.projectDir.path,
+            getTempTestDirectory('flutter_app').path);
 
-        expect(flutterProject.isFlutterProject, true);
-        expect(dartPackage.isFlutterProject, false);
-        expect(emptyProject.isFlutterProject, false);
+        expect(flutterProject.isFlutter, true);
+        expect(dartPackage.isFlutter, false);
+        expect(emptyProject.isFlutter, false);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
-    });
-
-    test('Can find Flutter Project', () async {
-      final projects = await ProjectService.scanDirectory(
-        rootDir: getTempTestDirectory('apps'),
-      );
-      expect(projects.length, 1);
     });
   });
 }

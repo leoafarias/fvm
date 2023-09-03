@@ -4,6 +4,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/process_manager.dart';
+import 'package:process_run/which.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
@@ -38,7 +39,10 @@ class FlutterTools {
   static Future<void> runPubGet(CacheVersion version) async {
     await ProcessRunner.run(
       'flutter pub get',
-      environment: updateEnvironmentVariables(version, ctx.environment),
+      environment: updateEnvironmentVariables([
+        version.binPath,
+        version.dartBinPath,
+      ], ctx.environment),
       listen: false,
     );
   }
@@ -77,5 +81,12 @@ class FlutterTools {
     }
 
     return null;
+  }
+
+  /// Gets the global configuration
+  static String? whichFlutter() {
+    final currentFlutter = whichSync('flutter');
+    if (currentFlutter == null) return null;
+    return getParentDirPath(currentFlutter);
   }
 }

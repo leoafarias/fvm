@@ -1,7 +1,11 @@
+import 'package:fvm/src/models/cache_version_model.dart';
 import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/logger.dart';
-import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -40,20 +44,51 @@ class GlobalCommand extends BaseCommand {
     final cacheVersion = await ensureCacheWorkflow(validVersion);
 
     // Sets version as the global
-    await CacheService.setGlobal(cacheVersion);
+    CacheService.setGlobal(cacheVersion);
 
-    final configured = await CacheService.isGlobalConfigured();
+    final flutterInPath = FlutterTools.whichFlutter();
 
-    logger.info('Flutter "$validVersion" has been set as global');
-    if (!configured.isSetup) {
+    final pinnedVersion = await ProjectService.findVersion();
+
+    CacheVersion? pinnedCacheVersion;
+
+    if (pinnedVersion != null) {
+      pinnedCacheVersion = await CacheService.getByVersionName(pinnedVersion);
+    }
+
+    final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;
+    final isCachedVersionInPath = flutterInPath == cacheVersion.binPath;
+    final isPinnedVersionInPath = flutterInPath == pinnedCacheVersion?.binPath;
+
+    logger
+      ..spacer
+      ..detail('Default in path: $isDefaultInPath')
+      ..detail('Cached version in path: $isCachedVersionInPath')
+      ..detail('Pinned version in path: $isPinnedVersionInPath')
+      ..spacer
+      ..detail('flutterInPath: $flutterInPath')
+      ..detail('ctx.globalCacheBinPath: ${ctx.globalCacheBinPath}')
+      ..detail('cacheVersion.binPath: ${cacheVersion.binPath}')
+      ..detail('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
+      ..spacer;
+
+    logger.info(
+      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is now global',
+    );
+
+    if (!isDefaultInPath && !isCachedVersionInPath && !isPinnedVersionInPath) {
       logger
         ..info('')
-        ..warn('However your "flutter" path current points to:')
+        ..notice('However your configured "flutter" path is incorrect')
+        ..spacer
         ..info(
-          configured.currentPath ?? 'No version is configured on path.',
+          'CURRENT: ${flutterInPath ?? 'No version is configured on path.'}',
         )
+        ..spacer
         ..info('to use global Flutter SDK through FVM you should change it to:')
-        ..info(configured.correctPath);
+        ..spacer
+        ..info('NEW: ${ctx.globalCacheBinPath}')
+        ..spacer;
     }
     return ExitCode.success.code;
   }

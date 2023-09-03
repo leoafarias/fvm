@@ -21,6 +21,17 @@ extension LoggerExtension on Logger {
     // info('✅ $message');
     info('${green.wrap('\u2714')} $message');
   }
+
+  void notice(String message) {
+    // Add 2 due to the warning icon.
+    final border = '-${'-' * (message.length + 2 + 2)}-';
+    final pipe = yellow.wrap('|');
+    final warningIcon = yellow.wrap('⚠');
+
+    print(yellow.wrap(border));
+    info('$pipe $warningIcon $message $pipe');
+    print(yellow.wrap(border));
+  }
 }
 
 /// Logger for FVM

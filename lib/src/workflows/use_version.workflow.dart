@@ -15,10 +15,11 @@ Future<void> useVersionWorkflow(
   String? flavor,
 }) async {
   // Get project from working directory
-  final project = await ProjectService.getByDirectory(kWorkingDirectory);
+  // TODO: Switch this to find ancestor
+  final project = await ProjectService.loadByDirectory(kWorkingDirectory);
 
   // If project use check that is Flutter project
-  if (!project.isFlutterProject && !force) {
+  if (!project.isFlutter && !force) {
     throw const FvmUsageException(
       'Not a Flutter project. Run this FVM command at'
       ' the root of a Flutter project or use --force to bypass this.',
@@ -32,34 +33,34 @@ Future<void> useVersionWorkflow(
     await FlutterTools.runSetup(cacheVersion);
   }
 
-  await ProjectService.pinVersion(
+  ProjectService.updateSdkVersion(
     project,
-    validVersion,
+    cacheVersion.name,
     flavor: flavor,
   );
 
-  // Ensure the config link and symlink are updated
-  await ProjectService.updateLink();
+  final dartToolVersion = project.dartToolVersion;
 
-  final dartToolVersion = await ProjectService.getDartToolVersion(project);
-
-  print('dartToolVersion: $dartToolVersion');
-  print('cacheVersion.sdkVersion: ${cacheVersion.sdkVersion}\n');
+  logger
+    ..detail('')
+    ..detail('dartToolVersion: $dartToolVersion')
+    ..detail('cacheVersion.sdkVersion: ${cacheVersion.sdkVersion}')
+    ..detail('');
 
   if (dartToolVersion != cacheVersion.sdkVersion) {
     logger
-      ..spacer
+      ..detail('')
       ..detail('dart_tool version mismatch.\n')
       ..detail('Dart tool version: $dartToolVersion')
-      ..detail('SDK Version: ${cacheVersion.sdkVersion}\n');
+      ..detail('SDK Version: ${cacheVersion.sdkVersion}')
+      ..detail('');
 
     final progress = logger.progress('Resolving dependencies...');
     try {
       await FlutterTools.runPubGet(cacheVersion);
       progress.complete('Dependencies resolved.');
     } on Exception {
-      final dartToolVersion = await ProjectService.getDartToolVersion(project);
-      if (dartToolVersion == cacheVersion.sdkVersion) {
+      if (project.dartToolVersion == cacheVersion.sdkVersion) {
         progress.complete('Dependencies resolved.');
       } else {
         progress.fail('Could not resolve dependencies.');

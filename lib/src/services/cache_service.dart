@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:process_run/shell.dart';
 
 import '../models/cache_version_model.dart';
 import '../models/valid_version_model.dart';
@@ -81,16 +80,25 @@ class CacheService {
   static Future<CacheVersion?> getVersionCache(
     ValidVersion validVersion,
   ) async {
-    return await CacheService.getByVersionName(
+    final cacheVersion = await CacheService.getByVersionName(
       validVersion.name,
     );
+
+    if (cacheVersion == null) return null;
+    final isVerified = await CacheService.verifyIntegrity(cacheVersion);
+
+    if (!isVerified) {
+      await CacheService.remove(cacheVersion);
+      return null;
+    }
+    return cacheVersion;
   }
 
   /// Sets a [CacheVersion] as global
-  static Future<void> setGlobal(CacheVersion version) async {
+  static void setGlobal(CacheVersion version) {
     final versionDir = versionCacheDir(version.name);
 
-    await createLink(ctx.globalCacheLink, versionDir);
+    createLink(ctx.globalCacheLink, versionDir);
   }
 
   /// Returns a global [CacheVersion] if exists
@@ -124,52 +132,5 @@ class CacheService {
     } else {
       return null;
     }
-  }
-
-  /// Checks if global version is configured correctly
-  static Future<GlobalConfigured> isGlobalConfigured() async {
-    final currentPath = await which('flutter') ?? '';
-    final binPath = await getParentDirPath(currentPath);
-
-    /// Return false if link does not exist
-    if (!await ctx.globalCacheLink.exists()) {
-      return GlobalConfigured.notConfigured(binPath);
-    }
-
-    return GlobalConfigured(
-      // Check if flutter path is the exec path
-      isSetup: ctx.globalCacheBinPath == binPath,
-      currentPath: binPath,
-      // Path configuration should link into bin directory
-      correctPath: ctx.globalCacheBinPath,
-    );
-  }
-}
-
-//Data returned from global configured
-class GlobalConfigured {
-  /// Is setup correctly
-  final bool isSetup;
-
-  /// Current path configured
-  final String? currentPath;
-
-  /// Correct path to be configured
-  final String correctPath;
-
-  /// Constructor
-  const GlobalConfigured({
-    required this.isSetup,
-    required this.currentPath,
-    required this.correctPath,
-  });
-
-  /// Instance of GlobalConfigured with state not configured for [currentPath]
-  factory GlobalConfigured.notConfigured(String currentPath) {
-    return GlobalConfigured(
-      isSetup: false,
-      currentPath: currentPath,
-      correctPath: '',
-    );
   }
 }

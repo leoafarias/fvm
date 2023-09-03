@@ -1,9 +1,6 @@
-import 'dart:async';
 import 'dart:io';
 
-import 'package:fvm/fvm.dart';
 import 'package:path/path.dart';
-import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
@@ -33,22 +30,24 @@ bool isDirectory(String path) {
   return FileSystemEntity.typeSync(path) == FileSystemEntityType.directory;
 }
 
+/// Runs which command
+
 /// Creates a symlink from [source] to the [target]
-Future<void> createLink(Link source, FileSystemEntity target) async {
+void createLink(Link source, FileSystemEntity target) {
   try {
     // Check if needs to do anything
 
-    final sourceExists = await source.exists();
-    if (sourceExists && await source.target() == target.path) {
-      logger.detail('Link is setup correctly');
+    final sourceExists = source.existsSync();
+    if (sourceExists && source.targetSync() == target.path) {
+      logger.detail('Link is setup correctly\n');
       return;
     }
 
     if (sourceExists) {
-      await source.delete();
+      source.deleteSync();
     }
 
-    await source.create(
+    source.createSync(
       target.path,
       recursive: true,
     );
@@ -69,81 +68,27 @@ Future<void> createLink(Link source, FileSystemEntity target) async {
 }
 
 /// Get the parent directory path of a [filePath]
-Future<String> getParentDirPath(String filePath) async {
+String getParentDirPath(String filePath) {
   final file = File(filePath);
 
   return file.parent.path;
 }
 
 Map<String, String> updateEnvironmentVariables(
-  CacheVersion version,
+  List<String> paths,
   Map<String, String> env,
 ) {
   logger.detail('Starting to update environment variables...');
 
-  // Check if binPath exists
-  if (!Directory(version.binPath).existsSync()) {
-    final errorMsg = "Directory '${version.binPath}' does not exist";
-    logger.err(errorMsg);
-    throw Exception(errorMsg);
-  }
+  final updatedEnvironment = Map<String, String>.from(env);
 
   final envPath = env['PATH'] ?? '';
-  logger.detail('Current PATH: $envPath');
 
   final separator = Platform.isWindows ? ';' : ':';
 
-  var flutterPath = whichSync('flutter');
-  var dartPath = whichSync('dart');
+  updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
 
-  if (flutterPath == null || dartPath == null) {
-    final errorMsg = "Unable to find 'flutter' or 'dart' executable in PATH";
-    logger.err(errorMsg);
-    throw Exception(errorMsg);
-  }
-
-  final resolvedFlutterPath = FileSystemEntity.isLinkSync(flutterPath)
-      ? File(flutterPath).resolveSymbolicLinksSync()
-      : flutterPath;
-
-  final resolvedDartPath = FileSystemEntity.isLinkSync(dartPath)
-      ? File(dartPath).resolveSymbolicLinksSync()
-      : dartPath;
-
-  logger.detail('Current Flutter path: $resolvedFlutterPath');
-  logger.detail('Current Dart path: $resolvedDartPath');
-
-  final newEnvPath = envPath
-      .split(separator)
-      .where(
-        (p) =>
-            !p.endsWith('/flutter/bin') &&
-            !p.endsWith('/dart-sdk/bin') &&
-            !p.endsWith(flutterPath!) &&
-            !p.endsWith(dartPath!) &&
-            !p.endsWith(resolvedFlutterPath) &&
-            !p.endsWith(resolvedDartPath),
-      )
-      .toList();
-
-  if (!newEnvPath.contains(version.binPath)) {
-    newEnvPath.add(version.binPath);
-  }
-
-  final updatedPath = newEnvPath.join(separator);
-
-  final newEnvironment = {
-    ...env,
-    'PATH': updatedPath,
-  };
-
-  flutterPath = whichSync('flutter', environment: newEnvironment);
-  dartPath = whichSync('dart', environment: newEnvironment);
-
-  logger.detail('Updated Flutter path: $flutterPath');
-  logger.detail('Updated Dart path: $dartPath');
-
-  return newEnvironment;
+  return updatedEnvironment;
 }
 
 /// Compares a [version] against [other]
@@ -263,7 +208,7 @@ bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
   return true;
 }
 
-extension ListExtension<T> on List<T> {
+extension ListExtension<T> on Iterable<T> {
   /// Returns firstWhereOrNull
   T? firstWhereOrNull(bool Function(T) test) {
     for (var element in this) {

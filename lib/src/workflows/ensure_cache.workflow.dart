@@ -24,9 +24,7 @@ Future<CacheVersion> ensureCacheWorkflow(
       final isVerified = await CacheService.verifyIntegrity(cacheVersion);
 
       if (isVerified) {
-        logger
-          ..info('Flutter SDK: $validVersion - is installed.')
-          ..spacer;
+        logger.detail('Flutter SDK: $validVersion - is installed.\n');
 
         return cacheVersion;
       }

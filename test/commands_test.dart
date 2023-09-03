@@ -43,9 +43,9 @@ void main() {
 
         final project = await ProjectService.findAncestor();
 
-        final linkExists = project.config.sdkSymlink.existsSync();
+        final linkExists = project.cacheVersionSymlink.existsSync();
 
-        final targetBin = project.config.sdkSymlink.targetSync();
+        final targetBin = project.cacheVersionSymlink.targetSync();
 
         final channelBin = versionCacheDir(channel);
 
@@ -99,9 +99,9 @@ void main() {
         await runner.run('fvm use $release --force');
 
         final project = await ProjectService.findAncestor();
-        final linkExists = project.config.sdkSymlink.existsSync();
+        final linkExists = project.cacheVersionSymlink.existsSync();
 
-        final targetPath = project.config.sdkSymlink.targetSync();
+        final targetPath = project.cacheVersionSymlink.targetSync();
         final valid = ValidVersion(release);
         final versionDir = versionCacheDir(valid.name);
 

@@ -13,31 +13,20 @@ abstract class FvmException implements Exception {
 
 class FvmError extends FvmException {
   /// Constructor
-  const FvmError(super.message);
+  const FvmError(
+    super.message, [
+    this.exception,
+    this.stackTrace,
+  ]);
+
+  /// Actual message from exception
+  final Exception? exception;
+
+  /// Stack trace of error
+  final StackTrace? stackTrace;
 
   @override
   String toString() => 'FVM Error: \n $message';
-}
-
-/// Exception for internal FVM Errors
-@Deprecated('Use FvmException instead')
-class FvmExceptionStackTrace extends FvmException {
-  /// Actual message from exception
-  final Exception exception;
-
-  /// Stack trace of error
-  final StackTrace stackTrace;
-
-  /// Constructor
-  const FvmExceptionStackTrace(
-    super.message,
-    this.exception,
-    this.stackTrace,
-  );
-
-  @override
-  String toString() =>
-      'FVM Error: \n $message \n ${exception.toString()} \n $stackTrace';
 }
 
 class FvmProcessRunnerException extends FvmException {
