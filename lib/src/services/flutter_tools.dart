@@ -1,23 +1,20 @@
 import 'dart:async';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/process_manager.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:path/path.dart';
 import 'package:process_run/which.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
-import '../models/valid_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
-import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterTools {
   FlutterTools._();
 
   /// Upgrades a cached channel
-  static Future<void> runUpgrade(CacheVersion version) async {
+  static Future<void> runUpgrade(CacheFlutterVersion version) async {
     if (version.isChannel) {
       await runFlutter(version, ['upgrade']);
     } else {
@@ -26,62 +23,38 @@ class FlutterTools {
   }
 
   /// Runs triggers sdk setup/install
-  static Future<int> runSetup(CacheVersion version) async {
+  static Future<int> runSetup(CacheFlutterVersion version) async {
     return runFlutter(version, ['doctor', '--version']);
   }
 
   /// Runs pub get
-  static Future<void> runPubGet(CacheVersion version) async {
-    await ProcessRunner.run(
-      'flutter pub get',
-      environment: updateEnvironmentVariables([
-        version.binPath,
-        version.dartBinPath,
-      ], ctx.environment),
-      listen: false,
-    );
+  static Future<void> runPubGet(CacheFlutterVersion version) async {
+    await runFlutter(version, ['pub', 'get']);
   }
 
-  /// Returns a [ValidVersion] release from channel [version]
-  static Future<ValidVersion> inferReleaseFromChannel(
-    ValidVersion version,
-  ) async {
-    if (!version.isChannel) {
-      throw Exception('Can only infer release on valid channel');
+  static Future<FlutterVersion?> validateFlutterVersion(String version) async {
+    final flutterVersion = FlutterVersion(version);
+    if (flutterVersion.isChannel || flutterVersion.isCommit) {
+      return flutterVersion;
     }
 
-    final releases = await fetchFlutterReleases();
-
-    final channel = releases.channels[version.name];
-
-    // Returns valid version
-    return ValidVersion(channel.version);
-  }
-
-  static Future<ValidVersion?> getValidVersion(String version) async {
-    if (kFlutterChannels.contains(version)) {
-      return ValidVersion(version);
-    }
-
-    if (checkIsGitHash(version)) {
-      return ValidVersion(version);
-    }
-
-    final releases = await fetchFlutterReleases();
+    final releases = await FlutterReleasesClient.get();
 
     final isVersion = releases.containsVersion(version);
 
-    if (isVersion) {
-      return ValidVersion(version);
+    if (!isVersion) {
+      throw FvmUsageException(
+        '$version is not a valid Flutter version',
+      );
     }
 
-    return null;
+    return flutterVersion;
   }
 
   /// Gets the global configuration
   static String? whichFlutter() {
     final currentFlutter = whichSync('flutter');
     if (currentFlutter == null) return null;
-    return getParentDirPath(currentFlutter);
+    return dirname(currentFlutter);
   }
 }

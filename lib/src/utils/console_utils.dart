@@ -1,13 +1,14 @@
 import 'dart:io';
 
 import '../../exceptions.dart';
-import '../models/cache_version_model.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
 import '../services/cache_service.dart';
 import 'logger.dart';
 
 /// Prints out versions on FVM and it's status
-Future<void> printVersionStatus(CacheVersion version, Project project) async {
+Future<void> printVersionStatus(
+    CacheFlutterVersion version, Project project) async {
   var printVersion = version.name;
 
   if (project.pinnedVersion == version.name) {

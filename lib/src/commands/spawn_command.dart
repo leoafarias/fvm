@@ -1,7 +1,7 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../models/valid_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -33,7 +33,7 @@ class SpawnCommand extends BaseCommand {
     // Removes version from first arg
     final flutterArgs = [...argResults!.rest]..removeAt(0);
 
-    final validVersion = ValidVersion(version);
+    final validVersion = FlutterVersion(version);
     // Will install version if not already instaled
     final cacheVersion = await ensureCacheWorkflow(validVersion);
     // Runs flutter command with pinned version

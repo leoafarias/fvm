@@ -106,7 +106,7 @@ class ProjectService {
           'Cannot update link of project without a Flutter SDK version');
     }
 
-    final sdkVersionDir = versionCacheDir(sdkVersion);
+    final sdkVersionDir = CacheService.getVersionCacheDir(sdkVersion);
 
     // Clean up pre 3.0 links
     if (project.legacyCacheVersionSymlink.existsSync()) {

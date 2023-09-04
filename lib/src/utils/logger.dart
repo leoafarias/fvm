@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:fvm/src/services/context.dart';
+import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 /// Sets default logger mode
@@ -17,6 +18,8 @@ class FvmLogger extends Logger {
     info('');
   }
 
+  bool get isVerbose => logger.level == Level.verbose;
+
   void complete(String message) {
     // \u2714
     // info('✅ $message');
@@ -24,13 +27,12 @@ class FvmLogger extends Logger {
   }
 
   @override
-  bool confirm(String? message, {bool defaultValue = false}) {
+  bool confirm(String? message, {bool? defaultValue}) {
     // When running tests, always return true.
     if (ctx.isTest) return true;
-    return super.confirm(
-      message,
-      defaultValue: defaultValue,
-    );
+
+    return Confirm(prompt: message ?? '', defaultValue: defaultValue)
+        .interact();
   }
 
   void notice(String message) {

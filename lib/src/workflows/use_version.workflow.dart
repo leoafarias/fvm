@@ -1,9 +1,11 @@
+import 'dart:io';
+
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:fvm/src/workflows/update_project_version.workflow.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../constants.dart';
-import '../../exceptions.dart';
-import '../models/valid_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
@@ -11,7 +13,7 @@ import 'ensure_cache.workflow.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow(
-  ValidVersion validVersion, {
+  FlutterVersion validVersion, {
   bool force = false,
   String? flavor,
 }) async {
@@ -21,22 +23,17 @@ Future<void> useVersionWorkflow(
 
   // If project use check that is Flutter project
   if (!project.isFlutter && !force) {
-    throw const FvmUsageException(
-      'Not a Flutter project. Run this FVM command at'
-      ' the root of a Flutter project or use --force to bypass this.',
-    );
+    final proceed = logger.confirm(
+        'You are running "use" on a project that does not use Flutter. Would you like to continue?');
+
+    if (!proceed) exit(ExitCode.success.code);
   }
 
   // Run install workflow
   final cacheVersion = await ensureCacheWorkflow(validVersion);
 
-  if (cacheVersion.needSetup) {
-    logger
-      ..info('Setting up Flutter SDK: ${cacheVersion.name}')
-      ..spacer;
+  await setupFlutterWorkflow(cacheVersion);
 
-    await FlutterTools.runSetup(cacheVersion);
-  }
   updateSdkVersionWorkflow(
     project,
     cacheVersion.name,
@@ -71,7 +68,6 @@ Future<void> useVersionWorkflow(
         rethrow;
       }
     }
-    await FlutterTools.runPubGet(cacheVersion);
   }
 
   final versionLabel = cyan.wrap(validVersion.printFriendlyName);
@@ -88,4 +84,6 @@ Future<void> useVersionWorkflow(
       )
       ..spacer;
   }
+
+  return;
 }

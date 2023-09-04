@@ -4,8 +4,8 @@ import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
-import '../models/cache_version_model.dart';
-import '../models/valid_version_model.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/logger.dart';
 
@@ -22,13 +22,13 @@ import '../utils/logger.dart';
 
 /// Ensures that the specified Flutter SDK version is cached locally.
 ///
-/// Returns a [CacheVersion] which represents the locally cached version.
-Future<CacheVersion> ensureCacheWorkflow(
-  ValidVersion validVersion, {
+/// Returns a [CacheFlutterVersion] which represents the locally cached version.
+Future<CacheFlutterVersion> ensureCacheWorkflow(
+  FlutterVersion validVersion, {
   bool shouldInstall = false,
 }) async {
   try {
-    final cacheVersion = await CacheService.getVersionCache(validVersion);
+    final cacheVersion = CacheService.getVersion(validVersion);
 
     if (cacheVersion != null) {
       final integrity = await CacheService.verifyCacheIntegrity(cacheVersion);
@@ -48,7 +48,7 @@ Future<CacheVersion> ensureCacheWorkflow(
       return cacheVersion;
     }
 
-    if (validVersion.custom == true) {
+    if (validVersion.isCustom) {
       exit(ExitCode.success.code);
     }
 
@@ -69,7 +69,7 @@ Future<CacheVersion> ensureCacheWorkflow(
 
     await CacheService.cacheVersion(validVersion);
 
-    final newCacheVersion = await CacheService.getVersionCache(validVersion);
+    final newCacheVersion = CacheService.getVersion(validVersion);
     if (newCacheVersion == null) {
       throw FvmError('Could not cache version $validVersion');
     }
@@ -91,8 +91,8 @@ Future<CacheVersion> ensureCacheWorkflow(
 }
 
 // More user-friendly explanation of what went wrong and what will happen next
-Future<CacheVersion> _handleNonExecutable(
-  CacheVersion version, {
+Future<CacheFlutterVersion> _handleNonExecutable(
+  CacheFlutterVersion version, {
   required bool shouldInstall,
 }) async {
   logger
@@ -110,7 +110,7 @@ Future<CacheVersion> _handleNonExecutable(
       'Removing corrupted SDK version and initiating reinstallation...',
     );
     return ensureCacheWorkflow(
-      ValidVersion(version.name),
+      FlutterVersion(version.name),
       shouldInstall: shouldInstall,
     );
   }
@@ -119,8 +119,8 @@ Future<CacheVersion> _handleNonExecutable(
 }
 
 // Clarity on why the version mismatch happened and how it can be fixed
-Future<CacheVersion> _handleVersionMismatch(
-  CacheVersion version, {
+Future<CacheFlutterVersion> _handleVersionMismatch(
+  CacheFlutterVersion version, {
   required bool shouldInstall,
 }) async {
   logger
@@ -148,7 +148,7 @@ Future<CacheVersion> _handleVersionMismatch(
   CacheService.remove(version);
 
   return ensureCacheWorkflow(
-    ValidVersion(version.name),
+    FlutterVersion(version.name),
     shouldInstall: shouldInstall,
   );
 }

@@ -1,3 +1,4 @@
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
@@ -32,8 +33,8 @@ class DoctorCommand extends BaseCommand {
     final dartWhich = await which('dart');
 
     if (project.pinnedVersion != null) {
-      final cacheVersion = await CacheService.getByVersionName(
-        project.pinnedVersion!,
+      final cacheVersion = CacheService.getVersion(
+        FlutterVersion(project.pinnedVersion!),
       );
       logger
         ..info('')
@@ -57,7 +58,7 @@ class DoctorCommand extends BaseCommand {
         logger
           ..success('Version is currently cached locally.')
           ..info('')
-          ..info('Cache Path: ${cacheVersion.dir.path}')
+          ..info('Cache Path: ${cacheVersion.directory}')
           ..info('Channel: ${cacheVersion.isChannel}');
 
         if (cacheVersion.sdkVersion != null) {

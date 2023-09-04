@@ -17,7 +17,7 @@ void updateSdkVersionWorkflow(
     newConfig.flutter = sdkVersion;
     if (flavor != null) {
       newConfig.flavors ??= {};
-      newConfig.flavors![sdkVersion] = flavor;
+      newConfig.flavors![flavor] = sdkVersion;
     }
 
     if (!project.configFile.existsSync()) {

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 abstract class FvmException implements Exception {
   /// Message of error
   final String message;
@@ -27,21 +25,6 @@ class FvmError extends FvmException {
 
   @override
   String toString() => 'FVM Error: \n $message';
-}
-
-class FvmProcessRunnerException extends FvmException {
-  /// Command that was run
-  final ProcessResult result;
-
-  /// Constructor
-  const FvmProcessRunnerException(
-    super.message, {
-    required this.result,
-  });
-
-  @override
-  String toString() =>
-      'FVM Internal Process Exception: \n $message \n Stderr: ${result.stderr} \n Stdout: ${result.stdout}';
 }
 
 /// Exception for internal FVM usage

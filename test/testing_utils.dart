@@ -2,18 +2,20 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/cache_version_model.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:git/git.dart';
 import 'package:meta/meta.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 import 'package:test/test.dart';
+
+import 'testing_helpers/prepare_test_environment.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
@@ -46,52 +48,10 @@ const channel = 'beta';
 const gitHash = 'f4c74a6ec3';
 String? channelVersion;
 
-Directory getFvmTestHomeDir(String path) {
-  return Directory(join(kUserHome, 'fvm-test', path));
-}
-
-Directory getSupportAssetDir(String name) {
-  return Directory(
-    join(kWorkingDirectory.path, 'test', 'support_assets', name),
-  );
-}
-
-Directory getTempTestDirectory(String path1, [String? path2, String? path3]) {
-  return Directory(join(kWorkingDirectory.path, 'test', '.tmp', path1, path2));
-}
-
-final List<Map<String, String?>> directories = [
-  {
-    'tmp': getTempTestDirectory('flutter_app').path,
-    'asset': getSupportAssetDir('flutter_app').path,
-  },
-  {
-    'tmp': getTempTestDirectory('dart_package').path,
-    'asset': getSupportAssetDir('dart_package').path,
-  },
-  {
-    'tmp': getTempTestDirectory('empty_folder').path,
-    'asset': getSupportAssetDir('empty_folder').path,
-  },
-];
-
-Future<void> prepareLocalProjects() async {
-  final promises = <Future<void>>[];
-  for (var directory in directories) {
-    final assetDir = Directory(directory['asset']!);
-    final tmpDir = Directory(directory['tmp']!);
-
-    // Copy assetDir to tmpDir
-    promises.add(copyDirectoryContents(assetDir, tmpDir));
-  }
-
-  await Future.wait(promises);
-}
-
-Future<ValidVersion> getRandomFlutterVersion() async {
-  final payload = await fetchFlutterReleases();
+Future<FlutterVersion> getRandomFlutterVersion() async {
+  final payload = await FlutterReleasesClient.get();
   final release = payload.releases[Random().nextInt(payload.releases.length)];
-  return ValidVersion(release.version);
+  return FlutterVersion(release.version);
 }
 
 void cleanup() {
@@ -171,15 +131,11 @@ void groupWithContext(
         ..value(contextKey, testContext)
         ..runSync(() {
           setUpAll(() {
-            if (testContext.fvmDir.existsSync()) {
-              testContext.fvmDir.deleteSync(recursive: true);
-            }
+            setUpContext(testContext);
           });
 
           tearDownAll(() {
-            if (testContext.fvmDir.existsSync()) {
-              testContext.fvmDir.deleteSync(recursive: true);
-            }
+            tearDownContext(testContext);
           });
           body();
         });
@@ -187,79 +143,44 @@ void groupWithContext(
   );
 }
 
-Future<void> copyFile(File source, String targetPath) async {
-  await source.openRead().pipe(File(targetPath).openWrite());
-}
-
-Future<void> copyDirectoryContents(
-  Directory sourceDir,
-  Directory targetDir,
-) async {
-  if (!await targetDir.exists()) {
-    await targetDir.create(recursive: true);
-  }
-
-  final tasks = <Future>[];
-  await for (var entity in sourceDir.list()) {
-    final targetPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
-    if (entity is File) {
-      tasks.add(copyFile(entity, targetPath));
-    } else if (entity is Directory) {
-      tasks.add(copyDirectoryContents(entity, Directory(targetPath)));
-    }
-  }
-
-  await Future.wait(tasks);
-}
-
-/// Lists repository tags
-Future<List<String>> getFlutterTags() async {
-  final result = await Process.run(
-    'git',
-    ['ls-remote', '--tags', '--refs', ctx.flutterRepo],
-  );
-
-  var tags = result.stdout.split('\n') as List<String>;
-
-  var versionsList = <String>[];
-  for (var tag in tags) {
-    final version = tag.split('refs/tags/');
-
-    if (version.length > 1) {
-      versionsList.add(version[1]);
-    }
-  }
-
-  return versionsList;
-}
-
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
   final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
-  final result = await Process.run(
-    'git',
-    ['rev-parse', '--abbrev-ref', 'HEAD'],
-    workingDirectory: versionDir.path,
-  );
-  return result.stdout.trim() as String;
+
+  final isGitDir = await GitDir.isGitDir(versionDir.path);
+
+  if (!isGitDir) throw Exception('Not a git directory');
+
+  final gitDir = await GitDir.fromExisting(versionDir.path);
+
+  final result = await gitDir.currentBranch();
+
+  return result.branchName;
 }
 
 /// Returns the [name] of a tag [version]
 Future<String?> getTag(String version) async {
   final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
-  final result = await Process.run(
-    'git',
-    ['describe', '--tags', '--exact-match'],
-    workingDirectory: versionDir.path,
-  );
-  return result.stdout.trim() as String;
+
+  final isGitDir = await GitDir.isGitDir(versionDir.path);
+
+  if (!isGitDir) throw Exception('Not a git directory');
+
+  final gitDir = await GitDir.fromExisting(versionDir.path);
+
+  try {
+    final pr = await gitDir.runCommand(['describe', '--tags', '--exact-match']);
+    return (pr.stdout as String).trim();
+  } catch (e) {
+    return null;
+  }
 }
 
 /// update sdk version in a cache version
 void forceUpdateFlutterSdkVersionFile(
-  CacheVersion version,
+  CacheFlutterVersion version,
   String sdkVersion,
 ) {
-  final sdkVersionFile = File(join(version.dir.path, 'version'));
+  final sdkVersionFile = File(join(version.directory, 'version'));
   sdkVersionFile.writeAsStringSync(sdkVersion);
 }

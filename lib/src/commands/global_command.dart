@@ -1,5 +1,5 @@
-import 'package:fvm/src/models/cache_version_model.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/services/project_service.dart';
@@ -38,7 +38,7 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version
-    final validVersion = ValidVersion(version);
+    final validVersion = FlutterVersion(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);
@@ -50,10 +50,12 @@ class GlobalCommand extends BaseCommand {
 
     final pinnedVersion = await ProjectService.findVersion();
 
-    CacheVersion? pinnedCacheVersion;
+    CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
-      pinnedCacheVersion = await CacheService.getByVersionName(pinnedVersion);
+      //TODO: Should run validation on this
+      final flutterPinnedVersion = FlutterVersion(pinnedVersion);
+      pinnedCacheVersion = CacheService.getVersion(flutterPinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;

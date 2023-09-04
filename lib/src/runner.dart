@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
@@ -111,15 +112,13 @@ class FvmCommandRunner extends CommandRunner<int> {
       }
 
       return ExitCode.unavailable.code;
-    } on FvmProcessRunnerException catch (e) {
+    } on ProcessException catch (e) {
       logger
         ..spacer
-        ..err(e.message)
-        ..spacer
-        ..err(e.result.stderr.toString())
+        ..err(e.toString())
         ..spacer;
 
-      return e.result.exitCode;
+      return e.errorCode;
     } on FvmUsageException catch (e) {
       // On usage errors, show the commands usage message and
       // exit with an error code
@@ -147,7 +146,7 @@ class FvmCommandRunner extends CommandRunner<int> {
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
     logger
-      ..spacer
+      ..detail('')
       ..detail('Argument information:')
       ..detail('Top level options:');
     for (final option in topLevelResults.options) {
@@ -167,6 +166,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       }
     }
 
+    final checkingForUpdate = _checkForUpdates(topLevelResults);
+
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
@@ -176,14 +177,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       exitCode = await super.runCommand(topLevelResults);
     }
 
-    // Command might be null
-    final cmd = topLevelResults.command?.name;
-
-    // Check if its running the latest version of FVM
-    if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
-      // Check if there is an update for FVM
-      await _checkForUpdates();
-    }
+    final logOutput = await checkingForUpdate;
+    logOutput?.call();
 
     return exitCode;
   }
@@ -191,19 +186,36 @@ class FvmCommandRunner extends CommandRunner<int> {
   /// Checks if the current version (set by the build runner on the
   /// version.dart file) is the most recent one. If not, show a prompt to the
   /// user.
-  Future<void> _checkForUpdates() async {
+  Future<Function()?> _checkForUpdates(ArgResults args) async {
+    // Command might be null
+    final cmd = args.command?.name;
+    final commandsToCheck = ['use', 'install', 'remove'];
+
+    if (!commandsToCheck.contains(cmd)) return null;
+
     try {
-      final latestVersion = await _pubUpdater.getLatestVersion(kDescription);
-      final isUpToDate = packageVersion == latestVersion;
-      if (!isUpToDate) {
+      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
+
+      if (packageVersion == latestVersion) return null;
+
+      return () {
+        final updateAvailableLabel = lightYellow.wrap('Update available!');
+        final currentVersionLabel = lightCyan.wrap(packageVersion);
+        final latestVersionLabel = lightCyan.wrap(latestVersion);
+        final updateCommandLabel = lightCyan.wrap('$executableName update');
+
         logger
-          ..info('')
+          ..spacer
           ..info(
-            '''
-${lightYellow.wrap('Update available!')} ${lightCyan.wrap(packageVersion)} \u2192 ${lightCyan.wrap(latestVersion)}
-Run ${lightCyan.wrap('$executableName update')} to update''',
-          );
-      }
-    } catch (_) {}
+            '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
+          )
+          ..info('Run $updateCommandLabel to update')
+          ..spacer;
+      };
+    } catch (_) {
+      return () {
+        logger.detail("Failed to check for updates.");
+      };
+    }
   }
 }

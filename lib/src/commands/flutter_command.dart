@@ -3,7 +3,7 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 import '../../exceptions.dart';
-import '../models/valid_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -27,22 +27,25 @@ class FlutterCommand extends BaseCommand {
     final args = [...argResults!.arguments];
 
     if (version != null) {
-      final validVersion = ValidVersion(version);
+      final validVersion = FlutterVersion(version);
       // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 
       logger
-        ..detail('$kPackageName running version $version')
+        ..detail('$kPackageName: Running Flutter SDK from version $version')
         ..detail('');
       // If its not a channel silence version check
       if (!validVersion.isChannel) {
         _checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
-      return await runFlutter(cacheVersion, args);
+      return runFlutter(cacheVersion, args);
     } else {
+      logger
+        ..detail('$kPackageName: Running Flutter SDK from PATH')
+        ..detail('');
       // Running null will default to flutter version on paths
-      return await runFlutterGlobal(args);
+      return runFlutterGlobal(args);
     }
   }
 }

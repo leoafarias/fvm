@@ -15,14 +15,15 @@ dependencies:
   args: ^2.4.2
   # cli_config: ^0.1.1
   date_format: ^2.0.7
+  git: ^2.2.1
   interact: ^2.2.0
   io: ^1.0.4
-  json2yaml: ^3.0.1
   mason_logger: ^0.2.8
   meta: ^1.9.1
   path: ^1.8.3
   process: ^4.2.4
   process_run: ^0.13.1
+  pub_semver: ^2.1.4
   pub_updater: ^0.3.1
   pubspec2: ^1.0.0
   scope: ^4.1.0

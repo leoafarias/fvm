@@ -1,23 +1,24 @@
-import 'dart:io';
-
-import 'package:fvm/src/utils/process_manager.dart';
-import 'package:path/path.dart';
+import 'package:fvm/fvm.dart';
+import 'package:git/git.dart';
 
 import '../../exceptions.dart';
-import '../models/valid_version_model.dart';
-import '../utils/helpers.dart';
-import '../utils/logger.dart';
+import '../models/flutter_version_model.dart';
 import 'context.dart';
 import 'releases_service/releases_client.dart';
 
 /// Tools  and helpers used for interacting with git
 class GitTools {
-  GitTools._();
+  GitTools({
+    FVMContext? context,
+  }) : _context = context ?? ctx;
+
+  final FVMContext _context;
 
   /// Clones Flutter SDK from Version Number or Channel
-  static Future<void> cloneVersion(ValidVersion version) async {
-    final versionDir = versionCacheDir(version.name);
-    await versionDir.create(recursive: true);
+  static Future<void> cloneVersion(FlutterVersion version) async {
+    CacheService.remove(version);
+
+    final versionDir = CacheService.getVersionCacheDir(version.name);
 
     // Check if its git commit
     String? channel;
@@ -26,13 +27,13 @@ class GitTools {
       channel = version.name;
       // If its not a commit hash
     } else if (version.isRelease) {
-      if (version.forceChannel != null) {
+      if (version.releaseChannel != null) {
         // Version name forces channel version
-        channel = version.forceChannel;
+        channel = version.releaseChannel;
       } else {
-        // Fetches the channel of version by priority
-        final flutterReleases = await fetchFlutterReleases();
-        channel = flutterReleases.getChannelFromVersion(version.name);
+        final release =
+            await FlutterReleasesClient.getReleaseFromVersion(version.name);
+        channel = release?.channel.name;
       }
     }
 
@@ -54,25 +55,41 @@ class GitTools {
 
     final cloneArgs = [
       //if its a git hash
-      if (!version.isGitHash) ...versionCloneParams,
+      if (!version.isCommit) ...versionCloneParams,
       if (ctx.useGitCache) ...useMirrorParams,
-    ].join(' ');
+    ];
 
     try {
-      await ProcessRunner.run(
-        'git clone --progress $cloneArgs ${ctx.flutterRepo} ${versionDir.path}',
+      await runGit(
+        [
+          'clone',
+          '--progress',
+          ...cloneArgs,
+          ctx.flutterRepo,
+          versionDir.path,
+        ],
+        echoOutput: true,
       );
     } on Exception {
-      await _cleanupVersionDir(versionDir);
+      CacheService.remove(version);
       rethrow;
+    }
+
+    final gitVersionDir = CacheService.getVersionCacheDir(version.name);
+    final isGit = await GitDir.isGitDir(gitVersionDir.path);
+
+    if (!isGit) {
+      throw FvmError('Not a git directory');
     }
 
     /// If version is not a channel reset to version
     if (!version.isChannel) {
       try {
-        await _resetRepository(versionDir, version: version.version);
+        final gitDir = await GitDir.fromExisting(gitVersionDir.path);
+        // reset --hard $version
+        await gitDir.runCommand(['reset', '--hard', version.name]);
       } on FvmException {
-        await _cleanupVersionDir(versionDir);
+        CacheService.remove(version);
         rethrow;
       }
     }
@@ -83,47 +100,22 @@ class GitTools {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   static Future<void> _updateFlutterRepoCache() async {
+    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir.path);
+
     // If cache file does not exists create it
-    if (!ctx.gitCacheDir.existsSync()) {
-      await ctx.gitCacheDir.create(recursive: true);
-      await ProcessRunner.runWithProgress(
-        'git clone --progress ${ctx.flutterRepo} ${ctx.gitCacheDir.path}',
-        description: 'Creating local mirror of Flutter repository',
-      );
+    if (isGitDir) {
+      final gitDir = await GitDir.fromExisting(ctx.gitCacheDir.path);
+      await gitDir.runCommand(['remote', 'update']);
     } else {
-      final dotGitDir = Directory(join(ctx.gitCacheDir.path, '.git'));
+      // Ensure brand new directory
+      ctx.gitCacheDir
+        ..deleteSync(recursive: true)
+        ..createSync(recursive: true);
 
-      if (!dotGitDir.existsSync()) {
-        ctx.gitCacheDir.deleteSync(recursive: true);
-        logger.info('Recreating mirror');
-        return _updateFlutterRepoCache();
-      }
-
-      await ProcessRunner.runWithProgress(
-        'git remote update',
-        description: 'Updating local Flutter repo cache',
-        workingDirectory: ctx.gitCacheDir.path,
+      await runGit(
+        ['clone', '--progress', ctx.flutterRepo, ctx.gitCacheDir.path],
+        echoOutput: true,
       );
     }
-  }
-
-  static Future<void> _cleanupVersionDir(Directory versionDir) async {
-    if (await versionDir.exists()) {
-      await versionDir.delete(recursive: true);
-    }
-  }
-
-  /// Resets the repository at [directory] to [version] using `git reset`
-  ///
-  /// Throws [FvmException] if `git`'s exit code is not 0.
-  static Future<void> _resetRepository(
-    Directory directory, {
-    required String version,
-  }) async {
-    await ProcessRunner.run(
-      'git reset --hard $version',
-      listen: false,
-      workingDirectory: directory.path,
-    );
   }
 }

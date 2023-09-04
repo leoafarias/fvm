@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:path/path.dart';
+import 'package:fvm/src/utils/is_git_commit.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
@@ -8,21 +8,9 @@ import '../services/context.dart';
 import 'logger.dart';
 
 /// Checks if [name] is a channel
+@Deprecated('kFlutterVChannels.contains directly')
 bool checkIsChannel(String name) {
   return kFlutterChannels.contains(name);
-}
-
-/// Checks if [name] is a short hash of a specific framework commit.
-/// This hash is also shown in the `flutter --version` command.
-bool checkIsGitHash(String name) {
-  final shortHash = RegExp('^[a-f0-9]{10}\$').hasMatch(name);
-  final hash = RegExp('^[a-f0-9]{40}\$').hasMatch(name);
-  return shortHash || hash;
-}
-
-/// Returns a cache [Directory] for a [version]
-Directory versionCacheDir(String version) {
-  return Directory(join(ctx.fvmVersionsDir.path, version));
 }
 
 /// Returns true if [path] is a directory
@@ -33,7 +21,7 @@ bool isDirectory(String path) {
 /// Runs which command
 
 /// Creates a symlink from [source] to the [target]
-void createLink(Link source, FileSystemEntity target) {
+void createLink(Link source, Directory target) {
   try {
     // Check if needs to do anything
 
@@ -67,13 +55,6 @@ void createLink(Link source, FileSystemEntity target) {
   }
 }
 
-/// Get the parent directory path of a [filePath]
-String getParentDirPath(String filePath) {
-  final file = File(filePath);
-
-  return file.parent.path;
-}
-
 Map<String, String> updateEnvironmentVariables(
   List<String> paths,
   Map<String, String> env,
@@ -91,55 +72,11 @@ Map<String, String> updateEnvironmentVariables(
   return updatedEnvironment;
 }
 
-/// Compares a [version] against [other]
-/// returns negative if [version] is ordered before
-/// positive if [version] is ordered after
-/// 0 if its the same
-int compareSemver(String version, String other) {
-  final regExp = RegExp(
-    r"(?<Major>0|(?:[1-9]\d*))(?:\.(?<Minor>0|(?:[1-9]\d*))(?:\.(?<Patch>0|(?:[1-9]\d*)))?(?:\-(?<PreRelease>[0-9A-Z\.-]+))?(?:\+(?<Meta>[0-9A-Z\.-]+))?)?",
-  );
-  try {
-    if (regExp.hasMatch(version) && regExp.hasMatch(other)) {
-      final versionMatches = regExp.firstMatch(version);
-      final otherMatches = regExp.firstMatch(other);
-
-      var result = 0;
-
-      if (versionMatches == null || otherMatches == null) {
-        return result;
-      }
-
-      for (var idx = 1; idx < versionMatches.groupCount; idx++) {
-        final versionMatch = versionMatches.group(idx) ?? '';
-        final otherMatch = otherMatches.group(idx) ?? '';
-        final versionNumber = int.tryParse(versionMatch);
-        final otherNumber = int.tryParse(otherMatch);
-        if (versionMatch != otherMatch) {
-          if (versionNumber == null || otherNumber == null) {
-            result = versionMatch.compareTo(otherMatch);
-          } else {
-            result = versionNumber.compareTo(otherNumber);
-          }
-          break;
-        }
-      }
-
-      return result;
-    }
-
-    return 0;
-  } on Exception catch (err) {
-    logger.detail(err.toString());
-    return 0;
-  }
-}
-
 /// Assigns weight to [version] to channels for comparison
 /// Returns a weight for all versions and channels
 String assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
-  if (checkIsGitHash(version)) {
+  if (isGitCommit(version)) {
     version = '500.0.0';
   } else {
     switch (version) {
@@ -186,26 +123,6 @@ bool shouldRunDetached(List<String> args) {
   final argString = args.join(' ');
   final shouldDetach = shouldDetachCommands.any(argString.contains);
   return shouldDetach && isFvmInstalledGlobally();
-}
-
-/// Returns map equality.
-/// Copy from [Github](https://github.com/flutter/flutter/blob/f1875d570e/packages/flutter/lib/src/foundation/collections.dart#L80)
-bool mapEquals<T, U>(Map<T, U>? a, Map<T, U>? b) {
-  if (a == null) {
-    return b == null;
-  }
-  if (b == null || a.length != b.length) {
-    return false;
-  }
-  if (identical(a, b)) {
-    return true;
-  }
-  for (final key in a.keys) {
-    if (!b.containsKey(key) || b[key] != a[key]) {
-      return false;
-    }
-  }
-  return true;
 }
 
 extension ListExtension<T> on Iterable<T> {

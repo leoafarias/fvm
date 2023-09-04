@@ -1,9 +1,15 @@
 import 'dart:convert';
 
-import '../../../utils/helpers.dart';
 import '../current_release_parser.dart';
 import 'channels.model.dart';
 import 'release.model.dart';
+
+const _flutterChannels = [
+  'stable',
+  'beta',
+  'dev',
+  'master',
+];
 
 /// Flutter Releases
 class FlutterReleases {
@@ -19,7 +25,7 @@ class FlutterReleases {
   final String baseUrl;
 
   /// Channels in Flutter releases
-  final Channels channels;
+  final ReleaseChannels channels;
 
   /// LIst of all releases
   final List<Release> releases;
@@ -34,7 +40,7 @@ class FlutterReleases {
     final parsedResults = parseCurrentReleases(json);
     return FlutterReleases(
       baseUrl: json['base_url'] as String,
-      channels: Channels.fromMap(parsedResults.channels),
+      channels: ReleaseChannels.fromMap(parsedResults.channels),
       releases: List<Release>.from(
         parsedResults.releases.map(
           (release) => Release.fromMap(release as Map<String, dynamic>),
@@ -43,20 +49,27 @@ class FlutterReleases {
     );
   }
 
-  /// Get channel of release
-  String? getChannelFromVersion(String version) {
-    final release = getReleaseFromVersion(version);
+  /// Returns a [FlutterVersion] release from channel [version]
+  Release getLatestChannelRelease(
+    String channelName,
+  ) {
+    if (!_flutterChannels.contains(channelName)) {
+      throw Exception('Can only infer release on valid channel');
+    }
 
-    return release?.channelName;
+    final channelRelease = channels[channelName];
+
+    // Returns valid version
+    return channelRelease;
   }
 
   /// Retrieves version information
   Release? getReleaseFromVersion(String version) {
-    if (checkIsChannel(version)) {
+    if (_flutterChannels.contains(version)) {
       return channels[version];
     }
 
-    int findReleaseIdx(Channel channel) {
+    int findReleaseIdx(FlutterChannel channel) {
       return releases.indexWhere(
         (v) => v.version == version && v.channel == channel,
       );
@@ -65,9 +78,9 @@ class FlutterReleases {
     // Versions can be in multiple versions
     // Prioritize by order of maturity
     // TODO: could be optimized and avoid multiple loops
-    final stableIndex = findReleaseIdx(Channel.stable);
-    final betaIndex = findReleaseIdx(Channel.beta);
-    final devIndex = findReleaseIdx(Channel.dev);
+    final stableIndex = findReleaseIdx(FlutterChannel.stable);
+    final betaIndex = findReleaseIdx(FlutterChannel.beta);
+    final devIndex = findReleaseIdx(FlutterChannel.dev);
 
     Release? release;
     if (stableIndex >= 0) {

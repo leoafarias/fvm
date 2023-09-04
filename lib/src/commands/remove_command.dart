@@ -1,6 +1,6 @@
 import 'package:io/io.dart';
 
-import '../models/valid_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -30,8 +30,8 @@ class RemoveCommand extends BaseCommand {
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
-    final validVersion = ValidVersion(version);
-    final cacheVersion = await CacheService.getVersionCache(validVersion);
+    final validVersion = FlutterVersion(version);
+    final cacheVersion = await CacheService.getVersion(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {

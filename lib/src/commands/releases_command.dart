@@ -19,7 +19,7 @@ class ReleasesCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final releases = await fetchFlutterReleases();
+    final releases = await FlutterReleasesClient.get();
 
     final versions = releases.releases.reversed;
 

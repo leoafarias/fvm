@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -30,6 +31,7 @@ class InstallCommand extends BaseCommand {
       'setup',
       help: 'Builds SDK after install after install',
       abbr: 's',
+      defaultsTo: false,
       negatable: false,
     );
   }
@@ -53,7 +55,7 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = await FlutterTools.getValidVersion(version);
+    final validVersion = await FlutterTools.validateFlutterVersion(version);
 
     if (validVersion == null) {
       throw FvmUsageException(
@@ -66,12 +68,8 @@ class InstallCommand extends BaseCommand {
       shouldInstall: true,
     );
 
-    if (setup) {
-      logger
-        ..info('Setting up Flutter SDK: ${cacheVersion.name}')
-        ..spacer;
-
-      await FlutterTools.runSetup(cacheVersion);
+    if (setup && !ctx.isTest) {
+      await setupFlutterWorkflow(cacheVersion);
     }
 
     return ExitCode.success.code;
