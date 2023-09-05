@@ -26,6 +26,7 @@ class ReleasesCommand extends BaseCommand {
 
     for (var release in versions) {
       final version = yellow.wrap(release.version.padRight(17));
+
       final pipe = Icon.PIPE_VERTICAL;
       final friendlyDate =
           formatDate(release.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);

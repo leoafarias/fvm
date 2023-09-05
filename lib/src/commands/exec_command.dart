@@ -2,7 +2,6 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../models/valid_version_model.dart';
-import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
@@ -46,12 +45,14 @@ class ExecCommand extends BaseCommand {
       // If its not a channel silence version check
 
       // Runs exec command with pinned version
-      return await execCmd(cmd, cacheVersion, execArgs);
+      return await execCmd(
+        cmd,
+        execArgs,
+        cacheVersion,
+      );
     } else {
       // Try to get fvm global version
-      final cacheVersion = await CacheService.getGlobal();
-
-      return await execCmd(cmd, cacheVersion, execArgs);
+      return await execCmd(cmd, execArgs, null);
     }
   }
 }

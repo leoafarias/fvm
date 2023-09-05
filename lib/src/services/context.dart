@@ -5,6 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
+import '../../fvm.dart';
 import 'settings_service.dart';
 
 /// The Zone key used to look up the [AppContext].
@@ -27,13 +28,27 @@ class FvmContext {
     this.name, {
     Directory? fvmDir,
     Directory? cacheDir,
+    bool isTest = false,
   })  : _fvmDir = fvmDir ?? Directory(kFvmHome),
+        _isTest = isTest,
         _cacheDirOverride = cacheDir;
 
   /// Name of the context
   final String name;
   final Directory _fvmDir;
   final Directory? _cacheDirOverride;
+
+  SettingsDto? _settingsDto;
+
+  final bool _isTest;
+
+  /// Returns settings or cached
+  SettingsDto get settings {
+    return _settingsDto ??= SettingsService.readSync();
+  }
+
+  /// Flag to determine if context is running in a test
+  bool get isTest => _isTest;
 
   /// File for FVM Settings
   File get settingsFile {
@@ -47,39 +62,30 @@ class FvmContext {
 
   /// Where Flutter SDK Versions are stored
   Directory get cacheDir {
-    final _settings = SettingsService.readSync();
-
     // Override cacheDir
     if (_cacheDirOverride != null) {
       return _cacheDirOverride!;
     }
     // If there is a cache
-    if (_settings.cachePath != null) {
-      return Directory(normalize(_settings.cachePath!));
+    if (settings.cachePath != null) {
+      return Directory(normalize(settings.cachePath!));
     }
 
     /// Default cache directory
-    return Directory(join(_fvmDir.path, 'versions'));
+    return Directory(join(fvmHome.path, 'versions'));
   }
 
   /// Directory for Flutter repo git cache
   Directory get gitCacheDir {
-    return Directory(join(_fvmDir.path, 'git-cache'));
+    return Directory(
+      join(fvmHome.path, 'cache.git'),
+    );
   }
 
   /// Returns the configured Flutter repository
   String get flutterRepo {
     return kFlutterRepo;
   }
-
-  /// Where Default Flutter SDK is stored
-  Link get globalCacheLink => Link(join(_fvmDir.path, 'default'));
-
-  /// Directory for Global Flutter SDK bin
-  String get globalCacheBinPath => join(
-        globalCacheLink.path,
-        'bin',
-      );
 
   @override
   String toString() {
@@ -92,12 +98,14 @@ class FvmContext {
     required String name,
     final Directory? fvmDir,
     final Directory? cacheDir,
+    bool isTest = false,
     ZoneSpecification? zoneSpecification,
   }) async {
     final child = FvmContext._(
       name,
       fvmDir: fvmDir,
       cacheDir: cacheDir,
+      isTest: isTest,
     );
     return runZoned<FutureOr<V>>(
       () async => await body(),

@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   test:
-    name: "${{ matrix.sdk-version }} / ${{ matrix.os }}"
+    name: "${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -20,18 +20,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v1
-      - name: Setup Dart ${{ matrix.dart-version }}
-        uses: DanTup/gh-actions/setup-dart@master
-        with:
-          channel: ${{ matrix.sdk-version }}
+      - uses: dart-lang/setup-dart@v1.5.0
 
-      # - name: Setup Flutter ${{ matrix.sdk-version }}
-      #   uses: DanTup/gh-actions/setup-flutter@master
-      #   with:
-      #     channel: ${{ matrix.sdk-version }}
-
-      - name: Install dependencies
-        run: dart pub get
-
-      - name: Run Test and Builder
-        run: dart pub run build_runner test --delete-conflicting-outputs
+      - run: dart pub get
+      - run: dart pub run build_runner build --delete-conflicting-outputs
+      - run: dart analyze --fatal-infos --fatal-warnings .
+      - run: dart test

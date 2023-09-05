@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' as io;
 
 import 'package:cli_util/cli_logging.dart' as log;
 import 'package:io/ansi.dart';
@@ -73,25 +72,9 @@ class ConsoleController {
   /// fine stream
   final fine = StreamController<List<int>>();
 
-  /// info stream
+  /// info streamm
   final info = StreamController<List<int>>();
 
   /// error stream
   final error = StreamController<List<int>>();
-
-  /// Is running on CLI
-  static bool isCli = false;
-
-  /// Checks if its running on terminal
-  static bool get isTerminal => isCli && io.stdin.hasTerminal;
-
-  /// stdout stream sink
-  StreamSink<List<int>> get stdoutSink {
-    return isCli ? io.stdout : stdout.sink;
-  }
-
-  /// stderr stream sink
-  StreamSink<List<int>> get stderrSink {
-    return isCli ? io.stderr : stderr.sink;
-  }
 }

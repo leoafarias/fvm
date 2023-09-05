@@ -25,7 +25,7 @@ function HomepageHeader() {
           <GitHubStarButton />
           <Spacer />
           <Link to="https://pub.dev/packages/fvm">
-            <img src="https://badges.bar/fvm/likes" />
+            <img src="https://img.shields.io/pub/likes/fvm?label=Pub%20Likes&style=flat-squar" />
           </Link>
           <Spacer />
           <Link to="https://github.com/leoafarias/fvm/graphs/contributors">

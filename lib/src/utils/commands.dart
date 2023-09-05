@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
 import '../../constants.dart';
@@ -28,10 +27,11 @@ Future<int> flutterCmd(
 /// Exec commands with the Flutter env
 Future<int> execCmd(
   String execPath,
-  CacheVersion? version,
   List<String> args,
+  CacheVersion? version,
 ) async {
   // Update environment variables
+  // If execPath is not provided will get the path configured version
   final binPath = version?.binPath ?? whichSync('flutter') ?? '';
   final dartBinPath = version?.dartBinPath ?? whichSync('dart') ?? '';
 
@@ -69,6 +69,10 @@ Future<int> dartGlobalCmd(List<String> args) async {
   // Get exec path for dart
   final execPath = whichSync('dart') ?? '';
 
+  logger.trace(
+    'fvm: Running using Dart/Flutter version configured in path.\n',
+  );
+
   // Run command
   return await _runCmd(
     execPath,
@@ -77,14 +81,14 @@ Future<int> dartGlobalCmd(List<String> args) async {
 }
 
 /// Runs flutter from global version
-Future<int> flutterGlobalCmd(List<String> args) async {
+Future<int> flutterGlobalCmd(List<String> args) {
   final execPath = whichSync('flutter') ?? '';
   logger.trace(
-    'FVM: Running Flutter SDK configured on environment PATH. $execPath',
+    'fvm: Running Flutter SDK configured on environment PATH. $execPath',
   );
 
   // Run command
-  return await _runCmd(
+  return _runCmd(
     execPath,
     args: args,
   );
@@ -103,21 +107,17 @@ Future<int> _runCmd(
     await Guards.canExecute(execPath, args);
   }
 
-  final processManager = ProcessManager();
-
   // Switch off line mode
+
   switchLineMode(false, args);
-  final process = await processManager.spawn(
+  final process = await Process.start(
     execPath,
     args,
+    runInShell: true,
     environment: environment,
     workingDirectory: kWorkingDirectory.path,
+    mode: ProcessStartMode.inheritStdio,
   );
-
-  if (!ConsoleController.isCli) {
-    process.stdout.listen(consoleController.stdout.add);
-    process.stderr.listen(consoleController.stderr.add);
-  }
 
   exitCode = await process.exitCode;
 

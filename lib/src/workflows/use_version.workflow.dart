@@ -12,7 +12,6 @@ Future<void> useVersionWorkflow(
   ValidVersion validVersion, {
   bool force = false,
   String? flavor,
-  bool skipSetup = false,
 }) async {
   // Get project from working directory
   final project = await ProjectService.getByDirectory(kWorkingDirectory);
@@ -29,7 +28,7 @@ Future<void> useVersionWorkflow(
   final cacheVersion = await ensureCacheWorkflow(validVersion);
 
   // Ensure that flutter tool is installed
-  if (!CacheService.isCacheVersionSetup(cacheVersion) && !skipSetup) {
+  if (!CacheService.isCacheVersionSetup(cacheVersion)) {
     await FlutterTools.setupSdk(cacheVersion);
   }
 
@@ -38,6 +37,14 @@ Future<void> useVersionWorkflow(
     validVersion,
     flavor: flavor,
   );
+
+  final dartToolVersion = await ProjectService.getDartToolVersion(project);
+  final flutterSdkVersion = CacheService.getSdkVersionSync(cacheVersion);
+
+  if (dartToolVersion != flutterSdkVersion) {
+    // Run pub get after pinning version
+    await FlutterTools.pubGet(cacheVersion);
+  }
 
   // Different message if configured environment
   if (flavor != null) {

@@ -11,7 +11,7 @@ import 'logger.dart';
 /// Displays notice for confirmation
 Future<bool> confirm(String message, {bool defaultConfirmation = true}) async {
   final choices = defaultConfirmation ? 'Y/n' : 'y/N';
-  final response = await readInput('$message $choices: ');
+  final response = await readInput('$message ($choices): ');
   final lowercase = response.toLowerCase();
 
   if (response.isEmpty) {
@@ -36,9 +36,7 @@ Future<void> printVersionStatus(CacheVersion version, Project project) async {
   if (project.pinnedVersion == version.name) {
     printVersion = '$printVersion (active)';
   }
-  if (await CacheService.isGlobal(version)) {
-    printVersion = '$printVersion (global)';
-  }
+
   Logger.info(printVersion);
 }
 
@@ -99,7 +97,7 @@ void switchLineMode(bool active, List<String> args) {
   // Don't do anything if its not terminal
   // or if it's not run command
 
-  if (!ConsoleController.isTerminal || args.isEmpty || args.first != 'run') {
+  if (args.isEmpty || args.first != 'run') {
     return;
   }
   // Seems incompatible with different shells. Silent error

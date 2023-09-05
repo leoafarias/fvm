@@ -19,7 +19,7 @@ Option:
         --flavor   Sets version for a project flavor
 ```
 
-If you are starting a new project and plan on using `fvm flutter create` you wil have to use the `--force` flag
+If you are starting a new project and plan on using `fvm flutter create` you will have to use the `--force` flag
 
 ## Install
 

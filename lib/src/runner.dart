@@ -12,7 +12,6 @@ import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
 import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
-import 'commands/global_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
@@ -52,7 +51,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(ReleasesCommand());
     addCommand(FlutterCommand());
     addCommand(DartCommand());
-    addCommand(GlobalCommand());
     addCommand(DoctorCommand());
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
@@ -64,17 +62,16 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      ConsoleController.isCli = true;
-      final _argResults = parse(args);
+      final argResults = parse(args);
 
       // Command might be null
-      final cmd = _argResults.command?.name;
+      final cmd = argResults.command?.name;
 
-      final exitCode = await runCommand(_argResults) ?? ExitCode.success.code;
+      final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       // Check if its running the latest version of FVM
       if (cmd == 'use' || cmd == 'install' || cmd == 'remove') {
-        // Check if there is an update fofr FVM
+        // Check if there is an update for FVM
         await checkForFvmUpdate();
       }
       return exitCode;

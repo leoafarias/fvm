@@ -1,6 +1,6 @@
 import '../models/cache_version_model.dart';
 import '../models/project_model.dart';
-import '../models/settings_model.dart';
+import '../models/settings_dto.dart';
 import '../models/valid_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/context.dart';
@@ -10,7 +10,6 @@ import '../services/releases_service/releases_client.dart';
 import '../services/settings_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/remove_version.workflow.dart';
-import 'logger.dart';
 
 // ignore: avoid_classes_with_only_static_members
 /// Client for FVM APIs for other apps or packages.
@@ -62,35 +61,17 @@ class FVMClient {
   /// Returns a list of projects by providing a list of [directories]
   static final fetchProjects = ProjectService.fetchProjects;
 
-  /// Returns true if [cacheVersion] is configured as global
-  static final checkIfGlobal = CacheService.isGlobal;
-
-  /// Returns true if FVM global version is configured corretly
-  static final checkIfGlobalConfigured = CacheService.isGlobalConfigured;
-
-  /// Returns sync a global configured cache version
-  static final getGlobalVersionSync = CacheService.getGlobalVersionSync;
-
-  /// Returns async a global configured cache version
-  static final getGlobal = CacheService.getGlobal;
-
-  /// Sets a [version] as global
-  static final setGlobalVersion = CacheService.setGlobal;
-
   /// Scans for Flutter projects found in the rootDir
   static final scanDirectory = ProjectService.scanDirectory;
 
   /// Get all cached Flutter SDK versions
   static final getCachedVersions = CacheService.getAllVersions;
 
-  /// Returns [FvmSettings]
+  /// Returns [SettingsDto]
   static final readSettings = SettingsService.read;
 
   /// Saves FVM [settings]
   static final saveSettings = SettingsService.save;
-
-  /// Console controller for streams of process output
-  static final console = consoleController;
 
   /// Fetches all flutter releases
   static final getFlutterReleases = fetchFlutterReleases;

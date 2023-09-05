@@ -87,8 +87,8 @@ class Channels {
 
   /// Returns a hash map of the channels model
   Map<String, dynamic> toHashMap() => {
-        '${beta.hash}': 'beta',
-        '${dev.hash}': 'dev',
-        '${stable.hash}': 'stable',
+        beta.hash: 'beta',
+        dev.hash: 'dev',
+        stable.hash: 'stable',
       };
 }

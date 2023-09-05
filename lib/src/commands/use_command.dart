@@ -3,6 +3,8 @@ import 'package:io/io.dart';
 
 import '../models/valid_version_model.dart';
 import '../services/flutter_tools.dart';
+import '../services/git_tools.dart';
+import '../services/ide_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -23,7 +25,6 @@ class UseCommand extends BaseCommand {
 
   /// Constructor
   UseCommand() {
-    // DEPRECATED: Global is Deprecated remove it later
     argParser
       ..addFlag(
         'force',
@@ -44,19 +45,18 @@ class UseCommand extends BaseCommand {
         defaultsTo: null,
       )
       ..addFlag(
-        'skip-setup',
-        help: 'Skips Flutter setup after install',
-        abbr: 's',
+        'config-vsc',
+        help: 'Configures VSCode to use FVM',
+        abbr: 'c',
         negatable: false,
       );
   }
   @override
   Future<int> run() async {
-    // final global = argResults['global'] == true;
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
-    final skipSetup = boolArg('skip-setup');
+    final configVSC = boolArg('config-vsc');
 
     String? version;
 
@@ -65,9 +65,7 @@ class UseCommand extends BaseCommand {
       version = await ProjectService.findVersion();
 
       // If no config found, ask which version to select.
-      if (version == null) {
-        version = await cacheVersionSelector();
-      }
+      version ??= await cacheVersionSelector();
     }
 
     // Get version from first arg
@@ -94,12 +92,18 @@ class UseCommand extends BaseCommand {
       validVersion = await FlutterTools.inferReleaseFromChannel(validVersion);
     }
 
+    if (configVSC) {
+      await IDEService.configureVsCodeSettings();
+    }
+
+    // Checks if should write gitignore file
+    await GitTools.writeGitIgnore();
+
     /// Run use workflow
     await useVersionWorkflow(
       validVersion,
       force: forceOption,
       flavor: flavorOption,
-      skipSetup: skipSetup,
     );
 
     return ExitCode.success.code;

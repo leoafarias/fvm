@@ -4,6 +4,7 @@ title: Configure Global Version
 sidebar_position: 2
 ---
 
+
 You can have the default Flutter version in your machine but still, preserve the dynamic switching. It allows you not to make any changes on how you currently use Flutter but benefit from faster switching and version caching.
 
 To accomplish this FVM provides you a helper command to configure a global version.

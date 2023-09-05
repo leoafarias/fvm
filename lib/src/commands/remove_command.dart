@@ -20,17 +20,8 @@ class RemoveCommand extends BaseCommand {
 
   /// Constructor
 
-  RemoveCommand() {
-    argParser.addFlag(
-      'force',
-      help: 'Skips version global check.',
-      negatable: false,
-    );
-  }
-
   @override
   Future<int> run() async {
-    final force = boolArg('force');
     String? version;
 
     if (argResults!.rest.isEmpty) {
@@ -47,20 +38,7 @@ class RemoveCommand extends BaseCommand {
       return ExitCode.success.code;
     }
 
-    final isGlobal = await CacheService.isGlobal(cacheVersion);
-
-    if (!isGlobal || force) {
-      await removeWorkflow(validVersion);
-    } else {
-      final confirmation = await confirm(
-        '$validVersion is current configured as "global". '
-        'Do you still would like to remove?',
-      );
-
-      if (confirmation) {
-        await removeWorkflow(validVersion);
-      }
-    }
+    await removeWorkflow(validVersion);
 
     return ExitCode.success.code;
   }

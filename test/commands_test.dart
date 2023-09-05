@@ -2,13 +2,11 @@
 import 'package:fvm/src/models/valid_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/git_tools.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import 'test_utils.dart';
@@ -57,13 +55,8 @@ void main() {
       try {
         // Run foce to test within fvm
 
-        await FvmCommandRunner().run([
-          'use',
-          channel,
-          '--force',
-          '--verbose',
-          '--skip-setup',
-        ]);
+        await FvmCommandRunner()
+            .run(['use', channel, '--force', '--verbose', '--config-vsc']);
         final project = await ProjectService.findAncestor();
 
         final linkExists = project.config.sdkSymlink.existsSync();
@@ -79,19 +72,20 @@ void main() {
       }
     });
 
-    testWithContext('Use Flutter SDK globally', key, () async {
-      try {
-        await FvmCommandRunner().run(['global', channel]);
-        final linkExists = ctx.globalCacheLink.existsSync();
+    //TODO: Remove after deprecation period
+    // testWithContext('Use Flutter SDK globally', key, () async {
+    //   try {
+    //     await FvmCommandRunner().run(['global', channel]);
+    //     final linkExists = ctx.globalCacheLink.existsSync();
 
-        final targetVersion = basename(await ctx.globalCacheLink.target());
+    //     final targetVersion = basename(await ctx.globalCacheLink.target());
 
-        expect(targetVersion == channel, true);
-        expect(linkExists, true);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
-    });
+    //     expect(targetVersion == channel, true);
+    //     expect(linkExists, true);
+    //   } on Exception catch (e) {
+    //     fail('Exception thrown, $e');
+    //   }
+    // });
 
     testWithContext('Remove Channel Command', key, () async {
       try {
@@ -130,14 +124,13 @@ void main() {
             release,
             '--force',
             '--verbose',
-            '--skip-setup',
           ],
         );
         final project = await ProjectService.findAncestor();
         final linkExists = project.config.sdkSymlink.existsSync();
 
         final targetPath = project.config.sdkSymlink.targetSync();
-        final valid = await ValidVersion(release);
+        final valid = ValidVersion(release);
         final versionDir = versionCacheDir(valid.name);
 
         expect(targetPath == versionDir.path, true);
@@ -192,7 +185,6 @@ void main() {
           '--flavor',
           'production',
           '--force',
-          '--skip-setup',
         ]),
         ExitCode.success.code,
       );
