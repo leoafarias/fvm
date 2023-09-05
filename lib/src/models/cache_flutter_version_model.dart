@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/compare_semver.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
@@ -12,7 +13,15 @@ class CacheFlutterVersion extends FlutterVersion {
   CacheFlutterVersion(
     FlutterVersion version, {
     required this.directory,
-  }) : super(version.name);
+  }) : super(
+          version.name,
+          releaseChannel: version.releaseChannel,
+          isChannel: version.isChannel,
+          isMaster: version.isMaster,
+          isRelease: version.isRelease,
+          isCommit: version.isCommit,
+          isCustom: version.isCustom,
+        );
 
   /// Directory of the cache version
   final String directory;
@@ -22,7 +31,9 @@ class CacheFlutterVersion extends FlutterVersion {
 
   /// Has old dart path structure
   // Last version with the old dart path structure
-  bool get hasOldBinPath => compareSemver(versionWeight, '1.17.5') <= 0;
+  bool get hasOldBinPath {
+    return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
+  }
 
   /// Returns dart exec file for cache version
   String get dartBinPath {

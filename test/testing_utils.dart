@@ -43,15 +43,24 @@ class TestFvmCommandRunner {
   }
 }
 
-String release = '2.2.1';
+const kVersionList = [
+  'beta',
+  'master',
+  '3.10.2',
+  '2.2.2@beta',
+  '2.11.0-0.1.pre',
+  '2.0.3',
+  'f4c74a6ec3'
+];
+
+const release = '2.2.1';
 const channel = 'beta';
-const gitHash = 'f4c74a6ec3';
-String? channelVersion;
+const gitCommit = 'f4c74a6ec3';
 
 Future<FlutterVersion> getRandomFlutterVersion() async {
   final payload = await FlutterReleasesClient.get();
   final release = payload.releases[Random().nextInt(payload.releases.length)];
-  return FlutterVersion(release.version);
+  return FlutterVersion.fromString(release.version);
 }
 
 void cleanup() {

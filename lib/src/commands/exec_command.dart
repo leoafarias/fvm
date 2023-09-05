@@ -23,7 +23,7 @@ class ExecCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.findVersion();
+    final version = await ProjectService.instance.findVersion();
 
     if (argResults!.rest.isEmpty) {
       throw UsageException(
@@ -40,7 +40,7 @@ class ExecCommand extends BaseCommand {
     // If no version is provided try to use global
     if (version == null) return execCmd(cmd, execArgs, null);
 
-    final validVersion = FlutterVersion(version);
+    final validVersion = FlutterVersion.fromString(version);
     // Will install version if not already instaled
     final cacheVersion = await ensureCacheWorkflow(validVersion);
 

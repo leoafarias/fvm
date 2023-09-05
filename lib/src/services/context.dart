@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -9,10 +10,16 @@ import '../../fvm.dart';
 
 final contextKey = ScopeKey<FVMContext>();
 
+/// Generates an [FVMContext] value.
+///
+/// Generators are allowed to return `null`, in which case the context will
+/// store the `null` value as the value for that type.
+typedef Generator = dynamic Function();
+
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 class FVMContext {
-  static FVMContext main = FVMContext.create('MAIN');
+  static FVMContext get main => FVMContext.create('MAIN');
   factory FVMContext.create(
     String name, {
     Directory? fvmDir,
@@ -21,6 +28,7 @@ class FVMContext {
     FvmLogger? logger,
     Directory? gitCacheDir,
     String? flutterRepo,
+    Map<Type, dynamic> overrides = const {},
     bool isTest = false,
   }) {
     flutterRepo ??=
@@ -41,6 +49,14 @@ class FVMContext {
       join(fvmDir.path, 'cache.git'),
     );
 
+    final generators = <Type, dynamic>{
+      FvmLogger: () => FvmLogger(),
+      ProjectService: () => ProjectService(),
+      FlutterTools: () => FlutterTools(),
+      CacheService: () => CacheService(),
+      ...overrides,
+    };
+
     return FVMContext._(
       name,
       fvmDir: fvmDir,
@@ -49,6 +65,7 @@ class FVMContext {
       isTest: isTest,
       flutterRepo: flutterRepo,
       gitCacheDir: gitCacheDir,
+      generators: generators,
     );
   }
 
@@ -61,6 +78,7 @@ class FVMContext {
     required this.useGitCache,
     required this.flutterRepo,
     required this.gitCacheDir,
+    this.generators = const {},
     this.isTest = false,
   });
 
@@ -88,6 +106,8 @@ class FVMContext {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
+  final Map<Type, dynamic>? generators;
+
   /// File for FVM Settings
   File get settingsFile {
     return File(join(fvmDir.path, '.settings'));
@@ -102,6 +122,13 @@ class FVMContext {
   /// Directory for Global Flutter SDK bin
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
+  T get<T>() {
+    if (generators != null && generators!.containsKey(T)) {
+      return generators![T]!() as T;
+    }
+    throw Exception('Generator for $T not found');
+  }
+
   FVMContext copyWith({
     String? name,
     Directory? fvmDir,
@@ -110,6 +137,7 @@ class FVMContext {
     String? flutterRepo,
     Directory? gitCacheDir,
     bool? isTest,
+    Map<Type, dynamic>? generators,
   }) {
     return FVMContext._(
       name ?? this.name,
@@ -119,6 +147,10 @@ class FVMContext {
       flutterRepo: flutterRepo ?? this.flutterRepo,
       gitCacheDir: gitCacheDir ?? this.gitCacheDir,
       isTest: isTest ?? this.isTest,
+      generators: {
+        ...this.generators!,
+        if (generators != null) ...generators,
+      },
     );
   }
 
@@ -131,6 +163,7 @@ class FVMContext {
       flutterRepo: context?.flutterRepo,
       gitCacheDir: context?.gitCacheDir,
       isTest: context?.isTest,
+      generators: context?.generators,
     );
   }
 

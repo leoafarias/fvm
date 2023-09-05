@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:io/io.dart';
 
@@ -43,7 +42,7 @@ class InstallCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = await ProjectService.findVersion();
+      version = await ProjectService.instance.findVersion();
 
       // If no config found is version throw error
       if (version == null) {
@@ -55,7 +54,8 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = await FlutterTools.validateFlutterVersion(version);
+    final validVersion =
+        await FlutterTools.instance.validateFlutterVersion(version);
 
     if (validVersion == null) {
       throw FvmUsageException(
@@ -68,8 +68,10 @@ class InstallCommand extends BaseCommand {
       shouldInstall: true,
     );
 
-    if (setup && !ctx.isTest) {
-      await setupFlutterWorkflow(cacheVersion);
+    if (setup) {
+      await setupFlutterWorkflow(
+        version: cacheVersion,
+      );
     }
 
     return ExitCode.success.code;

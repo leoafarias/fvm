@@ -17,43 +17,63 @@ class FlutterVersion {
   /// Has a cannel which the version is part of
   final String? releaseChannel;
 
+  /// Identifies if the version is an official Flutter SDK release.
+  final bool isRelease;
+
+  /// Identifies if the version represents a specific git commit.
+  final bool isCommit;
+
+  /// Identifies if the version belongs to a Flutter channel.
+  final bool isChannel;
+
+  /// Identifies if the version represents a custom Flutter SDK version.
+  final bool isCustom;
+
+  /// Identifies if the version belongs to the Flutter master channel.
+  final bool isMaster;
+
   /// Constructs a [FlutterVersion] instance initialized with a given [name].
   const FlutterVersion(
     this.name, {
     this.releaseChannel,
+    required this.isRelease,
+    required this.isCommit,
+    required this.isChannel,
+    required this.isCustom,
+    required this.isMaster,
   });
 
   factory FlutterVersion.fromString(String version) {
     final parts = version.split('@');
 
     String? releaseChannel;
-    String? name = version;
 
     if (parts.length > 1 && kFlutterChannels.contains(parts.last)) {
-      name = parts.first;
       releaseChannel = parts.last;
     }
 
+    final isCommit = isGitCommit(version);
+    final isChannel = kFlutterChannels.contains(version);
+    final isRelease = !isCommit && !isChannel;
+
+    final isCustom = version.startsWith('custom_');
+
+    final isMaster = version == 'master';
+
     return FlutterVersion(
-      name,
+      version.trim(),
       releaseChannel: releaseChannel,
+      isRelease: isRelease,
+      isCommit: isCommit,
+      isChannel: isChannel,
+      isCustom: isCustom,
+      isMaster: isMaster,
     );
   }
 
-  /// Identifies if the version is an official Flutter SDK release.
-  bool get isRelease => !isCommit && !isChannel;
-
-  /// Identifies if the version represents a specific git commit.
-  bool get isCommit => isGitCommit(name);
-
-  /// Identifies if the version belongs to a Flutter channel.
-  bool get isChannel => kFlutterChannels.contains(name);
-
-  /// Identifies if the version represents a custom Flutter SDK version.
-  bool get isCustom => name.startsWith('custom_');
-
-  /// Identifies if the version belongs to the Flutter master channel.
-  bool get isMaster => name == 'master';
+  String get version {
+    return name.split('@').first;
+  }
 
   /// Provides a human readable version identifier for UI presentation.
   ///
@@ -66,18 +86,15 @@ class FlutterVersion {
 
     if (isCommit) return 'Commit: $name';
 
-    return 'SDK Version:$name';
+    return 'SDK Version: $name';
   }
 
   /// Compares CacheVersion with [other]
   int compareTo(FlutterVersion other) {
-    final otherVersion = assignVersionWeight(other.name);
-    final versionWeight = assignVersionWeight(name);
+    final otherVersion = assignVersionWeight(other.version);
+    final versionWeight = assignVersionWeight(version);
     return compareSemver(versionWeight, otherVersion);
   }
-
-  /// Version weight
-  String get versionWeight => assignVersionWeight(name);
 
   /// Overrides toString method for better debugging and logging.
   ///

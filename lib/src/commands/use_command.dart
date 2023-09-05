@@ -1,6 +1,8 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
@@ -41,6 +43,11 @@ class UseCommand extends BaseCommand {
         'flavor',
         help: 'Sets version for a project flavor',
         defaultsTo: null,
+      )
+      ..addFlag(
+        'skip-setup',
+        help: 'Skips Flutter setup after install',
+        negatable: false,
       );
   }
   @override
@@ -48,12 +55,15 @@ class UseCommand extends BaseCommand {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
+    final skipSetup = boolArg('skip-setup');
 
     String? version;
 
+    final project = await ProjectService.instance.findAncestor();
+
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = await ProjectService.findVersion();
+      version = project.pinnedVersion;
 
       // If no config found, ask which version to select.
       version ??= await cacheVersionSelector();
@@ -63,7 +73,7 @@ class UseCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version. Force version if is to be pinned.
-    var validVersion = FlutterVersion(version);
+    var validVersion = FlutterVersion.fromString(version);
 
     /// Cannot pin master channel
     if (pinOption && validVersion.isMaster) {
@@ -85,12 +95,26 @@ class UseCommand extends BaseCommand {
       validVersion = FlutterVersion.fromString(release.version);
     }
 
+    final cacheVersion = await ensureCacheWorkflow(validVersion);
+
     /// Run use workflow
     await useVersionWorkflow(
-      validVersion,
+      version: cacheVersion,
+      project: project,
       force: forceOption,
       flavor: flavorOption,
     );
+
+    if (!skipSetup) {
+      await setupFlutterWorkflow(
+        version: cacheVersion,
+      );
+
+      await resolveDependenciesWorkflow(
+        version: cacheVersion,
+        project: project,
+      );
+    }
 
     return ExitCode.success.code;
   }

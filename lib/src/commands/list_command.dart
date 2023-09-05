@@ -23,8 +23,8 @@ class ListCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final cacheVersions = await CacheService.getAllVersions();
-    ctx.fvmVersionsDir.path;
+    final cacheVersions = await CacheService.instance.getAllVersions();
+
     if (cacheVersions.isEmpty) {
       logger.info(
         'No SDKs have been installed yet. Flutter. SDKs'
@@ -39,7 +39,7 @@ class ListCommand extends BaseCommand {
       ..spacer;
 
     // Get current project
-    final project = await ProjectService.findAncestor();
+    final project = await ProjectService.instance.findAncestor();
 
     for (var version in cacheVersions) {
       await printVersionStatus(version, project);

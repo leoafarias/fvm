@@ -38,12 +38,12 @@ void updateSdkVersionWorkflow(
   }
   progress = logger.progress('Updating Flutter SDK links');
   try {
-    ProjectService.updateFlutterSdkReference(project);
-    ProjectService.updateVsCodeConfig(project);
+    ProjectService.instance.updateFlutterSdkReference(project);
+    ProjectService.instance.updateVsCodeConfig(project);
     progress.complete('Flutter SDK links updated');
   } on Exception {
     progress.fail('Failed to update SDK links');
     rethrow;
   }
-  ProjectService.addToGitignore(project, '.fvm/versions');
+  ProjectService.instance.addToGitignore(project, '.fvm/versions');
 }

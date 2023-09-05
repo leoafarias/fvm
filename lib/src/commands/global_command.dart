@@ -38,24 +38,25 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version
-    final validVersion = FlutterVersion(version);
+    final validVersion = FlutterVersion.fromString(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);
 
     // Sets version as the global
-    CacheService.setGlobal(cacheVersion);
+    CacheService.instance.setGlobal(cacheVersion);
 
-    final flutterInPath = FlutterTools.whichFlutter();
+    final flutterInPath = FlutterTools.instance.whichFlutter();
 
-    final pinnedVersion = await ProjectService.findVersion();
+    final pinnedVersion = await ProjectService.instance.findVersion();
 
     CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      final flutterPinnedVersion = FlutterVersion(pinnedVersion);
-      pinnedCacheVersion = CacheService.getVersion(flutterPinnedVersion);
+      final flutterPinnedVersion = FlutterVersion.fromString(pinnedVersion);
+      pinnedCacheVersion =
+          CacheService.instance.getVersion(flutterPinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;

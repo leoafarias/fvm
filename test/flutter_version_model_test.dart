@@ -27,7 +27,8 @@ void main() {
         '1.3.1'
       ];
 
-      final versionUnsorted = unsortedList.map(FlutterVersion.new).toList();
+      final versionUnsorted =
+          unsortedList.map(FlutterVersion.fromString).toList();
       versionUnsorted.sort((a, b) => a.compareTo(b));
 
       final afterUnsorted =

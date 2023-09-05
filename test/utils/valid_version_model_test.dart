@@ -3,13 +3,13 @@ import 'package:test/test.dart';
 
 void main() {
   test('Valid Version behaves correctly', () async {
-    final master = FlutterVersion('master');
-    final beta = FlutterVersion('beta');
+    final master = FlutterVersion.fromString('master');
+    final beta = FlutterVersion.fromString('beta');
     final channelWithVersion = FlutterVersion.fromString('2.2.2@beta');
-    final version = FlutterVersion('2.2.0');
-    final gitCommit = FlutterVersion('f4c74a6ec3');
-    final shortGitCommit = FlutterVersion('97dd2ae');
-    final gitHash = FlutterVersion('f4c74a6ec3');
+    final version = FlutterVersion.fromString('2.2.0');
+    final gitCommit = FlutterVersion.fromString('f4c74a6ec3');
+    final shortGitCommit = FlutterVersion.fromString('97dd2ae');
+    final gitHash = FlutterVersion.fromString('f4c74a6ec3');
 
     // Check if its channel
     expect(master.isChannel, true);
@@ -23,7 +23,9 @@ void main() {
     // Check for correct vertsion
     expect(master.name, 'master');
     expect(beta.name, 'beta');
-    expect(channelWithVersion.name, '2.2.2');
+    expect(channelWithVersion.name, '2.2.2@beta');
+    expect(channelWithVersion.version, '2.2.2');
+    expect(channelWithVersion.releaseChannel, 'beta');
     expect(version.name, '2.2.0');
     expect(gitCommit.name, 'f4c74a6ec3');
     expect(shortGitCommit.name, '97dd2ae');
@@ -68,7 +70,7 @@ void main() {
     // Checks version
     expect(master.name, 'master');
     expect(beta.name, 'beta');
-    expect(channelWithVersion.name, '2.2.2');
+    expect(channelWithVersion.version, '2.2.2');
     expect(version.name, '2.2.0');
     expect(gitCommit.name, 'f4c74a6ec3');
     expect(shortGitCommit.name, '97dd2ae');

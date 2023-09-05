@@ -21,12 +21,12 @@ class DartCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.findVersion();
+    final version = await ProjectService.instance.findVersion();
     final args = argResults!.arguments;
 
     if (version != null) {
       // Make sure version is valid
-      final validVersion = FlutterVersion(version);
+      final validVersion = FlutterVersion.fromString(version);
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

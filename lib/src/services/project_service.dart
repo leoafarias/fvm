@@ -16,10 +16,12 @@ import '../../constants.dart';
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
 class ProjectService {
-  ProjectService._();
+  ProjectService();
+
+  static ProjectService get instance => ctx.get<ProjectService>();
 
   /// Returns projects by providing a [directory]
-  static Future<Project> loadByDirectory(Directory directory) async {
+  Future<Project> loadByDirectory(Directory directory) async {
     final configFile = File(
       join(directory.path, kFvmDirName, kFvmConfigFileName),
     );
@@ -47,12 +49,12 @@ class ProjectService {
   }
 
   /// Returns a list of projects by providing a list of [paths]
-  static Future<List<Project>> fetchProjects(List<Directory> paths) async {
+  Future<List<Project>> fetchProjects(List<Directory> paths) async {
     return Future.wait(paths.map(loadByDirectory));
   }
 
   /// Adds to .gitignore paths that should be ignored for fvm
-  static void addToGitignore(Project project, String pathToAdd) {
+  void addToGitignore(Project project, String pathToAdd) {
     bool alreadyExists = false;
 
     // Check if .gitignore exists, and if not, create it.
@@ -98,7 +100,7 @@ class ProjectService {
   }
 
   /// Updates the link to make sure its always correct
-  static void updateFlutterSdkReference(Project project) {
+  void updateFlutterSdkReference(Project project) {
     // Ensure the config link and symlink are updated
     final sdkVersion = project.pinnedVersion;
     if (sdkVersion == null) {
@@ -106,7 +108,7 @@ class ProjectService {
           'Cannot update link of project without a Flutter SDK version');
     }
 
-    final sdkVersionDir = CacheService.getVersionCacheDir(sdkVersion);
+    final sdkVersionDir = CacheService.instance.getVersionCacheDir(sdkVersion);
 
     // Clean up pre 3.0 links
     if (project.legacyCacheVersionSymlink.existsSync()) {
@@ -125,12 +127,12 @@ class ProjectService {
   }
 
   /// Search for version configured
-  static Future<String?> findVersion() async {
+  Future<String?> findVersion() async {
     final project = await findAncestor();
     return project.pinnedVersion;
   }
 
-  static void updateVsCodeConfig(
+  void updateVsCodeConfig(
     Project project,
   ) {
     final settingsFile =
@@ -182,7 +184,7 @@ class ProjectService {
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
-  static Future<Project> findAncestor({Directory? directory}) async {
+  Future<Project> findAncestor({Directory? directory}) async {
     // Get directory, defined root or current
     directory ??= kWorkingDirectory;
 
@@ -196,7 +198,7 @@ class ProjectService {
     if (project.hasConfig) return project;
 
     // Return working directory if has reached root
-    if (isRootDir) loadByDirectory(kWorkingDirectory);
+    if (isRootDir) return loadByDirectory(kWorkingDirectory);
 
     return await findAncestor(directory: directory.parent);
   }

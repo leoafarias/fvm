@@ -23,11 +23,11 @@ class FlutterCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.findVersion();
+    final version = await ProjectService.instance.findVersion();
     final args = [...argResults!.arguments];
 
     if (version != null) {
-      final validVersion = FlutterVersion(version);
+      final validVersion = FlutterVersion.fromString(version);
       // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

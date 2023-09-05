@@ -5,7 +5,7 @@ import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 /// Sets default logger mode
-final logger = FvmLogger();
+FvmLogger get logger => ctx.get<FvmLogger>();
 
 class FvmLogger extends Logger {
   void get divider {

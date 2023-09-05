@@ -44,3 +44,4 @@ test/support_assets/dart_package/lib/src/version.dart
 
 # FVM Version Cache
 .fvm/versions
+coverage/test

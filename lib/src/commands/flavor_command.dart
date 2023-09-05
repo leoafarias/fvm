@@ -1,4 +1,5 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
 
@@ -22,12 +23,24 @@ class FlavorCommand extends BaseCommand {
   final aliases = ['env', 'environment'];
 
   /// Constructor
-  FlavorCommand();
+  FlavorCommand() {
+    argParser
+      ..addFlag(
+        'skip-setup',
+        help: 'Skips Flutter setup after install',
+        negatable: false,
+      )
+      ..addOption(
+        'force',
+        help: 'Skips command guards that does Flutter project checks.',
+        abbr: 'f',
+      );
+  }
 
   @override
   Future<int> run() async {
     String? flavor;
-    final project = await ProjectService.findAncestor();
+    final project = await ProjectService.instance.findAncestor();
 
     // If project use check that is Flutter project
     if (project.hasConfig == false) {
@@ -58,15 +71,18 @@ class FlavorCommand extends BaseCommand {
     }
 
     // Makes sure that is a valid version
-    final validVersion = FlutterVersion(envVersion);
+    final validVersion = FlutterVersion.fromString(envVersion);
 
     logger.info(
       'Switching to [$flavor] flavor, '
       'which uses [${validVersion.name}] Flutter sdk.',
     );
 
+    final cacheVersion = await ensureCacheWorkflow(validVersion);
+
     await useVersionWorkflow(
-      validVersion,
+      version: cacheVersion,
+      project: project,
       flavor: flavor,
     );
 

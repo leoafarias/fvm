@@ -28,10 +28,11 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   bool shouldInstall = false,
 }) async {
   try {
-    final cacheVersion = CacheService.getVersion(validVersion);
+    final cacheVersion = CacheService.instance.getVersion(validVersion);
 
     if (cacheVersion != null) {
-      final integrity = await CacheService.verifyCacheIntegrity(cacheVersion);
+      final integrity =
+          await CacheService.instance.verifyCacheIntegrity(cacheVersion);
 
       if (integrity == CacheIntegrity.invalid) {
         return _handleNonExecutable(
@@ -67,9 +68,9 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
           'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}')
       ..spacer;
 
-    await CacheService.cacheVersion(validVersion);
+    await CacheService.instance.cacheVersion(validVersion);
 
-    final newCacheVersion = CacheService.getVersion(validVersion);
+    final newCacheVersion = CacheService.instance.getVersion(validVersion);
     if (newCacheVersion == null) {
       throw FvmError('Could not cache version $validVersion');
     }
@@ -105,12 +106,12 @@ Future<CacheFlutterVersion> _handleNonExecutable(
       defaultValue: true);
 
   if (shouldReinstall) {
-    CacheService.remove(version);
+    CacheService.instance.remove(version);
     logger.info(
       'Removing corrupted SDK version and initiating reinstallation...',
     );
     return ensureCacheWorkflow(
-      FlutterVersion(version.name),
+      FlutterVersion.fromString(version.name),
       shouldInstall: shouldInstall,
     );
   }
@@ -141,14 +142,14 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 
   if (selectedOption == 0) {
     logger.info('Moving SDK to the correct cache directory...');
-    CacheService.moveToSdkVersionDiretory(version);
+    CacheService.instance.moveToSdkVersionDiretory(version);
   }
 
   logger.info('Removing incorrect SDK version...');
-  CacheService.remove(version);
+  CacheService.instance.remove(version);
 
   return ensureCacheWorkflow(
-    FlutterVersion(version.name),
+    FlutterVersion.fromString(version.name),
     shouldInstall: shouldInstall,
   );
 }

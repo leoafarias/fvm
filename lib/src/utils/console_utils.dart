@@ -8,14 +8,16 @@ import 'logger.dart';
 
 /// Prints out versions on FVM and it's status
 Future<void> printVersionStatus(
-    CacheFlutterVersion version, Project project) async {
+  CacheFlutterVersion version,
+  Project project,
+) async {
   var printVersion = version.name;
 
   if (project.pinnedVersion == version.name) {
     printVersion = '$printVersion ✓';
   }
 
-  if (await CacheService.isGlobal(version)) {
+  if (CacheService.instance.isGlobal(version)) {
     printVersion = '$printVersion (global)';
   }
 
@@ -24,7 +26,7 @@ Future<void> printVersionStatus(
 
 /// Allows to select from cached sdks.
 Future<String> cacheVersionSelector() async {
-  final cacheVersions = await CacheService.getAllVersions();
+  final cacheVersions = await CacheService.instance.getAllVersions();
   // Return message if no cached versions
   if (cacheVersions.isEmpty) {
     throw const FvmUsageException(

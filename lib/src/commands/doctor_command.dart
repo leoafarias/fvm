@@ -24,7 +24,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = await ProjectService.findAncestor();
+    final project = await ProjectService.instance.findAncestor();
 
     // Flutter exec path
     final flutterWhich = await which('flutter');
@@ -33,8 +33,8 @@ class DoctorCommand extends BaseCommand {
     final dartWhich = await which('dart');
 
     if (project.pinnedVersion != null) {
-      final cacheVersion = CacheService.getVersion(
-        FlutterVersion(project.pinnedVersion!),
+      final cacheVersion = CacheService.instance.getVersion(
+        FlutterVersion.fromString(project.pinnedVersion!),
       );
       logger
         ..info('')
