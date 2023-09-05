@@ -21,8 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - uses: dart-lang/setup-dart@v1.5.0
+      - name: Cache Dart dependencies
+        uses: actions/cache@v2
+        with:
+          path: "~/.pub-cache"
+          key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-dart-
 
       - run: dart pub get
       - run: dart pub run build_runner build --delete-conflicting-outputs
       - run: dart analyze --fatal-infos --fatal-warnings .
-      - run: dart test --concurrency=4
+      - run: dart test
