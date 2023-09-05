@@ -1,6 +1,11 @@
 name: Test CLI
 
-on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+      - "website/**"
+      - "README.md"
+      - "CHANGELOG.md"
 
 jobs:
   test:
@@ -32,4 +37,5 @@ jobs:
       - run: dart pub get
       - run: dart pub run build_runner build --delete-conflicting-outputs
       - run: dart analyze --fatal-infos --fatal-warnings .
+      - run: ./bin/fvm.dart install master
       - run: dart test
