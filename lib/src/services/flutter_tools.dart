@@ -155,8 +155,8 @@ class FlutterTools {
       await gitDir.runCommand(['remote', 'update'], echoOutput: true);
     } else {
       // Ensure brand new directory
-      if(ctx.gitCacheDir.existsSync()){
-        ctx.gitCacheDir.deleteSync(recursive: true)
+      if (ctx.gitCacheDir.existsSync()) {
+        ctx.gitCacheDir.deleteSync(recursive: true);
       }
       ctx.gitCacheDir.createSync(recursive: true);
 
