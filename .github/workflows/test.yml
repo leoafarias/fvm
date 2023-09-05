@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
-        sdk-version: [stable] #, dev]
+        sdk-version: [stable]
         include:
           - os: macOS-latest
             TARGET: macos
