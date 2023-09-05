@@ -1,16 +1,11 @@
-# This is a basic workflow that is manually triggered
-
 name: Chocolatey Deploy
 
-# Controls when the action will run. Workflow runs when manually triggered using the UI
-# or API.
 on:
   workflow_dispatch:
   release:
     types:
       - published
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   deploy-windows:
     name: Cholatey Deploy (Windows)
