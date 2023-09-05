@@ -25,4 +25,4 @@ jobs:
       - run: dart pub get
       - run: dart pub run build_runner build --delete-conflicting-outputs
       - run: dart analyze --fatal-infos --fatal-warnings .
-      - run: dart test
+      - run: dart test --concurrency=4
