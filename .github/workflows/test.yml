@@ -39,7 +39,7 @@ jobs:
       - run: dart pub run build_runner build --delete-conflicting-outputs
       - run: dart analyze --fatal-infos --fatal-warnings .
 
-      - name: Genrates git cache
+      - name: Generate git cache
         run: ./bin/fvm.dart install master
 
       - run: dart test
