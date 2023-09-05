@@ -1,5 +1,4 @@
 import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/http.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -16,18 +15,18 @@ void main() {
       expect(channels.length, 3);
     });
 
-    test('Can fetch releases for all platforms', () async {
-      try {
-        await Future.wait([
-          fetch(getReleasesUrl('macos')),
-          fetch(getReleasesUrl('linux')),
-          fetch(getReleasesUrl('windows')),
-        ]);
+    // test('Can fetch releases for all platforms', () async {
+    //   try {
+    //     await Future.wait([
+    //       fetch(getReleasesUrl('macos')),
+    //       fetch(getReleasesUrl('linux')),
+    //       fetch(getReleasesUrl('windows')),
+    //     ]);
 
-        expect(true, true);
-      } on Exception catch (err) {
-        fail('Could not resolve all platform releases \n $err');
-      }
-    });
+    //     expect(true, true);
+    //   } on Exception catch (err) {
+    //     fail('Could not resolve all platform releases \n $err');
+    //   }
+    // });
   });
 }

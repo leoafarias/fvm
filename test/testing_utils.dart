@@ -7,10 +7,8 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:git/git.dart';
 import 'package:meta/meta.dart';
-import 'package:mockito/mockito.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 import 'package:test/test.dart';
@@ -20,17 +18,6 @@ import 'testing_helpers/prepare_test_environment.dart';
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
-
-class MockLogger extends Mock implements FvmLogger {}
-
-final _defaultTestContext = FVMContext.create(
-  'TEST',
-  isTest: true,
-).copyWith(
-  useGitCache: true,
-  // Use the existing gitCacheDir
-  gitCacheDir: FVMContext.main.gitCacheDir,
-);
 
 class TestFvmCommandRunner {
   TestFvmCommandRunner();
