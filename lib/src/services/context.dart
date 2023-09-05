@@ -61,7 +61,7 @@ class FVMContext {
       name,
       fvmDir: fvmDir,
       fvmVersionsDir: fvmVersionsDir,
-      useGitCache: useGitCache ?? true,
+      useGitCache: useGitCache ?? false,
       isTest: isTest,
       flutterRepo: flutterRepo,
       gitCacheDir: gitCacheDir,
