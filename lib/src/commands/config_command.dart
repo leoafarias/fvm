@@ -70,7 +70,7 @@ class ConfigCommand extends BaseCommand {
       final options = ctx.settings!.toMap();
 
       if (options.keys.isEmpty) {
-        logger.info('No settings have been configured.\n');
+        logger.info('No settings have been configured.');
       } else {
         // Print options and it's values
         for (var key in options.keys) {

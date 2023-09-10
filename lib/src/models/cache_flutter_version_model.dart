@@ -35,11 +35,13 @@ class CacheFlutterVersion extends FlutterVersion {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
   }
 
+  String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
+
   /// Returns dart exec file for cache version
   String get dartBinPath {
     /// Get old bin path
     /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
-    if (hasOldBinPath) return join(binPath, 'cache', 'dart-sdk', 'bin');
+    if (hasOldBinPath) return join(_dartSdkCache, 'bin');
     return binPath;
   }
 
@@ -50,18 +52,33 @@ class CacheFlutterVersion extends FlutterVersion {
   String get flutterExec => join(binPath, flutterBinFileName);
 
   /// Gets Flutter SDK version from CacheVersion sync
-  String? get sdkVersion {
+  String? get flutterSdkVersion {
     final versionFile = File(join(directory, 'version'));
+    return versionFile.existsSync() ? versionFile.readAsStringSync() : null;
+  }
 
-    if (versionFile.existsSync()) return versionFile.readAsStringSync();
-    return null;
+  String? get dartSdkVersion {
+    final versionFile = File(join(_dartSdkCache, 'version'));
+    return versionFile.existsSync() ? versionFile.readAsStringSync() : null;
   }
 
   /// Verifies that cacheVersion has been setup
-  bool get notSetup => sdkVersion == null;
+  bool get notSetup => flutterSdkVersion == null;
 
   @override
   String toString() {
     return name;
   }
+
+  @override
+  bool operator ==(Object o) {
+    if (identical(this, o)) return true;
+
+    return o is CacheFlutterVersion &&
+        o.name == name &&
+        o.directory == directory;
+  }
+
+  @override
+  int get hashCode => name.hashCode ^ directory.hashCode;
 }

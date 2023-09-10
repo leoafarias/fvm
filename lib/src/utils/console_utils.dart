@@ -1,27 +1,48 @@
 import 'dart:io';
 
+import 'package:dart_console/dart_console.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
+
 import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
 import '../services/cache_service.dart';
 import 'logger.dart';
 
-/// Prints out versions on FVM and it's status
 Future<void> printVersionStatus(
   CacheFlutterVersion version,
-  Project project,
 ) async {
+  final releases = await FlutterReleasesClient.get();
   var printVersion = version.name;
 
-  if (project.pinnedVersion == version.name) {
-    printVersion = '$printVersion ✓';
+  final release = releases.getReleaseFromVersion(version.name);
+
+  if (release != null) {
+    final table = Table()
+      ..insertColumn(header: 'Information', alignment: TextAlignment.left)
+      ..insertColumn(header: 'Value', alignment: TextAlignment.left)
+      ..insertRows([
+        ['Channel', release.channel],
+        ['Version', release.version],
+        ['Release Date', release.releaseDate],
+        ['Archive', release.archive],
+        ['Sha256', release.sha256],
+        ['Dart SDK Arch', release.dartSdkArch ?? 'N/A'],
+        ['Dart SDK Version', release.dartSdkVersion ?? 'N/A'],
+      ])
+      ..borderStyle = BorderStyle.square
+      ..borderColor = ConsoleColor.blue
+      ..borderType = BorderType.vertical
+      ..headerStyle = FontStyle.bold;
+
+    print(table);
   }
 
   if (CacheService.instance.isGlobal(version)) {
     printVersion = '$printVersion (global)';
   }
 
-  logger.info(printVersion);
+  print('Flutter Version: $printVersion');
 }
 
 /// Allows to select from cached sdks.
@@ -59,7 +80,9 @@ Future<String?> projectFlavorSelector(Project project) async {
     return null;
   }
 
-  logger.success('Project flavors configured for "${project.name}":\n');
+  logger
+    ..success('Project flavors configured for "${project.name}":')
+    ..spacer;
 
   final choise = logger.chooseOne(
     'Select an environment',

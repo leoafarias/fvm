@@ -117,10 +117,7 @@ void groupWithContext(
         ..value(contextKey, testContext)
         ..runSync(() {
           setUpAll(() => setUpContext(testContext));
-
-          tearDownAll(() {
-            tearDownContext(testContext);
-          });
+          tearDownAll(() => tearDownContext(testContext));
           body();
         });
     },

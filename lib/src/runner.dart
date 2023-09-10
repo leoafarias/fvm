@@ -66,19 +66,19 @@ class FvmCommandRunner extends CommandRunner<int> {
 
   final PubUpdater _pubUpdater;
 
-  @override
-  void printUsage() => logger.info(usage);
+  // @override
+  // void printUsage() => logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
     try {
       final argResults = parse(args);
-      print(argResults['verbose']);
+
       if (argResults['verbose'] == true) {
         logger.level = Level.verbose;
       }
-
-      print('Logger level: ${logger.level}');
+      // Add space before output
+      logger.spacer;
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
@@ -94,14 +94,17 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on FvmError catch (e, stackTrace) {
       logger
+        ..spacer
         ..err(e.message)
         ..spacer
-        ..detail('$stackTrace\n');
+        ..detail('$stackTrace');
 
       if (logger.level != Level.verbose) {
-        logger.info(
-          'Please run command with  --verbose if you want more information',
-        );
+        logger
+          ..spacer
+          ..info(
+            'Please run command with  --verbose if you want more information',
+          );
       }
 
       return ExitCode.unavailable.code;
@@ -132,6 +135,9 @@ class FvmCommandRunner extends CommandRunner<int> {
     } on Exception catch (e) {
       logger.err(e.toString());
       return ExitCode.unavailable.code;
+    } finally {
+      // Add spacer after the last line always
+      logger.spacer;
     }
   }
 

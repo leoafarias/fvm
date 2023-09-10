@@ -78,8 +78,8 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     logger
       ..spacer
       ..complete(
-          'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!')
-      ..spacer;
+        'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
+      );
 
     return newCacheVersion;
   } on Exception catch (err) {
@@ -126,7 +126,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 }) async {
   logger
     ..notice(
-        'Version mismatch detected: cache version is ${version.sdkVersion}, but expected ${version.name}.')
+        'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.')
     ..info(
         'This can occur if you manually run "flutter upgrade" on a cached SDK.')
     ..spacer;
@@ -134,7 +134,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   final selectedOption = Select(
           prompt: 'How would you like to resolve this?',
           options: [
-            'Move ${version.sdkVersion} to the correct cache directory and reinstall ${version.name}',
+            'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}',
             'Remove incorrect version and reinstall ${version.name}',
           ],
           initialIndex: 0)

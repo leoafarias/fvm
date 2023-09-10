@@ -32,16 +32,13 @@ Future<void> useVersionWorkflow({
   final versionLabel = cyan.wrap(version.printFriendlyName);
   // Different message if configured environment
   if (flavor != null) {
-    logger
-      ..complete(
-          'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.')
-      ..spacer;
+    logger.complete(
+      'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.',
+    );
   } else {
-    logger
-      ..complete(
-        'Project now uses Flutter SDK : $versionLabel',
-      )
-      ..spacer;
+    logger.complete(
+      'Project now uses Flutter SDK : $versionLabel',
+    );
   }
 
   return;

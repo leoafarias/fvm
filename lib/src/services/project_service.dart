@@ -140,7 +140,7 @@ class ProjectService {
     );
 
     if (!project.vsCodeSettingsFile.existsSync()) {
-      logger.detail('VSCode settings not found, to update.\n');
+      logger.detail('VSCode settings not found, to update.');
       return;
     }
 

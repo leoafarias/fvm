@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
+import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
-import '../services/flutter_tools.dart';
 import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
@@ -54,11 +54,10 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion =
-        await FlutterTools.instance.validateFlutterVersion(version);
+    final validVersion = await validateFlutterVersion(version);
 
     if (validVersion == null) {
-      throw FvmUsageException(
+      throw FvmError(
         '$version is not a valid Flutter version',
       );
     }

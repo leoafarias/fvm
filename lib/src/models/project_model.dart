@@ -43,15 +43,17 @@ class Project {
 
   Map<String, dynamic> get flavors => config?.flavors ?? {};
 
-  String? get dartToolVersion {
-    if (_dartToolVersionFile.existsSync()) {
-      final jsonConfig = _dartToolVersionFile.readAsStringSync();
-      final packageConfig = jsonDecode(jsonConfig) as Map<String, dynamic>;
-      return packageConfig['generatorVersion'];
-    } else {
-      return null;
-    }
+  String? get dartToolGeneratorVersion {
+    return _dartToolPackgeConfig.existsSync()
+        ? (jsonDecode(
+            _dartToolPackgeConfig.readAsStringSync(),
+          ) as Map<String, dynamic>)['generatorVersion']
+        : null;
   }
+
+  String? get dartToolVersion => _dartToolVersionFile.existsSync()
+      ? _dartToolVersionFile.readAsStringSync()
+      : null;
 
   bool get isFlutter {
     return pubspec?.dependencies.containsKey('flutter') ?? false;
@@ -87,9 +89,13 @@ class Project {
     ));
   }
 
-  /// Returns dart tool version
-  File get _dartToolVersionFile {
+  /// Returns dart tool package config
+  File get _dartToolPackgeConfig {
     return File(join(projectDir.path, '.dart_tool', 'package_config.json'));
+  }
+
+  File get _dartToolVersionFile {
+    return File(join(projectDir.path, '.dart_tool', 'version'));
   }
 
   /// Returns vscode settings file

@@ -64,16 +64,16 @@ class GlobalCommand extends BaseCommand {
     final isPinnedVersionInPath = flutterInPath == pinnedCacheVersion?.binPath;
 
     logger
-      ..spacer
+      ..detail('')
       ..detail('Default in path: $isDefaultInPath')
       ..detail('Cached version in path: $isCachedVersionInPath')
       ..detail('Pinned version in path: $isPinnedVersionInPath')
-      ..spacer
+      ..detail('')
       ..detail('flutterInPath: $flutterInPath')
       ..detail('ctx.globalCacheBinPath: ${ctx.globalCacheBinPath}')
       ..detail('cacheVersion.binPath: ${cacheVersion.binPath}')
       ..detail('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
-      ..spacer;
+      ..detail('');
 
     logger.info(
       'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is now global',
@@ -91,7 +91,10 @@ class GlobalCommand extends BaseCommand {
         ..info('to use global Flutter SDK through FVM you should change it to:')
         ..spacer
         ..info('NEW: ${ctx.globalCacheBinPath}')
-        ..spacer;
+        ..spacer
+        ..info(
+          'You should also configure it in FLUTTER_ROOT environment variable, as some IDEs use it.',
+        );
     }
     return ExitCode.success.code;
   }

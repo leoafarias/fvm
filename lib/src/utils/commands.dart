@@ -8,13 +8,15 @@ import 'helpers.dart';
 /// Runs Flutter cmd
 Future<int> runFlutter(
   CacheFlutterVersion version,
-  List<String> args,
-) async {
+  List<String> args, {
+  bool? showOutput,
+}) async {
   // Run command
   return _runOnVersion(
-    CmdType.flutter,
+    SdkType.flutter,
     version,
     args,
+    showOutput: showOutput,
   );
 }
 
@@ -24,11 +26,16 @@ Future<int> runFlutterGlobal(List<String> args) {
 }
 
 /// Runs dart cmd
-Future<int> runDart(CacheFlutterVersion version, List<String> args) async {
+Future<int> runDart(
+  CacheFlutterVersion version,
+  List<String> args, {
+  bool? showOutput,
+}) async {
   return _runOnVersion(
-    CmdType.dart,
+    SdkType.dart,
     version,
     args,
+    showOutput: showOutput,
   );
 }
 
@@ -38,18 +45,19 @@ Future<int> runDartGlobal(List<String> args) async {
   return await _runCmd('dart', args: args);
 }
 
-enum CmdType {
+enum SdkType {
   dart,
   flutter,
 }
 
 /// Runs dart cmd
 Future<int> _runOnVersion(
-  CmdType cmdType,
+  SdkType sdk,
   CacheFlutterVersion version,
-  List<String> args,
-) async {
-  final isFlutter = cmdType == CmdType.flutter;
+  List<String> args, {
+  bool? showOutput,
+}) async {
+  final isFlutter = sdk == SdkType.flutter;
   // Get exec path for dart
   final execPath = isFlutter ? version.flutterExec : version.dartExec;
 
@@ -64,6 +72,7 @@ Future<int> _runOnVersion(
     execPath,
     args: args,
     environment: environment,
+    showOutput: showOutput,
   );
 }
 
@@ -95,16 +104,18 @@ Future<int> _runCmd(
   String execPath, {
   List<String> args = const [],
   Map<String, String>? environment,
-}) async {
-  // Project again a non executable path
 
+  ///Show output defaults to true
+  bool? showOutput,
+}) async {
+  showOutput ??= true;
   final process = await Process.start(
     execPath,
     args,
     runInShell: true,
     environment: environment,
     workingDirectory: ctx.workingDirectory,
-    mode: ProcessStartMode.inheritStdio,
+    mode: showOutput ? ProcessStartMode.inheritStdio : ProcessStartMode.normal,
   );
 
   exitCode = await process.exitCode;

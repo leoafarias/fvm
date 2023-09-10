@@ -12,7 +12,7 @@ void main() {
   groupWithContext('Install workflow:', () {
     final runner = TestFvmCommandRunner();
 
-    for (var version in [
+    const versionList = [
       'f4c74a6ec3',
       '2.2.2@beta',
       '2.2.2@dev',
@@ -21,7 +21,9 @@ void main() {
       'beta',
       'dev',
       '2.0.0',
-    ]) {
+    ];
+
+    for (var version in versionList) {
       testWithContext(
         'Use $version',
         () async {

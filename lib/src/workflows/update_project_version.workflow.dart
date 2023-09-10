@@ -9,7 +9,10 @@ void updateSdkVersionWorkflow(
   String sdkVersion, {
   String? flavor,
 }) {
-  var progress = logger.progress('Updating project config');
+  logger
+    ..detail('Updating project config')
+    ..detail('Project name: ${project.name}')
+    ..detail('Project path: ${project.projectDir.path}');
 
   try {
     final newConfig = project.config ?? ProjectConfig.empty();
@@ -30,19 +33,17 @@ void updateSdkVersionWorkflow(
 
     // Clean this up
     project.config = newConfig;
-
-    progress.complete('Project config updated');
   } on Exception catch (err) {
-    progress.fail('Failed to update project config');
+    logger.err('Failed to update project config');
     throw FvmError(err.toString());
   }
-  progress = logger.progress('Updating Flutter SDK links');
+
   try {
     ProjectService.instance.updateFlutterSdkReference(project);
     ProjectService.instance.updateVsCodeConfig(project);
-    progress.complete('Flutter SDK links updated');
+    logger.detail('Project config updated');
   } on Exception {
-    progress.fail('Failed to update SDK links');
+    logger.err('Failed to update SDK links');
     rethrow;
   }
   ProjectService.instance.addToGitignore(project, '.fvm/versions');

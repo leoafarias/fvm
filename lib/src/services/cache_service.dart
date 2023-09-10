@@ -81,8 +81,8 @@ class CacheService {
     // If its a channel return true
     if (version.isChannel) return true;
     // If sdkVersion is not available return true
-    if (version.sdkVersion == null) return true;
-    return version.sdkVersion == version.version;
+    if (version.flutterSdkVersion == null) return true;
+    return version.flutterSdkVersion == version.version;
   }
 
   /// Caches version a [validVersion] and returns [CacheFlutterVersion]
@@ -113,7 +113,7 @@ class CacheService {
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
   void moveToSdkVersionDiretory(CacheFlutterVersion version) {
-    final sdkVersion = version.sdkVersion;
+    final sdkVersion = version.flutterSdkVersion;
 
     if (sdkVersion == null) {
       throw FvmError(

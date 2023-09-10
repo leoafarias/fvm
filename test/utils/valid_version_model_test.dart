@@ -1,15 +1,17 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:test/test.dart';
 
+const longCommit = 'de25def7784a2e63a9e7d5cc50dff84db8f69298';
+const shortCommit = 'de25def';
+
 void main() {
   test('Valid Version behaves correctly', () async {
     final master = FlutterVersion.fromString('master');
     final beta = FlutterVersion.fromString('beta');
     final channelWithVersion = FlutterVersion.fromString('2.2.2@beta');
     final version = FlutterVersion.fromString('2.2.0');
-    final gitCommit = FlutterVersion.fromString('f4c74a6ec3');
-    final shortGitCommit = FlutterVersion.fromString('97dd2ae');
-    final gitHash = FlutterVersion.fromString('f4c74a6ec3');
+    final gitCommit = FlutterVersion.fromString(longCommit);
+    final shortGitCommit = FlutterVersion.fromString(shortCommit);
 
     // Check if its channel
     expect(master.isChannel, true);
@@ -18,7 +20,6 @@ void main() {
     expect(version.isChannel, false);
     expect(gitCommit.isChannel, false);
     expect(shortGitCommit.isChannel, false);
-    expect(gitHash.isChannel, false);
 
     // Check for correct vertsion
     expect(master.name, 'master');
@@ -29,7 +30,6 @@ void main() {
     expect(version.name, '2.2.0');
     expect(gitCommit.name, 'f4c74a6ec3');
     expect(shortGitCommit.name, '97dd2ae');
-    expect(gitHash.name, 'f4c74a6ec3');
 
     // Check if forces channel
     expect(master.releaseChannel, null);
@@ -38,7 +38,6 @@ void main() {
     expect(version.releaseChannel, null);
     expect(gitCommit.releaseChannel, null);
     expect(shortGitCommit.releaseChannel, null);
-    expect(gitHash.releaseChannel, null);
 
     // Check if its master
     expect(master.isMaster, true);
@@ -47,7 +46,6 @@ void main() {
     expect(version.isMaster, false);
     expect(gitCommit.isMaster, false);
     expect(shortGitCommit.isMaster, false);
-    expect(gitHash.isMaster, false);
 
     // Check if its release
     expect(master.isRelease, false);
@@ -56,7 +54,6 @@ void main() {
     expect(version.isRelease, true);
     expect(gitCommit.isRelease, false);
     expect(shortGitCommit.isRelease, false);
-    expect(gitHash.isRelease, false);
 
     // Check if its commit
     expect(master.isCommit, false);
@@ -65,7 +62,6 @@ void main() {
     expect(version.isCommit, false);
     expect(gitCommit.isCommit, true);
     expect(shortGitCommit.isCommit, true);
-    expect(gitHash.isCommit, true);
 
     // Checks version
     expect(master.name, 'master');
@@ -74,6 +70,5 @@ void main() {
     expect(version.name, '2.2.0');
     expect(gitCommit.name, 'f4c74a6ec3');
     expect(shortGitCommit.name, '97dd2ae');
-    expect(gitHash.name, 'f4c74a6ec3');
   });
 }

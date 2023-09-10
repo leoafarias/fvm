@@ -1,4 +1,4 @@
-import 'package:date_format/date_format.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
@@ -27,16 +27,15 @@ class ReleasesCommand extends BaseCommand {
       final version = yellow.wrap(release.version.padRight(17));
 
       final pipe = '|';
-      final friendlyDate =
-          formatDate(release.releaseDate, [M, ' ', d, ' ', yy]).padRight(10);
+      final date = friendlyDate(release.releaseDate);
 
       if (release.activeChannel) {
         final channel = release.channel.toString().split('.').last;
         logger.info('--------------------------------------');
-        logger.info('$friendlyDate $pipe $version $channel');
+        logger.info('$date $pipe $version $channel');
         logger.info('--------------------------------------');
       } else {
-        logger.info('$friendlyDate $pipe $version');
+        logger.info('$date $pipe $version');
       }
     }
 

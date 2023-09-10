@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dart_console/dart_console.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -37,13 +38,19 @@ class FvmLogger extends Logger {
 
   void notice(String message) {
     // Add 2 due to the warning icon.
-    final border = '-${'-' * (message.length + 2 + 2)}-';
-    final pipe = yellow.wrap('|');
-    final warningIcon = yellow.wrap('⚠');
 
-    print(yellow.wrap(border));
-    info('$pipe $warningIcon $message $pipe');
-    print(yellow.wrap(border));
+    final label = yellow.wrap('⚠ $message')!;
+
+    final table = Table()
+      ..insertRow([label])
+      ..borderColor = ConsoleColor.yellow
+      ..borderType = BorderType.outline
+      ..borderStyle = BorderStyle.square;
+
+    // print(yellow.wrap(border));
+    // info('$pipe $warningIcon $message $pipe');
+    // print(yellow.wrap(border));
+    logger.info(table.toString());
   }
 }
 

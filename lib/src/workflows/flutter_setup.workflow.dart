@@ -23,45 +23,49 @@ Future<void> resolveDependenciesWorkflow({
   required CacheFlutterVersion version,
   required Project project,
 }) async {
+  final dartGeneratorVersion = project.dartToolGeneratorVersion;
   final dartToolVersion = project.dartToolVersion;
-  logger.success('Resolving Flutter SDK dependencies...');
-
-  print('Logger level: ${logger.level}');
 
   logger
     ..detail('')
-    ..detail('dartToolVersion: $dartToolVersion')
-    ..detail('cacheVersion.sdkVersion: ${version.sdkVersion}')
+    ..detail('Dart generator version: $dartGeneratorVersion')
+    ..detail('Dart SDK version: ${version.dartSdkVersion}')
+    ..detail('')
+    ..detail('Dart tool version: $dartToolVersion')
+    ..detail('SDK Version: ${version.flutterSdkVersion}')
     ..detail('');
 
-  if (dartToolVersion != version.sdkVersion) {
-    logger
-      ..detail('')
-      ..detail('dart_tool version mismatch.\n')
-      ..detail('Dart tool version: $dartToolVersion')
-      ..detail('SDK Version: ${version.sdkVersion}')
-      ..detail('');
+  if (dartToolVersion == version.flutterSdkVersion) {
+    logger.detail('Dart tool version matches SDK version, skipping resolve.');
+    return;
+  }
 
-    final isVscode = Platform.environment['TERM_PROGRAM'] == 'vscode';
+  logger
+    ..detail('')
+    ..detail('SDK version mismatch.\n')
+    ..detail('Dart tool version: $dartToolVersion')
+    ..detail('Flutter SDK Version: ${version.flutterSdkVersion}')
+    ..detail('');
 
-    // Skip resolve if in vscode
-    if (isVscode) {
-      logger.detail('You are running on vscode, the extension might also run.');
-    }
+  final isVscode = Platform.environment['TERM_PROGRAM'] == 'vscode';
 
-    final progress = logger.progress('Resolving dependencies...');
+  // Skip resolve if in vscode
+  if (isVscode) {
+    logger.detail('You are running on vscode, the extension might also run.');
+  }
 
-    try {
-      // await FlutterTools.instance.runPubGet(version);
+  final progress = logger.progress('Resolving dependencies...');
 
+  try {
+    await FlutterTools.instance.runPubGet(version);
+
+    progress.complete('Dependencies resolved.');
+  } on Exception {
+    if (project.dartToolVersion == version.flutterSdkVersion) {
       progress.complete('Dependencies resolved.');
-    } on Exception {
-      if (project.dartToolVersion == version.sdkVersion) {
-        progress.complete('Dependencies resolved.');
-      } else {
-        progress.fail('Could not resolve dependencies.');
-        rethrow;
-      }
+    } else {
+      progress.fail('Could not resolve dependencies.');
+      rethrow;
     }
   }
 }

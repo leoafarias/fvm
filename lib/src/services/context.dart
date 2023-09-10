@@ -109,6 +109,8 @@ class FVMContext {
 
   final Map<Type, dynamic>? generators;
 
+  final Map<Type, dynamic> _generated = {};
+
   /// File for FVM Settings
   File get settingsFile {
     return File(join(fvmDir, '.settings'));
@@ -124,8 +126,13 @@ class FVMContext {
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
   T get<T>() {
+    if (_generated.containsKey(T)) {
+      return _generated[T] as T;
+    }
     if (generators != null && generators!.containsKey(T)) {
-      return generators![T]!() as T;
+      final generator = generators![T] as Generator;
+      _generated[T] = generator();
+      return _generated[T];
     }
     throw Exception('Generator for $T not found');
   }

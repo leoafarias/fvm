@@ -3,7 +3,6 @@ import 'package:fvm/src/services/context.dart';
 import 'package:io/io.dart';
 import 'package:process_run/shell.dart';
 
-import '../../constants.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
@@ -61,8 +60,8 @@ class DoctorCommand extends BaseCommand {
           ..info('Cache Path: ${cacheVersion.directory}')
           ..info('Channel: ${cacheVersion.isChannel}');
 
-        if (cacheVersion.sdkVersion != null) {
-          logger.info('SDK Version: ${cacheVersion.sdkVersion}');
+        if (cacheVersion.flutterSdkVersion != null) {
+          logger.info('SDK Version: ${cacheVersion.flutterSdkVersion}');
         } else {
           logger.warn(
             'SDK Version: Need to finish setup. Run "fvm flutter doctor"',
@@ -79,7 +78,7 @@ class DoctorCommand extends BaseCommand {
       logger
         ..info('')
         ..info('No FVM config found:')
-        ..info(kWorkingDirectory.path)
+        ..info(ctx.workingDirectory)
         ..info('FVM will run the version in your PATH env: $flutterWhich');
     }
     logger

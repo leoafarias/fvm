@@ -34,26 +34,11 @@ class FlutterTools {
 
   /// Runs pub get
   Future<void> runPubGet(CacheFlutterVersion version) async {
-    await runFlutter(version, ['pub', 'get']);
-  }
-
-  Future<FlutterVersion?> validateFlutterVersion(String version) async {
-    final flutterVersion = FlutterVersion.fromString(version);
-    if (flutterVersion.isChannel || flutterVersion.isCommit) {
-      return flutterVersion;
-    }
-
-    final releases = await FlutterReleasesClient.get();
-
-    final isVersion = releases.containsVersion(flutterVersion.version);
-
-    if (!isVersion) {
-      throw FvmUsageException(
-        '$version is not a valid Flutter version',
-      );
-    }
-
-    return flutterVersion;
+    await runFlutter(
+      version,
+      ['pub', 'get'],
+      showOutput: false,
+    );
   }
 
   /// Clones Flutter SDK from Version Number or Channel

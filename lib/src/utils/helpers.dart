@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:date_format/date_format.dart';
 import 'package:fvm/src/utils/is_git_commit.dart';
 
 import '../../constants.dart';
@@ -103,6 +104,10 @@ String assignVersionWeight(String version) {
   return version;
 }
 
+String friendlyDate(DateTime dateTime) {
+  return formatDate(dateTime, [M, ' ', d, ', ', yyyy]);
+}
+
 /// Check if fvm is in cache directory
 bool isFvmInstalledGlobally() {
   /// Segment of the path where Pub caches global packages
@@ -134,5 +139,22 @@ extension ListExtension<T> on Iterable<T> {
       }
     }
     return null;
+  }
+}
+
+extension StringExtensions on String {
+  Directory get dir => Directory(this);
+  File get file => File(this);
+
+  bool get exists =>
+      FileSystemEntity.typeSync(this) != FileSystemEntityType.notFound;
+
+  String? get read => exists ? file.readAsStringSync() : null;
+
+  void write(String contents) {
+    if (!file.existsSync()) {
+      file.createSync(recursive: true);
+    }
+    file.writeAsStringSync(contents);
   }
 }

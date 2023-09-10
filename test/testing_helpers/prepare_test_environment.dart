@@ -22,38 +22,31 @@ Future<void> prepareLocalProjects(String toPath) async {
   final promises = <Future<void>>[];
   for (var directory in directories) {
     final assetDir = Directory(directory);
-    final tmpDir = Directory(toPath);
+    final assetDirName = basename(assetDir.path);
+    final tmpDir = Directory(join(toPath, assetDirName));
 
     // Copy assetDir to tmpDir
-    promises.add(copyDirectoryContents(assetDir, tmpDir));
+    promises.add(copyDirectory(assetDir, tmpDir));
   }
 
   await Future.wait(promises);
 }
 
-Future<void> copyFile(File source, String targetPath) async {
-  await source.openRead().pipe(File(targetPath).openWrite());
-}
-
-Future<void> copyDirectoryContents(
-  Directory sourceDir,
-  Directory targetDir,
-) async {
-  if (!await targetDir.exists()) {
-    await targetDir.create(recursive: true);
+Future<void> copyDirectory(Directory source, Directory target) async {
+  if (await target.exists()) {
+    await target.delete(recursive: true);
   }
 
-  final tasks = <Future>[];
-  await for (var entity in sourceDir.list()) {
-    final targetPath = '${targetDir.path}/${entity.uri.pathSegments.last}';
-    if (entity is File) {
-      tasks.add(copyFile(entity, targetPath));
-    } else if (entity is Directory) {
-      tasks.add(copyDirectoryContents(entity, Directory(targetPath)));
+  await target.create(recursive: true);
+  await for (var entity in source.list(recursive: false)) {
+    if (entity is Directory) {
+      var newDir = Directory('${target.path}/${entity.uri.pathSegments.last}');
+      await newDir.create(recursive: true);
+      await copyDirectory(entity, newDir);
+    } else if (entity is File) {
+      await entity.copy('${target.path}/${entity.uri.pathSegments.last}');
     }
   }
-
-  await Future.wait(tasks);
 }
 
 Future<void> setUpContext(FVMContext context) async {
@@ -62,6 +55,8 @@ Future<void> setUpContext(FVMContext context) async {
   if (tempDir.existsSync()) {
     tempDir.deleteSync(recursive: true);
   }
+
+  tempDir.createSync(recursive: true);
 
   await prepareLocalProjects(tempDir.path);
 }
