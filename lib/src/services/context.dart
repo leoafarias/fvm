@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
@@ -45,8 +46,10 @@ class FVMContext {
 
     gitCacheDir ??= join(fvmDir, 'cache.git');
 
+    final level = isTest ? Level.quiet : Level.info;
+
     final generators = <Type, dynamic>{
-      FvmLogger: () => FvmLogger(),
+      FvmLogger: () => FvmLogger(level: level),
       ProjectService: () => ProjectService(),
       FlutterTools: () => FlutterTools(),
       CacheService: () => CacheService(),

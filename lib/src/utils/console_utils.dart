@@ -1,10 +1,8 @@
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
 
 import '../../exceptions.dart';
-import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
 import '../services/cache_service.dart';
 import 'logger.dart';
@@ -15,42 +13,6 @@ Table createTable() {
     ..borderType = BorderType.grid
     ..borderStyle = BorderStyle.square
     ..headerStyle = FontStyle.bold;
-}
-
-Future<void> printVersionStatus(
-  CacheFlutterVersion version,
-) async {
-  final releases = await FlutterReleasesClient.get();
-  var printVersion = version.name;
-
-  final release = releases.getReleaseFromVersion(version.name);
-
-  if (release != null) {
-    final table = Table()
-      ..insertColumn(header: 'Information', alignment: TextAlignment.left)
-      ..insertColumn(header: 'Value', alignment: TextAlignment.left)
-      ..insertRows([
-        ['Channel', release.channel],
-        ['Version', release.version],
-        ['Release Date', release.releaseDate],
-        ['Archive', release.archive],
-        ['Sha256', release.sha256],
-        ['Dart SDK Arch', release.dartSdkArch ?? 'N/A'],
-        ['Dart SDK Version', release.dartSdkVersion ?? 'N/A'],
-      ])
-      ..borderStyle = BorderStyle.square
-      ..borderColor = ConsoleColor.blue
-      ..borderType = BorderType.vertical
-      ..headerStyle = FontStyle.bold;
-
-    print(table);
-  }
-
-  if (CacheService.instance.isGlobal(version)) {
-    printVersion = '$printVersion (global)';
-  }
-
-  print('Flutter Version: $printVersion');
 }
 
 /// Allows to select from cached sdks.

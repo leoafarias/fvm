@@ -5,9 +5,11 @@ import 'package:test/test.dart';
 import '../testing_utils.dart';
 
 void main() {
-  test('Can check releases', () async {
-    final exitCode = await TestFvmCommandRunner().run('fvm releases');
+  groupWithContext('Flutter Releases', () {
+    testWithContext('Can check releases', () async {
+      final exitCode = await TestFvmCommandRunner().run('fvm releases');
 
-    expect(exitCode, ExitCode.success.code);
+      expect(exitCode, ExitCode.success.code);
+    });
   });
 }

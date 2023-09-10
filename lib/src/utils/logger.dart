@@ -9,6 +9,10 @@ import 'package:mason_logger/mason_logger.dart';
 FvmLogger get logger => ctx.get<FvmLogger>();
 
 class FvmLogger extends Logger {
+  /// Constructor
+  FvmLogger({
+    super.level,
+  });
   void get divider {
     info(
       '------------------------------------------------------------',

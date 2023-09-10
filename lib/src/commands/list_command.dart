@@ -81,7 +81,7 @@ class ListCommand extends BaseCommand {
         ..borderType = BorderType.grid
         ..headerStyle = FontStyle.bold;
     }
-    print(table);
+    logger.info(table.toString());
 
     return ExitCode.success.code;
   }

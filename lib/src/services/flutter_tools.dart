@@ -95,7 +95,7 @@ class FlutterTools {
           ctx.flutterRepo,
           versionDir.path,
         ],
-        echoOutput: true,
+        echoOutput: ctx.isTest ? false : true,
       );
 
       final gitVersionDir =
