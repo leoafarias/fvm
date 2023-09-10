@@ -96,7 +96,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       logger
         ..spacer
         ..err(e.message)
-        ..spacer
+        ..detail('')
         ..detail('$stackTrace');
 
       if (logger.level != Level.verbose) {

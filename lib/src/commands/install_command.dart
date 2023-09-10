@@ -56,12 +56,6 @@ class InstallCommand extends BaseCommand {
 
     final validVersion = await validateFlutterVersion(version);
 
-    if (validVersion == null) {
-      throw FvmError(
-        '$version is not a valid Flutter version',
-      );
-    }
-
     final cacheVersion = await ensureCacheWorkflow(
       validVersion,
       shouldInstall: true,

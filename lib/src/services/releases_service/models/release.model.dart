@@ -126,4 +126,7 @@ class ReleaseChannels {
         dev.hash: 'dev',
         stable.hash: 'stable',
       };
+
+  /// Returns a list of all releases
+  List<Release> get toList => [dev, beta, stable];
 }

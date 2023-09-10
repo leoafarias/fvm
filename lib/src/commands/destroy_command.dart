@@ -26,7 +26,7 @@ class DestroyCommand extends BaseCommand {
       final fvmDir = Directory(ctx.fvmDir);
       if (fvmDir.existsSync()) {
         fvmDir.deleteSync(recursive: true);
-        logger.success('FVM Directory ${fvmDir.path} has been deleted');
+        logger.complete('FVM Directory ${fvmDir.path} has been deleted');
       }
     }
 

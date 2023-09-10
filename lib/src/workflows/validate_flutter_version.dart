@@ -1,9 +1,10 @@
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
-import 'package:interact/interact.dart';
+import 'package:mason_logger/mason_logger.dart';
 
-Future<FlutterVersion?> validateFlutterVersion(String version) async {
+Future<FlutterVersion> validateFlutterVersion(String version) async {
   final flutterVersion = FlutterVersion.parse(version);
   // If its channel or commit no need for further validation
   if (flutterVersion.isChannel || flutterVersion.isCustom) {
@@ -26,15 +27,21 @@ Future<FlutterVersion?> validateFlutterVersion(String version) async {
     }
   }
 
-  logger.notice('Version: ($version) is not valid Flutter version');
+  logger.notice(
+    'Flutter SDK: ${yellow.wrap(version)} is not valid Flutter version',
+  );
 
-  final askConfirmation = Confirm(
-    prompt: 'Do you want to continue?',
+  final askConfirmation = logger.confirm(
+    'Do you want to continue?',
     defaultValue: false,
   );
-  if (askConfirmation.interact()) {
+  if (askConfirmation) {
+    // Jump a line after confirmation
+    logger.spacer;
     return flutterVersion;
-  } else {
-    return null;
   }
+
+  throw FvmError(
+    '$version is not a valid Flutter version',
+  );
 }

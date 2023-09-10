@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:git/git.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
 
@@ -86,7 +87,7 @@ class FlutterTools {
     ];
 
     try {
-      await runGit(
+      final result = await runGit(
         [
           'clone',
           '--progress',
@@ -96,29 +97,32 @@ class FlutterTools {
         ],
         echoOutput: true,
       );
-    } on Exception {
-      CacheService.instance.remove(version);
-      rethrow;
-    }
 
-    final gitVersionDir =
-        CacheService.instance.getVersionCacheDir(version.name);
-    final isGit = await GitDir.isGitDir(gitVersionDir.path);
+      final gitVersionDir =
+          CacheService.instance.getVersionCacheDir(version.name);
+      final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
-    if (!isGit) {
-      throw FvmError('Not a git directory');
-    }
+      if (!isGit) {
+        throw FvmError(
+          'Flutter SDK is not a valid git repository after clone. Please try again.',
+        );
+      }
 
-    /// If version is not a channel reset to version
-    if (!version.isChannel) {
-      try {
+      /// If version is not a channel reset to version
+      if (!version.isChannel) {
         final gitDir = await GitDir.fromExisting(gitVersionDir.path);
         // reset --hard $version
         await gitDir.runCommand(['reset', '--hard', version.version]);
-      } on FvmException {
-        CacheService.instance.remove(version);
-        rethrow;
       }
+
+      if (result.exitCode != ExitCode.success.code) {
+        throw FvmError(
+          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+        );
+      }
+    } on Exception {
+      CacheService.instance.remove(version);
+      rethrow;
     }
 
     return;

@@ -9,6 +9,14 @@ import '../models/project_model.dart';
 import '../services/cache_service.dart';
 import 'logger.dart';
 
+Table createTable() {
+  return Table()
+    ..borderColor = ConsoleColor.blue
+    ..borderType = BorderType.grid
+    ..borderStyle = BorderStyle.square
+    ..headerStyle = FontStyle.bold;
+}
+
 Future<void> printVersionStatus(
   CacheFlutterVersion version,
 ) async {

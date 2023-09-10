@@ -72,7 +72,6 @@ class FlutterVersion {
     final parts = version.split('@');
 
     if (parts.length == 2) {
-      final version = parts.first;
       final channel = parts.last;
       if (kFlutterChannels.contains(channel)) {
         return FlutterVersion.release(version, releaseChannel: channel);
@@ -114,7 +113,9 @@ class FlutterVersion {
   /// * 'Commit: [name]' for commit versions.
   /// * 'SDK Version: [name]' for standard versions.
   String get printFriendlyName {
-    if (isChannel) return 'Channel: $name';
+    // Uppercase
+
+    if (isChannel) return 'Channel: ${uppercase(name)}';
 
     if (isCommit) return 'Commit: $name';
 

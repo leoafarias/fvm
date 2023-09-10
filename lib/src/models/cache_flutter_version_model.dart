@@ -70,12 +70,12 @@ class CacheFlutterVersion extends FlutterVersion {
   }
 
   @override
-  bool operator ==(Object o) {
-    if (identical(this, o)) return true;
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
 
-    return o is CacheFlutterVersion &&
-        o.name == name &&
-        o.directory == directory;
+    return other is CacheFlutterVersion &&
+        other.name == name &&
+        other.directory == directory;
   }
 
   @override

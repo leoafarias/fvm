@@ -39,10 +39,10 @@ class FvmLogger extends Logger {
   void notice(String message) {
     // Add 2 due to the warning icon.
 
-    final label = yellow.wrap('⚠ $message')!;
+    final label = yellow.wrap('⚠')!;
 
     final table = Table()
-      ..insertRow([label])
+      ..insertRow([label, message])
       ..borderColor = ConsoleColor.yellow
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;

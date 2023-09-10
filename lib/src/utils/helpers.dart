@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:date_format/date_format.dart';
 import 'package:fvm/src/utils/is_git_commit.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../constants.dart';
 import '../../exceptions.dart';
@@ -101,6 +102,13 @@ String assignVersionWeight(String version) {
     version = version.replaceFirst('v', '');
   }
 
+  try {
+    Version.parse(version);
+  } on Exception {
+    logger.warn('Version $version is not a valid semver');
+    return '0.0.0';
+  }
+
   return version;
 }
 
@@ -157,4 +165,10 @@ extension StringExtensions on String {
     }
     file.writeAsStringSync(contents);
   }
+}
+
+String uppercase(String name) {
+  return name.split(' ').map((word) {
+    return word[0].toUpperCase() + word.substring(1);
+  }).join(' ');
 }
