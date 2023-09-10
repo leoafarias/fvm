@@ -49,7 +49,7 @@ void createLink(Link source, Directory target) {
     }
 
     throw FvmUsageException(
-      "Seems you don't have the required permissions on ${ctx.fvmDir.path}"
+      "Seems you don't have the required permissions on ${ctx.fvmDir}"
       ' $message',
     );
   }

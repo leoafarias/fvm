@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:fvm/src/services/context.dart';
 
-import '../../constants.dart';
 import '../../fvm.dart';
 import 'helpers.dart';
 
@@ -104,7 +103,7 @@ Future<int> _runCmd(
     args,
     runInShell: true,
     environment: environment,
-    workingDirectory: kWorkingDirectory.path,
+    workingDirectory: ctx.workingDirectory,
     mode: ProcessStartMode.inheritStdio,
   );
 

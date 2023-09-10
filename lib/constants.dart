@@ -25,16 +25,6 @@ String flutterBinFileName = 'flutter$_binExt';
 /// Dart executable file name
 String dartBinFileName = 'dart$_binExt';
 
-/// Flutter Repo Address
-@Deprecated('Use context now')
-String get kFlutterRepo {
-  return kEnvVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
-}
-
-/// Working Directory for FVM
-/// Cannot be a const because it is modified
-Directory kWorkingDirectory = Directory.current;
-
 /// User Home Path
 String get kUserHome {
   if (Platform.isWindows) {

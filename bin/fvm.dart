@@ -3,9 +3,17 @@
 import 'dart:io';
 
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/context.dart';
+import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  await _flushThenExit(await FvmCommandRunner().run(args));
+  final scope = Scope()..value(contextKey, FVMContext.main);
+
+  await _flushThenExit(
+    await scope.run(
+      () => FvmCommandRunner().run((args)),
+    ),
+  );
 }
 
 /// Flushes the stdout and stderr streams, then exits the program with the given

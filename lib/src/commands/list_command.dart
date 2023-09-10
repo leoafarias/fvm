@@ -35,7 +35,7 @@ class ListCommand extends BaseCommand {
 
     // Print where versions are stored
     logger
-      ..info('Cache directory:  ${cyan.wrap(ctx.fvmVersionsDir.path)}')
+      ..info('Cache directory:  ${cyan.wrap(ctx.fvmVersionsDir)}')
       ..spacer;
 
     // Get current project

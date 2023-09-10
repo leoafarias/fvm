@@ -135,14 +135,16 @@ class ProjectService {
   void updateVsCodeConfig(
     Project project,
   ) {
-    final settingsFile =
-        File(join(project.projectDir.path, '.vscode', 'settings.json'));
+    final settingsFile = File(
+      join(project.projectDir.path, '.vscode', 'settings.json'),
+    );
+
     if (!project.vsCodeSettingsFile.existsSync()) {
       logger.detail('VSCode settings not found, to update.\n');
       return;
     }
 
-    Map<String, dynamic> defaultSettings = {
+    Map<String, dynamic> recommendedSettings = {
       'search.exclude': {'**/.fvm/versions': true},
       'files.watcherExclude': {'**/.fvm/versions': true},
       'files.exclude': {'**/.fvm/versions': true}
@@ -160,16 +162,30 @@ class ProjectService {
     }
 
     bool isUpdated = false;
-    defaultSettings.forEach((key, value) {
-      if (currentSettings[key] == null) {
+
+    recommendedSettings.forEach((key, value) {
+      final recommendedValue = value as Map<String, dynamic>;
+
+      if (currentSettings.containsKey(key)) {
+        final currentValue = currentSettings[key] as Map<String, dynamic>;
+
+        recommendedValue.forEach((key, value) {
+          if (!currentValue.containsKey(key) || currentValue[key] != value) {
+            currentValue[key] = value;
+            isUpdated = true;
+          }
+        });
+      } else {
         currentSettings[key] = value;
         isUpdated = true;
       }
     });
 
     // Write updated settings back to settings.json
-    if (!isUpdated) {
-      return;
+    if (isUpdated) {
+      logger.complete(
+        'VSCode $kPackageName settings has been updated. with correct exclude settings\n',
+      );
     }
 
     final relativePath = relative(
@@ -186,7 +202,7 @@ class ProjectService {
   /// Can start at a specific [directory] if provided
   Future<Project> findAncestor({Directory? directory}) async {
     // Get directory, defined root or current
-    directory ??= kWorkingDirectory;
+    directory ??= Directory(ctx.workingDirectory);
 
     // Checks if the directory is root
     final isRootDir = rootPrefix(directory.path) == directory.path;
@@ -198,7 +214,7 @@ class ProjectService {
     if (project.hasConfig) return project;
 
     // Return working directory if has reached root
-    if (isRootDir) return loadByDirectory(kWorkingDirectory);
+    if (isRootDir) return loadByDirectory(Directory(ctx.workingDirectory));
 
     return await findAncestor(directory: directory.parent);
   }

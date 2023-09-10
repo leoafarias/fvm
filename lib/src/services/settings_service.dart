@@ -15,7 +15,7 @@ class SettingsService {
 
   /// File for FVM Settings
   static File get settingsFile {
-    return File(join(ctx.fvmDir.path, '.settings'));
+    return File(join(ctx.fvmDir, '.settings'));
   }
 
   /// Returns [SettingsDto]

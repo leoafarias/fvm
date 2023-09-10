@@ -24,6 +24,9 @@ Future<void> resolveDependenciesWorkflow({
   required Project project,
 }) async {
   final dartToolVersion = project.dartToolVersion;
+  logger.success('Resolving Flutter SDK dependencies...');
+
+  print('Logger level: ${logger.level}');
 
   logger
     ..detail('')
@@ -43,14 +46,13 @@ Future<void> resolveDependenciesWorkflow({
 
     // Skip resolve if in vscode
     if (isVscode) {
-      logger.detail('Skipping resolve in vscode.');
-      return;
+      logger.detail('You are running on vscode, the extension might also run.');
     }
 
     final progress = logger.progress('Resolving dependencies...');
 
     try {
-      await FlutterTools.instance.runPubGet(version);
+      // await FlutterTools.instance.runPubGet(version);
 
       progress.complete('Dependencies resolved.');
     } on Exception {

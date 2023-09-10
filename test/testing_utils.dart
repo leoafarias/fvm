@@ -26,7 +26,8 @@ class TestFvmCommandRunner {
     final args = command.split(' ');
     final firstArg = args.removeAt(0);
     if (firstArg != 'fvm') throw Exception('Include fvm in command');
-    return FvmCommandRunner(context: use(contextKey)).run(args);
+    final scope = Scope()..value(contextKey, ctx);
+    return scope.run(() => FvmCommandRunner().run(args));
   }
 }
 
@@ -48,18 +49,6 @@ Future<FlutterVersion> getRandomFlutterVersion() async {
   final payload = await FlutterReleasesClient.get();
   final release = payload.releases[Random().nextInt(payload.releases.length)];
   return FlutterVersion.fromString(release.version);
-}
-
-void cleanup() {
-  // Remove all versions
-  if (ctx.fvmVersionsDir.existsSync()) {
-    final cacheDirList = ctx.fvmVersionsDir.listSync(recursive: true);
-    for (var dir in cacheDirList) {
-      if (dir.existsSync()) {
-        dir.deleteSync(recursive: true);
-      }
-    }
-  }
 }
 
 @isTest
@@ -119,6 +108,9 @@ void groupWithContext(
       final testContext = FVMContext.create(
         contextId,
         fvmDir: getFvmTestHomeDir(contextId),
+        workingDirectory: getFvmTestHomeDir(
+          join('projects', contextId, 'flutter_app'),
+        ),
         isTest: true,
         gitCacheDir: FVMContext.main.gitCacheDir,
       ).merge(context);
@@ -126,9 +118,7 @@ void groupWithContext(
       Scope()
         ..value(contextKey, testContext)
         ..runSync(() {
-          setUpAll(() {
-            setUpContext(testContext);
-          });
+          setUpAll(() => setUpContext(testContext));
 
           tearDownAll(() {
             tearDownContext(testContext);
@@ -141,7 +131,7 @@ void groupWithContext(
 
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
+  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -156,7 +146,7 @@ Future<String?> getBranch(String version) async {
 
 /// Returns the [name] of a tag [version]
 Future<String?> getTag(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir.path, version));
+  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 

@@ -4,40 +4,25 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:path/path.dart';
 
-Directory getFvmTestHomeDir(String path) {
-  return Directory(join(kUserHome, 'fvm-test', path));
+String getFvmTestHomeDir(String path) {
+  return join(kUserHome, 'fvm-test', path);
 }
 
-Directory getSupportAssetDir(String name) {
-  return Directory(
-    join(kWorkingDirectory.path, 'test', 'support_assets', name),
-  );
+String getSupportAssetDir(String name) {
+  return join(ctx.workingDirectory, 'test', 'support_assets', name);
 }
 
-Directory getTempTestDirectory(String path1, [String? path2, String? path3]) {
-  return Directory(join(kWorkingDirectory.path, 'test', '.tmp', path1, path2));
-}
-
-final List<Map<String, String?>> directories = [
-  {
-    'tmp': getTempTestDirectory('flutter_app').path,
-    'asset': getSupportAssetDir('flutter_app').path,
-  },
-  {
-    'tmp': getTempTestDirectory('dart_package').path,
-    'asset': getSupportAssetDir('dart_package').path,
-  },
-  {
-    'tmp': getTempTestDirectory('empty_folder').path,
-    'asset': getSupportAssetDir('empty_folder').path,
-  },
+final List<String> directories = [
+  getSupportAssetDir('flutter_app'),
+  getSupportAssetDir('dart_package'),
+  getSupportAssetDir('empty_folder'),
 ];
 
-Future<void> prepareLocalProjects() async {
+Future<void> prepareLocalProjects(String toPath) async {
   final promises = <Future<void>>[];
   for (var directory in directories) {
-    final assetDir = Directory(directory['asset']!);
-    final tmpDir = Directory(directory['tmp']!);
+    final assetDir = Directory(directory);
+    final tmpDir = Directory(toPath);
 
     // Copy assetDir to tmpDir
     promises.add(copyDirectoryContents(assetDir, tmpDir));
@@ -71,14 +56,29 @@ Future<void> copyDirectoryContents(
   await Future.wait(tasks);
 }
 
-void setUpContext(FVMContext context) {
-  if (context.fvmDir.existsSync()) {
-    context.fvmDir.deleteSync(recursive: true);
+Future<void> setUpContext(FVMContext context) async {
+  final fvmDir = Directory(context.fvmDir);
+  if (fvmDir.existsSync()) {
+    fvmDir.deleteSync(recursive: true);
   }
+
+  final workingDirectory = Directory(context.workingDirectory);
+  if (workingDirectory.existsSync()) {
+    workingDirectory.deleteSync(recursive: true);
+  }
+  workingDirectory.createSync(recursive: true);
+
+  await prepareLocalProjects(getFvmTestHomeDir(join('projects', ctx.name)));
 }
 
 void tearDownContext(FVMContext context) {
-  if (context.fvmDir.existsSync()) {
-    context.fvmDir.deleteSync(recursive: true);
+  final fvmDir = Directory(context.fvmDir);
+  final workingDirectory = Directory(context.workingDirectory);
+  if (fvmDir.existsSync()) {
+    fvmDir.deleteSync(recursive: true);
+  }
+
+  if (workingDirectory.existsSync()) {
+    workingDirectory.deleteSync(recursive: true);
   }
 }

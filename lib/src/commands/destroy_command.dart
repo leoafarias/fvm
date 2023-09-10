@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 
@@ -18,12 +20,13 @@ class DestroyCommand extends BaseCommand {
   @override
   Future<int> run() async {
     if (logger.confirm(
-      'Are you sure you want to destroy the directory "${ctx.fvmDir.path}" ?',
+      'Are you sure you want to destroy the directory "${ctx.fvmDir}" ?',
       defaultValue: false,
     )) {
-      if (ctx.fvmDir.existsSync()) {
-        ctx.fvmDir.deleteSync(recursive: true);
-        logger.success('FVM Directory ${ctx.fvmDir.path} has been deleted');
+      final fvmDir = Directory(ctx.fvmDir);
+      if (fvmDir.existsSync()) {
+        fvmDir.deleteSync(recursive: true);
+        logger.success('FVM Directory ${fvmDir.path} has been deleted');
       }
     }
 

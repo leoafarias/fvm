@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
@@ -89,7 +90,7 @@ class FlutterTools {
 
     final useMirrorParams = [
       '--reference',
-      ctx.gitCacheDir.path,
+      ctx.gitCacheDir,
     ];
 
     final cloneArgs = [
@@ -147,21 +148,22 @@ class FlutterTools {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> _updateFlutterRepoCache() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir.path);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
 
     // If cache file does not exists create it
     if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(ctx.gitCacheDir.path);
+      final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
       await gitDir.runCommand(['remote', 'update'], echoOutput: true);
     } else {
+      final gitCacheDir = Directory(ctx.gitCacheDir);
       // Ensure brand new directory
-      if (ctx.gitCacheDir.existsSync()) {
-        ctx.gitCacheDir.deleteSync(recursive: true);
+      if (gitCacheDir.existsSync()) {
+        gitCacheDir.deleteSync(recursive: true);
       }
-      ctx.gitCacheDir.createSync(recursive: true);
+      gitCacheDir.createSync(recursive: true);
 
       await runGit(
-        ['clone', '--progress', ctx.flutterRepo, ctx.gitCacheDir.path],
+        ['clone', '--progress', ctx.flutterRepo, gitCacheDir.path],
         echoOutput: true,
       );
     }

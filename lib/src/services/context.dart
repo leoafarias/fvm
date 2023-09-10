@@ -22,11 +22,11 @@ class FVMContext {
   static FVMContext get main => FVMContext.create('MAIN');
   factory FVMContext.create(
     String name, {
-    Directory? fvmDir,
-    Directory? fvmVersionsDir,
+    String? fvmDir,
+    String? fvmVersionsDir,
+    String? workingDirectory,
     bool? useGitCache,
-    FvmLogger? logger,
-    Directory? gitCacheDir,
+    String? gitCacheDir,
     String? flutterRepo,
     Map<Type, dynamic> overrides = const {},
     bool isTest = false,
@@ -36,18 +36,14 @@ class FVMContext {
 
     final fvmDirHomeEnv = kEnvVars['FVM_HOME'];
     if (fvmDirHomeEnv != null) {
-      fvmDir ??= Directory(normalize(fvmDirHomeEnv));
+      fvmDir ??= normalize(fvmDirHomeEnv);
     } else {
-      fvmDir ??= Directory(kFvmDirDefault);
+      fvmDir ??= kFvmDirDefault;
     }
 
-    fvmVersionsDir ??= Directory(
-      join(fvmDir.path, 'versions'),
-    );
+    fvmVersionsDir ??= join(fvmDir, 'versions');
 
-    gitCacheDir ??= Directory(
-      join(fvmDir.path, 'cache.git'),
-    );
+    gitCacheDir ??= join(fvmDir, 'cache.git');
 
     final generators = <Type, dynamic>{
       FvmLogger: () => FvmLogger(),
@@ -61,6 +57,7 @@ class FVMContext {
       name,
       fvmDir: fvmDir,
       fvmVersionsDir: fvmVersionsDir,
+      workingDirectory: Directory.current.path,
       useGitCache: useGitCache ?? true,
       isTest: isTest,
       flutterRepo: flutterRepo,
@@ -75,6 +72,7 @@ class FVMContext {
     this.name, {
     required this.fvmDir,
     required this.fvmVersionsDir,
+    required this.workingDirectory,
     required this.useGitCache,
     required this.flutterRepo,
     required this.gitCacheDir,
@@ -89,19 +87,22 @@ class FVMContext {
   final String flutterRepo;
 
   /// Directory where FVM is stored
-  final Directory fvmDir;
+  final String fvmDir;
 
   /// Directory where FVM versions are stored
-  final Directory fvmVersionsDir;
+  final String fvmVersionsDir;
 
   /// Flag to determine if should use git cache
   final bool useGitCache;
 
   /// Directory for Flutter repo git cache
-  final Directory gitCacheDir;
+  final String gitCacheDir;
 
   /// Cached settings
   SettingsDto? settings;
+
+  /// Working Directory for FVM
+  final String workingDirectory;
 
   /// Flag to determine if context is running in a test
   final bool isTest;
@@ -110,14 +111,14 @@ class FVMContext {
 
   /// File for FVM Settings
   File get settingsFile {
-    return File(join(fvmDir.path, '.settings'));
+    return File(join(fvmDir, '.settings'));
   }
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
 
   /// Where Default Flutter SDK is stored
-  Link get globalCacheLink => Link(join(fvmDir.path, 'default'));
+  Link get globalCacheLink => Link(join(fvmDir, 'default'));
 
   /// Directory for Global Flutter SDK bin
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
@@ -131,11 +132,12 @@ class FVMContext {
 
   FVMContext copyWith({
     String? name,
-    Directory? fvmDir,
-    Directory? fvmVersionsDir,
+    String? workingDirectory,
+    String? fvmDir,
+    String? fvmVersionsDir,
     bool? useGitCache,
     String? flutterRepo,
-    Directory? gitCacheDir,
+    String? gitCacheDir,
     bool? isTest,
     Map<Type, dynamic>? generators,
   }) {
@@ -143,6 +145,7 @@ class FVMContext {
       name ?? this.name,
       fvmDir: fvmDir ?? this.fvmDir,
       fvmVersionsDir: fvmVersionsDir ?? this.fvmVersionsDir,
+      workingDirectory: workingDirectory ?? this.workingDirectory,
       useGitCache: useGitCache ?? this.useGitCache,
       flutterRepo: flutterRepo ?? this.flutterRepo,
       gitCacheDir: gitCacheDir ?? this.gitCacheDir,
@@ -159,6 +162,7 @@ class FVMContext {
       name: context?.name,
       fvmDir: context?.fvmDir,
       fvmVersionsDir: context?.fvmVersionsDir,
+      workingDirectory: context?.workingDirectory,
       useGitCache: context?.useGitCache,
       flutterRepo: context?.flutterRepo,
       gitCacheDir: context?.gitCacheDir,

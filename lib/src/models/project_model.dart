@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
@@ -44,8 +45,9 @@ class Project {
 
   String? get dartToolVersion {
     if (_dartToolVersionFile.existsSync()) {
-      final dartToolVersion = _dartToolVersionFile.readAsStringSync();
-      return dartToolVersion;
+      final jsonConfig = _dartToolVersionFile.readAsStringSync();
+      final packageConfig = jsonDecode(jsonConfig) as Map<String, dynamic>;
+      return packageConfig['generatorVersion'];
     } else {
       return null;
     }
@@ -87,7 +89,7 @@ class Project {
 
   /// Returns dart tool version
   File get _dartToolVersionFile {
-    return File(join(projectDir.path, '.dart_tool', 'version'));
+    return File(join(projectDir.path, '.dart_tool', 'package_config.json'));
   }
 
   /// Returns vscode settings file
