@@ -4,12 +4,12 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/context.dart';
 import 'package:path/path.dart';
 
-String getFvmTestHomeDir(String path) {
-  return join(kUserHome, 'fvm-test', path);
+Directory getTempTestDir(String contextId, [String path = '']) {
+  return Directory(join(kUserHome, 'fvm-test', contextId, path));
 }
 
 String getSupportAssetDir(String name) {
-  return join(ctx.workingDirectory, 'test', 'support_assets', name);
+  return join(Directory.current.path, 'test', 'support_assets', name);
 }
 
 final List<String> directories = [
@@ -57,28 +57,19 @@ Future<void> copyDirectoryContents(
 }
 
 Future<void> setUpContext(FVMContext context) async {
-  final fvmDir = Directory(context.fvmDir);
-  if (fvmDir.existsSync()) {
-    fvmDir.deleteSync(recursive: true);
+  final tempDir = getTempTestDir(context.name);
+
+  if (tempDir.existsSync()) {
+    tempDir.deleteSync(recursive: true);
   }
 
-  final workingDirectory = Directory(context.workingDirectory);
-  if (workingDirectory.existsSync()) {
-    workingDirectory.deleteSync(recursive: true);
-  }
-  workingDirectory.createSync(recursive: true);
-
-  await prepareLocalProjects(getFvmTestHomeDir(join('projects', ctx.name)));
+  await prepareLocalProjects(tempDir.path);
 }
 
 void tearDownContext(FVMContext context) {
-  final fvmDir = Directory(context.fvmDir);
-  final workingDirectory = Directory(context.workingDirectory);
-  if (fvmDir.existsSync()) {
-    fvmDir.deleteSync(recursive: true);
-  }
+  final tempDir = getTempTestDir(context.name);
 
-  if (workingDirectory.existsSync()) {
-    workingDirectory.deleteSync(recursive: true);
+  if (tempDir.existsSync()) {
+    tempDir.deleteSync(recursive: true);
   }
 }

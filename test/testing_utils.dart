@@ -107,10 +107,8 @@ void groupWithContext(
     () {
       final testContext = FVMContext.create(
         contextId,
-        fvmDir: getFvmTestHomeDir(contextId),
-        workingDirectory: getFvmTestHomeDir(
-          join('projects', contextId, 'flutter_app'),
-        ),
+        fvmDir: getTempTestDir(contextId, 'fvm').path,
+        workingDirectory: getTempTestDir(contextId, 'flutter_app').path,
         isTest: true,
         gitCacheDir: FVMContext.main.gitCacheDir,
       ).merge(context);
