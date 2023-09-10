@@ -29,8 +29,8 @@ void main() {
         () async {
           final exitCode = await runner.run('fvm install $version');
 
-          final cacheVersion = CacheService.instance
-              .getVersion(FlutterVersion.fromString(version));
+          final cacheVersion =
+              CacheService.instance.getVersion(FlutterVersion.parse(version));
 
           String? releaseChannel;
 

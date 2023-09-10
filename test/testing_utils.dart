@@ -48,7 +48,7 @@ const gitCommit = 'f4c74a6ec3';
 Future<FlutterVersion> getRandomFlutterVersion() async {
   final payload = await FlutterReleasesClient.get();
   final release = payload.releases[Random().nextInt(payload.releases.length)];
-  return FlutterVersion.fromString(release.version);
+  return FlutterVersion.parse(release.version);
 }
 
 @isTest

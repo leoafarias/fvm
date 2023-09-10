@@ -49,7 +49,7 @@ class CacheService {
     for (var version in versions) {
       if (isDirectory(version.path)) {
         final name = basename(version.path);
-        final cacheVersion = getVersion(FlutterVersion.fromString(name));
+        final cacheVersion = getVersion(FlutterVersion.parse(name));
 
         if (cacheVersion != null) {
           cacheVersions.add(cacheVersion);
@@ -138,7 +138,7 @@ class CacheService {
       // Get directory name
       final version = basename(ctx.globalCacheLink.targetSync());
       // Make sure its a valid version
-      final validVersion = FlutterVersion.fromString(version);
+      final validVersion = FlutterVersion.parse(version);
       // Verify version is cached
       return CacheService.instance.getVersion(validVersion);
     } else {

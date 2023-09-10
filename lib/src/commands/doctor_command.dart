@@ -33,7 +33,7 @@ class DoctorCommand extends BaseCommand {
 
     if (project.pinnedVersion != null) {
       final cacheVersion = CacheService.instance.getVersion(
-        FlutterVersion.fromString(project.pinnedVersion!),
+        FlutterVersion.parse(project.pinnedVersion!),
       );
       logger
         ..info('')

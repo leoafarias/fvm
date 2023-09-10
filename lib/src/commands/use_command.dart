@@ -73,7 +73,7 @@ class UseCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version. Force version if is to be pinned.
-    var validVersion = FlutterVersion.fromString(version);
+    var validVersion = FlutterVersion.parse(version);
 
     /// Cannot pin master channel
     if (pinOption && validVersion.isMaster) {
@@ -92,7 +92,7 @@ class UseCommand extends BaseCommand {
       final release = await FlutterReleasesClient.getLatestReleaseOfChannel(
           FlutterChannel.fromName(version));
 
-      validVersion = FlutterVersion.fromString(release.version);
+      validVersion = FlutterVersion.parse(release.version);
     }
 
     final cacheVersion = await ensureCacheWorkflow(validVersion);

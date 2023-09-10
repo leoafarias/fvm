@@ -27,7 +27,7 @@ class FlutterCommand extends BaseCommand {
     final args = [...argResults!.arguments];
 
     if (version != null) {
-      final validVersion = FlutterVersion.fromString(version);
+      final validVersion = FlutterVersion.parse(version);
       // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

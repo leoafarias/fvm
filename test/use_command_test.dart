@@ -25,7 +25,7 @@ void main() {
             final linkExists = project.cacheVersionSymlink.existsSync();
 
             final targetPath = project.cacheVersionSymlink.targetSync();
-            final valid = FlutterVersion.fromString(version);
+            final valid = FlutterVersion.parse(version);
             final versionDir =
                 CacheService.instance.getVersionCacheDir(valid.name);
 

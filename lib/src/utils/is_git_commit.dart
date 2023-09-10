@@ -1,11 +1,11 @@
 bool isGitCommit(String hash) {
-  return isShortCommit(hash) || isLongCommit(hash);
+  return _isValidShortCommitSha(hash) || _isValidFullCommitSha(hash);
 }
 
-bool isShortCommit(String commit) {
-  return RegExp(r'^[0-9a-f]{7,8}$').hasMatch(commit);
+bool _isValidShortCommitSha(String str) {
+  return RegExp(r'^[a-f0-9]{7,10}$').hasMatch(str);
 }
 
-bool isLongCommit(String commit) {
-  return RegExp(r'^[0-9a-f]{40}$').hasMatch(commit);
+bool _isValidFullCommitSha(String str) {
+  return RegExp(r'^[a-f0-9]{40}$').hasMatch(str);
 }

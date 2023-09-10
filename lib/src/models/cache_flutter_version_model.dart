@@ -17,7 +17,6 @@ class CacheFlutterVersion extends FlutterVersion {
           version.name,
           releaseChannel: version.releaseChannel,
           isChannel: version.isChannel,
-          isMaster: version.isMaster,
           isRelease: version.isRelease,
           isCommit: version.isCommit,
           isCustom: version.isCustom,

@@ -30,7 +30,7 @@ class RemoveCommand extends BaseCommand {
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
-    final validVersion = FlutterVersion.fromString(version);
+    final validVersion = FlutterVersion.parse(version);
     final cacheVersion = CacheService.instance.getVersion(validVersion);
 
     // Check if version is installed

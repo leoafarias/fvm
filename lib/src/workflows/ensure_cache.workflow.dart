@@ -111,7 +111,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
       'Removing corrupted SDK version and initiating reinstallation...',
     );
     return ensureCacheWorkflow(
-      FlutterVersion.fromString(version.name),
+      FlutterVersion.parse(version.name),
       shouldInstall: shouldInstall,
     );
   }
@@ -149,7 +149,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   CacheService.instance.remove(version);
 
   return ensureCacheWorkflow(
-    FlutterVersion.fromString(version.name),
+    FlutterVersion.parse(version.name),
     shouldInstall: shouldInstall,
   );
 }

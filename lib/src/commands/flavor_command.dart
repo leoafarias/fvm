@@ -71,7 +71,7 @@ class FlavorCommand extends BaseCommand {
     }
 
     // Makes sure that is a valid version
-    final validVersion = FlutterVersion.fromString(envVersion);
+    final validVersion = FlutterVersion.parse(envVersion);
 
     logger.info(
       'Switching to [$flavor] flavor, '

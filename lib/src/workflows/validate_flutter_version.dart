@@ -1,31 +1,40 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:interact/interact.dart';
 
 Future<FlutterVersion?> validateFlutterVersion(String version) async {
-  final flutterVersion = FlutterVersion.fromString(version);
-  if (flutterVersion.isChannel || flutterVersion.isCommit) {
+  final flutterVersion = FlutterVersion.parse(version);
+  // If its channel or commit no need for further validation
+  if (flutterVersion.isChannel || flutterVersion.isCustom) {
     return flutterVersion;
   }
 
-  final releases = await FlutterReleasesClient.get();
+  if (flutterVersion.isRelease) {
+    // Check version incase it as a releaseChannel i.e. 2.2.2@beta
+    final isTag = await FlutterTools.instance.isTag(flutterVersion.version);
 
-  final isVersion = releases.containsVersion(flutterVersion.version);
-
-  if (!isVersion) {
-    logger.notice('Version: ($version) is not valid Flutter version');
-
-    final askConfirmation = Confirm(
-      prompt: 'Do you want to continue?',
-      defaultValue: false,
-    );
-    if (askConfirmation.interact()) {
+    if (isTag) {
       return flutterVersion;
-    } else {
-      return null;
     }
   }
 
-  return flutterVersion;
+  if (flutterVersion.isCommit) {
+    final isCommit = await FlutterTools.instance.isCommit(version);
+    if (isCommit) {
+      return flutterVersion;
+    }
+  }
+
+  logger.notice('Version: ($version) is not valid Flutter version');
+
+  final askConfirmation = Confirm(
+    prompt: 'Do you want to continue?',
+    defaultValue: false,
+  );
+  if (askConfirmation.interact()) {
+    return flutterVersion;
+  } else {
+    return null;
+  }
 }

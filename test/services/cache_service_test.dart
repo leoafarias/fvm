@@ -6,8 +6,8 @@ import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
-final _channel = FlutterVersion.fromString('beta');
-final _version = FlutterVersion.fromString('1.20.2');
+final _channel = FlutterVersion.parse('beta');
+final _version = FlutterVersion.parse('1.20.2');
 
 void main() {
   groupWithContext('Cache Service Test:', () {
@@ -25,7 +25,7 @@ void main() {
       final cacheVersion = CacheService.instance.getVersion(_version);
 
       final invalidVersion = CacheService.instance
-          .getVersion(FlutterVersion.fromString('invalid-version'));
+          .getVersion(FlutterVersion.parse('invalid-version'));
 
       final channelIntegrity =
           await CacheService.instance.verifyCacheIntegrity(cacheChannel!);

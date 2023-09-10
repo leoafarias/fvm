@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/src/services/context.dart';
@@ -151,6 +152,60 @@ class FlutterTools {
         ['clone', '--progress', ctx.flutterRepo, gitCacheDir.path],
         echoOutput: true,
       );
+    }
+  }
+
+  /// Gets a commit for the Flutter repo
+  /// If commit does not exist returns null
+  Future<bool> isCommit(String commit) async {
+    final commitSha = await _getReference(commit);
+    if (commitSha == null) {
+      return false;
+    }
+    return commitSha.startsWith(commit);
+  }
+
+  /// Gets a tag for the Flutter repository
+  /// If tag does not exist returns null
+  Future<bool> isTag(String tag) async {
+    final commitSha = await _getReference(tag);
+    if (commitSha == null) {
+      return false;
+    }
+
+    final tags = await getTags();
+    return tags.where((t) => t == tag).isNotEmpty;
+  }
+
+  Future<List<String>> getTags() async {
+    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    if (!isGitDir) {
+      throw Exception('Git cache directory does not exist');
+    }
+
+    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    final result = await gitDir.runCommand(['tag']);
+    if (result.exitCode != 0) {
+      return [];
+    }
+
+    return LineSplitter.split(result.stdout as String)
+        .map((line) => line.trim())
+        .toList();
+  }
+
+  Future<String?> _getReference(String ref) async {
+    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    if (!isGitDir) {
+      throw Exception('Git cache directory does not exist');
+    }
+
+    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    try {
+      final result = await gitDir.runCommand(['rev-parse', '--verify', ref]);
+      return result.outText.trim();
+    } on Exception {
+      return null;
     }
   }
 }

@@ -6,12 +6,12 @@ const shortCommit = 'de25def';
 
 void main() {
   test('Valid Version behaves correctly', () async {
-    final master = FlutterVersion.fromString('master');
-    final beta = FlutterVersion.fromString('beta');
-    final channelWithVersion = FlutterVersion.fromString('2.2.2@beta');
-    final version = FlutterVersion.fromString('2.2.0');
-    final gitCommit = FlutterVersion.fromString(longCommit);
-    final shortGitCommit = FlutterVersion.fromString(shortCommit);
+    final master = FlutterVersion.parse('master');
+    final beta = FlutterVersion.parse('beta');
+    final channelWithVersion = FlutterVersion.parse('2.2.2@beta');
+    final version = FlutterVersion.parse('2.2.0');
+    final gitCommit = FlutterVersion.parse(longCommit);
+    final shortGitCommit = FlutterVersion.parse(shortCommit);
 
     // Check if its channel
     expect(master.isChannel, true);
@@ -28,8 +28,8 @@ void main() {
     expect(channelWithVersion.version, '2.2.2');
     expect(channelWithVersion.releaseChannel, 'beta');
     expect(version.name, '2.2.0');
-    expect(gitCommit.name, 'f4c74a6ec3');
-    expect(shortGitCommit.name, '97dd2ae');
+    expect(gitCommit.name, longCommit);
+    expect(shortGitCommit.name, shortCommit);
 
     // Check if forces channel
     expect(master.releaseChannel, null);
@@ -68,7 +68,7 @@ void main() {
     expect(beta.name, 'beta');
     expect(channelWithVersion.version, '2.2.2');
     expect(version.name, '2.2.0');
-    expect(gitCommit.name, 'f4c74a6ec3');
-    expect(shortGitCommit.name, '97dd2ae');
+    expect(gitCommit.name, longCommit);
+    expect(shortGitCommit.name, shortCommit);
   });
 }

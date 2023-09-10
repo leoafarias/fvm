@@ -40,7 +40,7 @@ class ExecCommand extends BaseCommand {
     // If no version is provided try to use global
     if (version == null) return execCmd(cmd, execArgs, null);
 
-    final validVersion = FlutterVersion.fromString(version);
+    final validVersion = FlutterVersion.parse(version);
     // Will install version if not already instaled
     final cacheVersion = await ensureCacheWorkflow(validVersion);
 

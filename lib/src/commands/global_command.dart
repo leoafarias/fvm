@@ -38,7 +38,7 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version
-    final validVersion = FlutterVersion.fromString(version);
+    final validVersion = FlutterVersion.parse(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);
@@ -54,7 +54,7 @@ class GlobalCommand extends BaseCommand {
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      final flutterPinnedVersion = FlutterVersion.fromString(pinnedVersion);
+      final flutterPinnedVersion = FlutterVersion.parse(pinnedVersion);
       pinnedCacheVersion =
           CacheService.instance.getVersion(flutterPinnedVersion);
     }

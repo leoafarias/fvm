@@ -32,7 +32,7 @@ void main() {
   });
 
   test('Assigns version weights', () async {
-    expect('500.0.0', assignVersionWeight('0941968447'));
+    expect('500.0.0', assignVersionWeight('2da03e5'));
     expect('500.0.0', assignVersionWeight('ce18d702e9'));
     expect(
       '500.0.0',

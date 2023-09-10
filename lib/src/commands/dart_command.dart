@@ -26,7 +26,7 @@ class DartCommand extends BaseCommand {
 
     if (version != null) {
       // Make sure version is valid
-      final validVersion = FlutterVersion.fromString(version);
+      final validVersion = FlutterVersion.parse(version);
       // Will install version if not already instaled
       final cacheVersion = await ensureCacheWorkflow(validVersion);
 

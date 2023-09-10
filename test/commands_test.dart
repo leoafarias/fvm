@@ -20,7 +20,7 @@ void main() {
       await runner.run('fvm install $channel');
 
       final cacheVersion =
-          CacheService.instance.getVersion(FlutterVersion.fromString(channel));
+          CacheService.instance.getVersion(FlutterVersion.parse(channel));
 
       final existingChannel = await getBranch(channel);
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -78,7 +78,7 @@ void main() {
 
     testWithContext('Install Release', () async {
       await runner.run('fvm install $release');
-      final valid = FlutterVersion.fromString(release);
+      final valid = FlutterVersion.parse(release);
       final existingRelease = await getTag(valid.name);
 
       final cacheVersion = CacheService.instance.getVersion(valid);
@@ -92,10 +92,10 @@ void main() {
       final gitHash = 'fb57da5f945d02ef4f98dfd9409a72b7cce74268';
       final shortGitHash = 'fb57da5';
       await runner.run('fvm install $gitHash');
-      final valid = FlutterVersion.fromString(gitHash);
+      final valid = FlutterVersion.parse(gitHash);
 
       await runner.run('fvm install $shortGitHash');
-      final validShort = FlutterVersion.fromString(shortGitHash);
+      final validShort = FlutterVersion.parse(shortGitHash);
 
       final cacheVersion = CacheService.instance.getVersion(valid);
       final cacheVersionShort = CacheService.instance.getVersion(validShort);
@@ -111,7 +111,7 @@ void main() {
       final linkExists = project.cacheVersionSymlink.existsSync();
 
       final targetPath = project.cacheVersionSymlink.targetSync();
-      final valid = FlutterVersion.fromString(release);
+      final valid = FlutterVersion.parse(release);
       final versionDir = CacheService.instance.getVersionCacheDir(valid.name);
 
       expect(targetPath == versionDir.path, true);
