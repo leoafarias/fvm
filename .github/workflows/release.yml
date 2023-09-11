@@ -29,6 +29,7 @@ jobs:
         run: dart pub get
 
       - run: ./scripts/build_version.dart
+      - run: ./bin/fvm.dart install master
       - run: dart test
 
   release:
