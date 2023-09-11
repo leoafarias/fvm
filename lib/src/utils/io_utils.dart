@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 /// Returns true if [path] is a directory
@@ -29,17 +28,13 @@ void createLink(Link source, Directory target) {
       recursive: true,
     );
   } on FileSystemException catch (e) {
+    if (e.osError?.errorCode == 1314 && Platform.isWindows) {
+      throw PriviledgeException(
+        'On Windows FVM requires to run as an administrator\nor turn on developer mode: https://bit.ly/3vxRr2M',
+      );
+    }
     logger.detail(e.toString());
 
-    var message = '';
-    if (Platform.isWindows) {
-      message = 'On Windows FVM requires to run as an administrator '
-          'or turn on developer mode: https://bit.ly/3vxRr2M';
-    }
-
-    throw FvmUsageException(
-      "Seems you don't have the required permissions on ${ctx.fvmDir}"
-      ' $message',
-    );
+    rethrow;
   }
 }

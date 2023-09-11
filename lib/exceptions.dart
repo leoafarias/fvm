@@ -27,6 +27,17 @@ class FvmError extends FvmException {
   String toString() => 'FVM Error: \n $message';
 }
 
+class PriviledgeException implements Exception {
+  /// Message of error
+  final String message;
+
+  /// Constructor
+  const PriviledgeException(this.message);
+
+  @override
+  String toString() => 'Priviledge Exception: \n $message';
+}
+
 /// Exception for internal FVM usage
 
 class FvmUsageException implements Exception {

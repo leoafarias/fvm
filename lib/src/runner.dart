@@ -114,6 +114,10 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..spacer;
 
       return e.errorCode;
+    } on PriviledgeException catch (e) {
+      logger.err(e.message);
+
+      return ExitCode.noPerm.code;
     } on FvmUsageException catch (e) {
       // On usage errors, show the commands usage message and
       // exit with an error code

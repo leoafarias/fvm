@@ -60,9 +60,13 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       exit(ExitCode.success.code);
     }
 
+    logger.info(
+      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not cached.',
+    );
+
     final shouldInstallConfirmed = shouldInstall ||
         logger.confirm(
-          'Flutter SDK: ${validVersion.name} is not installed.',
+          'Would you like to install it now?',
           defaultValue: true,
         );
 
