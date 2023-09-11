@@ -98,11 +98,6 @@ class Project {
     return File(join(projectDir.path, '.dart_tool', 'version'));
   }
 
-  /// Returns vscode settings file
-  File get vsCodeSettingsFile {
-    return File(join(projectDir.path, '.vscode', 'settings.json'));
-  }
-
   /// Pubspec file
   File get pubspecFile {
     return File(join(projectDir.path, 'pubspec.yaml'));

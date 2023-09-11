@@ -135,12 +135,17 @@ class ProjectService {
   void updateVsCodeConfig(
     Project project,
   ) {
-    final settingsFile = File(
-      join(project.projectDir.path, '.vscode', 'settings.json'),
-    );
+    final vscodeDir = Directory(join(
+      project.projectDir.path,
+      '.vscode',
+    ));
 
-    if (!project.vsCodeSettingsFile.existsSync()) {
-      logger.detail('VSCode settings not found, to update.');
+    final vsCodeSettingsFile = File(join(
+      vscodeDir.path,
+      'settings.json',
+    ));
+
+    if (!vscodeDir.existsSync()) {
       return;
     }
 
@@ -150,15 +155,22 @@ class ProjectService {
       'files.exclude': {'**/.fvm/versions': true}
     };
 
+    if (!vsCodeSettingsFile.existsSync()) {
+      logger.detail('VSCode settings not found, to update.');
+      vsCodeSettingsFile.createSync(recursive: true);
+    }
+
     Map<String, dynamic> currentSettings = {};
 
     // Check if settings.json exists; if not, create it.
-    if (settingsFile.existsSync()) {
-      String contents = settingsFile.readAsStringSync();
+    if (vsCodeSettingsFile.existsSync()) {
+      String contents = vsCodeSettingsFile.readAsStringSync();
       final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
-      currentSettings = json.decode(sanitizedContent);
+      if (sanitizedContent.isNotEmpty) {
+        currentSettings = json.decode(sanitizedContent);
+      }
     } else {
-      settingsFile.create(recursive: true);
+      vsCodeSettingsFile.create(recursive: true);
     }
 
     bool isUpdated = false;
@@ -195,7 +207,7 @@ class ProjectService {
 
     currentSettings["dart.flutterSdkPath"] = relativePath;
 
-    settingsFile.writeAsStringSync(prettyJson(currentSettings));
+    vsCodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
   }
 
   /// Recursive look up to find nested project directory

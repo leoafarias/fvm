@@ -51,7 +51,9 @@ Future<void> resolveDependenciesWorkflow({
 
   // Skip resolve if in vscode
   if (isVscode) {
-    logger.detail('You are running on vscode, the extension might also run.');
+    logger.notice(
+      'You are running on VSCode, please close your \nterminal and open again to see the changes. \n to just use "flutter" command.',
+    );
   }
 
   final progress = logger.progress('Resolving dependencies...');
