@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:git/git.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart';
-import 'package:process_run/shell.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
@@ -128,13 +126,6 @@ class FlutterTools {
     return;
   }
 
-  /// Gets the global configuration
-  String? whichFlutter() {
-    final currentFlutter = whichSync('flutter');
-    if (currentFlutter == null) return null;
-    return dirname(currentFlutter);
-  }
-
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> _updateFlutterRepoCache() async {
@@ -207,7 +198,7 @@ class FlutterTools {
     final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
     try {
       final result = await gitDir.runCommand(['rev-parse', '--verify', ref]);
-      return result.outText.trim();
+      return result.stdout.trim();
     } on Exception {
       return null;
     }

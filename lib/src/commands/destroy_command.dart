@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:io/io.dart';
 
-import '../services/context.dart';
+import '../utils/context.dart';
 import 'base_command.dart';
 
 /// Destroy FVM cache by deleting all Flutter SDK versions

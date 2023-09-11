@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart';
 
 Directory getTempTestDir(String contextId, [String path = '']) {

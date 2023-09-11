@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/utils/io_utils.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
-import '../utils/helpers.dart';
-import 'context.dart';
+import '../utils/context.dart';
 
 enum CacheIntegrity {
   valid,

@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/runner.dart';
-import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {

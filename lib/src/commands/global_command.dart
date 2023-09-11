@@ -1,10 +1,10 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/utils/which.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
@@ -46,7 +46,7 @@ class GlobalCommand extends BaseCommand {
     // Sets version as the global
     CacheService.instance.setGlobal(cacheVersion);
 
-    final flutterInPath = FlutterTools.instance.whichFlutter();
+    final flutterInPath = which('flutter');
 
     final pinnedVersion = await ProjectService.instance.findVersion();
 

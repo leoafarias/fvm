@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
 import 'package:pubspec2/pubspec2.dart';
 

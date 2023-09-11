@@ -2,7 +2,6 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
-import 'package:mason_logger/mason_logger.dart';
 
 Future<FlutterVersion> validateFlutterVersion(String version) async {
   final flutterVersion = FlutterVersion.parse(version);
@@ -28,7 +27,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   }
 
   logger.notice(
-    'Flutter SDK: ${yellow.wrap(version)} is not valid Flutter version',
+    'Flutter SDK: (version) is not valid Flutter version',
   );
 
   final askConfirmation = logger.confirm(

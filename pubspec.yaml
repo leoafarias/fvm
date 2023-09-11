@@ -21,13 +21,13 @@ dependencies:
   mason_logger: ^0.2.8
   meta: ^1.9.1
   path: ^1.8.3
-  process_run: ^0.13.1
   pub_semver: ^2.1.4
   pub_updater: ^0.3.1
   pubspec2: ^1.0.0
   scope: ^4.1.0
   yaml: ^3.1.2
   dart_console: ^1.2.0
+  tint: ^2.0.1
 
 dev_dependencies:
   build_runner: ^2.4.6

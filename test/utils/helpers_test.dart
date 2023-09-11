@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';

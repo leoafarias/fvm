@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/logger.dart';
 
 Future<void> setupFlutterWorkflow({

@@ -4,6 +4,7 @@ import 'dart:convert';
 class ProjectConfig {
   /// Flutter SDK version configured
   String? flutter;
+  String? flutterSdkVersion;
 
   /// Flavors configured
   Map<String, dynamic>? flavors;
@@ -39,7 +40,7 @@ class ProjectConfig {
   /// Returns a map of values from FvmConfig
   Map<String, dynamic> toMap() {
     final map = <String, dynamic>{
-      'flutter': flutter,
+      'flutterSdkVersion': flutter,
     };
     // Doing this to clean up flavors payload from config
     if (flavors != null && flavors!.isNotEmpty) {

@@ -1,9 +1,10 @@
 import 'dart:async';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:tint/tint.dart';
 
 /// Sets default logger mode
 FvmLogger get logger => ctx.get<FvmLogger>();
@@ -26,9 +27,7 @@ class FvmLogger extends Logger {
   bool get isVerbose => logger.level == Level.verbose;
 
   void complete(String message) {
-    // \u2714
-    // info('✅ $message');
-    info('${green.wrap('\u2714')} $message');
+    info('${Icons.success.green()} $message');
   }
 
   @override
@@ -40,13 +39,25 @@ class FvmLogger extends Logger {
         .interact();
   }
 
+  String select(
+    String? message, {
+    required List<String> options,
+  }) {
+    final selection = Select(
+      prompt: message ?? '',
+      options: options,
+    ).interact();
+
+    return options[selection];
+  }
+
   void notice(String message) {
     // Add 2 due to the warning icon.
 
-    final label = yellow.wrap('⚠')!;
+    final label = '${Icons.warning} $message'.yellow().bold();
 
     final table = Table()
-      ..insertRow([label, message])
+      ..insertRow([label])
       ..borderColor = ConsoleColor.yellow
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
@@ -81,4 +92,37 @@ class ConsoleController {
 
   /// error stream
   final error = StreamController<List<int>>();
+}
+
+class Icons {
+  const Icons._();
+  // Success: ✓
+  static String get success => '✓';
+
+  // Failure: ✗
+  static String get failure => '✗';
+
+  // Information: ℹ
+  static String get info => 'ℹ';
+
+  // Warning: ⚠
+  static String get warning => '⚠';
+
+  // Arrow Right: →
+  static String get arrowRight => '→';
+
+  // Arrow Left: ←
+  static String get arrowLeft => '←';
+
+  // Check Box: ☑
+  static String get checkBox => '☑';
+
+  // Star: ★
+  static String get star => '★';
+
+  // Circle: ●
+  static String get circle => '●';
+
+  // Square: ■
+  static String get square => '■';
 }

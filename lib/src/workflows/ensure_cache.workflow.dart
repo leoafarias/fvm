@@ -133,7 +133,8 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 }) async {
   logger
     ..notice(
-        'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.')
+      'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
+    )
     ..info(
         'This can occur if you manually run "flutter upgrade" on a cached SDK.')
     ..spacer;

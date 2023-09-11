@@ -2,8 +2,8 @@ import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
-import '../services/context.dart';
 import '../services/settings_service.dart';
+import '../utils/context.dart';
 import 'base_command.dart';
 
 /// Fvm Config

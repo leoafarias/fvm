@@ -1,8 +1,8 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/context.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';

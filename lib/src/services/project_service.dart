@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/context.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:mason_logger/mason_logger.dart';

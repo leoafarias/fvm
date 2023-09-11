@@ -4,7 +4,7 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
-import '../services/context.dart';
+import '../utils/context.dart';
 import '../utils/logger.dart';
 import 'base_command.dart';
 

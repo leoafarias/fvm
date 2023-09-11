@@ -30,9 +30,9 @@ Future<String> cacheVersionSelector() async {
 
   final versionsList = cacheVersions.map((version) => version.name).toList();
 
-  final choise = logger.chooseOne(
+  final choise = logger.select(
     'Select a version:',
-    choices: versionsList,
+    options: versionsList,
   );
 
   return choise;
@@ -54,9 +54,9 @@ Future<String?> projectFlavorSelector(Project project) async {
     ..success('Project flavors configured for "${project.name}":')
     ..spacer;
 
-  final choise = logger.chooseOne(
+  final choise = logger.select(
     'Select an environment',
-    choices: envList,
+    options: envList,
   );
 
   return choise;

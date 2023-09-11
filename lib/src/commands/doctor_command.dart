@@ -1,7 +1,7 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/context.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/which.dart';
 import 'package:io/io.dart';
-import 'package:process_run/shell.dart';
 
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
@@ -26,10 +26,10 @@ class DoctorCommand extends BaseCommand {
     final project = await ProjectService.instance.findAncestor();
 
     // Flutter exec path
-    final flutterWhich = await which('flutter');
+    final flutterWhich = which('flutter');
 
     // dart exec path
-    final dartWhich = await which('dart');
+    final dartWhich = which('dart');
 
     if (project.pinnedVersion != null) {
       final cacheVersion = CacheService.instance.getVersion(
