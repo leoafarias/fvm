@@ -94,7 +94,6 @@ class FvmCommandRunner extends CommandRunner<int> {
       return ExitCode.usage.code;
     } on FvmError catch (e, stackTrace) {
       logger
-        ..spacer
         ..err(e.message)
         ..detail('')
         ..detail('$stackTrace');

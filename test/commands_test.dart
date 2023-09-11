@@ -89,18 +89,13 @@ void main() {
     });
 
     testWithContext('Install commit', () async {
-      final gitHash = 'fb57da5f945d02ef4f98dfd9409a72b7cce74268';
       final shortGitHash = 'fb57da5';
-      await runner.run('fvm install $gitHash');
-      final valid = FlutterVersion.parse(gitHash);
 
       await runner.run('fvm install $shortGitHash');
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersion = CacheService.instance.getVersion(valid);
       final cacheVersionShort = CacheService.instance.getVersion(validShort);
 
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
       expect(
         cacheVersionShort != null,
         true,

@@ -5,7 +5,7 @@
 Run the command below in your terminal.
 
 ```bash
-curl -fsSL https://your-site.com/install.sh | bash
+curl -fsSL https://fvm.app/install.sh | bash
 ```
 
 ### Install FVM on Windows
@@ -15,5 +15,5 @@ curl -fsSL https://your-site.com/install.sh | bash
 **Install**: Paste and run the below command.
 
 ```powershell
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://your-site.com/install.ps1')
+Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://fvm.app/install.ps1')
 ```

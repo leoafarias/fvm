@@ -153,17 +153,17 @@ class FlutterTools {
   /// Gets a commit for the Flutter repo
   /// If commit does not exist returns null
   Future<bool> isCommit(String commit) async {
-    final commitSha = await _getReference(commit);
+    final commitSha = await getReference(commit);
     if (commitSha == null) {
       return false;
     }
-    return commitSha.startsWith(commit);
+    return commit.contains(commitSha);
   }
 
   /// Gets a tag for the Flutter repository
   /// If tag does not exist returns null
   Future<bool> isTag(String tag) async {
-    final commitSha = await _getReference(tag);
+    final commitSha = await getReference(tag);
     if (commitSha == null) {
       return false;
     }
@@ -189,7 +189,7 @@ class FlutterTools {
         .toList();
   }
 
-  Future<String?> _getReference(String ref) async {
+  Future<String?> getReference(String ref) async {
     final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
@@ -197,7 +197,10 @@ class FlutterTools {
 
     final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
     try {
-      final result = await gitDir.runCommand(['rev-parse', '--verify', ref]);
+      final result = await gitDir.runCommand(
+        ['rev-parse', '--short', '--verify', ref],
+      );
+
       return result.stdout.trim();
     } on Exception {
       return null;

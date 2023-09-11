@@ -20,8 +20,13 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   }
 
   if (flutterVersion.isCommit) {
-    final isCommit = await FlutterTools.instance.isCommit(version);
-    if (isCommit) {
+    final commitSha = await FlutterTools.instance.getReference(version);
+    if (commitSha != null) {
+      if (commitSha != flutterVersion.name) {
+        throw FvmError(
+          'FVM only supports short commit SHAs (7 characters) should be ($commitSha)',
+        );
+      }
       return flutterVersion;
     }
   }
