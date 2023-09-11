@@ -22,8 +22,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1
+
       - name: Cache Dart dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "~/.pub-cache"
           key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
