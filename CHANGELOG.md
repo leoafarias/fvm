@@ -1,10 +1,12 @@
 # Changelog
 
-## 3.0.0
+## Unreleased
 
 - Implemented .gitignore notice to setup `fvm`
-- Configure VsCode command
-- Global version has been deprecated. For more details, go [here](https://fvm.app/docs/guides/global_version).
+- Configure vscode automatically
+- Check .gitignore for cached version
+- Cache clean up, and corrective action in case of corrupted cache or upgraded SDK
+- Flutter repo git reference for much faster clone of new versions.
 - Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`. You can force SDK setup on install by using -s or --setup
 
 ## 2.4.1

@@ -89,7 +89,7 @@ void main() {
     });
 
     testWithContext('Install commit', () async {
-      final shortGitHash = 'fb57da5';
+      final shortGitHash = 'fb57da5f94';
 
       await runner.run('fvm install $shortGitHash');
       final validShort = FlutterVersion.parse(shortGitHash);
