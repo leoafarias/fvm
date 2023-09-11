@@ -101,7 +101,11 @@ void main() {
       final cacheVersionShort = CacheService.instance.getVersion(validShort);
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
-      expect(cacheVersionShort != null, true, reason: 'Install does not exist');
+      expect(
+        cacheVersionShort != null,
+        true,
+        reason: 'Install short does not exist',
+      );
     });
 
     testWithContext('Use Release', () async {

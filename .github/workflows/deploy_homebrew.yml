@@ -28,11 +28,8 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      - name: Build Version Number
-        run: dart pub run build_runner build --delete-conflicting-outputs
-
-      - name: Test
-        run: dart pub run test
+      - name: Run tests
+        uses: ./.github/workflows/common-tests.yml
 
       - name: Deploy to Homebrew
         run: dart pub run grinder pkg-homebrew-update
