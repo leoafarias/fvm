@@ -24,7 +24,7 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
-import 'version.dart';
+import 'version.g.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {

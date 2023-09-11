@@ -1,12 +1,12 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/which.dart';
+import 'package:fvm/src/version.g.dart';
 import 'package:io/io.dart';
 
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../utils/logger.dart';
-import '../version.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment

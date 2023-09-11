@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/version.g.dart';
 import 'package:path/path.dart';
 
 import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../utils/logger.dart';
-import '../version.dart';
 
 /// Service for FVM settings
 class SettingsService {

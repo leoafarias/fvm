@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:fvm/src/version.g.dart';
+
 import '../services/settings_service.dart';
 import '../utils/pretty_json.dart';
-import '../version.dart';
 
 /// Settings Dto
 class SettingsDto {
