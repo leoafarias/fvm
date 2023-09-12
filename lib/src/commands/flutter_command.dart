@@ -1,8 +1,8 @@
 import 'package:args/args.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/utils/logger.dart';
 
-import '../../exceptions.dart';
 import '../models/flutter_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
@@ -34,6 +34,16 @@ class FlutterCommand extends BaseCommand {
       logger
         ..detail('$kPackageName: Running Flutter SDK from version $version')
         ..detail('');
+
+      void _checkIfUpgradeCommand(List<String> args) {
+        if (args.isNotEmpty && args.first == 'upgrade') {
+          throw AppException(
+            'You should not upgrade a release version. '
+            'Please install a channel instead to upgrade it. ',
+          );
+        }
+      }
+
       // If its not a channel silence version check
       if (!validVersion.isChannel) {
         _checkIfUpgradeCommand(args);
@@ -47,14 +57,5 @@ class FlutterCommand extends BaseCommand {
       // Running null will default to flutter version on paths
       return runFlutterGlobal(args);
     }
-  }
-}
-
-void _checkIfUpgradeCommand(List<String> args) {
-  if (args.isNotEmpty && args.first == 'upgrade') {
-    throw FvmUsageException(
-      'You should not upgrade a release version. '
-      'Please install a channel instead to upgrade it. ',
-    );
   }
 }

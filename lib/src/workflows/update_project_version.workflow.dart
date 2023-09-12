@@ -1,4 +1,3 @@
-import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
@@ -10,9 +9,11 @@ void updateSdkVersionWorkflow(
   String? flavor,
 }) {
   logger
+    ..detail('')
     ..detail('Updating project config')
     ..detail('Project name: ${project.name}')
-    ..detail('Project path: ${project.projectDir.path}');
+    ..detail('Project path: ${project.projectDir.path}')
+    ..detail('');
 
   try {
     final newConfig = project.config ?? ProjectConfig.empty();
@@ -33,9 +34,9 @@ void updateSdkVersionWorkflow(
 
     // Clean this up
     project.config = newConfig;
-  } on Exception catch (err) {
-    logger.err('Failed to update project config');
-    throw FvmError(err.toString());
+  } on Exception {
+    logger.fail('Failed to update project config');
+    rethrow;
   }
 
   try {
@@ -43,8 +44,9 @@ void updateSdkVersionWorkflow(
     ProjectService.instance.updateVsCodeConfig(project);
     logger.detail('Project config updated');
   } on Exception {
-    logger.err('Failed to update SDK links');
+    logger.fail('Failed to update project references');
     rethrow;
   }
+
   ProjectService.instance.addToGitignore(project, '.fvm/versions');
 }

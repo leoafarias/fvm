@@ -1,17 +1,22 @@
-abstract class FvmException implements Exception {
-  /// Message of error
+import 'dart:io';
+
+/// Represents an FVM-specific exception that carries a user-facing message.
+///
+/// Exceptions of this type are intended to be self-explanatory, no debugging info
+class AppException implements Exception {
+  /// User-readable error message.
   final String message;
 
-  /// Constructor
-  const FvmException(this.message);
+  /// Initializes an instance with a user-readable message.
+  const AppException(this.message);
 
   @override
-  String toString() => 'FVM Exception: \n $message';
+  String toString() => message;
 }
 
-class FvmError extends FvmException {
+class AppTracedException extends AppException {
   /// Constructor
-  const FvmError(
+  const AppTracedException(
     super.message, [
     this.exception,
     this.stackTrace,
@@ -24,29 +29,9 @@ class FvmError extends FvmException {
   final StackTrace? stackTrace;
 
   @override
-  String toString() => 'FVM Error: \n $message';
+  String toString() => message;
 }
 
-class PriviledgeException implements Exception {
-  /// Message of error
-  final String message;
-
-  /// Constructor
-  const PriviledgeException(this.message);
-
-  @override
-  String toString() => 'Priviledge Exception: \n $message';
-}
-
-/// Exception for internal FVM usage
-
-class FvmUsageException implements Exception {
-  /// Message of the exception
-  final String message;
-
-  /// Constructor of usage exception
-  const FvmUsageException([this.message = '']);
-
-  @override
-  String toString() => 'Usage Exception: $message';
+bool checkIfNeedsPrivilegePermission(FileSystemException err) {
+  return err.osError?.errorCode == 1314 && Platform.isWindows;
 }

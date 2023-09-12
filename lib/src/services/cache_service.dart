@@ -116,7 +116,7 @@ class CacheService {
     final sdkVersion = version.flutterSdkVersion;
 
     if (sdkVersion == null) {
-      throw FvmError(
+      throw AppException(
         'Cannot move to SDK version directory without a valid version',
       );
     }

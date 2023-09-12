@@ -62,7 +62,7 @@ class FlavorCommand extends BaseCommand {
     final envs = project.flavors;
     final envVersion = envs[flavor] as String?;
 
-    // Check if env confi exists
+    // Check if env config exists
     if (envVersion == null) {
       throw UsageException(
         'Flavor: "$flavor" is not configured',

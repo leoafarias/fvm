@@ -75,6 +75,14 @@ class Project {
     ));
   }
 
+  /// Compatibility version for non-admin permission
+  Directory get cacheVersionSymlinkCompat {
+    return Directory(join(
+      fvmCacheDir.path,
+      pinnedVersion,
+    ));
+  }
+
   /// .gitignore file
   File get gitignoreFile {
     return File(join(projectDir.path, '.gitignore'));

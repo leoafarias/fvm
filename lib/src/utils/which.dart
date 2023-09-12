@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart';
+
 String? which(String command) {
   String? pathEnv = Platform.environment['PATH'];
   String? pathExtEnv =
@@ -14,7 +16,7 @@ String? which(String command) {
       pathExtEnv != null ? pathExtEnv.split(';') : [''];
 
   for (String dir in paths) {
-    String fullPath = '$dir/$command';
+    String fullPath = join(dir, command);
     File exec = File(fullPath);
 
     if (exec.existsSync()) {

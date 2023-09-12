@@ -83,7 +83,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
 
     final newCacheVersion = CacheService.instance.getVersion(validVersion);
     if (newCacheVersion == null) {
-      throw FvmError('Could not cache version $validVersion');
+      throw AppException('Could not cache version $validVersion');
     }
 
     logger
@@ -93,12 +93,9 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       );
 
     return newCacheVersion;
-  } on Exception catch (err) {
-    if (err is FvmException) {
-      rethrow;
-    } else {
-      throw FvmError('Failed to ensure $validVersion is cached.');
-    }
+  } on Exception {
+    logger.fail('Failed to ensure $validVersion is cached.');
+    rethrow;
   }
 }
 
@@ -109,7 +106,8 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 }) async {
   logger
     ..notice(
-        'Flutter SDK: ${version.name} is not executable. The cache may be corrupt.')
+      'Flutter SDK: ${version.name} is not executable. The cache may be corrupt.',
+    )
     ..spacer;
 
   final shouldReinstall = logger.confirm(
@@ -127,7 +125,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
     );
   }
 
-  throw FvmError('Flutter SDK: ${version.name} is not executable.');
+  throw AppException('Flutter SDK: ${version.name} is not executable.');
 }
 
 // Clarity on why the version mismatch happened and how it can be fixed

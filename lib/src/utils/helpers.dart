@@ -71,3 +71,7 @@ String assignVersionWeight(String version) {
 String friendlyDate(DateTime dateTime) {
   return formatDate(dateTime, [M, ' ', d, ', ', yyyy]);
 }
+
+bool isVsCode() {
+  return Platform.environment['TERM_PROGRAM'] == 'vscode';
+}

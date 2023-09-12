@@ -68,7 +68,7 @@ class SettingsService {
       // Store in memory
       _settings = settings;
     } on Exception {
-      throw FvmError('Could not save FVM settings');
+      throw AppException('Could not save FVM settings');
     }
   }
 }

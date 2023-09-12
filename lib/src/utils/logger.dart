@@ -30,6 +30,10 @@ class FvmLogger extends Logger {
     info('${Icons.success.green()} $message');
   }
 
+  void fail(String message) {
+    info('${Icons.failure.red()} $message');
+  }
+
   @override
   bool confirm(String? message, {bool? defaultValue}) {
     // When running tests, always return true.
@@ -54,7 +58,7 @@ class FvmLogger extends Logger {
   void notice(String message) {
     // Add 2 due to the warning icon.
 
-    final label = '${Icons.warning} $message'.yellow().bold();
+    final label = '${Icons.warning} $message'.yellow();
 
     final table = Table()
       ..insertRow([label])
@@ -65,7 +69,7 @@ class FvmLogger extends Logger {
     // print(yellow.wrap(border));
     // info('$pipe $warningIcon $message $pipe');
     // print(yellow.wrap(border));
-    logger.info(table.toString());
+    logger.write(table.toString());
   }
 }
 

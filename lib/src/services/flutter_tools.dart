@@ -23,7 +23,7 @@ class FlutterTools {
     if (version.isChannel) {
       await runFlutter(version, ['upgrade']);
     } else {
-      throw FvmUsageException('Can only upgrade Flutter Channels');
+      throw AppException('Can only upgrade Flutter Channels');
     }
   }
 
@@ -101,7 +101,7 @@ class FlutterTools {
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
-        throw FvmError(
+        throw AppException(
           'Flutter SDK is not a valid git repository after clone. Please try again.',
         );
       }
@@ -114,7 +114,7 @@ class FlutterTools {
       }
 
       if (result.exitCode != ExitCode.success.code) {
-        throw FvmError(
+        throw AppException(
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }

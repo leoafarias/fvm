@@ -104,7 +104,7 @@ class ProjectService {
     // Ensure the config link and symlink are updated
     final sdkVersion = project.pinnedVersion;
     if (sdkVersion == null) {
-      throw FvmError(
+      throw AppException(
           'Cannot update link of project without a Flutter SDK version');
     }
 
@@ -201,7 +201,7 @@ class ProjectService {
     }
 
     final relativePath = relative(
-      project.cacheVersionSymlink.path,
+      project.cacheVersionSymlinkCompat.path,
       from: project.projectDir.path,
     );
 

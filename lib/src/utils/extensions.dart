@@ -12,7 +12,7 @@ extension ListExtension<T> on Iterable<T> {
   }
 }
 
-extension StringExtensions on String {
+extension IOExtensions on String {
   Directory get dir => Directory(this);
   File get file => File(this);
 
