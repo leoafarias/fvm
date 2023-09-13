@@ -35,7 +35,7 @@ class FlutterCommand extends BaseCommand {
         ..detail('$kPackageName: Running Flutter SDK from version $version')
         ..detail('');
 
-      void _checkIfUpgradeCommand(List<String> args) {
+      void checkIfUpgradeCommand(List<String> args) {
         if (args.isNotEmpty && args.first == 'upgrade') {
           throw AppException(
             'You should not upgrade a release version. '
@@ -46,7 +46,7 @@ class FlutterCommand extends BaseCommand {
 
       // If its not a channel silence version check
       if (!validVersion.isChannel) {
-        _checkIfUpgradeCommand(args);
+        checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
       return runFlutter(cacheVersion, args);

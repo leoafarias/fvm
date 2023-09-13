@@ -1,12 +1,15 @@
 import Link from "@docusaurus/Link";
-import Translate, { translate } from "@docusaurus/Translate";
+import Translate from "@docusaurus/Translate";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Layout from "@theme/Layout";
 import clsx from "clsx";
 import React from "react";
-import GitHubButton from "react-github-btn";
-import { Follow } from "react-twitter-widgets";
+
+import GithubStartButton from "../components/GithubStarButton";
 import HomepageFeatures from "../components/HomepageFeatures";
+import { InstallationTabs } from "../components/InstallationTabs";
+import MainHeading from "../components/MainHeading";
+import TwitterButton from "../components/TwitterButton";
 import styles from "./index.module.css";
 
 function HomepageHeader() {
@@ -22,16 +25,18 @@ function HomepageHeader() {
         </p>
 
         <div className={styles.buttons}>
-          <GitHubStarButton />
+          <GithubStartButton />
           <Spacer />
-          <Link to="https://pub.dev/packages/fvm">
-            <img src="https://img.shields.io/pub/likes/fvm?label=Pub%20Likes&style=flat-squar" />
+          <Link href="https://pub.dev/packages/fvm">
+            <img
+              alt="Pub Likes"
+              src="https://img.shields.io/pub/likes/fvm?style=for-the-badge&logo=flutter&logoColor=%2358CDFA&label=Pub%20Likes&labelColor=white&color=%2358CDFA"
+            />
           </Link>
           <Spacer />
-          <Link to="https://github.com/leoafarias/fvm/graphs/contributors">
-            <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm" />
+          <Link href="https://github.com/leoafarias/fvm/graphs/contributors">
+            <img src="https://img.shields.io/github/all-contributors/leoafarias/fvm?style=for-the-badge" />
           </Link>
-          <Spacer />
           <TwitterButton />
         </div>
         <Spacer />
@@ -45,6 +50,7 @@ function HomepageHeader() {
           </Link>
         </div>
       </div>
+      <InstallationTabs />
     </header>
   );
 }
@@ -53,44 +59,11 @@ function Spacer() {
   return <div style={{ width: "10px", height: "10px" }}></div>;
 }
 
-function TwitterButton() {
-  return (
-    <Follow
-      username="leoafarias"
-      options={{
-        dnt: true,
-        size: "small",
-        showCount: false,
-        showScreenName: false,
-        lang: translate({
-          id: "home.twitter_locale",
-          message: "en",
-        }),
-      }}
-    />
-  );
-}
-
-function GitHubStarButton() {
-  return (
-    <div className="github-button">
-      <GitHubButton
-        href="https://github.com/leoafarias/fvm"
-        data-show-count="true"
-        // data-size="large"
-        aria-label="Star leoafarias/fvm on GitHub"
-      >
-        Star
-      </GitHubButton>
-    </div>
-  );
-}
-
 export default function Home() {
   const { siteConfig } = useDocusaurusContext();
   return (
     <Layout title="fvm" description={`${siteConfig.tagline}`}>
-      <HomepageHeader />
+      <MainHeading />
       <main>
         <HomepageFeatures />
       </main>

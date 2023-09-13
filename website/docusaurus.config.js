@@ -15,6 +15,9 @@ module.exports = {
     locales: ["en", "es"],
   },
   themeConfig: {
+    prism: {
+      theme: require("prism-react-renderer/themes/dracula"),
+    },
     algolia: {
       appId: "NHQT1G41IK",
       apiKey: "b07d9adbf54ef4306a11233dd605d924",
@@ -45,13 +48,13 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "getting_started/overview",
+          docId: "overview",
           position: "right",
-          label: "Getting Started",
+          label: "Overview",
         },
         {
           type: "doc",
-          docId: "guides/basic_commands",
+          docId: "guides/installation",
           position: "right",
           label: "Guides",
         },

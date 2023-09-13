@@ -1,0 +1,66 @@
+---
+id: getting_started
+title: Getting Started
+sidebar_position: 0
+---
+
+import { InstallationTabs } from "../../src/components/InstallationTabs";
+
+If you're working with multiple Flutter projects or if you're a Flutter plugin developer who often has to test your plugins with various versions of Flutter SDK, then you know how critical it is to efficiently manage different Flutter versions.
+
+This guide will show you how to get started using the Flutter Version Management tool, or FVM for short.
+
+### 1. Install FVM
+
+To get started, we first need to install FVM. FVM is a simple tool that allows us to manage multiple versions of the Flutter SDK on a per-project basis. You can install it using the following command:
+
+<InstallationTabs />
+
+#### Verify FVM installation by running:
+
+```shell
+$ fvm --version
+```
+
+This should output the version of your FVM installation.
+
+### 2. Configure your project
+
+Once installed, navigate towards your Flutter project. Here, we can use FVM to install the Flutter SDK version we want for this project:
+
+```shell
+$ cd your_project
+$ fvm use stable
+```
+
+This will use the 'stable' version of the Flutter SDK locally in your project. If version is not yet installed you will be prompted.
+
+To list all the Flutter versions that are installed in your project, run:
+
+```shell
+$ fvm list
+```
+
+### 3. Switch between versions
+
+To change to a different Flutter version, you can use the following command:
+
+```shell
+$ fvm use beta
+```
+
+This will switch the Flutter version of your project to 'beta'.
+
+### 4. Run flutter commands
+
+After successfully switching to your desired version, you can now run the project:
+
+```shell
+$ fvm flutter run
+```
+
+Using the `fvm flutter run` command instead of the usual `flutter run` ensures you're using the correct Flutter version for the project.
+
+And that's it! You've successfully installed FVM, used it to manage multiple Flutter versions for your project, switched between versions, and ran your project with a specified Flutter version.
+
+Remember, you can refer to the FVM official documentation for a full list of commands and options. Happy coding!

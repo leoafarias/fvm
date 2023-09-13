@@ -1,7 +1,7 @@
 ---
 id: running_flutter
 title: Running Flutter
-sidebar_position: 1
+sidebar_position: 2
 ---
 
 There are a few ways you can interact with the Flutter SDK setup. These will depend primarily on preference.
