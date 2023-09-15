@@ -4,7 +4,6 @@ import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/version.g.dart';
 
 import '../../fvm.dart';
-import '../utils/logger.dart';
 
 /// Service to manage FVM Config
 class ConfigRepository {
@@ -18,18 +17,20 @@ class ConfigRepository {
 
   /// Returns [ConfigDto] from config file
   /// Can pass [commandLineArgs] to override config
-  ConfigDto load({
+  ConfigDto load() {
+    if (_configFile.existsSync()) {
+      return ConfigDto.fromFile(_configPath);
+    }
+
+    return ConfigDto.empty();
+  }
+
+  static ConfigDto loadEnv({
     List<String>? commandLineArgs,
   }) {
-    try {
-      return ConfigDto.fromConfig(
-        configPath: _configPath,
-        args: commandLineArgs,
-      );
-    } on Exception catch (err) {
-      logger.detail(err.toString());
-      rethrow;
-    }
+    return ConfigDto.fromEnv(
+      args: commandLineArgs,
+    );
   }
 
   /// Saves FVM [settings]

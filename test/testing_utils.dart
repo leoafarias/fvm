@@ -107,12 +107,12 @@ void groupWithContext(
     retry: retry,
     () {
       final config = ConfigDto(
-        fvmDir: getTempTestDir(contextId, 'fvm'),
-        gitCacheDir: FVMContext.main.gitCacheDir,
+        fvmPath: getTempTestDir(contextId, 'fvm'),
       );
       final testContext = FVMContext.create(
         id: contextId,
         configOverride: config,
+        gitCachePathOverride: FVMContext.main.gitCachePath,
         workingDirectory: getTempTestDir(contextId, 'flutter_app'),
         isTest: true,
       ).merge(context);
@@ -130,7 +130,7 @@ void groupWithContext(
 
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
+  final versionDir = Directory(join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -145,7 +145,7 @@ Future<String?> getBranch(String version) async {
 
 /// Returns the [name] of a tag [version]
 Future<String?> getTag(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
+  final versionDir = Directory(join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 

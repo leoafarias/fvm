@@ -75,7 +75,7 @@ class FlutterTools {
 
     final useMirrorParams = [
       '--reference',
-      ctx.gitCacheDir,
+      ctx.gitCachePath,
     ];
 
     final cloneArgs = [
@@ -129,14 +129,14 @@ class FlutterTools {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> _updateFlutterRepoCache() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
 
     // If cache file does not exists create it
     if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+      final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
       await gitDir.runCommand(['remote', 'update'], echoOutput: true);
     } else {
-      final gitCacheDir = Directory(ctx.gitCacheDir);
+      final gitCacheDir = Directory(ctx.gitCachePath);
       // Ensure brand new directory
       if (gitCacheDir.existsSync()) {
         gitCacheDir.deleteSync(recursive: true);
@@ -173,12 +173,12 @@ class FlutterTools {
   }
 
   Future<List<String>> getTags() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
     final result = await gitDir.runCommand(['tag']);
     if (result.exitCode != 0) {
       return [];
@@ -190,12 +190,12 @@ class FlutterTools {
   }
 
   Future<String?> getReference(String ref) async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
     try {
       final result = await gitDir.runCommand(
         ['rev-parse', '--short', '--verify', ref],

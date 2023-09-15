@@ -33,7 +33,6 @@ void updateSdkVersionWorkflow(
 
     // Clean this up
     project.config = mergedConfig;
-    print(project);
   } on Exception {
     logger.fail('Failed to update project config');
     rethrow;

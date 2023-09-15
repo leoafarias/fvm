@@ -38,7 +38,7 @@ class CacheService {
 
   /// Lists Installed Flutter SDK Version
   Future<List<CacheFlutterVersion>> getAllVersions() async {
-    final versionsDir = Directory(ctx.fvmVersionsDir);
+    final versionsDir = Directory(ctx.versionsCachePath);
     // Returns empty array if directory does not exist
     if (!await versionsDir.exists()) return [];
 
@@ -91,7 +91,7 @@ class CacheService {
   }
 
   Directory getVersionCacheDir(String version) {
-    return Directory(join(ctx.fvmVersionsDir, version));
+    return Directory(join(ctx.versionsCachePath, version));
   }
 
   /// Sets a [CacheFlutterVersion] as global

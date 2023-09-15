@@ -29,8 +29,13 @@ extension IOExtensions on String {
   }
 }
 
-String uppercase(String name) {
-  return name.split(' ').map((word) {
-    return word[0].toUpperCase() + word.substring(1);
-  }).join(' ');
+extension StringExtensions on String {
+  String get capitalize {
+    if (isEmpty) return this;
+    final firstChar = substring(0, 1).toUpperCase();
+    final remainingChars = substring(1);
+    return '$firstChar$remainingChars';
+  }
+
+  String get camelCase => split(' ').map((word) => word.capitalize).join('');
 }

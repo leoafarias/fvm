@@ -98,6 +98,12 @@ class UseCommand extends BaseCommand {
 
     final cacheVersion = await ensureCacheWorkflow(validVersion);
 
+    if (!skipSetup) {
+      await setupFlutterWorkflow(
+        version: cacheVersion,
+      );
+    }
+
     /// Run use workflow
     await useVersionWorkflow(
       version: cacheVersion,
@@ -107,10 +113,6 @@ class UseCommand extends BaseCommand {
     );
 
     if (!skipSetup) {
-      await setupFlutterWorkflow(
-        version: cacheVersion,
-      );
-
       await resolveDependenciesWorkflow(
         version: cacheVersion,
         project: project,

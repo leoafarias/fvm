@@ -7,7 +7,10 @@
 - Check .gitignore for cached version
 - Cache clean up, and corrective action in case of corrupted cache or upgraded SDK
 - Flutter repo git reference for much faster clone of new versions.
+- Project version constraint check on pubspec.yaml, before using version.
 - Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`. You can force SDK setup on install by using -s or --setup
+- Better `fvm doctor` command. Now provides much better output and information about the project and environment.
+- Per project config global overrides. You can now override FVM settings on a per project basis
 
 ### Breaking changes
 

@@ -37,7 +37,9 @@ class ProjectService {
     // Return working directory if has reached root
     if (isRootDir) return Project.loadFromPath(ctx.workingDirectory);
 
-    return await findAncestor(directory: directory.parent);
+    return await findAncestor(
+      directory: directory.parent,
+    );
   }
 
   /// Adds to .gitignore paths that should be ignored for fvm

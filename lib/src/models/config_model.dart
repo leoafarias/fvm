@@ -3,19 +3,40 @@ import 'dart:io';
 
 import 'package:cli_config/cli_config.dart';
 
-class FvmConfig extends ConfigDto {
-  final String configPath;
+// Use just for reference, should not change
+const legacyVersionKey = 'flutterSdkVersion';
 
-  FvmConfig({
-    required this.configPath,
-    required String super.flutterSdkVersion,
-    required String super.fvmDir,
-    required String super.fvmVersionsDir,
-    required String super.gitCacheDir,
-    required bool super.gitCacheEnabled,
-    required String super.flutterRepoUrl,
-    required Map<String, dynamic> super.flavors,
-  });
+enum ConfigVar {
+  fvmPath('fvmPath', 'fvm_path'),
+  fvmConfigPath('fvmConfigPath', 'fvm_config_path'),
+  flutterVersion('flutterSdkVersion', 'flutter_sdk_version'),
+  gitCache('gitCache', 'git_cache'),
+  flavors('flavors', 'flavors'),
+  flutterRepo('flutterRepo', 'flutter_repo');
+
+  const ConfigVar(
+    this.name,
+    this.configName,
+  );
+
+  final String name;
+  final String configName;
+
+  String get envName {
+    final prefix = 'FVM_';
+    String uppercaseEnv = name.toUpperCase();
+    if (!configName.startsWith(prefix)) {
+      uppercaseEnv = '$prefix$uppercaseEnv)';
+    }
+
+    return uppercaseEnv;
+  }
+
+  String get argName => configName.replaceAll('_', '-');
+
+  factory ConfigVar.fromName(String name) {
+    return ConfigVar.values.firstWhere((element) => element.name == name);
+  }
 }
 
 /// FVM config dto
@@ -24,31 +45,23 @@ class ConfigDto {
   final String? flutterSdkVersion;
 
   // If should use gitCache
-  final bool? gitCacheEnabled;
-
-  /// Git cache directory
-  final String? gitCacheDir;
+  final bool? gitCache;
 
   /// Flutter repo url
   final String? flutterRepoUrl;
 
   /// Directory where FVM is stored
-  final String? fvmDir;
-
-  /// Directory where FVM versions are stored
-  final String? fvmVersionsDir;
+  final String? fvmPath;
 
   /// Flavors configured
   Map<String, dynamic>? flavors;
 
   /// Constructor
   ConfigDto({
-    this.fvmDir,
-    this.fvmVersionsDir,
+    this.fvmPath,
     this.flutterSdkVersion,
     this.flavors,
-    this.gitCacheEnabled,
-    this.gitCacheDir,
+    this.gitCache,
     this.flutterRepoUrl,
   });
 
@@ -68,57 +81,32 @@ class ConfigDto {
     return ConfigDto.fromJson(File(file).readAsStringSync());
   }
 
-  factory ConfigDto.fromConfig({
-    String? configPath,
+  factory ConfigDto.fromEnv({
     List<String>? args,
   }) {
-    String? fileContents;
-
-    if (configPath != null) {
-      final file = File(configPath);
-      if (file.existsSync()) {
-        fileContents = file.readAsStringSync();
-      }
-    }
-
-    final config = Config.fromConfigFileContents(
-      fileContents: fileContents,
+    final envArgsConfig = Config.fromConfigFileContents(
+      // Empty as not only on the environment
+      fileContents: '{}',
       commandLineDefines: args ?? [],
+      environment: Platform.environment,
     );
-    return ConfigDto._fromConfig(config);
-  }
-
-  factory ConfigDto._fromConfig(Config config) {
-    final fvmDir = config.optionalPath('fvmDir')?.path;
-    final fvmVersionsDir = config.optionalPath('fvmVersionsDir')?.path;
-    final flutterSdkVersion = config.optionalString('flutterSdkVersion');
-    final gitCacheEnabled = config.optionalBool('gitCacheEnabled');
-    final gitCacheDir = config.optionalPath('gitCacheDir')?.path;
-    final flutterRepoUrl = config.optionalString('flutterRepoUrl');
-
-    final flavorsMap = <String, dynamic>{};
 
     return ConfigDto(
-      fvmDir: fvmDir,
-      fvmVersionsDir: fvmVersionsDir,
-      flutterSdkVersion: flutterSdkVersion,
-      flavors: flavorsMap,
-      gitCacheEnabled: gitCacheEnabled,
-      gitCacheDir: gitCacheDir,
-      flutterRepoUrl: flutterRepoUrl,
+      fvmPath: envArgsConfig.optionalPath(ConfigVar.fvmPath.configName)?.path,
+      gitCache: envArgsConfig.optionalBool(ConfigVar.gitCache.configName),
+      flutterRepoUrl:
+          envArgsConfig.optionalString(ConfigVar.flutterRepo.configName),
     );
   }
 
   /// Returns ConfigDto from a map
   factory ConfigDto.fromMap(Map<String, dynamic> map) {
     return ConfigDto(
-      flutterSdkVersion: map['flutterSdkVersion'] as String?,
-      fvmDir: map['fvmDir'] as String?,
-      fvmVersionsDir: map['fvmVersionsDir'] as String?,
-      gitCacheDir: map['gitCacheDir'] as String?,
-      gitCacheEnabled: map['gitCacheEnabled'] as bool?,
-      flutterRepoUrl: map['flutterRepoUrl'] as String?,
-      flavors: map['flavors'] as Map<String, dynamic>?,
+      flutterSdkVersion: map[ConfigVar.flutterVersion.name] as String?,
+      fvmPath: map[ConfigVar.fvmPath.name] as String?,
+      gitCache: map[ConfigVar.gitCache.name] as bool?,
+      flutterRepoUrl: map[ConfigVar.flutterRepo.name] as String?,
+      flavors: map[ConfigVar.flavors.name] as Map<String, dynamic>?,
     );
   }
 
@@ -127,24 +115,21 @@ class ConfigDto {
   /// Also, if [flavors] is not empty it adds it to the map.
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      'flutterSdkVersion': flutterSdkVersion,
-      if (fvmDir != null) 'fvmDir': fvmDir,
-      if (fvmVersionsDir != null) 'fvmVersionsDir': fvmVersionsDir,
-      if (gitCacheDir != null) 'gitCacheDir': gitCacheDir,
-      if (gitCacheEnabled != null) 'gitCacheEnabled': gitCacheEnabled,
-      if (flutterRepoUrl != null) 'flutterRepoUrl': flutterRepoUrl,
-      if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
+      ConfigVar.flutterVersion.name: flutterSdkVersion,
+      if (fvmPath != null) ConfigVar.fvmPath.name: fvmPath,
+      if (gitCache != null) ConfigVar.gitCache.name: gitCache,
+      if (flutterRepoUrl != null) ConfigVar.flutterRepo.name: flutterRepoUrl,
+      if (flavors != null && flavors!.isNotEmpty)
+        ConfigVar.flavors.name: flavors,
     };
   }
 
   ConfigDto merge(ConfigDto config) {
     return copyWith(
-      fvmDir: config.fvmDir,
-      fvmVersionsDir: config.fvmVersionsDir,
+      fvmPath: config.fvmPath,
       flutterSdkVersion: config.flutterSdkVersion,
       flavors: config.flavors,
-      gitCacheEnabled: config.gitCacheEnabled,
-      gitCacheDir: config.gitCacheDir,
+      gitCache: config.gitCache,
       flutterRepoUrl: config.flutterRepoUrl,
     );
   }
@@ -152,22 +137,19 @@ class ConfigDto {
   /// Copies current config and overrides with new values
   /// Returns a new ConfigDto
   ConfigDto copyWith({
-    String? fvmDir,
+    String? fvmPath,
     String? fvmVersionsDir,
     String? flutterSdkVersion,
     Map<String, dynamic>? flavors,
-    bool? gitCacheEnabled,
-    String? gitCacheDir,
+    bool? gitCache,
     String? flutterRepoUrl,
   }) {
     return ConfigDto(
-      fvmDir: fvmDir ?? this.fvmDir,
-      fvmVersionsDir: fvmVersionsDir ?? this.fvmVersionsDir,
+      fvmPath: fvmPath ?? this.fvmPath,
       flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
       flavors: flavors ?? this.flavors,
-      gitCacheEnabled: gitCacheEnabled ?? this.gitCacheEnabled,
-      gitCacheDir: gitCacheDir ?? this.gitCacheDir,
-      flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
+      gitCache: gitCache ?? this.gitCache,
+      flutterRepoUrl: flutterRepoUrl ?? flutterRepoUrl,
     );
   }
 }
