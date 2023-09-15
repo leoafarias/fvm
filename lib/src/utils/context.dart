@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -19,75 +20,94 @@ typedef Generator = dynamic Function();
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
+const _defaultFlutterRepoUrl = 'https://github.com/flutter/flutter.git';
+
 class FVMContext {
-  static FVMContext get main => FVMContext.create('MAIN');
-  factory FVMContext.create(
-    String name, {
-    String? fvmDir,
-    String? fvmVersionsDir,
+  static FVMContext get main => FVMContext.create();
+  factory FVMContext.create({
+    String? id,
+    String? configPath,
+    // Will override all configs including command line args
+    ConfigDto? configOverride,
     String? workingDirectory,
-    bool? useGitCache,
-    String? gitCacheDir,
-    String? flutterRepo,
     Map<Type, dynamic> overrides = const {},
     bool isTest = false,
+    List<String>? commandLineArgs,
   }) {
-    flutterRepo ??=
-        kEnvVars['FVM_GIT_CACHE'] ?? 'https://github.com/flutter/flutter.git';
+    _validateDeprecatedEnvVars();
 
-    final fvmDirHomeEnv = kEnvVars['FVM_HOME'];
-    if (fvmDirHomeEnv != null) {
-      fvmDir ??= normalize(fvmDirHomeEnv);
-    } else {
-      fvmDir ??= kFvmDirDefault;
+    configPath ??= applicationConfigHome();
+
+    ConfigDto config = ConfigRepository(configPath).load(
+      commandLineArgs: commandLineArgs,
+    );
+
+    if (configOverride != null) {
+      config = config.merge(configOverride);
+      if (commandLineArgs != null) {
+        logger.warn(
+          'Override: configOverrides will override commandLineArgs',
+        );
+      }
     }
 
-    fvmVersionsDir ??= join(fvmDir, 'versions');
-
-    gitCacheDir ??= join(fvmDir, 'cache.git');
+    final fvmDir = config.fvmDir ?? kFvmDirDefault;
+    final fvmVersionsDir = config.fvmVersionsDir ?? join(fvmDir, 'versions');
+    // Get config for the FVM Context
+    final flutterRepoUrl = config.flutterRepoUrl ?? _defaultFlutterRepoUrl;
+    final gitCacheEnabled = config.gitCacheEnabled ?? true;
+    final gitCacheDir = config.gitCacheDir ?? join(fvmDir, 'cache.git');
 
     final level = isTest ? Level.quiet : Level.info;
 
-    final generators = <Type, dynamic>{
-      FvmLogger: () => FvmLogger(level: level),
-      ProjectService: () => ProjectService(),
-      FlutterTools: () => FlutterTools(),
-      CacheService: () => CacheService(),
-      ...overrides,
-    };
+    // Migrate old FVM settings
+    _migrateSettings(
+      fvmDir: fvmDir,
+      configPath: configPath,
+    );
 
     return FVMContext._(
-      name,
+      id: id ?? 'MAIN',
+      configPath: configPath,
       fvmDir: fvmDir,
       fvmVersionsDir: fvmVersionsDir,
       workingDirectory: workingDirectory ?? Directory.current.path,
-      useGitCache: useGitCache ?? true,
+      gitCacheEnabled: gitCacheEnabled,
       isTest: isTest,
-      flutterRepo: flutterRepo,
+      flutterRepoUrl: flutterRepoUrl,
       gitCacheDir: gitCacheDir,
-      generators: generators,
+      generators: {
+        FvmLogger: () => FvmLogger(level: level),
+        ProjectService: () => ProjectService(),
+        FlutterTools: () => FlutterTools(),
+        CacheService: () => CacheService(),
+        ...overrides,
+      },
     );
   }
 
   /// Constructor
   /// If nothing is provided set default
-  FVMContext._(
-    this.name, {
+  FVMContext._({
+    required this.id,
+    required this.configPath,
     required this.fvmDir,
     required this.fvmVersionsDir,
     required this.workingDirectory,
-    required this.useGitCache,
-    required this.flutterRepo,
+    required this.gitCacheEnabled,
+    required this.flutterRepoUrl,
     required this.gitCacheDir,
     this.generators = const {},
     this.isTest = false,
   });
 
   /// Name of the context
-  final String name;
+  final String id;
+
+  final String configPath;
 
   /// Flutter Git Repo
-  final String flutterRepo;
+  final String flutterRepoUrl;
 
   /// Directory where FVM is stored
   final String fvmDir;
@@ -96,13 +116,10 @@ class FVMContext {
   final String fvmVersionsDir;
 
   /// Flag to determine if should use git cache
-  final bool useGitCache;
+  final bool gitCacheEnabled;
 
   /// Directory for Flutter repo git cache
   final String gitCacheDir;
-
-  /// Cached settings
-  SettingsDto? settings;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -112,12 +129,8 @@ class FVMContext {
 
   final Map<Type, dynamic>? generators;
 
-  final Map<Type, dynamic> _generated = {};
-
-  /// File for FVM Settings
-  File get settingsFile {
-    return File(join(fvmDir, '.settings'));
-  }
+  /// Generated values
+  final Map<Type, dynamic> _dependencies = {};
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
@@ -129,19 +142,20 @@ class FVMContext {
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
   T get<T>() {
-    if (_generated.containsKey(T)) {
-      return _generated[T] as T;
+    if (_dependencies.containsKey(T)) {
+      return _dependencies[T] as T;
     }
     if (generators != null && generators!.containsKey(T)) {
       final generator = generators![T] as Generator;
-      _generated[T] = generator();
-      return _generated[T];
+      _dependencies[T] = generator();
+      return _dependencies[T];
     }
     throw Exception('Generator for $T not found');
   }
 
   FVMContext copyWith({
-    String? name,
+    String? id,
+    String? configPath,
     String? workingDirectory,
     String? fvmDir,
     String? fvmVersionsDir,
@@ -152,12 +166,13 @@ class FVMContext {
     Map<Type, dynamic>? generators,
   }) {
     return FVMContext._(
-      name ?? this.name,
+      id: id ?? this.id,
+      configPath: configPath ?? this.configPath,
       fvmDir: fvmDir ?? this.fvmDir,
       fvmVersionsDir: fvmVersionsDir ?? this.fvmVersionsDir,
       workingDirectory: workingDirectory ?? this.workingDirectory,
-      useGitCache: useGitCache ?? this.useGitCache,
-      flutterRepo: flutterRepo ?? this.flutterRepo,
+      gitCacheEnabled: useGitCache ?? gitCacheEnabled,
+      flutterRepoUrl: flutterRepo ?? flutterRepoUrl,
       gitCacheDir: gitCacheDir ?? this.gitCacheDir,
       isTest: isTest ?? this.isTest,
       generators: {
@@ -169,12 +184,13 @@ class FVMContext {
 
   FVMContext merge([FVMContext? context]) {
     return copyWith(
-      name: context?.name,
+      id: context?.id,
+      configPath: context?.configPath,
       fvmDir: context?.fvmDir,
       fvmVersionsDir: context?.fvmVersionsDir,
       workingDirectory: context?.workingDirectory,
-      useGitCache: context?.useGitCache,
-      flutterRepo: context?.flutterRepo,
+      useGitCache: context?.gitCacheEnabled,
+      flutterRepo: context?.flutterRepoUrl,
       gitCacheDir: context?.gitCacheDir,
       isTest: context?.isTest,
       generators: context?.generators,
@@ -182,5 +198,57 @@ class FVMContext {
   }
 
   @override
-  String toString() => name;
+  String toString() => id;
+}
+
+void _migrateSettings({
+  required String fvmDir,
+  required String configPath,
+}) {
+  final settingsFile = File(join(fvmDir, '.settings'));
+
+  if (!settingsFile.existsSync()) {
+    return;
+  }
+
+  final payload = settingsFile.readAsStringSync();
+  final settings = SettingsDto.fromJson(payload);
+
+  logger.confirm('You have settings located at ${settingsFile.path}');
+
+  final configRepo = ConfigRepository(configPath);
+
+  final settingsConfig = ConfigDto(
+    fvmVersionsDir: settings.cachePath,
+  );
+
+  final currentConfig = configRepo.load();
+
+  configRepo.save(settingsConfig.merge(currentConfig));
+}
+
+// TODO: REmoved on future version of the app
+// Deprecated on 3.0.0
+void _validateDeprecatedEnvVars() {
+  final flutterRoot = kEnvVars['FVM_GIT_CACHE'];
+  final fvmHome = kEnvVars['FVM_HOME'];
+  if (flutterRoot != null) {
+    logger.warn('FVM_GIT_CACHE environment variable is deprecated. ');
+  }
+
+  if (fvmHome != null) {
+    logger.warn('FVM_HOME environment variable is deprecated. ');
+  }
+
+  if (flutterRoot == null || fvmHome == null) {
+    return;
+  }
+
+//TODO: Check that this is correct
+
+  logger
+    ..spacer
+    ..info(
+      'Review the config page for updated information: $kFvmDocsConfigUrl',
+    );
 }

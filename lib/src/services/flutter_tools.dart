@@ -62,7 +62,7 @@ class FlutterTools {
       }
     }
 
-    if (ctx.useGitCache) {
+    if (ctx.gitCacheEnabled) {
       await _updateFlutterRepoCache();
     }
 
@@ -81,7 +81,7 @@ class FlutterTools {
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (ctx.useGitCache) ...useMirrorParams,
+      if (ctx.gitCacheEnabled) ...useMirrorParams,
     ];
 
     try {
@@ -90,7 +90,7 @@ class FlutterTools {
           'clone',
           '--progress',
           ...cloneArgs,
-          ctx.flutterRepo,
+          ctx.flutterRepoUrl,
           versionDir.path,
         ],
         echoOutput: ctx.isTest ? false : true,
@@ -144,7 +144,7 @@ class FlutterTools {
       gitCacheDir.createSync(recursive: true);
 
       await runGit(
-        ['clone', '--progress', ctx.flutterRepo, gitCacheDir.path],
+        ['clone', '--progress', ctx.flutterRepoUrl, gitCacheDir.path],
         echoOutput: true,
       );
     }

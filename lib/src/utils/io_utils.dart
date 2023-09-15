@@ -25,4 +25,5 @@ void createLink(Link source, Directory target) {
     target.path,
     recursive: true,
   );
+  print('done');
 }

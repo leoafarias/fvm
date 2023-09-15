@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
@@ -105,12 +106,15 @@ void groupWithContext(
     onPlatform: onPlatform,
     retry: retry,
     () {
-      final testContext = FVMContext.create(
-        contextId,
-        fvmDir: getTempTestDir(contextId, 'fvm').path,
-        workingDirectory: getTempTestDir(contextId, 'flutter_app').path,
-        isTest: true,
+      final config = ConfigDto(
+        fvmDir: getTempTestDir(contextId, 'fvm'),
         gitCacheDir: FVMContext.main.gitCacheDir,
+      );
+      final testContext = FVMContext.create(
+        id: contextId,
+        configOverride: config,
+        workingDirectory: getTempTestDir(contextId, 'flutter_app'),
+        isTest: true,
       ).merge(context);
 
       Scope()

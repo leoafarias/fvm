@@ -1,6 +1,6 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
 
 /// Pin version to the project
 void updateSdkVersionWorkflow(
@@ -12,28 +12,28 @@ void updateSdkVersionWorkflow(
     ..detail('')
     ..detail('Updating project config')
     ..detail('Project name: ${project.name}')
-    ..detail('Project path: ${project.projectDir.path}')
+    ..detail('Project path: ${project.path}')
     ..detail('');
 
   try {
-    final newConfig = project.config ?? ProjectConfig.empty();
+    final newConfig = project.config ?? ConfigDto.empty();
     // Attach as main version if no flavor is set
-    newConfig.flutter = sdkVersion;
+    final flutterSdkVersoin = sdkVersion;
+    final flavors = newConfig.flavors ?? {};
     if (flavor != null) {
-      newConfig.flavors ??= {};
-      newConfig.flavors![flavor] = sdkVersion;
+      flavors[flavor] = sdkVersion;
     }
 
-    if (!project.configFile.existsSync()) {
-      project.configFile.createSync(recursive: true);
-    }
-
-    project.configFile.writeAsStringSync(
-      prettyJson(newConfig.toMap()),
+    final mergedConfig = newConfig.copyWith(
+      flutterSdkVersion: flutterSdkVersoin,
+      flavors: flavors,
     );
 
+    ConfigRepository(project.configPath).save(mergedConfig);
+
     // Clean this up
-    project.config = newConfig;
+    project.config = mergedConfig;
+    print(project);
   } on Exception {
     logger.fail('Failed to update project config');
     rethrow;

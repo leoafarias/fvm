@@ -4,8 +4,8 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart';
 
-Directory getTempTestDir(String contextId, [String path = '']) {
-  return Directory(join(kUserHome, 'fvm-test', contextId, path));
+String getTempTestDir(String contextId, [String path = '']) {
+  return join(kUserHome, 'fvm-test', contextId, path);
 }
 
 String getSupportAssetDir(String name) {
@@ -25,6 +25,12 @@ Future<void> prepareLocalProjects(String toPath) async {
     final assetDirName = basename(assetDir.path);
     final tmpDir = Directory(join(toPath, assetDirName));
 
+    if (await tmpDir.exists()) {
+      await tmpDir.delete(recursive: true);
+    }
+
+    await tmpDir.create(recursive: true);
+
     // Copy assetDir to tmpDir
     promises.add(copyDirectory(assetDir, tmpDir));
   }
@@ -33,11 +39,6 @@ Future<void> prepareLocalProjects(String toPath) async {
 }
 
 Future<void> copyDirectory(Directory source, Directory target) async {
-  if (await target.exists()) {
-    await target.delete(recursive: true);
-  }
-
-  await target.create(recursive: true);
   await for (var entity in source.list(recursive: false)) {
     if (entity is Directory) {
       var newDir = Directory('${target.path}/${entity.uri.pathSegments.last}');
@@ -50,7 +51,9 @@ Future<void> copyDirectory(Directory source, Directory target) async {
 }
 
 Future<void> setUpContext(FVMContext context) async {
-  final tempDir = getTempTestDir(context.name);
+  final tempPath = getTempTestDir(context.id);
+
+  final tempDir = Directory(tempPath);
 
   if (tempDir.existsSync()) {
     tempDir.deleteSync(recursive: true);
@@ -62,7 +65,9 @@ Future<void> setUpContext(FVMContext context) async {
 }
 
 void tearDownContext(FVMContext context) {
-  final tempDir = getTempTestDir(context.name);
+  final tempPath = getTempTestDir(context.id);
+
+  final tempDir = Directory(tempPath);
 
   if (tempDir.existsSync()) {
     tempDir.deleteSync(recursive: true);

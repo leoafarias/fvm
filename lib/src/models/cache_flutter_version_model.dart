@@ -45,10 +45,10 @@ class CacheFlutterVersion extends FlutterVersion {
   }
 
   /// Returns dart exec file for cache version
-  String get dartExec => join(dartBinPath, dartBinFileName);
+  String get dartExec => join(dartBinPath, dartExecFileName);
 
   /// Returns flutter exec file for cache version
-  String get flutterExec => join(binPath, flutterBinFileName);
+  String get flutterExec => join(binPath, flutterExecFileName);
 
   /// Gets Flutter SDK version from CacheVersion sync
   String? get flutterSdkVersion {

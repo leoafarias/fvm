@@ -50,7 +50,7 @@ class DoctorCommand extends BaseCommand {
       ..insertColumn(header: project.name, alignment: TextAlignment.left);
 
     table.insertRows([
-      ['Directory', project.projectDir.path],
+      ['Directory', project.path],
       ['Active Flavor', project.activeFlavor ?? 'None'],
       ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
       [
@@ -61,19 +61,16 @@ class DoctorCommand extends BaseCommand {
       ['.gitignore Present', project.gitignoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
       ['Pinned Version', project.pinnedVersion ?? 'None'],
-      [
-        'Config path',
-        relative(project.configFile.path, from: project.projectDir.path)
-      ],
+      ['Config path', relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.fvmCacheDir.path, from: project.projectDir.path)
+        relative(project.fvmCachePath.path, from: project.path)
       ],
       [
         'Version symlink',
         relative(
           project.cacheVersionSymlink.path,
-          from: project.projectDir.path,
+          from: project.path,
         )
       ],
     ]);
@@ -91,7 +88,7 @@ class DoctorCommand extends BaseCommand {
       ..insertColumn(header: '', alignment: TextAlignment.left);
     table.insertRow(['VsCode']);
     // Check for .vscode directory
-    final vscodeDir = Directory(join(project.projectDir.path, '.vscode'));
+    final vscodeDir = Directory(join(project.path, '.vscode'));
     final settingsPath = join(vscodeDir.path, 'settings.json');
 
     if (vscodeDir.existsSync()) {
@@ -100,7 +97,7 @@ class DoctorCommand extends BaseCommand {
 
         final relativeSymlinkPath = relative(
           project.cacheVersionSymlink.path,
-          from: project.projectDir.path,
+          from: project.path,
         );
 
         final sdkPath = settings['dart.flutterSdkPath'];
@@ -119,7 +116,7 @@ class DoctorCommand extends BaseCommand {
 
     // Get localproperties file within flutter project
     final localPropertiesFile =
-        File(join(project.projectDir.path, 'android', 'local.properties'));
+        File(join(project.path, 'android', 'local.properties'));
 
     if (localPropertiesFile.existsSync()) {
       final localProperties = localPropertiesFile.readAsLinesSync();

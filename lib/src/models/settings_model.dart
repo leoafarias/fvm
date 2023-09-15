@@ -2,10 +2,8 @@ import 'dart:convert';
 
 import 'package:fvm/src/version.g.dart';
 
-import '../services/settings_service.dart';
 import '../utils/pretty_json.dart';
 
-/// Settings Dto
 class SettingsDto {
   /// Cache path configured in settings
   String? cachePath;
@@ -49,11 +47,6 @@ class SettingsDto {
       version: map['version'] as String?,
       gitCacheDisabled: gitCacheDisabled,
     );
-  }
-
-  /// Saves settings dto locally
-  Future<void> save() async {
-    await SettingsService.save(this);
   }
 
   /// Returns json of FvmSettings
