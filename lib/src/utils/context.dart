@@ -229,7 +229,7 @@ void _warnAboutDeprecatedSettings({
   settingsFile.deleteSync(recursive: true);
 }
 
-// TODO: REmoved on future version of the app
+// TODO: Removed on future version of the app
 // Deprecated on 3.0.0
 void _warnDeprecatedEnvVars() {
   final flutterRoot = kEnvVars['FVM_GIT_CACHE'];

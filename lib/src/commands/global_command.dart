@@ -5,6 +5,7 @@ import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/which.dart';
+import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
@@ -38,7 +39,7 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version
-    final validVersion = FlutterVersion.parse(version);
+    final validVersion = await validateFlutterVersion(version);
 
     // Ensure version is installed
     final cacheVersion = await ensureCacheWorkflow(validVersion);
@@ -48,6 +49,7 @@ class GlobalCommand extends BaseCommand {
 
     final flutterInPath = which('flutter');
 
+    // Get pinned version, for comparison on terminal
     final pinnedVersion = await ProjectService.instance.findVersion();
 
     CacheFlutterVersion? pinnedCacheVersion;
@@ -55,8 +57,9 @@ class GlobalCommand extends BaseCommand {
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
       final flutterPinnedVersion = FlutterVersion.parse(pinnedVersion);
-      pinnedCacheVersion =
-          CacheService.instance.getVersion(flutterPinnedVersion);
+      pinnedCacheVersion = CacheService.instance.getVersion(
+        flutterPinnedVersion,
+      );
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;

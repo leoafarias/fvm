@@ -14,6 +14,8 @@ import '../../constants.dart';
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
+///
+/// This class provides methods for interacting with local Flutter projects.
 class ProjectService {
   ProjectService();
 
@@ -21,6 +23,13 @@ class ProjectService {
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
+  ///
+  /// This method performs a recursive search to find the nearest ancestor
+  /// directory that contains a Flutter project. If a specific [directory] is provided,
+  /// the search starts from that directory. Otherwise, the search starts from the
+  /// current working directory.
+  ///
+  /// Returns the [Project] instance for the found project.
   Future<Project> findAncestor({Directory? directory}) async {
     // Get directory, defined root or current
     directory ??= Directory(ctx.workingDirectory);
@@ -43,6 +52,13 @@ class ProjectService {
   }
 
   /// Adds to .gitignore paths that should be ignored for fvm
+  ///
+  /// This method adds the given [pathToAdd] to the .gitignore file of the provided [project].
+  /// If the .gitignore file doesn't exist, it will be created. The method checks if
+  /// the given path already exists in the .gitignore file before adding it.
+  ///
+  /// The method prompts the user for confirmation before actually adding the path,
+  /// unless running in a test environment.
   void addToGitignore(Project project, String pathToAdd) {
     bool alreadyExists = false;
 
@@ -89,6 +105,12 @@ class ProjectService {
   }
 
   /// Updates the link to make sure its always correct
+  ///
+  /// This method updates the .fvm symlink in the provided [project] to point to the cache
+  /// directory of the currently pinned Flutter SDK version. It also cleans up legacy links
+  /// that are no longer needed.
+  ///
+  /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
   void updateFlutterSdkReference(Project project) {
     // Ensure the config link and symlink are updated
     final sdkVersion = project.pinnedVersion;
@@ -116,11 +138,24 @@ class ProjectService {
   }
 
   /// Search for version configured
+  ///
+  /// This method searches for the version of the Flutter SDK that is configured for
+  /// the current project. It uses the [findAncestor] method to find the project directory.
+  ///
+  /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
   Future<String?> findVersion() async {
     final project = await findAncestor();
     return project.pinnedVersion;
   }
 
+  /// Updates VS Code configuration for the project
+  ///
+  /// This method updates the VS Code configuration for the provided [project].
+  /// It sets the correct exclude settings in the VS Code settings file to exclude
+  /// the .fvm/versions directory from search and file watchers.
+  ///
+  /// The method also updates the "dart.flutterSdkPath" setting to use the relative
+  /// path of the .fvm symlink.
   void updateVsCodeConfig(
     Project project,
   ) {

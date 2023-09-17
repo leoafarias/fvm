@@ -53,7 +53,7 @@ class ReleasesCommand extends BaseCommand {
       if (release.activeChannel) {
         // Add checkmark icon
         // as ascii code
-// Add backgroundColor
+        // Add backgroundColor
         final checkmark = String.fromCharCode(0x2713);
 
         channelLabel = '$channelLabel ${green.wrap(checkmark)}';
