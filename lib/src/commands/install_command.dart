@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
-import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -54,10 +53,8 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = await validateFlutterVersion(version);
-
     final cacheVersion = await ensureCacheWorkflow(
-      validVersion,
+      version,
       shouldInstall: true,
     );
 

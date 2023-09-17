@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/pubspec_repository.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
@@ -21,7 +20,7 @@ class Project {
   final String path;
 
   /// The configuration of the project, if available.
-  ConfigDto? config;
+  final ProjectConfig? config;
 
   final PubSpec? pubspec;
 
@@ -152,9 +151,14 @@ class Project {
   ///
   /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
   static Project loadFromPath(String path) {
-    final configPath = _getLocalFvmConfigPath(path);
+    ProjectConfig? config;
 
-    final config = ConfigRepository(configPath).load();
+    final configPath = _getLocalFvmConfigPath(path);
+    final configFile = File(configPath);
+    if (configFile.existsSync()) {
+      final map = json.decode(configFile.readAsStringSync());
+      config = ProjectConfig.fromMap(map as Map<String, dynamic>);
+    }
 
     final pubspecPath = join(path, 'pubspec.yaml');
     final pubspec = PubspecRepository(pubspecPath).load();

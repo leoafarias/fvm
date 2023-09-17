@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/io_utils.dart';
+import 'package:fvm/src/utils/pretty_json.dart';
+import 'package:fvm/src/version.g.dart';
 import 'package:path/path.dart';
 
 /// Flutter Project Services
@@ -24,7 +24,9 @@ class ProjectService {
   /// current working directory.
   ///
   /// Returns the [Project] instance for the found project.
-  Future<Project> findAncestor({Directory? directory}) async {
+  Future<Project> findAncestor({
+    Directory? directory,
+  }) async {
     // Get directory, defined root or current
     directory ??= Directory(ctx.workingDirectory);
 
@@ -45,39 +47,6 @@ class ProjectService {
     );
   }
 
-  /// Updates the link to make sure its always correct
-  ///
-  /// This method updates the .fvm symlink in the provided [project] to point to the cache
-  /// directory of the currently pinned Flutter SDK version. It also cleans up legacy links
-  /// that are no longer needed.
-  ///
-  /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-  void updateFlutterSdkReference(Project project) {
-    // Ensure the config link and symlink are updated
-    final sdkVersion = project.pinnedVersion;
-    if (sdkVersion == null) {
-      throw AppException(
-          'Cannot update link of project without a Flutter SDK version');
-    }
-
-    final sdkVersionDir = CacheService.instance.getVersionCacheDir(sdkVersion);
-
-    // Clean up pre 3.0 links
-    if (project.legacyCacheVersionSymlink.existsSync()) {
-      project.legacyCacheVersionSymlink.deleteSync();
-    }
-
-    if (project.fvmCachePath.existsSync()) {
-      project.fvmCachePath.deleteSync(recursive: true);
-    }
-    project.fvmCachePath.createSync(recursive: true);
-
-    createLink(
-      project.cacheVersionSymlink,
-      sdkVersionDir,
-    );
-  }
-
   /// Search for version configured
   ///
   /// This method searches for the version of the Flutter SDK that is configured for
@@ -87,5 +56,44 @@ class ProjectService {
   Future<String?> findVersion() async {
     final project = await findAncestor();
     return project.pinnedVersion;
+  }
+
+  /// Update the project with new configurations
+  ///
+  /// The [project] parameter is the project to be updated. The optional parameters are:
+  /// - [flavors]: A map of flavor configurations.
+  /// - [pinnedVersion]: The new pinned version of the Flutter SDK.
+  ///
+  /// This method updates the project's configuration with the provided parameters. It creates
+  /// or updates the project's config file. The updated project is returned.
+  Project update(
+    Project project, {
+    Map<String, String> flavors = const {},
+    String? flutterSdkVersion,
+    bool? manageVscode,
+  }) {
+    final newConfig = project.config ?? ProjectConfig.empty();
+
+    ProjectConfig config = newConfig.copyWith(
+      flavors: flavors,
+      flutterSdkVersion: flutterSdkVersion,
+      fvmVersion: packageVersion,
+      manageVscode: manageVscode,
+    );
+
+    // Update flavors
+
+    final configFile = File(project.configPath);
+
+    // If config file does not exists create it
+    if (!configFile.existsSync()) {
+      configFile.createSync(recursive: true);
+    }
+
+    final jsonContents = prettyJson(config.toMap());
+
+    configFile.writeAsStringSync(jsonContents);
+
+    return Project.loadFromPath(project.path);
   }
 }

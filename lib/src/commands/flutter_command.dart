@@ -3,7 +3,6 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/utils/logger.dart';
 
-import '../models/flutter_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -27,9 +26,8 @@ class FlutterCommand extends BaseCommand {
     final args = [...argResults!.arguments];
 
     if (version != null) {
-      final validVersion = FlutterVersion.parse(version);
       // Will install version if not already installed
-      final cacheVersion = await ensureCacheWorkflow(validVersion);
+      final cacheVersion = await ensureCacheWorkflow(version);
 
       logger
         ..detail('$kPackageName: Running Flutter SDK from version $version')
@@ -45,7 +43,7 @@ class FlutterCommand extends BaseCommand {
       }
 
       // If its not a channel silence version check
-      if (!validVersion.isChannel) {
+      if (!cacheVersion.isChannel) {
         checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version

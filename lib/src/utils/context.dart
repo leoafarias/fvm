@@ -21,66 +21,45 @@ typedef Generator = dynamic Function();
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
-const _defaultFlutterRepoUrl = 'https://github.com/flutter/flutter.git';
-
 class FVMContext {
   static FVMContext get main => FVMContext.create();
   factory FVMContext.create({
     String? id,
-    String? configPathOverride,
+
     // Will override all configs including command line args
-    ConfigDto? configOverride,
-    String? gitCachePathOverride,
+    EnvConfig? configOverride,
     String? workingDirectory,
     Map<Type, dynamic> overrides = const {},
     bool isTest = false,
     List<String>? commandLineArgs,
   }) {
-    final configPath = configPathOverride ?? applicationConfigHome();
-    var fvmConfig = ConfigRepository(configPath).load();
-
-    // Apply overrides
-    if (configOverride != null) {
-      fvmConfig = fvmConfig.merge(configOverride);
-      if (commandLineArgs != null) {
-        logger.warn(
-          'Override: configOverrides will override commandLineArgs',
-        );
-      }
-    }
-
-    final configFromEnv = ConfigRepository.loadEnv(
+    EnvConfig config = ConfigRepository.loadEnv(
       commandLineArgs: commandLineArgs,
     );
 
-    // Override with env as env amd args are priority
-    fvmConfig = fvmConfig.merge(configFromEnv);
-
-    final fvmDir = fvmConfig.fvmPath ?? kFvmDirDefault;
-    final flutterRepoUrl = fvmConfig.flutterRepoUrl ?? _defaultFlutterRepoUrl;
-    final gitCacheEnabled = fvmConfig.gitCache ?? true;
-
-    gitCachePathOverride ??= join(fvmDir, 'cache.git');
+    if (configOverride != null) {
+      config = config.merge(configOverride);
+    }
 
     final level = isTest ? Level.warning : Level.info;
 
     // Migrate old FVM settings
     _warnAboutDeprecatedSettings(
-      fvmDir: fvmDir,
-      configPath: configPath,
+      fvmDir: config.fvmPath!,
+      configPath: config.fvmConfigPath!,
     );
 
     _warnDeprecatedEnvVars();
 
     return FVMContext._(
       id: id ?? 'MAIN',
-      configPath: configPath,
-      fvmDir: fvmDir,
+      configPath: config.fvmConfigPath!,
+      fvmDir: config.fvmPath!,
       workingDirectory: workingDirectory ?? Directory.current.path,
-      gitCacheEnabled: gitCacheEnabled,
-      gitCachePath: gitCachePathOverride,
+      gitCache: config.gitCache!,
+      gitCachePath: config.gitCachePath!,
       isTest: isTest,
-      flutterRepoUrl: flutterRepoUrl,
+      flutterRepoUrl: config.flutterRepoUrl!,
       generators: {
         FvmLogger: () => FvmLogger(level: level),
         ProjectService: () => ProjectService(),
@@ -98,7 +77,7 @@ class FVMContext {
     required this.configPath,
     required this.fvmDir,
     required this.workingDirectory,
-    required this.gitCacheEnabled,
+    required this.gitCache,
     required this.flutterRepoUrl,
     required this.gitCachePath,
     this.generators = const {},
@@ -117,7 +96,7 @@ class FVMContext {
   final String fvmDir;
 
   /// Flag to determine if should use git cache
-  final bool gitCacheEnabled;
+  final bool gitCache;
 
   /// Directory for Flutter repo git cache
   final String gitCachePath;
@@ -174,7 +153,7 @@ class FVMContext {
       configPath: configPath ?? this.configPath,
       fvmDir: fvmDir ?? this.fvmDir,
       workingDirectory: workingDirectory ?? this.workingDirectory,
-      gitCacheEnabled: gitCacheEnabled ?? this.gitCacheEnabled,
+      gitCache: gitCacheEnabled ?? gitCache,
       flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
       isTest: isTest ?? this.isTest,
       generators: {
@@ -191,7 +170,7 @@ class FVMContext {
       gitCachePath: context?.gitCachePath,
       fvmDir: context?.fvmDir,
       workingDirectory: context?.workingDirectory,
-      gitCacheEnabled: context?.gitCacheEnabled,
+      gitCacheEnabled: context?.gitCache,
       flutterRepoUrl: context?.flutterRepoUrl,
       isTest: context?.isTest,
       generators: context?.generators,

@@ -106,13 +106,13 @@ void groupWithContext(
     onPlatform: onPlatform,
     retry: retry,
     () {
-      final config = ConfigDto(
+      final config = EnvConfig(
         fvmPath: getTempTestDir(contextId, 'fvm'),
+        gitCachePath: FVMContext.main.gitCachePath,
       );
       final testContext = FVMContext.create(
         id: contextId,
         configOverride: config,
-        gitCachePathOverride: FVMContext.main.gitCachePath,
         workingDirectory: getTempTestDir(contextId, 'flutter_app'),
         isTest: true,
       ).merge(context);

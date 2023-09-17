@@ -1,12 +1,11 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
-import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:io/io.dart';
 
-import '../models/flutter_version_model.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
 import '../workflows/use_version.workflow.dart';
@@ -74,29 +73,30 @@ class UseCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version. Force version if is to be pinned.
-    var validVersion = await validateFlutterVersion(version);
 
-    /// Cannot pin master channel
-    if (pinOption && validVersion.isMaster) {
-      throw UsageException(
-        'Cannot pin a version from "master" channel.',
-        usage,
-      );
-    }
+    if (pinOption && kFlutterChannels.contains(version)) {
+      /// Cannot pin master channel
+      if (version == 'master') {
+        throw UsageException(
+          'Cannot pin a version from "master" channel.',
+          usage,
+        );
+      }
 
-    /// Pin release to channel
-    if (pinOption && validVersion.isChannel) {
-      logger.info(
-        'Pinning version $validVersion fron "$version" release channel...',
-      );
+      /// Pin release to channel
 
       final release = await FlutterReleasesClient.getLatestReleaseOfChannel(
-          FlutterChannel.fromName(version));
+        FlutterChannel.fromName(version),
+      );
 
-      validVersion = FlutterVersion.parse(release.version);
+      logger.info(
+        'Pinning version ${release.version} from "$version" release channel...',
+      );
+
+      version = release.version;
     }
 
-    final cacheVersion = await ensureCacheWorkflow(validVersion);
+    final cacheVersion = await ensureCacheWorkflow(version);
 
     if (!skipSetup) {
       await setupFlutterWorkflow(

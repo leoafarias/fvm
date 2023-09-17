@@ -5,15 +5,15 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/config_repository.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/utils/which.dart';
+import 'package:git/git.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -29,8 +29,11 @@ Future<void> useVersionWorkflow({
 }) async {
   // If project use check that is Flutter project
   if (!project.isFlutter && !force) {
+    logger.info(
+      'This does not seem to be a Flutter project directory',
+    );
     final proceed = logger.confirm(
-      'You are running "use" on a project that does not use Flutter. Would you like to continue?',
+      'Would you like to continue?',
     );
 
     if (!proceed) exit(ExitCode.success.code);
@@ -47,30 +50,20 @@ Future<void> useVersionWorkflow({
   _checkProjectVersionConstraints(project, version);
 
   try {
-    final newConfig = project.config ?? ConfigDto.empty();
-
     // Attach as main version if no flavor is set
-    final flavors = newConfig.flavors ?? {};
+    final flavors = <String, String>{
+      if (flavor != null) flavor: version.name,
+    };
 
-    if (flavor != null) {
-      flavors[flavor] = version;
-    }
-
-    final mergedConfig = newConfig.copyWith(
-      flutterSdkVersion: version.name,
+    final updatedProject = ProjectService.instance.update(
+      project,
       flavors: flavors,
+      flutterSdkVersion: version.name,
     );
 
-    ConfigRepository(project.configPath).save(mergedConfig);
-
-    // Clean this up
-    project.config = mergedConfig;
-
-    _updateFlutterSdkReference(project);
-    _ensureVscodeSettings(project);
-    logger.detail('Project config updated');
-
-    _ensureGitIgnore(project, '.fvm/versions');
+    _updateFlutterSdkReference(updatedProject);
+    _manageVscodeSettings(updatedProject);
+    _checkGitignore(updatedProject);
   } catch (e) {
     logger.fail('Failed to update project config: $e');
     rethrow;
@@ -95,8 +88,7 @@ Future<void> useVersionWorkflow({
 
   if (isVsCode()) {
     logger
-      ..spacer
-      ..notice(
+      ..important(
         'Running on VsCode, please restart the terminal to apply changes.',
       )
       ..info('You can then use "flutter" command within the VsCode terminal.');
@@ -113,65 +105,43 @@ Future<void> useVersionWorkflow({
 ///
 /// The method prompts the user for confirmation before actually adding the path,
 /// unless running in a test environment.
-Future<void> _ensureGitIgnore(Project project, String pathToAdd) async {
+Future<void> _checkGitignore(Project project) async {
+  if (!await GitDir.isGitDir(project.path)) {
+    return;
+  }
+
+  final pathToAdd = '.fvm';
   final ignoreFile = project.gitignoreFile;
 
-  // Create .gitignore if it doesn't exist
   if (!ignoreFile.existsSync()) {
-    ignoreFile.createSync();
+    ignoreFile.createSync(recursive: true);
   }
 
-  final fileContents = ignoreFile.openRead();
-  final lines = utf8.decoder.bind(fileContents).transform(LineSplitter());
+  final lines = ignoreFile.readAsLinesSync();
 
-  bool alreadyExists = false;
-
-// Append the new line to the .gitignore file
-  void appendPathToGitignore() {
-    logger
-      ..spacer
-      ..info(
-        'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
-      );
-
-    if (ctx.isTest || logger.confirm('Would you like to do that now?')) {
-      // Append the new line
-      ignoreFile.writeAsStringSync('\n# FVM Version Cache\n$pathToAdd\n',
-          mode: FileMode.append);
-
-      logger
-        ..spacer
-        ..complete('Added $pathToAdd to .gitignore')
-        ..spacer;
-    }
+  if (lines.any((line) => line.trim() == pathToAdd)) {
+    return;
   }
 
-  final completer = Completer();
+  logger
+    ..spacer
+    ..info(
+      'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
+    );
 
-  // Check if pathToAdd exists in a line
-  void onListen(String line) {
-    if (line.trim() != pathToAdd) return;
-    // If it does, set alreadyExists to true
-    alreadyExists = true;
+  if (ctx.isTest ||
+      logger.confirm(
+        'Would you like to do that now?',
+        defaultValue: true,
+      )) {
+    // If pathToAdd not found, append it to the file
+
+    ignoreFile.writeAsStringSync(
+      '\n# FVM Version Cache\n$pathToAdd\n',
+      mode: FileMode.append,
+    );
+    logger.complete('Added $pathToAdd to .gitignore');
   }
-
-  void onError(error) {
-    logger.err("An error occurred while reading the .gitignore file");
-    completer.completeError(error);
-  }
-
-  void onDone() {
-    if (!alreadyExists) {
-      appendPathToGitignore();
-    }
-
-    completer.complete();
-  }
-
-  // Read lines, and check if pathToAdd exists
-  lines.listen(onListen, onDone: onDone, onError: onError);
-
-  await completer.future;
 }
 
 /// Checks if the Flutter SDK version used in the project meets the specified constraints.
@@ -248,20 +218,31 @@ void _updateFlutterSdkReference(Project project) {
 ///
 /// The method also updates the "dart.flutterSdkPath" setting to use the relative
 /// path of the .fvm symlink.
-void _ensureVscodeSettings(
-  Project project,
-) {
-  final vscodeDir = Directory(join(
-    project.path,
-    '.vscode',
-  ));
+void _manageVscodeSettings(Project project) {
+  if (project.config?.manageVscode == false) {
+    logger.detail(
+      '$kPackageName does not manage VSCode settings for this project.',
+    );
+    return;
+  }
 
-  final vsCodeSettingsFile = File(join(
-    vscodeDir.path,
-    'settings.json',
-  ));
+  final vscodeDir = Directory(join(project.path, '.vscode'));
+  final vscodeSettingsFile = File(join(vscodeDir.path, 'settings.json'));
 
-  if (!vscodeDir.existsSync()) {
+  var manageVscode = isVsCode() || vscodeDir.existsSync();
+
+  if (!manageVscode) {
+    manageVscode = logger.confirm(
+      'Would you like to configure VSCode for this project?',
+    );
+  }
+
+  ProjectService.instance.update(
+    project,
+    manageVscode: manageVscode,
+  );
+
+  if (!manageVscode) {
     return;
   }
 
@@ -271,22 +252,22 @@ void _ensureVscodeSettings(
     'files.exclude': {'**/.fvm/versions': true}
   };
 
-  if (!vsCodeSettingsFile.existsSync()) {
+  if (!vscodeSettingsFile.existsSync()) {
     logger.detail('VSCode settings not found, to update.');
-    vsCodeSettingsFile.createSync(recursive: true);
+    vscodeSettingsFile.createSync(recursive: true);
   }
 
   Map<String, dynamic> currentSettings = {};
 
   // Check if settings.json exists; if not, create it.
-  if (vsCodeSettingsFile.existsSync()) {
-    String contents = vsCodeSettingsFile.readAsStringSync();
+  if (vscodeSettingsFile.existsSync()) {
+    String contents = vscodeSettingsFile.readAsStringSync();
     final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
     if (sanitizedContent.isNotEmpty) {
       currentSettings = json.decode(sanitizedContent);
     }
   } else {
-    vsCodeSettingsFile.create(recursive: true);
+    vscodeSettingsFile.create(recursive: true);
   }
 
   bool isUpdated = false;
@@ -312,7 +293,7 @@ void _ensureVscodeSettings(
   // Write updated settings back to settings.json
   if (isUpdated) {
     logger.complete(
-      'VSCode $kPackageName settings has been updated. with correct exclude settings\n',
+      'VScode $kPackageName settings has been updated. with correct exclude settings\n',
     );
   }
 
@@ -323,5 +304,5 @@ void _ensureVscodeSettings(
 
   currentSettings["dart.flutterSdkPath"] = relativePath;
 
-  vsCodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
+  vscodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
 }

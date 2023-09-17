@@ -66,9 +66,20 @@ class FvmLogger extends Logger {
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
 
-    // print(yellow.wrap(border));
-    // info('$pipe $warningIcon $message $pipe');
-    // print(yellow.wrap(border));
+    logger.write(table.toString());
+  }
+
+  void important(String message) {
+    // Add 2 due to the warning icon.
+
+    final label = '${Icons.success} $message'.cyan();
+
+    final table = Table()
+      ..insertRow([label])
+      ..borderColor = ConsoleColor.cyan
+      ..borderType = BorderType.outline
+      ..borderStyle = BorderStyle.square;
+
     logger.write(table.toString());
   }
 }

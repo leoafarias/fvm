@@ -179,7 +179,7 @@ class FvmCommandRunner extends CommandRunner<int> {
           logger.detail('  - $option: ${topLevelResults[option]}');
         }
       }
-      logger.spacer;
+      logger.detail('');
     }
 
     if (topLevelResults.command != null) {
@@ -200,7 +200,7 @@ class FvmCommandRunner extends CommandRunner<int> {
         }
       }
 
-      logger.spacer;
+      logger.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates(topLevelResults);

@@ -13,10 +13,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   if (flutterVersion.isRelease) {
     // Check version incase it as a releaseChannel i.e. 2.2.2@beta
     final isTag = await FlutterTools.instance.isTag(flutterVersion.version);
-
-    if (isTag) {
-      return flutterVersion;
-    }
+    if (isTag) return flutterVersion;
   }
 
   if (flutterVersion.isCommit) {
@@ -32,7 +29,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   }
 
   logger.notice(
-    'Flutter SDK: (version) is not valid Flutter version',
+    'Flutter SDK: ($version) is not valid Flutter version',
   );
 
   final askConfirmation = logger.confirm(

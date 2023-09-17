@@ -62,7 +62,7 @@ class FlutterTools {
       }
     }
 
-    if (ctx.gitCacheEnabled) {
+    if (ctx.gitCache) {
       await _updateFlutterRepoCache();
     }
 
@@ -81,7 +81,7 @@ class FlutterTools {
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (ctx.gitCacheEnabled) ...useMirrorParams,
+      if (ctx.gitCache) ...useMirrorParams,
     ];
 
     try {

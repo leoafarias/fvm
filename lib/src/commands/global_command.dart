@@ -5,7 +5,6 @@ import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/which.dart';
-import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
@@ -38,11 +37,8 @@ class GlobalCommand extends BaseCommand {
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
-    // Get valid flutter version
-    final validVersion = await validateFlutterVersion(version);
-
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(validVersion);
+    final cacheVersion = await ensureCacheWorkflow(version);
 
     // Sets version as the global
     CacheService.instance.setGlobal(cacheVersion);
@@ -79,7 +75,7 @@ class GlobalCommand extends BaseCommand {
       ..detail('');
 
     logger.info(
-      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is now global',
+      'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
     );
 
     if (!isDefaultInPath && !isCachedVersionInPath && !isPinnedVersionInPath) {

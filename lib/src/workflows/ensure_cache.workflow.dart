@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:interact/interact.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
-import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/logger.dart';
 
@@ -13,9 +13,11 @@ import '../utils/logger.dart';
 ///
 /// Returns a [CacheFlutterVersion] which represents the locally cached version.
 Future<CacheFlutterVersion> ensureCacheWorkflow(
-  FlutterVersion validVersion, {
+  String version, {
   bool shouldInstall = false,
 }) async {
+  // Get valid flutter version
+  final validVersion = await validateFlutterVersion(version);
   try {
     final cacheVersion = CacheService.instance.getVersion(validVersion);
 
@@ -109,7 +111,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
       'Removing corrupted SDK version and initiating reinstallation...',
     );
     return ensureCacheWorkflow(
-      FlutterVersion.parse(version.name),
+      version.name,
       shouldInstall: shouldInstall,
     );
   }
@@ -148,7 +150,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   CacheService.instance.remove(version);
 
   return ensureCacheWorkflow(
-    FlutterVersion.parse(version.name),
+    version.name,
     shouldInstall: shouldInstall,
   );
 }
