@@ -7,7 +7,6 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';
@@ -49,59 +48,6 @@ class ProjectService {
     return await findAncestor(
       directory: directory.parent,
     );
-  }
-
-  /// Adds to .gitignore paths that should be ignored for fvm
-  ///
-  /// This method adds the given [pathToAdd] to the .gitignore file of the provided [project].
-  /// If the .gitignore file doesn't exist, it will be created. The method checks if
-  /// the given path already exists in the .gitignore file before adding it.
-  ///
-  /// The method prompts the user for confirmation before actually adding the path,
-  /// unless running in a test environment.
-  void addToGitignore(Project project, String pathToAdd) {
-    bool alreadyExists = false;
-
-    // Check if .gitignore exists, and if not, create it.
-    if (!project.gitignoreFile.existsSync()) {
-      project.gitignoreFile.createSync();
-    }
-
-    // Read existing lines.
-    List<String> lines = project.gitignoreFile.readAsLinesSync();
-
-    // Check if path already exists in .gitignore
-    for (var line in lines) {
-      if (line.trim() == pathToAdd) {
-        alreadyExists = true;
-        break;
-      }
-    }
-
-    if (alreadyExists) {
-      return;
-    }
-
-    logger
-      ..spacer
-      ..info(
-        'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
-      );
-
-    if (ctx.isTest ||
-        logger.confirm(
-          'Would you like to do that now?',
-        )) {
-      // Add the new path if it doesn't exist.
-      lines.add('');
-      lines.add('# FVM Version Cache');
-      lines.add(pathToAdd);
-      project.gitignoreFile.writeAsStringSync('${lines.join('\n')}\n');
-      logger
-        ..spacer
-        ..complete('Added $pathToAdd to .gitignore')
-        ..spacer;
-    }
   }
 
   /// Updates the link to make sure its always correct

@@ -1,12 +1,10 @@
 import 'dart:io';
 
-import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/which.dart';
 import 'package:fvm/src/workflows/update_project_version.workflow.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:pub_semver/pub_semver.dart';
 
 import '../utils/logger.dart';
 
@@ -26,13 +24,10 @@ Future<void> useVersionWorkflow({
     if (!proceed) exit(ExitCode.success.code);
   }
 
-  // Checks if the project constraints are met
-  checkProjectVersionCOnstraints(project, version);
-
   // Run install workflow
   updateSdkVersionWorkflow(
     project,
-    version.name,
+    version,
     flavor: flavor,
   );
 
@@ -63,40 +58,4 @@ Future<void> useVersionWorkflow({
   }
 
   return;
-}
-
-void checkProjectVersionCOnstraints(
-  Project project,
-  CacheFlutterVersion version,
-) {
-  // Checks if the project constraints are met
-  final flutterSdkVersion = version.flutterSdkVersion;
-
-  if (flutterSdkVersion != null) {
-    final allowedInConstraint = project.sdkConstraint?.allows(
-          Version.parse(flutterSdkVersion),
-        ) ??
-        true;
-
-    final releaseMessage =
-        'Flutter SDK: ${version.name} does not meet your project constraints. ';
-
-    final notReleaseMessage =
-        'Flutter SDK: ${version.name} $flutterSdkVersion is not allowed in your project constraints. ';
-
-    final message = version.isRelease ? releaseMessage : notReleaseMessage;
-
-    if (!allowedInConstraint) {
-      logger.notice(message);
-      final confirm = logger.confirm(
-        'Would you like to continue?',
-      );
-
-      if (!confirm) {
-        throw AppException(
-          'Version $flutterSdkVersion not allowed, in project constraints',
-        );
-      }
-    }
-  }
 }
