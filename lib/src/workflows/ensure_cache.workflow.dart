@@ -9,17 +9,6 @@ import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/logger.dart';
 
-// const logMessages = {
-//   'checkCache': 'Checking if Flutter SDK {version} is cached...',
-//   'notInstalled': 'Flutter SDK version {version} is not available locally.',
-//   'askInstall': 'Would you like to install it now?',
-//   'installing':
-//       'Installing Flutter SDK version {version}... This might take a while.',
-//   'installed':
-//       'Success! Flutter SDK version {version} is installed and ready to use.',
-//   'failed': 'Failed to cache Flutter SDK version {version}. Please try again.',
-// };
-
 /// Ensures that the specified Flutter SDK version is cached locally.
 ///
 /// Returns a [CacheFlutterVersion] which represents the locally cached version.

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
+import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:fvm/src/workflows/validate_flutter_version.dart';
 import 'package:io/io.dart';
 

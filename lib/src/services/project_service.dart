@@ -1,15 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/io_utils.dart';
-import 'package:fvm/src/utils/logger.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:path/path.dart';
-
-import '../../constants.dart';
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
@@ -92,91 +87,5 @@ class ProjectService {
   Future<String?> findVersion() async {
     final project = await findAncestor();
     return project.pinnedVersion;
-  }
-
-  /// Updates VS Code configuration for the project
-  ///
-  /// This method updates the VS Code configuration for the provided [project].
-  /// It sets the correct exclude settings in the VS Code settings file to exclude
-  /// the .fvm/versions directory from search and file watchers.
-  ///
-  /// The method also updates the "dart.flutterSdkPath" setting to use the relative
-  /// path of the .fvm symlink.
-  void updateVsCodeConfig(
-    Project project,
-  ) {
-    final vscodeDir = Directory(join(
-      project.path,
-      '.vscode',
-    ));
-
-    final vsCodeSettingsFile = File(join(
-      vscodeDir.path,
-      'settings.json',
-    ));
-
-    if (!vscodeDir.existsSync()) {
-      return;
-    }
-
-    Map<String, dynamic> recommendedSettings = {
-      'search.exclude': {'**/.fvm/versions': true},
-      'files.watcherExclude': {'**/.fvm/versions': true},
-      'files.exclude': {'**/.fvm/versions': true}
-    };
-
-    if (!vsCodeSettingsFile.existsSync()) {
-      logger.detail('VSCode settings not found, to update.');
-      vsCodeSettingsFile.createSync(recursive: true);
-    }
-
-    Map<String, dynamic> currentSettings = {};
-
-    // Check if settings.json exists; if not, create it.
-    if (vsCodeSettingsFile.existsSync()) {
-      String contents = vsCodeSettingsFile.readAsStringSync();
-      final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
-      if (sanitizedContent.isNotEmpty) {
-        currentSettings = json.decode(sanitizedContent);
-      }
-    } else {
-      vsCodeSettingsFile.create(recursive: true);
-    }
-
-    bool isUpdated = false;
-
-    recommendedSettings.forEach((key, value) {
-      final recommendedValue = value as Map<String, dynamic>;
-
-      if (currentSettings.containsKey(key)) {
-        final currentValue = currentSettings[key] as Map<String, dynamic>;
-
-        recommendedValue.forEach((key, value) {
-          if (!currentValue.containsKey(key) || currentValue[key] != value) {
-            currentValue[key] = value;
-            isUpdated = true;
-          }
-        });
-      } else {
-        currentSettings[key] = value;
-        isUpdated = true;
-      }
-    });
-
-    // Write updated settings back to settings.json
-    if (isUpdated) {
-      logger.complete(
-        'VSCode $kPackageName settings has been updated. with correct exclude settings\n',
-      );
-    }
-
-    final relativePath = relative(
-      project.cacheVersionSymlinkCompat.path,
-      from: project.path,
-    );
-
-    currentSettings["dart.flutterSdkPath"] = relativePath;
-
-    vsCodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
   }
 }
