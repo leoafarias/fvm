@@ -2,7 +2,6 @@ import 'package:fvm/src/utils/logger.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
-import '../services/settings_service.dart';
 import '../utils/context.dart';
 import 'base_command.dart';
 
@@ -39,13 +38,13 @@ class ConfigCommand extends BaseCommand {
 
     // Cache path was set
     if (argResults!.wasParsed('cache-path')) {
-      ctx.settings!.cachePath = stringArg('cache-path');
+      // ctx.settings!.cachePath = stringArg('cache-path');
       shouldSave = true;
     }
 
     // Git cache option has changed
     if (argResults!.wasParsed('git-cache')) {
-      ctx.settings!.gitCacheDisabled = !boolArg('git-cache');
+      // ctx.settings!.gitCacheDisabled = !boolArg('git-cache');
       shouldSave = true;
     }
 
@@ -54,7 +53,7 @@ class ConfigCommand extends BaseCommand {
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        await ctx.settings!.save();
+        // await ctx.settings!.save();
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         return ExitCode.config.code;
@@ -64,10 +63,10 @@ class ConfigCommand extends BaseCommand {
       logger
         ..info('')
         ..info('FVM Settings:')
-        ..info('Located at ${SettingsService.settingsFile.path}')
+        ..info('Located at ${ctx.configPath}')
         ..info('');
 
-      final options = ctx.settings!.toMap();
+      final options = {};
 
       if (options.keys.isEmpty) {
         logger.info('No settings have been configured.');

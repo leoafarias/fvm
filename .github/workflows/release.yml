@@ -1,9 +1,9 @@
 name: Create Release
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
+  release:
+    types: [released]
 
 jobs:
   test:

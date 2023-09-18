@@ -3,7 +3,7 @@ name: Create Docker Release
 on:
   workflow_dispatch:
   release:
-    types: [published, released]
+    types: [released]
 
 jobs:
   deploy-docker:

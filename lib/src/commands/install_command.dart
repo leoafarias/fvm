@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'package:fvm/src/workflows/flutter_setup.workflow.dart';
-import 'package:fvm/src/workflows/validate_flutter_version.dart';
+import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:io/io.dart';
 
 import '../../exceptions.dart';
@@ -46,7 +45,7 @@ class InstallCommand extends BaseCommand {
 
       // If no config found is version throw error
       if (version == null) {
-        throw const FvmUsageException(
+        throw const AppException(
           'Please provide a channel or a version, or run'
           ' this command in a Flutter project that has FVM configured.',
         );
@@ -54,10 +53,8 @@ class InstallCommand extends BaseCommand {
     }
     version ??= argResults!.rest[0];
 
-    final validVersion = await validateFlutterVersion(version);
-
     final cacheVersion = await ensureCacheWorkflow(
-      validVersion,
+      version,
       shouldInstall: true,
     );
 

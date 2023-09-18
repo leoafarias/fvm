@@ -13,7 +13,7 @@ executables:
 
 dependencies:
   args: ^2.4.2
-  # cli_config: ^0.1.1
+  cli_config: ^0.1.1
   date_format: ^2.0.7
   git: ^2.2.1
   interact: ^2.2.0
@@ -28,6 +28,7 @@ dependencies:
   yaml: ^3.1.2
   dart_console: ^1.2.0
   tint: ^2.0.1
+  stack_trace: ^1.11.1
 
 dev_dependencies:
   cli_pkg: ^2.4.7

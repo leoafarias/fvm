@@ -1,7 +1,6 @@
 export 'package:fvm/src/models/cache_flutter_version_model.dart';
 export 'package:fvm/src/models/config_model.dart';
 export 'package:fvm/src/models/project_model.dart';
-export 'package:fvm/src/models/settings_model.dart';
 export 'package:fvm/src/services/cache_service.dart';
 export 'package:fvm/src/services/project_service.dart';
 export 'package:fvm/src/services/releases_service/models/channels.model.dart';

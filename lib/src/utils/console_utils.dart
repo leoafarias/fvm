@@ -20,7 +20,7 @@ Future<String> cacheVersionSelector() async {
   final cacheVersions = await CacheService.instance.getAllVersions();
   // Return message if no cached versions
   if (cacheVersions.isEmpty) {
-    throw const FvmUsageException(
+    throw const AppException(
       'No versions installed. Please install'
       ' a version. "fvm install {version}". ',
     );

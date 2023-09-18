@@ -1,7 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
 
-import '../current_release_parser.dart';
-import 'channels.model.dart';
 import 'release.model.dart';
 
 const _flutterChannels = [
@@ -18,17 +17,24 @@ class FlutterReleases {
     required this.baseUrl,
     required this.channels,
     required this.releases,
+    required this.hashReleaseMap,
+    required this.versionReleaseMap,
   });
 
   /// Base url for Flutter   /// Channels in Flutter releases
-
   final String baseUrl;
 
   /// Channels in Flutter releases
-  final ReleaseChannels channels;
+  final Channels channels;
 
   /// LIst of all releases
   final List<Release> releases;
+
+  /// Version release map
+  final Map<String, Release> versionReleaseMap;
+
+  /// Hash release map
+  final Map<String, Release> hashReleaseMap;
 
   /// Creates a FlutterRelease from a [json] string
   factory FlutterReleases.fromJson(String json) {
@@ -37,16 +43,7 @@ class FlutterReleases {
 
   /// Create FlutterRelease from a map of values
   factory FlutterReleases.fromMap(Map<String, dynamic> json) {
-    final parsedResults = parseCurrentReleases(json);
-    return FlutterReleases(
-      baseUrl: json['base_url'] as String,
-      channels: ReleaseChannels.fromMap(parsedResults.channels),
-      releases: List<Release>.from(
-        parsedResults.releases.map(
-          (release) => Release.fromMap(release as Map<String, dynamic>),
-        ),
-      ),
-    );
+    return _parseCurrentReleases(json);
   }
 
   /// Returns a [FlutterVersion] release from channel [version]
@@ -65,45 +62,12 @@ class FlutterReleases {
 
   /// Retrieves version information
   Release? getReleaseFromVersion(String version) {
-    if (_flutterChannels.contains(version)) {
-      return channels[version];
-    }
-
-    int findReleaseIdx(FlutterChannel channel) {
-      return releases.indexWhere(
-        (v) => v.version == version && v.channel == channel,
-      );
-    }
-
-    // Versions can be in multiple versions
-    // Prioritize by order of maturity
-    // TODO: could be optimized and avoid multiple loops
-    final stableIndex = findReleaseIdx(FlutterChannel.stable);
-    final betaIndex = findReleaseIdx(FlutterChannel.beta);
-    final devIndex = findReleaseIdx(FlutterChannel.dev);
-
-    Release? release;
-    if (stableIndex >= 0) {
-      release = releases[stableIndex];
-    } else if (betaIndex >= 0) {
-      release = releases[betaIndex];
-    } else if (devIndex >= 0) {
-      release = releases[devIndex];
-    }
-
-    return release;
+    return versionReleaseMap[version];
   }
 
   /// Checks if version is a release
   bool containsVersion(String version) {
-    var contains = false;
-    for (var release in releases) {
-      if (release.version == version) {
-        contains = true;
-      }
-    }
-
-    return contains;
+    return versionReleaseMap.containsKey(version);
   }
 
   /// Return map of model
@@ -112,4 +76,70 @@ class FlutterReleases {
         'channels': channels.toMap(),
         'releases': List<dynamic>.from(releases.map((x) => x.toMap())),
       };
+}
+
+/// Goes through the current_release payload.
+/// Finds the proper release base on the hash
+/// Assings to the current_release
+FlutterReleases _parseCurrentReleases(Map<String, dynamic> map) {
+  final baseUrl = map['base_url'] as String;
+  final currentRelease = map['current_release'] as Map<String, dynamic>;
+  final releasesJson = map['releases'] as List<dynamic>;
+
+  final systemArch = 'x64';
+
+  final releasesList = <Release>[];
+  final versionReleaseMap = <String, Release>{};
+  final hashReleaseMap = <String, Release>{};
+
+  // Filter out channel/currentRelease versions
+  // Could be more efficient
+  for (var release in releasesJson) {
+    for (var current in currentRelease.entries) {
+      final channelName = current.key;
+      final releaseHash = current.value;
+      if (releaseHash == release['hash'] && channelName == release['channel']) {
+        release['active_channel'] = true;
+      }
+    }
+
+    if (Platform.isMacOS) {
+      // Filter out releases based on architecture
+      // Remove if architecture is not compatible
+      final arch = release['dart_sdk_arch'];
+      final isActiveChanel = release['active_channel'] == true;
+      if (arch != systemArch && arch != null && !isActiveChanel) {
+        continue;
+      }
+    }
+
+    final releaseItem = Release.fromMap(release as Map<String, dynamic>);
+
+    /// Add to releases
+    releasesList.add(releaseItem);
+    versionReleaseMap[releaseItem.version] = releaseItem;
+    hashReleaseMap[releaseItem.hash] = releaseItem;
+  }
+
+  final dev = currentRelease['dev'] as String?;
+  final beta = currentRelease['beta'] as String?;
+  final stable = currentRelease['stable'] as String?;
+
+  final devRelease = hashReleaseMap[dev];
+  final betaRelease = hashReleaseMap[beta];
+  final stableRelease = hashReleaseMap[stable];
+
+  final channels = Channels(
+    dev: devRelease!,
+    beta: betaRelease!,
+    stable: stableRelease!,
+  );
+
+  return FlutterReleases(
+    baseUrl: baseUrl,
+    channels: channels,
+    releases: releasesList,
+    versionReleaseMap: versionReleaseMap,
+    hashReleaseMap: hashReleaseMap,
+  );
 }

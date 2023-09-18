@@ -1,7 +1,6 @@
 import 'package:args/args.dart';
 import 'package:fvm/constants.dart';
 
-import '../models/flutter_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/logger.dart';
@@ -25,10 +24,8 @@ class DartCommand extends BaseCommand {
     final args = argResults!.arguments;
 
     if (version != null) {
-      // Make sure version is valid
-      final validVersion = FlutterVersion.parse(version);
       // Will install version if not already instaled
-      final cacheVersion = await ensureCacheWorkflow(validVersion);
+      final cacheVersion = await ensureCacheWorkflow(version);
 
       logger
         ..detail('$kPackageName: running Dart from Flutter SDK "$version"')

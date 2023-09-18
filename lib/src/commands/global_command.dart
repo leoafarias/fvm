@@ -37,17 +37,15 @@ class GlobalCommand extends BaseCommand {
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
-    // Get valid flutter version
-    final validVersion = FlutterVersion.parse(version);
-
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(validVersion);
+    final cacheVersion = await ensureCacheWorkflow(version);
 
     // Sets version as the global
     CacheService.instance.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter');
 
+    // Get pinned version, for comparison on terminal
     final pinnedVersion = await ProjectService.instance.findVersion();
 
     CacheFlutterVersion? pinnedCacheVersion;
@@ -55,8 +53,9 @@ class GlobalCommand extends BaseCommand {
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
       final flutterPinnedVersion = FlutterVersion.parse(pinnedVersion);
-      pinnedCacheVersion =
-          CacheService.instance.getVersion(flutterPinnedVersion);
+      pinnedCacheVersion = CacheService.instance.getVersion(
+        flutterPinnedVersion,
+      );
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;
@@ -76,7 +75,7 @@ class GlobalCommand extends BaseCommand {
       ..detail('');
 
     logger.info(
-      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is now global',
+      'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
     );
 
     if (!isDefaultInPath && !isCachedVersionInPath && !isPinnedVersionInPath) {

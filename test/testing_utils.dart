@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
@@ -105,12 +106,15 @@ void groupWithContext(
     onPlatform: onPlatform,
     retry: retry,
     () {
+      final config = EnvConfig(
+        fvmPath: getTempTestDir(contextId, 'fvm'),
+        gitCachePath: FVMContext.main.gitCachePath,
+      );
       final testContext = FVMContext.create(
-        contextId,
-        fvmDir: getTempTestDir(contextId, 'fvm').path,
-        workingDirectory: getTempTestDir(contextId, 'flutter_app').path,
+        id: contextId,
+        configOverride: config,
+        workingDirectory: getTempTestDir(contextId, 'flutter_app'),
         isTest: true,
-        gitCacheDir: FVMContext.main.gitCacheDir,
       ).merge(context);
 
       Scope()
@@ -126,7 +130,7 @@ void groupWithContext(
 
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
+  final versionDir = Directory(join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -141,7 +145,7 @@ Future<String?> getBranch(String version) async {
 
 /// Returns the [name] of a tag [version]
 Future<String?> getTag(String version) async {
-  final versionDir = Directory(join(ctx.fvmVersionsDir, version));
+  final versionDir = Directory(join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 

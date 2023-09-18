@@ -23,7 +23,7 @@ class FlutterTools {
     if (version.isChannel) {
       await runFlutter(version, ['upgrade']);
     } else {
-      throw FvmUsageException('Can only upgrade Flutter Channels');
+      throw AppException('Can only upgrade Flutter Channels');
     }
   }
 
@@ -62,7 +62,7 @@ class FlutterTools {
       }
     }
 
-    if (ctx.useGitCache) {
+    if (ctx.gitCache) {
       await _updateFlutterRepoCache();
     }
 
@@ -75,13 +75,13 @@ class FlutterTools {
 
     final useMirrorParams = [
       '--reference',
-      ctx.gitCacheDir,
+      ctx.gitCachePath,
     ];
 
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (ctx.useGitCache) ...useMirrorParams,
+      if (ctx.gitCache) ...useMirrorParams,
     ];
 
     try {
@@ -90,7 +90,7 @@ class FlutterTools {
           'clone',
           '--progress',
           ...cloneArgs,
-          ctx.flutterRepo,
+          ctx.flutterRepoUrl,
           versionDir.path,
         ],
         echoOutput: ctx.isTest ? false : true,
@@ -101,7 +101,7 @@ class FlutterTools {
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
-        throw FvmError(
+        throw AppException(
           'Flutter SDK is not a valid git repository after clone. Please try again.',
         );
       }
@@ -114,7 +114,7 @@ class FlutterTools {
       }
 
       if (result.exitCode != ExitCode.success.code) {
-        throw FvmError(
+        throw AppException(
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }
@@ -129,14 +129,14 @@ class FlutterTools {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> _updateFlutterRepoCache() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
 
     // If cache file does not exists create it
     if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+      final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
       await gitDir.runCommand(['remote', 'update'], echoOutput: true);
     } else {
-      final gitCacheDir = Directory(ctx.gitCacheDir);
+      final gitCacheDir = Directory(ctx.gitCachePath);
       // Ensure brand new directory
       if (gitCacheDir.existsSync()) {
         gitCacheDir.deleteSync(recursive: true);
@@ -144,7 +144,7 @@ class FlutterTools {
       gitCacheDir.createSync(recursive: true);
 
       await runGit(
-        ['clone', '--progress', ctx.flutterRepo, gitCacheDir.path],
+        ['clone', '--progress', ctx.flutterRepoUrl, gitCacheDir.path],
         echoOutput: true,
       );
     }
@@ -173,12 +173,12 @@ class FlutterTools {
   }
 
   Future<List<String>> getTags() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
     final result = await gitDir.runCommand(['tag']);
     if (result.exitCode != 0) {
       return [];
@@ -190,12 +190,12 @@ class FlutterTools {
   }
 
   Future<String?> getReference(String ref) async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCacheDir);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCacheDir);
+    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
     try {
       final result = await gitDir.runCommand(
         ['rev-parse', '--short', '--verify', ref],

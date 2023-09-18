@@ -9,6 +9,7 @@ import 'package:fvm/src/commands/update_command.dart';
 import 'package:fvm/src/utils/logger.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import '../exceptions.dart';
 import 'commands/config_command.dart';
@@ -77,26 +78,29 @@ class FvmCommandRunner extends CommandRunner<int> {
       if (argResults['verbose'] == true) {
         logger.level = Level.verbose;
       }
-      // Add space before output
+      // Add space before any output
       logger.spacer;
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
-    } on FormatException catch (e, stackTrace) {
+    } on FormatException catch (err, stackTrace) {
       // On format errors, show the commands error message, root usage and
       // exit with an error code
+      final trace = Trace.from(stackTrace);
       logger
-        ..err(e.message)
-        ..err('$stackTrace')
+        ..err(err.message)
+        ..spacer
+        ..err(trace.toString())
         ..info('')
         ..info(usage);
       return ExitCode.usage.code;
-    } on FvmError catch (e, stackTrace) {
+    } on AppTracedException catch (err, stackTrace) {
+      final trace = Trace.from(stackTrace);
       logger
-        ..err(e.message)
-        ..detail('')
-        ..detail('$stackTrace');
+        ..fail(err.message)
+        ..spacer
+        ..err(trace.toString());
 
       if (logger.level != Level.verbose) {
         logger
@@ -107,6 +111,30 @@ class FvmCommandRunner extends CommandRunner<int> {
       }
 
       return ExitCode.unavailable.code;
+    } on FileSystemException catch (err) {
+      if (checkIfNeedsPrivilegePermission(err)) {
+        logger
+          ..spacer
+          ..fail('Requires administrator priviledges to run this command.')
+          ..spacer;
+        logger.notice(
+          "You don't have the required priviledges to run this command.\n"
+          "Try running with sudo or administrator priviledges.\n"
+          "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
+        );
+        return ExitCode.noPerm.code;
+      }
+
+      logger
+        ..err(err.message)
+        ..spacer
+        ..err('Path: ${err.path}');
+
+      return ExitCode.ioError.code;
+    } on AppException catch (err) {
+      logger.fail(err.message);
+
+      return ExitCode.data.code;
     } on ProcessException catch (e) {
       logger
         ..spacer
@@ -114,29 +142,18 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..spacer;
 
       return e.errorCode;
-    } on PriviledgeException catch (e) {
-      logger.err(e.message);
-
-      return ExitCode.noPerm.code;
-    } on FvmUsageException catch (e) {
-      // On usage errors, show the commands usage message and
+    } on UsageException catch (err) {
+      // On usagerr errors, show the commands usage message and
       // exit with an error code
       logger
-        ..info(e.message)
-        ..spacer;
+        ..err(err.message)
+        ..spacer
+        ..info(err.usage);
 
       return ExitCode.usage.code;
-    } on UsageException catch (e) {
-      // On usage errors, show the commands usage message and
-      // exit with an error code
-      logger
-        ..err(e.message)
-        ..info('')
-        ..info(e.usage);
-
-      return ExitCode.usage.code;
-    } on Exception catch (e) {
-      logger.err(e.toString());
+    } on Exception catch (e, stackTrace) {
+      final trace = Trace.from(stackTrace);
+      logger.err(trace.toString());
       return ExitCode.unavailable.code;
     } finally {
       // Add spacer after the last line always
@@ -149,23 +166,41 @@ class FvmCommandRunner extends CommandRunner<int> {
     // Verbose logs
     logger
       ..detail('')
-      ..detail('Argument information:')
-      ..detail('Top level options:');
-    for (final option in topLevelResults.options) {
-      if (topLevelResults.wasParsed(option)) {
-        logger.detail('  - $option: ${topLevelResults[option]}');
-      }
-    }
-    if (topLevelResults.command != null) {
-      final commandResult = topLevelResults.command!;
-      logger
-        ..detail('  Command: ${commandResult.name}')
-        ..detail('    Command options:');
-      for (final option in commandResult.options) {
-        if (commandResult.wasParsed(option)) {
-          logger.detail('    - $option: ${commandResult[option]}');
+      ..detail('Argument information:');
+
+    final hasTopLevelOption = topLevelResults.options
+        .where((e) => topLevelResults.wasParsed(e))
+        .isNotEmpty;
+
+    if (hasTopLevelOption) {
+      logger.detail('  Top level options:');
+      for (final option in topLevelResults.options) {
+        if (topLevelResults.wasParsed(option)) {
+          logger.detail('  - $option: ${topLevelResults[option]}');
         }
       }
+      logger.detail('');
+    }
+
+    if (topLevelResults.command != null) {
+      final commandResult = topLevelResults.command!;
+      logger.detail('Command: ${commandResult.name}');
+
+      // Check if any command option was parsed
+      final hasCommandOption = commandResult.options
+          .where((e) => commandResult.wasParsed(e))
+          .isNotEmpty;
+
+      if (hasCommandOption) {
+        logger.detail('  Command options:');
+        for (final option in commandResult.options) {
+          if (commandResult.wasParsed(option)) {
+            logger.detail('    - $option: ${commandResult[option]}');
+          }
+        }
+      }
+
+      logger.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates(topLevelResults);

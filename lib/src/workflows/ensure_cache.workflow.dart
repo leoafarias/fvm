@@ -1,32 +1,23 @@
 import 'dart:io';
 
-import 'package:interact/interact.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/services/flutter_tools.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
-import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/logger.dart';
-
-// const logMessages = {
-//   'checkCache': 'Checking if Flutter SDK {version} is cached...',
-//   'notInstalled': 'Flutter SDK version {version} is not available locally.',
-//   'askInstall': 'Would you like to install it now?',
-//   'installing':
-//       'Installing Flutter SDK version {version}... This might take a while.',
-//   'installed':
-//       'Success! Flutter SDK version {version} is installed and ready to use.',
-//   'failed': 'Failed to cache Flutter SDK version {version}. Please try again.',
-// };
 
 /// Ensures that the specified Flutter SDK version is cached locally.
 ///
 /// Returns a [CacheFlutterVersion] which represents the locally cached version.
 Future<CacheFlutterVersion> ensureCacheWorkflow(
-  FlutterVersion validVersion, {
+  String version, {
   bool shouldInstall = false,
 }) async {
+  // Get valid flutter version
+  final validVersion = await validateFlutterVersion(version);
   try {
     final cacheVersion = CacheService.instance.getVersion(validVersion);
 
@@ -42,8 +33,10 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       }
 
       if (integrity == CacheIntegrity.versionMismatch) {
-        return _handleVersionMismatch(cacheVersion,
-            shouldInstall: shouldInstall);
+        return _handleVersionMismatch(
+          cacheVersion,
+          shouldInstall: shouldInstall,
+        );
       }
 
       // If shouldl install notifiy the user that is already installed
@@ -61,7 +54,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     }
 
     logger.info(
-      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not cached.',
+      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
     );
 
     final shouldInstallConfirmed = shouldInstall ||
@@ -83,7 +76,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
 
     final newCacheVersion = CacheService.instance.getVersion(validVersion);
     if (newCacheVersion == null) {
-      throw FvmError('Could not cache version $validVersion');
+      throw AppException('Could not cache version $validVersion');
     }
 
     logger
@@ -93,12 +86,9 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       );
 
     return newCacheVersion;
-  } on Exception catch (err) {
-    if (err is FvmException) {
-      rethrow;
-    } else {
-      throw FvmError('Failed to ensure $validVersion is cached.');
-    }
+  } on Exception {
+    logger.fail('Failed to ensure $validVersion is cached.');
+    rethrow;
   }
 }
 
@@ -109,7 +99,8 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 }) async {
   logger
     ..notice(
-        'Flutter SDK: ${version.name} is not executable. The cache may be corrupt.')
+      'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
+    )
     ..spacer;
 
   final shouldReinstall = logger.confirm(
@@ -119,15 +110,15 @@ Future<CacheFlutterVersion> _handleNonExecutable(
   if (shouldReinstall) {
     CacheService.instance.remove(version);
     logger.info(
-      'Removing corrupted SDK version and initiating reinstallation...',
+      'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
     return ensureCacheWorkflow(
-      FlutterVersion.parse(version.name),
+      version.name,
       shouldInstall: shouldInstall,
     );
   }
 
-  throw FvmError('Flutter SDK: ${version.name} is not executable.');
+  throw AppException('Flutter SDK: ${version.name} is not executable.');
 }
 
 // Clarity on why the version mismatch happened and how it can be fixed
@@ -143,16 +134,20 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
         'This can occur if you manually run "flutter upgrade" on a cached SDK.')
     ..spacer;
 
-  final selectedOption = Select(
-          prompt: 'How would you like to resolve this?',
-          options: [
-            'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}',
-            'Remove incorrect version and reinstall ${version.name}',
-          ],
-          initialIndex: 0)
-      .interact();
+  final firstOption =
+      'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}';
 
-  if (selectedOption == 0) {
+  final secondOption = 'Remove incorrect version and reinstall ${version.name}';
+
+  final selectedOption = logger.select(
+    'How would you like to resolve this?',
+    options: [
+      firstOption,
+      secondOption,
+    ],
+  );
+
+  if (selectedOption == firstOption) {
     logger.info('Moving SDK to the correct cache directory...');
     CacheService.instance.moveToSdkVersionDiretory(version);
   }
@@ -161,7 +156,51 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   CacheService.instance.remove(version);
 
   return ensureCacheWorkflow(
-    FlutterVersion.parse(version.name),
-    shouldInstall: shouldInstall,
+    version.name,
+    shouldInstall: true,
+  );
+}
+
+Future<FlutterVersion> validateFlutterVersion(String version) async {
+  final flutterVersion = FlutterVersion.parse(version);
+  // If its channel or commit no need for further validation
+  if (flutterVersion.isChannel || flutterVersion.isCustom) {
+    return flutterVersion;
+  }
+
+  if (flutterVersion.isRelease) {
+    // Check version incase it as a releaseChannel i.e. 2.2.2@beta
+    final isTag = await FlutterTools.instance.isTag(flutterVersion.version);
+    if (isTag) return flutterVersion;
+  }
+
+  if (flutterVersion.isCommit) {
+    final commitSha = await FlutterTools.instance.getReference(version);
+    if (commitSha != null) {
+      if (commitSha != flutterVersion.name) {
+        throw AppException(
+          'FVM only supports short commit SHAs (10 characters) should be ($commitSha)',
+        );
+      }
+      return flutterVersion;
+    }
+  }
+
+  logger.notice(
+    'Flutter SDK: ($version) is not valid Flutter version',
+  );
+
+  final askConfirmation = logger.confirm(
+    'Do you want to continue?',
+    defaultValue: false,
+  );
+  if (askConfirmation) {
+    // Jump a line after confirmation
+    logger.spacer;
+    return flutterVersion;
+  }
+
+  throw AppException(
+    '$version is not a valid Flutter version',
   );
 }

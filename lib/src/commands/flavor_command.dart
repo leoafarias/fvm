@@ -3,7 +3,6 @@ import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
 
-import '../models/flutter_version_model.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/logger.dart';
@@ -62,7 +61,7 @@ class FlavorCommand extends BaseCommand {
     final envs = project.flavors;
     final envVersion = envs[flavor] as String?;
 
-    // Check if env confi exists
+    // Check if env config exists
     if (envVersion == null) {
       throw UsageException(
         'Flavor: "$flavor" is not configured',
@@ -70,15 +69,12 @@ class FlavorCommand extends BaseCommand {
       );
     }
 
-    // Makes sure that is a valid version
-    final validVersion = FlutterVersion.parse(envVersion);
+    final cacheVersion = await ensureCacheWorkflow(envVersion);
 
     logger.info(
       'Switching to [$flavor] flavor, '
-      'which uses [${validVersion.name}] Flutter sdk.',
+      'which uses [${cacheVersion.name}] Flutter sdk.',
     );
-
-    final cacheVersion = await ensureCacheWorkflow(validVersion);
 
     await useVersionWorkflow(
       version: cacheVersion,

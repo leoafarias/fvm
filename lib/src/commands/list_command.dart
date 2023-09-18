@@ -35,7 +35,7 @@ class ListCommand extends BaseCommand {
 
     // Print where versions are stored
     logger
-      ..info('Cache directory:  ${cyan.wrap(ctx.fvmVersionsDir)}')
+      ..info('Cache directory:  ${cyan.wrap(ctx.versionsCachePath)}')
       ..spacer;
 
     final releases = await FlutterReleasesClient.get();

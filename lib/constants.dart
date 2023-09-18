@@ -9,6 +9,10 @@ const kDescription =
 
 /// Project directory for fvm
 const kFvmDirName = '.fvm';
+const kConfigFileName = '.fvm';
+
+const kFvmDocsUrl = 'https://fvm.app';
+const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
 
 /// Project fvm config file name
 final kFvmConfigFileName = 'fvm_config.json';
@@ -17,22 +21,17 @@ final kFvmConfigFileName = 'fvm_config.json';
 final kEnvVars = Platform.environment;
 
 // Extension per platform
-String _binExt = Platform.isWindows ? '.bat' : '';
+String _execExtension = Platform.isWindows ? '.bat' : '';
 
 /// Flutter executable file name
-String flutterBinFileName = 'flutter$_binExt';
+String flutterExecFileName = 'flutter$_execExtension';
 
 /// Dart executable file name
-String dartBinFileName = 'dart$_binExt';
+String dartExecFileName = 'dart$_execExtension';
 
 /// User Home Path
-String get kUserHome {
-  if (Platform.isWindows) {
-    return kEnvVars['USERPROFILE']!;
-  } else {
-    return kEnvVars['HOME']!;
-  }
-}
+String get kUserHome =>
+    Platform.isWindows ? kEnvVars['USERPROFILE']! : kEnvVars['HOME']!;
 
 /// FVM Home directory
 String get kFvmDirDefault => join(kUserHome, 'fvm');
@@ -40,7 +39,7 @@ String get kFvmDirDefault => join(kUserHome, 'fvm');
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
-String applicationConfigHome() => join(_configHome, kPackageName);
+String applicationConfigHome() => join(_configHome, kConfigFileName);
 
 String get _configHome {
   if (Platform.isWindows) {
