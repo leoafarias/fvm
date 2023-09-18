@@ -17,7 +17,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Setup Dart
         uses: DanTup/gh-actions/setup-dart@master
         with:

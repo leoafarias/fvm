@@ -16,7 +16,7 @@ jobs:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - uses: dart-lang/setup-dart@v1.5.0
 
       - run: dart pub get
