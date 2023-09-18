@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart';
 
@@ -70,6 +71,11 @@ void tearDownContext(FVMContext context) {
   final tempDir = Directory(tempPath);
 
   if (tempDir.existsSync()) {
-    tempDir.deleteSync(recursive: true);
+    try {
+      tempDir.deleteSync(recursive: true);
+    } on FileSystemException catch (e) {
+      // just log the erorr, as it can fail due to open files
+      logger.err(e.message);
+    }
   }
 }

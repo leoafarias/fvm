@@ -89,7 +89,6 @@ void groupWithContext(
   dynamic skip,
   List<String>? tags,
   Map<String, dynamic>? onPlatform,
-  FVMContext? context,
   int? retry,
 }) {
   // lowecase description, and replace spaces with underscores
@@ -115,7 +114,7 @@ void groupWithContext(
         config: config,
         workingDirectory: getTempTestDir(contextId, 'flutter_app'),
         isTest: true,
-      ).merge(context);
+      );
 
       Scope()
         ..value(contextKey, testContext)
