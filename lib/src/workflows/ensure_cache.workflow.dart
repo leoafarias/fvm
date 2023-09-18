@@ -99,7 +99,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 }) async {
   logger
     ..notice(
-      'Flutter SDK: ${version.name} is not executable. The cache may be corrupt.',
+      'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
     )
     ..spacer;
 
@@ -110,7 +110,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
   if (shouldReinstall) {
     CacheService.instance.remove(version);
     logger.info(
-      'Removing corrupted SDK version and initiating reinstallation...',
+      'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
     return ensureCacheWorkflow(
       version.name,
