@@ -50,6 +50,7 @@ class FvmLogger extends Logger {
     final selection = Select(
       prompt: message ?? '',
       options: options,
+      initialIndex: 0,
     ).interact();
 
     return options[selection];

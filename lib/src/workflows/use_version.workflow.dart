@@ -13,6 +13,7 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/utils/which.dart';
+import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:git/git.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
@@ -62,8 +63,15 @@ Future<void> useVersionWorkflow({
     );
 
     _updateFlutterSdkReference(updatedProject);
-    _manageVscodeSettings(updatedProject);
+
     _checkGitignore(updatedProject);
+
+    await resolveDependenciesWorkflow(
+      version: version,
+      project: project,
+    );
+
+    _manageVscodeSettings(updatedProject);
   } catch (e) {
     logger.fail('Failed to update project config: $e');
     rethrow;
@@ -158,19 +166,22 @@ void _checkProjectVersionConstraints(
   if (sdkVersion != null && constraints != null) {
     final allowedInConstraint = constraints.allows(Version.parse(sdkVersion));
 
-    final releaseMessage =
-        'Flutter SDK version ${cachedVersion.name} does not meet the project constraints.';
-    final notReleaseMessage =
-        'Flutter SDK: ${cachedVersion.name} $sdkVersion is not allowed in the project constraints.';
-    final message =
-        cachedVersion.isRelease ? releaseMessage : notReleaseMessage;
+    final message = cachedVersion.isRelease
+        ? 'Version: ${cachedVersion.name}.'
+        : '${cachedVersion.printFriendlyName} has SDK $sdkVersion';
 
     if (!allowedInConstraint) {
-      logger.notice(message);
+      logger.notice('Flutter SDK does not meet project constraints');
 
-      if (!logger.confirm('Would you like to continue?')) {
+      logger
+        ..info(
+            '$message does not meet the project constraints of $constraints.')
+        ..info('This could cause unexpected behavior or issues.')
+        ..spacer;
+
+      if (!logger.confirm('Would you like to proceed?')) {
         throw AppException(
-          'Version $sdkVersion is not allowed in the project constraints',
+          'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
         );
       }
     }

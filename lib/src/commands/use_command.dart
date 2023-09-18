@@ -112,13 +112,6 @@ class UseCommand extends BaseCommand {
       flavor: flavorOption,
     );
 
-    if (!skipSetup) {
-      await resolveDependenciesWorkflow(
-        version: cacheVersion,
-        project: project,
-      );
-    }
-
     return ExitCode.success.code;
   }
 }
