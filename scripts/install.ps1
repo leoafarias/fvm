@@ -1,62 +1,103 @@
-# Detect OS
-$OS = "windows"
-
-Write-Host "Detected OS: $OS"
-
-# Check for curl
-if (-Not (Get-Command "curl" -ErrorAction SilentlyContinue)) {
-    Write-Host "curl is required but not installed. Exiting."
+# Requires admin rights
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Host "Run the script as an admin"
     exit 1
 }
 
-# Get installed FVM version if exists
-$INSTALLED_FVM_VERSION = ""
-if (Get-Command "fvm" -ErrorAction SilentlyContinue) {
-    $INSTALLED_FVM_VERSION = fvm --version
+Function CleanUp {
+    Remove-Item -Path "fvm.tar.gz" -Force -ErrorAction SilentlyContinue
 }
 
-# Define the URL of the FVM binary
-$FVM_VERSION = $null
-if ($args.Length -eq 0) {
-    $FVM_VERSION = (Invoke-RestMethod -Uri 'https://api.github.com/repos/fluttertools/fvm/releases/latest').tag_name
-    if ($null -eq $FVM_VERSION) {
-        Write-Host "Failed to fetch latest FVM version. Exiting."
+Function CatchErrors {
+    param ($exitCode)
+    if ($exitCode -ne 0) {
+        Write-Host "An error occurred."
+        CleanUp
         exit 1
+    }
+}
+
+# Terminal colors
+$Color_Off = ''
+$Red = [System.ConsoleColor]::Red
+$Green = [System.ConsoleColor]::Green
+$Dim = [System.ConsoleColor]::Gray
+$White = [System.ConsoleColor]::White
+
+Function Write-ErrorLine {
+    param ($msg)
+    Write-Host -ForegroundColor $Red "error: $msg"
+    exit 1
+}
+
+Function Write-Info {
+    param ($msg)
+    Write-Host -ForegroundColor $Dim $msg
+}
+
+Function Write-Success {
+    param ($msg)
+    Write-Host -ForegroundColor $Green $msg
+}
+
+# Detect OS and architecture
+$OS = if ($env:OS -eq 'Windows_NT') { 'windows' } else { 'unknown' }
+$ARCH = if ([Environment]::Is64BitOperatingSystem) { 'x64' } else { 'x86' }
+
+Write-Info "Detected OS: $OS"
+Write-Info "Detected Architecture: $ARCH"
+
+# Check for curl
+try {
+    $curl = Get-Command curl -ErrorAction Stop
+} catch {
+    Write-ErrorLine "curl is required but not installed."
+}
+
+$github_repo = "fluttertools/fvm"
+
+# Get FVM version
+if ($args.Count -eq 0) {
+    try {
+        $FVM_VERSION = Invoke-RestMethod -Uri "https://api.github.com/repos/$github_repo/releases/latest" | Select-Object -ExpandProperty tag_name
+    } catch {
+        Write-ErrorLine "Failed to fetch the latest FVM version from GitHub."
     }
 } else {
     $FVM_VERSION = $args[0]
 }
 
-# Prompt for user input if needed
-if ($INSTALLED_FVM_VERSION -eq $FVM_VERSION) {
-    $REINSTALL = Read-Host "FVM version $FVM_VERSION is already installed. Would you like to reinstall it? (y/n)"
-    if ($REINSTALL -ne "y") { exit 0 }
-}
-
-Write-Host "Installing FVM Version: $FVM_VERSION"
+Write-Info "Installing FVM Version: $FVM_VERSION"
 
 # Download FVM
 $URL = "https://github.com/fluttertools/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-x64.zip"
-Invoke-WebRequest -Uri $URL -OutFile "fvm.zip"
-
-# Binary directory
-$FVM_DIR = "$env:LOCALAPPDATA\Programs\fvm"
-
-# Extract binary to a temporary directory
-Expand-Archive -Path "fvm.zip" -DestinationPath "$FVM_DIR\tmp" -Force
-
-# Move the files to the desired directory
-Move-Item -Path "$FVM_DIR\tmp\*" -Destination $FVM_DIR -Force
-
-# Cleanup
-Remove-Item -Path "$FVM_DIR\tmp" -Recurse -Force
-Remove-Item -Path "fvm.zip" -Force
-
-# Verify installation
-if (-Not (Get-Command "fvm" -ErrorAction SilentlyContinue)) {
-    Write-Host "Installation failed. Exiting."
-    exit 1
+Write-Host "Downloading from $URL"
+try {
+    Invoke-WebRequest -Uri $URL -OutFile "fvm.tar.gz"
+} catch {
+    Write-ErrorLine "Failed to download FVM from $URL."
 }
 
-$INSTALLED_FVM_VERSION = fvm --version
-Write-Host "FVM $INSTALLED_FVM_VERSION installed successfully."
+$FVM_DIR = "C:\Program Files\fvm"
+
+# Extract binary
+try {
+    tar -xzf fvm.tar.gz -C $FVM_DIR
+} catch {
+    Write-ErrorLine "Extraction failed."
+}
+
+# Cleanup
+CleanUp
+
+# Verify Installation
+try {
+    $INSTALLED_FVM_VERSION = & fvm --version
+    if ($INSTALLED_FVM_VERSION -eq $FVM_VERSION) {
+        Write-Success "FVM $INSTALLED_FVM_VERSION installed successfully."
+    } else {
+        Write-ErrorLine "FVM version verification failed."
+    }
+} catch {
+    Write-ErrorLine "Installation failed. Exiting."
+}
