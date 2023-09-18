@@ -25,41 +25,47 @@ class FVMContext {
   static FVMContext get main => FVMContext.create();
   factory FVMContext.create({
     String? id,
-
     // Will override all configs including command line args
-    EnvConfig? configOverride,
+    EnvConfig? config,
     String? workingDirectory,
     Map<Type, dynamic> overrides = const {},
     bool isTest = false,
     List<String>? commandLineArgs,
   }) {
-    EnvConfig config = ConfigRepository.loadEnv(
-      commandLineArgs: commandLineArgs,
-    );
+    config ??= EnvConfig();
+    workingDirectory ??= Directory.current.path;
 
-    if (configOverride != null) {
-      config = config.merge(configOverride);
-    }
+    // Check if env defined a config path
+    final configPath = config.fvmConfigPath ?? kAppConfigHome;
+
+    // Load config from file in config path
+    final storedConfig = ConfigRepository.fromFile(configPath);
+
+    // Merge config from file with env config
+    config = config.merge(storedConfig);
 
     final level = isTest ? Level.warning : Level.info;
 
-    // Migrate old FVM settings
-    _warnAboutDeprecatedSettings(
-      fvmDir: config.fvmPath!,
-      configPath: config.fvmConfigPath!,
-    );
+    final fvmPath = config.fvmPath ?? kAppDirHome;
+    final gitCache = config.gitCache ?? true;
+    final gitCachePath = config.gitCachePath;
+    final flutterRepoUrl = config.flutterRepoUrl ?? kDefaultFlutterRepo;
 
-    _warnDeprecatedEnvVars();
+    // Migrate old FVM settings
+    _deprecationWarnings(
+      fvmDir: fvmPath,
+      configPath: configPath,
+    );
 
     return FVMContext._(
       id: id ?? 'MAIN',
-      configPath: config.fvmConfigPath!,
-      fvmDir: config.fvmPath!,
-      workingDirectory: workingDirectory ?? Directory.current.path,
-      gitCache: config.gitCache!,
-      gitCachePath: config.gitCachePath!,
+      configPath: configPath,
+      fvmDir: fvmPath,
+      workingDirectory: workingDirectory,
+      gitCache: gitCache,
+      gitCachePath: gitCachePath,
       isTest: isTest,
-      flutterRepoUrl: config.flutterRepoUrl!,
+      flutterRepoUrl: flutterRepoUrl,
       generators: {
         FvmLogger: () => FvmLogger(level: level),
         ProjectService: () => ProjectService(),
@@ -79,10 +85,10 @@ class FVMContext {
     required this.workingDirectory,
     required this.gitCache,
     required this.flutterRepoUrl,
-    required this.gitCachePath,
+    required String? gitCachePath,
     this.generators = const {},
     this.isTest = false,
-  });
+  }) : _gitCachePath = gitCachePath;
 
   /// Name of the context
   final String id;
@@ -99,7 +105,7 @@ class FVMContext {
   final bool gitCache;
 
   /// Directory for Flutter repo git cache
-  final String gitCachePath;
+  final String? _gitCachePath;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -119,10 +125,17 @@ class FVMContext {
   Link get globalCacheLink => Link(join(fvmDir, 'default'));
 
   /// Directory for Global Flutter SDK bin
+
   String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
 
   /// Directory where FVM versions are stored
   String get versionsCachePath => join(fvmDir, 'versions');
+
+  String get gitCachePath {
+    // If git cache is not overriden use default based on fvmDir
+    if (_gitCachePath != null) return _gitCachePath!;
+    return join(fvmDir, 'cache.git');
+  }
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
@@ -181,10 +194,11 @@ class FVMContext {
   String toString() => id;
 }
 
-void _warnAboutDeprecatedSettings({
+void _deprecationWarnings({
   required String fvmDir,
   required String configPath,
 }) {
+  _warnDeprecatedEnvVars();
   final settingsFile = File(join(fvmDir, '.settings'));
 
   if (!settingsFile.existsSync()) {
@@ -211,8 +225,8 @@ void _warnAboutDeprecatedSettings({
 // TODO: Removed on future version of the app
 // Deprecated on 3.0.0
 void _warnDeprecatedEnvVars() {
-  final flutterRoot = kEnvVars['FVM_GIT_CACHE'];
-  final fvmHome = kEnvVars['FVM_HOME'];
+  final flutterRoot = Platform.environment['FVM_GIT_CACHE'];
+  final fvmHome = Platform.environment['FVM_HOME'];
   if (flutterRoot != null) {
     logger.warn('FVM_GIT_CACHE environment variable is deprecated. ');
   }

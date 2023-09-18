@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart';
 
 const kPackageName = 'fvm';
@@ -14,36 +13,37 @@ const kConfigFileName = '.fvm';
 const kFvmDocsUrl = 'https://fvm.app';
 const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
 
+const kDefaultFlutterRepo = 'https://github.com/flutter/flutter.git';
+
 /// Project fvm config file name
-final kFvmConfigFileName = 'fvm_config.json';
+const kFvmConfigFileName = 'fvm_config.json';
 
 /// Environment variables
-final kEnvVars = Platform.environment;
+final _env = Platform.environment;
 
 // Extension per platform
-String _execExtension = Platform.isWindows ? '.bat' : '';
+final _execExtension = Platform.isWindows ? '.bat' : '';
 
 /// Flutter executable file name
-String flutterExecFileName = 'flutter$_execExtension';
+final flutterExecFileName = 'flutter$_execExtension';
 
 /// Dart executable file name
 String dartExecFileName = 'dart$_execExtension';
 
 /// User Home Path
-String get kUserHome =>
-    Platform.isWindows ? kEnvVars['USERPROFILE']! : kEnvVars['HOME']!;
+final kUserHome = Platform.isWindows ? _env['USERPROFILE']! : _env['HOME']!;
 
 /// FVM Home directory
-String get kFvmDirDefault => join(kUserHome, 'fvm');
+final kAppDirHome = join(kUserHome, 'fvm');
 
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
-String applicationConfigHome() => join(_configHome, kConfigFileName);
+final kAppConfigHome = join(_configHome, kConfigFileName);
 
 String get _configHome {
   if (Platform.isWindows) {
-    final appdata = ctx.environment['APPDATA'];
+    final appdata = _env['APPDATA'];
     if (appdata == null) {
       throw Exception('Environment variable %APPDATA% is not defined!');
     }
@@ -55,7 +55,7 @@ String get _configHome {
   }
 
   if (Platform.isLinux) {
-    final xdgConfigHome = ctx.environment['XDG_CONFIG_HOME'];
+    final xdgConfigHome = _env['XDG_CONFIG_HOME'];
     if (xdgConfigHome != null) {
       return xdgConfigHome;
     }

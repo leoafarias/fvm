@@ -77,7 +77,7 @@ class CacheService {
   }
 
   // Verifies that the cache version name matches the flutter version
-  Future<bool> _verifyVersionMatch(CacheFlutterVersion version) async {
+  bool _verifyVersionMatch(CacheFlutterVersion version) {
     // If its a channel return true
     if (version.isChannel) return true;
     // If sdkVersion is not available return true
@@ -103,7 +103,7 @@ class CacheService {
   Future<CacheIntegrity> verifyCacheIntegrity(
       CacheFlutterVersion version) async {
     final isExecutable = await _verifyIsExecutable(version);
-    final versionsMatch = await _verifyVersionMatch(version);
+    final versionsMatch = _verifyVersionMatch(version);
 
     if (!isExecutable) return CacheIntegrity.invalid;
     if (!versionsMatch) return CacheIntegrity.versionMismatch;
@@ -134,34 +134,25 @@ class CacheService {
 
   /// Returns a global [CacheFlutterVersion] if exists
   CacheFlutterVersion? getGlobal() {
-    if (ctx.globalCacheLink.existsSync()) {
-      // Get directory name
-      final version = basename(ctx.globalCacheLink.targetSync());
-      // Make sure its a valid version
-      final validVersion = FlutterVersion.parse(version);
-      // Verify version is cached
-      return CacheService.instance.getVersion(validVersion);
-    } else {
-      return null;
-    }
+    if (!ctx.globalCacheLink.existsSync()) return null;
+    // Get directory name
+    final version = basename(ctx.globalCacheLink.targetSync());
+    // Make sure its a valid version
+    final validVersion = FlutterVersion.parse(version);
+    // Verify version is cached
+    return CacheService.instance.getVersion(validVersion);
   }
 
   /// Checks if a cached [version] is configured as global
   bool isGlobal(CacheFlutterVersion version) {
-    if (ctx.globalCacheLink.existsSync()) {
-      return ctx.globalCacheLink.targetSync() == version.directory;
-    } else {
-      return false;
-    }
+    if (!ctx.globalCacheLink.existsSync()) return false;
+    return ctx.globalCacheLink.targetSync() == version.directory;
   }
 
   /// Returns a global version name if exists
-  String? getGlobalVersionSync() {
-    if (ctx.globalCacheLink.existsSync()) {
-      // Get directory name
-      return basename(ctx.globalCacheLink.targetSync());
-    } else {
-      return null;
-    }
+  String? getGlobalVersion() {
+    if (!ctx.globalCacheLink.existsSync()) return null;
+    // Get directory name
+    return basename(ctx.globalCacheLink.targetSync());
   }
 }

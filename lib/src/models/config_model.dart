@@ -1,10 +1,5 @@
 // Use just for reference, should not change
 
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:cli_config/cli_config.dart';
-
 enum ConfigVar {
   fvmPath('fvmPath', 'fvm_path'),
   fvmConfigPath('fvmConfigPath', 'fvm_config_path'),
@@ -69,34 +64,6 @@ class EnvConfig extends ConfigDto {
     this.fvmConfigPath,
   });
 
-  const EnvConfig.empty()
-      : fvmConfigPath = null,
-        super(
-          fvmPath: null,
-          gitCache: null,
-          flutterRepoUrl: null,
-          gitCachePath: null,
-        );
-
-  factory EnvConfig.fromConfig(Config config) {
-    final fvmPath = config.optionalPath(ConfigVar.fvmPath.configName);
-    final gitCachePath = config.optionalPath(ConfigVar.gitCachePath.configName);
-    final gitCache = config.optionalBool(ConfigVar.gitCache.configName);
-    final fvmConfigPath =
-        config.optionalPath(ConfigVar.fvmConfigPath.configName);
-    final flutterRepoUrl = config.optionalString(
-      ConfigVar.flutterRepo.configName,
-    );
-
-    return EnvConfig(
-      fvmPath: fvmPath?.path,
-      fvmConfigPath: fvmConfigPath?.path,
-      gitCache: gitCache,
-      gitCachePath: gitCachePath?.path,
-      flutterRepoUrl: flutterRepoUrl,
-    );
-  }
-
   factory EnvConfig.fromMap(Map<String, dynamic> map) {
     return EnvConfig(
       fvmConfigPath: map[ConfigVar.fvmConfigPath.name] as String?,
@@ -105,15 +72,6 @@ class EnvConfig extends ConfigDto {
       gitCachePath: map[ConfigVar.gitCache.name] as String?,
       flutterRepoUrl: map[ConfigVar.flutterRepo.name] as String?,
     );
-  }
-
-  static EnvConfig? fromFile(String path) {
-    final configFile = File(path);
-    if (configFile.existsSync()) {
-      final map = json.decode(configFile.readAsStringSync());
-      return EnvConfig.fromMap(map as Map<String, dynamic>);
-    }
-    return null;
   }
 
   Map<String, dynamic> toMap() {
@@ -126,22 +84,21 @@ class EnvConfig extends ConfigDto {
     };
   }
 
-  EnvConfig merge(EnvConfig config) {
+  EnvConfig merge(EnvConfig? config) {
     return copyWith(
-      fvmPath: config.fvmPath,
-      fvmConfigPath: config.fvmConfigPath,
-      gitCache: config.gitCache,
-      gitCachePath: config.gitCachePath,
-      flutterRepoUrl: config.flutterRepoUrl,
+      fvmPath: config?.fvmPath,
+      fvmConfigPath: config?.fvmConfigPath,
+      gitCache: config?.gitCache,
+      gitCachePath: config?.gitCachePath,
+      flutterRepoUrl: config?.flutterRepoUrl,
     );
   }
 
   EnvConfig copyWith({
-    String? fvmVersion,
     String? fvmPath,
     String? fvmConfigPath,
-    String? gitCachePath,
     bool? gitCache,
+    String? gitCachePath,
     String? flutterRepoUrl,
   }) {
     return EnvConfig(

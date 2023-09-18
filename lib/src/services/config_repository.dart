@@ -1,48 +1,47 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_config/cli_config.dart';
-import 'package:fvm/constants.dart';
-import 'package:path/path.dart';
 
 import '../../fvm.dart';
 
-const _defaultFlutterRepoUrl = 'https://github.com/flutter/flutter.git';
-
 /// Service to manage FVM Config
 class ConfigRepository {
-  ConfigRepository();
+  ConfigRepository._();
 
   static EnvConfig loadEnv({
     List<String>? commandLineArgs,
   }) {
-    final argsConfig = Config.fromConfigFileContents(
+    final config = Config.fromConfigFileContents(
       // Empty as not only on the environment
-      fileContents: '{}',
-      commandLineDefines: commandLineArgs ?? [],
+      commandLineDefines: [],
       environment: Platform.environment,
     );
 
-    // Empty as the default
-    final envConfig = EnvConfig.fromConfig(argsConfig);
-
-    final configPath = envConfig.fvmPath ?? applicationConfigHome();
-
-    final storedConfig = EnvConfig.fromFile(configPath) ?? EnvConfig.empty();
-
-    final fvmConfig = storedConfig.merge(envConfig);
-
-    // Set defaults
-    final fvmPath = fvmConfig.fvmPath ?? kFvmDirDefault;
-    final flutterRepoUrl = fvmConfig.flutterRepoUrl ?? _defaultFlutterRepoUrl;
-    final gitCache = fvmConfig.gitCache ?? true;
-    final gitCachePath = fvmConfig.gitCachePath ?? join(fvmPath, 'cache.git');
+    final fvmPath = config.optionalPath(ConfigVar.fvmPath.configName);
+    final gitCachePath = config.optionalPath(ConfigVar.gitCachePath.configName);
+    final gitCache = config.optionalBool(ConfigVar.gitCache.configName);
+    final fvmConfigPath =
+        config.optionalPath(ConfigVar.fvmConfigPath.configName);
+    final flutterRepoUrl = config.optionalString(
+      ConfigVar.flutterRepo.configName,
+    );
 
     return EnvConfig(
-      fvmPath: fvmPath,
-      fvmConfigPath: configPath,
+      fvmPath: fvmPath?.path,
+      fvmConfigPath: fvmConfigPath?.path,
       gitCache: gitCache,
-      gitCachePath: gitCachePath,
+      gitCachePath: gitCachePath?.path,
       flutterRepoUrl: flutterRepoUrl,
     );
+  }
+
+  static EnvConfig? fromFile(String path) {
+    final configFile = File(path);
+    if (configFile.existsSync()) {
+      final map = json.decode(configFile.readAsStringSync());
+      return EnvConfig.fromMap(map as Map<String, dynamic>);
+    }
+    return null;
   }
 }
