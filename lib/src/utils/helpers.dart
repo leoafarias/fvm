@@ -5,7 +5,7 @@ import 'package:fvm/src/utils/git_utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../constants.dart';
-import 'logger.dart';
+import '../services/logger_service.dart';
 
 /// Checks if [name] is a channel
 @Deprecated('kFlutterVChannels.contains directly')

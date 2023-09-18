@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/commands/global_command.dart';
 import 'package:fvm/src/commands/update_command.dart';
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:stack_trace/stack_trace.dart';

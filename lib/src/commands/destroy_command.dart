@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/io.dart';
 
 import '../utils/context.dart';
@@ -27,7 +27,7 @@ class DestroyCommand extends BaseCommand {
       final fvmDir = Directory(ctx.fvmDir);
       if (fvmDir.existsSync()) {
         fvmDir.deleteSync(recursive: true);
-        logger.complete(
+        logger.success(
           '$kPackageName Directory ${fvmDir.path} has been deleted',
         );
       }

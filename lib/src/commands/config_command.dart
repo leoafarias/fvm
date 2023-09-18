@@ -1,4 +1,4 @@
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 

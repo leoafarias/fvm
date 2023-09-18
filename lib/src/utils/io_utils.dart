@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/logger_service.dart';
 
 /// Returns true if [path] is a directory
 bool isDirectory(String path) {

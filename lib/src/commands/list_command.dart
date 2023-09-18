@@ -1,11 +1,12 @@
 import 'package:dart_console/dart_console.dart';
+import 'package:fvm/src/services/global_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
+import '../services/logger_service.dart';
 import '../utils/context.dart';
-import '../utils/logger.dart';
 import 'base_command.dart';
 
 /// List installed SDK Versions
@@ -24,7 +25,7 @@ class ListCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final cacheVersions = await CacheService.instance.getAllVersions();
+    final cacheVersions = await CacheService.fromContext.getAllVersions();
 
     if (cacheVersions.isEmpty) {
       logger
@@ -39,7 +40,7 @@ class ListCommand extends BaseCommand {
       ..spacer;
 
     final releases = await FlutterReleasesClient.get();
-    final globalVersion = CacheService.instance.getGlobal();
+    final globalVersion = GlobalVersionService.fromContext.getGlobal();
     final table = Table()
       ..insertColumn(header: 'SDK', alignment: TextAlignment.left)
       ..insertColumn(header: 'Channel', alignment: TextAlignment.left)

@@ -5,7 +5,7 @@ import 'package:fvm/src/services/releases_service/models/release.model.dart';
 import 'package:fvm/src/utils/http.dart';
 
 import '../../../exceptions.dart';
-import '../../utils/logger.dart';
+import '../logger_service.dart';
 import 'models/flutter_releases.model.dart';
 
 final _envVars = Platform.environment;

@@ -1,9 +1,10 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/services/global_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:fvm/src/utils/which.dart';
 import 'package:mason_logger/mason_logger.dart';
 
@@ -31,7 +32,8 @@ class GlobalCommand extends BaseCommand {
 
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
-      version = await cacheVersionSelector();
+      final versions = await CacheService.fromContext.getAllVersions();
+      version = await cacheVersionSelector(versions);
     }
 
     // Get first arg if it was not empty
@@ -41,19 +43,19 @@ class GlobalCommand extends BaseCommand {
     final cacheVersion = await ensureCacheWorkflow(version);
 
     // Sets version as the global
-    CacheService.instance.setGlobal(cacheVersion);
+    GlobalVersionService.fromContext.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter');
 
     // Get pinned version, for comparison on terminal
-    final pinnedVersion = await ProjectService.instance.findVersion();
+    final pinnedVersion = await ProjectService.fromContext.findVersion();
 
     CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
       final flutterPinnedVersion = FlutterVersion.parse(pinnedVersion);
-      pinnedCacheVersion = CacheService.instance.getVersion(
+      pinnedCacheVersion = CacheService.fromContext.getVersion(
         flutterPinnedVersion,
       );
     }

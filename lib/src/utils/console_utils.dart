@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
+import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/project_model.dart';
 
 import '../../exceptions.dart';
-import '../models/project_model.dart';
-import '../services/cache_service.dart';
-import 'logger.dart';
+import '../services/logger_service.dart';
 
 Table createTable() {
   return Table()
@@ -16,10 +16,9 @@ Table createTable() {
 }
 
 /// Allows to select from cached sdks.
-Future<String> cacheVersionSelector() async {
-  final cacheVersions = await CacheService.instance.getAllVersions();
+Future<String> cacheVersionSelector(List<CacheFlutterVersion> versions) async {
   // Return message if no cached versions
-  if (cacheVersions.isEmpty) {
+  if (versions.isEmpty) {
     throw const AppException(
       'No versions installed. Please install'
       ' a version. "fvm install {version}". ',
@@ -28,7 +27,7 @@ Future<String> cacheVersionSelector() async {
 
   /// Ask which version to select
 
-  final versionsList = cacheVersions.map((version) => version.name).toList();
+  final versionsList = versions.map((version) => version.name).toList();
 
   final choise = logger.select(
     'Select a version:',

@@ -14,13 +14,15 @@ final runner = TestFvmCommandRunner();
 void main() {
   groupWithContext('Channel Workflow:', () {
     final runner = TestFvmCommandRunner();
+    final projectService = getDependency<ProjectService>();
+    final cacheService = getDependency<CacheService>();
 
     testWithContext('Install Channel', () async {
       // await testContextWrapper(contextKey, () async {
       await runner.run('fvm install $channel');
 
       final cacheVersion =
-          CacheService.instance.getVersion(FlutterVersion.parse(channel));
+          cacheService.getVersion(FlutterVersion.parse(channel));
 
       final existingChannel = await getBranch(channel);
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -39,13 +41,13 @@ void main() {
         // Run foce to test within fvm
         await runner.run('fvm use $channel --force');
 
-        final project = await ProjectService.instance.findAncestor();
+        final project = await projectService.findAncestor();
 
         final linkExists = project.cacheVersionSymlink.existsSync();
 
         final targetBin = project.cacheVersionSymlink.targetSync();
 
-        final channelBin = CacheService.instance.getVersionCacheDir(channel);
+        final channelBin = cacheService.getVersionCacheDir(channel);
 
         expect(targetBin == channelBin.path, true);
         expect(linkExists, true);
@@ -81,7 +83,7 @@ void main() {
       final valid = FlutterVersion.parse(release);
       final existingRelease = await getTag(valid.name);
 
-      final cacheVersion = CacheService.instance.getVersion(valid);
+      final cacheVersion = cacheService.getVersion(valid);
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
@@ -94,7 +96,7 @@ void main() {
       await runner.run('fvm install $shortGitHash');
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersionShort = CacheService.instance.getVersion(validShort);
+      final cacheVersionShort = cacheService.getVersion(validShort);
 
       expect(
         cacheVersionShort != null,
@@ -106,12 +108,12 @@ void main() {
     testWithContext('Use Release', () async {
       final exitCode = await runner.run('fvm use $release --force');
 
-      final project = await ProjectService.instance.findAncestor();
+      final project = await projectService.findAncestor();
       final linkExists = project.cacheVersionSymlink.existsSync();
 
       final targetPath = project.cacheVersionSymlink.targetSync();
       final valid = FlutterVersion.parse(release);
-      final versionDir = CacheService.instance.getVersionCacheDir(valid.name);
+      final versionDir = cacheService.getVersionCacheDir(valid.name);
 
       expect(targetPath == versionDir.path, true);
       expect(linkExists, true);

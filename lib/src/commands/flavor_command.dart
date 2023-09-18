@@ -3,9 +3,9 @@ import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:io/io.dart';
 
+import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
-import '../utils/logger.dart';
 import 'base_command.dart';
 
 /// Configure different flutter version per flavor
@@ -39,7 +39,7 @@ class FlavorCommand extends BaseCommand {
   @override
   Future<int> run() async {
     String? flavor;
-    final project = await ProjectService.instance.findAncestor();
+    final project = await ProjectService.fromContext.findAncestor();
 
     // If project use check that is Flutter project
     if (project.hasConfig == false) {
@@ -83,7 +83,7 @@ class FlavorCommand extends BaseCommand {
     );
 
     logger
-      ..complete('Now using [$flavor] flavor.')
+      ..success('Now using [$flavor] flavor.')
       ..spacer;
 
     return ExitCode.success.code;

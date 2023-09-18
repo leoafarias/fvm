@@ -1,45 +1,54 @@
 import 'dart:async';
 
 import 'package:dart_console/dart_console.dart';
+import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:interact/interact.dart';
+import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
 /// Sets default logger mode
-FvmLogger get logger => ctx.get<FvmLogger>();
+LoggerService get logger => getDependency<LoggerService>();
 
-class FvmLogger extends Logger {
+class LoggerService extends ContextService {
+  final Logger _logger;
+
   /// Constructor
-  FvmLogger({
-    super.level,
-  });
-  void get divider {
-    info(
-      '------------------------------------------------------------',
-    );
-  }
+  LoggerService({
+    Level? level,
+    FVMContext? context,
+  })  : _logger = Logger(level: level ?? Level.info),
+        super(context);
 
-  void get spacer {
-    info('');
-  }
+  void get spacer => _logger.info('');
 
-  bool get isVerbose => logger.level == Level.verbose;
+  bool get isVerbose => _logger.level == Level.verbose;
 
-  void complete(String message) {
-    info('${Icons.success.green()} $message');
+  set level(Level level) => _logger.level = level;
+
+  Level get level => _logger.level;
+
+  void success(String message) {
+    _logger.info('${Icons.success.green()} $message');
   }
 
   void fail(String message) {
-    info('${Icons.failure.red()} $message');
+    _logger.info('${Icons.failure.red()} $message');
   }
 
-  @override
+  void warn(String message) => _logger.warn(message);
+  void info(String message) => _logger.info(message);
+  void err(String message) => _logger.err(message);
+  void detail(String message) => _logger.detail(message);
+
+  void write(String message) => _logger.write(message);
+  Progress progress(String message) => _logger.progress(message);
+
   bool confirm(String? message, {bool? defaultValue}) {
     // When running tests, always return true.
-    if (ctx.isTest) return true;
+    if (context.isTest) return true;
 
-    return Confirm(prompt: message ?? '', defaultValue: defaultValue)
+    return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
         .interact();
   }
 
@@ -47,7 +56,7 @@ class FvmLogger extends Logger {
     String? message, {
     required List<String> options,
   }) {
-    final selection = Select(
+    final selection = interact.Select(
       prompt: message ?? '',
       options: options,
       initialIndex: 0,
@@ -67,7 +76,7 @@ class FvmLogger extends Logger {
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
 
-    logger.write(table.toString());
+    _logger.write(table.toString());
   }
 
   void important(String message) {
@@ -81,7 +90,13 @@ class FvmLogger extends Logger {
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
 
-    logger.write(table.toString());
+    _logger.write(table.toString());
+  }
+
+  void get divider {
+    _logger.info(
+      '------------------------------------------------------------',
+    );
   }
 }
 

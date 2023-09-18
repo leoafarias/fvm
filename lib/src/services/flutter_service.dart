@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:git/git.dart';
@@ -13,10 +14,10 @@ import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
 
 /// Helpers and tools to interact with Flutter sdk
-class FlutterTools {
-  FlutterTools();
+class FlutterService extends ContextService {
+  FlutterService(super.context);
 
-  static FlutterTools get instance => ctx.get<FlutterTools>();
+  static FlutterService get fromContext => getDependency<FlutterService>();
 
   /// Upgrades a cached channel
   Future<void> runUpgrade(CacheFlutterVersion version) async {
@@ -43,7 +44,7 @@ class FlutterTools {
 
   /// Clones Flutter SDK from Version Number or Channel
   Future<void> install(FlutterVersion version) async {
-    final versionDir = CacheService.instance.getVersionCacheDir(version.name);
+    final versionDir = CacheService(context).getVersionCacheDir(version.name);
 
     // Check if its git commit
     String? channel;
@@ -62,7 +63,7 @@ class FlutterTools {
       }
     }
 
-    if (ctx.gitCache) {
+    if (context.gitCache) {
       await _updateFlutterRepoCache();
     }
 
@@ -75,13 +76,13 @@ class FlutterTools {
 
     final useMirrorParams = [
       '--reference',
-      ctx.gitCachePath,
+      context.gitCachePath,
     ];
 
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (ctx.gitCache) ...useMirrorParams,
+      if (context.gitCache) ...useMirrorParams,
     ];
 
     try {
@@ -90,14 +91,14 @@ class FlutterTools {
           'clone',
           '--progress',
           ...cloneArgs,
-          ctx.flutterRepoUrl,
+          context.flutterRepoUrl,
           versionDir.path,
         ],
-        echoOutput: ctx.isTest ? false : true,
+        echoOutput: context.isTest ? false : true,
       );
 
       final gitVersionDir =
-          CacheService.instance.getVersionCacheDir(version.name);
+          CacheService(context).getVersionCacheDir(version.name);
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
@@ -119,7 +120,7 @@ class FlutterTools {
         );
       }
     } on Exception {
-      CacheService.instance.remove(version);
+      CacheService(context).remove(version);
       rethrow;
     }
 
@@ -129,14 +130,14 @@ class FlutterTools {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> _updateFlutterRepoCache() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
 
     // If cache file does not exists create it
     if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+      final gitDir = await GitDir.fromExisting(context.gitCachePath);
       await gitDir.runCommand(['remote', 'update'], echoOutput: true);
     } else {
-      final gitCacheDir = Directory(ctx.gitCachePath);
+      final gitCacheDir = Directory(context.gitCachePath);
       // Ensure brand new directory
       if (gitCacheDir.existsSync()) {
         gitCacheDir.deleteSync(recursive: true);
@@ -144,7 +145,7 @@ class FlutterTools {
       gitCacheDir.createSync(recursive: true);
 
       await runGit(
-        ['clone', '--progress', ctx.flutterRepoUrl, gitCacheDir.path],
+        ['clone', '--progress', context.flutterRepoUrl, gitCacheDir.path],
         echoOutput: true,
       );
     }
@@ -173,12 +174,12 @@ class FlutterTools {
   }
 
   Future<List<String>> getTags() async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+    final gitDir = await GitDir.fromExisting(context.gitCachePath);
     final result = await gitDir.runCommand(['tag']);
     if (result.exitCode != 0) {
       return [];
@@ -190,12 +191,12 @@ class FlutterTools {
   }
 
   Future<String?> getReference(String ref) async {
-    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+    final gitDir = await GitDir.fromExisting(context.gitCachePath);
     try {
       final result = await gitDir.runCommand(
         ['rev-parse', '--short', '--verify', ref],

@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/global_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -17,9 +18,11 @@ final contextKey = ScopeKey<FVMContext>();
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
-typedef Generator = dynamic Function();
+typedef Generator = dynamic Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
+
+T getDependency<T>() => ctx.get<T>();
 
 class FVMContext {
   static FVMContext get main => FVMContext.create();
@@ -67,10 +70,12 @@ class FVMContext {
       isTest: isTest,
       flutterRepoUrl: flutterRepoUrl,
       generators: {
-        FvmLogger: () => FvmLogger(level: level),
-        ProjectService: () => ProjectService(),
-        FlutterTools: () => FlutterTools(),
-        CacheService: () => CacheService(),
+        LoggerService: (context) =>
+            LoggerService(level: level, context: context),
+        ProjectService: (context) => ProjectService(context),
+        FlutterService: (context) => FlutterService(context),
+        CacheService: (context) => CacheService(context),
+        GlobalVersionService: (context) => GlobalVersionService(context),
         ...overrides,
       },
     );
@@ -143,7 +148,7 @@ class FVMContext {
     }
     if (generators != null && generators!.containsKey(T)) {
       final generator = generators![T] as Generator;
-      _dependencies[T] = generator();
+      _dependencies[T] = generator(this);
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');
@@ -162,7 +167,7 @@ class FVMContext {
   }) {
     return FVMContext._(
       id: id ?? this.id,
-      gitCachePath: gitCachePath ?? this.gitCachePath,
+      gitCachePath: gitCachePath ?? _gitCachePath,
       configPath: configPath ?? this.configPath,
       fvmDir: fvmDir ?? this.fvmDir,
       workingDirectory: workingDirectory ?? this.workingDirectory,
@@ -180,7 +185,7 @@ class FVMContext {
     return copyWith(
       id: context?.id,
       configPath: context?.configPath,
-      gitCachePath: context?.gitCachePath,
+      gitCachePath: context?._gitCachePath,
       fvmDir: context?.fvmDir,
       workingDirectory: context?.workingDirectory,
       gitCacheEnabled: context?.gitCache,

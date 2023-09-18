@@ -1,4 +1,4 @@
-import 'package:fvm/src/utils/logger.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 int lastPercentage = 0;

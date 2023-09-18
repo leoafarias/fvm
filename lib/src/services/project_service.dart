@@ -1,19 +1,22 @@
 import 'dart:io';
 
-import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/config_model.dart';
+import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/version.g.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
 ///
 /// This class provides methods for interacting with local Flutter projects.
-class ProjectService {
-  ProjectService();
+class ProjectService extends ContextService {
+  ProjectService(super.context);
 
-  static ProjectService get instance => ctx.get<ProjectService>();
+  /// Gets project service from context
+  static ProjectService get fromContext => getDependency<ProjectService>();
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
@@ -28,10 +31,10 @@ class ProjectService {
     Directory? directory,
   }) async {
     // Get directory, defined root or current
-    directory ??= Directory(ctx.workingDirectory);
+    directory ??= Directory(context.workingDirectory);
 
     // Checks if the directory is root
-    final isRootDir = rootPrefix(directory.path) == directory.path;
+    final isRootDir = path.rootPrefix(directory.path) == directory.path;
 
     // Gets project from directory
     final project = Project.loadFromPath(directory.path);
@@ -40,7 +43,7 @@ class ProjectService {
     if (project.hasConfig) return project;
 
     // Return working directory if has reached root
-    if (isRootDir) return Project.loadFromPath(ctx.workingDirectory);
+    if (isRootDir) return Project.loadFromPath(context.workingDirectory);
 
     return await findAncestor(
       directory: directory.parent,

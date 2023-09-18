@@ -1,8 +1,8 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/logger.dart';
 
 Future<void> setupFlutterWorkflow({
   required CacheFlutterVersion version,
@@ -14,7 +14,7 @@ Future<void> setupFlutterWorkflow({
     ..info('Setting up Flutter SDK: ${version.name}')
     ..spacer;
 
-  await FlutterTools.instance.runSetup(version);
+  await FlutterService.fromContext.runSetup(version);
 }
 
 Future<void> resolveDependenciesWorkflow({
@@ -30,7 +30,7 @@ Future<void> resolveDependenciesWorkflow({
   final progress = logger.progress('Resolving dependencies...');
 
   try {
-    await FlutterTools.instance.runPubGet(version);
+    await FlutterService.fromContext.runPubGet(version);
 
     progress.complete('Dependencies resolved.');
 

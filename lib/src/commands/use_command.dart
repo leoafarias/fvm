@@ -6,8 +6,8 @@ import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:io/io.dart';
 
+import '../services/logger_service.dart';
 import '../utils/console_utils.dart';
-import '../utils/logger.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
@@ -59,14 +59,14 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = await ProjectService.instance.findAncestor();
+    final project = await ProjectService.fromContext.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion;
-
+      final versions = await CacheService.fromContext.getAllVersions();
       // If no config found, ask which version to select.
-      version ??= await cacheVersionSelector();
+      version ??= await cacheVersionSelector(versions);
     }
 
     // Get version from first arg

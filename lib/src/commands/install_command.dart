@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:io/io.dart';
 
@@ -39,9 +40,11 @@ class InstallCommand extends BaseCommand {
     final setup = boolArg('setup');
     String? version;
 
+    final projectService = getDependency<ProjectService>();
+
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = await ProjectService.instance.findVersion();
+      version = await projectService.findVersion();
 
       // If no config found is version throw error
       if (version == null) {

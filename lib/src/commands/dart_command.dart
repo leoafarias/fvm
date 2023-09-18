@@ -1,9 +1,9 @@
 import 'package:args/args.dart';
 import 'package:fvm/constants.dart';
 
+import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../utils/commands.dart';
-import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -20,7 +20,7 @@ class DartCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.instance.findVersion();
+    final version = await ProjectService.fromContext.findVersion();
     final args = argResults!.arguments;
 
     if (version != null) {

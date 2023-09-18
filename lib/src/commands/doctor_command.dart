@@ -9,7 +9,7 @@ import 'package:fvm/src/utils/which.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
-import '../utils/logger.dart';
+import '../services/logger_service.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
@@ -28,7 +28,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = await ProjectService.instance.findAncestor();
+    final project = await ProjectService.fromContext.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

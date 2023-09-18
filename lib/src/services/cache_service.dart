@@ -1,14 +1,15 @@
 import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/services/flutter_tools.dart';
+import 'package:fvm/src/services/base_service.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:io/io.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
-import '../utils/context.dart';
 
 enum CacheIntegrity {
   valid,
@@ -17,11 +18,11 @@ enum CacheIntegrity {
 }
 
 /// Service to interact with FVM Cache
-class CacheService {
-  CacheService();
-  static CacheService get instance => ctx.get<CacheService>();
+class CacheService extends ContextService {
+  CacheService(super.context);
 
   /// Directory where local versions are cached
+  static CacheService get fromContext => getDependency<CacheService>();
 
   /// Returns a [CacheFlutterVersion] from a [version]
   CacheFlutterVersion? getVersion(
@@ -38,7 +39,7 @@ class CacheService {
 
   /// Lists Installed Flutter SDK Version
   Future<List<CacheFlutterVersion>> getAllVersions() async {
-    final versionsDir = Directory(ctx.versionsCachePath);
+    final versionsDir = Directory(context.versionsCachePath);
     // Returns empty array if directory does not exist
     if (!await versionsDir.exists()) return [];
 
@@ -48,7 +49,7 @@ class CacheService {
 
     for (var version in versions) {
       if (isDirectory(version.path)) {
-        final name = basename(version.path);
+        final name = path.basename(version.path);
         final cacheVersion = getVersion(FlutterVersion.parse(name));
 
         if (cacheVersion != null) {
@@ -87,16 +88,11 @@ class CacheService {
 
   /// Caches version a [validVersion] and returns [CacheFlutterVersion]
   Future<void> cacheVersion(FlutterVersion validVersion) async {
-    await FlutterTools.instance.install(validVersion);
+    await FlutterService(context).install(validVersion);
   }
 
   Directory getVersionCacheDir(String version) {
-    return Directory(join(ctx.versionsCachePath, version));
-  }
-
-  /// Sets a [CacheFlutterVersion] as global
-  void setGlobal(CacheFlutterVersion version) {
-    createLink(ctx.globalCacheLink, Directory(version.directory));
+    return Directory(path.join(context.versionsCachePath, version));
   }
 
   // Verifies that cache can be executed and matches version
@@ -121,7 +117,7 @@ class CacheService {
       );
     }
     final versionDir = Directory(version.directory);
-    final newDir = CacheService.instance.getVersionCacheDir(sdkVersion);
+    final newDir = getVersionCacheDir(sdkVersion);
 
     if (newDir.existsSync()) {
       newDir.deleteSync(recursive: true);
@@ -130,29 +126,5 @@ class CacheService {
     if (versionDir.existsSync()) {
       versionDir.renameSync(newDir.path);
     }
-  }
-
-  /// Returns a global [CacheFlutterVersion] if exists
-  CacheFlutterVersion? getGlobal() {
-    if (!ctx.globalCacheLink.existsSync()) return null;
-    // Get directory name
-    final version = basename(ctx.globalCacheLink.targetSync());
-    // Make sure its a valid version
-    final validVersion = FlutterVersion.parse(version);
-    // Verify version is cached
-    return CacheService.instance.getVersion(validVersion);
-  }
-
-  /// Checks if a cached [version] is configured as global
-  bool isGlobal(CacheFlutterVersion version) {
-    if (!ctx.globalCacheLink.existsSync()) return false;
-    return ctx.globalCacheLink.targetSync() == version.directory;
-  }
-
-  /// Returns a global version name if exists
-  String? getGlobalVersion() {
-    if (!ctx.globalCacheLink.existsSync()) return null;
-    // Get directory name
-    return basename(ctx.globalCacheLink.targetSync());
   }
 }

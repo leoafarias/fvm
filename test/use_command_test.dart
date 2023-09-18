@@ -21,13 +21,13 @@ void main() {
               'fvm use $version --force --skip-setup',
             );
 
-            final project = await ProjectService.instance.findAncestor();
+            final project = await ProjectService.fromContext.findAncestor();
             final linkExists = project.cacheVersionSymlink.existsSync();
 
             final targetPath = project.cacheVersionSymlink.targetSync();
             final valid = FlutterVersion.parse(version);
             final versionDir =
-                CacheService.instance.getVersionCacheDir(valid.name);
+                CacheService.fromContext.getVersionCacheDir(valid.name);
 
             expect(targetPath == versionDir.path, true);
             expect(linkExists, true);

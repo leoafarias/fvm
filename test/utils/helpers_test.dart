@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/version.g.dart';
 import 'package:path/path.dart';
@@ -10,7 +9,7 @@ import 'package:yaml/yaml.dart';
 void main() {
   test('Does CLI version match', () async {
     final yaml = File(
-      join(ctx.workingDirectory, 'pubspec.yaml'),
+      join(Directory.current.path, 'pubspec.yaml'),
     ).readAsStringSync();
     final pubspec = loadYamlNode(yaml);
     expect(pubspec.value['version'], packageVersion);

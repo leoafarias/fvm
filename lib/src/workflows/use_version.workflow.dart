@@ -19,7 +19,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../utils/logger.dart';
+import '../services/logger_service.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow({
@@ -56,7 +56,7 @@ Future<void> useVersionWorkflow({
       if (flavor != null) flavor: version.name,
     };
 
-    final updatedProject = ProjectService.instance.update(
+    final updatedProject = ProjectService.fromContext.update(
       project,
       flavors: flavors,
       flutterSdkVersion: version.name,
@@ -80,11 +80,11 @@ Future<void> useVersionWorkflow({
   final versionLabel = cyan.wrap(version.printFriendlyName);
   // Different message if configured environment
   if (flavor != null) {
-    logger.complete(
+    logger.success(
       'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.',
     );
   } else {
-    logger.complete(
+    logger.success(
       'Project now uses Flutter SDK : $versionLabel',
     );
   }
@@ -148,7 +148,7 @@ Future<void> _checkGitignore(Project project) async {
       '\n# FVM Version Cache\n$pathToAdd\n',
       mode: FileMode.append,
     );
-    logger.complete('Added $pathToAdd to .gitignore');
+    logger.success('Added $pathToAdd to .gitignore');
   }
 }
 
@@ -203,7 +203,7 @@ void _updateFlutterSdkReference(Project project) {
         'Cannot update link of project without a Flutter SDK version');
   }
 
-  final sdkVersionDir = CacheService.instance.getVersionCacheDir(sdkVersion);
+  final sdkVersionDir = CacheService.fromContext.getVersionCacheDir(sdkVersion);
 
   // Clean up pre 3.0 links
   if (project.legacyCacheVersionSymlink.existsSync()) {
@@ -248,7 +248,7 @@ void _manageVscodeSettings(Project project) {
     );
   }
 
-  ProjectService.instance.update(
+  ProjectService.fromContext.update(
     project,
     manageVscode: manageVscode,
   );
@@ -303,7 +303,7 @@ void _manageVscodeSettings(Project project) {
 
   // Write updated settings back to settings.json
   if (isUpdated) {
-    logger.complete(
+    logger.success(
       'VScode $kPackageName settings has been updated. with correct exclude settings\n',
     );
   }

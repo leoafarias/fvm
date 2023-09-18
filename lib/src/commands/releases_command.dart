@@ -1,9 +1,9 @@
 import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/logger.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/releases_service/releases_client.dart';
