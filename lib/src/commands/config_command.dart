@@ -1,3 +1,4 @@
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
@@ -17,7 +18,7 @@ class ConfigCommand extends BaseCommand {
   ConfigCommand() {
     argParser
       ..addOption(
-        'cache-path',
+        ConfigVar.flutterRepo.name,
         help: 'Set the path which FVM will cache the version.'
             ' Priority over FVM_HOME.',
         abbr: 'c',
@@ -37,13 +38,13 @@ class ConfigCommand extends BaseCommand {
     var shouldSave = false;
 
     // Cache path was set
-    if (argResults!.wasParsed('cache-path')) {
+    if (wasParsed('cache-path')) {
       // ctx.settings!.cachePath = stringArg('cache-path');
       shouldSave = true;
     }
 
     // Git cache option has changed
-    if (argResults!.wasParsed('git-cache')) {
+    if (wasParsed('git-cache')) {
       // ctx.settings!.gitCacheDisabled = !boolArg('git-cache');
       shouldSave = true;
     }

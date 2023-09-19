@@ -21,15 +21,13 @@ class ConfigRepository {
     final fvmPath = config.optionalPath(ConfigVar.fvmPath.configName);
     final gitCachePath = config.optionalPath(ConfigVar.gitCachePath.configName);
     final gitCache = config.optionalBool(ConfigVar.gitCache.configName);
-    final fvmConfigPath =
-        config.optionalPath(ConfigVar.fvmConfigPath.configName);
+
     final flutterRepoUrl = config.optionalString(
       ConfigVar.flutterRepo.configName,
     );
 
     return EnvConfig(
       fvmPath: fvmPath?.path,
-      fvmConfigPath: fvmConfigPath?.path,
       gitCache: gitCache,
       gitCachePath: gitCachePath?.path,
       flutterRepoUrl: flutterRepoUrl,
@@ -43,5 +41,11 @@ class ConfigRepository {
       return EnvConfig.fromMap(map as Map<String, dynamic>);
     }
     return null;
+  }
+
+  static void save(EnvConfig config, String path) {
+    final configFile = File(path);
+    final map = config.toMap();
+    configFile.writeAsStringSync(json.encode(map));
   }
 }

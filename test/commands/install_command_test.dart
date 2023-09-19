@@ -1,8 +1,7 @@
-@Timeout(Duration(minutes: 5))
-import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -34,11 +33,11 @@ void main() {
 
           String? releaseChannel;
 
-          if (kFlutterChannels.contains(version)) {
+          if (isFlutterChannel(version)) {
             releaseChannel = version;
           } else {
-            if (cacheVersion!.releaseChannel != null) {
-              releaseChannel = cacheVersion.releaseChannel;
+            if (cacheVersion!.releaseFromChannel != null) {
+              releaseChannel = cacheVersion.releaseFromChannel;
             } else {
               final release = await FlutterReleasesClient.getReleaseFromVersion(
                 cacheVersion.version,

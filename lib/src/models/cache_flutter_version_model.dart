@@ -15,7 +15,7 @@ class CacheFlutterVersion extends FlutterVersion {
     required this.directory,
   }) : super(
           version.name,
-          releaseChannel: version.releaseChannel,
+          releaseFromChannel: version.releaseFromChannel,
           isChannel: version.isChannel,
           isRelease: version.isRelease,
           isCommit: version.isCommit,

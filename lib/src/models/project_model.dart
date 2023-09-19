@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/pubspec_repository.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -161,7 +160,10 @@ class Project {
     }
 
     final pubspecPath = join(path, 'pubspec.yaml');
-    final pubspec = PubspecRepository(pubspecPath).load();
+    final pubspecFile = File(pubspecPath);
+    final pubspec = pubspecFile.existsSync()
+        ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
+        : null;
 
     return Project(
       path: path,

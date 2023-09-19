@@ -54,9 +54,9 @@ class FlutterService extends ContextService {
       channel = version.name;
       // If its not a commit hash
     } else if (version.isRelease) {
-      if (version.releaseChannel != null) {
+      if (version.releaseFromChannel != null) {
         // Version name forces channel version
-        channel = version.releaseChannel;
+        channel = version.releaseFromChannel;
       } else {
         final release =
             await FlutterReleasesClient.getReleaseFromVersion(version.name);

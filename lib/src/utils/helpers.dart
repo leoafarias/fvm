@@ -8,8 +8,8 @@ import '../../constants.dart';
 import '../services/logger_service.dart';
 
 /// Checks if [name] is a channel
-@Deprecated('kFlutterVChannels.contains directly')
-bool checkIsChannel(String name) {
+
+bool isFlutterChannel(String name) {
   return kFlutterChannels.contains(name);
 }
 

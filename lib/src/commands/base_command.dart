@@ -7,6 +7,9 @@ abstract class BaseCommand extends Command<int> {
   @override
   String get invocation => 'fvm $name';
 
+  /// Checks if the command-line option named [name] was parsed.
+  bool wasParsed(String name) => argResults!.wasParsed(name);
+
   /// Gets the parsed command-line option named [name] as `bool`.
   bool boolArg(String name) => argResults![name] == true;
 
