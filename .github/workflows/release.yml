@@ -6,11 +6,11 @@ on:
     types: [published, released]
 
 jobs:
-  test:
-    uses: ./.github/workflows/common-tests.yml
+  common:
+    uses: ./.github/workflows/common.yml
   release:
     name: Release
-    needs: test
+    needs: common
     runs-on: ubuntu-latest
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
@@ -20,9 +20,6 @@ jobs:
       - uses: dart-lang/setup-dart@v1.5.0
 
       - run: dart pub get
-
-      - name: Run tests
-        uses: ./.github/workflows/common-tests.yml
 
       - name: Deploy Github
         run: dart pub run grinder pkg-github-all

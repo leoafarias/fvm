@@ -9,8 +9,11 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  common:
+    uses: ./.github/workflows/common.yml
   deploy:
     name: Deploy Homebrew
+    needs: common
     runs-on: ubuntu-latest
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
@@ -25,9 +28,6 @@ jobs:
 
       - name: Install dependencies
         run: dart pub get
-
-      - name: Run tests
-        uses: ./.github/workflows/common-tests.yml
 
       - name: Deploy to Homebrew
         run: dart pub run grinder pkg-homebrew-update

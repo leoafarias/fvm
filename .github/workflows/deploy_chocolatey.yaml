@@ -25,8 +25,5 @@ jobs:
       - name: Install dependencies
         run: dart pub get
 
-      - name: Run tests
-        uses: ./.github/workflows/common-tests.yml
-
       - name: Deploy Chocolatey (Windows)
         run: dart pub run grinder pkg-chocolatey-deploy

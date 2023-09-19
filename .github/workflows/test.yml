@@ -13,4 +13,4 @@ concurrency:
 
 jobs:
   test:
-    uses: ./.github/workflows/common-tests.yml
+    uses: ./.github/workflows/common.yml
