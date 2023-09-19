@@ -61,9 +61,6 @@ void main() {
         final flutterVersionResult =
             await runFlutter(['--version'], version: cacheVersion);
 
-        print(dartVersionResult.stdout);
-        print(flutterVersionResult.stdout);
-
         final flutterVersion =
             extractFlutterVersionOutput(flutterVersionResult.stdout);
         final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
@@ -78,6 +75,7 @@ void main() {
 
     testWithContext('On global version', () async {
       final versionNumber = "2.2.0";
+
       await runner.run('fvm install $versionNumber');
       final cacheVersion = CacheService.fromContext
           .getVersion(FlutterVersion.parse(versionNumber));
@@ -98,8 +96,9 @@ void main() {
         environment: updatedEnvironments,
       );
 
-      print(dartVersionResult.stdout);
-      print(flutterVersionResult.stdout);
+      final release = await FlutterReleasesClient.getReleaseFromVersion(
+        versionNumber,
+      );
 
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
@@ -107,7 +106,7 @@ void main() {
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
 
-      expect(flutterVersion.channel, channel);
+      expect(flutterVersion.channel, release!.channel.name);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
@@ -123,9 +122,6 @@ void main() {
           await execCmd('flutter', ['--version'], cacheVersion);
       final dartVersionResult =
           await execCmd('dart', ['--version'], cacheVersion);
-
-      print(dartVersionResult.stdout);
-      print(flutterVersionResult.stdout);
 
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
