@@ -29,9 +29,9 @@ jobs:
 
     steps:
       - name: Prepare environment
-        uses: ./.github/actions/prepare/action.yml
+        uses: ./.github/actions/prepare
         with:
           sdk-version: ${{ github.event.inputs.sdk-version }}
 
       - name: Tests
-        uses: ./.github/actions/test/action.yml
+        uses: ./.github/actions/test

@@ -100,9 +100,13 @@ void main() {
         versionNumber,
       );
 
+      final dartVersionOut = dartVersionResult.stdout.toString().isEmpty
+          ? dartVersionResult.stderr
+          : dartVersionResult.stdout;
+
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
-      final dartVersion = extractDartVersionOutput(dartVersionResult.stderr);
+      final dartVersion = extractDartVersionOutput(dartVersionOut);
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
 
@@ -117,6 +121,14 @@ void main() {
       await runner.run('fvm install $versionNumber');
       final cacheVersion = CacheService.fromContext
           .getVersion(FlutterVersion.parse(versionNumber));
+
+      final exitCode = await runner.run('fvm exec flutter --version');
+
+      expect(exitCode, ExitCode.success.code);
+
+      final usageExitCode = await runner.run('fvm exec');
+
+      expect(usageExitCode, ExitCode.usage.code);
 
       final flutterVersionResult =
           await execCmd('flutter', ['--version'], cacheVersion);
