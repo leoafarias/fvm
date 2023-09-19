@@ -139,6 +139,8 @@ String extractDartVersionOutput(String input) {
   if (match != null) {
     return match.group(1)!.trim(); // Returns the version number
   } else {
-    throw FormatException('No Dart version found in the input string.');
+    throw FormatException(
+      'No Dart version found in the input string. \n\n $input',
+    );
   }
 }

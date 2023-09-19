@@ -76,7 +76,7 @@ void main() {
     testWithContext('On global version', () async {
       final versionNumber = "2.2.0";
 
-      await runner.run('fvm install $versionNumber');
+      await runner.run('fvm install $versionNumber --setup');
       final cacheVersion = CacheService.fromContext
           .getVersion(FlutterVersion.parse(versionNumber));
 
@@ -102,7 +102,7 @@ void main() {
 
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
-      final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
+      final dartVersion = extractDartVersionOutput(dartVersionResult.stderr);
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
 
