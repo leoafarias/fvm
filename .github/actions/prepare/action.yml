@@ -10,7 +10,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: dart-lang/setup-dart@v1
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@v1
       with:
         sdk: ${{ inputs.sdk-version }}
 
@@ -27,7 +31,7 @@ runs:
       shell: bash
 
     - name: Build version
-      run: ./scripts/build_version.dart
+      run: grind build-version
       shell: bash
 
     - name: Analyze

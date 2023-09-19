@@ -112,7 +112,6 @@ Future<void> coverage() async {
   // Clean up coverage directory
   await coverageDir.delete(recursive: true);
 
-  await runAsync('dart', arguments: ['test', '--coverage=coverage']);
   await runAsync(
     'dart',
     arguments: [
