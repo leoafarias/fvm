@@ -53,12 +53,16 @@ class CacheFlutterVersion extends FlutterVersion {
   /// Gets Flutter SDK version from CacheVersion sync
   String? get flutterSdkVersion {
     final versionFile = File(join(directory, 'version'));
-    return versionFile.existsSync() ? versionFile.readAsStringSync() : null;
+    return versionFile.existsSync()
+        ? versionFile.readAsStringSync().trim()
+        : null;
   }
 
   String? get dartSdkVersion {
     final versionFile = File(join(_dartSdkCache, 'version'));
-    return versionFile.existsSync() ? versionFile.readAsStringSync() : null;
+    return versionFile.existsSync()
+        ? versionFile.readAsStringSync().trim()
+        : null;
   }
 
   /// Verifies that cacheVersion has been setup

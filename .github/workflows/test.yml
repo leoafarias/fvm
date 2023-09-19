@@ -1,6 +1,14 @@
 name: Test CLI
 
 on:
+  workflow_call:
+    inputs:
+      sdk-version:
+        description: "Dart SDK version"
+        type: string
+        required: false
+        default: "stable"
+
   pull_request:
     paths-ignore:
       - "website/**"
@@ -13,4 +21,17 @@ concurrency:
 
 jobs:
   test:
-    uses: ./.github/workflows/common.yml
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Prepare environment
+        uses: ./.github/actions/prepare/action.yml
+        with:
+          sdk-version: ${{ github.event.inputs.sdk-version }}
+
+      - name: Tests
+        uses: ./.github/actions/test/action.yml

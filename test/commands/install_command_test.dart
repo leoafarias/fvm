@@ -6,11 +6,11 @@ import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
-import 'testing_utils.dart';
+import '../testing_utils.dart';
 
 void main() {
   groupWithContext('Install workflow:', () {
-    final runner = TestFvmCommandRunner();
+    final runner = TestCommandRunner();
 
     const versionList = [
       'f4c74a6ec3',

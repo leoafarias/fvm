@@ -2,13 +2,12 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/context.dart';
 
 Future<void> setupFlutterWorkflow({
   required CacheFlutterVersion version,
 }) async {
   // Skip if its test
-  if (!version.notSetup || ctx.isTest) return;
+  if (!version.notSetup) return;
 
   logger
     ..info('Setting up Flutter SDK: ${version.name}')

@@ -22,7 +22,7 @@ class FlutterService extends ContextService {
   /// Upgrades a cached channel
   Future<void> runUpgrade(CacheFlutterVersion version) async {
     if (version.isChannel) {
-      await runFlutter(version, ['upgrade']);
+      await runFlutter(['upgrade'], version: version);
     } else {
       throw AppException('Can only upgrade Flutter Channels');
     }
@@ -30,15 +30,16 @@ class FlutterService extends ContextService {
 
   /// Runs triggers sdk setup/install
   Future<int> runSetup(CacheFlutterVersion version) async {
-    return runFlutter(version, ['doctor', '--version']);
+    final result = await runFlutter(['doctor', '--version'], version: version);
+    return result.exitCode;
   }
 
   /// Runs pub get
   Future<void> runPubGet(CacheFlutterVersion version) async {
     await runFlutter(
-      version,
       ['pub', 'get'],
-      showOutput: false,
+      version: version,
+      echoOutput: false,
     );
   }
 

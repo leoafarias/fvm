@@ -52,6 +52,10 @@ class LoggerService extends ContextService {
         .interact();
   }
 
+  String get stdout {
+    return logger.stdout;
+  }
+
   String select(
     String? message, {
     required List<String> options,

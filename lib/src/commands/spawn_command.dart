@@ -37,6 +37,7 @@ class SpawnCommand extends BaseCommand {
     // Runs flutter command with pinned version
     logger.info('Spawning version "$version"...');
 
-    return await runFlutter(cacheVersion, flutterArgs);
+    final results = await runFlutter(flutterArgs, version: cacheVersion);
+    return results.exitCode;
   }
 }

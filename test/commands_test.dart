@@ -9,11 +9,11 @@ import 'package:test/test.dart';
 
 import 'testing_utils.dart';
 
-final runner = TestFvmCommandRunner();
+final runner = TestCommandRunner();
 
 void main() {
   groupWithContext('Channel Workflow:', () {
-    final runner = TestFvmCommandRunner();
+    final runner = TestCommandRunner();
 
     testWithContext('Install Channel', () async {
       // await testContextWrapper(contextKey, () async {
@@ -37,7 +37,7 @@ void main() {
     testWithContext('Use Channel', () async {
       try {
         // Run foce to test within fvm
-        await runner.run('fvm use $channel --force');
+        await runner.run('fvm use $channel --force --skip-setup');
 
         final project = await ProjectService.fromContext.findAncestor();
 
@@ -104,7 +104,9 @@ void main() {
     });
 
     testWithContext('Use Release', () async {
-      final exitCode = await runner.run('fvm use $release --force');
+      final exitCode = await runner.run(
+        'fvm use $release --force --skip-setup',
+      );
 
       final project = await ProjectService.fromContext.findAncestor();
       final linkExists = project.cacheVersionSymlink.existsSync();
@@ -153,7 +155,7 @@ void main() {
 
       expect(
         await runner.run(
-          'fvm use $channel --flavor production',
+          'fvm use $channel --flavor production --skip-setup',
         ),
         ExitCode.success.code,
       );

@@ -1,0 +1,13 @@
+name: "Test Step"
+description: "Tests the project"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Generate git cache
+      run: ./bin/fvm.dart install master
+      shell: bash
+
+    - name: Run tests
+      run: dart test
+      shell: bash

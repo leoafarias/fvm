@@ -1,9 +1,9 @@
 import 'package:args/args.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
 
-import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
@@ -25,9 +25,11 @@ class FlutterCommand extends BaseCommand {
     final version = await ProjectService.fromContext.findVersion();
     final args = [...argResults!.arguments];
 
+    CacheFlutterVersion? cacheVersion;
+
     if (version != null) {
       // Will install version if not already installed
-      final cacheVersion = await ensureCacheWorkflow(version);
+      cacheVersion = await ensureCacheWorkflow(version);
 
       logger
         ..detail('$kPackageName: Running Flutter SDK from version $version')
@@ -47,13 +49,13 @@ class FlutterCommand extends BaseCommand {
         checkIfUpgradeCommand(args);
       }
       // Runs flutter command with pinned version
-      return runFlutter(cacheVersion, args);
     } else {
       logger
         ..detail('$kPackageName: Running Flutter SDK from PATH')
         ..detail('');
       // Running null will default to flutter version on paths
-      return runFlutterGlobal(args);
     }
+    final results = await runFlutter(args, version: cacheVersion);
+    return results.exitCode;
   }
 }

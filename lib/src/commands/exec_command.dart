@@ -1,9 +1,9 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 
 import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
@@ -37,20 +37,23 @@ class ExecCommand extends BaseCommand {
     final execArgs = [...argResults!.rest]..removeAt(0);
 
     // If no version is provided try to use global
-    if (version == null) return execCmd(cmd, execArgs, null);
+    CacheFlutterVersion? cacheVersion;
 
-    // Will install version if not already instaled
-    final cacheVersion = await ensureCacheWorkflow(version);
-
-    logger
-      ..info('$kPackageName: Running version: "$version"')
-      ..spacer;
+    if (version != null) {
+      // Will install version if not already instaled
+      cacheVersion = await ensureCacheWorkflow(version);
+      logger
+        ..info('$kPackageName: Running version: "$version"')
+        ..spacer;
+    }
 
     // Runs exec command with pinned version
-    return execCmd(
+    final results = await execCmd(
       cmd,
       execArgs,
       cacheVersion,
     );
+
+    return results.exitCode;
   }
 }

@@ -5,13 +5,13 @@ import 'package:fvm/src/services/project_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
-import 'testing_utils.dart';
+import '../testing_utils.dart';
 
 void main() {
   groupWithContext(
     'Use workflow:',
     () {
-      final runner = TestFvmCommandRunner();
+      final runner = TestCommandRunner();
 
       for (var version in kVersionList) {
         testWithContext(

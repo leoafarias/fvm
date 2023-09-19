@@ -1,30 +1,45 @@
 import 'dart:io';
 
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/utils/context.dart';
 
 Future<ProcessResult> runCommand(
   String command, {
+  List<String> args = const [],
+
   /// Listen for stdout and stderr
   String? workingDirectory,
   Map<String, String>? environment,
   bool throwOnError = true,
   bool echoOutput = false,
 }) async {
-  List<String> arguments = command.split(' ');
-  final processCommand = arguments.removeAt(0);
-
   logger
     ..detail('')
     ..detail('Running: $command')
     ..detail('');
 
+  if (!echoOutput || ctx.isTest) {
+    final processResult = await Process.run(
+      command,
+      args,
+      environment: environment,
+      runInShell: true,
+      workingDirectory: workingDirectory,
+    );
+
+    if (throwOnError) {
+      _throwIfProcessFailed(processResult, command, args);
+    }
+    return processResult;
+  }
+
   final process = await Process.start(
-    processCommand,
-    arguments,
+    command,
+    args,
     environment: environment,
     runInShell: true,
     workingDirectory: workingDirectory,
-    mode: echoOutput ? ProcessStartMode.inheritStdio : ProcessStartMode.normal,
+    mode: ProcessStartMode.inheritStdio,
   );
 
   final results = await Future.wait([
@@ -36,12 +51,12 @@ Future<ProcessResult> runCommand(
   final processResult = ProcessResult(
     process.pid,
     results[0] as int,
-    echoOutput ? null : results[1] as String,
-    echoOutput ? null : results[2] as String,
+    results[1] as String,
+    results[2] as String,
   );
 
   if (throwOnError) {
-    _throwIfProcessFailed(processResult, processCommand, arguments);
+    _throwIfProcessFailed(processResult, command, args);
   }
   return processResult;
 }

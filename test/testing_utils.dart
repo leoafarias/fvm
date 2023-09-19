@@ -20,8 +20,8 @@ import 'testing_helpers/prepare_test_environment.dart';
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
-class TestFvmCommandRunner {
-  TestFvmCommandRunner();
+class TestCommandRunner {
+  TestCommandRunner();
 
   Future<int> run(String command) async {
     final args = command.split(' ');
@@ -30,6 +30,33 @@ class TestFvmCommandRunner {
     final scope = Scope()..value(contextKey, ctx);
     return scope.run(() => FvmCommandRunner().run(args));
   }
+}
+
+Future<String> getStdout(String command) async {
+  final executable = command.split(' ').first;
+  // Executable is on something like ./bin/fvm.dart
+
+  // Which is the relactive to the Directory.current
+  // However the script will be executed from a test directory on ctx.workingDirectory
+  // This directory is most likely in the user home folder but could be anywhere
+  // So we need to get the relative path from the script to the current directory
+  // and then join it to the ctx.workingDirectory
+  final scriptPath = join(Directory.current.path, executable);
+  final relativePath = relative(scriptPath, from: ctx.workingDirectory);
+  final executablePath = join(ctx.workingDirectory, relativePath);
+
+  final arguments = command.split(' ').sublist(1);
+  final result = await Process.run(
+    executablePath,
+    arguments,
+    workingDirectory: ctx.workingDirectory,
+  );
+
+  if (result.exitCode != 0) {
+    throw Exception('Error executing command: ${result.stderr}');
+  }
+
+  return result.stdout.toString().trim();
 }
 
 const kVersionList = [

@@ -46,3 +46,4 @@ test/support_assets/dart_package/lib/src/version.dart
 .fvm/versions
 coverage/test
 .failed_tracker
+coverage/html
