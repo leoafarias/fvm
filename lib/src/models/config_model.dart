@@ -2,7 +2,6 @@
 
 enum ConfigVar {
   fvmPath('fvmPath', 'fvm_path'),
-  fvmConfigPath('fvmConfigPath', 'fvm_config_path'),
   gitCache('gitCache', 'git_cache'),
   gitCachePath('gitCachePath', 'git_cache_path'),
   flutterRepo('flutterRepo', 'flutter_repo');
@@ -41,10 +40,14 @@ abstract class ConfigDto {
   /// Flutter repo url
   final String? flutterRepoUrl;
 
+  /// FVM Version
+  final String? fvmVersion;
+
   /// Directory where FVM is stored
   final String? fvmPath;
 
   const ConfigDto({
+    required this.fvmVersion,
     required this.fvmPath,
     required this.gitCache,
     required this.gitCachePath,
@@ -53,20 +56,17 @@ abstract class ConfigDto {
 }
 
 class EnvConfig extends ConfigDto {
-  /// Path to the config
-  final String? fvmConfigPath;
-
   const EnvConfig({
+    super.fvmVersion,
     super.fvmPath,
     super.gitCache,
     super.flutterRepoUrl,
     super.gitCachePath,
-    this.fvmConfigPath,
   });
 
   factory EnvConfig.fromMap(Map<String, dynamic> map) {
     return EnvConfig(
-      fvmConfigPath: map[ConfigVar.fvmConfigPath.name] as String?,
+      fvmVersion: map['fvmVersion'] as String?,
       fvmPath: map[ConfigVar.fvmPath.name] as String?,
       gitCache: map[ConfigVar.gitCache.name] as bool?,
       gitCachePath: map[ConfigVar.gitCache.name] as String?,
@@ -76,7 +76,7 @@ class EnvConfig extends ConfigDto {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      if (fvmConfigPath != null) ConfigVar.fvmConfigPath.name: fvmConfigPath,
+      if (fvmVersion != null) 'fvmVersion': fvmVersion,
       if (fvmPath != null) ConfigVar.fvmPath.name: fvmPath,
       if (gitCache != null) ConfigVar.gitCache.name: gitCache,
       if (gitCachePath != null) ConfigVar.gitCachePath.name: gitCachePath,
@@ -86,8 +86,8 @@ class EnvConfig extends ConfigDto {
 
   EnvConfig merge(EnvConfig? config) {
     return copyWith(
+      fvmVersion: config?.fvmVersion,
       fvmPath: config?.fvmPath,
-      fvmConfigPath: config?.fvmConfigPath,
       gitCache: config?.gitCache,
       gitCachePath: config?.gitCachePath,
       flutterRepoUrl: config?.flutterRepoUrl,
@@ -95,15 +95,15 @@ class EnvConfig extends ConfigDto {
   }
 
   EnvConfig copyWith({
+    String? fvmVersion,
     String? fvmPath,
-    String? fvmConfigPath,
     bool? gitCache,
     String? gitCachePath,
     String? flutterRepoUrl,
   }) {
     return EnvConfig(
+      fvmVersion: fvmVersion ?? this.fvmVersion,
       fvmPath: fvmPath ?? this.fvmPath,
-      fvmConfigPath: fvmConfigPath ?? this.fvmConfigPath,
       gitCache: gitCache ?? this.gitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
@@ -115,9 +115,6 @@ class EnvConfig extends ConfigDto {
 class ProjectConfig extends ConfigDto {
   /// Flutter SDK version configured
   final String? flutterSdkVersion;
-
-  /// FVM Version
-  final String? fvmVersion;
 
   /// Flavors configured
   final Map<String, String>? flavors;
@@ -131,7 +128,7 @@ class ProjectConfig extends ConfigDto {
     super.gitCache,
     super.gitCachePath,
     super.flutterRepoUrl,
-    this.fvmVersion,
+    super.fvmVersion,
     this.flutterSdkVersion,
     this.flavors,
     this.manageVscode,
@@ -142,9 +139,9 @@ class ProjectConfig extends ConfigDto {
       : flutterSdkVersion = null,
         flavors = null,
         manageVscode = null,
-        fvmVersion = null,
         super(
           fvmPath: null,
+          fvmVersion: null,
           gitCache: null,
           gitCachePath: null,
           flutterRepoUrl: null,
@@ -153,11 +150,11 @@ class ProjectConfig extends ConfigDto {
   /// Returns ConfigDto from a map
   factory ProjectConfig.fromMap(Map<String, dynamic> map) {
     return ProjectConfig(
+      fvmVersion: map['fvmVersion'] as String?,
       flutterSdkVersion: map['flutterSdkVersion'] as String?,
       fvmPath: map[ConfigVar.fvmPath.name] as String?,
       gitCache: map[ConfigVar.gitCache.name] as bool?,
       flutterRepoUrl: map[ConfigVar.flutterRepo.name] as String?,
-      fvmVersion: map['fvmVersion'] as String?,
       manageVscode: map['manageVscode'] as bool?,
       gitCachePath: map[ConfigVar.gitCachePath.name] as String?,
       flavors: map['flavors'] != null

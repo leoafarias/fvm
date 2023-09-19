@@ -1,7 +1,7 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:io/io.dart';
@@ -74,7 +74,7 @@ class UseCommand extends BaseCommand {
 
     // Get valid flutter version. Force version if is to be pinned.
 
-    if (pinOption && kFlutterChannels.contains(version)) {
+    if (pinOption && isFlutterChannel(version)) {
       /// Cannot pin master channel
       if (version == 'master') {
         throw UsageException(

@@ -172,7 +172,9 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
     // Check version incase it as a releaseChannel i.e. 2.2.2@beta
     final isTag =
         await FlutterService.fromContext.isTag(flutterVersion.version);
-    if (isTag) return flutterVersion;
+    if (isTag) {
+      return flutterVersion;
+    }
   }
 
   if (flutterVersion.isCommit) {

@@ -26,18 +26,18 @@ void main() {
     expect(beta.name, 'beta');
     expect(channelWithVersion.name, '2.2.2@beta');
     expect(channelWithVersion.version, '2.2.2');
-    expect(channelWithVersion.releaseChannel, 'beta');
+    expect(channelWithVersion.releaseFromChannel, 'beta');
     expect(version.name, '2.2.0');
     expect(gitCommit.name, longCommit);
     expect(shortGitCommit.name, shortCommit);
 
     // Check if forces channel
-    expect(master.releaseChannel, null);
-    expect(beta.releaseChannel, null);
-    expect(channelWithVersion.releaseChannel, 'beta');
-    expect(version.releaseChannel, null);
-    expect(gitCommit.releaseChannel, null);
-    expect(shortGitCommit.releaseChannel, null);
+    expect(master.releaseFromChannel, null);
+    expect(beta.releaseFromChannel, null);
+    expect(channelWithVersion.releaseFromChannel, 'beta');
+    expect(version.releaseFromChannel, null);
+    expect(gitCommit.releaseFromChannel, null);
+    expect(shortGitCommit.releaseFromChannel, null);
 
     // Check if its master
     expect(master.isMaster, true);

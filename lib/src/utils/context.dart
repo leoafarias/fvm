@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/src/services/config_repository.dart';
@@ -39,10 +38,9 @@ class FVMContext {
     workingDirectory ??= Directory.current.path;
 
     // Check if env defined a config path
-    final configPath = config.fvmConfigPath ?? kAppConfigHome;
 
     // Load config from file in config path
-    final storedConfig = ConfigRepository.fromFile(configPath);
+    final storedConfig = ConfigRepository.fromFile(kAppConfigHome);
 
     // Merge config from file with env config
     config = config.merge(storedConfig);
@@ -54,15 +52,9 @@ class FVMContext {
     final gitCachePath = config.gitCachePath;
     final flutterRepoUrl = config.flutterRepoUrl ?? kDefaultFlutterRepo;
 
-    // Migrate old FVM settings
-    _deprecationWarnings(
-      fvmDir: fvmPath,
-      configPath: configPath,
-    );
-
     return FVMContext._(
       id: id ?? 'MAIN',
-      configPath: configPath,
+      configPath: kAppConfigHome,
       fvmDir: fvmPath,
       workingDirectory: workingDirectory,
       gitCache: gitCache,
@@ -197,58 +189,4 @@ class FVMContext {
 
   @override
   String toString() => id;
-}
-
-void _deprecationWarnings({
-  required String fvmDir,
-  required String configPath,
-}) {
-  _warnDeprecatedEnvVars();
-  final settingsFile = File(join(fvmDir, '.settings'));
-
-  if (!settingsFile.existsSync()) {
-    return;
-  }
-
-  final payload = settingsFile.readAsStringSync();
-  try {
-    final settings = jsonDecode(payload);
-
-    if (settings['cachePath'] != join(fvmDir, 'versions')) {
-      logger.confirm(
-        'You have a deprecated setting for cachePath in $settingsFile.'
-        'Make sure you update it. $kFvmDocsConfigUrl',
-      );
-    }
-  } catch (_) {
-    logger.warn('Could not parse legact settings file');
-  }
-
-  settingsFile.deleteSync(recursive: true);
-}
-
-// TODO: Removed on future version of the app
-// Deprecated on 3.0.0
-void _warnDeprecatedEnvVars() {
-  final flutterRoot = Platform.environment['FVM_GIT_CACHE'];
-  final fvmHome = Platform.environment['FVM_HOME'];
-  if (flutterRoot != null) {
-    logger.warn('FVM_GIT_CACHE environment variable is deprecated. ');
-  }
-
-  if (fvmHome != null) {
-    logger.warn('FVM_HOME environment variable is deprecated. ');
-  }
-
-  if (flutterRoot == null || fvmHome == null) {
-    return;
-  }
-
-//TODO: Check that this is correct
-
-  logger
-    ..spacer
-    ..info(
-      'Review the config page for updated information: $kFvmDocsConfigUrl',
-    );
 }

@@ -1,6 +1,5 @@
 import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/helpers.dart';
@@ -34,7 +33,7 @@ class ReleasesCommand extends BaseCommand {
 
     if (channelName != null) {
       logger.detail('Filtering by channel: $channelName');
-      if (!kFlutterChannels.contains(channelName)) {
+      if (!isFlutterChannel(channelName)) {
         throw UsageException('Invalid Channel name: $channelName', usage);
       }
     }

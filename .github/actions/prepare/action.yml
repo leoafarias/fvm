@@ -10,9 +10,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
     - name: Setup Dart
       uses: dart-lang/setup-dart@v1
       with:
@@ -26,8 +23,13 @@ runs:
         restore-keys: |
           ${{ runner.os }}-dart-
 
+    
+
     - name: Get dependencies
       run: dart pub get
+      shell: bash
+
+    - run: dart pub global activate grinder
       shell: bash
 
     - name: Build version
