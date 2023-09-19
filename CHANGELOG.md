@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.0-dev.1
+## 3.0.0-alpha.1
 
 - Implemented .gitignore notice to setup `fvm`
 - Configure vscode automatically
