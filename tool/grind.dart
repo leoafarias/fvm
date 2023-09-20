@@ -100,13 +100,8 @@ Future<void> test() async {
 }
 
 @Task('Gather coverage and generate report')
+@Depends(test)
 Future<void> coverage() async {
-  final coverageDir = Directory(
-    path.join(Directory.current.path, 'coverage'),
-  );
-  // Clean up coverage directory
-  await coverageDir.delete(recursive: true);
-
   await runAsync(
     'dart',
     arguments: [

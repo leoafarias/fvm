@@ -144,8 +144,8 @@ void main() {
       );
 
       expect(dartVersion, cacheVersion!.dartSdkVersion);
-      expect(flutterVersion.channel, release!.channelName,
-          reason: release.toMap().toString());
+      expect(flutterVersion.channel, release!.channel.name,
+          reason: release.channel.name);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
