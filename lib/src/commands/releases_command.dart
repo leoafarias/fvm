@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/services/releases_service/models/release.model.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -23,6 +24,8 @@ class ReleasesCommand extends BaseCommand {
       'channel',
       help: 'Filter by channel name',
       abbr: 'c',
+      allowed: ['stable', 'beta', 'dev', 'all'],
+      defaultsTo: 'stable',
     );
   }
 
@@ -30,13 +33,22 @@ class ReleasesCommand extends BaseCommand {
   Future<int> run() async {
     // Get channel name
     final channelName = stringArg('channel');
+    final allChannel = 'all';
 
     if (channelName != null) {
-      logger.detail('Filtering by channel: $channelName');
-      if (!isFlutterChannel(channelName)) {
+      if (!isFlutterChannel(channelName) && channelName != allChannel) {
         throw UsageException('Invalid Channel name: $channelName', usage);
       }
     }
+
+    bool shouldFilterRelease(Release release) {
+      if (channelName == allChannel) {
+        return false;
+      }
+      return release.channel.name != channelName;
+    }
+
+    logger.detail('Filtering by channel: $channelName');
 
     final releases = await FlutterReleasesClient.get();
 
@@ -58,7 +70,7 @@ class ReleasesCommand extends BaseCommand {
         channelLabel = '$channelLabel ${green.wrap(checkmark)}';
       }
 
-      if (channelName != null && release.channel.name != channelName) {
+      if (shouldFilterRelease(release)) {
         continue;
       }
       table.insertRow([
@@ -78,7 +90,7 @@ class ReleasesCommand extends BaseCommand {
       ..insertColumn(header: 'Release Date', alignment: TextAlignment.left);
 
     for (var release in releases.channels.toList) {
-      if (channelName != null && release.channel.name != channelName) {
+      if (shouldFilterRelease(release)) {
         continue;
       }
       channelsTable.insertRow([

@@ -34,7 +34,9 @@ jobs:
 
       - name: Run tests
         uses: ./.github/actions/test
-    
+        
+      - name: Collect coverage
+        run: grind coverage
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
