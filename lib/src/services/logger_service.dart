@@ -42,7 +42,16 @@ class LoggerService extends ContextService {
   void detail(String message) => _logger.detail(message);
 
   void write(String message) => _logger.write(message);
-  Progress progress(String message) => _logger.progress(message);
+  Progress progress(String message) {
+    final progress = _logger.progress(message);
+    if (isVerbose) {
+      // if verbose then cancel for other data been displayed and overlapping
+      progress.cancel();
+      // Replace for a normal log
+      logger.info(message);
+    }
+    return progress;
+  }
 
   bool confirm(String? message, {bool? defaultValue}) {
     // When running tests, always return true.

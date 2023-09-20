@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/src/services/base_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/parsers/git_clone_update_printer.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';
@@ -66,7 +68,7 @@ class FlutterService extends ContextService {
     }
 
     if (context.gitCache) {
-      await _updateFlutterRepoCache();
+      await _updateLocalReference();
     }
 
     final versionCloneParams = [
@@ -96,7 +98,7 @@ class FlutterService extends ContextService {
           context.flutterRepoUrl,
           versionDir.path,
         ],
-        echoOutput: context.isTest ? false : true,
+        echoOutput: context.isTest || !logger.isVerbose ? false : true,
       );
 
       final gitVersionDir =
@@ -131,13 +133,19 @@ class FlutterService extends ContextService {
 
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
-  Future<void> _updateFlutterRepoCache() async {
+  Future<void> _updateLocalReference() async {
     final isGitDir = await GitDir.isGitDir(context.gitCachePath);
 
     // If cache file does not exists create it
     if (isGitDir) {
       final gitDir = await GitDir.fromExisting(context.gitCachePath);
-      await gitDir.runCommand(['remote', 'update'], echoOutput: true);
+      logger.detail('Syncing local mirror...');
+
+      try {
+        await gitDir.runCommand(['pull', 'origin']);
+      } on ProcessException catch (e) {
+        logger.err(e.message);
+      }
     } else {
       final gitCacheDir = Directory(context.gitCachePath);
       // Ensure brand new directory
@@ -146,10 +154,21 @@ class FlutterService extends ContextService {
       }
       gitCacheDir.createSync(recursive: true);
 
-      await runGit(
+      logger.info('Creating local mirror...');
+
+      await runGitCloneUpdate(
         ['clone', '--progress', context.flutterRepoUrl, gitCacheDir.path],
-        echoOutput: true,
       );
+    }
+  }
+
+  // Ensures cache.dir exists and its up to date
+  Future<void> _ensureCacheDir() async {
+    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+
+    // If cache file does not exists create it
+    if (!isGitDir) {
+      await _updateLocalReference();
     }
   }
 
@@ -176,6 +195,7 @@ class FlutterService extends ContextService {
   }
 
   Future<List<String>> getTags() async {
+    await _ensureCacheDir();
     final isGitDir = await GitDir.isGitDir(context.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
@@ -193,6 +213,7 @@ class FlutterService extends ContextService {
   }
 
   Future<String?> getReference(String ref) async {
+    await _ensureCacheDir();
     final isGitDir = await GitDir.isGitDir(context.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');

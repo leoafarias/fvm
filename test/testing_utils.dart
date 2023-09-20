@@ -6,6 +6,7 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:git/git.dart';
@@ -206,4 +207,24 @@ void forceUpdateFlutterSdkVersionFile(
 ) {
   final sdkVersionFile = File(join(version.directory, 'version'));
   sdkVersionFile.writeAsStringSync(sdkVersion);
+}
+
+Future<void> getCommitCount() async {
+  final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+  final result = await gitDir.runCommand(
+    ['rev-list', '--count', 'HEAD..origin/master'],
+    echoOutput: true,
+  );
+  final commitCount = result.stdout.trim();
+  logger.info(commitCount);
+}
+
+Future<DateTime> getDateOfLastCommit() async {
+  final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+  final result = await gitDir.runCommand(
+    ['log', '-1', '--format=%cd', '--date=short'],
+  );
+  final lastCommitDate = result.stdout.trim();
+
+  return DateTime.parse(lastCommitDate);
 }

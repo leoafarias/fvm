@@ -50,12 +50,16 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     }
 
     if (validVersion.isCustom) {
-      exit(ExitCode.success.code);
+      throw AppException(
+        'Custom Flutter SDKs must be installed manually.',
+      );
     }
 
-    logger.info(
-      'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
-    );
+    if (!shouldInstall) {
+      logger.info(
+        'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
+      );
+    }
 
     final shouldInstallConfirmed = shouldInstall ||
         logger.confirm(
@@ -67,23 +71,24 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       exit(ExitCode.success.code);
     }
 
-    logger
-      ..info(
-          'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}')
-      ..spacer;
+    final progress = logger.progress(
+      'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
+    );
 
-    await CacheService.fromContext.cacheVersion(validVersion);
+    try {
+      await CacheService.fromContext.cacheVersion(validVersion);
+      progress.complete(
+        'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
+      );
+    } on Exception {
+      progress.fail('Failed to install ${validVersion.name}');
+      rethrow;
+    }
 
     final newCacheVersion = CacheService.fromContext.getVersion(validVersion);
     if (newCacheVersion == null) {
-      throw AppException('Could not cache version $validVersion');
+      throw AppException('Could not verify cache version $validVersion');
     }
-
-    logger
-      ..spacer
-      ..success(
-        'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
-      );
 
     return newCacheVersion;
   } on Exception {

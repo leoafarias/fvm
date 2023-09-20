@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
@@ -86,25 +87,37 @@ class DoctorCommand extends BaseCommand {
     final table = createTable()
       ..insertColumn(header: 'IDEs', alignment: TextAlignment.left)
       ..insertColumn(header: '', alignment: TextAlignment.left);
+
     table.insertRow(['VsCode']);
     // Check for .vscode directory
     final vscodeDir = Directory(join(project.path, '.vscode'));
     final settingsPath = join(vscodeDir.path, 'settings.json');
+    final settingsFile = File(settingsPath);
 
     if (vscodeDir.existsSync()) {
-      if (File(settingsPath).existsSync()) {
-        final settings = jsonDecode(File(settingsPath).readAsStringSync());
+      if (settingsFile.existsSync()) {
+        try {
+          final settings = jsonDecode(settingsFile.readAsStringSync());
 
-        final relativeSymlinkPath = relative(
-          project.cacheVersionSymlink.path,
-          from: project.path,
-        );
+          final relativeSymlinkPath = relative(
+            project.cacheVersionSymlink.path,
+            from: project.path,
+          );
 
-        final sdkPath = settings['dart.flutterSdkPath'];
+          final sdkPath = settings['dart.flutterSdkPath'];
 
-        table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
-        table.insertRow(
-            ['Matches pinned version:', sdkPath == relativeSymlinkPath]);
+          table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
+          table.insertRow(
+              ['Matches pinned version:', sdkPath == relativeSymlinkPath]);
+        } on FormatException {
+          logger
+            ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
+            ..err(
+                'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it');
+          throw AppException(
+            'Could not get vscode settings, please check settings.json',
+          );
+        }
       } else {
         table.insertRow(['VSCode', 'Found .vscode, but no settings.json']);
       }

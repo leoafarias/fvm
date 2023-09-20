@@ -273,10 +273,18 @@ void _manageVscodeSettings(Project project) {
 
   // Check if settings.json exists; if not, create it.
   if (vscodeSettingsFile.existsSync()) {
-    String contents = vscodeSettingsFile.readAsStringSync();
-    final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
-    if (sanitizedContent.isNotEmpty) {
-      currentSettings = json.decode(sanitizedContent);
+    try {
+      String contents = vscodeSettingsFile.readAsStringSync();
+      final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
+      if (sanitizedContent.isNotEmpty) {
+        currentSettings = json.decode(sanitizedContent);
+      }
+    } on FormatException {
+      logger.fail('Updating VSCode settings failed');
+
+      throw AppException(
+        'Error parsing Vscode settings.json \n Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+      );
     }
   } else {
     vscodeSettingsFile.create(recursive: true);
