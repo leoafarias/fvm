@@ -9,7 +9,7 @@ environment:
 
 executables:
   fvm: fvm
-  flutter-select: flutter_select
+  fvm-compile: compile
 
 dependencies:
   args: ^2.4.2
