@@ -101,6 +101,7 @@ Future<void> test() async {
 }
 
 @Task('Gather coverage and generate report')
+@Depends(test)
 Future<void> collectCoverage() async {
   await runAsync(
     'dart',

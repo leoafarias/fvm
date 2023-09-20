@@ -9,5 +9,5 @@ runs:
       shell: bash
 
     - name: Run tests
-      run: dart test --coverage=coverage
+      run: grind test collect-coverage
       shell: bash
