@@ -24,8 +24,6 @@ runs:
         restore-keys: |
           ${{ runner.os }}-dart-
 
-    
-
     - name: Get dependencies
       run: dart pub get
       shell: bash
@@ -34,7 +32,7 @@ runs:
       shell: bash
 
     - name: Build version
-      run: grind build-version
+      run: dart pub global run grinder:build-version
       shell: bash
 
     - name: Analyze

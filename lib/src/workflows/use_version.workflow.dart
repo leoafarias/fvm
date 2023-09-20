@@ -179,7 +179,10 @@ void _checkProjectVersionConstraints(
         ..info('This could cause unexpected behavior or issues.')
         ..spacer;
 
-      if (!logger.confirm('Would you like to proceed?')) {
+      if (!logger.confirm(
+        'Would you like to proceed?',
+        defaultValue: true,
+      )) {
         throw AppException(
           'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
         );

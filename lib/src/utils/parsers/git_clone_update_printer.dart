@@ -72,7 +72,9 @@ Future<void> runGitCloneUpdate(
   });
 
   final exitCode = await process.exitCode;
-  logger.success('Clone complete');
+  logger
+    ..spacer
+    ..success('Clone complete');
   if (exitCode != 0) {
     throw Exception('Git clone failed');
   }
