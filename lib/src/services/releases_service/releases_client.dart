@@ -45,6 +45,7 @@ class FlutterReleasesClient {
       if (_cacheReleasesRes != null && cache) {
         return Future.value(_cacheReleasesRes);
       }
+
       final response = await fetch(releasesUrl);
 
       _cacheReleasesRes = FlutterReleases.fromJson(response);

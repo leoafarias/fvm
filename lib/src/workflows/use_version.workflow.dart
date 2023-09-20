@@ -200,7 +200,8 @@ void _updateFlutterSdkReference(Project project) {
   final sdkVersion = project.pinnedVersion;
   if (sdkVersion == null) {
     throw AppException(
-        'Cannot update link of project without a Flutter SDK version');
+      'Cannot update link of project without a Flutter SDK version',
+    );
   }
 
   final sdkVersionDir = CacheService.fromContext.getVersionCacheDir(sdkVersion);

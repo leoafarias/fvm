@@ -110,6 +110,13 @@ void main() {
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
 
+      print(flutterVersionResult.stdout);
+
+      print(flutterVersion.channel);
+      print(flutterVersion.dartBuildVersion);
+      print(flutterVersion.flutterVersion);
+      print(flutterVersion.dartVersion);
+
       expect(flutterVersion.channel, release!.channel.name);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
