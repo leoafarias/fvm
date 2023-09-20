@@ -8,6 +8,8 @@ import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec2/pubspec2.dart';
 
+import '../test/testing_helpers/prepare_test_environment.dart';
+
 void main(List<String> args) {
   pkg.name.value = 'fvm';
   pkg.humanName.value = 'fvm';
@@ -94,13 +96,26 @@ Future<void> getReleases() async {
   file.writeAsStringSync(stringBuffer.toString());
 }
 
+@Task('Prepare test environment')
+Future<void> prepareTest() async {
+  final testDir = Directory(getTempTestDir());
+  if (testDir.existsSync()) {
+    testDir.deleteSync(recursive: true);
+  }
+}
+
 @Task('Test')
+@Depends(buildVersion, prepareTest)
 Future<void> test() async {
-  // Only run tests on test/commands/flutter_command_test.dart
+  runDartScript('bin/fvm.dart', arguments: ['install', '2.2.0']);
+
   await runAsync('dart', arguments: ['test', '--coverage=coverage']);
+  // Run collectCoverage within a grind task
+  await collectCoverage();
 }
 
 @Task('Gather coverage and generate report')
+@Depends(test)
 Future<void> collectCoverage() async {
   await runAsync('dart', arguments: ['pub', 'global', 'activate', 'coverage']);
   await runAsync(

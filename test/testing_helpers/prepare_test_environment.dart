@@ -6,7 +6,7 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
-String getTempTestDir(String contextId, [String path = '']) {
+String getTempTestDir([String? contextId = '', String path = '']) {
   return join(kUserHome, 'fvm-test', contextId, path);
 }
 

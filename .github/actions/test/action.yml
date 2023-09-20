@@ -9,5 +9,5 @@ runs:
       shell: bash
 
     - name: Run tests
-      run: grind test collect-coverage
+      run: grind test
       shell: bash
