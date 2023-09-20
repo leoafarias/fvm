@@ -32,6 +32,8 @@ jobs:
         with:
           sdk-version: ${{ github.event.inputs.sdk-version }}
 
+      - run: grind test
+
       - name: Run tests
         run: dart test --coverage=coverage
         shell: bash

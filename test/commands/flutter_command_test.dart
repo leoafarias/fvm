@@ -110,13 +110,6 @@ void main() {
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
 
-      print(flutterVersionResult.stdout);
-
-      print(flutterVersion.channel);
-      print(flutterVersion.dartBuildVersion);
-      print(flutterVersion.flutterVersion);
-      print(flutterVersion.dartVersion);
-
       expect(flutterVersion.channel, release!.channel.name);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
@@ -129,6 +122,8 @@ void main() {
       final cacheVersion = CacheService.fromContext
           .getVersion(FlutterVersion.parse(versionNumber));
 
+      expect(cacheVersion, isNotNull);
+
       final exitCode = await runner.run('fvm exec flutter --version');
 
       expect(exitCode, ExitCode.success.code);
@@ -137,10 +132,16 @@ void main() {
 
       expect(usageExitCode, ExitCode.usage.code);
 
-      final flutterVersionResult =
-          await execCmd('flutter', ['--version'], cacheVersion);
-      final dartVersionResult =
-          await execCmd('dart', ['--version'], cacheVersion);
+      final flutterVersionResult = await execCmd(
+        'flutter',
+        ['--version'],
+        cacheVersion,
+      );
+      final dartVersionResult = await execCmd(
+        'dart',
+        ['--version'],
+        cacheVersion,
+      );
 
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
@@ -149,6 +150,13 @@ void main() {
       final release = await FlutterReleasesClient.getReleaseFromVersion(
         versionNumber,
       );
+
+      print(flutterVersionResult.stdout);
+
+      print(flutterVersion.channel);
+      print(flutterVersion.dartBuildVersion);
+      print(flutterVersion.flutterVersion);
+      print(flutterVersion.dartVersion);
 
       expect(dartVersion, cacheVersion!.dartSdkVersion);
       expect(flutterVersion.channel, release!.channel.name,
