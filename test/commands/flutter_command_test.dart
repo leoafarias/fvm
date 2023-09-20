@@ -139,13 +139,13 @@ void main() {
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      expect(dartVersion, cacheVersion!.dartSdkVersion);
-
       final release = await FlutterReleasesClient.getReleaseFromVersion(
         versionNumber,
       );
 
-      expect(flutterVersion.channel, release!.channelName);
+      expect(dartVersion, cacheVersion!.dartSdkVersion);
+      expect(flutterVersion.channel, release!.channelName,
+          reason: release.toMap().toString());
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
