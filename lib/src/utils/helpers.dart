@@ -112,40 +112,53 @@ class FlutterVersionOutput {
 // Engine • revision a9d88a4d18
 // Tools • Dart 2.13.0
 FlutterVersionOutput extractFlutterVersionOutput(String content) {
+  final filteredContent = _extractFlutterInfoBlock(content);
   final flutterRegex = RegExp(r'Flutter (\S+)');
-  final channelRegex = RegExp(r'channel (\w+)');
+  final channelRegex = RegExp(r' channel (\w+)');
   final dartRegex = RegExp(r'Dart (\S+)');
   final dartBuildRegex = RegExp(r'Dart (\S+) \(build (\S+)\)');
 
-  final flutterMatch = flutterRegex.firstMatch(content);
-  final channelMatch = channelRegex.firstMatch(content);
-  final dartMatch = dartRegex.firstMatch(content);
-  final dartBuildMatch = dartBuildRegex.firstMatch(content);
+  final flutterMatch = flutterRegex.firstMatch(filteredContent);
+  final channelMatch = channelRegex.firstMatch(filteredContent);
+  final dartMatch = dartRegex.firstMatch(filteredContent);
+  final dartBuildMatch = dartBuildRegex.firstMatch(filteredContent);
 
   if (flutterMatch == null || dartMatch == null) {
     throw FormatException(
-        'Unable to parse Flutter or Dart version from the provided content.');
+      'Unable to parse Flutter or Dart version from the provided content.',
+    );
   }
 
   final dartVersion = dartMatch.group(1);
 
-  print('Content \n$content');
-  print('channel match');
-  print(channelMatch?.group(0));
+  final channel = channelMatch?.group(1);
 
-  print('\n Group 1 \n');
-  print(channelMatch?.group(1));
+  if (channel == null || !isFlutterChannel(channel)) {
+    throw FormatException(
+      'Unable to parse Flutter channel from the provided content.',
+    );
+  }
 
-  final output = FlutterVersionOutput(
+  return FlutterVersionOutput(
     flutterVersion: flutterMatch.group(1),
-    channel: channelMatch?.group(1),
+    channel: channel,
     dartVersion: dartVersion,
     dartBuildVersion: dartBuildMatch?.group(2) ?? dartVersion,
   );
+}
 
-  print('output');
-  print(output.toString());
-  return output;
+String _extractFlutterInfoBlock(String content) {
+  // This regex searches for the line that starts with 'Flutter' and captures all lines after it
+  // until it hits a line that doesn't follow the expected pattern.
+  final regex = RegExp(r'Flutter [\S\s]+?(?=\n[^\s]*\s+[^•]*$|$)');
+
+  final match = regex.firstMatch(content);
+
+  if (match != null) {
+    return match.group(0)!;
+  } else {
+    throw FormatException('Unable to extract the Flutter version block.');
+  }
 }
 
 String extractDartVersionOutput(String input) {

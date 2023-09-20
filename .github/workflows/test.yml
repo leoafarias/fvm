@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   test:
-    name: Initial test
+    name: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -32,11 +32,9 @@ jobs:
         with:
           sdk-version: ${{ github.event.inputs.sdk-version }}
 
-      - run: grind test
-
       - name: Run tests
-        run: dart test --coverage=coverage
-        shell: bash
+        uses: ./.github/actions/test
+        
 
       - name: Generate coverage reports
         run: grind coverage

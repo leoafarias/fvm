@@ -88,5 +88,114 @@ Tools • Dart 2.13.0''';
       expect(result.dartVersion, '2.13.0');
       expect(result.dartBuildVersion, '2.13.0');
     });
+
+    test('should correctly parse the EXAMPLE:4', () {
+      final content =
+          '''  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                     Dload  Upload   Total   Spent    Left  Speed
+    
+      0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+     27  203M   27 56.1M    0     0  61.8M      0  0:00:03 --:--:--  0:00:03 61.8M
+     88  203M   88  180M    0     0  94.9M      0  0:00:02  0:00:01  0:00:01 94.9M
+    100  203M  100  203M    0     0  95.9M      0  0:00:02  0:00:02 --:--:-- 96.0M
+    Resolving dependencies...
+    + _fe_analyzer_shared 58.0.0 (64.0.0 available)
+    + analyzer 5.10.0 (6.2.0 available)
+    + archive 3.3.2 (3.3.9 available)
+    + args 2.4.0 (2.4.2 available)
+    + async 2.11.0
+    + boolean_selector 2.1.1
+    + browser_launcher 1.1.1
+    + built_collection 5.1.1
+    + built_value 8.4.4 (8.6.2 available)
+    + checked_yaml 2.0.2 (2.0.3 available)
+    + clock 1.1.1
+    + collection 1.17.1 (1.18.0 available)
+    + completion 1.0.1
+    + convert 3.1.1
+    + coverage 1.6.3
+    + crypto 3.0.2 (3.0.3 available)
+    + csslib 0.17.2 (1.0.0 available)
+    + dds 2.7.10 (2.9.4 available)
+    + dds_service_extensions 1.3.3 (1.6.0 available)
+    + devtools_shared 2.23.0 (4.0.1 available)
+    + dwds 19.0.0 (21.0.0 available)
+    + fake_async 1.3.1
+    + file 6.1.4 (7.0.0 available)
+    + file_testing 3.0.0
+    + fixnum 1.1.0
+    + flutter_template_images 4.2.0 (4.2.1 available)
+    + frontend_server_client 3.2.0
+    + glob 2.1.1 (2.1.2 available)
+    + html 0.15.2 (0.15.4 available)
+    + http 0.13.5 (1.1.0 available)
+    + http_multi_server 3.2.1
+    + http_parser 4.0.2
+    + intl 0.18.0 (0.18.1 available)
+    + io 1.0.4
+    + js 0.6.7
+    + json_annotation 4.8.0 (4.8.1 available)
+    + json_rpc_2 3.0.2
+    + logging 1.1.1 (1.2.0 available)
+    + matcher 0.12.15 (0.12.16 available)
+    + meta 1.9.1 (1.10.0 available)
+    + mime 1.0.4
+    + multicast_dns 0.3.2+3 (0.3.2+4 available)
+    + mustache_template 2.0.0
+    + native_stack_traces 0.5.5 (0.5.6 available)
+    + node_preamble 2.0.2
+    + package_config 2.1.0
+    + path 1.8.3
+    + petitparser 5.3.0 (6.0.1 available)
+    + platform 3.1.0 (3.1.2 available)
+    + pool 1.5.1
+    + process 4.2.4 (5.0.0 available)
+    + pub_semver 2.1.3 (2.1.4 available)
+    + pubspec_parse 1.2.2 (1.2.3 available)
+    + shelf 1.4.0 (1.4.1 available)
+    + shelf_packages_handler 3.0.1 (3.0.2 available)
+    + shelf_proxy 1.0.2 (1.0.4 available)
+    + shelf_static 1.1.1 (1.1.2 available)
+    + shelf_web_socket 1.0.3 (1.0.4 available)
+    + source_map_stack_trace 2.1.1
+    + source_maps 0.10.12
+    + source_span 1.9.1 (1.10.0 available)
+    + sse 4.1.2
+    + stack_trace 1.11.0 (1.11.1 available)
+    + standard_message_codec 0.0.1+3 (0.0.1+4 available)
+    + stream_channel 2.1.1 (2.1.2 available)
+    + string_scanner 1.2.0
+    + sync_http 0.3.1
+    + term_glyph 1.2.1
+    + test 1.24.1 (1.24.6 available)
+    + test_api 0.5.1 (0.6.1 available)
+    + test_core 0.5.1 (0.5.6 available)
+    + typed_data 1.3.1 (1.3.2 available)
+    + unified_analytics 1.1.0 (4.0.0 available)
+    + usage 4.1.0 (4.1.1 available)
+    + uuid 3.0.7 (4.0.0 available)
+    + vm_service 11.3.0 (11.10.0 available)
+    + vm_snapshot_analysis 0.7.2 (0.7.6 available)
+    + watcher 1.0.2 (1.1.0 available)
+    + web_socket_channel 2.3.0 (2.4.0 available)
+    + webdriver 3.0.2
+    + webkit_inspection_protocol 1.2.0 (1.2.1 available)
+    + xml 6.2.2 (6.4.2 available)
+    + yaml 3.1.1 (3.1.2 available)
+    Changed 83 dependencies!
+    53 packages have newer versions incompatible with dependency constraints.
+    Try `dart pub outdated` for more information.
+    Flutter 3.10.5 • channel stable • https://github.com/flutter/flutter.git
+    Framework • revision 796c8ef792 (3 months ago) • 2023-06-13 15:51:02 -0700
+    Engine • revision 45f6e00911
+    Tools • Dart 3.0.5 • DevTools 2.23.1''';
+
+      final result = extractFlutterVersionOutput(content);
+
+      expect(result.flutterVersion, '3.10.5');
+      expect(result.channel, 'stable');
+      expect(result.dartVersion, '3.0.5');
+      expect(result.dartBuildVersion, '3.0.5');
+    });
   });
 }

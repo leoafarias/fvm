@@ -118,7 +118,7 @@ void main() {
     testWithContext('Exec command', () async {
       final versionNumber = "3.10.5";
 
-      await runner.run('fvm install $versionNumber');
+      await runner.run('fvm install $versionNumber --setup');
       final cacheVersion = CacheService.fromContext
           .getVersion(FlutterVersion.parse(versionNumber));
 
@@ -151,17 +151,11 @@ void main() {
         versionNumber,
       );
 
-      print('continue');
-      print(flutterVersionResult.stdout);
-
-      print(flutterVersion.channel);
-      print(flutterVersion.dartBuildVersion);
-      print(flutterVersion.flutterVersion);
-      print(flutterVersion.dartVersion);
-
       expect(dartVersion, cacheVersion!.dartSdkVersion);
-      expect(flutterVersion.channel, release!.channel.name,
-          reason: release.channel.name);
+      expect(
+        flutterVersion.channel,
+        release!.channel.name,
+      );
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });

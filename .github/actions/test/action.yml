@@ -9,5 +9,5 @@ runs:
       shell: bash
 
     - name: Run tests
-      run: dart test
+      run: dart test --coverage=coverage
       shell: bash
