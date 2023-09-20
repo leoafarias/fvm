@@ -1,4 +1,6 @@
+import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
@@ -18,18 +20,18 @@ class ConfigCommand extends BaseCommand {
   ConfigCommand() {
     argParser
       ..addOption(
-        ConfigVar.flutterRepo.name,
-        help: 'Set the path which FVM will cache the version.'
-            ' Priority over FVM_HOME.',
-        abbr: 'c',
+        ConfigVariable.flutterRepo.argName,
+        help: 'ADVANCED: Set Flutter repo url to clone from.',
       )
       ..addFlag(
-        'git-cache',
-        help: 'ADVANCED: Will cache a local version of'
-            ' Flutter repo for faster version install.',
-        abbr: 'g',
+        ConfigVariable.gitCache.argName,
+        help:
+            'Enable/Disable git cache globally, which is used for faster version installs. Defaults to true.',
         negatable: true,
-        defaultsTo: null,
+      )
+      ..addOption(
+        ConfigVariable.fvmPath.argName,
+        help: 'Set custom path where $kPackageName will cache versions.',
       );
   }
   @override
@@ -37,37 +39,51 @@ class ConfigCommand extends BaseCommand {
     // Flag if settings should be saved
     var shouldSave = false;
 
-    // Cache path was set
-    if (wasParsed('cache-path')) {
-      // ctx.settings!.cachePath = stringArg('cache-path');
+    EnvConfig current = ConfigRepository.load();
+
+    if (wasParsed(ConfigVariable.flutterRepo.argName)) {
+      final flutterRepo = stringArg(ConfigVariable.flutterRepo.argName);
+
+      logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
+      current = current.copyWith(flutterRepoUrl: flutterRepo);
       shouldSave = true;
     }
 
-    // Git cache option has changed
-    if (wasParsed('git-cache')) {
-      // ctx.settings!.gitCacheDisabled = !boolArg('git-cache');
+    if (wasParsed(ConfigVariable.gitCache.argName)) {
+      final gitCache = boolArg(ConfigVariable.gitCache.argName);
+      logger.info('Setting git cache to: ${yellow.wrap(gitCache.toString())}');
+      current = current.copyWith(gitCache: gitCache);
+      shouldSave = true;
+    }
+
+    if (wasParsed(ConfigVariable.fvmPath.argName)) {
+      final fvmPath = stringArg(ConfigVariable.fvmPath.argName);
+      logger.info('Setting fvm path to: ${yellow.wrap(fvmPath)}');
+      current = current.copyWith(fvmPath: fvmPath);
       shouldSave = true;
     }
 
     // Save
     if (shouldSave) {
+      logger.info('');
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        // await ctx.settings!.save();
+        ConfigRepository.save(current);
       } catch (error) {
         updateProgress.fail('Failed to save settings');
-        return ExitCode.config.code;
+        rethrow;
       }
       updateProgress.complete('Settings saved.');
     } else {
+      // How do I scape a file.path?
+
       logger
-        ..info('')
-        ..info('FVM Settings:')
+        ..info('FVM Configuration:')
         ..info('Located at ${ctx.configPath}')
         ..info('');
 
-      final options = {};
+      final options = current.toMap();
 
       if (options.keys.isEmpty) {
         logger.info('No settings have been configured.');

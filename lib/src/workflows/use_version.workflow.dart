@@ -8,7 +8,6 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
@@ -137,18 +136,19 @@ Future<void> _checkGitignore(Project project) async {
       'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
     );
 
-  if (ctx.isTest ||
-      logger.confirm(
-        'Would you like to do that now?',
-        defaultValue: true,
-      )) {
+  if (logger.confirm(
+    'Would you like to do that now?',
+    defaultValue: true,
+  )) {
     // If pathToAdd not found, append it to the file
 
     ignoreFile.writeAsStringSync(
       '\n# FVM Version Cache\n$pathToAdd\n',
       mode: FileMode.append,
     );
-    logger.success('Added $pathToAdd to .gitignore');
+    logger
+      ..success('Added $pathToAdd to .gitignore')
+      ..spacer;
   }
 }
 

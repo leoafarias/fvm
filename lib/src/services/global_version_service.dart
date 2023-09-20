@@ -12,7 +12,7 @@ class GlobalVersionService extends ContextService {
   const GlobalVersionService(super.context);
 
   static GlobalVersionService get fromContext =>
-      getDependency<GlobalVersionService>();
+      getProvider<GlobalVersionService>();
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {

@@ -42,17 +42,11 @@ Future<ProcessResult> runCommand(
     mode: ProcessStartMode.inheritStdio,
   );
 
-  final results = await Future.wait([
-    process.exitCode,
-    process.stdout.transform(const SystemEncoding().decoder).join(),
-    process.stderr.transform(const SystemEncoding().decoder).join(),
-  ]);
-
   final processResult = ProcessResult(
     process.pid,
-    results[0] as int,
-    results[1] as String,
-    results[2] as String,
+    await process.exitCode,
+    null,
+    null,
   );
 
   if (throwOnError) {

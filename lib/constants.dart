@@ -8,7 +8,6 @@ const kDescription =
 
 /// Project directory for fvm
 const kFvmDirName = '.fvm';
-const kConfigFileName = '.fvm';
 
 const kFvmDocsUrl = 'https://fvm.app';
 const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
@@ -39,7 +38,7 @@ final kAppDirHome = join(kUserHome, 'fvm');
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
-final kAppConfigHome = join(_configHome, kConfigFileName);
+final kAppConfigHome = join(_configHome, kPackageName, kFvmConfigFileName);
 
 String get _configHome {
   if (Platform.isWindows) {

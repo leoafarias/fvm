@@ -21,7 +21,7 @@ void main() {
               'fvm use $version --force --skip-setup',
             );
 
-            final project = await ProjectService.fromContext.findAncestor();
+            final project = ProjectService.fromContext.findAncestor();
             final linkExists = project.cacheVersionSymlink.existsSync();
 
             final targetPath = project.cacheVersionSymlink.targetSync();

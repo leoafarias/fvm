@@ -50,13 +50,13 @@ void main() {
         reason: 'Version should not have dart sdk version',
       );
 
-      var project = await ProjectService.fromContext.findAncestor();
+      var project = ProjectService.fromContext.findAncestor();
 
       expect(project.pinnedVersion, isNull);
 
       await runner.run('fvm use $channel --skip-setup');
 
-      project = await ProjectService.fromContext.findAncestor();
+      project = ProjectService.fromContext.findAncestor();
 
       cacheVersion = await getCacheVersion();
 

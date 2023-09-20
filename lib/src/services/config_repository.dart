@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:cli_config/cli_config.dart';
+import 'package:fvm/constants.dart';
 
 import '../../fvm.dart';
 
@@ -9,43 +9,63 @@ import '../../fvm.dart';
 class ConfigRepository {
   ConfigRepository._();
 
-  static EnvConfig loadEnv({
-    List<String>? commandLineArgs,
-  }) {
-    final config = Config.fromConfigFileContents(
-      // Empty as not only on the environment
-      commandLineDefines: [],
-      environment: Platform.environment,
-    );
+  static File get _configFile => File(kAppConfigHome);
 
-    final fvmPath = config.optionalPath(ConfigVar.fvmPath.configName);
-    final gitCachePath = config.optionalPath(ConfigVar.gitCachePath.configName);
-    final gitCache = config.optionalBool(ConfigVar.gitCache.configName);
+  static EnvConfig load() {
+    final fileConfig = _fromFile();
 
-    final flutterRepoUrl = config.optionalString(
-      ConfigVar.flutterRepo.configName,
-    );
+    final envConfig = _fromEnv();
 
-    return EnvConfig(
-      fvmPath: fvmPath?.path,
-      gitCache: gitCache,
-      gitCachePath: gitCachePath?.path,
-      flutterRepoUrl: flutterRepoUrl,
-    );
+    return fileConfig.merge(envConfig);
   }
 
-  static EnvConfig? fromFile(String path) {
-    final configFile = File(path);
-    if (configFile.existsSync()) {
-      final map = json.decode(configFile.readAsStringSync());
+  static void save(
+    EnvConfig config,
+  ) {
+    final currentConfig = load();
+    final mergedConfig = currentConfig.merge(config);
+
+    if (!_configFile.existsSync()) {
+      _configFile.createSync(recursive: true);
+    }
+
+    final configMap = mergedConfig.toMap();
+    _configFile.writeAsStringSync(json.encode(configMap));
+  }
+
+  static EnvConfig _fromFile() {
+    if (_configFile.existsSync()) {
+      final map = json.decode(_configFile.readAsStringSync());
       return EnvConfig.fromMap(map as Map<String, dynamic>);
     }
-    return null;
+    return EnvConfig();
   }
 
-  static void save(EnvConfig config, String path) {
-    final configFile = File(path);
-    final map = config.toMap();
-    configFile.writeAsStringSync(json.encode(map));
+  static EnvConfig _fromEnv() {
+    final environments = Platform.environment;
+
+    EnvConfig envConfig = EnvConfig();
+
+    for (final variable in ConfigVariable.values) {
+      final value = environments[variable.envName];
+      if (value == null) continue;
+
+      switch (variable) {
+        case ConfigVariable.fvmPath:
+          envConfig = envConfig.copyWith(fvmPath: value);
+          break;
+        case ConfigVariable.gitCache:
+          envConfig = envConfig.copyWith(gitCache: value == 'true');
+          break;
+        case ConfigVariable.gitCachePath:
+          envConfig = envConfig.copyWith(gitCachePath: value);
+          break;
+        case ConfigVariable.flutterRepo:
+          envConfig = envConfig.copyWith(flutterRepoUrl: value);
+          break;
+      }
+    }
+
+    return envConfig;
   }
 }

@@ -28,7 +28,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = await ProjectService.fromContext.findAncestor();
+    final project = ProjectService.fromContext.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

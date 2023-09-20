@@ -41,7 +41,7 @@ class InstallCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = await ProjectService.fromContext.findVersion();
+      version = ProjectService.fromContext.findVersion();
 
       // If no config found is version throw error
       if (version == null) {

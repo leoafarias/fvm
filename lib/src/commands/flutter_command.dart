@@ -22,7 +22,7 @@ class FlutterCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.fromContext.findVersion();
+    final version = ProjectService.fromContext.findVersion();
     final args = [...argResults!.arguments];
 
     CacheFlutterVersion? cacheVersion;

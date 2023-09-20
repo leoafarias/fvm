@@ -20,7 +20,7 @@ void main() {
       () async {
         await runner.run('fvm use $channel');
 
-        final project = await ProjectService.fromContext.findAncestor();
+        final project = ProjectService.fromContext.findAncestor();
         final cacheVersion = CacheService.fromContext.getVersion(
           FlutterVersion.parse(channel),
         );

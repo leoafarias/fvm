@@ -138,7 +138,7 @@ void groupWithContext(
       );
       final testContext = FVMContext.create(
         id: contextId,
-        config: config,
+        configOverrides: config,
         workingDirectory: getTempTestDir(contextId, 'flutter_app'),
         isTest: true,
       );

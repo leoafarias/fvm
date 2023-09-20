@@ -8,7 +8,7 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
 /// Sets default logger mode
-LoggerService get logger => getDependency<LoggerService>();
+LoggerService get logger => getProvider<LoggerService>();
 
 class LoggerService extends ContextService {
   final Logger _logger;

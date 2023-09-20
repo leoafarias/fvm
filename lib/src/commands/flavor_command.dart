@@ -39,7 +39,7 @@ class FlavorCommand extends BaseCommand {
   @override
   Future<int> run() async {
     String? flavor;
-    final project = await ProjectService.fromContext.findAncestor();
+    final project = ProjectService.fromContext.findAncestor();
 
     // If project use check that is Flutter project
     if (project.hasConfig == false) {

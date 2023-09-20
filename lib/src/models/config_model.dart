@@ -1,12 +1,14 @@
 // Use just for reference, should not change
 
-enum ConfigVar {
+import 'dart:convert';
+
+enum ConfigVariable {
   fvmPath('fvmPath', 'fvm_path'),
   gitCache('gitCache', 'git_cache'),
   gitCachePath('gitCachePath', 'git_cache_path'),
   flutterRepo('flutterRepo', 'flutter_repo');
 
-  const ConfigVar(
+  const ConfigVariable(
     this.name,
     this.configName,
   );
@@ -26,8 +28,8 @@ enum ConfigVar {
 
   String get argName => configName.replaceAll('_', '-');
 
-  factory ConfigVar.fromName(String name) {
-    return ConfigVar.values.firstWhere((element) => element.name == name);
+  factory ConfigVariable.fromName(String name) {
+    return ConfigVariable.values.firstWhere((element) => element.name == name);
   }
 }
 
@@ -67,20 +69,21 @@ class EnvConfig extends ConfigDto {
   factory EnvConfig.fromMap(Map<String, dynamic> map) {
     return EnvConfig(
       fvmVersion: map['fvmVersion'] as String?,
-      fvmPath: map[ConfigVar.fvmPath.name] as String?,
-      gitCache: map[ConfigVar.gitCache.name] as bool?,
-      gitCachePath: map[ConfigVar.gitCache.name] as String?,
-      flutterRepoUrl: map[ConfigVar.flutterRepo.name] as String?,
+      fvmPath: map[ConfigVariable.fvmPath.name] as String?,
+      gitCache: map[ConfigVariable.gitCache.name] as bool?,
+      gitCachePath: map[ConfigVariable.gitCachePath.name] as String?,
+      flutterRepoUrl: map[ConfigVariable.flutterRepo.name] as String?,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       if (fvmVersion != null) 'fvmVersion': fvmVersion,
-      if (fvmPath != null) ConfigVar.fvmPath.name: fvmPath,
-      if (gitCache != null) ConfigVar.gitCache.name: gitCache,
-      if (gitCachePath != null) ConfigVar.gitCachePath.name: gitCachePath,
-      if (flutterRepoUrl != null) ConfigVar.flutterRepo.name: flutterRepoUrl,
+      if (fvmPath != null) ConfigVariable.fvmPath.name: fvmPath,
+      if (gitCache != null) ConfigVariable.gitCache.name: gitCache,
+      if (gitCachePath != null) ConfigVariable.gitCachePath.name: gitCachePath,
+      if (flutterRepoUrl != null)
+        ConfigVariable.flutterRepo.name: flutterRepoUrl,
     };
   }
 
@@ -152,16 +155,20 @@ class ProjectConfig extends ConfigDto {
     return ProjectConfig(
       fvmVersion: map['fvmVersion'] as String?,
       flutterSdkVersion: map['flutterSdkVersion'] as String?,
-      fvmPath: map[ConfigVar.fvmPath.name] as String?,
-      gitCache: map[ConfigVar.gitCache.name] as bool?,
-      flutterRepoUrl: map[ConfigVar.flutterRepo.name] as String?,
+      fvmPath: map[ConfigVariable.fvmPath.name] as String?,
+      gitCache: map[ConfigVariable.gitCache.name] as bool?,
+      flutterRepoUrl: map[ConfigVariable.flutterRepo.name] as String?,
       manageVscode: map['manageVscode'] as bool?,
-      gitCachePath: map[ConfigVar.gitCachePath.name] as String?,
+      gitCachePath: map[ConfigVariable.gitCachePath.name] as String?,
       flavors: map['flavors'] != null
           ? Map<String, String>.from(map['flavors'] as Map)
           : null,
     );
   }
+
+  /// Returns ConfigDto from a json string
+  factory ProjectConfig.fromJson(String source) =>
+      ProjectConfig.fromMap(json.decode(source) as Map<String, dynamic>);
 
   /// It checks each property for null prior to adding it to the map.
   /// This is to ensure the returned map doesn't contain any null values.
@@ -171,14 +178,18 @@ class ProjectConfig extends ConfigDto {
     return <String, dynamic>{
       if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
       if (fvmVersion != null) 'fvmVersion': fvmVersion,
-      if (fvmPath != null) ConfigVar.fvmPath.name: fvmPath,
-      if (gitCache != null) ConfigVar.gitCache.name: gitCache,
-      if (gitCachePath != null) ConfigVar.gitCachePath.name: gitCachePath,
-      if (flutterRepoUrl != null) ConfigVar.flutterRepo.name: flutterRepoUrl,
+      if (fvmPath != null) ConfigVariable.fvmPath.name: fvmPath,
+      if (gitCache != null) ConfigVariable.gitCache.name: gitCache,
+      if (gitCachePath != null) ConfigVariable.gitCachePath.name: gitCachePath,
+      if (flutterRepoUrl != null)
+        ConfigVariable.flutterRepo.name: flutterRepoUrl,
       if (manageVscode != null) 'manageVscode': manageVscode,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }
+
+  /// toJson
+  String toJson() => json.encode(toMap());
 
   ProjectConfig merge(ProjectConfig config) {
     return copyWith(

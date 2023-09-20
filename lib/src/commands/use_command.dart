@@ -59,7 +59,7 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = await ProjectService.fromContext.findAncestor();
+    final project = ProjectService.fromContext.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
@@ -98,7 +98,7 @@ class UseCommand extends BaseCommand {
 
     final cacheVersion = await ensureCacheWorkflow(version);
 
-    if (!skipSetup) {
+    if (!skipSetup && cacheVersion.notSetup) {
       await setupFlutterWorkflow(
         version: cacheVersion,
       );

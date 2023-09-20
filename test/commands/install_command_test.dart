@@ -1,3 +1,4 @@
+@Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';

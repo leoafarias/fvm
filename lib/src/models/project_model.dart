@@ -139,6 +139,9 @@ class Project {
   /// Indicates whether the project has an FVM config file.
   bool get hasConfig => config != null;
 
+  /// Indicates whether the project has a pubspec.yaml file.
+  bool get hasPubspec => pubspec != null;
+
   /// Retrieves the Flutter SDK constraint from the pubspec.yaml file.
   ///
   /// Returns `null` if the constraint is not defined.
@@ -152,11 +155,9 @@ class Project {
   static Project loadFromPath(String path) {
     ProjectConfig? config;
 
-    final configPath = _getLocalFvmConfigPath(path);
-    final configFile = File(configPath);
+    final configFile = File(_getLocalFvmConfigPath(path));
     if (configFile.existsSync()) {
-      final map = json.decode(configFile.readAsStringSync());
-      config = ProjectConfig.fromMap(map as Map<String, dynamic>);
+      config = ProjectConfig.fromJson(configFile.readAsStringSync());
     }
 
     final pubspecPath = join(path, 'pubspec.yaml');

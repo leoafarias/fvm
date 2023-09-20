@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_pkg/cli_pkg.dart' as pkg;
+import 'package:fvm/src/utils/http.dart';
 import 'package:grinder/grinder.dart';
-import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec2/pubspec2.dart';
@@ -72,24 +72,19 @@ Future<void> getReleases() async {
   String owner = 'leoafarias';
   String repo = 'fvm';
 
-  final response = await http.get(
-    Uri.parse(
-        'https://api.github.com/repos/$owner/$repo/releases?per_page=100'),
+  final response = await fetch(
+    'https://api.github.com/repos/$owner/$repo/releases?per_page=100',
     headers: {'Accept': 'application/vnd.github.v3+json'},
   );
 
   final stringBuffer = StringBuffer();
 
-  if (response.statusCode == 200) {
-    List<dynamic> releases = jsonDecode(response.body);
-    for (var release in releases) {
-      String tagName = release['tag_name'];
-      String date = release['published_at'];
-      print('Release: $tagName, Date: $date');
-      stringBuffer.writeln('Release: $tagName, Date: $date');
-    }
-  } else {
-    print('Failed to load releases. HTTP Status: ${response.statusCode}');
+  List<dynamic> releases = jsonDecode(response);
+  for (var release in releases) {
+    String tagName = release['tag_name'];
+    String date = release['published_at'];
+    print('Release: $tagName, Date: $date');
+    stringBuffer.writeln('Release: $tagName, Date: $date');
   }
 
   final file = File(

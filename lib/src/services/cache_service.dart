@@ -22,7 +22,7 @@ class CacheService extends ContextService {
   CacheService(super.context);
 
   /// Directory where local versions are cached
-  static CacheService get fromContext => getDependency<CacheService>();
+  static CacheService get fromContext => getProvider<CacheService>();
 
   /// Returns a [CacheFlutterVersion] from a [version]
   CacheFlutterVersion? getVersion(

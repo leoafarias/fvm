@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:io/io.dart';
 import 'package:path/path.dart';
 
 String getTempTestDir(String contextId, [String path = '']) {
@@ -33,22 +34,10 @@ Future<void> prepareLocalProjects(String toPath) async {
     await tmpDir.create(recursive: true);
 
     // Copy assetDir to tmpDir
-    promises.add(copyDirectory(assetDir, tmpDir));
+    promises.add(copyPath(assetDir.path, tmpDir.path));
   }
 
   await Future.wait(promises);
-}
-
-Future<void> copyDirectory(Directory source, Directory target) async {
-  await for (var entity in source.list(recursive: false)) {
-    if (entity is Directory) {
-      var newDir = Directory('${target.path}/${entity.uri.pathSegments.last}');
-      await newDir.create(recursive: true);
-      await copyDirectory(entity, newDir);
-    } else if (entity is File) {
-      await entity.copy('${target.path}/${entity.uri.pathSegments.last}');
-    }
-  }
 }
 
 Future<void> setUpContext(FVMContext context) async {

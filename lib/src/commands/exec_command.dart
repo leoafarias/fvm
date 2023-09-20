@@ -22,7 +22,7 @@ class ExecCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.fromContext.findVersion();
+    final version = ProjectService.fromContext.findVersion();
 
     if (argResults!.rest.isEmpty) {
       throw UsageException(

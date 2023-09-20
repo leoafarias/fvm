@@ -6,6 +6,7 @@ import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:git/git.dart';
+import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
@@ -17,7 +18,7 @@ import '../utils/commands.dart';
 class FlutterService extends ContextService {
   FlutterService(super.context);
 
-  static FlutterService get fromContext => getDependency<FlutterService>();
+  static FlutterService get fromContext => getProvider<FlutterService>();
 
   /// Upgrades a cached channel
   Future<void> runUpgrade(CacheFlutterVersion version) async {
@@ -207,5 +208,29 @@ class FlutterService extends ContextService {
     } on Exception {
       return null;
     }
+  }
+}
+
+class FlutterServiveMock extends FlutterService {
+  FlutterServiveMock(FVMContext context) : super(context);
+
+  @override
+  Future<void> install(FlutterVersion version) async {
+    /// Moves directory from main context HOME/fvm/versions to test context
+
+    final mainContext = FVMContext.main;
+    var cachedVersion = CacheService(mainContext).getVersion(version);
+    if (cachedVersion == null) {
+      await FlutterService(mainContext).install(version);
+      cachedVersion = CacheService(mainContext).getVersion(version);
+    }
+    final versionDir = CacheService(mainContext).getVersionCacheDir(
+      version.name,
+    );
+    final testVersionDir = CacheService(context).getVersionCacheDir(
+      version.name,
+    );
+
+    await io.copyPath(versionDir.path, testVersionDir.path);
   }
 }

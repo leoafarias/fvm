@@ -1,5 +1,5 @@
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/services/global_service.dart';
+import 'package:fvm/src/services/global_version_service.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';

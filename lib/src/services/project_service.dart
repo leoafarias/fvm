@@ -16,7 +16,7 @@ class ProjectService extends ContextService {
   ProjectService(super.context);
 
   /// Gets project service from context
-  static ProjectService get fromContext => getDependency<ProjectService>();
+  static ProjectService get fromContext => getProvider<ProjectService>();
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
@@ -27,9 +27,9 @@ class ProjectService extends ContextService {
   /// current working directory.
   ///
   /// Returns the [Project] instance for the found project.
-  Future<Project> findAncestor({
+  Project findAncestor({
     Directory? directory,
-  }) async {
+  }) {
     // Get directory, defined root or current
     directory ??= Directory(context.workingDirectory);
 
@@ -42,10 +42,13 @@ class ProjectService extends ContextService {
     // If project has a config return it
     if (project.hasConfig) return project;
 
+    // if project has a pubspec file return it
+    // if (project.hasPubspec) return project;
+
     // Return working directory if has reached root
     if (isRootDir) return Project.loadFromPath(context.workingDirectory);
 
-    return await findAncestor(
+    return findAncestor(
       directory: directory.parent,
     );
   }
@@ -56,8 +59,8 @@ class ProjectService extends ContextService {
   /// the current project. It uses the [findAncestor] method to find the project directory.
   ///
   /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
-  Future<String?> findVersion() async {
-    final project = await findAncestor();
+  String? findVersion() {
+    final project = findAncestor();
     return project.pinnedVersion;
   }
 

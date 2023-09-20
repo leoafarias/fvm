@@ -1,4 +1,4 @@
-@Timeout(Duration(minutes: 5))
+@Timeout(Duration(minutes: 1))
 import 'package:mason_logger/mason_logger.dart';
 import 'package:test/test.dart';
 

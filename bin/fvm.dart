@@ -3,16 +3,14 @@
 import 'dart:io';
 
 import 'package:fvm/src/runner.dart';
-import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  final config = ConfigRepository.loadEnv(commandLineArgs: args);
   final scope = Scope()
     ..value(
       contextKey,
-      FVMContext.create(config: config),
+      FVMContext.create(),
     );
 
   await _flushThenExit(

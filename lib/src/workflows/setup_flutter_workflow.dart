@@ -7,7 +7,6 @@ Future<void> setupFlutterWorkflow({
   required CacheFlutterVersion version,
 }) async {
   // Skip if its test
-  if (!version.notSetup) return;
 
   logger
     ..info('Setting up Flutter SDK: ${version.name}')
@@ -22,6 +21,7 @@ Future<void> resolveDependenciesWorkflow({
 }) async {
   logDetails(version, project);
 
+  if (version.notSetup) return;
   if (project.dartToolVersion == version.flutterSdkVersion) {
     return;
   }

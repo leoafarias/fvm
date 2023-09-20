@@ -39,7 +39,7 @@ void main() {
         // Run foce to test within fvm
         await runner.run('fvm use $channel --force --skip-setup');
 
-        final project = await ProjectService.fromContext.findAncestor();
+        final project = ProjectService.fromContext.findAncestor();
 
         final linkExists = project.cacheVersionSymlink.existsSync();
 
@@ -108,7 +108,7 @@ void main() {
         'fvm use $release --force --skip-setup',
       );
 
-      final project = await ProjectService.fromContext.findAncestor();
+      final project = ProjectService.fromContext.findAncestor();
       final linkExists = project.cacheVersionSymlink.existsSync();
 
       final targetPath = project.cacheVersionSymlink.targetSync();

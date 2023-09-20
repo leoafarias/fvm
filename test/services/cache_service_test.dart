@@ -2,7 +2,7 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/global_service.dart';
+import 'package:fvm/src/services/global_version_service.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';

@@ -1,6 +1,6 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/global_service.dart';
+import 'package:fvm/src/services/global_version_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
@@ -48,7 +48,7 @@ class GlobalCommand extends BaseCommand {
     final flutterInPath = which('flutter');
 
     // Get pinned version, for comparison on terminal
-    final pinnedVersion = await ProjectService.fromContext.findVersion();
+    final pinnedVersion = ProjectService.fromContext.findVersion();
 
     CacheFlutterVersion? pinnedCacheVersion;
 
