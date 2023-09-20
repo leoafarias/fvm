@@ -32,6 +32,9 @@ jobs:
         with:
           sdk-version: ${{ github.event.inputs.sdk-version }}
 
+      - name: Install lcov
+        run: sudo apt-get install lcov 
+
       - name: Run tests
         uses: ./.github/actions/test
 
