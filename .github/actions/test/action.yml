@@ -9,5 +9,5 @@ runs:
       shell: bash
 
     - name: Run tests
-      run: dart pub global run grinder:test
+      run: dart pub global run grinder:grind test
       shell: bash
