@@ -42,4 +42,51 @@ void main() {
     expect('200.0.0', assignVersionWeight('beta'));
     expect('100.0.0', assignVersionWeight('dev'));
   });
+
+  group('extractFlutterVersionOutput', () {
+    test('should correctly parse the EXAMPLE:1', () {
+      final content =
+          '''Flutter 3.15.0-15.1.pre • channel beta • https://github.com/flutter/flutter.git
+Framework • revision b2ec15bfa3 (5 days ago) • 2023-09-14 15:31:44 -0500
+Engine • revision 5c86194494
+Tools • Dart 3.2.0 (build 3.2.0-134.1.beta) • DevTools 2.27.0''';
+
+      final result = extractFlutterVersionOutput(content);
+
+      expect(result.flutterVersion, '3.15.0-15.1.pre');
+      expect(result.channel, 'beta');
+      expect(result.dartVersion, '3.2.0');
+      expect(result.dartBuildVersion, '3.2.0-134.1.beta');
+    });
+
+    test('should correctly parse the EXAMPLE:2', () {
+      final content =
+          '''Flutter 3.10.5 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision 796c8ef792 (3 months ago) • 2023-06-13 15:51:02 -0700
+Engine • revision 45f6e00911
+Tools • Dart 3.0.5 • DevTools 2.23.1''';
+
+      final result = extractFlutterVersionOutput(content);
+
+      expect(result.flutterVersion, '3.10.5');
+      expect(result.channel, 'stable');
+      expect(result.dartVersion, '3.0.5');
+      expect(result.dartBuildVersion, '3.0.5');
+    });
+
+    test('should correctly parse the EXAMPLE:3', () {
+      final content =
+          '''Flutter 2.2.0 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision b22742018b (2 years, 4 months ago) • 2021-05-14 19:12:57 -0700
+Engine • revision a9d88a4d18
+Tools • Dart 2.13.0''';
+
+      final result = extractFlutterVersionOutput(content);
+
+      expect(result.flutterVersion, '2.2.0');
+      expect(result.channel, 'stable');
+      expect(result.dartVersion, '2.13.0');
+      expect(result.dartBuildVersion, '2.13.0');
+    });
+  });
 }

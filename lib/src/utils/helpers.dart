@@ -88,6 +88,11 @@ class FlutterVersionOutput {
     this.dartVersion,
     this.dartBuildVersion,
   });
+
+  @override
+  String toString() {
+    return 'FlutterVersionOutput(flutterVersion: $flutterVersion, channel: $channel, dartVersion: $dartVersion, dartBuildVersion: $dartBuildVersion)';
+  }
 }
 
 // Parses Flutter version output
@@ -124,12 +129,23 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
 
   final dartVersion = dartMatch.group(1);
 
-  return FlutterVersionOutput(
+  print('Content \n$content');
+  print('channel match');
+  print(channelMatch?.group(0));
+
+  print('\n Group 1 \n');
+  print(channelMatch?.group(1));
+
+  final output = FlutterVersionOutput(
     flutterVersion: flutterMatch.group(1),
     channel: channelMatch?.group(1),
     dartVersion: dartVersion,
     dartBuildVersion: dartBuildMatch?.group(2) ?? dartVersion,
   );
+
+  print('output');
+  print(output.toString());
+  return output;
 }
 
 String extractDartVersionOutput(String input) {

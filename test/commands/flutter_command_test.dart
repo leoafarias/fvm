@@ -151,6 +151,7 @@ void main() {
         versionNumber,
       );
 
+      print('continue');
       print(flutterVersionResult.stdout);
 
       print(flutterVersion.channel);
