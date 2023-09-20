@@ -37,7 +37,7 @@ jobs:
         
 
       - name: Generate coverage reports
-        run: grind coverage
+        run: grind collect-coverage
         shell: bash
 
       - name: Upload coverage reports to Codecov

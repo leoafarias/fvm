@@ -97,15 +97,11 @@ Future<void> getReleases() async {
 @Task('Test')
 Future<void> test() async {
   // Only run tests on test/commands/flutter_command_test.dart
-
-  await runAsync('dart',
-      arguments: ['test', 'test/commands/flutter_command_test.dart']);
-  // await runAsync('dart', arguments: ['test', '--coverage=coverage']);
+  await runAsync('dart', arguments: ['test', '--coverage=coverage']);
 }
 
 @Task('Gather coverage and generate report')
-@Depends(test)
-Future<void> coverage() async {
+Future<void> collectCoverage() async {
   await runAsync(
     'dart',
     arguments: [

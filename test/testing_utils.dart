@@ -108,6 +108,18 @@ void testWithContext(
 }
 
 @isTestGroup
+void testGroupWithContext(String description, Future<void> Function() body) {
+  // Create random key if it does not exist
+
+  final scope = Scope()..value(contextKey, ctx);
+
+  return test(
+    description,
+    () => scope.run(body),
+  );
+}
+
+@isTestGroup
 void groupWithContext(
   String description,
   dynamic Function() body, {
