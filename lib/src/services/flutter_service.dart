@@ -67,10 +67,6 @@ class FlutterService extends ContextService {
       }
     }
 
-    if (context.gitCache) {
-      await _updateLocalReference();
-    }
-
     final versionCloneParams = [
       '-c',
       'advice.detachedHead=false',
@@ -133,7 +129,7 @@ class FlutterService extends ContextService {
 
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
-  Future<void> _updateLocalReference() async {
+  Future<void> updateLocalMirror() async {
     final isGitDir = await GitDir.isGitDir(context.gitCachePath);
 
     // If cache file does not exists create it
@@ -168,7 +164,7 @@ class FlutterService extends ContextService {
 
     // If cache file does not exists create it
     if (!isGitDir) {
-      await _updateLocalReference();
+      await updateLocalMirror();
     }
   }
 

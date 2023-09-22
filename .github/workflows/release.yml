@@ -25,10 +25,10 @@ jobs:
         uses: ./.github/actions/prepare
 
       - name: Deploy Github
-        run: dart pub run grinder pkg-github-all
+        run: dart run grinder pkg-github-all
 
       - name: Deploy to Pub
-        run: dart pub run grinder pkg-pub-deploy
+        run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
     name: Cholatey Deploy (Windows)
@@ -45,7 +45,7 @@ jobs:
 
 
       # - name: Deploy Chocolatey (Windows)
-      #   run: dart pub run grinder pkg-chocolatey-deploy
+      #   run: dart run grinder pkg-chocolatey-deploy
 
   deploy-homebrew:
     name: Deploy Homebrew
@@ -63,7 +63,7 @@ jobs:
         uses: ./.github/actions/prepare
 
       # - name: Deploy to Homebrew
-      #   run: dart pub run grinder pkg-homebrew-update
+      #   run: dart run grinder pkg-homebrew-update
 
   deploy-docker:
     name: Docker Deploy (latest)

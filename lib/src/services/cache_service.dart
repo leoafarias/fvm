@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:io/io.dart';
@@ -84,11 +83,6 @@ class CacheService extends ContextService {
     // If sdkVersion is not available return true
     if (version.flutterSdkVersion == null) return true;
     return version.flutterSdkVersion == version.version;
-  }
-
-  /// Caches version a [validVersion] and returns [CacheFlutterVersion]
-  Future<void> cacheVersion(FlutterVersion validVersion) async {
-    await FlutterService(context).install(validVersion);
   }
 
   Directory getVersionCacheDir(String version) {

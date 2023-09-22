@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
@@ -71,12 +72,15 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       exit(ExitCode.success.code);
     }
 
+    if (ctx.gitCache) {
+      await FlutterService.fromContext.updateLocalMirror();
+    }
+
     final progress = logger.progress(
       'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
     );
-
     try {
-      await CacheService.fromContext.cacheVersion(validVersion);
+      await FlutterService.fromContext.install(validVersion);
       progress.complete(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
       );

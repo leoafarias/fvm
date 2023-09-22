@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Prepare tests
-      run: dart pub run grinder test-setup
+      run: dart run grinder test-setup
       shell: bash
 
     - name: Run tests
@@ -19,6 +19,6 @@ runs:
       shell: bash
 
     - name: Generate coverage report
-      run: dart pub run grinder coverage
+      run: dart run grinder coverage
       shell: bash
       if: ${{ inputs.with-coverage == 'true' }}
