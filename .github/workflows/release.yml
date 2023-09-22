@@ -43,8 +43,9 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
-      - name: Deploy Chocolatey (Windows)
-        run: dart pub run grinder pkg-chocolatey-deploy
+
+      # - name: Deploy Chocolatey (Windows)
+      #   run: dart pub run grinder pkg-chocolatey-deploy
 
   deploy-homebrew:
     name: Deploy Homebrew
@@ -61,8 +62,8 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
-      - name: Deploy to Homebrew
-        run: dart pub run grinder pkg-homebrew-update
+      # - name: Deploy to Homebrew
+      #   run: dart pub run grinder pkg-homebrew-update
 
   deploy-docker:
     name: Docker Deploy (latest)

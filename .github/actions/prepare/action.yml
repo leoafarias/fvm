@@ -28,13 +28,6 @@ runs:
       run: dart pub get
       shell: bash
 
-    - run: dart pub global activate grinder
-      shell: bash
-
-    - name: Build version
-      run: dart pub global run grinder:grinder build-version
-      shell: bash
-
     - name: Analyze
       run: dart analyze --fatal-infos --fatal-warnings .
       shell: bash

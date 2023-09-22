@@ -91,3 +91,12 @@ void switchLineMode(bool active, List<String> args) {
     return;
   }
 }
+
+Future<bool> isCommandAvailable(String command) async {
+  try {
+    final result = await Process.run(command, ['--version']);
+    return result.exitCode == 0;
+  } catch (e) {
+    return false;
+  }
+}
