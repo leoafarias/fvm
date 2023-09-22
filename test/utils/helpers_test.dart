@@ -198,4 +198,20 @@ Tools • Dart 2.13.0''';
       expect(result.dartBuildVersion, '3.0.5');
     });
   });
+
+  test('should correctly parse the EXAMPLE:5', () {
+    final content =
+        '''Flutter 3.15.0-15.2.pre â€¢ channel beta â€¢ https://github.com/flutter/flutter.git
+Framework â€¢ revision 0d074ced6c (12 hours ago) â€¢ 2023-09-21 10:24:15 -0700
+Engine â€¢ revision 453411bcf3
+Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
+''';
+
+    final result = extractFlutterVersionOutput(content);
+
+    expect(result.flutterVersion, '3.15.0-15.2.pre');
+    expect(result.channel, 'beta');
+    expect(result.dartVersion, '3.2.0');
+    expect(result.dartBuildVersion, '3.2.0-134.1.beta');
+  });
 }

@@ -115,7 +115,9 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
   final filteredContent = _extractFlutterInfoBlock(content);
   final flutterRegex = RegExp(r'Flutter (\S+)');
   final channelRegex = RegExp(r' channel (\w+)');
-  final dartRegex = RegExp(r'Dart (\S+)');
+  final dartRegex = RegExp(
+    r'Dart (\S+)',
+  );
   final dartBuildRegex = RegExp(r'Dart (\S+) \(build (\S+)\)');
 
   final flutterMatch = flutterRegex.firstMatch(filteredContent);
@@ -148,17 +150,15 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
 }
 
 String _extractFlutterInfoBlock(String content) {
-  // This regex searches for the line that starts with 'Flutter' and captures all lines after it
-  // until it hits a line that doesn't follow the expected pattern.
-  final regex = RegExp(r'Flutter [\S\s]+?(?=\n[^\s]*\s+[^•]*$|$)');
-
-  final match = regex.firstMatch(content);
-
-  if (match != null) {
-    return match.group(0)!;
-  } else {
-    throw FormatException('Unable to extract the Flutter version block.');
+  // Ignore anything before "Flutter
+  final flutterInfoBlock = content.indexOf('Flutter');
+  if (flutterInfoBlock == -1) {
+    throw FormatException(
+      'Unable to parse Flutter version from the provided content.',
+    );
   }
+
+  return content.substring(flutterInfoBlock);
 }
 
 String extractDartVersionOutput(String input) {

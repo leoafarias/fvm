@@ -2,6 +2,7 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/global_version_service.dart';
 import 'package:test/test.dart';
 
@@ -18,8 +19,8 @@ void main() {
       expect(validChannel, null);
       expect(validVersion, null);
 
-      await CacheService.fromContext.cacheVersion(_channel);
-      await CacheService.fromContext.cacheVersion(_version);
+      await FlutterService.fromContext.install(_channel);
+      await FlutterService.fromContext.install(_version);
 
       final cacheChannel = CacheService.fromContext.getVersion(_channel);
 
