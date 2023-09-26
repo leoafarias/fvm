@@ -29,9 +29,11 @@ Future<void> useVersionWorkflow({
 }) async {
   // If project use check that is Flutter project
   if (!project.isFlutter && !force) {
-    logger.info(
-      'This does not seem to be a Flutter project directory',
-    );
+    logger
+      ..spacer
+      ..info(
+        'This does not seem to be a Flutter project directory',
+      );
     final proceed = logger.confirm(
       'Would you like to continue?',
     );
