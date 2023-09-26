@@ -25,7 +25,7 @@ void main() {
 
     for (var version in versionList) {
       testWithContext(
-        'Use $version',
+        'Install $version',
         () async {
           final exitCode = await runner.run('fvm install $version');
 
