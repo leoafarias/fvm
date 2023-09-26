@@ -1,13 +1,16 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
 String getTempTestDir([String? contextId = '', String path = '']) {
   return join(kUserHome, 'fvm-test', contextId, path);
+}
+
+String getTempTestProjectDir([String? contextId = '', String name = '']) {
+  return join(getTempTestDir(contextId, 'projects'), name);
 }
 
 String getSupportAssetDir(String name) {
@@ -40,31 +43,40 @@ Future<void> prepareLocalProjects(String toPath) async {
   await Future.wait(promises);
 }
 
-Future<void> setUpContext(FVMContext context) async {
+Future<void> setUpContext(
+  FVMContext context, [
+  bool removeTempDir = true,
+]) async {
   final tempPath = getTempTestDir(context.id);
 
   final tempDir = Directory(tempPath);
+  final projects = Directory(getTempTestProjectDir(context.id));
 
-  if (tempDir.existsSync()) {
-    tempDir.deleteSync(recursive: true);
+  if (projects.existsSync()) {
+    projects.deleteSync(recursive: true);
   }
 
-  tempDir.createSync(recursive: true);
+  if (!tempDir.existsSync()) {
+    tempDir.createSync(recursive: true);
+  } else if (removeTempDir) {
+    tempDir.deleteSync(recursive: true);
+    tempDir.createSync(recursive: true);
+  }
 
-  await prepareLocalProjects(tempDir.path);
+  await prepareLocalProjects(projects.path);
 }
 
 void tearDownContext(FVMContext context) {
-  final tempPath = getTempTestDir(context.id);
+  // final tempPath = getTempTestDir(context.id);
 
-  final tempDir = Directory(tempPath);
+  // final tempDir = Directory(tempPath);
 
-  if (tempDir.existsSync()) {
-    try {
-      tempDir.deleteSync(recursive: true);
-    } on FileSystemException catch (e) {
-      // just log the erorr, as it can fail due to open files
-      logger.err(e.message);
-    }
-  }
+  // if (tempDir.existsSync()) {
+  //   try {
+  //     tempDir.deleteSync(recursive: true);
+  //   } on FileSystemException catch (e) {
+  //     // just log the erorr, as it can fail due to open files
+  //     logger.err(e.message);
+  //   }
+  // }
 }

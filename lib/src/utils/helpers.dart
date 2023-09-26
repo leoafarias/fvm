@@ -17,6 +17,10 @@ Map<String, String> updateEnvironmentVariables(
   List<String> paths,
   Map<String, String> env,
 ) {
+  // Remove any values that are similar
+  // within the list of paths.
+  paths = paths.toSet().toList();
+
   logger.detail('Starting to update environment variables...');
 
   final updatedEnvironment = Map<String, String>.from(env);

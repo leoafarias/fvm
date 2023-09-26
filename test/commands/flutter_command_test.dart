@@ -88,11 +88,14 @@ void main() {
       final dartVersionResult = await Process.run(
         'dart',
         ['--version'],
+        runInShell: true,
         environment: updatedEnvironments,
       );
+
       final flutterVersionResult = await Process.run(
         'flutter',
         ['--version'],
+        runInShell: true,
         environment: updatedEnvironments,
       );
 

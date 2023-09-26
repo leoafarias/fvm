@@ -61,18 +61,22 @@ Future<String> getStdout(String command) async {
 }
 
 const kVersionList = [
-  'beta',
+  channel,
+  'stable',
   'master',
   '3.10.2',
   '2.2.2@beta',
   '2.11.0-0.1.pre',
   '2.0.3',
-  'f4c74a6ec3'
+  release,
+  forceRelease,
+  gitCommit
 ];
 
 const release = '2.2.1';
 const channel = 'beta';
 const gitCommit = 'f4c74a6ec3';
+const forceRelease = '2.2.2@beta';
 
 Future<FlutterVersion> getRandomFlutterVersion() async {
   final payload = await FlutterReleasesClient.get();
@@ -129,6 +133,8 @@ void groupWithContext(
   dynamic skip,
   List<String>? tags,
   Map<String, dynamic>? onPlatform,
+  // Caches fvm install for faster testing
+  bool? cacheFvmInstall,
   int? retry,
 }) {
   // lowecase description, and replace spaces with underscores
@@ -152,7 +158,7 @@ void groupWithContext(
       final testContext = FVMContext.create(
         id: contextId,
         configOverrides: config,
-        workingDirectory: getTempTestDir(contextId, 'flutter_app'),
+        workingDirectory: getTempTestProjectDir(contextId, 'flutter_app'),
         isTest: true,
       );
 
