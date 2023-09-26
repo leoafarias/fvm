@@ -27,14 +27,14 @@ String getReleasesUrl(String platform) {
       'https://raw.githubusercontent.com/fluttertools/fvm/main/releases_$platform.json';
 }
 
-class FlutterReleasesClient {
-  FlutterReleasesClient._();
+class FlutterReleases {
+  FlutterReleases._();
 
-  static FlutterReleases? _cacheReleasesRes;
+  static Releases? _cacheReleasesRes;
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.
-  static Future<FlutterReleases> get({
+  static Future<Releases> get({
     bool cache = true,
     String? platform,
   }) async {
@@ -48,7 +48,7 @@ class FlutterReleasesClient {
 
       final response = await fetch(releasesUrl);
 
-      _cacheReleasesRes = FlutterReleases.fromJson(response);
+      _cacheReleasesRes = Releases.fromJson(response);
       return Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
       logger.detail(err.toString());
@@ -56,12 +56,12 @@ class FlutterReleasesClient {
     }
   }
 
-  static Future<FlutterReleases> _getFromFlutterUrl(
+  static Future<Releases> _getFromFlutterUrl(
     String platform,
   ) async {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
-      _cacheReleasesRes = FlutterReleases.fromJson(response);
+      _cacheReleasesRes = Releases.fromJson(response);
       return Future.value(_cacheReleasesRes);
     } on Exception {
       throw AppException(

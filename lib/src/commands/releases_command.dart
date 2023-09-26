@@ -50,7 +50,7 @@ class ReleasesCommand extends BaseCommand {
 
     logger.detail('Filtering by channel: $channelName');
 
-    final releases = await FlutterReleasesClient.get();
+    final releases = await FlutterReleases.get();
 
     final versions = releases.releases.reversed;
 

@@ -3,7 +3,6 @@ import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
-import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
 import 'package:io/io.dart';
 
 import '../services/logger_service.dart';
@@ -48,6 +47,12 @@ class UseCommand extends BaseCommand {
         'skip-setup',
         help: 'Skips Flutter setup after install',
         negatable: false,
+      )
+      ..addFlag(
+        'unprivileged',
+        abbr: 'u',
+        help: 'Runs use workflow without the need for elevated privileges',
+        negatable: false,
       );
   }
   @override
@@ -56,6 +61,7 @@ class UseCommand extends BaseCommand {
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
     final skipSetup = boolArg('skip-setup');
+    final unprivileged = boolArg('unprivileged');
 
     String? version;
 
@@ -73,28 +79,18 @@ class UseCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Get valid flutter version. Force version if is to be pinned.
-
     if (pinOption) {
-      if (!isFlutterChannel(version)) {
+      if (!isFlutterChannel(version) || version == 'master') {
         throw UsageException(
-          'Cannot pin a version that is not a channel.',
-          usage,
-        );
-      }
-
-      /// Cannot pin master channel
-      if (version == 'master') {
-        throw UsageException(
-          'Cannot pin a version from "master" channel.',
+          'Cannot pin a version that is not in dev, beta or stable channels.',
           usage,
         );
       }
 
       /// Pin release to channel
+      final channel = FlutterChannel.fromName(version);
 
-      final release = await FlutterReleasesClient.getLatestReleaseOfChannel(
-        FlutterChannel.fromName(version),
-      );
+      final release = await FlutterReleases.getLatestReleaseOfChannel(channel);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',
@@ -103,13 +99,24 @@ class UseCommand extends BaseCommand {
       version = release.version;
     }
 
-    final cacheVersion = await ensureCacheWorkflow(version);
+    // Gets flavor version
+    final flavorVersion = project.flavors[version];
 
-    if (!skipSetup && cacheVersion.notSetup) {
-      await setupFlutterWorkflow(
-        version: cacheVersion,
+    if (flavorVersion != null) {
+      if (flavorOption != null) {
+        throw UsageException(
+          'Cannot use the --flavor when using fvm use {flavor}',
+          usage,
+        );
+      }
+
+      logger.info(
+        'Using Flutter SDK from "$flavorOption" which is "$flavorVersion"',
       );
+      version = flavorVersion;
     }
+
+    final cacheVersion = await ensureCacheWorkflow(version);
 
     /// Run use workflow
     await useVersionWorkflow(
@@ -117,6 +124,8 @@ class UseCommand extends BaseCommand {
       project: project,
       force: forceOption,
       flavor: flavorOption,
+      skipSetup: skipSetup,
+      unprivileged: unprivileged,
     );
 
     return ExitCode.success.code;

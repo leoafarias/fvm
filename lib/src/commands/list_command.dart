@@ -39,7 +39,7 @@ class ListCommand extends BaseCommand {
       ..info('Cache directory:  ${cyan.wrap(ctx.versionsCachePath)}')
       ..spacer;
 
-    final releases = await FlutterReleasesClient.get();
+    final releases = await FlutterReleases.get();
     final globalVersion = GlobalVersionService.fromContext.getGlobal();
     final table = Table()
       ..insertColumn(header: 'SDK', alignment: TextAlignment.left)

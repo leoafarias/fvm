@@ -167,7 +167,7 @@ void main() {
       );
 
       expect(
-        await runner.run('fvm flavor production'),
+        await runner.run('fvm use production'),
         ExitCode.success.code,
       );
     });

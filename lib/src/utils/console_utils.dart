@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/project_model.dart';
 
 import '../../exceptions.dart';
 import '../services/logger_service.dart';
@@ -32,30 +31,6 @@ Future<String> cacheVersionSelector(List<CacheFlutterVersion> versions) async {
   final choise = logger.select(
     'Select a version:',
     options: versionsList,
-  );
-
-  return choise;
-}
-
-/// Select from project flavors
-Future<String?> projectFlavorSelector(Project project) async {
-  // Gets environment version
-  final envs = project.flavors;
-
-  final envList = envs.keys.toList();
-
-  // Check if there are no environments configured
-  if (envList.isEmpty) {
-    return null;
-  }
-
-  logger
-    ..success('Project flavors configured for "${project.name}":')
-    ..spacer;
-
-  final choise = logger.select(
-    'Select an environment',
-    options: envList,
   );
 
   return choise;

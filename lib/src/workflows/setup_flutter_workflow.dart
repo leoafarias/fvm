@@ -3,9 +3,9 @@ import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 
-Future<void> setupFlutterWorkflow({
-  required CacheFlutterVersion version,
-}) async {
+Future<void> setupFlutterWorkflow(
+  CacheFlutterVersion version,
+) async {
   // Skip if its test
 
   logger

@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:fvm/constants.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
@@ -8,7 +12,14 @@ import 'base_command.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends BaseCommand {
-  RemoveCommand();
+  RemoveCommand() {
+    argParser.addFlag(
+      'all',
+      help: 'Removes all versions',
+      abbr: 'a',
+      negatable: false,
+    );
+  }
 
   @override
   final name = 'remove';
@@ -23,6 +34,26 @@ class RemoveCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
+    final all = boolArg('all');
+
+    if (all) {
+      final confirmRemoval = logger.confirm(
+        'Are you sure you want to remove all versions in your $kPackageName cache ?',
+        defaultValue: false,
+      );
+      if (confirmRemoval) {
+        final versionsCache = Directory(ctx.versionsCachePath);
+        if (versionsCache.existsSync()) {
+          versionsCache.deleteSync(recursive: true);
+
+          logger.success(
+            '$kPackageName Directory ${versionsCache.path} has been deleted',
+          );
+        }
+      }
+      return ExitCode.success.code;
+    }
+
     String? version;
 
     if (argResults!.rest.isEmpty) {

@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 void main() {
   group('Flutter Releases API', () {
     test('Has Flutter Releases', () async {
-      final releases = await FlutterReleasesClient.get();
+      final releases = await FlutterReleases.get();
       final versionsExists = releases.containsVersion('v1.8.1') &&
           releases.containsVersion('v1.9.6') &&
           releases.containsVersion('v1.10.5') &&

@@ -11,9 +11,9 @@ const _flutterChannels = [
 ];
 
 /// Flutter Releases
-class FlutterReleases {
+class Releases {
   /// Constructor
-  FlutterReleases({
+  Releases({
     required this.baseUrl,
     required this.channels,
     required this.releases,
@@ -37,12 +37,12 @@ class FlutterReleases {
   final Map<String, Release> hashReleaseMap;
 
   /// Creates a FlutterRelease from a [json] string
-  factory FlutterReleases.fromJson(String json) {
-    return FlutterReleases.fromMap(jsonDecode(json) as Map<String, dynamic>);
+  factory Releases.fromJson(String json) {
+    return Releases.fromMap(jsonDecode(json) as Map<String, dynamic>);
   }
 
   /// Create FlutterRelease from a map of values
-  factory FlutterReleases.fromMap(Map<String, dynamic> json) {
+  factory Releases.fromMap(Map<String, dynamic> json) {
     return _parseCurrentReleases(json);
   }
 
@@ -81,7 +81,7 @@ class FlutterReleases {
 /// Goes through the current_release payload.
 /// Finds the proper release base on the hash
 /// Assings to the current_release
-FlutterReleases _parseCurrentReleases(Map<String, dynamic> map) {
+Releases _parseCurrentReleases(Map<String, dynamic> map) {
   final baseUrl = map['base_url'] as String;
   final currentRelease = map['current_release'] as Map<String, dynamic>;
   final releasesJson = map['releases'] as List<dynamic>;
@@ -135,7 +135,7 @@ FlutterReleases _parseCurrentReleases(Map<String, dynamic> map) {
     stable: stableRelease!,
   );
 
-  return FlutterReleases(
+  return Releases(
     baseUrl: baseUrl,
     channels: channels,
     releases: releasesList,

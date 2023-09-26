@@ -14,10 +14,8 @@ import 'package:stack_trace/stack_trace.dart';
 import '../exceptions.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
-import 'commands/destroy_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
-import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
@@ -58,8 +56,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(DoctorCommand());
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
-    addCommand(FlavorCommand());
-    addCommand(DestroyCommand());
+
     addCommand(ExecCommand());
     addCommand(UpdateCommand());
     addCommand(GlobalCommand());
@@ -85,13 +82,12 @@ class FvmCommandRunner extends CommandRunner<int> {
 
       return exitCode;
     } on AppDetailedException catch (err, stackTrace) {
-      final trace = Trace.from(stackTrace);
       logger
         ..fail(err.message)
         ..spacer
-        ..err(err.info)
-        ..detail('')
-        ..detail(trace.toString());
+        ..err(err.info);
+
+      _printTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err) {
@@ -136,11 +132,11 @@ class FvmCommandRunner extends CommandRunner<int> {
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
-      final trace = Trace.from(stackTrace);
       logger
         ..spacer
-        ..err(err.toString())
-        ..detail(trace.toString());
+        ..err(err.toString());
+
+      _printTrace(stackTrace);
       return ExitCode.unavailable.code;
     } finally {
       // Add spacer after the last line always
@@ -244,7 +240,12 @@ class FvmCommandRunner extends CommandRunner<int> {
   }
 }
 
-void _verboseNotice() {
+void _printTrace(StackTrace stackTrace) {
+  final trace = Trace.from(stackTrace).toString();
+  logger
+    ..detail('')
+    ..detail(trace);
+
   if (logger.level != Level.verbose) {
     logger
       ..spacer

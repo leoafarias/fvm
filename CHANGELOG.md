@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+- Implemented .gitignore notice to setup `fvm`
+- Configure vscode automatically
+- Check .gitignore for cached version
+- Cache clean up, and corrective action in case of corrupted cache or upgraded SDK
+- Flutter repo git reference for much faster clone of new versions.
+- Project version constraint check on pubspec.yaml, before using version.
+- Removed --skip-setup on `use` command. If you need to install without setting up, you should use `install`. You can force SDK setup on install by using -s or --setup
+- Better `fvm doctor` command. Now provides much better output and information about the project and environment.
+- Per project config global overrides. You can now override FVM settings on a per project basis
+- Removed "flavor" command in favor for `fvm use {flavor}`
+- Removed "destroy" command in favor of `fvm remove --all`
+
+### Breaking changes
+
+- FVM Config - FVM config now will be saved as fvm.yml at the root of the project. This will allow for better project configuration and versioning, `.fvm/fvm_config.json` will still be generated to be used by FVM, but it can be added to `.gitignore`. It will be generated when runing a `fvm install` or `fvm use` command.
+
 ## 2.4.1 - 2022-07-06
 - Filter out Mac releases based on architecture.
 

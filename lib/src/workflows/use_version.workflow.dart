@@ -25,6 +25,8 @@ Future<void> useVersionWorkflow({
   required CacheFlutterVersion version,
   required Project project,
   bool force = false,
+  bool skipSetup = false,
+  bool unprivileged = false,
   String? flavor,
 }) async {
   // If project use check that is Flutter project
@@ -48,6 +50,10 @@ Future<void> useVersionWorkflow({
     ..detail('Project path: ${project.path}')
     ..detail('');
 
+  if (!skipSetup && version.notSetup) {
+    await setupFlutterWorkflow(version);
+  }
+
   // Checks if the project constraints are met
   _checkProjectVersionConstraints(project, version);
 
@@ -65,6 +71,7 @@ Future<void> useVersionWorkflow({
   _updateLocalSdkReference(
     updatedProject,
     version,
+    priviledged: !unprivileged,
   );
 
   _checkGitignore(updatedProject);
@@ -198,7 +205,11 @@ void _checkProjectVersionConstraints(
 /// that are no longer needed.
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
+void _updateLocalSdkReference(
+  Project project,
+  CacheFlutterVersion version, {
+  required bool priviledged,
+}) {
 // Legacy link for fvm < 3.0.0
   final legacyLink = Link(join(
     project.localVersionsCachePath,
@@ -223,10 +234,12 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
   sdkVersionFile.writeAsStringSync(project.dartToolVersion ?? '');
   releaseFile.writeAsStringSync(version.name);
 
-  createLink(
-    project.localVersionSymlinkPath,
-    version.directory,
-  );
+  if (priviledged) {
+    createLink(
+      project.localVersionSymlinkPath,
+      version.directory,
+    );
+  }
 }
 
 /// Updates VS Code configuration for the project

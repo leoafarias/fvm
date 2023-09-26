@@ -58,7 +58,7 @@ class Project {
   }
 
   /// Retrieves the flavors defined in the project's `fvm.yaml` file.
-  Map<String, dynamic> get flavors => config?.flavors ?? {};
+  Map<String, String> get flavors => config?.flavors ?? {};
 
   /// Retrieves the dart tool package config.
   ///

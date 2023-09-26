@@ -58,9 +58,7 @@ class InstallCommand extends BaseCommand {
     );
 
     if (setup) {
-      await setupFlutterWorkflow(
-        version: cacheVersion,
-      );
+      await setupFlutterWorkflow(cacheVersion);
     }
 
     return ExitCode.success.code;

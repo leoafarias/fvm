@@ -79,7 +79,7 @@ const gitCommit = 'f4c74a6ec3';
 const forceRelease = '2.2.2@beta';
 
 Future<FlutterVersion> getRandomFlutterVersion() async {
-  final payload = await FlutterReleasesClient.get();
+  final payload = await FlutterReleases.get();
   final release = payload.releases[Random().nextInt(payload.releases.length)];
   return FlutterVersion.parse(release.version);
 }

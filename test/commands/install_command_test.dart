@@ -40,7 +40,7 @@ void main() {
             if (cacheVersion!.releaseFromChannel != null) {
               releaseChannel = cacheVersion.releaseFromChannel;
             } else {
-              final release = await FlutterReleasesClient.getReleaseFromVersion(
+              final release = await FlutterReleases.getReleaseFromVersion(
                 cacheVersion.version,
               );
 
