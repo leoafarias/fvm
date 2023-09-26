@@ -60,7 +60,7 @@ void main() {
 
       cacheVersion = await getCacheVersion();
 
-      expect(project.pinnedVersion, channel);
+      expect(project.pinnedVersion?.name, channel);
 
       expect(
         cacheVersion?.notSetup,

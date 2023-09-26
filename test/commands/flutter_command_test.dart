@@ -25,7 +25,7 @@ void main() {
           FlutterVersion.parse(channel),
         );
 
-        expect(project.pinnedVersion, channel);
+        expect(project.pinnedVersion?.name, channel);
 
         expect(
           cacheVersion?.notSetup,

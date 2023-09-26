@@ -73,11 +73,16 @@ class Project {
   /// Indicates whether the project is a Flutter project.
   bool get isFlutter => pubspec?.dependencies.containsKey('flutter') ?? false;
 
+  /// Retrieves the local FVM path of the project.
+  ///
+  /// This is the directory where FVM stores its configuration files.
+  String get localFvmPath => _fvmPath(path);
+
   /// Retrieves the local FVM cache path of the project.
   ///
   /// This is the directory where Flutter SDK versions are cached.
   String get localVersionsCachePath {
-    return join(_fvmPath(path), 'versions');
+    return join(_fvmPath(path), 'refs');
   }
 
   /// Returns the path of the Flutter SDK symlink within the project.

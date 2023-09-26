@@ -34,7 +34,7 @@ void main() {
 
             expect(targetPath == versionDir.path, true);
             expect(linkExists, true);
-            expect(project.pinnedVersion, version);
+            expect(project.pinnedVersion?.name, version);
             expect(exitCode, ExitCode.success.code);
           },
         );

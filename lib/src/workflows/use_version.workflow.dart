@@ -221,6 +221,12 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
   }
   localVersionsCache.createSync(recursive: true);
 
+  final sdkVersionFile = File(join(project.localFvmPath, 'version'));
+  final releaseFile = File(join(project.localFvmPath, 'release'));
+
+  sdkVersionFile.writeAsStringSync(project.dartToolVersion ?? '');
+  releaseFile.writeAsStringSync(version.name);
+
   createLink(
     project.localVersionSymlinkPath,
     version.directory,
