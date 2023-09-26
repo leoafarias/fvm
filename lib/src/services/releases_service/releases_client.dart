@@ -64,7 +64,7 @@ class FlutterReleasesClient {
       _cacheReleasesRes = FlutterReleases.fromJson(response);
       return Future.value(_cacheReleasesRes);
     } on Exception {
-      throw AppTracedException(
+      throw AppException(
         'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'
         'Fvm will use the value set on '
         'env FLUTTER_STORAGE_BASE_URL to check versions\n'

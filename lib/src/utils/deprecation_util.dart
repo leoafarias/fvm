@@ -2,16 +2,15 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:path/path.dart';
 
-void deprecationWorkflow({
-  required String fvmDir,
-  required String configPath,
-}) {
+void deprecationWorkflow(
+  String fvmDir,
+) {
   _warnDeprecatedEnvVars();
-  _migrateVersionSyntax();
+
   final settingsFile = File(join(fvmDir, '.settings'));
 
   if (!settingsFile.existsSync()) {
@@ -73,19 +72,15 @@ void _warnDeprecatedEnvVars() {
   final fvmHome = Platform.environment['FVM_HOME'];
   if (flutterRoot != null) {
     logger.warn('FVM_GIT_CACHE environment variable is deprecated. ');
+    logger.info('Please use ${ConfigVariable.gitCachePath.envName}');
   }
 
   if (fvmHome != null) {
     logger.warn('FVM_HOME environment variable is deprecated. ');
+    logger.info('Please use ${ConfigVariable.fvmPath.envName} instead');
   }
 
   if (flutterRoot == null || fvmHome == null) {
     return;
   }
-
-  logger
-    ..spacer
-    ..info(
-      'Review the config page for updated information: $kFvmDocsConfigUrl',
-    );
 }

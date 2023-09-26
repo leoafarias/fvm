@@ -82,7 +82,7 @@ class Project {
   ///
   /// This is the directory where Flutter SDK versions are cached.
   String get localVersionsCachePath {
-    return join(_fvmPath(path), 'refs');
+    return join(_fvmPath(path), 'versions');
   }
 
   /// Returns the path of the Flutter SDK symlink within the project.

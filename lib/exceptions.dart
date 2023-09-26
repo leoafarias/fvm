@@ -14,19 +14,14 @@ class AppException implements Exception {
   String toString() => message;
 }
 
-class AppTracedException extends AppException {
+class AppDetailedException extends AppException {
+  final String info;
+
   /// Constructor
-  const AppTracedException(
-    super.message, [
-    this.exception,
-    this.stackTrace,
-  ]);
-
-  /// Actual message from exception
-  final Exception? exception;
-
-  /// Stack trace of error
-  final StackTrace? stackTrace;
+  const AppDetailedException(
+    super.message,
+    this.info,
+  );
 
   @override
   String toString() => message;

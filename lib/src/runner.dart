@@ -84,31 +84,14 @@ class FvmCommandRunner extends CommandRunner<int> {
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
-    } on FormatException catch (err, stackTrace) {
-      // On format errors, show the commands error message, root usage and
-      // exit with an error code
-      final trace = Trace.from(stackTrace);
-      logger
-        ..err(err.message)
-        ..spacer
-        ..err(trace.toString())
-        ..info('')
-        ..info(usage);
-      return ExitCode.usage.code;
-    } on AppTracedException catch (err, stackTrace) {
+    } on AppDetailedException catch (err, stackTrace) {
       final trace = Trace.from(stackTrace);
       logger
         ..fail(err.message)
         ..spacer
-        ..err(trace.toString());
-
-      if (logger.level != Level.verbose) {
-        logger
-          ..spacer
-          ..info(
-            'Please run command with  --verbose if you want more information',
-          );
-      }
+        ..err(err.info)
+        ..detail('')
+        ..detail(trace.toString());
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err) {
@@ -117,6 +100,7 @@ class FvmCommandRunner extends CommandRunner<int> {
           ..spacer
           ..fail('Requires administrator priviledges to run this command.')
           ..spacer;
+
         logger.notice(
           "You don't have the required priviledges to run this command.\n"
           "Try running with sudo or administrator priviledges.\n"
@@ -151,9 +135,12 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..info(err.usage);
 
       return ExitCode.usage.code;
-    } on Exception catch (e, stackTrace) {
+    } on Exception catch (err, stackTrace) {
       final trace = Trace.from(stackTrace);
-      logger.err(trace.toString());
+      logger
+        ..spacer
+        ..err(err.toString())
+        ..detail(trace.toString());
       return ExitCode.unavailable.code;
     } finally {
       // Add spacer after the last line always
@@ -254,5 +241,15 @@ class FvmCommandRunner extends CommandRunner<int> {
         logger.detail("Failed to check for updates.");
       };
     }
+  }
+}
+
+void _verboseNotice() {
+  if (logger.level != Level.verbose) {
+    logger
+      ..spacer
+      ..info(
+        'Please run command with  --verbose if you want more information',
+      );
   }
 }

@@ -4,6 +4,7 @@ import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/global_version_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/utils/deprecation_util.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -48,6 +49,8 @@ class FVMContext {
     final gitCache = config.gitCache ?? true;
     final gitCachePath = config.gitCachePath;
     final flutterRepoUrl = config.flutterRepoUrl ?? kDefaultFlutterRepo;
+
+    deprecationWorkflow(fvmPath);
 
     return FVMContext._(
       id: id ?? 'MAIN',

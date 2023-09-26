@@ -7,6 +7,7 @@ import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
@@ -50,35 +51,30 @@ Future<void> useVersionWorkflow({
   // Checks if the project constraints are met
   _checkProjectVersionConstraints(project, version);
 
-  try {
-    // Attach as main version if no flavor is set
-    final flavors = <String, String>{
-      if (flavor != null) flavor: version.name,
-    };
+  // Attach as main version if no flavor is set
+  final flavors = <String, String>{
+    if (flavor != null) flavor: version.name,
+  };
 
-    final updatedProject = ProjectService.fromContext.update(
-      project,
-      flavors: flavors,
-      flutterSdkVersion: version.name,
-    );
+  final updatedProject = ProjectService.fromContext.update(
+    project,
+    flavors: flavors,
+    flutterSdkVersion: version.name,
+  );
 
-    _updateLocalSdkReference(
-      updatedProject,
-      version,
-    );
+  _updateLocalSdkReference(
+    updatedProject,
+    version,
+  );
 
-    _checkGitignore(updatedProject);
+  _checkGitignore(updatedProject);
 
-    await resolveDependenciesWorkflow(
-      updatedProject,
-      version,
-    );
+  await resolveDependenciesWorkflow(
+    updatedProject,
+    version,
+  );
 
-    _manageVscodeSettings(updatedProject);
-  } catch (e) {
-    logger.fail('Failed to update project config: $e');
-    rethrow;
-  }
+  _manageVscodeSettings(updatedProject);
 
   final versionLabel = cyan.wrap(version.printFriendlyName);
   // Different message if configured environment
@@ -303,10 +299,13 @@ void _manageVscodeSettings(Project project) {
         currentSettings = json.decode(sanitizedContent);
       }
     } on FormatException {
-      logger.fail('Updating $kVsCode settings failed');
-
-      throw AppException(
-        'Error parsing $kVsCode settings.json \n Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+      final relativePath = relative(
+        vscodeSettingsFile.path,
+        from: ctx.workingDirectory,
+      );
+      throw AppDetailedException(
+        'Error parsing $kVsCode settings at $relativePath',
+        'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
       );
     }
   } else {
