@@ -15,7 +15,13 @@ const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
 const kDefaultFlutterRepo = 'https://github.com/flutter/flutter.git';
 
 /// Project fvm config file name
-const kFvmConfigFileName = 'fvm_config.json';
+const kFvmConfigFileName = '.fvmrc';
+
+/// Project fvm config file name
+const kFvmLegacyConfigFileName = 'fvm_config.json';
+
+/// Vscode name
+const kVsCode = 'VSCode';
 
 /// Environment variables
 final _env = Platform.environment;
@@ -38,7 +44,8 @@ final kAppDirHome = join(kUserHome, 'fvm');
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
-final kAppConfigHome = join(_configHome, kPackageName, kFvmConfigFileName);
+final kAppConfigHome =
+    join(_configHome, kPackageName, kFvmLegacyConfigFileName);
 
 String get _configHome {
   if (Platform.isWindows) {

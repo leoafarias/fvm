@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -40,14 +42,18 @@ class Project {
   /// Retrieves the pinned Flutter SDK version within the project.
   ///
   /// Returns `null` if no version is pinned.
-  String? get pinnedVersion {
-    return config?.flutterSdkVersion;
+  FlutterVersion? get pinnedVersion {
+    final sdkVersion = config?.flutterSdkVersion;
+    if (sdkVersion != null) {
+      return FlutterVersion.parse(sdkVersion);
+    }
+    return null;
   }
 
   /// Retrieves the active configured flavor of the project.
   String? get activeFlavor {
     return flavors.keys.firstWhereOrNull(
-      (key) => flavors[key] == pinnedVersion,
+      (key) => flavors[key] == pinnedVersion?.name,
     );
   }
 
@@ -57,67 +63,39 @@ class Project {
   /// Retrieves the dart tool package config.
   ///
   /// Returns `null` if the file doesn't exist.
-  String? get dartToolGeneratorVersion {
-    return _dartToolPackageConfig.existsSync()
-        ? (jsonDecode(
-            _dartToolPackageConfig.readAsStringSync(),
-          ) as Map<String, dynamic>)['generatorVersion']
-        : null;
-  }
+  String? get dartToolGeneratorVersion => _dartToolGeneratorVersion(path);
 
   /// Retrieves the dart tool version from file.
   ///
   /// Returns `null` if the file doesn't exist.
-  String? get dartToolVersion => _dartToolVersionFile.existsSync()
-      ? _dartToolVersionFile.readAsStringSync()
-      : null;
+  String? get dartToolVersion => _dartToolVersion(path);
 
   /// Indicates whether the project is a Flutter project.
-  bool get isFlutter {
-    return pubspec?.dependencies.containsKey('flutter') ?? false;
-  }
-
-  /// Retrieves the local FVM path of the project.
-  ///
-  /// This path is used for caching Flutter SDK versions.
-  Directory get localFvmPath => Directory(_getLocalFvmPath(path));
+  bool get isFlutter => pubspec?.dependencies.containsKey('flutter') ?? false;
 
   /// Retrieves the local FVM cache path of the project.
   ///
   /// This is the directory where Flutter SDK versions are cached.
-  Directory get localVersionsCachePath =>
-      Directory(join(_getLocalFvmPath(path), 'versions'));
+  String get localVersionsCachePath {
+    return join(_fvmPath(path), 'versions');
+  }
 
   /// Returns the path of the Flutter SDK symlink within the project.
   String get localVersionSymlinkPath {
     return join(
-      localVersionsCachePath.path,
-      pinnedVersion,
+      localVersionsCachePath,
+      pinnedVersion?.name,
     );
   }
 
   /// Indicates whether the project has `.gitignore` file.
   File get gitignoreFile => File(join(path, '.gitignore'));
 
-  /// Returns the dart tool package config.
-  ///
-  /// This file specifies the version of the Dart tool package.
-  File get _dartToolPackageConfig {
-    return File(join(path, '.dart_tool', 'package_config.json'));
-  }
-
-  /// Returns the dart tool version from file.
-  ///
-  /// This file stores the version of the Dart tool.
-  File get _dartToolVersionFile {
-    return File(join(path, '.dart_tool', 'version'));
-  }
-
   /// Returns the path of the pubspec.yaml file.
   String get pubspecPath => join(path, 'pubspec.yaml');
 
   /// Returns the path of the FVM config file.
-  String get configPath => _getLocalFvmConfigPath(path);
+  String get configPath => _fvmConfigPath(path);
 
   /// Indicates whether the project has an FVM config file.
   bool get hasConfig => config != null;
@@ -128,9 +106,7 @@ class Project {
   /// Retrieves the Flutter SDK constraint from the pubspec.yaml file.
   ///
   /// Returns `null` if the constraint is not defined.
-  VersionConstraint? get sdkConstraint {
-    return pubspec?.environment?.sdkConstraint;
-  }
+  VersionConstraint? get sdkConstraint => pubspec?.environment?.sdkConstraint;
 
   /// Loads the Flutter project from the given [path].
   ///
@@ -138,9 +114,15 @@ class Project {
   static Project loadFromPath(String path) {
     ProjectConfig? config;
 
-    final configFile = File(_getLocalFvmConfigPath(path));
+    final configFile = File(_fvmConfigPath(path));
+    final legacyConfigFile = File(_legacyFvmConfigPath(path));
+
     if (configFile.existsSync()) {
       config = ProjectConfig.fromJson(configFile.readAsStringSync());
+      // Delete legacy file
+      legacyConfigFile.existsSync() ? legacyConfigFile.deleteSync() : null;
+    } else if (legacyConfigFile.existsSync()) {
+      config = ProjectConfig.fromJson(legacyConfigFile.readAsStringSync());
     }
 
     final pubspecPath = join(path, 'pubspec.yaml');
@@ -157,10 +139,34 @@ class Project {
   }
 }
 
-String _getLocalFvmPath(String path) {
+String _fvmPath(String path) {
   return join(path, kFvmDirName);
 }
 
-String _getLocalFvmConfigPath(String path) {
-  return join(_getLocalFvmPath(path), kFvmConfigFileName);
+String _legacyFvmConfigPath(String path) {
+  return join(_fvmPath(path), kFvmLegacyConfigFileName);
+}
+
+String _fvmConfigPath(String path) {
+  return join(path, kFvmConfigFileName);
+}
+
+String _dartToolPath(String projectPath) {
+  return join(projectPath, '.dart_tool');
+}
+
+String? _dartToolGeneratorVersion(String projectPath) {
+  final file = File(join(_dartToolPath(projectPath), 'package_config.json'));
+
+  return file.existsSync()
+      ? (jsonDecode(
+          file.readAsStringSync(),
+        ) as Map<String, dynamic>)['generatorVersion']
+      : null;
+}
+
+String? _dartToolVersion(String projectPath) {
+  final file = File(join(_dartToolPath(projectPath), 'version'));
+
+  return file.existsSync() ? file.readAsStringSync() : null;
 }

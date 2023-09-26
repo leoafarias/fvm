@@ -123,7 +123,7 @@ class ProjectConfig extends ConfigDto {
   final Map<String, String>? flavors;
 
   /// Returns true if has flavors
-  final bool? manageVscode;
+  final bool? unmanagedVscode;
 
   /// Constructor
   const ProjectConfig({
@@ -134,14 +134,14 @@ class ProjectConfig extends ConfigDto {
     super.fvmVersion,
     this.flutterSdkVersion,
     this.flavors,
-    this.manageVscode,
+    this.unmanagedVscode,
   });
 
   /// Returns empty ConfigDto
   const ProjectConfig.empty()
       : flutterSdkVersion = null,
         flavors = null,
-        manageVscode = null,
+        unmanagedVscode = null,
         super(
           fvmPath: null,
           fvmVersion: null,
@@ -153,12 +153,12 @@ class ProjectConfig extends ConfigDto {
   /// Returns ConfigDto from a map
   factory ProjectConfig.fromMap(Map<String, dynamic> map) {
     return ProjectConfig(
-      fvmVersion: map['fvmVersion'] as String?,
-      flutterSdkVersion: map['flutterSdkVersion'] as String?,
+      fvmVersion: map['fvm'] as String?,
+      flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
       fvmPath: map[ConfigVariable.fvmPath.name] as String?,
       gitCache: map[ConfigVariable.gitCache.name] as bool?,
       flutterRepoUrl: map[ConfigVariable.flutterRepo.name] as String?,
-      manageVscode: map['manageVscode'] as bool?,
+      unmanagedVscode: map['unmanagedVscode'] as bool?,
       gitCachePath: map[ConfigVariable.gitCachePath.name] as String?,
       flavors: map['flavors'] != null
           ? Map<String, String>.from(map['flavors'] as Map)
@@ -176,14 +176,14 @@ class ProjectConfig extends ConfigDto {
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
-      if (fvmVersion != null) 'fvmVersion': fvmVersion,
+      if (fvmVersion != null) 'fvm': fvmVersion,
+      if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
       if (fvmPath != null) ConfigVariable.fvmPath.name: fvmPath,
       if (gitCache != null) ConfigVariable.gitCache.name: gitCache,
       if (gitCachePath != null) ConfigVariable.gitCachePath.name: gitCachePath,
       if (flutterRepoUrl != null)
         ConfigVariable.flutterRepo.name: flutterRepoUrl,
-      if (manageVscode != null) 'manageVscode': manageVscode,
+      if (unmanagedVscode != null) 'unmanagedVscode': unmanagedVscode,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }
@@ -199,7 +199,7 @@ class ProjectConfig extends ConfigDto {
       flavors: config.flavors,
       gitCache: config.gitCache,
       gitCachePath: config.gitCachePath,
-      manageVscode: config.manageVscode,
+      unmanagedVscode: config.unmanagedVscode,
       flutterRepoUrl: config.flutterRepoUrl,
     );
   }
@@ -212,7 +212,7 @@ class ProjectConfig extends ConfigDto {
     String? fvmVersionsDir,
     String? flutterSdkVersion,
     bool? gitCache,
-    bool? manageVscode,
+    bool? unmanagedVscode,
     String? gitCachePath,
     String? flutterRepoUrl,
     Map<String, String>? flavors,
@@ -228,7 +228,7 @@ class ProjectConfig extends ConfigDto {
       fvmPath: fvmPath ?? this.fvmPath,
       flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
       flavors: mergedFlavors,
-      manageVscode: manageVscode ?? this.manageVscode,
+      unmanagedVscode: unmanagedVscode ?? this.unmanagedVscode,
       gitCache: gitCache ?? this.gitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,

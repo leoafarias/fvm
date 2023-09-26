@@ -61,7 +61,7 @@ class ProjectService extends ContextService {
   /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
   String? findVersion() {
     final project = findAncestor();
-    return project.pinnedVersion;
+    return project.pinnedVersion?.name;
   }
 
   /// Update the project with new configurations
@@ -76,7 +76,7 @@ class ProjectService extends ContextService {
     Project project, {
     Map<String, String> flavors = const {},
     String? flutterSdkVersion,
-    bool? manageVscode,
+    bool? unmanagedVscode,
   }) {
     final newConfig = project.config ?? ProjectConfig.empty();
 
@@ -84,11 +84,10 @@ class ProjectService extends ContextService {
       flavors: flavors,
       flutterSdkVersion: flutterSdkVersion,
       fvmVersion: packageVersion,
-      manageVscode: manageVscode,
+      unmanagedVscode: unmanagedVscode,
     );
 
     // Update flavors
-
     final configFile = File(project.configPath);
 
     // If config file does not exists create it

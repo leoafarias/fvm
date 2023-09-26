@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
+import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/utils/console_utils.dart';
@@ -65,7 +66,7 @@ class DoctorCommand extends BaseCommand {
       ['Config path', relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.localVersionsCachePath.path, from: project.path)
+        relative(project.localVersionsCachePath, from: project.path)
       ],
       [
         'Version symlink',
@@ -88,7 +89,7 @@ class DoctorCommand extends BaseCommand {
       ..insertColumn(header: 'IDEs', alignment: TextAlignment.left)
       ..insertColumn(header: '', alignment: TextAlignment.left);
 
-    table.insertRow(['VsCode']);
+    table.insertRow([kVsCode]);
     // Check for .vscode directory
     final vscodeDir = Directory(join(project.path, '.vscode'));
     final settingsPath = join(vscodeDir.path, 'settings.json');
@@ -119,10 +120,10 @@ class DoctorCommand extends BaseCommand {
           );
         }
       } else {
-        table.insertRow(['VSCode', 'Found .vscode, but no settings.json']);
+        table.insertRow([kVsCode, 'Found .vscode, but no settings.json']);
       }
     } else {
-      table.insertRow(['VSCode', 'No .vscode directory found']);
+      table.insertRow([kVsCode, 'No .vscode directory found']);
     }
 
     table.insertRow(['Android Studio']);

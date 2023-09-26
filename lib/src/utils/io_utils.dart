@@ -8,8 +8,10 @@ bool isDirectory(String path) {
 }
 
 /// Creates a symlink from [source] to the [target]
-void createLink(Link source, Directory target) {
+void createLink(String sourcePath, String targetPath) {
   // Check if needs to do anything
+  final source = Link(sourcePath);
+  final target = Directory(targetPath);
 
   final sourceExists = source.existsSync();
   if (sourceExists && source.targetSync() == target.path) {

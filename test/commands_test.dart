@@ -61,9 +61,10 @@ void main() {
     testWithContext('Use Flutter SDK globally', () async {
       try {
         await runner.run('fvm global $channel');
-        final linkExists = ctx.globalCacheLink.existsSync();
+        final globalLink = Link(ctx.globalCacheLink);
+        final linkExists = globalLink.existsSync();
 
-        final targetVersion = basename(await ctx.globalCacheLink.target());
+        final targetVersion = basename(await globalLink.target());
 
         expect(targetVersion == channel, true);
         expect(linkExists, true);

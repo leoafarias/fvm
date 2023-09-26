@@ -63,7 +63,7 @@ class UseCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = project.pinnedVersion;
+      version = project.pinnedVersion?.name;
       final versions = await CacheService.fromContext.getAllVersions();
       // If no config found, ask which version to select.
       version ??= await cacheVersionSelector(versions);
@@ -74,7 +74,14 @@ class UseCommand extends BaseCommand {
 
     // Get valid flutter version. Force version if is to be pinned.
 
-    if (pinOption && isFlutterChannel(version)) {
+    if (pinOption) {
+      if (!isFlutterChannel(version)) {
+        throw UsageException(
+          'Cannot pin a version that is not a channel.',
+          usage,
+        );
+      }
+
       /// Cannot pin master channel
       if (version == 'master') {
         throw UsageException(

@@ -16,14 +16,16 @@ class GlobalVersionService extends ContextService {
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
-    createLink(context.globalCacheLink, Directory(version.directory));
+    createLink(context.globalCacheLink, version.directory);
   }
+
+  Link get _globalCacheLink => Link(context.globalCacheLink);
 
   /// Returns a global [CacheFlutterVersion] if exists
   CacheFlutterVersion? getGlobal() {
-    if (!context.globalCacheLink.existsSync()) return null;
+    if (!_globalCacheLink.existsSync()) return null;
     // Get directory name
-    final version = path.basename(context.globalCacheLink.targetSync());
+    final version = path.basename(_globalCacheLink.targetSync());
     // Make sure its a valid version
     final validVersion = FlutterVersion.parse(version);
     // Verify version is cached
@@ -32,14 +34,14 @@ class GlobalVersionService extends ContextService {
 
   /// Checks if a cached [version] is configured as global
   bool isGlobal(CacheFlutterVersion version) {
-    if (!context.globalCacheLink.existsSync()) return false;
-    return context.globalCacheLink.targetSync() == version.directory;
+    if (!_globalCacheLink.existsSync()) return false;
+    return _globalCacheLink.targetSync() == version.directory;
   }
 
   /// Returns a global version name if exists
   String? getGlobalVersion() {
-    if (!context.globalCacheLink.existsSync()) return null;
+    if (!_globalCacheLink.existsSync()) return null;
     // Get directory name
-    return path.basename(context.globalCacheLink.targetSync());
+    return path.basename(_globalCacheLink.targetSync());
   }
 }

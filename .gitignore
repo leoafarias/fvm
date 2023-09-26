@@ -28,8 +28,7 @@ test/.test_coverage.dart
 .vscode/
 coverage/lcov.info
 
-# FVM during tests
-.fvm
+
 .vscode/settings.json
 packages/cli/test/.test_coverage.dart
 packages/cli/.env
@@ -38,13 +37,12 @@ node_modules
 test/.test_cov.dart
 test/support_assets/dart_package/lib/src/version.dart
 
-# FVM 
-.fvm/flutter_sdk
 
-# FVM Version Cache
-.fvm/versions
 coverage/test
 .failed_tracker
 coverage/html
 test/support_assets/*/pubspec.lock
 test/support_assets/*/pubspec.lock
+
+# FVM Version Cache
+.fvm

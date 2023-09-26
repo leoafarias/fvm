@@ -6,7 +6,6 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
@@ -63,13 +62,16 @@ Future<void> useVersionWorkflow({
       flutterSdkVersion: version.name,
     );
 
-    _updateLocalSdkSymlink(updatedProject);
+    _updateLocalSdkReference(
+      updatedProject,
+      version,
+    );
 
     _checkGitignore(updatedProject);
 
     await resolveDependenciesWorkflow(
-      version: version,
-      project: project,
+      updatedProject,
+      version,
     );
 
     _manageVscodeSettings(updatedProject);
@@ -200,19 +202,10 @@ void _checkProjectVersionConstraints(
 /// that are no longer needed.
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateLocalSdkSymlink(Project project) {
-  // Ensure the config link and symlink are updated
-  final sdkVersion = project.pinnedVersion;
-  if (sdkVersion == null) {
-    throw AppException(
-      'Cannot update symlink of project without a Flutter SDK version',
-    );
-  }
-
-  final sdkVersionDir = CacheService.fromContext.getVersionCacheDir(sdkVersion);
+void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 // Legacy link for fvm < 3.0.0
   final legacyLink = Link(join(
-    project.localVersionsCachePath.path,
+    project.localVersionsCachePath,
     'flutter_sdk',
   ));
 
@@ -221,14 +214,16 @@ void _updateLocalSdkSymlink(Project project) {
     legacyLink.deleteSync();
   }
 
-  if (project.localVersionsCachePath.existsSync()) {
-    project.localVersionsCachePath.deleteSync(recursive: true);
+  final localVersionsCache = Directory(project.localVersionsCachePath);
+
+  if (localVersionsCache.existsSync()) {
+    localVersionsCache.deleteSync(recursive: true);
   }
-  project.localVersionsCachePath.createSync(recursive: true);
+  localVersionsCache.createSync(recursive: true);
 
   createLink(
-    Link(project.localVersionSymlinkPath),
-    sdkVersionDir,
+    project.localVersionSymlinkPath,
+    version.directory,
   );
 }
 
@@ -241,7 +236,7 @@ void _updateLocalSdkSymlink(Project project) {
 /// The method also updates the "dart.flutterSdkPath" setting to use the relative
 /// path of the .fvm symlink.
 void _manageVscodeSettings(Project project) {
-  if (project.config?.manageVscode == false) {
+  if (project.config?.unmanagedVscode == false) {
     logger.detail(
       '$kPackageName does not manage VSCode settings for this project.',
     );
@@ -251,31 +246,43 @@ void _manageVscodeSettings(Project project) {
   final vscodeDir = Directory(join(project.path, '.vscode'));
   final vscodeSettingsFile = File(join(vscodeDir.path, 'settings.json'));
 
-  var manageVscode = isVsCode() || vscodeDir.existsSync();
+  final donotManageVscode = project.config?.unmanagedVscode == true;
+  final isUsingVscode = isVsCode() || vscodeDir.existsSync();
 
-  if (!manageVscode) {
-    manageVscode = logger.confirm(
-      'Would you like to configure VSCode for this project?',
+  if (donotManageVscode) {
+    logger.detail(
+      '$kPackageName does not manage $kVsCode settings for this project.',
     );
-  }
 
-  ProjectService.fromContext.update(
-    project,
-    manageVscode: manageVscode,
-  );
-
-  if (!manageVscode) {
+    if (isUsingVscode) {
+      logger
+        ..warn(
+          'You are using $kVsCode, but $kPackageName is ',
+        )
+        ..warn(
+          'not managing $kVsCode settings for this project.',
+        )
+        ..warn('Please remove "unmanagedVscode" from $kFvmConfigFileName');
+    }
     return;
   }
 
-  Map<String, dynamic> recommendedSettings = {
-    'search.exclude': {'**/.fvm/versions': true},
-    'files.watcherExclude': {'**/.fvm/versions': true},
-    'files.exclude': {'**/.fvm/versions': true}
-  };
+  if (!isUsingVscode) {
+    final confirmation = logger.confirm(
+      'Are you using $kVsCode for this project?',
+    );
+
+    if (!confirmation) {
+      ProjectService.fromContext.update(
+        project,
+        unmanagedVscode: true,
+      );
+      return;
+    }
+  }
 
   if (!vscodeSettingsFile.existsSync()) {
-    logger.detail('VSCode settings not found, to update.');
+    logger.detail('$kVsCode settings not found, to update.');
     vscodeSettingsFile.createSync(recursive: true);
   }
 
@@ -290,41 +297,14 @@ void _manageVscodeSettings(Project project) {
         currentSettings = json.decode(sanitizedContent);
       }
     } on FormatException {
-      logger.fail('Updating VSCode settings failed');
+      logger.fail('Updating $kVsCode settings failed');
 
       throw AppException(
-        'Error parsing Vscode settings.json \n Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+        'Error parsing $kVsCode settings.json \n Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
       );
     }
   } else {
     vscodeSettingsFile.create(recursive: true);
-  }
-
-  bool isUpdated = false;
-
-  for (var entry in recommendedSettings.entries) {
-    final recommendedValue = entry.value as Map<String, dynamic>;
-
-    if (currentSettings.containsKey(entry.key)) {
-      final currentValue = currentSettings[entry.key] as Map<String, dynamic>;
-
-      for (var innerEntry in recommendedValue.entries) {
-        if (currentValue[innerEntry.key] != innerEntry.value) {
-          currentValue[innerEntry.key] = innerEntry.value;
-          isUpdated = true;
-        }
-      }
-    } else {
-      currentSettings[entry.key] = recommendedValue;
-      isUpdated = true;
-    }
-  }
-
-  // Write updated settings back to settings.json
-  if (isUpdated) {
-    logger.success(
-      'VScode $kPackageName settings has been updated. with correct exclude settings\n',
-    );
   }
 
   final relativePath = relative(

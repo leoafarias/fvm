@@ -113,10 +113,10 @@ class FVMContext {
   Map<String, String> get environment => Platform.environment;
 
   /// Where Default Flutter SDK is stored
-  Link get globalCacheLink => Link(join(fvmDir, 'default'));
+  String get globalCacheLink => join(fvmDir, 'default');
 
   /// Directory for Global Flutter SDK bin
-  String get globalCacheBinPath => join(globalCacheLink.path, 'bin');
+  String get globalCacheBinPath => join(globalCacheLink, 'bin');
 
   /// Directory where FVM versions are stored
   String get versionsCachePath => join(fvmDir, 'versions');

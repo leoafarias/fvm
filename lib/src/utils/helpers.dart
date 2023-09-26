@@ -76,9 +76,7 @@ String friendlyDate(DateTime dateTime) {
   return formatDate(dateTime, [M, ' ', d, ', ', yyyy]);
 }
 
-bool isVsCode() {
-  return Platform.environment['TERM_PROGRAM'] == 'vscode';
-}
+bool isVsCode() => Platform.environment['TERM_PROGRAM'] == 'vscode';
 
 class FlutterVersionOutput {
   final String? flutterVersion;

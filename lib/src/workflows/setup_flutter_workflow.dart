@@ -15,10 +15,10 @@ Future<void> setupFlutterWorkflow({
   await FlutterService.fromContext.runSetup(version);
 }
 
-Future<void> resolveDependenciesWorkflow({
-  required CacheFlutterVersion version,
-  required Project project,
-}) async {
+Future<void> resolveDependenciesWorkflow(
+  Project project,
+  CacheFlutterVersion version,
+) async {
   logDetails(version, project);
 
   if (version.notSetup) return;
