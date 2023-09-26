@@ -65,12 +65,12 @@ class DoctorCommand extends BaseCommand {
       ['Config path', relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.fvmCachePath.path, from: project.path)
+        relative(project.localVersionsCachePath.path, from: project.path)
       ],
       [
         'Version symlink',
         relative(
-          project.cacheVersionSymlink.path,
+          project.localVersionSymlinkPath,
           from: project.path,
         )
       ],
@@ -100,7 +100,7 @@ class DoctorCommand extends BaseCommand {
           final settings = jsonDecode(settingsFile.readAsStringSync());
 
           final relativeSymlinkPath = relative(
-            project.cacheVersionSymlink.path,
+            project.localVersionSymlinkPath,
             from: project.path,
           );
 
@@ -136,9 +136,8 @@ class DoctorCommand extends BaseCommand {
       final sdkPath = localProperties
           .firstWhere((line) => line.startsWith('flutter.sdk'))
           .split('=')[1];
-
-      final resolvedLink =
-          project.cacheVersionSymlink.resolveSymbolicLinksSync();
+      final cacheVersionLink = Link(project.localVersionSymlinkPath);
+      final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
 
       table.insertRow(['flutter.sdk', sdkPath]);
       table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);

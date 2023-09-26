@@ -1,4 +1,6 @@
 @Timeout(Duration(minutes: 5))
+import 'dart:io';
+
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/project_service.dart';
@@ -22,9 +24,10 @@ void main() {
             );
 
             final project = ProjectService.fromContext.findAncestor();
-            final linkExists = project.cacheVersionSymlink.existsSync();
+            final link = Link(project.localVersionSymlinkPath);
+            final linkExists = link.existsSync();
 
-            final targetPath = project.cacheVersionSymlink.targetSync();
+            final targetPath = link.targetSync();
             final valid = FlutterVersion.parse(version);
             final versionDir =
                 CacheService.fromContext.getVersionCacheDir(valid.name);

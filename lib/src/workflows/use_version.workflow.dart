@@ -63,7 +63,7 @@ Future<void> useVersionWorkflow({
       flutterSdkVersion: version.name,
     );
 
-    _updateFlutterSdkReference(updatedProject);
+    _updateLocalSdkSymlink(updatedProject);
 
     _checkGitignore(updatedProject);
 
@@ -200,29 +200,34 @@ void _checkProjectVersionConstraints(
 /// that are no longer needed.
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateFlutterSdkReference(Project project) {
+void _updateLocalSdkSymlink(Project project) {
   // Ensure the config link and symlink are updated
   final sdkVersion = project.pinnedVersion;
   if (sdkVersion == null) {
     throw AppException(
-      'Cannot update link of project without a Flutter SDK version',
+      'Cannot update symlink of project without a Flutter SDK version',
     );
   }
 
   final sdkVersionDir = CacheService.fromContext.getVersionCacheDir(sdkVersion);
+// Legacy link for fvm < 3.0.0
+  final legacyLink = Link(join(
+    project.localVersionsCachePath.path,
+    'flutter_sdk',
+  ));
 
   // Clean up pre 3.0 links
-  if (project.legacyCacheVersionSymlink.existsSync()) {
-    project.legacyCacheVersionSymlink.deleteSync();
+  if (legacyLink.existsSync()) {
+    legacyLink.deleteSync();
   }
 
-  if (project.fvmCachePath.existsSync()) {
-    project.fvmCachePath.deleteSync(recursive: true);
+  if (project.localVersionsCachePath.existsSync()) {
+    project.localVersionsCachePath.deleteSync(recursive: true);
   }
-  project.fvmCachePath.createSync(recursive: true);
+  project.localVersionsCachePath.createSync(recursive: true);
 
   createLink(
-    project.cacheVersionSymlink,
+    Link(project.localVersionSymlinkPath),
     sdkVersionDir,
   );
 }
@@ -323,7 +328,7 @@ void _manageVscodeSettings(Project project) {
   }
 
   final relativePath = relative(
-    project.cacheVersionSymlinkCompat.path,
+    project.localVersionSymlinkPath,
     from: project.path,
   );
 

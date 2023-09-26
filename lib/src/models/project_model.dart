@@ -80,41 +80,24 @@ class Project {
   /// Retrieves the local FVM path of the project.
   ///
   /// This path is used for caching Flutter SDK versions.
-  Directory get fvmPath => Directory(_getLocalFvmPath(path));
+  Directory get localFvmPath => Directory(_getLocalFvmPath(path));
 
   /// Retrieves the local FVM cache path of the project.
   ///
   /// This is the directory where Flutter SDK versions are cached.
-  Directory get fvmCachePath =>
+  Directory get localVersionsCachePath =>
       Directory(join(_getLocalFvmPath(path), 'versions'));
 
   /// Returns the path of the Flutter SDK symlink within the project.
-  Link get cacheVersionSymlink {
-    return Link(join(
-      fvmCachePath.path,
+  String get localVersionSymlinkPath {
+    return join(
+      localVersionsCachePath.path,
       pinnedVersion,
-    ));
-  }
-
-  /// Returns the compatibility path of the Flutter SDK symlink within the project.
-  Directory get cacheVersionSymlinkCompat {
-    return Directory(join(
-      fvmCachePath.path,
-      pinnedVersion,
-    ));
+    );
   }
 
   /// Indicates whether the project has `.gitignore` file.
   File get gitignoreFile => File(join(path, '.gitignore'));
-
-  /// Returns the legacy path of the Flutter SDK symlink within the project.
-  Link get legacyCacheVersionSymlink {
-    return Link(join(
-      path,
-      kFvmDirName,
-      'flutter_sdk',
-    ));
-  }
 
   /// Returns the dart tool package config.
   ///
