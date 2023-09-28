@@ -6,7 +6,7 @@ on:
   #   types: [published, released]
   push:
     tags:
-      - '*v'
+      - "v*"
 
 jobs:
   test:
