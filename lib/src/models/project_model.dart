@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
@@ -117,21 +116,20 @@ class Project {
   ///
   /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
   static Project loadFromPath(String path) {
-    ProjectConfig? config;
+    final configFile = _fvmConfigPath(path);
+    final legacyConfigFile = _legacyFvmConfigPath(path);
 
-    final configFile = File(_fvmConfigPath(path));
-    final legacyConfigFile = File(_legacyFvmConfigPath(path));
+    // Used for migration of config files
+    final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
 
-    if (configFile.existsSync()) {
-      config = ProjectConfig.fromJson(configFile.readAsStringSync());
-      // Delete legacy file
-      legacyConfigFile.existsSync() ? legacyConfigFile.deleteSync() : null;
-    } else if (legacyConfigFile.existsSync()) {
-      config = ProjectConfig.fromJson(legacyConfigFile.readAsStringSync());
+    if (legacyConfig != null) {
+      legacyConfig.save(configFile);
+      legacyConfigFile.file.deleteSync();
     }
 
-    final pubspecPath = join(path, 'pubspec.yaml');
-    final pubspecFile = File(pubspecPath);
+    final config = ProjectConfig.loadFromPath(configFile);
+
+    final pubspecFile = File(join(path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
         ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
         : null;

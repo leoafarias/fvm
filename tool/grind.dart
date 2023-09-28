@@ -32,7 +32,7 @@ Future<void> buildVersion() async {
   final args = context.invocation.arguments;
   final versionArg = args.getOption('version');
 
-  final pubspec = await PubSpec.load(Directory.current);
+  final pubspec = await PubSpec.load(Directory.current.path);
   Version? version = pubspec.version;
 
   if (versionArg != null) {
@@ -41,7 +41,7 @@ Future<void> buildVersion() async {
 
   if (version != pubspec.version) {
     var newPubSpec = pubspec.copy(version: version);
-    await newPubSpec.save(Directory.current);
+    await newPubSpec.save(Directory.current.path);
   }
 
   final versionFile = File(

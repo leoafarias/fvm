@@ -42,6 +42,7 @@ class UseCommand extends BaseCommand {
         'flavor',
         help: 'Sets version for a project flavor',
         defaultsTo: null,
+        aliases: ['env'],
       )
       ..addFlag(
         'skip-setup',

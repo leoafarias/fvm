@@ -30,6 +30,7 @@ class InstallCommand extends BaseCommand {
       help: 'Builds SDK after install after install',
       abbr: 's',
       defaultsTo: false,
+      negatable: false,
     );
   }
 

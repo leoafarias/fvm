@@ -1,165 +1,275 @@
 // Use just for reference, should not change
 
 import 'dart:convert';
+import 'dart:io';
 
-enum ConfigVariable {
-  fvmPath('fvmPath', 'fvm_path'),
-  gitCache('gitCache', 'git_cache'),
-  gitCachePath('gitCachePath', 'git_cache_path'),
-  flutterRepo('flutterRepo', 'flutter_repo');
+import 'package:args/args.dart';
+import 'package:fvm/constants.dart';
+import 'package:fvm/src/utils/change_case.dart';
+import 'package:fvm/src/utils/extensions.dart';
+import 'package:fvm/src/utils/pretty_json.dart';
 
-  const ConfigVariable(
-    this.name,
-    this.configName,
-  );
+class ConfigKeys {
+  final String key;
 
-  final String name;
-  final String configName;
+  const ConfigKeys(this.key);
 
-  String get envName {
-    final prefix = 'FVM_';
-    String uppercaseEnv = name.toUpperCase();
-    if (!configName.startsWith(prefix)) {
-      uppercaseEnv = '$prefix$uppercaseEnv)';
-    }
+  @override
+  operator ==(other) => other is ConfigKeys && other.key == key;
 
-    return uppercaseEnv;
+  @override
+  int get hashCode => key.hashCode;
+
+  ChangeCase get _recase => ChangeCase(key);
+
+  static const ConfigKeys cachePath = ConfigKeys('cache_path');
+  static const ConfigKeys useGitCache = ConfigKeys('git_cache');
+  static const ConfigKeys gitCachePath = ConfigKeys('git_cache_path');
+  static const ConfigKeys flutterUrl = ConfigKeys('flutter_url');
+
+  String get envKey => 'FVM_${_recase.constantCase}';
+  String get paramKey => _recase.paramCase;
+  String get propKey => _recase.camelCase;
+
+  static const values = <ConfigKeys>[
+    cachePath,
+    useGitCache,
+    gitCachePath,
+    flutterUrl
+  ];
+
+  static ConfigKeys fromName(String name) {
+    return values.firstWhere((e) => e.key == name);
   }
 
-  String get argName => configName.replaceAll('_', '-');
+  static argResultsToMap(ArgResults argResults) {
+    final configMap = <String, dynamic>{};
 
-  factory ConfigVariable.fromName(String name) {
-    return ConfigVariable.values.firstWhere((element) => element.name == name);
+    for (final key in values) {
+      final value = argResults[key.paramKey];
+      if (value != null) {
+        configMap[key.propKey] = value;
+      }
+    }
+
+    return configMap;
+  }
+
+  static injectArgParser(ArgParser argParser) {
+    final configKeysFuncs = {
+      ConfigKeys.cachePath.key: () {
+        argParser.addOption(
+          ConfigKeys.cachePath.paramKey,
+          help: 'Path where $kPackageName will cache versions',
+        );
+      },
+      ConfigKeys.useGitCache.key: () {
+        argParser.addFlag(
+          ConfigKeys.useGitCache.paramKey,
+          help:
+              'Enable/Disable git cache globally, which is used for faster version installs.',
+          negatable: true,
+        );
+      },
+      ConfigKeys.gitCachePath.key: () {
+        argParser.addOption(
+          ConfigKeys.gitCachePath.paramKey,
+          help: 'Path where local Git reference cache is stored',
+        );
+      },
+      ConfigKeys.flutterUrl.key: () {
+        argParser.addOption(
+          ConfigKeys.flutterUrl.paramKey,
+          help: 'Flutter repository Git URL to clone from',
+        );
+      },
+    };
+
+    for (final key in values) {
+      configKeysFuncs[key.key]?.call();
+    }
   }
 }
 
-abstract class ConfigDto {
+class Config {
   // If should use gitCache
-  final bool? gitCache;
+  final bool? useGitCache;
 
   final String? gitCachePath;
 
   /// Flutter repo url
-  final String? flutterRepoUrl;
-
-  /// FVM Version
-  final String? fvmVersion;
+  final String? flutterUrl;
 
   /// Directory where FVM is stored
-  final String? fvmPath;
+  final String? cachePath;
 
-  const ConfigDto({
-    required this.fvmVersion,
-    required this.fvmPath,
-    required this.gitCache,
+  /// Constructor
+  const Config({
+    required this.cachePath,
+    required this.useGitCache,
     required this.gitCachePath,
-    required this.flutterRepoUrl,
-  });
-}
-
-class EnvConfig extends ConfigDto {
-  const EnvConfig({
-    super.fvmVersion,
-    super.fvmPath,
-    super.gitCache,
-    super.flutterRepoUrl,
-    super.gitCachePath,
+    required this.flutterUrl,
   });
 
-  factory EnvConfig.fromMap(Map<String, dynamic> map) {
-    return EnvConfig(
-      fvmVersion: map['fvmVersion'] as String?,
-      fvmPath: map[ConfigVariable.fvmPath.name] as String?,
-      gitCache: map[ConfigVariable.gitCache.name] as bool?,
-      gitCachePath: map[ConfigVariable.gitCachePath.name] as String?,
-      flutterRepoUrl: map[ConfigVariable.flutterRepo.name] as String?,
+  factory Config.empty() {
+    return Config(
+      cachePath: null,
+      useGitCache: null,
+      gitCachePath: null,
+      flutterUrl: null,
+    );
+  }
+
+  factory Config.fromMap(Map<String, dynamic> map) {
+    return Config(
+      cachePath: map[ConfigKeys.cachePath.propKey] as String?,
+      useGitCache: map[ConfigKeys.useGitCache.propKey] as bool?,
+      gitCachePath: map[ConfigKeys.gitCachePath.propKey] as String?,
+      flutterUrl: map[ConfigKeys.flutterUrl.propKey] as String?,
     );
   }
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      if (fvmVersion != null) 'fvmVersion': fvmVersion,
-      if (fvmPath != null) ConfigVariable.fvmPath.name: fvmPath,
-      if (gitCache != null) ConfigVariable.gitCache.name: gitCache,
-      if (gitCachePath != null) ConfigVariable.gitCachePath.name: gitCachePath,
-      if (flutterRepoUrl != null)
-        ConfigVariable.flutterRepo.name: flutterRepoUrl,
+      if (cachePath != null) ConfigKeys.cachePath.propKey: cachePath,
+      if (useGitCache != null) ConfigKeys.useGitCache.propKey: useGitCache,
+      if (gitCachePath != null) ConfigKeys.gitCachePath.propKey: gitCachePath,
+      if (flutterUrl != null) ConfigKeys.flutterUrl.propKey: flutterUrl,
+    };
+  }
+}
+
+/// App config
+class AppConfig extends Config {
+  /// Disables update notification
+  final bool? disableUpdate;
+  final DateTime? lastUpdateCheck;
+
+  /// Constructor
+  const AppConfig({
+    required this.disableUpdate,
+    required this.lastUpdateCheck,
+    required super.cachePath,
+    required super.useGitCache,
+    required super.gitCachePath,
+    required super.flutterUrl,
+  });
+
+  factory AppConfig.empty() {
+    return AppConfig(
+      disableUpdate: null,
+      lastUpdateCheck: null,
+      cachePath: null,
+      useGitCache: null,
+      gitCachePath: null,
+      flutterUrl: null,
+    );
+  }
+
+  static AppConfig? loadFromPath(String path) {
+    final configFile = File(path);
+
+    return configFile.existsSync()
+        ? AppConfig.fromJson(configFile.readAsStringSync())
+        : null;
+  }
+
+  factory AppConfig.fromMap(Map<String, dynamic> map) {
+    final envConfig = Config.fromMap(map);
+    return AppConfig(
+      cachePath: envConfig.cachePath,
+      gitCachePath: envConfig.gitCachePath,
+      flutterUrl: envConfig.flutterUrl,
+      useGitCache: envConfig.useGitCache,
+      disableUpdate: map['disableUpdate'] as bool?,
+      lastUpdateCheck: map['lastUpdateCheck'] != null
+          ? DateTime.parse(map['lastUpdateCheck'] as String)
+          : null,
+    );
+  }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      if (disableUpdate != null) 'disableUpdate': disableUpdate,
+      if (lastUpdateCheck != null)
+        'lastUpdateCheck': lastUpdateCheck?.toIso8601String(),
     };
   }
 
-  EnvConfig merge(EnvConfig? config) {
-    return copyWith(
-      fvmVersion: config?.fvmVersion,
-      fvmPath: config?.fvmPath,
-      gitCache: config?.gitCache,
-      gitCachePath: config?.gitCachePath,
-      flutterRepoUrl: config?.flutterRepoUrl,
+  factory AppConfig.fromJson(String source) {
+    return AppConfig.fromMap(json.decode(source) as Map<String, dynamic>);
+  }
+
+  AppConfig copyWith({
+    String? cachePath,
+    bool? useGitCache,
+    String? gitCachePath,
+    String? flutterUrl,
+    bool? disableUpdate,
+    DateTime? lastUpdateCheck,
+  }) {
+    return AppConfig(
+      cachePath: cachePath ?? this.cachePath,
+      useGitCache: useGitCache ?? this.useGitCache,
+      gitCachePath: gitCachePath ?? this.gitCachePath,
+      flutterUrl: flutterUrl ?? this.flutterUrl,
+      disableUpdate: disableUpdate ?? this.disableUpdate,
+      lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
     );
   }
 
-  EnvConfig copyWith({
-    String? fvmVersion,
-    String? fvmPath,
-    bool? gitCache,
-    String? gitCachePath,
-    String? flutterRepoUrl,
-  }) {
-    return EnvConfig(
-      fvmVersion: fvmVersion ?? this.fvmVersion,
-      fvmPath: fvmPath ?? this.fvmPath,
-      gitCache: gitCache ?? this.gitCache,
-      gitCachePath: gitCachePath ?? this.gitCachePath,
-      flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
+  AppConfig merge(AppConfig? config) {
+    return copyWith(
+      cachePath: config?.cachePath,
+      useGitCache: config?.useGitCache,
+      gitCachePath: config?.gitCachePath,
+      flutterUrl: config?.flutterUrl,
+      disableUpdate: config?.disableUpdate,
+      lastUpdateCheck: config?.lastUpdateCheck,
     );
+  }
+
+  void save(String path) {
+    final jsonContents = prettyJson(toMap());
+
+    path.write(jsonContents);
   }
 }
 
 /// Project config
-class ProjectConfig extends ConfigDto {
+class ProjectConfig extends Config {
   /// Flutter SDK version configured
-  final String? flutterSdkVersion;
+  String? flutterSdkVersion;
 
   /// Flavors configured
-  final Map<String, String>? flavors;
+  Map<String, String>? flavors;
 
   /// Returns true if has flavors
-  final bool? unmanagedVscode;
+  bool? unmanagedVscode;
 
   /// Constructor
-  const ProjectConfig({
-    super.fvmPath,
-    super.gitCache,
+  ProjectConfig({
+    super.cachePath,
+    super.useGitCache,
     super.gitCachePath,
-    super.flutterRepoUrl,
-    super.fvmVersion,
+    super.flutterUrl,
     this.flutterSdkVersion,
     this.flavors,
     this.unmanagedVscode,
   });
 
-  /// Returns empty ConfigDto
-  const ProjectConfig.empty()
-      : flutterSdkVersion = null,
-        flavors = null,
-        unmanagedVscode = null,
-        super(
-          fvmPath: null,
-          fvmVersion: null,
-          gitCache: null,
-          gitCachePath: null,
-          flutterRepoUrl: null,
-        );
-
   /// Returns ConfigDto from a map
   factory ProjectConfig.fromMap(Map<String, dynamic> map) {
+    final envConfig = Config.fromMap(map);
     return ProjectConfig(
-      fvmVersion: map['fvm'] as String?,
+      cachePath: envConfig.cachePath,
+      gitCachePath: envConfig.gitCachePath,
+      flutterUrl: envConfig.flutterUrl,
+      useGitCache: envConfig.useGitCache,
       flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
-      fvmPath: map[ConfigVariable.fvmPath.name] as String?,
-      gitCache: map[ConfigVariable.gitCache.name] as bool?,
-      flutterRepoUrl: map[ConfigVariable.flutterRepo.name] as String?,
       unmanagedVscode: map['unmanagedVscode'] as bool?,
-      gitCachePath: map[ConfigVariable.gitCachePath.name] as String?,
       flavors: map['flavors'] != null
           ? Map<String, String>.from(map['flavors'] as Map)
           : null,
@@ -170,52 +280,61 @@ class ProjectConfig extends ConfigDto {
   factory ProjectConfig.fromJson(String source) =>
       ProjectConfig.fromMap(json.decode(source) as Map<String, dynamic>);
 
+  static ProjectConfig? loadFromPath(String path) {
+    final configFile = File(path);
+
+    return configFile.existsSync()
+        ? ProjectConfig.fromJson(configFile.readAsStringSync())
+        : null;
+  }
+
   /// It checks each property for null prior to adding it to the map.
   /// This is to ensure the returned map doesn't contain any null values.
   /// Also, if [flavors] is not empty it adds it to the map.
 
+  @override
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
-      if (fvmVersion != null) 'fvm': fvmVersion,
+      ...super.toMap(),
       if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
-      if (fvmPath != null) ConfigVariable.fvmPath.name: fvmPath,
-      if (gitCache != null) ConfigVariable.gitCache.name: gitCache,
-      if (gitCachePath != null) ConfigVariable.gitCachePath.name: gitCachePath,
-      if (flutterRepoUrl != null)
-        ConfigVariable.flutterRepo.name: flutterRepoUrl,
       if (unmanagedVscode != null) 'unmanagedVscode': unmanagedVscode,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }
 
-  /// toJson
-  String toJson() => json.encode(toMap());
-
   ProjectConfig merge(ProjectConfig config) {
     return copyWith(
-      fvmVersion: config.fvmVersion,
-      fvmPath: config.fvmPath,
+      cachePath: config.cachePath,
+      useGitCache: config.useGitCache,
+      gitCachePath: config.gitCachePath,
+      flutterUrl: config.flutterUrl,
       flutterSdkVersion: config.flutterSdkVersion,
       flavors: config.flavors,
-      gitCache: config.gitCache,
-      gitCachePath: config.gitCachePath,
       unmanagedVscode: config.unmanagedVscode,
-      flutterRepoUrl: config.flutterRepoUrl,
     );
   }
 
+  /// returns just the Config
+  Config get config => Config(
+        cachePath: cachePath,
+        useGitCache: useGitCache,
+        gitCachePath: gitCachePath,
+        flutterUrl: flutterUrl,
+      );
+
   /// Copies current config and overrides with new values
   /// Returns a new ConfigDto
+
   ProjectConfig copyWith({
-    String? fvmVersion,
-    String? fvmPath,
+    String? cachePath,
     String? fvmVersionsDir,
     String? flutterSdkVersion,
-    bool? gitCache,
+    bool? useGitCache,
     bool? unmanagedVscode,
     String? gitCachePath,
-    String? flutterRepoUrl,
+    String? flutterUrl,
     Map<String, String>? flavors,
+    bool? disableUpdate,
   }) {
     // merge map and override the keys
     final mergedFlavors = <String, String>{
@@ -224,14 +343,19 @@ class ProjectConfig extends ConfigDto {
     };
 
     return ProjectConfig(
-      fvmVersion: fvmVersion ?? this.fvmVersion,
-      fvmPath: fvmPath ?? this.fvmPath,
+      cachePath: cachePath ?? cachePath,
       flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
       flavors: mergedFlavors,
       unmanagedVscode: unmanagedVscode ?? this.unmanagedVscode,
-      gitCache: gitCache ?? this.gitCache,
+      useGitCache: useGitCache ?? this.useGitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
-      flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
+      flutterUrl: flutterUrl ?? this.flutterUrl,
     );
+  }
+
+  void save(String path) {
+    final jsonContents = prettyJson(toMap());
+
+    path.write(jsonContents);
   }
 }

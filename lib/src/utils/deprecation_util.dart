@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:fvm/constants.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 
 void deprecationWorkflow(
@@ -20,18 +22,23 @@ void deprecationWorkflow(
   final payload = settingsFile.readAsStringSync();
   try {
     final settings = jsonDecode(payload);
-
-    if (settings['cachePath'] != join(fvmDir, 'versions')) {
-      logger.confirm(
-        'You have a deprecated setting for cachePath in $settingsFile.'
-        'Make sure you update it. $kFvmDocsConfigUrl',
+    final settingsCachePath = settings['cachePath'] as String?;
+    if (settingsCachePath != null && settingsCachePath != fvmDir) {
+      var appConfig = ConfigRepository.loadFile();
+      appConfig = appConfig.copyWith(cachePath: fvmDir);
+      ConfigRepository.save(appConfig);
+      settingsFile.deleteSync(recursive: true);
+      logger.success(
+        'We have moved the settings file ${settingsFile.path}'
+        'Your settings have been migrated to $kAppConfigFile'
+        'Your cachePath is now $settingsCachePath. FVM will exit now. Please run the command again.',
       );
+      // Exit to prevent execution with wrong cache path
+      exit(ExitCode.success.code);
     }
   } catch (_) {
     logger.warn('Could not parse legact settings file');
   }
-
-  settingsFile.deleteSync(recursive: true);
 }
 
 // Future<void> _migrateVersionSyntax() async {
@@ -68,16 +75,19 @@ void deprecationWorkflow(
 // TODO: Removed on future version of the app
 // Deprecated on 3.0.0
 void _warnDeprecatedEnvVars() {
-  final flutterRoot = Platform.environment['FVM_GIT_CACHE'];
-  final fvmHome = Platform.environment['FVM_HOME'];
+  const oldFlutterUrlEnv = 'FVM_GIT_CACHE';
+  const oldCachePathEnv = 'FVM_HOME';
+  final flutterRoot = Platform.environment[oldFlutterUrlEnv];
+  final fvmHome = Platform.environment[oldCachePathEnv];
   if (flutterRoot != null) {
-    logger.warn('FVM_GIT_CACHE environment variable is deprecated. ');
-    logger.info('Please use ${ConfigVariable.gitCachePath.envName}');
+    logger.warn('$oldFlutterUrlEnv environment variable is deprecated. ');
+    logger.info('Please use ${ConfigKeys.flutterUrl.envKey}');
   }
 
   if (fvmHome != null) {
-    logger.warn('FVM_HOME environment variable is deprecated. ');
-    logger.info('Please use ${ConfigVariable.fvmPath.envName} instead');
+    logger.warn('$oldCachePathEnv environment variable is deprecated. ');
+    logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
+    return;
   }
 
   if (flutterRoot == null || fvmHome == null) {

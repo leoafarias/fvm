@@ -36,6 +36,4 @@ extension StringExtensions on String {
     final remainingChars = substring(1);
     return '$firstChar$remainingChars';
   }
-
-  String get camelCase => split(' ').map((word) => word.capitalize).join('');
 }

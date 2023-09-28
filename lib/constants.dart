@@ -12,7 +12,7 @@ const kFvmDirName = '.fvm';
 const kFvmDocsUrl = 'https://fvm.app';
 const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
 
-const kDefaultFlutterRepo = 'https://github.com/flutter/flutter.git';
+const kDefaultFlutterUrl = 'https://github.com/flutter/flutter.git';
 
 /// Project fvm config file name
 const kFvmConfigFileName = '.fvmrc';
@@ -39,13 +39,16 @@ String dartExecFileName = 'dart$_execExtension';
 final kUserHome = Platform.isWindows ? _env['USERPROFILE']! : _env['HOME']!;
 
 /// FVM Home directory
-final kAppDirHome = join(kUserHome, 'fvm');
+final kAppDirHome = join(kUserHome, kPackageName);
 
 /// Flutter Channels
 const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
 
-final kAppConfigHome =
-    join(_configHome, kPackageName, kFvmLegacyConfigFileName);
+final kAppConfigFile = join(
+  _configHome,
+  kPackageName,
+  kFvmConfigFileName,
+);
 
 String get _configHome {
   if (Platform.isWindows) {

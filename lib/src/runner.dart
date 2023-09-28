@@ -7,6 +7,8 @@ import 'package:fvm/constants.dart';
 import 'package:fvm/src/commands/global_command.dart';
 import 'package:fvm/src/commands/update_command.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/deprecation_util.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -39,6 +41,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       ..addFlag(
         'verbose',
         help: 'Print verbose output.',
+        negatable: false,
       )
       ..addFlag(
         'version',
@@ -56,7 +59,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(DoctorCommand());
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
-
     addCommand(ExecCommand());
     addCommand(UpdateCommand());
     addCommand(GlobalCommand());
@@ -64,12 +66,13 @@ class FvmCommandRunner extends CommandRunner<int> {
 
   final PubUpdater _pubUpdater;
 
-  // @override
-  // void printUsage() => logger.info(usage);
+  @override
+  void printUsage() => logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
     try {
+      deprecationWorkflow(ctx.fvmDir);
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
@@ -186,7 +189,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       logger.detail('');
     }
 
-    final checkingForUpdate = _checkForUpdates(topLevelResults);
+    final checkingForUpdate = _checkForUpdates();
 
     // Run the command or show version
     final int? exitCode;
@@ -206,13 +209,7 @@ class FvmCommandRunner extends CommandRunner<int> {
   /// Checks if the current version (set by the build runner on the
   /// version.dart file) is the most recent one. If not, show a prompt to the
   /// user.
-  Future<Function()?> _checkForUpdates(ArgResults args) async {
-    // Command might be null
-    final cmd = args.command?.name;
-    final commandsToCheck = ['use', 'install', 'remove'];
-
-    if (!commandsToCheck.contains(cmd)) return null;
-
+  Future<Function()?> _checkForUpdates() async {
     try {
       final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
 

@@ -16,12 +16,12 @@ dependencies:
   git: ^2.2.1
   interact: ^2.2.0
   io: ^1.0.4
-  mason_logger: ^0.2.8
-  meta: ^1.9.1
+  mason_logger: ^0.2.9
+  meta: ^1.10.0
   path: ^1.8.3
   pub_semver: ^2.1.4
-  pub_updater: ^0.3.1
-  pubspec2: ^1.0.0
+  pub_updater: ^0.4.0
+  pubspec2: ^4.0.0
   scope: ^4.1.0
   yaml: ^3.1.2
   dart_console: ^1.2.0
@@ -29,9 +29,9 @@ dependencies:
   stack_trace: ^1.11.1
 
 dev_dependencies:
-  cli_pkg: ^2.4.7
+  cli_pkg: ^2.5.0
   grinder: ^0.9.4
-  test: ^1.24.4
+  test: ^1.24.6
   lints: ^2.1.1
   crypto: ^3.0.3
   http: ^1.1.0

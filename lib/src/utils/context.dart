@@ -4,7 +4,6 @@ import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/global_version_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/deprecation_util.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -25,32 +24,37 @@ FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 T getProvider<T>() => ctx.get<T>();
 
 class FVMContext {
-  static FVMContext get main => FVMContext.create();
+  static FVMContext main = FVMContext.create();
   factory FVMContext.create({
     String? id,
-    EnvConfig? configOverrides,
+    AppConfig? configOverrides,
     String? workingDirectory,
     Map<Type, dynamic> overrides = const {},
     bool isTest = false,
   }) {
     workingDirectory ??= Directory.current.path;
 
-    // Check if env defined a config path
-
     // Load config from file in config path
-    final storedConfig = ConfigRepository.load();
+    final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
+    final envConfig = ConfigRepository.loadEnv();
+    var appConfig = ConfigRepository.loadFile();
+
+    appConfig = appConfig.copyWith(
+      cachePath: envConfig.cachePath ?? projectConfig?.cachePath,
+      useGitCache: envConfig.useGitCache ?? projectConfig?.useGitCache,
+      gitCachePath: envConfig.gitCachePath ?? projectConfig?.gitCachePath,
+      flutterUrl: envConfig.flutterUrl ?? projectConfig?.flutterUrl,
+    );
 
     // Merge config from file with env config
-    final config = storedConfig.merge(configOverrides);
+    final config = appConfig.merge(configOverrides);
 
     final level = isTest ? Level.warning : Level.info;
 
-    final fvmPath = config.fvmPath ?? kAppDirHome;
-    final gitCache = config.gitCache ?? true;
+    final fvmPath = config.cachePath ?? kAppDirHome;
+    final gitCache = config.useGitCache ?? true;
     final gitCachePath = config.gitCachePath;
-    final flutterRepoUrl = config.flutterRepoUrl ?? kDefaultFlutterRepo;
-
-    deprecationWorkflow(fvmPath);
+    final flutterRepoUrl = config.flutterUrl ?? kDefaultFlutterUrl;
 
     return FVMContext._(
       id: id ?? 'MAIN',
@@ -61,12 +65,14 @@ class FVMContext {
       isTest: isTest,
       flutterRepoUrl: flutterRepoUrl,
       generators: {
-        LoggerService: (context) =>
-            LoggerService(level: level, context: context),
-        ProjectService: (context) => ProjectService(context),
-        FlutterService: (context) => FlutterService(context),
-        CacheService: (context) => CacheService(context),
-        GlobalVersionService: (context) => GlobalVersionService(context),
+        LoggerService: (context) => LoggerService(
+              level: level,
+              context: context,
+            ),
+        ProjectService: ProjectService.new,
+        FlutterService: FlutterService.new,
+        CacheService: CacheService.new,
+        GlobalVersionService: GlobalVersionService.new,
         ...overrides,
       },
     );
@@ -131,7 +137,7 @@ class FVMContext {
   }
 
   /// Config path
-  String get configPath => kAppConfigHome;
+  String get configPath => kAppConfigFile;
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {

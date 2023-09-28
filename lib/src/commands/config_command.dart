@@ -20,17 +20,17 @@ class ConfigCommand extends BaseCommand {
   ConfigCommand() {
     argParser
       ..addOption(
-        ConfigVariable.flutterRepo.argName,
+        ConfigKeys.flutterUrl.paramKey,
         help: 'ADVANCED: Set Flutter repo url to clone from.',
       )
       ..addFlag(
-        ConfigVariable.gitCache.argName,
+        ConfigKeys.useGitCache.paramKey,
         help:
             'Enable/Disable git cache globally, which is used for faster version installs. Defaults to true.',
         negatable: true,
       )
       ..addOption(
-        ConfigVariable.fvmPath.argName,
+        ConfigKeys.cachePath.paramKey,
         help: 'Set custom path where $kPackageName will cache versions.',
       );
   }
@@ -39,27 +39,27 @@ class ConfigCommand extends BaseCommand {
     // Flag if settings should be saved
     var shouldSave = false;
 
-    EnvConfig current = ConfigRepository.load();
+    var current = ConfigRepository.loadFile();
 
-    if (wasParsed(ConfigVariable.flutterRepo.argName)) {
-      final flutterRepo = stringArg(ConfigVariable.flutterRepo.argName);
+    if (wasParsed(ConfigKeys.flutterUrl.paramKey)) {
+      final flutterRepo = stringArg(ConfigKeys.flutterUrl.paramKey);
 
       logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
-      current = current.copyWith(flutterRepoUrl: flutterRepo);
+      current = current.copyWith(flutterUrl: flutterRepo);
       shouldSave = true;
     }
 
-    if (wasParsed(ConfigVariable.gitCache.argName)) {
-      final gitCache = boolArg(ConfigVariable.gitCache.argName);
+    if (wasParsed(ConfigKeys.useGitCache.paramKey)) {
+      final gitCache = boolArg(ConfigKeys.useGitCache.paramKey);
       logger.info('Setting git cache to: ${yellow.wrap(gitCache.toString())}');
-      current = current.copyWith(gitCache: gitCache);
+      current = current.copyWith(useGitCache: gitCache);
       shouldSave = true;
     }
 
-    if (wasParsed(ConfigVariable.fvmPath.argName)) {
-      final fvmPath = stringArg(ConfigVariable.fvmPath.argName);
-      logger.info('Setting fvm path to: ${yellow.wrap(fvmPath)}');
-      current = current.copyWith(fvmPath: fvmPath);
+    if (wasParsed(ConfigKeys.cachePath.paramKey)) {
+      final cachePath = stringArg(ConfigKeys.cachePath.paramKey);
+      logger.info('Setting fvm path to: ${yellow.wrap(cachePath)}');
+      current = current.copyWith(cachePath: cachePath);
       shouldSave = true;
     }
 

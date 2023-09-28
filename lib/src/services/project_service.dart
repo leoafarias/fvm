@@ -5,7 +5,6 @@ import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
-import 'package:fvm/src/version.g.dart';
 import 'package:path/path.dart' as path;
 
 /// Flutter Project Services
@@ -78,12 +77,11 @@ class ProjectService extends ContextService {
     String? flutterSdkVersion,
     bool? unmanagedVscode,
   }) {
-    final newConfig = project.config ?? ProjectConfig.empty();
+    final newConfig = project.config ?? ProjectConfig();
 
-    ProjectConfig config = newConfig.copyWith(
+    final config = newConfig.copyWith(
       flavors: flavors,
       flutterSdkVersion: flutterSdkVersion,
-      fvmVersion: packageVersion,
       unmanagedVscode: unmanagedVscode,
     );
 

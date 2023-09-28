@@ -151,8 +151,8 @@ void groupWithContext(
     onPlatform: onPlatform,
     retry: retry,
     () {
-      final config = EnvConfig(
-        fvmPath: getTempTestDir(contextId, 'fvm'),
+      final config = AppConfig.empty().copyWith(
+        cachePath: getTempTestDir(contextId, 'fvm'),
         gitCachePath: FVMContext.main.gitCachePath,
       );
       final testContext = FVMContext.create(

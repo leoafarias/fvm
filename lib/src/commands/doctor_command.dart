@@ -164,7 +164,10 @@ class DoctorCommand extends BaseCommand {
     table.insertRows([
       ['Flutter Path', flutterWhich ?? 'Not found'],
       ['Dart Path', dartWhich ?? 'Not found'],
-      ['FVM_HOME', ctx.environment['FVM_HOME'] ?? 'Not set'],
+      [
+        ConfigKeys.cachePath.envKey,
+        ctx.environment[ConfigKeys.cachePath.envKey] ?? 'Not set'
+      ],
       ['OS', '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'],
       ['Dart Locale', Platform.localeName],
       ['Dart runtime', Platform.version],
