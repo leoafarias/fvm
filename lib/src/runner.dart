@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:fvm/constants.dart';
 import 'package:fvm/src/commands/global_command.dart';
 import 'package:fvm/src/commands/update_command.dart';
+import 'package:fvm/src/services/config_repository.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/deprecation_util.dart';
@@ -211,9 +212,24 @@ class FvmCommandRunner extends CommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
+      if (ctx.updateCheckDisabled) return null;
+      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
+      if (ctx.lastUpdateCheck?.isBefore(oneDayAgo) ?? false) {
+        return null;
+      }
 
-      if (packageVersion == latestVersion) return null;
+      ConfigRepository.update(
+        lastUpdateCheck: DateTime.now(),
+      );
+
+      final isUpToDate = await _pubUpdater.isUpToDate(
+        packageName: kPackageName,
+        currentVersion: packageVersion,
+      );
+
+      if (isUpToDate) return null;
+
+      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
 
       return () {
         final updateAvailableLabel = lightYellow.wrap('Update available!');

@@ -18,21 +18,13 @@ class ConfigCommand extends BaseCommand {
 
   /// Constructor
   ConfigCommand() {
-    argParser
-      ..addOption(
-        ConfigKeys.flutterUrl.paramKey,
-        help: 'ADVANCED: Set Flutter repo url to clone from.',
-      )
-      ..addFlag(
-        ConfigKeys.useGitCache.paramKey,
-        help:
-            'Enable/Disable git cache globally, which is used for faster version installs. Defaults to true.',
-        negatable: true,
-      )
-      ..addOption(
-        ConfigKeys.cachePath.paramKey,
-        help: 'Set custom path where $kPackageName will cache versions.',
-      );
+    ConfigKeys.injectArgParser(argParser);
+    argParser.addFlag(
+      'update-check',
+      help: 'Checks if there is a new version of $kPackageName available.',
+      negatable: true,
+      defaultsTo: true,
+    );
   }
   @override
   Future<int> run() async {
@@ -49,9 +41,18 @@ class ConfigCommand extends BaseCommand {
       shouldSave = true;
     }
 
+    if (wasParsed(ConfigKeys.gitCachePath.paramKey)) {
+      final gitCachePath = stringArg(ConfigKeys.gitCachePath.paramKey);
+      logger.info('Setting git cache path to: ${yellow.wrap(gitCachePath)}');
+      current = current.copyWith(gitCachePath: gitCachePath);
+      shouldSave = true;
+    }
+
     if (wasParsed(ConfigKeys.useGitCache.paramKey)) {
       final gitCache = boolArg(ConfigKeys.useGitCache.paramKey);
-      logger.info('Setting git cache to: ${yellow.wrap(gitCache.toString())}');
+      logger.info(
+        'Setting use git cache to: ${yellow.wrap(gitCache.toString())}',
+      );
       current = current.copyWith(useGitCache: gitCache);
       shouldSave = true;
     }

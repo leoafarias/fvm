@@ -69,6 +69,7 @@ class ConfigKeys {
           help:
               'Enable/Disable git cache globally, which is used for faster version installs.',
           negatable: true,
+          defaultsTo: true,
         );
       },
       ConfigKeys.gitCachePath.key: () {
@@ -142,12 +143,12 @@ class Config {
 /// App config
 class AppConfig extends Config {
   /// Disables update notification
-  final bool? disableUpdate;
+  final bool? disableUpdateCheck;
   final DateTime? lastUpdateCheck;
 
   /// Constructor
   const AppConfig({
-    required this.disableUpdate,
+    required this.disableUpdateCheck,
     required this.lastUpdateCheck,
     required super.cachePath,
     required super.useGitCache,
@@ -157,7 +158,7 @@ class AppConfig extends Config {
 
   factory AppConfig.empty() {
     return AppConfig(
-      disableUpdate: null,
+      disableUpdateCheck: null,
       lastUpdateCheck: null,
       cachePath: null,
       useGitCache: null,
@@ -181,7 +182,7 @@ class AppConfig extends Config {
       gitCachePath: envConfig.gitCachePath,
       flutterUrl: envConfig.flutterUrl,
       useGitCache: envConfig.useGitCache,
-      disableUpdate: map['disableUpdate'] as bool?,
+      disableUpdateCheck: map['disableUpdateCheck'] as bool?,
       lastUpdateCheck: map['lastUpdateCheck'] != null
           ? DateTime.parse(map['lastUpdateCheck'] as String)
           : null,
@@ -192,7 +193,7 @@ class AppConfig extends Config {
   Map<String, dynamic> toMap() {
     return {
       ...super.toMap(),
-      if (disableUpdate != null) 'disableUpdate': disableUpdate,
+      if (disableUpdateCheck != null) 'disableUpdateCheck': disableUpdateCheck,
       if (lastUpdateCheck != null)
         'lastUpdateCheck': lastUpdateCheck?.toIso8601String(),
     };
@@ -207,7 +208,7 @@ class AppConfig extends Config {
     bool? useGitCache,
     String? gitCachePath,
     String? flutterUrl,
-    bool? disableUpdate,
+    bool? disableUpdateCheck,
     DateTime? lastUpdateCheck,
   }) {
     return AppConfig(
@@ -215,7 +216,7 @@ class AppConfig extends Config {
       useGitCache: useGitCache ?? this.useGitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
-      disableUpdate: disableUpdate ?? this.disableUpdate,
+      disableUpdateCheck: disableUpdateCheck ?? this.disableUpdateCheck,
       lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
     );
   }
@@ -226,7 +227,7 @@ class AppConfig extends Config {
       useGitCache: config?.useGitCache,
       gitCachePath: config?.gitCachePath,
       flutterUrl: config?.flutterUrl,
-      disableUpdate: config?.disableUpdate,
+      disableUpdateCheck: config?.disableUpdateCheck,
       lastUpdateCheck: config?.lastUpdateCheck,
     );
   }

@@ -51,19 +51,11 @@ class FVMContext {
 
     final level = isTest ? Level.warning : Level.info;
 
-    final fvmPath = config.cachePath ?? kAppDirHome;
-    final gitCache = config.useGitCache ?? true;
-    final gitCachePath = config.gitCachePath;
-    final flutterRepoUrl = config.flutterUrl ?? kDefaultFlutterUrl;
-
     return FVMContext._(
       id: id ?? 'MAIN',
-      fvmDir: fvmPath,
       workingDirectory: workingDirectory,
-      gitCache: gitCache,
-      gitCachePath: gitCachePath,
+      config: config,
       isTest: isTest,
-      flutterRepoUrl: flutterRepoUrl,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -82,35 +74,23 @@ class FVMContext {
   /// If nothing is provided set default
   FVMContext._({
     required this.id,
-    required this.fvmDir,
     required this.workingDirectory,
-    required this.gitCache,
-    required this.flutterRepoUrl,
-    required String? gitCachePath,
+    required this.config,
     this.generators = const {},
     this.isTest = false,
-  }) : _gitCachePath = gitCachePath;
+  });
 
   /// Name of the context
   final String id;
-
-  /// Flutter Git Repo
-  final String flutterRepoUrl;
-
-  /// Directory where FVM is stored
-  final String fvmDir;
-
-  /// Flag to determine if should use git cache
-  final bool gitCache;
-
-  /// Directory for Flutter repo git cache
-  final String? _gitCachePath;
 
   /// Working Directory for FVM
   final String workingDirectory;
 
   /// Flag to determine if context is running in a test
   final bool isTest;
+
+  /// App config
+  final AppConfig config;
 
   /// Generators for dependencies
   final Map<Type, dynamic>? generators;
@@ -121,6 +101,27 @@ class FVMContext {
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
 
+  /// Directory where FVM is stored
+  String get fvmDir => config.cachePath ?? kAppDirHome;
+
+  /// Flag to determine if should use git cache
+  bool get gitCache => config.useGitCache ?? true;
+
+  String get gitCachePath {
+    // If git cache is not overriden use default based on fvmDir
+    if (config.gitCachePath != null) return config.gitCachePath!;
+    return join(fvmDir, 'cache.git');
+  }
+
+  /// Flutter Git Repo
+  String get flutterRepoUrl => config.flutterUrl ?? kDefaultFlutterUrl;
+
+  /// Last updated check
+  DateTime? get lastUpdateCheck => config.lastUpdateCheck;
+
+  /// Flutter SDK Path
+  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
+
   /// Where Default Flutter SDK is stored
   String get globalCacheLink => join(fvmDir, 'default');
 
@@ -129,12 +130,6 @@ class FVMContext {
 
   /// Directory where FVM versions are stored
   String get versionsCachePath => join(fvmDir, 'versions');
-
-  String get gitCachePath {
-    // If git cache is not overriden use default based on fvmDir
-    if (_gitCachePath != null) return _gitCachePath!;
-    return join(fvmDir, 'cache.git');
-  }
 
   /// Config path
   String get configPath => kAppConfigFile;
@@ -149,44 +144,6 @@ class FVMContext {
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');
-  }
-
-  FVMContext copyWith({
-    String? id,
-    String? workingDirectory,
-    String? fvmDir,
-    bool? gitCacheEnabled,
-    String? flutterRepoUrl,
-    String? gitCachePath,
-    bool? isTest,
-    Map<Type, dynamic>? generators,
-  }) {
-    return FVMContext._(
-      id: id ?? this.id,
-      gitCachePath: gitCachePath ?? _gitCachePath,
-      fvmDir: fvmDir ?? this.fvmDir,
-      workingDirectory: workingDirectory ?? this.workingDirectory,
-      gitCache: gitCacheEnabled ?? gitCache,
-      flutterRepoUrl: flutterRepoUrl ?? this.flutterRepoUrl,
-      isTest: isTest ?? this.isTest,
-      generators: {
-        ...this.generators!,
-        if (generators != null) ...generators,
-      },
-    );
-  }
-
-  FVMContext merge([FVMContext? context]) {
-    return copyWith(
-      id: context?.id,
-      gitCachePath: context?._gitCachePath,
-      fvmDir: context?.fvmDir,
-      workingDirectory: context?.workingDirectory,
-      gitCacheEnabled: context?.gitCache,
-      flutterRepoUrl: context?.flutterRepoUrl,
-      isTest: context?.isTest,
-      generators: context?.generators,
-    );
   }
 
   @override

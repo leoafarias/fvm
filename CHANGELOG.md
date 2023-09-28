@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved `fvm releases` output.
 - Improved `fvm list` output.
 - Better error checking for `fvm global` command.
+- FVM update check now runs only once a day.
+- You can disable update check with the `--update-check` flag on `fvm config`
 
 ### Changed
 

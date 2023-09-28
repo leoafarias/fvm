@@ -80,14 +80,20 @@ void _warnDeprecatedEnvVars() {
   final flutterRoot = Platform.environment[oldFlutterUrlEnv];
   final fvmHome = Platform.environment[oldCachePathEnv];
   if (flutterRoot != null) {
-    logger.warn('$oldFlutterUrlEnv environment variable is deprecated. ');
+    logger.err('$oldFlutterUrlEnv environment variable is deprecated. ');
     logger.info('Please use ${ConfigKeys.flutterUrl.envKey}');
+    final confirmation = logger.confirm(
+      'Do you want to proceed? This might impact the expected behavior.',
+    );
+    if (!confirmation) {
+      exit(ExitCode.success.code);
+    }
+    return;
   }
 
   if (fvmHome != null) {
     logger.warn('$oldCachePathEnv environment variable is deprecated. ');
     logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
-    return;
   }
 
   if (flutterRoot == null || fvmHome == null) {
