@@ -35,16 +35,16 @@ class ConfigCommand extends BaseCommand {
 
     if (wasParsed(ConfigKeys.flutterUrl.paramKey)) {
       final flutterRepo = stringArg(ConfigKeys.flutterUrl.paramKey);
-
       logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
-      current = current.copyWith(flutterUrl: flutterRepo);
+      current.flutterUrl = flutterRepo;
+
       shouldSave = true;
     }
 
     if (wasParsed(ConfigKeys.gitCachePath.paramKey)) {
       final gitCachePath = stringArg(ConfigKeys.gitCachePath.paramKey);
       logger.info('Setting git cache path to: ${yellow.wrap(gitCachePath)}');
-      current = current.copyWith(gitCachePath: gitCachePath);
+      current.gitCachePath = gitCachePath;
       shouldSave = true;
     }
 
@@ -53,14 +53,14 @@ class ConfigCommand extends BaseCommand {
       logger.info(
         'Setting use git cache to: ${yellow.wrap(gitCache.toString())}',
       );
-      current = current.copyWith(useGitCache: gitCache);
+      current.useGitCache = gitCache;
       shouldSave = true;
     }
 
     if (wasParsed(ConfigKeys.cachePath.paramKey)) {
       final cachePath = stringArg(ConfigKeys.cachePath.paramKey);
       logger.info('Setting fvm path to: ${yellow.wrap(cachePath)}');
-      current = current.copyWith(cachePath: cachePath);
+      current.cachePath = cachePath;
       shouldSave = true;
     }
 

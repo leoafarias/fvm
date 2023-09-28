@@ -73,7 +73,8 @@ class FvmCommandRunner extends CommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      deprecationWorkflow(ctx.fvmDir);
+      deprecationWorkflow();
+
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {

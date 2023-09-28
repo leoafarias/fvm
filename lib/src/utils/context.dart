@@ -114,7 +114,7 @@ class FVMContext {
   }
 
   /// Flutter Git Repo
-  String get flutterRepoUrl => config.flutterUrl ?? kDefaultFlutterUrl;
+  String get flutterUrl => config.flutterUrl ?? kDefaultFlutterUrl;
 
   /// Last updated check
   DateTime? get lastUpdateCheck => config.lastUpdateCheck;

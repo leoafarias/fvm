@@ -175,3 +175,14 @@ String extractDartVersionOutput(String input) {
     );
   }
 }
+
+bool isValidGitUrl(String url) {
+  try {
+    final uri = Uri.parse(url);
+    return uri.scheme.isNotEmpty &&
+        (uri.host.isNotEmpty || uri.path.isNotEmpty) &&
+        uri.path.endsWith('.git');
+  } catch (e) {
+    return false;
+  }
+}

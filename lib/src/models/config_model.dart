@@ -94,18 +94,18 @@ class ConfigKeys {
 
 class Config {
   // If should use gitCache
-  final bool? useGitCache;
+  bool? useGitCache;
 
-  final String? gitCachePath;
+  String? gitCachePath;
 
   /// Flutter repo url
-  final String? flutterUrl;
+  String? flutterUrl;
 
   /// Directory where FVM is stored
-  final String? cachePath;
+  String? cachePath;
 
   /// Constructor
-  const Config({
+  Config({
     required this.cachePath,
     required this.useGitCache,
     required this.gitCachePath,
@@ -143,11 +143,11 @@ class Config {
 /// App config
 class AppConfig extends Config {
   /// Disables update notification
-  final bool? disableUpdateCheck;
-  final DateTime? lastUpdateCheck;
+  bool? disableUpdateCheck;
+  DateTime? lastUpdateCheck;
 
   /// Constructor
-  const AppConfig({
+  AppConfig({
     required this.disableUpdateCheck,
     required this.lastUpdateCheck,
     required super.cachePath,

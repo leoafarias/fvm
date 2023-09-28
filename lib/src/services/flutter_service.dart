@@ -91,7 +91,7 @@ class FlutterService extends ContextService {
           'clone',
           '--progress',
           ...cloneArgs,
-          context.flutterRepoUrl,
+          context.flutterUrl,
           versionDir.path,
         ],
         echoOutput: context.isTest || !logger.isVerbose ? false : true,
@@ -153,7 +153,7 @@ class FlutterService extends ContextService {
       logger.info('Creating local mirror...');
 
       await runGitCloneUpdate(
-        ['clone', '--progress', context.flutterRepoUrl, gitCacheDir.path],
+        ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
       );
     }
   }

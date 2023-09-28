@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../../exceptions.dart';
@@ -17,6 +18,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   String version, {
   bool shouldInstall = false,
 }) async {
+  _validateContext();
   // Get valid flutter version
   final validVersion = await validateFlutterVersion(version);
   try {
@@ -215,4 +217,13 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   throw AppException(
     '$version is not a valid Flutter version',
   );
+}
+
+void _validateContext() {
+  final isValid = isValidGitUrl(ctx.flutterUrl);
+  if (!isValid) {
+    throw AppException(
+      'Invalid Flutter URL: "${ctx.flutterUrl}". Please change config to a valid git url',
+    );
+  }
 }
