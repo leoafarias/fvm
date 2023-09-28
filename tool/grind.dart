@@ -6,7 +6,7 @@ import 'package:fvm/src/utils/http.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec2/pubspec2.dart';
+import 'package:pubspec/pubspec.dart';
 
 import '../test/testing_helpers/prepare_test_environment.dart';
 import 'homebrew.dart';
@@ -32,7 +32,7 @@ Future<void> buildVersion() async {
   final args = context.invocation.arguments;
   final versionArg = args.getOption('version');
 
-  final pubspec = await PubSpec.load(Directory.current.path);
+  final pubspec = await PubSpec.load(Directory.current);
   Version? version = pubspec.version;
 
   if (versionArg != null) {
@@ -41,7 +41,7 @@ Future<void> buildVersion() async {
 
   if (version != pubspec.version) {
     var newPubSpec = pubspec.copy(version: version);
-    await newPubSpec.save(Directory.current.path);
+    await newPubSpec.save(Directory.current);
   }
 
   final versionFile = File(

@@ -2,8 +2,11 @@ name: Deploy Release
 
 on:
   workflow_dispatch:
-  release:
-    types: [published, released]
+  # release:
+  #   types: [published, released]
+  push:
+    tags:
+      - '*v'
 
 jobs:
   test:

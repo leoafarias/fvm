@@ -6,7 +6,7 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec2/pubspec2.dart';
+import 'package:pubspec/pubspec.dart';
 
 import 'config_model.dart';
 
