@@ -35,7 +35,7 @@ class TestCommandRunner {
 
 Future<String> getStdout(String command) async {
   final executable = command.split(' ').first;
-  // Executable is on something like ./bin/fvm.dart
+  // Executable is on something like ./bin/main.dart
 
   // Which is the relactive to the Directory.current
   // However the script will be executed from a test directory on ctx.workingDirectory

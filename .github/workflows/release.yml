@@ -2,8 +2,6 @@ name: Deploy Release
 
 on:
   workflow_dispatch:
-  # release:
-  #   types: [published, released]
   push:
     tags:
       - "v*"
@@ -28,72 +26,51 @@ jobs:
         uses: ./.github/actions/prepare
 
       - name: Deploy Github
-        run: dart run grinder pkg-github-all
+        run: dart run grinder pkg-github-release
+
+      - name: Deploy Github Linux
+        run: dart run grinder pkg-github-linux
 
       - name: Deploy to Pub
         run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
-    name: Cholatey Deploy (Windows)
+    name: Deploy (Windows)
     needs: release
-    runs-on: windows-latest
-    env:
-      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare environment
-        uses: ./.github/actions/prepare
-
-      - name: Deploy Chocolatey (Windows)
-        run: dart run grinder pkg-chocolatey-deploy
+    uses: ./.github/workflows/deploy_windows.yml
 
   deploy-homebrew:
-    name: Deploy Homebrew
-    runs-on: ubuntu-latest
+    name: Deploy (Mac)
     needs: release
-    env:
-      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: ./.github/workflows/deploy_macos.yml
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  # deploy-docker:
+  #   name: Docker Deploy (latest)
+  #   runs-on: ubuntu-latest
+  #   needs: release
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
 
-      - name: Prepare environment
-        uses: ./.github/actions/prepare
+  #     - name: Prepare environment
+  #       uses: ./.github/actions/prepare
 
-      - name: Deploy to Homebrew
-        run: dart run grinder pkg-homebrew-update
+  #     - name: Set up QEMU
+  #       uses: docker/setup-qemu-action@v1
 
-  deploy-docker:
-    name: Docker Deploy (latest)
-    runs-on: ubuntu-latest
-    needs: release
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v1
 
-      - name: Prepare environment
-        uses: ./.github/actions/prepare
+  #     - name: Login to DockerHub
+  #       uses: docker/login-action@v3
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push (latest)
-        id: docker_build_latest
-        uses: docker/build-push-action@v5
-        with:
-          file: ./.docker/Dockerfile
-          push: true
-          tags: leoafarias/fvm:{{ github.event.release.tag_name }}
+  #     - name: Build and push (latest)
+  #       id: docker_build_latest
+  #       uses: docker/build-push-action@v5
+  #       with:
+  #         file: ./.docker/Dockerfile
+  #         push: true
+  #         tags: leoafarias/fvm:{{ github.event.release.tag_name }}
