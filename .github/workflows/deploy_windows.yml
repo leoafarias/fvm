@@ -2,12 +2,14 @@ name: Deploy Windows
 
 on:
     workflow_call:
+    workflow_dispatch:
 
 jobs:
     deploy-windows:
         name: Deploy (Windows)
         runs-on: windows-latest
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
         steps:
           - name: Checkout

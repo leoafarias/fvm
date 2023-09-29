@@ -39,7 +39,7 @@ jobs:
     needs: release
     uses: ./.github/workflows/deploy_windows.yml
 
-  deploy-homebrew:
+  deploy-macos:
     name: Deploy (Mac)
     needs: release
     uses: ./.github/workflows/deploy_macos.yml
