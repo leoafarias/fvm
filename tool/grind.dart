@@ -19,6 +19,7 @@ void main(List<String> args) {
   pkg.name.value = _packageName;
   pkg.humanName.value = _packageName;
   pkg.githubUser.value = owner;
+  pkg.githubRepo.value = 'leoafarias/fvm';
   pkg.homebrewRepo.value = 'leoafarias/homebrew-fvm';
 
   pkg.addAllTasks();
