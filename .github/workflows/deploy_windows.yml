@@ -1,0 +1,23 @@
+name: Deploy Windows
+
+on:
+    workflow_call:
+
+jobs:
+    deploy-windows:
+        name: Deploy (Windows)
+        runs-on: windows-latest
+        env:
+          CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+    
+          - name: Prepare environment
+            uses: ./.github/actions/prepare
+    
+          - name: Deploy Github Windows
+            run: dart run grinder pkg-github-windows
+    
+          - name: Deploy Chocolatey (Windows)
+            run: dart run grinder pkg-chocolatey-deploy
