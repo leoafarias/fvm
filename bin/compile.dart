@@ -22,7 +22,7 @@ Future<void> main() async {
   print('Compiling package...');
   final compileResult = await Process.run(
     'dart',
-    ['compile', 'exe', 'bin/fvm.dart', '-o', tempFile.path],
+    ['compile', 'exe', 'bin/main.dart', '-o', tempFile.path],
   );
 
   // Error checking for compile process

@@ -97,7 +97,7 @@ Future<void> testSetup() async {
     testDir.deleteSync(recursive: true);
   }
 
-  runDartScript('bin/fvm.dart', arguments: ['install', 'stable']);
+  runDartScript('bin/main.dart', arguments: ['install', 'stable']);
 }
 
 @Task('Run tests')
