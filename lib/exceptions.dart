@@ -1,23 +1,32 @@
-/// Exception for internal FVM Errors
-class FvmInternalError implements Exception {
-  /// Message of error
+import 'dart:io';
+
+/// Represents an FVM-specific exception that carries a user-facing message.
+///
+/// Exceptions of this type are intended to be self-explanatory, no debugging info
+class AppException implements Exception {
+  /// User-readable error message.
   final String message;
 
-  /// Constructor
-  const FvmInternalError([this.message = '']);
+  /// Initializes an instance with a user-readable message.
+  const AppException(this.message);
 
   @override
-  String toString() => 'Internal Error: $message';
+  String toString() => message;
 }
 
-/// Exception for internal FVM usage
-class FvmUsageException implements Exception {
-  /// Message of the exception
-  final String message;
+class AppDetailedException extends AppException {
+  final String info;
 
-  /// Constructor of usage exception
-  const FvmUsageException([this.message = '']);
+  /// Constructor
+  const AppDetailedException(
+    super.message,
+    this.info,
+  );
 
   @override
-  String toString() => 'Usage Exception: $message';
+  String toString() => message;
+}
+
+bool checkIfNeedsPrivilegePermission(FileSystemException err) {
+  return err.osError?.errorCode == 1314 && Platform.isWindows;
 }

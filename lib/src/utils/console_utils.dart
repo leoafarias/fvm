@@ -1,51 +1,24 @@
 import 'dart:io';
 
-import 'package:console/console.dart';
+import 'package:dart_console/dart_console.dart';
+import 'package:fvm/src/models/cache_flutter_version_model.dart';
 
 import '../../exceptions.dart';
-import '../models/cache_version_model.dart';
-import '../models/project_model.dart';
-import '../services/cache_service.dart';
-import 'logger.dart';
+import '../services/logger_service.dart';
 
-/// Displays notice for confirmation
-Future<bool> confirm(String message, {bool defaultConfirmation = true}) async {
-  final choices = defaultConfirmation ? 'Y/n' : 'y/N';
-  final response = await readInput('$message ($choices): ');
-  final lowercase = response.toLowerCase();
-
-  if (response.isEmpty) {
-    return defaultConfirmation;
-  }
-
-  if (lowercase == 'n') {
-    return false;
-  }
-
-  if (lowercase == 'y') {
-    return true;
-  }
-
-  return false;
-}
-
-/// Prints out versions on FVM and it's status
-Future<void> printVersionStatus(CacheVersion version, Project project) async {
-  var printVersion = version.name;
-
-  if (project.pinnedVersion == version.name) {
-    printVersion = '$printVersion (active)';
-  }
-
-  Logger.info(printVersion);
+Table createTable() {
+  return Table()
+    ..borderColor = ConsoleColor.blue
+    ..borderType = BorderType.grid
+    ..borderStyle = BorderStyle.square
+    ..headerStyle = FontStyle.bold;
 }
 
 /// Allows to select from cached sdks.
-Future<String> cacheVersionSelector() async {
-  final cacheVersions = await CacheService.getAllVersions();
+Future<String> cacheVersionSelector(List<CacheFlutterVersion> versions) async {
   // Return message if no cached versions
-  if (cacheVersions.isEmpty) {
-    throw const FvmUsageException(
+  if (versions.isEmpty) {
+    throw const AppException(
       'No versions installed. Please install'
       ' a version. "fvm install {version}". ',
     );
@@ -53,41 +26,14 @@ Future<String> cacheVersionSelector() async {
 
   /// Ask which version to select
 
-  final versionsList = cacheVersions.map((version) => version.name).toList();
+  final versionsList = versions.map((version) => version.name).toList();
 
-  // Better legibility
-  Logger.spacer();
-
-  final chooser = Chooser<String>(
-    versionsList,
-    message: '\nSelect a version:',
+  final choise = logger.select(
+    'Select a version:',
+    options: versionsList,
   );
 
-  final version = chooser.chooseSync();
-  return version;
-}
-
-/// Select from project flavors
-Future<String?> projectFlavorSelector(Project project) async {
-  // Gets environment version
-  final envs = project.config.flavors;
-
-  final envList = envs.keys.toList();
-
-  // Check if there are no environments configured
-  if (envList.isEmpty) {
-    return null;
-  }
-
-  Logger.fine('Project flavors configured for "${project.name}":\n');
-
-  final chooser = Chooser<String>(
-    envList,
-    message: '\nSelect an environment: ',
-  );
-
-  final version = chooser.chooseSync();
-  return version;
+  return choise;
 }
 
 /// Replicate Flutter cli behavior during run
@@ -116,7 +62,16 @@ void switchLineMode(bool active, List<String> args) {
     }
   } on Exception catch (err) {
     // Trace but silent the error
-    logger.trace(err.toString());
+    logger.detail(err.toString());
     return;
+  }
+}
+
+Future<bool> isCommandAvailable(String command) async {
+  try {
+    final result = await Process.run(command, ['--version']);
+    return result.exitCode == 0;
+  } catch (e) {
+    return false;
   }
 }

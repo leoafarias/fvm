@@ -1,13 +1,12 @@
 import 'package:args/command_runner.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
-import '../models/valid_version_model.dart';
-import '../services/flutter_tools.dart';
-import '../services/git_tools.dart';
-import '../services/ide_service.dart';
-import '../services/project_service.dart';
+import '../services/logger_service.dart';
 import '../utils/console_utils.dart';
-import '../utils/logger.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
@@ -43,11 +42,17 @@ class UseCommand extends BaseCommand {
         'flavor',
         help: 'Sets version for a project flavor',
         defaultsTo: null,
+        aliases: ['env'],
       )
       ..addFlag(
-        'config-vsc',
-        help: 'Configures VSCode to use FVM',
-        abbr: 'c',
+        'skip-setup',
+        help: 'Skips Flutter setup after install',
+        negatable: false,
+      )
+      ..addFlag(
+        'unprivileged',
+        abbr: 'u',
+        help: 'Runs use workflow without the need for elevated privileges',
         negatable: false,
       );
   }
@@ -56,54 +61,72 @@ class UseCommand extends BaseCommand {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
-    final configVSC = boolArg('config-vsc');
+    final skipSetup = boolArg('skip-setup');
+    final unprivileged = boolArg('unprivileged');
 
     String? version;
 
+    final project = ProjectService.fromContext.findAncestor();
+
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = await ProjectService.findVersion();
-
+      version = project.pinnedVersion?.name;
+      final versions = await CacheService.fromContext.getAllVersions();
       // If no config found, ask which version to select.
-      version ??= await cacheVersionSelector();
+      version ??= await cacheVersionSelector(versions);
     }
 
     // Get version from first arg
     version ??= argResults!.rest[0];
 
-    // throw UsageException('Usage exception', usage.);
-
     // Get valid flutter version. Force version if is to be pinned.
-    var validVersion = ValidVersion(version);
+    if (pinOption) {
+      if (!isFlutterChannel(version) || version == 'master') {
+        throw UsageException(
+          'Cannot pin a version that is not in dev, beta or stable channels.',
+          usage,
+        );
+      }
 
-    /// Cannot pin master channel
-    if (pinOption && validVersion.isMaster) {
-      throw UsageException(
-        'Cannot pin a version from "master" channel.',
-        usage,
+      /// Pin release to channel
+      final channel = FlutterChannel.fromName(version);
+
+      final release = await FlutterReleases.getLatestReleaseOfChannel(channel);
+
+      logger.info(
+        'Pinning version ${release.version} from "$version" release channel...',
       );
+
+      version = release.version;
     }
 
-    /// Pin release to channel
-    if (pinOption && validVersion.isChannel) {
-      Logger.info(
-        'Pinning version $validVersion fron "$version" release channel...',
+    // Gets flavor version
+    final flavorVersion = project.flavors[version];
+
+    if (flavorVersion != null) {
+      if (flavorOption != null) {
+        throw UsageException(
+          'Cannot use the --flavor when using fvm use {flavor}',
+          usage,
+        );
+      }
+
+      logger.info(
+        'Using Flutter SDK from "$flavorOption" which is "$flavorVersion"',
       );
-      validVersion = await FlutterTools.inferReleaseFromChannel(validVersion);
+      version = flavorVersion;
     }
 
-    if (configVSC) {
-      await IDEService.configureVsCodeSettings();
-    }
-
-    // Checks if should write gitignore file
-    await GitTools.writeGitIgnore();
+    final cacheVersion = await ensureCacheWorkflow(version);
 
     /// Run use workflow
     await useVersionWorkflow(
-      validVersion,
+      version: cacheVersion,
+      project: project,
       force: forceOption,
       flavor: flavorOption,
+      skipSetup: skipSetup,
+      unprivileged: unprivileged,
     );
 
     return ExitCode.success.code;

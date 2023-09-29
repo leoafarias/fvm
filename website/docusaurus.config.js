@@ -15,13 +15,18 @@ module.exports = {
     locales: ["en", "es"],
   },
   themeConfig: {
-    googleAnalytics: {
-      trackingID: "UA-175155757-1",
-      anonymizeIP: true, // Should IPs be anonymized?
+    prism: {
+      theme: require("prism-react-renderer/themes/dracula"),
     },
     algolia: {
-      apiKey: "178209eec41c198e123e8280e47275f5",
+      appId: "NHQT1G41IK",
+      apiKey: "b07d9adbf54ef4306a11233dd605d924",
       indexName: "fvm",
+    },
+    colorMode: {
+      defaultMode: "dark",
+      disableSwitch: true,
+      respectPrefersColorScheme: false,
     },
 
     image: "img/share-image.png",
@@ -43,13 +48,13 @@ module.exports = {
       items: [
         {
           type: "doc",
-          docId: "getting_started/overview",
+          docId: "overview",
           position: "right",
-          label: "Getting Started",
+          label: "Overview",
         },
         {
           type: "doc",
-          docId: "guides/basic_commands",
+          docId: "guides/installation",
           position: "right",
           label: "Guides",
         },
@@ -130,6 +135,10 @@ module.exports = {
           sidebarCollapsible: false,
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl: "https://github.com/fluttertools/fvm/edit/main/website/",
+        },
+        googleAnalytics: {
+          trackingID: "UA-175155757-1",
+          anonymizeIP: true, // Should IPs be anonymized?
         },
         blog: {
           showReadingTime: true,

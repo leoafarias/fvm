@@ -1,11 +1,17 @@
-import 'package:io/io.dart';
-import 'package:process_run/shell.dart';
+import 'dart:convert';
+import 'dart:io';
 
-import '../../constants.dart';
-import '../services/cache_service.dart';
-import '../services/project_service.dart';
-import '../utils/logger.dart';
-import '../version.dart';
+import 'package:dart_console/dart_console.dart';
+import 'package:fvm/constants.dart';
+import 'package:fvm/exceptions.dart';
+import 'package:fvm/fvm.dart';
+import 'package:fvm/src/utils/console_utils.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/which.dart';
+import 'package:io/io.dart';
+import 'package:path/path.dart';
+
+import '../services/logger_service.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
@@ -20,78 +26,153 @@ class DoctorCommand extends BaseCommand {
   /// Constructor
   DoctorCommand();
 
+  final console = Console();
+
   @override
   Future<int> run() async {
-    final project = await ProjectService.findAncestor();
+    final project = ProjectService.fromContext.findAncestor();
+    final flutterWhich = which('flutter');
+    final dartWhich = which('dart');
 
-    // Flutter exec path
-    final flutterWhich = await which('flutter');
+    console.writeLine('FVM Doctor:');
+    console.writeLine('-' * console.windowWidth);
 
-    // dart exec path
-    final dartWhich = await which('dart');
-
-    if (project.pinnedVersion != null) {
-      final cacheVersion =
-          await CacheService.getByVersionName(project.pinnedVersion!);
-      Logger.spacer();
-
-      Logger.info('FVM Version: $packageVersion');
-      Logger.divider();
-      Logger.fine('FVM config found:');
-      Logger.divider();
-      Logger.info('Project: ${project.name}');
-      Logger.info('Directory: ${project.projectDir.path}');
-      Logger.info('Version: ${project.pinnedVersion}');
-      Logger.info(
-        'Project Flavor: ${(project.config.activeFlavor) ?? "None selected"}',
-      );
-      Logger.divider();
-      if (cacheVersion == null) {
-        Logger.warning(
-          'Version is not currently cached. Run "fvm install" on this'
-          ' directory, or "fvm install ${project.pinnedVersion}" anywhere.',
-        );
-      } else {
-        Logger.fine('Version is currently cached locally.');
-        Logger.spacer();
-        Logger.info('Cache Path: ${cacheVersion.dir.path}');
-        Logger.info('Channel: ${cacheVersion.isChannel}');
-
-        final sdkVersion = CacheService.getSdkVersionSync(cacheVersion);
-        if (sdkVersion != null) {
-          Logger.info('SDK Version: $sdkVersion');
-        } else {
-          Logger.warning(
-            'SDK Version: Need to finish setup. Run "fvm flutter doctor"',
-          );
-        }
-      }
-      Logger.spacer();
-      Logger.info('IDE Links');
-      Logger.info('VSCode: .fvm/flutter_sdk');
-      Logger.info('Android Studio: ${project.config.sdkSymlink.path}');
-      Logger.spacer();
-    } else {
-      Logger.spacer();
-      Logger.fine('No FVM config found:');
-      Logger.info(kWorkingDirectory.path);
-      Logger.info(
-        'Fvm will run the version in your PATH env: $flutterWhich',
-      );
-    }
-    Logger.spacer();
-    Logger.fine('Configured env paths:');
-    Logger.divider();
-    Logger.info('Flutter:');
-    Logger.info(flutterWhich ?? '');
-    Logger.spacer();
-    Logger.info('Dart:');
-    Logger.info(dartWhich ?? '');
-    Logger.spacer();
-    Logger.info('FVM_HOME:');
-    Logger.info(kEnvVars['FVM_HOME'] ?? 'not set');
-    Logger.spacer();
+    _printProject(project);
+    _printIdeLinks(project);
+    _printEnvironmentDetails(flutterWhich, dartWhich);
 
     return ExitCode.success.code;
+  }
+
+  void printFVMDetails(FVMContext context) {}
+  void _printProject(Project project) {
+    logger.info('Project:');
+    final table = createTable()
+      ..insertColumn(header: 'Project', alignment: TextAlignment.left)
+      ..insertColumn(header: project.name, alignment: TextAlignment.left);
+
+    table.insertRows([
+      ['Directory', project.path],
+      ['Active Flavor', project.activeFlavor ?? 'None'],
+      ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
+      [
+        'Dart Tool Generator Version',
+        project.dartToolGeneratorVersion ?? 'Not available'
+      ],
+      ['Dart tool version', project.dartToolVersion ?? 'Not available'],
+      ['.gitignore Present', project.gitignoreFile.existsSync() ? 'Yes' : 'No'],
+      ['Config Present', project.hasConfig ? 'Yes' : 'No'],
+      ['Pinned Version', project.pinnedVersion ?? 'None'],
+      ['Config path', relative(project.configPath, from: project.path)],
+      [
+        'Local cache dir',
+        relative(project.localVersionsCachePath, from: project.path)
+      ],
+      [
+        'Version symlink',
+        relative(
+          project.localVersionSymlinkPath,
+          from: project.path,
+        )
+      ],
+    ]);
+
+    logger.write(table.toString());
+    logger.spacer;
+  }
+
+  void _printIdeLinks(Project project) {
+    logger
+      ..spacer
+      ..info('IDEs:');
+    final table = createTable()
+      ..insertColumn(header: 'IDEs', alignment: TextAlignment.left)
+      ..insertColumn(header: '', alignment: TextAlignment.left);
+
+    table.insertRow([kVsCode]);
+    // Check for .vscode directory
+    final vscodeDir = Directory(join(project.path, '.vscode'));
+    final settingsPath = join(vscodeDir.path, 'settings.json');
+    final settingsFile = File(settingsPath);
+
+    if (vscodeDir.existsSync()) {
+      if (settingsFile.existsSync()) {
+        try {
+          final settings = jsonDecode(settingsFile.readAsStringSync());
+
+          final relativeSymlinkPath = relative(
+            project.localVersionSymlinkPath,
+            from: project.path,
+          );
+
+          final sdkPath = settings['dart.flutterSdkPath'];
+
+          table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
+          table.insertRow(
+              ['Matches pinned version:', sdkPath == relativeSymlinkPath]);
+        } on FormatException {
+          logger
+            ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
+            ..err(
+                'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it');
+          throw AppException(
+            'Could not get vscode settings, please check settings.json',
+          );
+        }
+      } else {
+        table.insertRow([kVsCode, 'Found .vscode, but no settings.json']);
+      }
+    } else {
+      table.insertRow([kVsCode, 'No .vscode directory found']);
+    }
+
+    table.insertRow(['Android Studio']);
+
+    // Get localproperties file within flutter project
+    final localPropertiesFile =
+        File(join(project.path, 'android', 'local.properties'));
+
+    if (localPropertiesFile.existsSync()) {
+      final localProperties = localPropertiesFile.readAsLinesSync();
+      final sdkPath = localProperties
+          .firstWhere((line) => line.startsWith('flutter.sdk'))
+          .split('=')[1];
+      final cacheVersionLink = Link(project.localVersionSymlinkPath);
+      final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
+
+      table.insertRow(['flutter.sdk', sdkPath]);
+      table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);
+    } else {
+      table.insertRow([
+        'Android Studio',
+        'No local.properties file found in android directory'
+      ]);
+    }
+
+    logger.write(table.toString());
+  }
+
+  void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
+    logger
+      ..spacer
+      ..info('Environment:');
+    final table = createTable()
+      ..insertColumn(
+          header: 'Environment Detail', alignment: TextAlignment.left)
+      ..insertColumn(header: 'Path/Value', alignment: TextAlignment.left);
+
+    table.insertRows([
+      ['Flutter Path', flutterWhich ?? 'Not found'],
+      ['Dart Path', dartWhich ?? 'Not found'],
+      [
+        ConfigKeys.cachePath.envKey,
+        ctx.environment[ConfigKeys.cachePath.envKey] ?? 'Not set'
+      ],
+      ['OS', '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'],
+      ['Dart Locale', Platform.localeName],
+      ['Dart runtime', Platform.version],
+    ]);
+
+    logger.write(table.toString());
   }
 }

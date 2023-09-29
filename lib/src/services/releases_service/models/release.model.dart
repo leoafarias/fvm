@@ -20,7 +20,7 @@ class Release {
   final String hash;
 
   /// Release channel
-  final Channel channel;
+  final FlutterChannel channel;
 
   /// Release version
   final String version;
@@ -46,14 +46,14 @@ class Release {
   /// Creates a release from a map of values
   factory Release.fromMap(Map<String, dynamic> map) => Release(
         hash: map['hash'] as String,
-        channel: channelFromName(map['channel'] as String),
+        channel: FlutterChannel.fromName(map['channel'] as String),
         version: map['version'] as String,
         releaseDate: DateTime.parse(map['release_date'] as String),
         dartSdkArch: map['dart_sdk_arch'] as String?,
         dartSdkVersion: map['dart_sdk_version'] as String?,
         archive: map['archive'] as String,
         sha256: map['sha256'] as String,
-        activeChannel: map['activeChannel'] as bool? ?? false,
+        activeChannel: map['active_channel'] as bool? ?? false,
       );
 
   /// Turns Release model into a map of values
@@ -64,18 +64,60 @@ class Release {
         'release_date': releaseDate.toIso8601String(),
         'archive': archive,
         'sha256': sha256,
-        'activeChannel': activeChannel,
         'dart_sdk_arch': dartSdkArch,
         'dart_sdk_version': dartSdkVersion,
+        'active_channel': activeChannel,
       };
 
   /// Returns channel name of the release
-  String get channelName {
-    return channel.name;
-  }
+  String get channelName => channel.name;
 
   /// Returns archive url of the release
   String get archiveUrl {
     return '$storageUrl/flutter_infra_release/releases/$archive';
   }
+}
+
+/// Release channels model
+class Channels {
+  /// Channel model contructor
+  Channels({
+    required this.beta,
+    required this.dev,
+    required this.stable,
+  });
+
+  /// Beta channel release
+  final Release beta;
+
+  /// Dev channel release
+  final Release dev;
+
+  /// Stable channel release
+  final Release stable;
+
+  /// Returns channel by name
+  Release operator [](String channelName) {
+    if (channelName == 'beta') return beta;
+    if (channelName == 'dev') return dev;
+    if (channelName == 'stable') return stable;
+    throw Exception('Not a valid channle $channelName');
+  }
+
+  /// Return a map of values from the Channels model
+  Map<String, dynamic> toMap() => {
+        'beta': beta,
+        'dev': dev,
+        'stable': stable,
+      };
+
+  /// Returns a hash map of the channels model
+  Map<String, dynamic> toHashMap() => {
+        beta.hash: 'beta',
+        dev.hash: 'dev',
+        stable.hash: 'stable',
+      };
+
+  /// Returns a list of all releases
+  List<Release> get toList => [dev, beta, stable];
 }

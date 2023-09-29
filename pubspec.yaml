@@ -1,33 +1,38 @@
 name: fvm
 description: A simple cli to manage Flutter SDK versions per project. Support
   channels, releases, and local cache for fast switching between versions.
-version: 2.4.1
+version: 3.0.0-beta.1
 homepage: https://github.com/leoafarias/fvm
 
 environment:
-  sdk: ">=2.19.0 <3.0.0"
+  sdk: ">=2.17.0 <4.0.0"
 
 executables:
-  fvm: main
+  fvm: fvm
 
 dependencies:
   args: ^2.4.2
-  cli_notify: ^0.0.4
-  cli_util: ^0.4.0
-  console: ^4.1.0
   date_format: ^2.0.7
+  git: ^2.2.1
+  interact: ^2.2.0
   io: ^1.0.4
-  meta: ^1.9.1
+  mason_logger: ^0.2.9
+  meta: ^1.10.0
   path: ^1.8.3
-  process_run: ^0.13.0
+  pub_semver: ^2.1.4
+  pub_updater: ^0.4.0
+  scope: ^4.1.0
   yaml: ^3.1.2
+  dart_console: ^1.2.0
+  tint: ^2.0.1
+  stack_trace: ^1.11.1
+  pubspec: ^2.3.0
 
 dev_dependencies:
-  build_runner: ^2.4.6
-  build_version: ^2.1.1
-  cli_pkg: ^2.4.7
+  cli_pkg: ^2.5.0
   grinder: ^0.9.4
-  test: ^1.24.4
-  build_test: ^2.2.0
-  test_cov: ^1.0.1
+  test: ^1.24.6
   lints: ^2.1.1
+  crypto: ^3.0.3
+  http: ^1.1.0
+

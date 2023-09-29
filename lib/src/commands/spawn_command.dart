@@ -1,9 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../models/valid_version_model.dart';
+import '../services/logger_service.dart';
 import '../utils/commands.dart';
-import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -33,12 +32,12 @@ class SpawnCommand extends BaseCommand {
     // Removes version from first arg
     final flutterArgs = [...argResults!.rest]..removeAt(0);
 
-    final validVersion = ValidVersion(version);
     // Will install version if not already instaled
-    final cacheVersion = await ensureCacheWorkflow(validVersion);
+    final cacheVersion = await ensureCacheWorkflow(version);
     // Runs flutter command with pinned version
-    Logger.info('Spawning version "$version"...');
+    logger.info('Spawning version "$version"...');
 
-    return await flutterCmd(cacheVersion, flutterArgs);
+    final results = await runFlutter(flutterArgs, version: cacheVersion);
+    return results.exitCode;
   }
 }

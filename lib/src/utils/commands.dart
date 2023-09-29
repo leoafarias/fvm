@@ -1,60 +1,89 @@
 import 'dart:io';
 
-import 'package:process_run/shell.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/run_command.dart';
 
-import '../../constants.dart';
 import '../../fvm.dart';
-import 'console_utils.dart';
-import 'guards.dart';
 import 'helpers.dart';
-import 'logger.dart';
+
+final _dartCmd = 'dart';
+final _flutterCmd = 'flutter';
 
 /// Runs Flutter cmd
-Future<int> flutterCmd(
-  CacheVersion version,
-  List<String> args,
-) async {
-  // Update environment variables
-  final environment = updateFlutterEnvVariables(version.binPath);
-  // Run command
-  return await _runCmd(
-    version.flutterExec,
-    args: args,
-    environment: environment,
-  );
-}
-
-/// Exec commands with the Flutter env
-Future<int> execCmd(
-  String execPath,
-  List<String> args,
-  CacheVersion? version,
-) async {
-  // Update environment variables
-  // If execPath is not provided will get the path configured version
-  final binPath = version?.binPath ?? whichSync('flutter') ?? '';
-  final dartBinPath = version?.dartBinPath ?? whichSync('dart') ?? '';
-
-  var environment = updateFlutterEnvVariables(binPath);
-
-  // Update environment with dart exec path
-  environment = updateDartEnvVariables(dartBinPath, environment);
-
-  // Run command
-  return await _runCmd(
-    execPath,
-    args: args,
-    environment: environment,
-    checkIfExecutable: false,
+Future<ProcessResult> runFlutter(
+  List<String> args, {
+  CacheFlutterVersion? version,
+  bool? echoOutput,
+}) async {
+  if (version == null) {
+    return _runCmd(_flutterCmd, args: args);
+  }
+  return _runOnVersion(
+    _flutterCmd,
+    version,
+    args,
+    echoOutput: echoOutput,
   );
 }
 
 /// Runs dart cmd
-Future<int> dartCmd(CacheVersion version, List<String> args) async {
+Future<ProcessResult> runDart(
+  List<String> args, {
+  CacheFlutterVersion? version,
+  bool? echoOutput,
+}) async {
+  if (version == null) {
+    return _runCmd(_dartCmd, args: args);
+  }
+  return _runOnVersion(
+    _dartCmd,
+    version,
+    args,
+    echoOutput: echoOutput,
+  );
+}
+
+/// Runs dart cmd
+Future<ProcessResult> _runOnVersion(
+  String cmd,
+  CacheFlutterVersion version,
+  List<String> args, {
+  bool? echoOutput,
+}) async {
+  final isFlutter = cmd == _flutterCmd;
   // Get exec path for dart
-  final execPath = version.dartExec;
+  final execPath = isFlutter ? version.flutterExec : version.dartExec;
+
   // Update environment
-  final environment = updateDartEnvVariables(version.dartBinPath);
+  final environment = updateEnvironmentVariables([
+    version.binPath,
+    version.dartBinPath,
+  ], ctx.environment);
+
+  // Run command
+  return await _runCmd(
+    execPath,
+    args: args,
+    environment: environment,
+    echoOutput: echoOutput,
+  );
+}
+
+/// Exec commands with the Flutter env
+Future<ProcessResult> execCmd(
+  String execPath,
+  List<String> args,
+  CacheFlutterVersion? version,
+) async {
+  // Update environment variables
+  // If execPath is not provided will get the path configured version
+  var environment = ctx.environment;
+  if (version != null) {
+    environment = updateEnvironmentVariables([
+      version.binPath,
+      version.dartBinPath,
+    ], ctx.environment);
+  }
 
   // Run command
   return await _runCmd(
@@ -64,65 +93,18 @@ Future<int> dartCmd(CacheVersion version, List<String> args) async {
   );
 }
 
-/// Runs dart from global version
-Future<int> dartGlobalCmd(List<String> args) async {
-  // Get exec path for dart
-  final execPath = whichSync('dart') ?? '';
-
-  logger.trace(
-    'fvm: Running using Dart/Flutter version configured in path.\n',
-  );
-
-  // Run command
-  return await _runCmd(
-    execPath,
-    args: args,
-  );
-}
-
-/// Runs flutter from global version
-Future<int> flutterGlobalCmd(List<String> args) {
-  final execPath = whichSync('flutter') ?? '';
-  logger.trace(
-    'fvm: Running Flutter SDK configured on environment PATH. $execPath',
-  );
-
-  // Run command
-  return _runCmd(
-    execPath,
-    args: args,
-  );
-}
-
-Future<int> _runCmd(
+Future<ProcessResult> _runCmd(
   String execPath, {
   List<String> args = const [],
   Map<String, String>? environment,
-  // Checks if path can be executed
-  bool checkIfExecutable = true,
+  bool? echoOutput,
 }) async {
-  // Project again a non executable path
-
-  if (checkIfExecutable) {
-    await Guards.canExecute(execPath, args);
-  }
-
-  // Switch off line mode
-
-  switchLineMode(false, args);
-  final process = await Process.start(
+  echoOutput ??= true;
+  return await runCommand(
     execPath,
-    args,
-    runInShell: true,
+    args: args,
     environment: environment,
-    workingDirectory: kWorkingDirectory.path,
-    mode: ProcessStartMode.inheritStdio,
+    throwOnError: false,
+    echoOutput: echoOutput,
   );
-
-  exitCode = await process.exitCode;
-
-  // Switch on line mode
-  switchLineMode(true, args);
-
-  return exitCode;
 }

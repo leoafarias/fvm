@@ -1,28 +1,58 @@
 name: Test CLI
 
-on: [pull_request]
+on:
+  workflow_call:
+    inputs:
+      sdk-version:
+        description: "Dart SDK version"
+        type: string
+        required: false
+        default: "stable"
+
+  pull_request:
+    paths-ignore:
+      - "website/**"
+      - "README.md"
+      - "CHANGELOG.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
-    name: "${{ matrix.os }}"
+    name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
-        sdk-version: [stable] #, dev]
-        include:
-          - os: macOS-latest
-            TARGET: macos
-          - os: ubuntu-latest
-            TARGET: linux
-          - os: windows-latest
-            TARGET: windows
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
-    steps:
-      - uses: actions/checkout@v1
-      - uses: dart-lang/setup-dart@v1.5.0
+    steps:        
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - run: dart pub get
-      - run: dart pub run build_runner build --delete-conflicting-outputs
-      - run: dart analyze --fatal-infos --fatal-warnings .
-      - run: dart test
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ github.event.inputs.sdk-version }}
+
+      - name: Tests
+        uses: ./.github/actions/test
+        if: matrix.os != 'ubuntu-latest'
+
+      
+      - name: Install lcov
+        run: sudo apt-get install lcov 
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: Run tests
+        uses: ./.github/actions/test
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          with-coverage: 'true'
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

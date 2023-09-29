@@ -1,158 +1,102 @@
 import 'dart:io';
 
-import 'package:path/path.dart';
-import 'package:yaml/yaml.dart';
-
-import '../../constants.dart';
-import '../models/project_model.dart';
-import '../models/valid_version_model.dart';
-import 'config_service.dart';
+import 'package:fvm/src/models/config_model.dart';
+import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/base_service.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/pretty_json.dart';
+import 'package:path/path.dart' as path;
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
-class ProjectService {
-  ProjectService._();
+///
+/// This class provides methods for interacting with local Flutter projects.
+class ProjectService extends ContextService {
+  ProjectService(super.context);
 
-  /// Returns projects by providing a [directory]
-  static Future<Project> getByDirectory(Directory directory) async {
-    final config = await ConfigService.read(directory);
-
-    return Project(
-      name: basename(directory.path),
-      config: config,
-      projectDir: directory,
-      isFlutterProject: await isFlutterProject(directory),
-    );
-  }
-
-  /// Returns a list of projects by providing a list of [paths]
-  static Future<List<Project>> fetchProjects(List<Directory> paths) async {
-    return Future.wait(paths.map(getByDirectory));
-  }
-
-  /// Updates the link to make sure its always correct
-  static Future<void> updateLink() async {
-    // Ensure the config link and symlink are updated
-    final project = await ProjectService.findAncestor();
-    if (project.pinnedVersion != null) {
-      await ConfigService.updateSdkLink(project.config);
-    }
-  }
-
-  /// Search for version configured
-  static Future<String?> findVersion() async {
-    final project = await ProjectService.findAncestor();
-    return project.pinnedVersion;
-  }
-
-  /// Scans for Flutter projects found in the rootDir
-  static Future<List<Project>> scanDirectory({Directory? rootDir}) async {
-    final paths = <Directory>[];
-
-    if (rootDir == null) {
-      return [];
-    }
-    // Find directories recursively
-    await for (FileSystemEntity entity in rootDir.list(
-      recursive: true,
-      followLinks: false,
-    )) {
-      // Check if entity is directory
-      if (entity is Directory) {
-        // Add only if its flutter project
-        if (await isFlutterProject(entity)) {
-          paths.add(entity);
-        }
-      }
-    }
-    return await fetchProjects(paths);
-  }
-
-  /// Pins a [validVersion] to a Flutter [project].
-  /// Can pin to a specific [flavor] if provided
-  static Future<void> pinVersion(
-    Project project,
-    ValidVersion validVersion, {
-    String? flavor,
-  }) async {
-    final config = project.config;
-    // Attach as main version if no flavor is set
-    if (flavor == null) {
-      config.flutterSdkVersion = validVersion.name;
-    } else {
-      // Pin as an flavor version
-      config.flavors[flavor] = validVersion.name;
-    }
-    await ConfigService.save(config);
-  }
-
-  /// Returns a [pubspec] from a [directory]
-  static Future<YamlNode?> _getPubspec(Directory directory) async {
-    final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
-    if (await pubspecFile.exists()) {
-      final pubspec = await pubspecFile.readAsString();
-      return loadYamlNode(pubspec);
-    } else {
-      return null;
-    }
-  }
-
-  /// Get dart_tool version from project directory
-  static Future<String?> getDartToolVersion(
-    Project project,
-  ) async {
-    final dartToolFile = File(
-      join(
-        project.projectDir.path,
-        '.dart_tool',
-        'version',
-      ),
-    );
-    if (await dartToolFile.exists()) {
-      final dartToolVersion = await dartToolFile.readAsString();
-      return dartToolVersion;
-    } else {
-      return null;
-    }
-  }
-
-  /// Checks if flutter [directory] is a Flutter project
-  static Future<bool> isFlutterProject(Directory directory) async {
-    try {
-      final pubspec = await _getPubspec(directory);
-      if (pubspec == null) {
-        return false;
-      }
-      final deps = pubspec.value['dependencies'] ?? {};
-      final isFlutter = deps['flutter'];
-      return isFlutter != null;
-    } on Exception {
-      return false;
-    }
-  }
+  /// Gets project service from context
+  static ProjectService get fromContext => getProvider<ProjectService>();
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
-  static Future<Project> findAncestor({Directory? directory}) async {
+  ///
+  /// This method performs a recursive search to find the nearest ancestor
+  /// directory that contains a Flutter project. If a specific [directory] is provided,
+  /// the search starts from that directory. Otherwise, the search starts from the
+  /// current working directory.
+  ///
+  /// Returns the [Project] instance for the found project.
+  Project findAncestor({
+    Directory? directory,
+  }) {
     // Get directory, defined root or current
-    directory ??= kWorkingDirectory;
+    directory ??= Directory(context.workingDirectory);
 
     // Checks if the directory is root
-    final isRootDir = rootPrefix(directory.path) == directory.path;
+    final isRootDir = path.rootPrefix(directory.path) == directory.path;
 
     // Gets project from directory
-    final project = await getByDirectory(directory);
+    final project = Project.loadFromPath(directory.path);
 
     // If project has a config return it
-    if (project.config.exists) {
-      return project;
-    }
+    if (project.hasConfig) return project;
+
+    // if project has a pubspec file return it
+    // if (project.hasPubspec) return project;
 
     // Return working directory if has reached root
-    if (isRootDir) {
-      return await getByDirectory(kWorkingDirectory);
+    if (isRootDir) return Project.loadFromPath(context.workingDirectory);
+
+    return findAncestor(
+      directory: directory.parent,
+    );
+  }
+
+  /// Search for version configured
+  ///
+  /// This method searches for the version of the Flutter SDK that is configured for
+  /// the current project. It uses the [findAncestor] method to find the project directory.
+  ///
+  /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
+  String? findVersion() {
+    final project = findAncestor();
+    return project.pinnedVersion?.name;
+  }
+
+  /// Update the project with new configurations
+  ///
+  /// The [project] parameter is the project to be updated. The optional parameters are:
+  /// - [flavors]: A map of flavor configurations.
+  /// - [pinnedVersion]: The new pinned version of the Flutter SDK.
+  ///
+  /// This method updates the project's configuration with the provided parameters. It creates
+  /// or updates the project's config file. The updated project is returned.
+  Project update(
+    Project project, {
+    Map<String, String> flavors = const {},
+    String? flutterSdkVersion,
+    bool? unmanagedVscode,
+  }) {
+    final newConfig = project.config ?? ProjectConfig();
+
+    final config = newConfig.copyWith(
+      flavors: flavors,
+      flutterSdkVersion: flutterSdkVersion,
+      unmanagedVscode: unmanagedVscode,
+    );
+
+    // Update flavors
+    final configFile = File(project.configPath);
+
+    // If config file does not exists create it
+    if (!configFile.existsSync()) {
+      configFile.createSync(recursive: true);
     }
 
-    return await findAncestor(directory: directory.parent);
+    final jsonContents = prettyJson(config.toMap());
+
+    configFile.writeAsStringSync(jsonContents);
+
+    return Project.loadFromPath(project.path);
   }
 }

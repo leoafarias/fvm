@@ -42,14 +42,6 @@ Before pushing the package to [pub.dev](https://pub.dev), run the following comm
 pub run build_runner build
 ```
 
-### Update test coverage
-
-To update test coverage, run the following command:
-
-```bash
-pub run test_cov
-```
-
 ## Troubleshooting
 
 Please view our [FAQ](https://fvm.app/docs/guides/faq).

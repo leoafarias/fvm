@@ -1,0 +1,88 @@
+---
+id: installation
+title: Installation
+sidebar_position: 0
+---
+
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
+There are a few ways to install FVM, and we are working on other ways to make it even simpler.
+
+## Recommendation
+
+We recommend install Flutter SDK globally using the official installation guide [here](https://docs.flutter.dev/get-started/install). This will be the main version of Flutter across your machine.
+
+Use FVM to manage the Flutter SDK version for your projects.
+
+## Standalone
+
+You can download the standalone packages from the GitHub repo [here](https://github.com/leoafarias/fvm/releases).
+
+<Tabs
+  defaultValue="macos"
+  values={[
+    { label: "MacOS", value: "macos" },
+    { label: "Windows", value: "windows" },
+    { label: "Linux", value: "linux" },
+  ]}
+>
+  <TabItem value="macos">
+
+If you use the [Homebrew package manager](https://brew.sh) for Mac OS X, you can install FVM by running
+
+Install
+
+```
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+Uninstall
+
+```
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+  </TabItem>
+  <TabItem value="windows">
+
+To install fvm (Install), run the following command from the command line or from PowerShell:
+
+```bash
+choco install fvm
+```
+
+  </TabItem>
+
+  <TabItem value="linux">
+
+If you use the [Homebrew package manager](https://brew.sh) for Linux, you can install FVM by running
+
+Install
+
+```
+brew tap leoafarias/fvm
+brew install fvm
+```
+
+Uninstall
+
+```
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+</TabItem>
+</Tabs>
+
+## Pub package
+
+You are able to also install FVM as a [pub package](https://pub.dev/packages/fvm).
+
+However if you plan on using FVM to manage your [global Flutter install](/docs/guides/global_version) we recommend installing as a standalone.
+
+```bash
+dart pub global activate fvm
+```

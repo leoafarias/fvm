@@ -1,7 +1,7 @@
 ---
 id: global_version
-title: Configure Global Version
-sidebar_position: 2
+title: Global Flutter SDK
+sidebar_position: 3
 ---
 
 

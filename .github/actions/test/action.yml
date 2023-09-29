@@ -1,0 +1,24 @@
+name: "Run tests"
+description: "Grind tasks for testing"
+
+inputs:
+  with-coverage:
+    description: "Generate coverage reports"
+    required: false
+    default: "false"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Prepare tests
+      run: dart run grinder test-setup
+      shell: bash
+
+    - name: Run tests
+      run: dart test --coverage=coverage
+      shell: bash
+
+    - name: Generate coverage report
+      run: dart run grinder coverage
+      shell: bash
+      if: ${{ inputs.with-coverage == 'true' }}

@@ -12,9 +12,8 @@ const FeatureList = [
     Svg: require("../../static/img/multiple_versions.svg").default,
     description: (
       <Translate id="home.feature_multiple_flutter_sdk">
-        Ability to manage and cache multiple Flutter SDK Versions. Fast
-        switching between channels & releases. View available channels &
-        releases.
+        Swiftly manage, cache, and switch Flutter SDK versions and channels, all
+        in one go.
       </Translate>
     ),
   },
@@ -26,9 +25,8 @@ const FeatureList = [
     Svg: require("../../static/img/project_versioning.svg").default,
     description: (
       <Translate id="home.feature_project_versioning">
-        Configure and use Flutter SDK version per project. Dynamic SDK paths for
-        IDE debugging support. Allows for consistency across teams and CI
-        environments.
+        Project-specific Flutter SDK configuration, integrated VsCode support,
+        and SDK consistency across your team
       </Translate>
     ),
   },
@@ -40,9 +38,8 @@ const FeatureList = [
     Svg: require("../../static/img/advanced_tooling.svg").default,
     description: (
       <Translate id="home.feature_advanced_tooling">
-        Manage global Flutter SDK version. Spawn processes in any Flutter SDK
-        version. Docker images for CI & dev workflow. Install Flutter from
-        specific commits.
+        Global Flutter SDK, spawn processes across versions, different SDKs
+        across envs, and install Flutter from commits
       </Translate>
     ),
   },
@@ -51,15 +48,15 @@ const FeatureList = [
 function Feature({ Svg, title, description }) {
   return (
     <div className={clsx("col col--4")}>
-      <div className="text--center">
+      <div className="text--left padding-horiz--md padding-vert--sm">
         <Svg
           className={styles.featureSvg}
           alt={title}
-          style={{ width: 50, height: 50 }}
+          style={{ width: 35, height: 35 }}
         />
       </div>
 
-      <div className="text--center padding-horiz--md">
+      <div className="text--left padding-horiz--md">
         <h3>{title}</h3>
         <p>{description}</p>
       </div>

@@ -1,10 +1,10 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:fvm/constants.dart';
+import 'package:fvm/fvm.dart';
 
-import '../models/valid_version_model.dart';
-import '../services/project_service.dart';
+import '../services/logger_service.dart';
 import '../utils/commands.dart';
-import '../utils/logger.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -22,7 +22,7 @@ class ExecCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = await ProjectService.findVersion();
+    final version = ProjectService.fromContext.findVersion();
 
     if (argResults!.rest.isEmpty) {
       throw UsageException(
@@ -36,23 +36,24 @@ class ExecCommand extends BaseCommand {
     // Removes version from first arg
     final execArgs = [...argResults!.rest]..removeAt(0);
 
+    // If no version is provided try to use global
+    CacheFlutterVersion? cacheVersion;
+
     if (version != null) {
-      final validVersion = ValidVersion(version);
       // Will install version if not already instaled
-      final cacheVersion = await ensureCacheWorkflow(validVersion);
-
-      logger.trace('fvm: running version "$version"\n');
-      // If its not a channel silence version check
-
-      // Runs exec command with pinned version
-      return await execCmd(
-        cmd,
-        execArgs,
-        cacheVersion,
-      );
-    } else {
-      // Try to get fvm global version
-      return await execCmd(cmd, execArgs, null);
+      cacheVersion = await ensureCacheWorkflow(version);
+      logger
+        ..info('$kPackageName: Running version: "$version"')
+        ..spacer;
     }
+
+    // Runs exec command with pinned version
+    final results = await execCmd(
+      cmd,
+      execArgs,
+      cacheVersion,
+    );
+
+    return results.exitCode;
   }
 }

@@ -1,16 +1,15 @@
-@Timeout(Duration(minutes: 5))
-import 'package:fvm/src/runner.dart';
+@Timeout(Duration(minutes: 1))
+import 'package:mason_logger/mason_logger.dart';
 import 'package:test/test.dart';
 
-final fvmRunner = FvmCommandRunner();
-void main() {
-  test('Can run releases', () async {
-    try {
-      await fvmRunner.run(['releases']);
+import '../testing_utils.dart';
 
-      expect(true, true);
-    } on Exception {
-      rethrow;
-    }
+void main() {
+  groupWithContext('Flutter Releases', () {
+    testWithContext('Can check releases', () async {
+      final exitCode = await TestCommandRunner().run('fvm releases');
+
+      expect(exitCode, ExitCode.success.code);
+    });
   });
 }

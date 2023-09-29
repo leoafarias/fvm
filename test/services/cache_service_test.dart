@@ -1,100 +1,81 @@
 @Timeout(Duration(minutes: 5))
-import 'package:fvm/src/models/cache_version_model.dart';
-import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/global_version_service.dart';
 import 'package:test/test.dart';
 
-import '../test_utils.dart';
+import '../testing_utils.dart';
 
-const key = Key('cache_service_test');
-const _channel = 'beta';
-const _version = '1.20.2';
+final _channel = FlutterVersion.parse('beta');
+final _version = FlutterVersion.parse('1.20.2');
+
 void main() {
-  setUpAll(() {
-    final testDir = getFvmTestDir(key);
-    if (testDir.existsSync()) {
-      testDir.deleteSync(recursive: true);
-    }
-  });
-  tearDownAll(() {
-    final testDir = getFvmTestDir(key);
-    if (testDir.existsSync()) {
-      testDir.deleteSync(recursive: true);
-    }
-  });
-  group('Cache Service Test:', () {
-    testWithContext('Cache Version', key, () async {
-      var validChannel =
-          await CacheService.isVersionCached(ValidVersion(_channel));
-      var validVersion =
-          await CacheService.isVersionCached(ValidVersion(_version));
+  groupWithContext('Cache Service Test:', () {
+    testWithContext('Cache Version', () async {
+      var validChannel = CacheService.fromContext.getVersion(_channel);
+      var validVersion = CacheService.fromContext.getVersion(_version);
       expect(validChannel, null);
       expect(validVersion, null);
 
-      await CacheService.cacheVersion(ValidVersion(_channel));
-      await CacheService.cacheVersion(ValidVersion(_version));
+      await FlutterService.fromContext.install(_channel);
+      await FlutterService.fromContext.install(_version);
 
-      validChannel = await CacheService.isVersionCached(ValidVersion(_channel));
-      validVersion = await CacheService.isVersionCached(ValidVersion(_version));
-      expect(validChannel!.name, _channel);
-      expect(validVersion!.name, _version);
-    });
+      final cacheChannel = CacheService.fromContext.getVersion(_channel);
 
-    testWithContext('Lists Cache Versions', key, () async {
-      final versions = await CacheService.getAllVersions();
+      final cacheVersion = CacheService.fromContext.getVersion(_version);
+
+      final invalidVersion = CacheService.fromContext
+          .getVersion(FlutterVersion.parse('invalid-version'));
+
+      final channelIntegrity =
+          await CacheService.fromContext.verifyCacheIntegrity(cacheChannel!);
+      final versionIntegrity =
+          await CacheService.fromContext.verifyCacheIntegrity(cacheVersion!);
+
+      final versions = await CacheService.fromContext.getAllVersions();
       expect(versions.length, 2);
+
+      forceUpdateFlutterSdkVersionFile(cacheVersion, '2.7.0');
+
+      final cacheVersion2 = CacheService.fromContext.getVersion(_version);
+      final versionIntegrity2 =
+          await CacheService.fromContext.verifyCacheIntegrity(cacheVersion2!);
+
+      expect(versionIntegrity, CacheIntegrity.valid);
+      expect(channelIntegrity, CacheIntegrity.valid);
+      expect(invalidVersion, null);
+      expect(versionIntegrity2, CacheIntegrity.versionMismatch);
     });
 
-    testWithContext('Get Cache Versions by name', key, () async {
-      final channel = await CacheService.getByVersionName(_channel);
-      final version = await CacheService.getByVersionName(_version);
-      expect(channel!.name, _channel);
-      expect(version!.name, _version);
+    testWithContext('Set/Get Global Cache Version ', () async {
+      CacheFlutterVersion? globalVersion;
+      bool isChanneGlobal, isVersionGlobal;
+      globalVersion = GlobalVersionService.fromContext.getGlobal();
+      expect(globalVersion, null);
+
+      final channel = CacheService.fromContext.getVersion(_channel);
+      final version = CacheService.fromContext.getVersion(_version);
+      // Set channel as global
+      GlobalVersionService.fromContext.setGlobal(channel!);
+      globalVersion = GlobalVersionService.fromContext.getGlobal();
+      isChanneGlobal = GlobalVersionService.fromContext.isGlobal(channel);
+      isVersionGlobal = GlobalVersionService.fromContext.isGlobal(version!);
+
+      expect(globalVersion?.name, channel.name);
+      expect(isChanneGlobal, true);
+      expect(isVersionGlobal, false);
+
+      // Set version as global
+      GlobalVersionService.fromContext.setGlobal(version);
+      globalVersion = GlobalVersionService.fromContext.getGlobal();
+      isChanneGlobal = GlobalVersionService.fromContext.isGlobal(channel);
+      isVersionGlobal = GlobalVersionService.fromContext.isGlobal(version);
+
+      expect(globalVersion?.name, version.name);
+      expect(isChanneGlobal, false);
+      expect(isVersionGlobal, true);
     });
-
-    testWithContext('Verify cache integrity', key, () async {
-      final channel = await CacheService.getByVersionName(_channel);
-      final version = await CacheService.getByVersionName(_version);
-      final invalidCache = CacheVersion('invalid_version');
-
-      final isChannelValid = await CacheService.verifyIntegrity(channel!);
-      final isVersionValid = await CacheService.verifyIntegrity(version!);
-      final isInvalidValid = await CacheService.verifyIntegrity(invalidCache);
-
-      expect(isChannelValid, true);
-      expect(isVersionValid, true);
-      expect(isInvalidValid, false);
-    });
-
-    // TODO: Remove after deprecation period
-
-    // testWithContext('Set/Get Global Cache Version ', key, () async {
-    //   CacheVersion? globalVersion;
-    //   bool isChanneGlobal, isVersionGlobal;
-    //   globalVersion = await CacheService.getGlobal();
-    //   expect(globalVersion, null);
-
-    //   final channel = await CacheService.getByVersionName(_channel);
-    //   final version = await CacheService.getByVersionName(_version);
-    //   // Set channel as global
-    //   await CacheService.setGlobal(channel!);
-    //   globalVersion = await CacheService.getGlobal();
-    //   isChanneGlobal = await CacheService.isGlobal(channel);
-    //   isVersionGlobal = await CacheService.isGlobal(version!);
-
-    //   expect(globalVersion!.name, channel.name);
-    //   expect(isChanneGlobal, true);
-    //   expect(isVersionGlobal, false);
-
-    //   // Set version as global
-    //   await CacheService.setGlobal(version);
-    //   globalVersion = await CacheService.getGlobal();
-    //   isChanneGlobal = await CacheService.isGlobal(channel);
-    //   isVersionGlobal = await CacheService.isGlobal(version);
-
-    //   expect(globalVersion!.name, version.name);
-    //   expect(isChanneGlobal, false);
-    //   expect(isVersionGlobal, true);
-    // });
   });
 }

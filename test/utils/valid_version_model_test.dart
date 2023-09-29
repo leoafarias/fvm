@@ -1,61 +1,74 @@
-import 'package:fvm/src/models/valid_version_model.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:test/test.dart';
+
+const longCommit = 'de25def7784a2e63a9e7d5cc50dff84db8f69298';
+const shortCommit = 'de25def';
 
 void main() {
   test('Valid Version behaves correctly', () async {
-    final master = ValidVersion('master');
-    final beta = ValidVersion('beta');
-    final channelWithVersion = ValidVersion('2.2.2@beta');
-    final version = ValidVersion('2.2.0');
-    final gitHash = ValidVersion('f4c74a6ec3');
+    final master = FlutterVersion.parse('master');
+    final beta = FlutterVersion.parse('beta');
+    final channelWithVersion = FlutterVersion.parse('2.2.2@beta');
+    final version = FlutterVersion.parse('2.2.0');
+    final gitCommit = FlutterVersion.parse(longCommit);
+    final shortGitCommit = FlutterVersion.parse(shortCommit);
 
     // Check if its channel
     expect(master.isChannel, true);
     expect(beta.isChannel, true);
     expect(channelWithVersion.isChannel, false);
     expect(version.isChannel, false);
-    expect(gitHash.isChannel, false);
+    expect(gitCommit.isChannel, false);
+    expect(shortGitCommit.isChannel, false);
 
     // Check for correct vertsion
-    expect(master.version, 'master');
-    expect(beta.version, 'beta');
+    expect(master.name, 'master');
+    expect(beta.name, 'beta');
+    expect(channelWithVersion.name, '2.2.2@beta');
     expect(channelWithVersion.version, '2.2.2');
-    expect(version.version, '2.2.0');
-    expect(gitHash.version, 'f4c74a6ec3');
+    expect(channelWithVersion.releaseFromChannel, 'beta');
+    expect(version.name, '2.2.0');
+    expect(gitCommit.name, longCommit);
+    expect(shortGitCommit.name, shortCommit);
 
     // Check if forces channel
-    expect(master.forceChannel, null);
-    expect(beta.forceChannel, null);
-    expect(channelWithVersion.forceChannel, 'beta');
-    expect(version.forceChannel, null);
-    expect(gitHash.forceChannel, null);
+    expect(master.releaseFromChannel, null);
+    expect(beta.releaseFromChannel, null);
+    expect(channelWithVersion.releaseFromChannel, 'beta');
+    expect(version.releaseFromChannel, null);
+    expect(gitCommit.releaseFromChannel, null);
+    expect(shortGitCommit.releaseFromChannel, null);
 
     // Check if its master
     expect(master.isMaster, true);
     expect(beta.isMaster, false);
     expect(channelWithVersion.isMaster, false);
     expect(version.isMaster, false);
-    expect(gitHash.isMaster, false);
+    expect(gitCommit.isMaster, false);
+    expect(shortGitCommit.isMaster, false);
 
     // Check if its release
     expect(master.isRelease, false);
     expect(beta.isRelease, false);
     expect(channelWithVersion.isRelease, true);
     expect(version.isRelease, true);
-    expect(gitHash.isRelease, false);
+    expect(gitCommit.isRelease, false);
+    expect(shortGitCommit.isRelease, false);
 
-    // Check if needs reset
-    expect(master.needReset, false);
-    expect(beta.needReset, false);
-    expect(channelWithVersion.needReset, true);
-    expect(version.needReset, true);
-    expect(gitHash.needReset, true);
+    // Check if its commit
+    expect(master.isCommit, false);
+    expect(beta.isCommit, false);
+    expect(channelWithVersion.isCommit, false);
+    expect(version.isCommit, false);
+    expect(gitCommit.isCommit, true);
+    expect(shortGitCommit.isCommit, true);
 
     // Checks version
-    expect(master.version, 'master');
-    expect(beta.version, 'beta');
+    expect(master.name, 'master');
+    expect(beta.name, 'beta');
     expect(channelWithVersion.version, '2.2.2');
-    expect(version.version, '2.2.0');
-    expect(gitHash.version, 'f4c74a6ec3');
+    expect(version.name, '2.2.0');
+    expect(gitCommit.name, longCommit);
+    expect(shortGitCommit.name, shortCommit);
   });
 }

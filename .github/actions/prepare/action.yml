@@ -1,0 +1,33 @@
+name: "Prepare"
+description: "Prepare and tests the project"
+
+inputs:
+  sdk-version:
+    description: "Dart SDK version"
+    required: false
+    default: "stable"
+
+runs:
+  using: "composite"
+  steps:
+  
+    - name: Setup Dart
+      uses: dart-lang/setup-dart@v1
+      with:
+        sdk: ${{ inputs.sdk-version }}
+
+    - name: Cache Dart dependencies
+      uses: actions/cache@v3
+      with:
+        path: "~/.pub-cache"
+        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-dart-
+
+    - name: Get dependencies
+      run: dart pub get
+      shell: bash
+
+    - name: Analyze
+      run: dart analyze --fatal-infos --fatal-warnings .
+      shell: bash
