@@ -1,19 +1,7 @@
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-
-Future<void> setupFlutterWorkflow(
-  CacheFlutterVersion version,
-) async {
-  // Skip if its test
-
-  logger
-    ..info('Setting up Flutter SDK: ${version.name}')
-    ..spacer;
-
-  await FlutterService.fromContext.runSetup(version);
-}
 
 Future<void> resolveDependenciesWorkflow(
   Project project,
@@ -24,27 +12,43 @@ Future<void> resolveDependenciesWorkflow(
     return;
   }
 
+  final runPubGetOnSdkChanges = project.config?.runPubGetOnSdkChanges ?? true;
+
+  if (!runPubGetOnSdkChanges) {
+    logger
+      ..info('Skipping "pub get" because of config setting.')
+      ..spacer;
+    return;
+  }
+
   final progress = logger.progress('Resolving dependencies...');
 
-  try {
-    await FlutterService.fromContext.runPubGet(version);
+  final pubGetResults = await version.run('pub get');
 
-    progress.complete('Dependencies resolved.');
+  if (pubGetResults.exitCode != 0) {
+    progress.fail('Could not resolve dependencies.');
+    logger
+      ..spacer
+      ..err(pubGetResults.stderr.toString());
 
-    // Skip resolve if in vscode
-  } on Exception catch (err) {
-    if (project.dartToolVersion == version.flutterSdkVersion) {
-      progress.complete('Dependencies resolved, with errors.');
+    logger.info(
+      'The error could indicate incompatible dependencies to the SDK.',
+    );
 
-      logger
-        ..spacer
-        ..warn(err.toString());
+    final confirmation = logger.confirm(
+      'Would you like to continue pinning this version anyway?',
+    );
 
-      return;
-    } else {
-      progress.fail('Could not resolve dependencies.');
-      rethrow;
+    if (!confirmation) {
+      throw AppException('Dependencies not resolved.');
     }
+    return;
+  }
+
+  progress.complete('Dependencies resolved.');
+
+  if (pubGetResults.stdout != null) {
+    logger.detail(pubGetResults.stdout);
   }
 }
 

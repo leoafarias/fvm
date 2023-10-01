@@ -73,6 +73,7 @@ class ReleasesCommand extends BaseCommand {
       if (shouldFilterRelease(release)) {
         continue;
       }
+
       table.insertRow([
         release.version,
         friendlyDate(release.releaseDate),

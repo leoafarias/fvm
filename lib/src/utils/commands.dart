@@ -14,6 +14,7 @@ Future<ProcessResult> runFlutter(
   List<String> args, {
   CacheFlutterVersion? version,
   bool? echoOutput,
+  bool? throwOnError,
 }) async {
   if (version == null) {
     return _runCmd(_flutterCmd, args: args);
@@ -23,6 +24,7 @@ Future<ProcessResult> runFlutter(
     version,
     args,
     echoOutput: echoOutput,
+    throwOnError: throwOnError,
   );
 }
 
@@ -31,6 +33,7 @@ Future<ProcessResult> runDart(
   List<String> args, {
   CacheFlutterVersion? version,
   bool? echoOutput,
+  bool? throwOnError,
 }) async {
   if (version == null) {
     return _runCmd(_dartCmd, args: args);
@@ -40,6 +43,7 @@ Future<ProcessResult> runDart(
     version,
     args,
     echoOutput: echoOutput,
+    throwOnError: throwOnError,
   );
 }
 
@@ -49,6 +53,7 @@ Future<ProcessResult> _runOnVersion(
   CacheFlutterVersion version,
   List<String> args, {
   bool? echoOutput,
+  bool? throwOnError,
 }) async {
   final isFlutter = cmd == _flutterCmd;
   // Get exec path for dart
@@ -66,6 +71,7 @@ Future<ProcessResult> _runOnVersion(
     args: args,
     environment: environment,
     echoOutput: echoOutput,
+    throwOnError: throwOnError,
   );
 }
 
@@ -98,13 +104,15 @@ Future<ProcessResult> _runCmd(
   List<String> args = const [],
   Map<String, String>? environment,
   bool? echoOutput,
+  bool? throwOnError,
 }) async {
   echoOutput ??= true;
+  throwOnError ??= false;
   return await runCommand(
     execPath,
     args: args,
     environment: environment,
-    throwOnError: false,
+    throwOnError: throwOnError,
     echoOutput: echoOutput,
   );
 }

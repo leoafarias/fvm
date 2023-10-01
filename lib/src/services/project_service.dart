@@ -75,14 +75,14 @@ class ProjectService extends ContextService {
     Project project, {
     Map<String, String> flavors = const {},
     String? flutterSdkVersion,
-    bool? unmanagedVscode,
+    bool? updateVscodeSettings,
   }) {
     final newConfig = project.config ?? ProjectConfig();
 
     final config = newConfig.copyWith(
       flavors: flavors,
       flutterSdkVersion: flutterSdkVersion,
-      unmanagedVscode: unmanagedVscode,
+      updateVscodeSettings: updateVscodeSettings,
     );
 
     // Update flavors

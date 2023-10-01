@@ -31,21 +31,6 @@ class FlutterService extends ContextService {
     }
   }
 
-  /// Runs triggers sdk setup/install
-  Future<int> runSetup(CacheFlutterVersion version) async {
-    final result = await runFlutter(['doctor', '--version'], version: version);
-    return result.exitCode;
-  }
-
-  /// Runs pub get
-  Future<void> runPubGet(CacheFlutterVersion version) async {
-    await runFlutter(
-      ['pub', 'get'],
-      version: version,
-      echoOutput: false,
-    );
-  }
-
   /// Clones Flutter SDK from Version Number or Channel
   Future<void> install(FlutterVersion version) async {
     final versionDir = CacheService(context).getVersionCacheDir(version.name);

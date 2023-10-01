@@ -12,7 +12,8 @@ import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/utils/which.dart';
-import 'package:fvm/src/workflows/setup_flutter_workflow.dart';
+import 'package:fvm/src/workflows/resolve_dependencies.workflow.dart';
+import 'package:fvm/src/workflows/setup_flutter.workflow.dart';
 import 'package:git/git.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
@@ -26,7 +27,6 @@ Future<void> useVersionWorkflow({
   required Project project,
   bool force = false,
   bool skipSetup = false,
-  bool unprivileged = false,
   String? flavor,
 }) async {
   // If project use check that is Flutter project
@@ -68,15 +68,14 @@ Future<void> useVersionWorkflow({
     flutterSdkVersion: version.name,
   );
 
-  _updateLocalSdkReference(
-    updatedProject,
-    version,
-    priviledged: !unprivileged,
-  );
-
   _checkGitignore(updatedProject);
 
   await resolveDependenciesWorkflow(
+    updatedProject,
+    version,
+  );
+
+  _updateLocalSdkReference(
     updatedProject,
     version,
   );
@@ -120,38 +119,64 @@ Future<void> useVersionWorkflow({
 /// The method prompts the user for confirmation before actually adding the path,
 /// unless running in a test environment.
 Future<void> _checkGitignore(Project project) async {
+  final updateGitIgnore = project.config?.updateGitIgnore ?? true;
   if (!await GitDir.isGitDir(project.path)) {
     return;
   }
 
-  final pathToAdd = '.fvm';
+  if (!updateGitIgnore) {
+    logger.detail(
+      '$kPackageName does not manage .gitignore for this project.',
+    );
+    return;
+  }
+
+  final pathToAdd = '.fvm/';
+  final heading = '# FVM Version Cache';
   final ignoreFile = project.gitignoreFile;
 
   if (!ignoreFile.existsSync()) {
     ignoreFile.createSync(recursive: true);
   }
 
-  final lines = ignoreFile.readAsLinesSync();
+  List<String> lines = ignoreFile.readAsLinesSync();
 
   if (lines.any((line) => line.trim() == pathToAdd)) {
     return;
   }
 
-  logger
-    ..spacer
-    ..info(
-      'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
-    );
+  lines = lines
+      .where((line) => !line.startsWith('.fvm') && line.trim() != heading)
+      .toList();
+
+  // Append the correct line at the end
+  lines.addAll(['', heading, pathToAdd]);
+
+  // Remove any lines that have consecutive blank lines.
+  lines = lines.fold<List<String>>([], (previousValue, element) {
+    if (previousValue.isEmpty) {
+      previousValue.add(element);
+    } else {
+      final lastLine = previousValue.last;
+      if (lastLine.trim().isEmpty && element.trim().isEmpty) {
+        return previousValue;
+      }
+      previousValue.add(element);
+    }
+    return previousValue;
+  });
+
+  logger.info(
+    'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
+  );
 
   if (logger.confirm(
     'Would you like to do that now?',
     defaultValue: true,
   )) {
-    // If pathToAdd not found, append it to the file
-
     ignoreFile.writeAsStringSync(
-      '\n# FVM Version Cache\n$pathToAdd\n',
-      mode: FileMode.append,
+      lines.join('\n'),
+      mode: FileMode.write,
     );
     logger
       ..success('Added $pathToAdd to .gitignore')
@@ -205,11 +230,7 @@ void _checkProjectVersionConstraints(
 /// that are no longer needed.
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateLocalSdkReference(
-  Project project,
-  CacheFlutterVersion version, {
-  required bool priviledged,
-}) {
+void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 // Legacy link for fvm < 3.0.0
   final legacyLink = Link(join(
     project.localVersionsCachePath,
@@ -221,6 +242,18 @@ void _updateLocalSdkReference(
     legacyLink.deleteSync();
   }
 
+  final sdkVersionFile = File(join(project.localFvmPath, 'version'));
+  final releaseFile = File(join(project.localFvmPath, 'release'));
+
+  sdkVersionFile.writeAsStringSync(project.dartToolVersion ?? '');
+  releaseFile.writeAsStringSync(version.name);
+
+  final priviledgedAccess = ctx.config.priviledgedAccess ?? true;
+
+  if (!priviledgedAccess) {
+    return;
+  }
+
   final localVersionsCache = Directory(project.localVersionsCachePath);
 
   if (localVersionsCache.existsSync()) {
@@ -228,18 +261,10 @@ void _updateLocalSdkReference(
   }
   localVersionsCache.createSync(recursive: true);
 
-  final sdkVersionFile = File(join(project.localFvmPath, 'version'));
-  final releaseFile = File(join(project.localFvmPath, 'release'));
-
-  sdkVersionFile.writeAsStringSync(project.dartToolVersion ?? '');
-  releaseFile.writeAsStringSync(version.name);
-
-  if (priviledged) {
-    createLink(
-      project.localVersionSymlinkPath,
-      version.directory,
-    );
-  }
+  createLink(
+    project.localVersionSymlinkPath,
+    version.directory,
+  );
 }
 
 /// Updates VS Code configuration for the project
@@ -251,33 +276,24 @@ void _updateLocalSdkReference(
 /// The method also updates the "dart.flutterSdkPath" setting to use the relative
 /// path of the .fvm symlink.
 void _manageVscodeSettings(Project project) {
-  if (project.config?.unmanagedVscode == false) {
-    logger.detail(
-      '$kPackageName does not manage VSCode settings for this project.',
-    );
-    return;
-  }
+  final updateVscodeSettings = project.config?.updateVscodeSettings ?? true;
 
   final vscodeDir = Directory(join(project.path, '.vscode'));
   final vscodeSettingsFile = File(join(vscodeDir.path, 'settings.json'));
 
-  final donotManageVscode = project.config?.unmanagedVscode == true;
   final isUsingVscode = isVsCode() || vscodeDir.existsSync();
 
-  if (donotManageVscode) {
+  if (!updateVscodeSettings) {
     logger.detail(
       '$kPackageName does not manage $kVsCode settings for this project.',
     );
 
     if (isUsingVscode) {
-      logger
-        ..warn(
-          'You are using $kVsCode, but $kPackageName is ',
-        )
-        ..warn(
-          'not managing $kVsCode settings for this project.',
-        )
-        ..warn('Please remove "unmanagedVscode" from $kFvmConfigFileName');
+      logger.warn(
+        'You are using $kVsCode, but $kPackageName is '
+        'not managing $kVsCode settings for this project.'
+        'Please remove "updateVscodeSettings: false" from $kFvmConfigFileName',
+      );
     }
     return;
   }
@@ -290,7 +306,7 @@ void _manageVscodeSettings(Project project) {
     if (!confirmation) {
       ProjectService.fromContext.update(
         project,
-        unmanagedVscode: true,
+        updateVscodeSettings: false,
       );
       return;
     }
@@ -325,12 +341,18 @@ void _manageVscodeSettings(Project project) {
     vscodeSettingsFile.create(recursive: true);
   }
 
-  final relativePath = relative(
-    project.localVersionSymlinkPath,
-    from: project.path,
-  );
+  final priviledgedAccess = ctx.config.priviledgedAccess ?? true;
 
-  currentSettings["dart.flutterSdkPath"] = relativePath;
+  if (priviledgedAccess) {
+    final relativePath = relative(
+      project.localVersionSymlinkPath,
+      from: project.path,
+    );
+
+    currentSettings["dart.flutterSdkPath"] = relativePath;
+  } else {
+    currentSettings["dart.flutterSdkPath"] = project.localVersionSymlinkPath;
+  }
 
   vscodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
 }

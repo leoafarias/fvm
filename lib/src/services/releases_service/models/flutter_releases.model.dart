@@ -99,7 +99,7 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
       final channelName = current.key;
       final releaseHash = current.value;
       if (releaseHash == release['hash'] && channelName == release['channel']) {
-        release['active_channel'] = true;
+      release['active_channel'] = true;
       }
     }
 
@@ -107,8 +107,8 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
       // Filter out releases based on architecture
       // Remove if architecture is not compatible
       final arch = release['dart_sdk_arch'];
-      final isActiveChanel = release['active_channel'] == true;
-      if (arch != systemArch && arch != null && !isActiveChanel) {
+
+      if (arch != systemArch && arch != null) {
         continue;
       }
     }
