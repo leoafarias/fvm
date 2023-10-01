@@ -167,7 +167,7 @@ void _checkProjectVersionConstraints(
   Project project,
   CacheFlutterVersion cachedVersion,
 ) {
-  final sdkVersion = cachedVersion.flutterSdkVersion;
+  final sdkVersion = cachedVersion.dartSdkVersion;
   final constraints = project.sdkConstraint;
 
   if (sdkVersion != null && constraints != null) {
