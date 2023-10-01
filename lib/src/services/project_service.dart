@@ -4,6 +4,7 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:path/path.dart' as path;
 
@@ -86,7 +87,7 @@ class ProjectService extends ContextService {
     );
 
     // Update flavors
-    final configFile = File(project.configPath);
+    final configFile = project.configPath.file;
 
     // If config file does not exists create it
     if (!configFile.existsSync()) {
@@ -95,7 +96,7 @@ class ProjectService extends ContextService {
 
     final jsonContents = prettyJson(config.toMap());
 
-    configFile.writeAsStringSync(jsonContents);
+    configFile.write(jsonContents);
 
     return Project.loadFromPath(project.path);
   }

@@ -8,8 +8,8 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/io_utils.dart';
 import 'package:fvm/src/utils/pretty_json.dart';
 import 'package:fvm/src/utils/which.dart';
 import 'package:fvm/src/workflows/resolve_dependencies.workflow.dart';
@@ -195,8 +195,23 @@ void _checkProjectVersionConstraints(
   final sdkVersion = cachedVersion.dartSdkVersion;
   final constraints = project.sdkConstraint;
 
-  if (sdkVersion != null && constraints != null) {
-    final allowedInConstraint = constraints.allows(Version.parse(sdkVersion));
+  if (sdkVersion != null &&
+      constraints != null &&
+      !constraints.isEmpty &&
+      sdkVersion.isNotEmpty) {
+    Version dartSdkVersion;
+
+    try {
+      dartSdkVersion = Version.parse(sdkVersion);
+    } on FormatException {
+      logger.warn(
+        'Could not parse Flutter SDK version $sdkVersion',
+      );
+
+      return;
+    }
+
+    final allowedInConstraint = constraints.allows(dartSdkVersion);
 
     final message = cachedVersion.isRelease
         ? 'Version: ${cachedVersion.name}.'
@@ -232,37 +247,33 @@ void _checkProjectVersionConstraints(
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
 void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 // Legacy link for fvm < 3.0.0
-  final legacyLink = Link(join(
+  final legacyLink = join(
     project.localVersionsCachePath,
     'flutter_sdk',
-  ));
+  );
 
   // Clean up pre 3.0 links
-  if (legacyLink.existsSync()) {
-    legacyLink.deleteSync();
+  if (legacyLink.link.existsSync()) {
+    legacyLink.link.deleteSync();
   }
 
-  final sdkVersionFile = File(join(project.localFvmPath, 'version'));
-  final releaseFile = File(join(project.localFvmPath, 'release'));
-
-  sdkVersionFile.writeAsStringSync(project.dartToolVersion ?? '');
-  releaseFile.writeAsStringSync(version.name);
-
-  final priviledgedAccess = ctx.config.priviledgedAccess ?? true;
-
-  if (!priviledgedAccess) {
-    return;
+  if (project.localFvmPath.file.existsSync()) {
+    project.localFvmPath.file.createSync(recursive: true);
   }
 
-  final localVersionsCache = Directory(project.localVersionsCachePath);
+  final sdkVersionFile = join(project.localFvmPath, 'version');
+  final releaseFile = join(project.localFvmPath, 'release');
 
-  if (localVersionsCache.existsSync()) {
-    localVersionsCache.deleteSync(recursive: true);
-  }
-  localVersionsCache.createSync(recursive: true);
+  sdkVersionFile.file.write(project.dartToolVersion ?? '');
+  releaseFile.file.write(version.name);
 
-  createLink(
-    project.localVersionSymlinkPath,
+  if (!ctx.priviledgedAccess) return;
+
+  project.localVersionsCachePath.dir
+    ..deleteIfExists()
+    ..createSync(recursive: true);
+
+  project.localVersionSymlinkPath.link.createLink(
     version.directory,
   );
 }
@@ -341,9 +352,7 @@ void _manageVscodeSettings(Project project) {
     vscodeSettingsFile.create(recursive: true);
   }
 
-  final priviledgedAccess = ctx.config.priviledgedAccess ?? true;
-
-  if (priviledgedAccess) {
+  if (ctx.priviledgedAccess) {
     final relativePath = relative(
       project.localVersionSymlinkPath,
       from: project.path,

@@ -186,3 +186,16 @@ bool isValidGitUrl(String url) {
     return false;
   }
 }
+
+bool? stringToBool(String value) {
+  final lowerCase = value.toLowerCase();
+  if (lowerCase == 'true') {
+    return true;
+  }
+
+  if (lowerCase == 'false') {
+    return false;
+  }
+
+  return null;
+}

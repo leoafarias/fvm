@@ -258,7 +258,7 @@ class AppConfig extends Config {
   void save(String path) {
     final jsonContents = prettyJson(toMap());
 
-    path.write(jsonContents);
+    path.file.write(jsonContents);
   }
 }
 
@@ -408,6 +408,6 @@ class ProjectConfig extends Config {
   void save(String path) {
     final jsonContents = prettyJson(toMap());
 
-    path.write(jsonContents);
+    path.file.write(jsonContents);
   }
 }

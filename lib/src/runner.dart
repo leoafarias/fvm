@@ -95,7 +95,7 @@ class FvmCommandRunner extends CommandRunner<int> {
       _printTrace(stackTrace);
 
       return ExitCode.unavailable.code;
-    } on FileSystemException catch (err) {
+    } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
         logger
           ..spacer
@@ -114,6 +114,8 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..err(err.message)
         ..spacer
         ..err('Path: ${err.path}');
+
+      _printTrace(stackTrace);
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {

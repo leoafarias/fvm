@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/io_utils.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as path;
 
@@ -47,7 +47,7 @@ class CacheService extends ContextService {
     final cacheVersions = <CacheFlutterVersion>[];
 
     for (var version in versions) {
-      if (isDirectory(version.path)) {
+      if (version.path.isDir()) {
         final name = path.basename(version.path);
         final cacheVersion = getVersion(FlutterVersion.parse(name));
 

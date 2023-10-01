@@ -122,6 +122,9 @@ class FVMContext {
   /// Flutter SDK Path
   bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
 
+  /// Priviledged access
+  bool get priviledgedAccess => config.priviledgedAccess ?? true;
+
   /// Where Default Flutter SDK is stored
   String get globalCacheLink => join(fvmDir, 'default');
 

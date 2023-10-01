@@ -5,7 +5,7 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/base_service.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/io_utils.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:path/path.dart' as path;
 
 class GlobalVersionService extends ContextService {
@@ -16,7 +16,7 @@ class GlobalVersionService extends ContextService {
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
-    createLink(context.globalCacheLink, version.directory);
+    context.globalCacheLink.link.createLink(version.directory);
   }
 
   Link get _globalCacheLink => Link(context.globalCacheLink);
