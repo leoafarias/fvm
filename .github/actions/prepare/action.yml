@@ -17,14 +17,6 @@ runs:
       with:
         sdk: ${{ inputs.sdk-version }} 
 
-    - name: Cache Dart dependencies
-      uses: actions/cache@v3
-      with:
-        path: "~/.pub-cache"
-        key: ${{ runner.os }}-dart-${{ hashFiles('**/pubspec.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-dart-
-
     - name: Get dependencies
       run: dart pub get
       shell: bash
