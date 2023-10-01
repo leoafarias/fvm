@@ -7,6 +7,7 @@ import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/which.dart';
 import 'package:mason_logger/mason_logger.dart';
+import 'package:tint/tint.dart';
 
 import '../services/cache_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -84,19 +85,17 @@ class GlobalCommand extends BaseCommand {
       logger
         ..info('')
         ..notice('However your configured "flutter" path is incorrect')
-        ..spacer
         ..info(
-          'CURRENT: ${flutterInPath ?? 'No version is configured on path.'}',
+          'CURRENT: ${flutterInPath ?? 'No version is configured on path.'}'
+              .brightRed(),
         )
-        ..spacer
-        ..info('to use global Flutter SDK through FVM you should change it to:')
-        ..spacer
-        ..info('NEW: ${ctx.globalCacheBinPath}')
-        ..spacer
-        ..info(
-          'You should also configure it in FLUTTER_ROOT environment variable, as some IDEs use it.',
-        );
+        ..info('CHANGE TO: ${ctx.globalCacheBinPath}'.green())
+        ..spacer;
     }
+
+    logger.info(
+      'Your IDE might override the PATH to the Flutter in their terminal to the one configured within the project.',
+    );
     return ExitCode.success.code;
   }
 }
