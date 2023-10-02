@@ -57,18 +57,15 @@ Future<void> useVersionWorkflow({
   // Checks if the project constraints are met
   _checkProjectVersionConstraints(project, version);
 
-  // Attach as main version if no flavor is set
-  final flavors = <String, String>{
-    if (flavor != null) flavor: version.name,
-  };
-
   final updatedProject = ProjectService.fromContext.update(
     project,
-    flavors: flavors,
+    flavors: {
+      if (flavor != null) flavor: version.name,
+    },
     flutterSdkVersion: version.name,
   );
 
-  _checkGitignore(updatedProject);
+  await _checkGitignore(updatedProject);
 
   await resolveDependenciesWorkflow(
     updatedProject,
@@ -119,8 +116,15 @@ Future<void> useVersionWorkflow({
 /// The method prompts the user for confirmation before actually adding the path,
 /// unless running in a test environment.
 Future<void> _checkGitignore(Project project) async {
+  logger.detail('Checking .gitignore');
+
   final updateGitIgnore = project.config?.updateGitIgnore ?? true;
+
+  logger.detail('Update gitignore: $updateGitIgnore');
   if (!await GitDir.isGitDir(project.path)) {
+    logger.detail(
+      'Project is not a git repository.',
+    );
     return;
   }
 
@@ -142,6 +146,9 @@ Future<void> _checkGitignore(Project project) async {
   List<String> lines = ignoreFile.readAsLinesSync();
 
   if (lines.any((line) => line.trim() == pathToAdd)) {
+    logger.detail(
+      '$pathToAdd already exists in .gitignore',
+    );
     return;
   }
 

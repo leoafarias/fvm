@@ -64,14 +64,15 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       );
     }
 
-    final shouldInstallConfirmed = shouldInstall ||
-        logger.confirm(
-          'Would you like to install it now?',
-          defaultValue: true,
-        );
+    if (shouldInstall) {
+      final shouldInstallConfirmed = logger.confirm(
+        'Would you like to install it now?',
+        defaultValue: true,
+      );
 
-    if (!shouldInstallConfirmed) {
-      exit(ExitCode.success.code);
+      if (!shouldInstallConfirmed) {
+        exit(ExitCode.success.code);
+      }
     }
 
     if (ctx.gitCache) {

@@ -39,12 +39,7 @@ class FVMContext {
     final envConfig = ConfigRepository.loadEnv();
     var appConfig = ConfigRepository.loadFile();
 
-    appConfig = appConfig.copyWith(
-      cachePath: envConfig.cachePath ?? projectConfig?.cachePath,
-      useGitCache: envConfig.useGitCache ?? projectConfig?.useGitCache,
-      gitCachePath: envConfig.gitCachePath ?? projectConfig?.gitCachePath,
-      flutterUrl: envConfig.flutterUrl ?? projectConfig?.flutterUrl,
-    );
+    appConfig = appConfig.mergeConfig(envConfig).mergeConfig(projectConfig);
 
     // Merge config from file with env config
     final config = appConfig.merge(configOverrides);

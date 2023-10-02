@@ -255,6 +255,16 @@ class AppConfig extends Config {
     );
   }
 
+  AppConfig mergeConfig(Config? config) {
+    return copyWith(
+      cachePath: config?.cachePath,
+      useGitCache: config?.useGitCache,
+      gitCachePath: config?.gitCachePath,
+      flutterUrl: config?.flutterUrl,
+      priviledgedAccess: config?.priviledgedAccess,
+    );
+  }
+
   void save(String path) {
     final jsonContents = prettyJson(toMap());
 
