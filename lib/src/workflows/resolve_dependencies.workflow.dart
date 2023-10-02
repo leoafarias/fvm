@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 Future<void> resolveDependenciesWorkflow(
   Project project,
@@ -24,26 +27,31 @@ Future<void> resolveDependenciesWorkflow(
 
   final progress = logger.progress('Resolving dependencies...');
 
-  final pubGetResults = await version.run('pub get');
+  // Try to resolve offline
+  ProcessResult pubGetResults = await version.run('pub get --offline');
 
-  if (pubGetResults.exitCode != 0) {
-    progress.fail('Could not resolve dependencies.');
-    logger
-      ..spacer
-      ..err(pubGetResults.stderr.toString());
+  if (pubGetResults.exitCode != ExitCode.success.code) {
+    pubGetResults = await version.run('pub get');
 
-    logger.info(
-      'The error could indicate incompatible dependencies to the SDK.',
-    );
+    if (pubGetResults.exitCode != ExitCode.success.code) {
+      progress.fail('Could not resolve dependencies.');
+      logger
+        ..spacer
+        ..err(pubGetResults.stderr.toString());
 
-    final confirmation = logger.confirm(
-      'Would you like to continue pinning this version anyway?',
-    );
+      logger.info(
+        'The error could indicate incompatible dependencies to the SDK.',
+      );
 
-    if (!confirmation) {
-      throw AppException('Dependencies not resolved.');
+      final confirmation = logger.confirm(
+        'Would you like to continue pinning this version anyway?',
+      );
+
+      if (!confirmation) {
+        throw AppException('Dependencies not resolved.');
+      }
+      return;
     }
-    return;
   }
 
   progress.complete('Dependencies resolved.');
