@@ -12,4 +12,8 @@ Future<void> setupFlutterWorkflow(
     '--version',
     echoOutput: true,
   );
+
+  logger
+    ..spacer
+    ..success('Flutter SDK: ${version.printFriendlyName} is setup');
 }
