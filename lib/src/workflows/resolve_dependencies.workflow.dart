@@ -32,7 +32,9 @@ Future<void> resolveDependenciesWorkflow(
 
   if (pubGetResults.exitCode != ExitCode.success.code) {
     logger.detail('Could not resolve dependencies using offline mode.');
-    logger.detail('Trying to resolve dependencies online...');
+
+    progress.update('Trying to resolve dependencies...');
+
     pubGetResults = await version.run('pub get');
 
     if (pubGetResults.exitCode != ExitCode.success.code) {
