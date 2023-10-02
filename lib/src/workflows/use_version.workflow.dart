@@ -255,7 +255,7 @@ void _checkProjectVersionConstraints(
 void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 // Legacy link for fvm < 3.0.0
   final legacyLink = join(
-    project.localVersionsCachePath,
+    project.localFvmPath,
     'flutter_sdk',
   );
 
