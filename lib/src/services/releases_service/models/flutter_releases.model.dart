@@ -99,7 +99,7 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
       final channelName = current.key;
       final releaseHash = current.value;
       if (releaseHash == release['hash'] && channelName == release['channel']) {
-      release['active_channel'] = true;
+        release['active_channel'] = true;
       }
     }
 
