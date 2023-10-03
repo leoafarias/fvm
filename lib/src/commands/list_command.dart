@@ -55,7 +55,7 @@ class ListCommand extends BaseCommand {
       var printVersion = version.name;
       Release? latestRelease;
 
-      if (version.isChannel) {
+      if (version.isChannel && !version.isMaster) {
         latestRelease = releases.getLatestChannelRelease(version.name);
       }
 
