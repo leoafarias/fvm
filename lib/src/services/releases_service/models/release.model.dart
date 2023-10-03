@@ -101,7 +101,7 @@ class Channels {
     if (channelName == 'beta') return beta;
     if (channelName == 'dev') return dev;
     if (channelName == 'stable') return stable;
-    throw Exception('Not a valid channle $channelName');
+    throw Exception('Not a valid channel $channelName');
   }
 
   /// Return a map of values from the Channels model
