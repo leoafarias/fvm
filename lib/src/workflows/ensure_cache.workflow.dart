@@ -62,16 +62,15 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       logger.info(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
       );
-    }
 
-    final shouldInstallConfirmed = shouldInstall ||
-        logger.confirm(
-          'Would you like to install it now?',
-          defaultValue: true,
-        );
+      final shouldInstallConfirmed = logger.confirm(
+        'Would you like to install it now?',
+        defaultValue: true,
+      );
 
-    if (!shouldInstallConfirmed) {
-      exit(ExitCode.success.code);
+      if (!shouldInstallConfirmed) {
+        exit(ExitCode.success.code);
+      }
     }
 
     if (ctx.gitCache) {

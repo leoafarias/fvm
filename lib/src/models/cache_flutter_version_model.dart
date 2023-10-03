@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/utils/commands.dart';
 import 'package:fvm/src/utils/compare_semver.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:path/path.dart';
 
@@ -52,21 +54,30 @@ class CacheFlutterVersion extends FlutterVersion {
 
   /// Gets Flutter SDK version from CacheVersion sync
   String? get flutterSdkVersion {
-    final versionFile = File(join(directory, 'version'));
-    return versionFile.existsSync()
-        ? versionFile.readAsStringSync().trim()
-        : null;
+    final versionFile = join(directory, 'version');
+    return versionFile.file.read()?.trim();
   }
 
   String? get dartSdkVersion {
-    final versionFile = File(join(_dartSdkCache, 'version'));
-    return versionFile.existsSync()
-        ? versionFile.readAsStringSync().trim()
-        : null;
+    final versionFile = join(_dartSdkCache, 'version');
+    return versionFile.file.read()?.trim();
   }
 
   /// Verifies that cacheVersion has been setup
   bool get notSetup => flutterSdkVersion == null;
+
+  Future<ProcessResult> run(
+    String command, {
+    bool echoOutput = false,
+    bool? throwOnError,
+  }) async {
+    return runFlutter(
+      command.split(' '),
+      version: this,
+      echoOutput: echoOutput,
+      throwOnError: throwOnError,
+    );
+  }
 
   @override
   String toString() {

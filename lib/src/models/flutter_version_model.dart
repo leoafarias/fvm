@@ -112,7 +112,7 @@ class FlutterVersion {
   String get printFriendlyName {
     // Uppercase
 
-    if (isChannel) return 'Channel : ${name.capitalize}';
+    if (isChannel) return 'Channel: ${name.capitalize}';
 
     if (isCommit) return 'Commit : $name';
 

@@ -48,12 +48,6 @@ class UseCommand extends BaseCommand {
         'skip-setup',
         help: 'Skips Flutter setup after install',
         negatable: false,
-      )
-      ..addFlag(
-        'unprivileged',
-        abbr: 'u',
-        help: 'Runs use workflow without the need for elevated privileges',
-        negatable: false,
       );
   }
   @override
@@ -62,7 +56,6 @@ class UseCommand extends BaseCommand {
     final pinOption = boolArg('pin');
     final flavorOption = stringArg('flavor');
     final skipSetup = boolArg('skip-setup');
-    final unprivileged = boolArg('unprivileged');
 
     String? version;
 
@@ -126,7 +119,6 @@ class UseCommand extends BaseCommand {
       force: forceOption,
       flavor: flavorOption,
       skipSetup: skipSetup,
-      unprivileged: unprivileged,
     );
 
     return ExitCode.success.code;

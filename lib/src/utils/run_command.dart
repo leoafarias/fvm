@@ -17,9 +17,9 @@ Future<ProcessResult> runCommand(
     ..detail('')
     ..detail('Running: $command')
     ..detail('');
-
+  ProcessResult processResult;
   if (!echoOutput || ctx.isTest) {
-    final processResult = await Process.run(
+    processResult = await Process.run(
       command,
       args,
       environment: environment,
@@ -31,24 +31,23 @@ Future<ProcessResult> runCommand(
       _throwIfProcessFailed(processResult, command, args);
     }
     return processResult;
+  } else {
+    final process = await Process.start(
+      command,
+      args,
+      environment: environment,
+      runInShell: true,
+      workingDirectory: workingDirectory,
+      mode: ProcessStartMode.inheritStdio,
+    );
+
+    processResult = ProcessResult(
+      process.pid,
+      await process.exitCode,
+      null,
+      null,
+    );
   }
-
-  final process = await Process.start(
-    command,
-    args,
-    environment: environment,
-    runInShell: true,
-    workingDirectory: workingDirectory,
-    mode: ProcessStartMode.inheritStdio,
-  );
-
-  final processResult = ProcessResult(
-    process.pid,
-    await process.exitCode,
-    null,
-    null,
-  );
-
   if (throwOnError) {
     _throwIfProcessFailed(processResult, command, args);
   }
@@ -62,8 +61,8 @@ void _throwIfProcessFailed(
 ) {
   if (pr.exitCode != 0) {
     final values = {
-      if (pr.stdout != null) 'Standard out': pr.stdout.toString().trim(),
-      if (pr.stderr != null) 'Standard error': pr.stderr.toString().trim(),
+      if (pr.stdout != null) 'stdout': pr.stdout.toString().trim(),
+      if (pr.stderr != null) 'stderr': pr.stderr.toString().trim(),
     }..removeWhere((k, v) => v.isEmpty);
 
     String message;
@@ -72,7 +71,11 @@ void _throwIfProcessFailed(
     } else if (values.length == 1) {
       message = values.values.single;
     } else {
-      message = values.entries.map((e) => '${e.key}\n${e.value}').join('\n');
+      if (values['stderr'] != null) {
+        message = values['stderr']!;
+      } else {
+        message = values['stdout']!;
+      }
     }
 
     throw ProcessException(process, args, message, pr.exitCode);

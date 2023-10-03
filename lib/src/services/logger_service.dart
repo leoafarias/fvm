@@ -81,7 +81,7 @@ class LoggerService extends ContextService {
   void notice(String message) {
     // Add 2 due to the warning icon.
 
-    final label = '${Icons.warning} $message'.yellow();
+    final label = '${Icons.warning} $message'.brightYellow();
 
     final table = Table()
       ..insertRow([label])
@@ -112,6 +112,9 @@ class LoggerService extends ContextService {
     );
   }
 }
+
+final dot = '\u{25CF}'; // ●
+final rightArrow = '\u{2192}'; // →
 
 /// Logger for FVM
 /// Console controller instance

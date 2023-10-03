@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/constants.dart';
+import 'package:fvm/src/utils/helpers.dart';
 
 import '../../fvm.dart';
 
@@ -47,6 +48,7 @@ class ConfigRepository {
     String? gitCachePath;
     String? flutterUrl;
     String? cachePath;
+    bool? priviledgedAccess;
 
     for (final variable in ConfigKeys.values) {
       final value = environments[variable.envKey];
@@ -60,7 +62,7 @@ class ConfigRepository {
       if (value == null) continue;
 
       if (variable == ConfigKeys.useGitCache) {
-        gitCache = value == 'true';
+        gitCache = stringToBool(value);
         break;
       }
 
@@ -73,6 +75,11 @@ class ConfigRepository {
         flutterUrl = value;
         break;
       }
+
+      if (variable == ConfigKeys.priviledgedAccess) {
+        priviledgedAccess = stringToBool(value);
+        break;
+      }
     }
 
     return Config(
@@ -80,6 +87,7 @@ class ConfigRepository {
       useGitCache: gitCache,
       gitCachePath: gitCachePath,
       flutterUrl: flutterUrl,
+      priviledgedAccess: priviledgedAccess,
     );
   }
 }

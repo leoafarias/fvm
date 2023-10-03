@@ -1,50 +1,67 @@
+import 'dart:io';
+
+import 'package:fvm/exceptions.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-
-Future<void> setupFlutterWorkflow(
-  CacheFlutterVersion version,
-) async {
-  // Skip if its test
-
-  logger
-    ..info('Setting up Flutter SDK: ${version.name}')
-    ..spacer;
-
-  await FlutterService.fromContext.runSetup(version);
-}
+import 'package:mason_logger/mason_logger.dart';
 
 Future<void> resolveDependenciesWorkflow(
   Project project,
   CacheFlutterVersion version,
 ) async {
   if (version.notSetup) return;
+
   if (project.dartToolVersion == version.flutterSdkVersion) {
+    return;
+  }
+
+  final runPubGetOnSdkChanges = project.config?.runPubGetOnSdkChanges ?? true;
+
+  if (!runPubGetOnSdkChanges) {
+    logger
+      ..info('Skipping "pub get" because of config setting.')
+      ..spacer;
     return;
   }
 
   final progress = logger.progress('Resolving dependencies...');
 
-  try {
-    await FlutterService.fromContext.runPubGet(version);
+  // Try to resolve offline
+  ProcessResult pubGetResults = await version.run('pub get --offline');
 
-    progress.complete('Dependencies resolved.');
+  if (pubGetResults.exitCode != ExitCode.success.code) {
+    logger.detail('Could not resolve dependencies using offline mode.');
 
-    // Skip resolve if in vscode
-  } on Exception catch (err) {
-    if (project.dartToolVersion == version.flutterSdkVersion) {
-      progress.complete('Dependencies resolved, with errors.');
+    progress.update('Trying to resolve dependencies...');
 
+    pubGetResults = await version.run('pub get');
+
+    if (pubGetResults.exitCode != ExitCode.success.code) {
+      progress.fail('Could not resolve dependencies.');
       logger
         ..spacer
-        ..warn(err.toString());
+        ..err(pubGetResults.stderr.toString());
 
+      logger.info(
+        'The error could indicate incompatible dependencies to the SDK.',
+      );
+
+      final confirmation = logger.confirm(
+        'Would you like to continue pinning this version anyway?',
+      );
+
+      if (!confirmation) {
+        throw AppException('Dependencies not resolved.');
+      }
       return;
-    } else {
-      progress.fail('Could not resolve dependencies.');
-      rethrow;
     }
+  }
+
+  progress.complete('Dependencies resolved.');
+
+  if (pubGetResults.stdout != null) {
+    logger.detail(pubGetResults.stdout);
   }
 }
 

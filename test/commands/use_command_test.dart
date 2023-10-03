@@ -1,9 +1,7 @@
-@Timeout(Duration(minutes: 5))
-import 'dart:io';
-
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/extensions.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +22,7 @@ void main() {
             );
 
             final project = ProjectService.fromContext.findAncestor();
-            final link = Link(project.localVersionSymlinkPath);
+            final link = project.localVersionSymlinkPath.link;
             final linkExists = link.existsSync();
 
             final targetPath = link.targetSync();
