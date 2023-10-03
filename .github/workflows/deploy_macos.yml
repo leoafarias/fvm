@@ -1,9 +1,7 @@
 name: Deploy Macos
 
 on:
-    workflow_call:
     workflow_dispatch:
-
 
 jobs:
     deploy-macos:
@@ -37,6 +35,5 @@ jobs:
           - name: Prepare environment
             uses: ./.github/actions/prepare
 
-          - name: Deploy to Homebrew
-            run: dart run grinder pkg-homebrew-update
+
             

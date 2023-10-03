@@ -6,7 +6,12 @@ on:
     tags:
       - "v*"
 
+env:
+  PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
+  
   test:
     name: Test
     uses: ./.github/workflows/test.yml
@@ -15,9 +20,6 @@ jobs:
     name: Release
     needs: test
     runs-on: ubuntu-latest
-    env:
-      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,14 +37,59 @@ jobs:
         run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
-    name: Deploy (Windows)
-    needs: release
-    uses: ./.github/workflows/deploy_windows.yml
+        name: Deploy (Windows)
+        runs-on: windows-latest
+        needs: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+    
+          - name: Prepare environment
+            uses: ./.github/actions/prepare
+    
+          - name: Deploy Github Windows
+            run: dart run grinder pkg-github-windows
+    
+          - name: Deploy Chocolatey (Windows)
+            run: dart run grinder pkg-chocolatey-deploy
 
   deploy-macos:
-    name: Deploy (Mac)
-    needs: release
-    uses: ./.github/workflows/deploy_macos.yml
+      name: Deploy (Macos)
+      runs-on: macos-latest
+      needs: release
+      env:
+          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+
+      - name: Deploy Github Mac
+        run: dart run grinder pkg-github-macos
+
+  update-homebrew:
+          name: Update Homebrew
+          runs-on: macos-latest
+          needs: deploy-macos
+          env:
+              PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+              GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+          steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+    
+            - name: Prepare environment
+              uses: ./.github/actions/prepare
+  
+
+          
+
 
   # deploy-docker:
   #   name: Docker Deploy (latest)
