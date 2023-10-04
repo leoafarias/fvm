@@ -4,12 +4,20 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import '../../exceptions.dart';
 import '../services/logger_service.dart';
 
-Table createTable() {
-  return Table()
+Table createTable([List<String> columns = const []]) {
+  final table = Table()
     ..borderColor = ConsoleColor.white
     ..borderType = BorderType.grid
     ..borderStyle = BorderStyle.square
     ..headerStyle = FontStyle.bold;
+
+  for (final column in columns) {
+    table.insertColumn(
+      header: column,
+      alignment: TextAlignment.left,
+    );
+  }
+  return table;
 }
 
 /// Allows to select from cached sdks.

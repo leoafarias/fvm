@@ -47,9 +47,7 @@ class DoctorCommand extends BaseCommand {
   void printFVMDetails(FVMContext context) {}
   void _printProject(Project project) {
     logger.info('Project:');
-    final table = createTable()
-      ..insertColumn(header: 'Project', alignment: TextAlignment.left)
-      ..insertColumn(header: project.name, alignment: TextAlignment.left);
+    final table = createTable(['Project', project.name]);
 
     table.insertRows([
       ['Directory', project.path],
@@ -85,9 +83,7 @@ class DoctorCommand extends BaseCommand {
     logger
       ..spacer
       ..info('IDEs:');
-    final table = createTable()
-      ..insertColumn(header: 'IDEs', alignment: TextAlignment.left)
-      ..insertColumn(header: '', alignment: TextAlignment.left);
+    final table = createTable(['IDEs', 'Value']);
 
     table.insertRow([kVsCode]);
     // Check for .vscode directory
@@ -152,22 +148,39 @@ class DoctorCommand extends BaseCommand {
     logger.write(table.toString());
   }
 
-  void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
+  void _printEnvironmentDetails(
+    String? flutterWhich,
+    String? dartWhich,
+  ) {
     logger
       ..spacer
       ..info('Environment:');
-    final table = createTable()
-      ..insertColumn(
-          header: 'Environment Detail', alignment: TextAlignment.left)
-      ..insertColumn(header: 'Path/Value', alignment: TextAlignment.left);
+
+    var table = createTable(
+      ['Environment Variables', 'Value'],
+    );
 
     table.insertRows([
-      ['Flutter Path', flutterWhich ?? 'Not found'],
-      ['Dart Path', dartWhich ?? 'Not found'],
-      [
-        ConfigKeys.cachePath.envKey,
-        ctx.environment[ConfigKeys.cachePath.envKey] ?? 'Not set'
-      ],
+      ['Flutter PATH', flutterWhich ?? 'Not found'],
+      ['Dart PATH', dartWhich ?? 'Not found'],
+    ]);
+
+    for (var key in ConfigKeys.values) {
+      table.insertRow([key.envKey, ctx.environment[key.envKey] ?? 'N/A']);
+    }
+
+    table.insertRows([
+      ['Flutter PATH', flutterWhich ?? 'Not found'],
+      ['Dart PATH', dartWhich ?? 'Not found'],
+    ]);
+
+    logger.write(table.toString());
+
+    table = createTable(
+      ['Platform', 'Value'],
+    );
+
+    table.insertRows([
       ['OS', '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'],
       ['Dart Locale', Platform.localeName],
       ['Dart runtime', Platform.version],
