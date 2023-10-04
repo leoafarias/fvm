@@ -1,10 +1,11 @@
+import 'package:fvm/constants.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/global_version_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/console_utils.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/utils/which.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
@@ -46,19 +47,18 @@ class GlobalCommand extends BaseCommand {
     // Sets version as the global
     GlobalVersionService.fromContext.setGlobal(cacheVersion);
 
-    final flutterInPath = which('flutter');
+    final flutterInPath = which('flutter', binDir: true);
 
     // Get pinned version, for comparison on terminal
-    final pinnedVersion = ProjectService.fromContext.findVersion();
+    final project = ProjectService.fromContext.findAncestor();
+
+    final pinnedVersion = project.pinnedVersion;
 
     CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      final flutterPinnedVersion = FlutterVersion.parse(pinnedVersion);
-      pinnedCacheVersion = CacheService.fromContext.getVersion(
-        flutterPinnedVersion,
-      );
+      pinnedCacheVersion = CacheService.fromContext.getVersion(pinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;
@@ -93,9 +93,13 @@ class GlobalCommand extends BaseCommand {
         ..spacer;
     }
 
-    logger.info(
-      'Your IDE might override the PATH to the Flutter in their terminal to the one configured within the project.',
-    );
+    if (isVsCode()) {
+      logger
+        ..notice(
+          '$kVsCode might override the PATH to the Flutter in their terminal',
+        )
+        ..info('Run the command outside of the IDE to verify.');
+    }
     return ExitCode.success.code;
   }
 }
