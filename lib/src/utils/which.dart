@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-String? which(String command) {
+String? which(
+  String command, {
+  bool binDir = false,
+}) {
   String? pathEnv = Platform.environment['PATH'];
   String? pathExtEnv =
       Platform.isWindows ? Platform.environment['PATHEXT'] : null;
@@ -20,7 +23,8 @@ String? which(String command) {
     File exec = File(fullPath);
 
     if (exec.existsSync()) {
-      return exec.absolute.path;
+      final exectPath = exec.absolute.path;
+      return binDir ? dirname(exectPath) : exectPath;
     }
 
     if (Platform.isWindows && pathExtEnv != null) {
@@ -28,7 +32,8 @@ String? which(String command) {
         String winPath = '$fullPath$ext';
         exec = File(winPath);
         if (exec.existsSync()) {
-          return exec.absolute.path;
+          final exectPath = exec.absolute.path;
+          return binDir ? dirname(exectPath) : exectPath;
         }
       }
     }
