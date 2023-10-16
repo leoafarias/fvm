@@ -73,21 +73,8 @@ jobs:
       - name: Deploy Github Mac
         run: dart run grinder pkg-github-macos
 
-  update-homebrew:
-          name: Update Homebrew
-          runs-on: macos-latest
-          needs: deploy-macos
-          env:
-              PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-              GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-          steps:
-            - name: Checkout
-              uses: actions/checkout@v4
-    
-            - name: Prepare environment
-              uses: ./.github/actions/prepare
-  
-
+      - name: Deploy Homebrew
+        run: dart run grinder pkg-homebrew-update
           
 
 
