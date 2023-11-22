@@ -76,6 +76,10 @@ Future<void> useVersionWorkflow({
     updatedProject,
     version,
   );
+  _updateCurrentSdkReference(
+    updatedProject,
+    version
+  );
 
   _manageVscodeSettings(updatedProject);
 
@@ -253,17 +257,6 @@ void _checkProjectVersionConstraints(
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
 void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
-// Legacy link for fvm < 3.0.0
-  final legacyLink = join(
-    project.localFvmPath,
-    'flutter_sdk',
-  );
-
-  // Clean up pre 3.0 links
-  if (legacyLink.link.existsSync()) {
-    legacyLink.link.deleteSync();
-  }
-
   if (project.localFvmPath.file.existsSync()) {
     project.localFvmPath.file.createSync(recursive: true);
   }
@@ -285,12 +278,33 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
   );
 }
 
+/// Updates the `flutter_sdk` link to ensure it always points to the pinned SDK version.
+///
+/// This is required for Android Studio to work with different Flutter SDK versions.
+///
+/// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
+void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
+  final currentSdkLink = join(
+    project.localFvmPath,
+    'flutter_sdk',
+  );
+
+  if (currentSdkLink.link.existsSync()) {
+    currentSdkLink.link.deleteSync();
+  }
+
+  if (!ctx.priviledgedAccess) return;
+
+  currentSdkLink.link.createLink(
+    version.directory,
+  );
+}
+
 /// Updates VS Code configuration for the project
 ///
 /// This method updates the VS Code configuration for the provided [project].
 /// It sets the correct exclude settings in the VS Code settings file to exclude
-/// the .fvm/versions directory from search and file watchers.
-///
+/// the .fvm/versions directory from search and file watchers.///
 /// The method also updates the "dart.flutterSdkPath" setting to use the relative
 /// path of the .fvm symlink.
 void _manageVscodeSettings(Project project) {
