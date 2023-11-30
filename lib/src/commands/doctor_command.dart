@@ -122,7 +122,7 @@ class DoctorCommand extends BaseCommand {
       table.insertRow([kVsCode, 'No .vscode directory found']);
     }
 
-    table.insertRow([kAndroidStudio]);
+    table.insertRow([kIntelliJ]);
 
     // Get localproperties file within flutter project
     final localPropertiesFile =
@@ -140,7 +140,7 @@ class DoctorCommand extends BaseCommand {
       table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);
     } else {
       table.insertRow([
-        kAndroidStudio,
+        kIntelliJ,
         'No local.properties file found in android directory'
       ]);
     }
@@ -157,7 +157,7 @@ class DoctorCommand extends BaseCommand {
         if (containsSymLinkName) {
           table.insertRow([
             'SDK Path',
-            'SDK Path points to project directory. Android Studio will dynamically switch SDK when using "fvm use"'
+            'SDK Path points to project directory. $kIntelliJ will dynamically switch SDK when using "fvm use"'
           ]);
         }
         else {
@@ -169,12 +169,12 @@ class DoctorCommand extends BaseCommand {
       } else {
         table.insertRow([
           'SDK Path',
-          'SDK Path does not point to the project directory. "fvm use" will not make Android Studio switch Flutter version. Please consult documentation.'
+          'SDK Path does not point to the project directory. "fvm use" will not make $kIntelliJ switch Flutter version. Please consult documentation.'
         ]);
       }
     } else {
       table.insertRow([
-        kAndroidStudio,
+        kIntelliJ,
         'No .idea folder found'
       ]);
     }

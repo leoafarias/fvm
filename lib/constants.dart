@@ -23,8 +23,8 @@ const kFvmLegacyConfigFileName = 'fvm_config.json';
 /// Vscode name
 const kVsCode = 'VSCode';
 
-/// Android Studio name
-const kAndroidStudio = 'Android Studio';
+/// IntelliJ name
+const kIntelliJ = 'IntelliJ (Android Studio, ...)';
 
 /// Environment variables
 final _env = Platform.environment;
