@@ -122,7 +122,7 @@ class DoctorCommand extends BaseCommand {
       table.insertRow([kVsCode, 'No .vscode directory found']);
     }
 
-    table.insertRow(['Android Studio']);
+    table.insertRow([kAndroidStudio]);
 
     // Get localproperties file within flutter project
     final localPropertiesFile =
@@ -140,8 +140,42 @@ class DoctorCommand extends BaseCommand {
       table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);
     } else {
       table.insertRow([
-        'Android Studio',
+        kAndroidStudio,
         'No local.properties file found in android directory'
+      ]);
+    }
+
+    final dartSdkFile = File(join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
+
+    if (dartSdkFile.existsSync()) {
+      final dartSdk = dartSdkFile.readAsStringSync();
+      final containsUserHome = dartSdk.contains(r'$USER_HOME$');
+      final containsProjectDir = dartSdk.contains(r'$PROJECT_DIR$');
+      final containsSymLinkName = dartSdk.contains('.fvm/flutter_sdk');
+
+      if (!containsUserHome && containsProjectDir) {
+        if (containsSymLinkName) {
+          table.insertRow([
+            'SDK Path',
+            'SDK Path points to project directory. Android Studio will dynamically switch SDK when using "fvm use"'
+          ]);
+        }
+        else {
+          table.insertRow([
+            'SDK Path',
+            'SDK Path points to project directory, but does not use the flutter_sdk symlink. Using "fvm use" will break the project. Please consult documentation.'
+          ]);
+        }
+      } else {
+        table.insertRow([
+          'SDK Path',
+          'SDK Path does not point to the project directory. "fvm use" will not make Android Studio switch Flutter version. Please consult documentation.'
+        ]);
+      }
+    } else {
+      table.insertRow([
+        kAndroidStudio,
+        'No .idea folder found'
       ]);
     }
 
