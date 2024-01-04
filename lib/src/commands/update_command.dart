@@ -8,24 +8,17 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 class UpdateCommand extends Command<int> {
-  UpdateCommand({
-    PubUpdater? pubUpdater,
-  }) : _pubUpdater = pubUpdater ?? PubUpdater();
+  static const String commandName = 'update';
 
   final PubUpdater _pubUpdater;
 
-  @override
-  String get description => 'Update the CLI.';
-
-  static const String commandName = 'update';
-
-  @override
-  String get name => commandName;
+  UpdateCommand({PubUpdater? pubUpdater})
+      : _pubUpdater = pubUpdater ?? PubUpdater();
 
   @override
   Future<int> run() async {
     final updateCheckProgress = logger.progress('Checking for updates');
-    late final String latestVersion;
+    final String latestVersion;
     try {
       latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
     } catch (error) {
@@ -65,4 +58,10 @@ class UpdateCommand extends Command<int> {
 
     return ExitCode.success.code;
   }
+
+  @override
+  String get description => 'Update the CLI.';
+
+  @override
+  String get name => commandName;
 }

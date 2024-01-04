@@ -5,3 +5,30 @@ analyzer:
     unused_local_variable: error
     dead_code: error
     avoid_void_async: error
+linter:
+  rules:
+    public_member_api_docs: false
+    prefer_relative_imports: true
+dart_code_metrics:
+  extends:
+    - package:dart_code_metrics_presets/recommended.yaml
+  metrics-exclude:
+    - test/**
+  rules-exclude:
+    - "test/**"
+  rules:
+    member-ordering:
+        order:
+          - public-fields
+          - private-fields
+          - constructors
+          - static-methods
+          - private-methods
+          - private-getters
+          - private-setters
+          - public-getters
+          - public-setters
+          - public-methods
+          - overridden-public-methods
+          - overridden-public-getters
+          - build-method

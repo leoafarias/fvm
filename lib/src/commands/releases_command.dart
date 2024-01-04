@@ -97,7 +97,7 @@ class ReleasesCommand extends BaseCommand {
       channelsTable.insertRow([
         release.channel.name,
         release.version,
-        friendlyDate(release.releaseDate)
+        friendlyDate(release.releaseDate),
       ]);
     }
 

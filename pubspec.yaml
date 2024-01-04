@@ -35,4 +35,5 @@ dev_dependencies:
   lints: ^2.1.1
   crypto: ^3.0.3
   http: ^1.1.0
+  dart_code_metrics_presets: ^2.7.0
 

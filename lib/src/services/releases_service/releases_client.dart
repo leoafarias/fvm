@@ -28,41 +28,36 @@ String getReleasesUrl(String platform) {
 }
 
 class FlutterReleases {
-  FlutterReleases._();
-
   static Releases? _cacheReleasesRes;
+
+  const FlutterReleases._();
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.
-  static Future<Releases> get({
-    bool cache = true,
-    String? platform,
-  }) async {
+  static Future<Releases> get({bool cache = true, String? platform}) async {
     platform ??= Platform.operatingSystem;
     final releasesUrl = getReleasesUrl(platform);
     try {
       // If has been cached return
       if (_cacheReleasesRes != null && cache) {
-        return Future.value(_cacheReleasesRes);
+        return await Future.value(_cacheReleasesRes);
       }
 
       final response = await fetch(releasesUrl);
 
       _cacheReleasesRes = Releases.fromJson(response);
-      return Future.value(_cacheReleasesRes);
+      return await Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
       logger.detail(err.toString());
       return _getFromFlutterUrl(platform);
     }
   }
 
-  static Future<Releases> _getFromFlutterUrl(
-    String platform,
-  ) async {
+  static Future<Releases> _getFromFlutterUrl(String platform) async {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
       _cacheReleasesRes = Releases.fromJson(response);
-      return Future.value(_cacheReleasesRes);
+      return await Future.value(_cacheReleasesRes);
     } on Exception {
       throw AppException(
         'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'

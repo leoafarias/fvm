@@ -19,9 +19,6 @@ class UseCommand extends BaseCommand {
   String description =
       'Sets Flutter SDK Version you would like to use in a project';
 
-  @override
-  String get invocation => 'fvm use {version}';
-
   /// Constructor
   UseCommand() {
     argParser
@@ -123,4 +120,7 @@ class UseCommand extends BaseCommand {
 
     return ExitCode.success.code;
   }
+
+  @override
+  String get invocation => 'fvm use {version}';
 }

@@ -18,10 +18,7 @@ class AppDetailedException extends AppException {
   final String info;
 
   /// Constructor
-  const AppDetailedException(
-    super.message,
-    this.info,
-  );
+  const AppDetailedException(super.message, this.info);
 
   @override
   String toString() => message;

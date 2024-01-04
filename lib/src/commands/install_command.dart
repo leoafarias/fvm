@@ -16,13 +16,6 @@ class InstallCommand extends BaseCommand {
   @override
   final description = 'Installs Flutter SDK Version';
 
-  @override
-  String get invocation => 'fvm install {version}, if no {version}'
-      ' is provided will install version configured in project.';
-
-  @override
-  List<String> get aliases => ['i'];
-
   /// Constructor
   InstallCommand() {
     argParser.addFlag(
@@ -64,4 +57,11 @@ class InstallCommand extends BaseCommand {
 
     return ExitCode.success.code;
   }
+
+  @override
+  String get invocation => 'fvm install {version}, if no {version}'
+      ' is provided will install version configured in project.';
+
+  @override
+  List<String> get aliases => ['i'];
 }

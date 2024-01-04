@@ -30,20 +30,14 @@ import 'version.g.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
+  final PubUpdater _pubUpdater;
+
   /// Constructor
-  FvmCommandRunner({
-    PubUpdater? pubUpdater,
-  })  : _pubUpdater = pubUpdater ?? PubUpdater(),
-        super(
-          kPackageName,
-          kDescription,
-        ) {
+  FvmCommandRunner({PubUpdater? pubUpdater})
+      : _pubUpdater = pubUpdater ?? PubUpdater(),
+        super(kPackageName, kDescription) {
     argParser
-      ..addFlag(
-        'verbose',
-        help: 'Print verbose output.',
-        negatable: false,
-      )
+      ..addFlag('verbose', help: 'Print verbose output.', negatable: false)
       ..addFlag(
         'version',
         abbr: 'v',
@@ -65,7 +59,48 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(GlobalCommand());
   }
 
-  final PubUpdater _pubUpdater;
+  /// Checks if the current version (set by the build runner on the
+  /// version.dart file) is the most recent one. If not, show a prompt to the
+  /// user.
+  Future<Function()?> _checkForUpdates() async {
+    try {
+      if (ctx.updateCheckDisabled) return null;
+      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
+      if (ctx.lastUpdateCheck?.isBefore(oneDayAgo) ?? false) {
+        return null;
+      }
+
+      ConfigRepository.update(lastUpdateCheck: DateTime.now());
+
+      final isUpToDate = await _pubUpdater.isUpToDate(
+        packageName: kPackageName,
+        currentVersion: packageVersion,
+      );
+
+      if (isUpToDate) return null;
+
+      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
+
+      return () {
+        final updateAvailableLabel = lightYellow.wrap('Update available!');
+        final currentVersionLabel = lightCyan.wrap(packageVersion);
+        final latestVersionLabel = lightCyan.wrap(latestVersion);
+        final updateCommandLabel = lightCyan.wrap('$executableName update');
+
+        logger
+          ..spacer
+          ..info(
+            '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
+          )
+          ..info('Run $updateCommandLabel to update')
+          ..spacer;
+      };
+    } catch (_) {
+      return () {
+        logger.detail("Failed to check for updates.");
+      };
+    }
+  }
 
   @override
   void printUsage() => logger.info(usage);
@@ -208,51 +243,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     logOutput?.call();
 
     return exitCode;
-  }
-
-  /// Checks if the current version (set by the build runner on the
-  /// version.dart file) is the most recent one. If not, show a prompt to the
-  /// user.
-  Future<Function()?> _checkForUpdates() async {
-    try {
-      if (ctx.updateCheckDisabled) return null;
-      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
-      if (ctx.lastUpdateCheck?.isBefore(oneDayAgo) ?? false) {
-        return null;
-      }
-
-      ConfigRepository.update(
-        lastUpdateCheck: DateTime.now(),
-      );
-
-      final isUpToDate = await _pubUpdater.isUpToDate(
-        packageName: kPackageName,
-        currentVersion: packageVersion,
-      );
-
-      if (isUpToDate) return null;
-
-      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
-
-      return () {
-        final updateAvailableLabel = lightYellow.wrap('Update available!');
-        final currentVersionLabel = lightCyan.wrap(packageVersion);
-        final latestVersionLabel = lightCyan.wrap(latestVersion);
-        final updateCommandLabel = lightCyan.wrap('$executableName update');
-
-        logger
-          ..spacer
-          ..info(
-            '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
-          )
-          ..info('Run $updateCommandLabel to update')
-          ..spacer;
-      };
-    } catch (_) {
-      return () {
-        logger.detail("Failed to check for updates.");
-      };
-    }
   }
 }
 

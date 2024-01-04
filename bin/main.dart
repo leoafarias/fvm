@@ -7,16 +7,10 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  final scope = Scope()
-    ..value(
-      contextKey,
-      FVMContext.create(),
-    );
+  final scope = Scope()..value(contextKey, FVMContext.create());
 
   await _flushThenExit(
-    await scope.run(
-      () => FvmCommandRunner().run((args)),
-    ),
+    await scope.run(() => FvmCommandRunner().run((args))),
   );
 }
 
@@ -28,5 +22,5 @@ Future<void> main(List<String> args) async {
 /// after you've decided to exit.
 Future<void> _flushThenExit(int status) {
   return Future.wait<void>([stdout.close(), stderr.close()])
-      .then<void>((_) => exit(status));
+      .then((_) => exit(status));
 }

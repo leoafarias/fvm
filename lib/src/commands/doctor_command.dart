@@ -23,28 +23,11 @@ class DoctorCommand extends BaseCommand {
   final description = 'Shows information about environment, '
       'and project configuration.';
 
+  final console = Console();
+
   /// Constructor
   DoctorCommand();
 
-  final console = Console();
-
-  @override
-  Future<int> run() async {
-    final project = ProjectService.fromContext.findAncestor();
-    final flutterWhich = which('flutter');
-    final dartWhich = which('dart');
-
-    console.writeLine('FVM Doctor:');
-    console.writeLine('-' * console.windowWidth);
-
-    _printProject(project);
-    _printIdeLinks(project);
-    _printEnvironmentDetails(flutterWhich, dartWhich);
-
-    return ExitCode.success.code;
-  }
-
-  void printFVMDetails(FVMContext context) {}
   void _printProject(Project project) {
     logger.info('Project:');
     final table = createTable(['Project', project.name]);
@@ -55,7 +38,7 @@ class DoctorCommand extends BaseCommand {
       ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
       [
         'Dart Tool Generator Version',
-        project.dartToolGeneratorVersion ?? 'Not available'
+        project.dartToolGeneratorVersion ?? 'Not available',
       ],
       ['Dart tool version', project.dartToolVersion ?? 'Not available'],
       ['.gitignore Present', project.gitignoreFile.existsSync() ? 'Yes' : 'No'],
@@ -64,14 +47,11 @@ class DoctorCommand extends BaseCommand {
       ['Config path', relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.localVersionsCachePath, from: project.path)
+        relative(project.localVersionsCachePath, from: project.path),
       ],
       [
         'Version symlink',
-        relative(
-          project.localVersionSymlinkPath,
-          from: project.path,
-        )
+        relative(project.localVersionSymlinkPath, from: project.path),
       ],
     ]);
 
@@ -105,12 +85,14 @@ class DoctorCommand extends BaseCommand {
 
           table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
           table.insertRow(
-              ['Matches pinned version:', sdkPath == relativeSymlinkPath]);
+            ['Matches pinned version:', sdkPath == relativeSymlinkPath],
+          );
         } on FormatException {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
             ..err(
-                'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it');
+              'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+            );
           throw AppException(
             'Could not get vscode settings, please check settings.json',
           );
@@ -141,11 +123,12 @@ class DoctorCommand extends BaseCommand {
     } else {
       table.insertRow([
         kIntelliJ,
-        'No local.properties file found in android directory'
+        'No local.properties file found in android directory',
       ]);
     }
 
-    final dartSdkFile = File(join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
+    final dartSdkFile =
+        File(join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
 
     if (dartSdkFile.existsSync()) {
       final dartSdk = dartSdkFile.readAsStringSync();
@@ -157,42 +140,36 @@ class DoctorCommand extends BaseCommand {
         if (containsSymLinkName) {
           table.insertRow([
             'SDK Path',
-            'SDK Path points to project directory. $kIntelliJ will dynamically switch SDK when using "fvm use"'
+            'SDK Path points to project directory. $kIntelliJ will dynamically switch SDK when using "fvm use"',
           ]);
-        }
-        else {
+        } else {
           table.insertRow([
             'SDK Path',
-            'SDK Path points to project directory, but does not use the flutter_sdk symlink. Using "fvm use" will break the project. Please consult documentation.'
+            'SDK Path points to project directory, but does not use the flutter_sdk symlink. Using "fvm use" will break the project. Please consult documentation.',
           ]);
         }
       } else {
         table.insertRow([
           'SDK Path',
-          'SDK Path does not point to the project directory. "fvm use" will not make $kIntelliJ switch Flutter version. Please consult documentation.'
+          'SDK Path does not point to the project directory. "fvm use" will not make $kIntelliJ switch Flutter version. Please consult documentation.',
         ]);
       }
     } else {
       table.insertRow([
         kIntelliJ,
-        'No .idea folder found'
+        'No .idea folder found',
       ]);
     }
 
     logger.write(table.toString());
   }
 
-  void _printEnvironmentDetails(
-    String? flutterWhich,
-    String? dartWhich,
-  ) {
+  void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
     logger
       ..spacer
       ..info('Environment:');
 
-    var table = createTable(
-      ['Environment Variables', 'Value'],
-    );
+    var table = createTable(['Environment Variables', 'Value']);
 
     table.insertRows([
       ['Flutter PATH', flutterWhich ?? 'Not found'],
@@ -210,9 +187,7 @@ class DoctorCommand extends BaseCommand {
 
     logger.write(table.toString());
 
-    table = createTable(
-      ['Platform', 'Value'],
-    );
+    table = createTable(['Platform', 'Value']);
 
     table.insertRows([
       ['OS', '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'],
@@ -221,5 +196,22 @@ class DoctorCommand extends BaseCommand {
     ]);
 
     logger.write(table.toString());
+  }
+
+  void printFVMDetails() {}
+  @override
+  Future<int> run() async {
+    final project = ProjectService.fromContext.findAncestor();
+    final flutterWhich = which('flutter');
+    final dartWhich = which('dart');
+
+    console.writeLine('FVM Doctor:');
+    console.writeLine('-' * console.windowWidth);
+
+    _printProject(project);
+    _printIdeLinks(project);
+    _printEnvironmentDetails(flutterWhich, dartWhich);
+
+    return ExitCode.success.code;
   }
 }

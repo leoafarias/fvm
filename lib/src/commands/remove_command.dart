@@ -12,6 +12,12 @@ import 'base_command.dart';
 
 /// Removes Flutter SDK
 class RemoveCommand extends BaseCommand {
+  @override
+  final name = 'remove';
+
+  @override
+  final description = 'Removes Flutter SDK Version';
+
   RemoveCommand() {
     argParser.addFlag(
       'all',
@@ -20,15 +26,6 @@ class RemoveCommand extends BaseCommand {
       negatable: false,
     );
   }
-
-  @override
-  final name = 'remove';
-
-  @override
-  final description = 'Removes Flutter SDK Version';
-
-  @override
-  String get invocation => 'fvm remove {version}';
 
   /// Constructor
 
@@ -85,4 +82,7 @@ class RemoveCommand extends BaseCommand {
 
     return ExitCode.success.code;
   }
+
+  @override
+  String get invocation => 'fvm remove {version}';
 }

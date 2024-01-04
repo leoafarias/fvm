@@ -37,6 +37,18 @@ jobs:
         with:
           sdk-version: ${{ github.event.inputs.sdk-version }}
 
+      # - name: Install DCM
+      #   uses: CQLabs/setup-dcm@v1
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      
+      # - name: Run DCM
+      #   uses: CQLabs/dcm-action@v1
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     folders: lib
+  
+
       - name: Tests
         uses: ./.github/actions/test
         if: matrix.os != 'ubuntu-latest'

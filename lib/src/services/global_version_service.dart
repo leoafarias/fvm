@@ -11,15 +11,14 @@ import 'package:path/path.dart' as path;
 class GlobalVersionService extends ContextService {
   const GlobalVersionService(super.context);
 
-  static GlobalVersionService get fromContext =>
-      getProvider<GlobalVersionService>();
+  Link get _globalCacheLink => Link(context.globalCacheLink);
+
+  static GlobalVersionService get fromContext => getProvider();
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
     context.globalCacheLink.link.createLink(version.directory);
   }
-
-  Link get _globalCacheLink => Link(context.globalCacheLink);
 
   /// Returns a global [CacheFlutterVersion] if exists
   CacheFlutterVersion? getGlobal() {

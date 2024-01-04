@@ -11,7 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-  
     - name: Setup Dart
       uses: dart-lang/setup-dart@v1
       with:
@@ -19,11 +18,4 @@ runs:
 
     - name: Get dependencies
       run: dart pub get
-      shell: bash
-
-    - run: dart format --output=none --set-exit-if-changed .
-      shell: bash
-
-    - name: Analyze
-      run: dart analyze --fatal-infos --fatal-warnings .
       shell: bash

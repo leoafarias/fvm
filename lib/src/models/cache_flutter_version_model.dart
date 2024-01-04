@@ -11,11 +11,12 @@ import '../../constants.dart';
 
 /// Cache Version model
 class CacheFlutterVersion extends FlutterVersion {
+  /// Directory of the cache version
+  final String directory;
+
   /// Constructor
-  CacheFlutterVersion(
-    FlutterVersion version, {
-    required this.directory,
-  }) : super(
+  CacheFlutterVersion(FlutterVersion version, {required this.directory})
+      : super(
           version.name,
           releaseFromChannel: version.releaseFromChannel,
           isChannel: version.isChannel,
@@ -24,8 +25,7 @@ class CacheFlutterVersion extends FlutterVersion {
           isCustom: version.isCustom,
         );
 
-  /// Directory of the cache version
-  final String directory;
+  String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
   /// Get version bin path
   String get binPath => join(directory, 'bin');
@@ -35,8 +35,6 @@ class CacheFlutterVersion extends FlutterVersion {
   bool get hasOldBinPath {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
   }
-
-  String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
   /// Returns dart exec file for cache version
   String get dartBinPath {
@@ -70,7 +68,7 @@ class CacheFlutterVersion extends FlutterVersion {
     String command, {
     bool echoOutput = false,
     bool? throwOnError,
-  }) async {
+  }) {
     return runFlutter(
       command.split(' '),
       version: this,

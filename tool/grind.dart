@@ -82,16 +82,14 @@ Future<void> getReleases() async {
     stringBuffer.writeln('Release: $tagName, Date: $date');
   }
 
-  final file = File(
-    path.join(Directory.current.path, 'releases.txt'),
-  );
+  final file = File(path.join(Directory.current.path, 'releases.txt'));
 
   file.writeAsStringSync(stringBuffer.toString());
 }
 
 @Task('Prepare test environment')
 @Depends(buildVersion)
-Future<void> testSetup() async {
+void testSetup() {
   final testDir = Directory(getTempTestDir());
   if (testDir.existsSync()) {
     testDir.deleteSync(recursive: true);
@@ -122,7 +120,7 @@ Future<void> coverage() async {
       '--packages=.dart_tool/package_config.json',
       '--report-on=lib/',
       '--in=coverage',
-      '--out=coverage/lcov.info'
+      '--out=coverage/lcov.info',
     ],
   );
 

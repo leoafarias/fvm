@@ -33,12 +33,8 @@ Future<void> useVersionWorkflow({
   if (!project.isFlutter && !force) {
     logger
       ..spacer
-      ..info(
-        'This does not seem to be a Flutter project directory',
-      );
-    final proceed = logger.confirm(
-      'Would you like to continue?',
-    );
+      ..info('This does not seem to be a Flutter project directory');
+    final proceed = logger.confirm('Would you like to continue?');
 
     if (!proceed) exit(ExitCode.success.code);
   }
@@ -59,26 +55,18 @@ Future<void> useVersionWorkflow({
 
   final updatedProject = ProjectService.fromContext.update(
     project,
-    flavors: {
-      if (flavor != null) flavor: version.name,
-    },
+    flavors: {if (flavor != null) flavor: version.name},
     flutterSdkVersion: version.name,
   );
 
   await _checkGitignore(updatedProject);
 
-  await resolveDependenciesWorkflow(
-    updatedProject,
-    version,
-  );
+  await resolveDependenciesWorkflow(updatedProject, version);
 
-  _updateLocalSdkReference(
-    updatedProject,
-    version,
-  );
+  _updateLocalSdkReference(updatedProject, version);
   _updateCurrentSdkReference(
     updatedProject,
-    version
+    version,
   );
 
   _manageVscodeSettings(updatedProject);
@@ -90,9 +78,7 @@ Future<void> useVersionWorkflow({
       'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.',
     );
   } else {
-    logger.success(
-      'Project now uses Flutter SDK : $versionLabel',
-    );
+    logger.success('Project now uses Flutter SDK : $versionLabel');
   }
 
   if (version.flutterExec == which('flutter')) {
@@ -107,8 +93,6 @@ Future<void> useVersionWorkflow({
       )
       ..info('You can then use "flutter" command within the VsCode terminal.');
   }
-
-  return;
 }
 
 /// Adds to .gitignore paths that should be ignored for fvm
@@ -126,9 +110,7 @@ Future<void> _checkGitignore(Project project) async {
 
   logger.detail('Update gitignore: $updateGitIgnore');
   if (!await GitDir.isGitDir(project.path)) {
-    logger.detail(
-      'Project is not a git repository.',
-    );
+    logger.detail('Project is not a git repository.');
     return;
   }
 
@@ -150,9 +132,7 @@ Future<void> _checkGitignore(Project project) async {
   List<String> lines = ignoreFile.readAsLinesSync();
 
   if (lines.any((line) => line.trim() == pathToAdd)) {
-    logger.detail(
-      '$pathToAdd already exists in .gitignore',
-    );
+    logger.detail('$pathToAdd already exists in .gitignore');
     return;
   }
 
@@ -181,14 +161,8 @@ Future<void> _checkGitignore(Project project) async {
     'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
   );
 
-  if (logger.confirm(
-    'Would you like to do that now?',
-    defaultValue: true,
-  )) {
-    ignoreFile.writeAsStringSync(
-      lines.join('\n'),
-      mode: FileMode.write,
-    );
+  if (logger.confirm('Would you like to do that now?', defaultValue: true)) {
+    ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
     logger
       ..success('Added $pathToAdd to .gitignore')
       ..spacer;
@@ -215,9 +189,7 @@ void _checkProjectVersionConstraints(
     try {
       dartSdkVersion = Version.parse(sdkVersion);
     } on FormatException {
-      logger.warn(
-        'Could not parse Flutter SDK version $sdkVersion',
-      );
+      logger.warn('Could not parse Flutter SDK version $sdkVersion');
 
       return;
     }
@@ -233,14 +205,12 @@ void _checkProjectVersionConstraints(
 
       logger
         ..info(
-            '$message does not meet the project constraints of $constraints.')
+          '$message does not meet the project constraints of $constraints.',
+        )
         ..info('This could cause unexpected behavior or issues.')
         ..spacer;
 
-      if (!logger.confirm(
-        'Would you like to proceed?',
-        defaultValue: true,
-      )) {
+      if (!logger.confirm('Would you like to proceed?', defaultValue: true)) {
         throw AppException(
           'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
         );
@@ -273,9 +243,7 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
     ..deleteIfExists()
     ..createSync(recursive: true);
 
-  project.localVersionSymlinkPath.link.createLink(
-    version.directory,
-  );
+  project.localVersionSymlinkPath.link.createLink(version.directory);
 }
 
 /// Updates the `flutter_sdk` link to ensure it always points to the pinned SDK version.
@@ -284,10 +252,7 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
 void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
-  final currentSdkLink = join(
-    project.localFvmPath,
-    'flutter_sdk',
-  );
+  final currentSdkLink = join(project.localFvmPath, 'flutter_sdk');
 
   if (currentSdkLink.link.existsSync()) {
     currentSdkLink.link.deleteSync();
@@ -295,9 +260,7 @@ void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
 
   if (!ctx.priviledgedAccess) return;
 
-  currentSdkLink.link.createLink(
-    version.directory,
-  );
+  currentSdkLink.link.createLink(version.directory);
 }
 
 /// Updates VS Code configuration for the project

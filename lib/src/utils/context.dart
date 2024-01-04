@@ -21,10 +21,29 @@ typedef Generator = dynamic Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
-T getProvider<T>() => ctx.get<T>();
+T getProvider<T>() => ctx.get();
 
 class FVMContext {
   static FVMContext main = FVMContext.create();
+
+  /// Name of the context
+  final String id;
+
+  /// Working Directory for FVM
+  final String workingDirectory;
+
+  /// Flag to determine if context is running in a test
+  final bool isTest;
+
+  /// App config
+  final AppConfig config;
+
+  /// Generators for dependencies
+  final Map<Type, dynamic>? generators;
+
+  /// Generated values
+  final Map<Type, dynamic> _dependencies = {};
+
   factory FVMContext.create({
     String? id,
     AppConfig? configOverrides,
@@ -74,24 +93,6 @@ class FVMContext {
     this.generators = const {},
     this.isTest = false,
   });
-
-  /// Name of the context
-  final String id;
-
-  /// Working Directory for FVM
-  final String workingDirectory;
-
-  /// Flag to determine if context is running in a test
-  final bool isTest;
-
-  /// App config
-  final AppConfig config;
-
-  /// Generators for dependencies
-  final Map<Type, dynamic>? generators;
-
-  /// Generated values
-  final Map<Type, dynamic> _dependencies = {};
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;

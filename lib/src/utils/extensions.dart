@@ -67,10 +67,7 @@ extension LinkExtensions on Link {
       deleteSync();
     }
 
-    createSync(
-      target.path,
-      recursive: true,
-    );
+    createSync(target.path, recursive: true);
   }
 }
 

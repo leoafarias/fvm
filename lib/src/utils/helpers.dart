@@ -84,7 +84,7 @@ class FlutterVersionOutput {
   final String? dartVersion;
   final String? dartBuildVersion;
 
-  FlutterVersionOutput({
+  const FlutterVersionOutput({
     this.flutterVersion,
     this.channel,
     this.dartVersion,
@@ -117,9 +117,7 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
   final filteredContent = _extractFlutterInfoBlock(content);
   final flutterRegex = RegExp(r'Flutter (\S+)');
   final channelRegex = RegExp(r' channel (\w+)');
-  final dartRegex = RegExp(
-    r'Dart (\S+)',
-  );
+  final dartRegex = RegExp(r'Dart (\S+)');
   final dartBuildRegex = RegExp(r'Dart (\S+) \(build (\S+)\)');
 
   final flutterMatch = flutterRegex.firstMatch(filteredContent);
@@ -169,11 +167,10 @@ String extractDartVersionOutput(String input) {
   final match = regExp.firstMatch(input);
   if (match != null) {
     return match.group(1)!.trim(); // Returns the version number
-  } else {
-    throw FormatException(
-      'No Dart version found in the input string. \n\n $input',
-    );
   }
+  throw FormatException(
+    'No Dart version found in the input string. \n\n $input',
+  );
 }
 
 bool isValidGitUrl(String url) {

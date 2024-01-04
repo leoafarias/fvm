@@ -31,23 +31,22 @@ Future<ProcessResult> runCommand(
       _throwIfProcessFailed(processResult, command, args);
     }
     return processResult;
-  } else {
-    final process = await Process.start(
-      command,
-      args,
-      environment: environment,
-      runInShell: true,
-      workingDirectory: workingDirectory,
-      mode: ProcessStartMode.inheritStdio,
-    );
-
-    processResult = ProcessResult(
-      process.pid,
-      await process.exitCode,
-      null,
-      null,
-    );
   }
+  final process = await Process.start(
+    command,
+    args,
+    environment: environment,
+    runInShell: true,
+    workingDirectory: workingDirectory,
+    mode: ProcessStartMode.inheritStdio,
+  );
+
+  processResult = ProcessResult(
+    process.pid,
+    await process.exitCode,
+    null,
+    null,
+  );
   if (throwOnError) {
     _throwIfProcessFailed(processResult, command, args);
   }
