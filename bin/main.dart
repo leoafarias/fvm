@@ -1,4 +1,6 @@
-#!/usr/bin/env dartimport 'dart:io';
+#!/usr/bin/env dart
+
+import 'dart:io';
 
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/utils/context.dart';
