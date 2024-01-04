@@ -25,10 +25,7 @@ class ExecCommand extends BaseCommand {
     final version = ProjectService.fromContext.findVersion();
 
     if (argResults!.rest.isEmpty) {
-      throw UsageException(
-        'No command was provided to be executed',
-        usage,
-      );
+      throw UsageException('No command was provided to be executed', usage);
     }
 
     final cmd = argResults!.rest[0];
@@ -48,11 +45,7 @@ class ExecCommand extends BaseCommand {
     }
 
     // Runs exec command with pinned version
-    final results = await execCmd(
-      cmd,
-      execArgs,
-      cacheVersion,
-    );
+    final results = await execCmd(cmd, execArgs, cacheVersion);
 
     return results.exitCode;
   }

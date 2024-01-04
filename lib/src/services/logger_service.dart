@@ -8,25 +8,33 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
 /// Sets default logger mode
-LoggerService get logger => getProvider<LoggerService>();
+LoggerService get logger => getProvider();
 
 class LoggerService extends ContextService {
   final Logger _logger;
 
   /// Constructor
-  LoggerService({
-    Level? level,
-    FVMContext? context,
-  })  : _logger = Logger(level: level ?? Level.info),
+  LoggerService({Level? level, FVMContext? context})
+      : _logger = Logger(level: level ?? Level.info),
         super(context);
 
   void get spacer => _logger.info('');
 
   bool get isVerbose => _logger.level == Level.verbose;
 
-  set level(Level level) => _logger.level = level;
-
   Level get level => _logger.level;
+
+  String get stdout {
+    return logger.stdout;
+  }
+
+  void get divider {
+    _logger.info(
+      '------------------------------------------------------------',
+    );
+  }
+
+  set level(Level level) => _logger.level = level;
 
   void success(String message) {
     _logger.info('${Icons.success.green()} $message');
@@ -61,14 +69,7 @@ class LoggerService extends ContextService {
         .interact();
   }
 
-  String get stdout {
-    return logger.stdout;
-  }
-
-  String select(
-    String? message, {
-    required List<String> options,
-  }) {
+  String select(String? message, {required List<String> options}) {
     final selection = interact.Select(
       prompt: message ?? '',
       options: options,
@@ -104,12 +105,6 @@ class LoggerService extends ContextService {
       ..borderStyle = BorderStyle.square;
 
     _logger.write(table.toString());
-  }
-
-  void get divider {
-    _logger.info(
-      '------------------------------------------------------------',
-    );
   }
 }
 

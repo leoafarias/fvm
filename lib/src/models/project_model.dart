@@ -24,16 +24,39 @@ class Project {
 
   final PubSpec? pubspec;
 
+  const
+
   /// Creates a new instance of [Project].
   ///
   /// The [config] parameter represents the configuration of the project.
   /// The [path] parameter is the directory path of the project.
   /// The [pubspec] parameter represents the pubspec.yaml file of the project.
-  Project({
-    required this.config,
-    required this.path,
-    required this.pubspec,
-  });
+  Project({required this.config, required this.path, required this.pubspec});
+
+  /// Loads the Flutter project from the given [path].
+  ///
+  /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
+  static Project loadFromPath(String path) {
+    final configFile = _fvmConfigPath(path);
+    final legacyConfigFile = _legacyFvmConfigPath(path);
+
+    // Used for migration of config files
+    final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
+
+    if (legacyConfig != null) {
+      legacyConfig.save(configFile);
+      legacyConfigFile.file.deleteSync();
+    }
+
+    final config = ProjectConfig.loadFromPath(configFile);
+
+    final pubspecFile = File(join(path, 'pubspec.yaml'));
+    final pubspec = pubspecFile.existsSync()
+        ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
+        : null;
+
+    return Project(path: path, pubspec: pubspec, config: config);
+  }
 
   /// Retrieves the name of the project.
   String get name => basename(path);
@@ -86,10 +109,7 @@ class Project {
 
   /// Returns the path of the Flutter SDK symlink within the project.
   String get localVersionSymlinkPath {
-    return join(
-      localVersionsCachePath,
-      pinnedVersion?.name,
-    );
+    return join(localVersionsCachePath, pinnedVersion?.name);
   }
 
   /// Indicates whether the project has `.gitignore` file.
@@ -111,35 +131,6 @@ class Project {
   ///
   /// Returns `null` if the constraint is not defined.
   VersionConstraint? get sdkConstraint => pubspec?.environment?.sdkConstraint;
-
-  /// Loads the Flutter project from the given [path].
-  ///
-  /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
-  static Project loadFromPath(String path) {
-    final configFile = _fvmConfigPath(path);
-    final legacyConfigFile = _legacyFvmConfigPath(path);
-
-    // Used for migration of config files
-    final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
-
-    if (legacyConfig != null) {
-      legacyConfig.save(configFile);
-      legacyConfigFile.file.deleteSync();
-    }
-
-    final config = ProjectConfig.loadFromPath(configFile);
-
-    final pubspecFile = File(join(path, 'pubspec.yaml'));
-    final pubspec = pubspecFile.existsSync()
-        ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
-        : null;
-
-    return Project(
-      path: path,
-      pubspec: pubspec,
-      config: config,
-    );
-  }
 }
 
 String _fvmPath(String path) {
@@ -158,13 +149,12 @@ String _dartToolPath(String projectPath) {
   return join(projectPath, '.dart_tool');
 }
 
-String? _dartToolGeneratorVersion(String projectPath) {
+String _dartToolGeneratorVersion(String projectPath) {
   final file = File(join(_dartToolPath(projectPath), 'package_config.json'));
 
   return file.existsSync()
-      ? (jsonDecode(
-          file.readAsStringSync(),
-        ) as Map<String, dynamic>)['generatorVersion']
+      ? (jsonDecode(file.readAsStringSync())
+          as Map<String, dynamic>)['generatorVersion']
       : null;
 }
 

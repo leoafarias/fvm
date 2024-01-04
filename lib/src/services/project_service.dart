@@ -13,10 +13,10 @@ import 'package:path/path.dart' as path;
 ///
 /// This class provides methods for interacting with local Flutter projects.
 class ProjectService extends ContextService {
-  ProjectService(super.context);
+  const ProjectService(super.context);
 
   /// Gets project service from context
-  static ProjectService get fromContext => getProvider<ProjectService>();
+  static ProjectService get fromContext => getProvider();
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
@@ -27,9 +27,7 @@ class ProjectService extends ContextService {
   /// current working directory.
   ///
   /// Returns the [Project] instance for the found project.
-  Project findAncestor({
-    Directory? directory,
-  }) {
+  Project findAncestor({Directory? directory}) {
     // Get directory, defined root or current
     directory ??= Directory(context.workingDirectory);
 
@@ -48,9 +46,7 @@ class ProjectService extends ContextService {
     // Return working directory if has reached root
     if (isRootDir) return Project.loadFromPath(context.workingDirectory);
 
-    return findAncestor(
-      directory: directory.parent,
-    );
+    return findAncestor(directory: directory.parent);
   }
 
   /// Search for version configured

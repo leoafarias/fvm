@@ -9,14 +9,14 @@ import 'base_command.dart';
 
 /// Proxies Dart Commands
 class DartCommand extends BaseCommand {
-  DartCommand();
-
   @override
   final name = 'dart';
   @override
   final description = 'Proxies Dart Commands';
   @override
   final argParser = ArgParser.allowAnything();
+
+  DartCommand();
 
   @override
   Future<int> run() async {

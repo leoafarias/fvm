@@ -58,9 +58,7 @@ void printProgressBar(String label, int percentage) {
 }
 
 // Create a custom Process.start, that prints using the progress bar
-Future<void> runGitCloneUpdate(
-  List<String> args,
-) async {
+Future<void> runGitCloneUpdate(List<String> args) async {
   final process = await Process.start('git', args);
 
   process.stderr.transform(utf8.decoder).listen((line) {

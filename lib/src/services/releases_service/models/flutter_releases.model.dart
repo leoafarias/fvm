@@ -3,24 +3,10 @@ import 'dart:io';
 
 import 'release.model.dart';
 
-const _flutterChannels = [
-  'stable',
-  'beta',
-  'dev',
-  'master',
-];
+const _flutterChannels = ['stable', 'beta', 'dev', 'master'];
 
 /// Flutter Releases
 class Releases {
-  /// Constructor
-  Releases({
-    required this.baseUrl,
-    required this.channels,
-    required this.releases,
-    required this.hashReleaseMap,
-    required this.versionReleaseMap,
-  });
-
   /// Base url for Flutter   /// Channels in Flutter releases
   final String baseUrl;
 
@@ -36,6 +22,17 @@ class Releases {
   /// Hash release map
   final Map<String, Release> hashReleaseMap;
 
+  const
+
+  /// Constructor
+  Releases({
+    required this.baseUrl,
+    required this.channels,
+    required this.releases,
+    required this.hashReleaseMap,
+    required this.versionReleaseMap,
+  });
+
   /// Creates a FlutterRelease from a [json] string
   factory Releases.fromJson(String json) {
     return Releases.fromMap(jsonDecode(json) as Map<String, dynamic>);
@@ -47,9 +44,7 @@ class Releases {
   }
 
   /// Returns a [FlutterVersion] release from channel [version]
-  Release getLatestChannelRelease(
-    String channelName,
-  ) {
+  Release getLatestChannelRelease(String channelName) {
     if (!_flutterChannels.contains(channelName)) {
       throw Exception('Can only infer release on valid channel');
     }

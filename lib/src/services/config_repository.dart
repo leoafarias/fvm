@@ -7,9 +7,7 @@ import '../../fvm.dart';
 
 /// Service to manage FVM Config
 class ConfigRepository {
-  ConfigRepository._();
-
-  static String get _configPath => kAppConfigFile;
+  const ConfigRepository._();
 
   static AppConfig loadFile() {
     final appConfig = AppConfig.loadFromPath(_configPath);
@@ -90,4 +88,6 @@ class ConfigRepository {
       priviledgedAccess: priviledgedAccess,
     );
   }
+
+  static String get _configPath => kAppConfigFile;
 }

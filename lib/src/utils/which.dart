@@ -2,10 +2,7 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-String? which(
-  String command, {
-  bool binDir = false,
-}) {
+String? which(String command, {bool binDir = false}) {
   String? pathEnv = Platform.environment['PATH'];
   String? pathExtEnv =
       Platform.isWindows ? Platform.environment['PATHEXT'] : null;

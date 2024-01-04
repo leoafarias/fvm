@@ -61,10 +61,8 @@ class FlutterVersion {
         isChannel = false,
         isCustom = true;
 
-  const FlutterVersion.release(
-    this.name, {
-    this.releaseFromChannel,
-  })  : isRelease = true,
+  const FlutterVersion.release(this.name, {this.releaseFromChannel})
+      : isRelease = true,
         isCommit = false,
         isChannel = false,
         isCustom = false;

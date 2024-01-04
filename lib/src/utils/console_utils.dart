@@ -12,16 +12,13 @@ Table createTable([List<String> columns = const []]) {
     ..headerStyle = FontStyle.bold;
 
   for (final column in columns) {
-    table.insertColumn(
-      header: column,
-      alignment: TextAlignment.left,
-    );
+    table.insertColumn(header: column, alignment: TextAlignment.left);
   }
   return table;
 }
 
 /// Allows to select from cached sdks.
-Future<String> cacheVersionSelector(List<CacheFlutterVersion> versions) async {
+String cacheVersionSelector(List<CacheFlutterVersion> versions) {
   // Return message if no cached versions
   if (versions.isEmpty) {
     throw const AppException(
@@ -34,10 +31,7 @@ Future<String> cacheVersionSelector(List<CacheFlutterVersion> versions) async {
 
   final versionsList = versions.map((version) => version.name).toList();
 
-  final choise = logger.select(
-    'Select a version:',
-    options: versionsList,
-  );
+  final choise = logger.select('Select a version:', options: versionsList);
 
   return choise;
 }

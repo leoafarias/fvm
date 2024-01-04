@@ -95,7 +95,5 @@ void _warnDeprecatedEnvVars() {
     logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
   }
 
-  if (flutterRoot == null || fvmHome == null) {
-    return;
-  }
+  if (flutterRoot == null || fvmHome == null) {}
 }

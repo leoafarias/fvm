@@ -15,8 +15,6 @@ class ChangeCase {
 
   const ChangeCase(this.text);
 
-  List<String> get _words => _groupWords(text);
-
   List<String> _groupWords(String text) {
     final sb = StringBuffer();
     final words = <String>[];
@@ -45,18 +43,6 @@ class ChangeCase {
     return words;
   }
 
-  /// camelCase
-  String get camelCase => _getCamelCase();
-
-  /// CONSTANT_CASE
-  String get constantCase => _uppercase(_snakeCaseSeparator);
-
-  /// snake_case
-  String get snakeCase => _lowerCase(_snakeCaseSeparator);
-
-  /// param-case
-  String get paramCase => _lowerCase(_paramCaseSeparator);
-
   String _getCamelCase() {
     final words = _words.map(_upperCaseFirstLetter).toList();
     if (_words.isNotEmpty) {
@@ -74,6 +60,20 @@ class ChangeCase {
     if (word.isEmpty) return '';
     return word.capitalize;
   }
+
+  List<String> get _words => _groupWords(text);
+
+  /// camelCase
+  String get camelCase => _getCamelCase();
+
+  /// CONSTANT_CASE
+  String get constantCase => _uppercase(_snakeCaseSeparator);
+
+  /// snake_case
+  String get snakeCase => _lowerCase(_snakeCaseSeparator);
+
+  /// param-case
+  String get paramCase => _lowerCase(_paramCaseSeparator);
 }
 
 extension on String {

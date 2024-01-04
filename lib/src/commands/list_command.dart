@@ -18,9 +18,6 @@ class ListCommand extends BaseCommand {
   @override
   final description = 'Lists installed Flutter SDK Versions';
 
-  @override
-  List<String> get aliases => ['ls'];
-
   /// Constructor
   ListCommand();
 
@@ -95,7 +92,7 @@ class ListCommand extends BaseCommand {
             version.dartSdkVersion ?? '',
             releaseDate,
             globalVersion == version ? green.wrap(dot)! : '',
-          ]
+          ],
         ])
         ..borderStyle = BorderStyle.square
         ..borderColor = ConsoleColor.white
@@ -106,4 +103,7 @@ class ListCommand extends BaseCommand {
 
     return ExitCode.success.code;
   }
+
+  @override
+  List<String> get aliases => ['ls'];
 }

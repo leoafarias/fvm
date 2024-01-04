@@ -24,7 +24,8 @@ Future<void> _homebrewFormula() async {
   }
 
   final url = Uri.parse(
-      'https://api.github.com/repos/$owner/$repo/releases/tags/$versionArg');
+    'https://api.github.com/repos/$owner/$repo/releases/tags/$versionArg',
+  );
   final headers = {
     if (githubToken.isNotEmpty) 'Authorization': 'token $githubToken',
     'Accept': 'application/vnd.github.v3+json',
@@ -64,10 +65,7 @@ Future<void> _homebrewFormula() async {
       .replaceAll('{{MACOS_X64_URL}}', macosX64['url'])
       .replaceAll('{{MACOS_X64_SHA256}}', macosX64['sha256'])
       .replaceAll('{{MACOS_ARM64_URL}}', macosArm64['url'])
-      .replaceAll(
-        '{{MACOS_ARM64_SHA256}}',
-        macosArm64['sha256'],
-      );
+      .replaceAll('{{MACOS_ARM64_SHA256}}', macosArm64['sha256']);
 
   final file = File('fvm.rb');
   file.writeAsStringSync(formula);
@@ -88,8 +86,7 @@ Future<String> _downloadFile(
     final sha256Hash = sha256.convert(bytes).toString();
     print('SHA-256 Hash: $sha256Hash');
     return sha256Hash;
-  } else {
-    print('Failed to download $filename: ${response.statusCode}');
-    return '';
   }
+  print('Failed to download $filename: ${response.statusCode}');
+  return '';
 }

@@ -3,19 +3,6 @@ import 'channels.model.dart';
 
 /// Release Model
 class Release {
-  /// Constructor
-  Release({
-    required this.hash,
-    required this.channel,
-    required this.version,
-    required this.releaseDate,
-    required this.archive,
-    required this.sha256,
-    required this.dartSdkArch,
-    required this.dartSdkVersion,
-    this.activeChannel = false,
-  });
-
   /// Release hash
   final String hash;
 
@@ -43,6 +30,21 @@ class Release {
   /// Dart SDK architecture
   final String? dartSdkArch;
 
+  const
+
+  /// Constructor
+  Release({
+    required this.hash,
+    required this.channel,
+    required this.version,
+    required this.releaseDate,
+    required this.archive,
+    required this.sha256,
+    required this.dartSdkArch,
+    required this.dartSdkVersion,
+    this.activeChannel = false,
+  });
+
   /// Creates a release from a map of values
   factory Release.fromMap(Map<String, dynamic> map) => Release(
         hash: map['hash'] as String,
@@ -56,6 +58,14 @@ class Release {
         activeChannel: map['active_channel'] as bool? ?? false,
       );
 
+  /// Returns channel name of the release
+  String get channelName => channel.name;
+
+  /// Returns archive url of the release
+  String get archiveUrl {
+    return '$storageUrl/flutter_infra_release/releases/$archive';
+  }
+
   /// Turns Release model into a map of values
   Map<String, dynamic> toMap() => {
         'hash': hash,
@@ -68,25 +78,10 @@ class Release {
         'dart_sdk_version': dartSdkVersion,
         'active_channel': activeChannel,
       };
-
-  /// Returns channel name of the release
-  String get channelName => channel.name;
-
-  /// Returns archive url of the release
-  String get archiveUrl {
-    return '$storageUrl/flutter_infra_release/releases/$archive';
-  }
 }
 
 /// Release channels model
 class Channels {
-  /// Channel model contructor
-  Channels({
-    required this.beta,
-    required this.dev,
-    required this.stable,
-  });
-
   /// Beta channel release
   final Release beta;
 
@@ -95,6 +90,14 @@ class Channels {
 
   /// Stable channel release
   final Release stable;
+
+  const
+
+  /// Channel model contructor
+  Channels({required this.beta, required this.dev, required this.stable});
+
+  /// Returns a list of all releases
+  List<Release> get toList => [dev, beta, stable];
 
   /// Returns channel by name
   Release operator [](String channelName) {
@@ -117,7 +120,4 @@ class Channels {
         dev.hash: 'dev',
         stable.hash: 'stable',
       };
-
-  /// Returns a list of all releases
-  List<Release> get toList => [dev, beta, stable];
 }

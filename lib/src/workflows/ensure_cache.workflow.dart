@@ -29,14 +29,14 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
           await CacheService.fromContext.verifyCacheIntegrity(cacheVersion);
 
       if (integrity == CacheIntegrity.invalid) {
-        return _handleNonExecutable(
+        return await _handleNonExecutable(
           cacheVersion,
           shouldInstall: shouldInstall,
         );
       }
 
       if (integrity == CacheIntegrity.versionMismatch) {
-        return _handleVersionMismatch(
+        return await _handleVersionMismatch(
           cacheVersion,
           shouldInstall: shouldInstall,
         );
@@ -53,9 +53,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     }
 
     if (validVersion.isCustom) {
-      throw AppException(
-        'Custom Flutter SDKs must be installed manually.',
-      );
+      throw AppException('Custom Flutter SDKs must be installed manually.');
     }
 
     if (!shouldInstall) {
@@ -114,18 +112,16 @@ Future<CacheFlutterVersion> _handleNonExecutable(
     ..spacer;
 
   final shouldReinstall = logger.confirm(
-      'Would you like to reinstall this version to resolve the issue?',
-      defaultValue: true);
+    'Would you like to reinstall this version to resolve the issue?',
+    defaultValue: true,
+  );
 
   if (shouldReinstall) {
     CacheService.fromContext.remove(version);
     logger.info(
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
-    return ensureCacheWorkflow(
-      version.name,
-      shouldInstall: shouldInstall,
-    );
+    return ensureCacheWorkflow(version.name, shouldInstall: shouldInstall);
   }
 
   throw AppException('Flutter SDK: ${version.name} is not executable.');
@@ -135,13 +131,14 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 Future<CacheFlutterVersion> _handleVersionMismatch(
   CacheFlutterVersion version, {
   required bool shouldInstall,
-}) async {
+}) {
   logger
     ..notice(
       'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
     )
     ..info(
-        'This can occur if you manually run "flutter upgrade" on a cached SDK.')
+      'This can occur if you manually run "flutter upgrade" on a cached SDK.',
+    )
     ..spacer;
 
   final firstOption =
@@ -151,10 +148,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 
   final selectedOption = logger.select(
     'How would you like to resolve this?',
-    options: [
-      firstOption,
-      secondOption,
-    ],
+    options: [firstOption, secondOption],
   );
 
   if (selectedOption == firstOption) {
@@ -165,10 +159,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   logger.info('Removing incorrect SDK version...');
   CacheService.fromContext.remove(version);
 
-  return ensureCacheWorkflow(
-    version.name,
-    shouldInstall: true,
-  );
+  return ensureCacheWorkflow(version.name, shouldInstall: true);
 }
 
 Future<FlutterVersion> validateFlutterVersion(String version) async {
@@ -199,9 +190,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
     }
   }
 
-  logger.notice(
-    'Flutter SDK: ($version) is not valid Flutter version',
-  );
+  logger.notice('Flutter SDK: ($version) is not valid Flutter version');
 
   final askConfirmation = logger.confirm(
     'Do you want to continue?',
@@ -213,9 +202,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
     return flutterVersion;
   }
 
-  throw AppException(
-    '$version is not a valid Flutter version',
-  );
+  throw AppException('$version is not a valid Flutter version');
 }
 
 void _validateContext() {

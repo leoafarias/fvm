@@ -18,9 +18,19 @@ import '../utils/commands.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextService {
-  FlutterService(super.context);
+  const FlutterService(super.context);
 
-  static FlutterService get fromContext => getProvider<FlutterService>();
+  // Ensures cache.dir exists and its up to date
+  Future<void> _ensureCacheDir() async {
+    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+
+    // If cache file does not exists create it
+    if (!isGitDir) {
+      await updateLocalMirror();
+    }
+  }
+
+  static FlutterService get fromContext => getProvider();
 
   /// Upgrades a cached channel
   Future<void> runUpgrade(CacheFlutterVersion version) async {
@@ -59,10 +69,7 @@ class FlutterService extends ContextService {
       channel ?? version.name,
     ];
 
-    final useMirrorParams = [
-      '--reference',
-      context.gitCachePath,
-    ];
+    final useMirrorParams = ['--reference', context.gitCachePath];
 
     final cloneArgs = [
       //if its a git hash
@@ -71,16 +78,13 @@ class FlutterService extends ContextService {
     ];
 
     try {
-      final result = await runGit(
-        [
-          'clone',
-          '--progress',
-          ...cloneArgs,
-          context.flutterUrl,
-          versionDir.path,
-        ],
-        echoOutput: context.isTest || !logger.isVerbose ? false : true,
-      );
+      final result = await runGit([
+        'clone',
+        '--progress',
+        ...cloneArgs,
+        context.flutterUrl,
+        versionDir.path,
+      ], echoOutput: !(context.isTest || !logger.isVerbose));
 
       final gitVersionDir =
           CacheService(context).getVersionCacheDir(version.name);
@@ -108,8 +112,6 @@ class FlutterService extends ContextService {
       CacheService(context).remove(version);
       rethrow;
     }
-
-    return;
   }
 
   /// Updates local Flutter repo mirror
@@ -140,16 +142,6 @@ class FlutterService extends ContextService {
       await runGitCloneUpdate(
         ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
       );
-    }
-  }
-
-  // Ensures cache.dir exists and its up to date
-  Future<void> _ensureCacheDir() async {
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-
-    // If cache file does not exists create it
-    if (!isGitDir) {
-      await updateLocalMirror();
     }
   }
 

@@ -15,7 +15,7 @@ Future<ProcessResult> runFlutter(
   CacheFlutterVersion? version,
   bool? echoOutput,
   bool? throwOnError,
-}) async {
+}) {
   if (version == null) {
     return _runCmd(_flutterCmd, args: args);
   }
@@ -34,7 +34,7 @@ Future<ProcessResult> runDart(
   CacheFlutterVersion? version,
   bool? echoOutput,
   bool? throwOnError,
-}) async {
+}) {
   if (version == null) {
     return _runCmd(_dartCmd, args: args);
   }
@@ -60,10 +60,13 @@ Future<ProcessResult> _runOnVersion(
   final execPath = isFlutter ? version.flutterExec : version.dartExec;
 
   // Update environment
-  final environment = updateEnvironmentVariables([
-    version.binPath,
-    version.dartBinPath,
-  ], ctx.environment);
+  final environment = updateEnvironmentVariables(
+    [
+      version.binPath,
+      version.dartBinPath,
+    ],
+    ctx.environment,
+  );
 
   // Run command
   return await _runCmd(
@@ -85,18 +88,17 @@ Future<ProcessResult> execCmd(
   // If execPath is not provided will get the path configured version
   var environment = ctx.environment;
   if (version != null) {
-    environment = updateEnvironmentVariables([
-      version.binPath,
-      version.dartBinPath,
-    ], ctx.environment);
+    environment = updateEnvironmentVariables(
+      [
+        version.binPath,
+        version.dartBinPath,
+      ],
+      ctx.environment,
+    );
   }
 
   // Run command
-  return await _runCmd(
-    execPath,
-    args: args,
-    environment: environment,
-  );
+  return await _runCmd(execPath, args: args, environment: environment);
 }
 
 Future<ProcessResult> _runCmd(

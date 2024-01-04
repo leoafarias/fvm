@@ -12,32 +12,20 @@ import 'package:fvm/src/utils/pretty_json.dart';
 class ConfigKeys {
   final String key;
 
-  const ConfigKeys(this.key);
-
-  @override
-  operator ==(other) => other is ConfigKeys && other.key == key;
-
-  @override
-  int get hashCode => key.hashCode;
-
-  ChangeCase get _recase => ChangeCase(key);
-
   static const ConfigKeys cachePath = ConfigKeys('cache_path');
   static const ConfigKeys useGitCache = ConfigKeys('git_cache');
   static const ConfigKeys gitCachePath = ConfigKeys('git_cache_path');
   static const ConfigKeys flutterUrl = ConfigKeys('flutter_url');
   static const ConfigKeys priviledgedAccess = ConfigKeys('priviledged_access');
 
-  String get envKey => 'FVM_${_recase.constantCase}';
-  String get paramKey => _recase.paramCase;
-  String get propKey => _recase.camelCase;
-
   static const values = <ConfigKeys>[
     cachePath,
     useGitCache,
     gitCachePath,
-    flutterUrl
+    flutterUrl,
   ];
+
+  const ConfigKeys(this.key);
 
   static ConfigKeys fromName(String name) {
     return values.firstWhere((e) => e.key == name);
@@ -92,13 +80,25 @@ class ConfigKeys {
           negatable: true,
           defaultsTo: true,
         );
-      }
+      },
     };
 
     for (final key in values) {
       configKeysFuncs[key.key]?.call();
     }
   }
+
+  ChangeCase get _recase => ChangeCase(key);
+
+  String get envKey => 'FVM_${_recase.constantCase}';
+  String get paramKey => _recase.paramCase;
+  String get propKey => _recase.camelCase;
+
+  @override
+  operator ==(other) => other is ConfigKeys && other.key == key;
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 class Config {
@@ -146,7 +146,7 @@ class Config {
   }
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
+    return {
       if (cachePath != null) ConfigKeys.cachePath.propKey: cachePath,
       if (useGitCache != null) ConfigKeys.useGitCache.propKey: useGitCache,
       if (gitCachePath != null) ConfigKeys.gitCachePath.propKey: gitCachePath,
@@ -186,14 +186,6 @@ class AppConfig extends Config {
     );
   }
 
-  static AppConfig? loadFromPath(String path) {
-    final configFile = File(path);
-
-    return configFile.existsSync()
-        ? AppConfig.fromJson(configFile.readAsStringSync())
-        : null;
-  }
-
   factory AppConfig.fromMap(Map<String, dynamic> map) {
     final envConfig = Config.fromMap(map);
     return AppConfig(
@@ -209,18 +201,16 @@ class AppConfig extends Config {
     );
   }
 
-  @override
-  Map<String, dynamic> toMap() {
-    return {
-      ...super.toMap(),
-      if (disableUpdateCheck != null) 'disableUpdateCheck': disableUpdateCheck,
-      if (lastUpdateCheck != null)
-        'lastUpdateCheck': lastUpdateCheck?.toIso8601String(),
-    };
-  }
-
   factory AppConfig.fromJson(String source) {
     return AppConfig.fromMap(json.decode(source) as Map<String, dynamic>);
+  }
+
+  static AppConfig? loadFromPath(String path) {
+    final configFile = File(path);
+
+    return configFile.existsSync()
+        ? AppConfig.fromJson(configFile.readAsStringSync())
+        : null;
   }
 
   AppConfig copyWith({
@@ -270,6 +260,16 @@ class AppConfig extends Config {
 
     path.file.write(jsonContents);
   }
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      if (disableUpdateCheck != null) 'disableUpdateCheck': disableUpdateCheck,
+      if (lastUpdateCheck != null)
+        'lastUpdateCheck': lastUpdateCheck?.toIso8601String(),
+    };
+  }
 }
 
 /// Project config
@@ -318,20 +318,9 @@ class ProjectConfig extends Config {
       flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
       updateVscodeSettings: map['updateVscodeSettings'] as bool?,
       runPubGetOnSdkChanges: map['runPubGetOnSdkChanges'] as bool?,
-      flavors: map['flavors'] != null
-          ? Map<String, String>.from(map['flavors'] as Map)
-          : null,
+      flavors: map['flavors'] != null ? Map.from(map['flavors'] as Map) : null,
     );
   }
-
-  /// Returns update vscode settings
-  bool? get updateVscodeSettings => _updateVscodeSettings;
-
-  /// Returns update git ignore
-  bool? get updateGitIgnore => _updateGitIgnore;
-
-  /// Returns run pub get on sdk changes
-  bool? get runPubGetOnSdkChanges => _runPubGetOnSdkChanges;
 
   /// Returns ConfigDto from a json string
   factory ProjectConfig.fromJson(String source) =>
@@ -345,30 +334,20 @@ class ProjectConfig extends Config {
         : null;
   }
 
-  /// It checks each property for null prior to adding it to the map.
-  /// This is to ensure the returned map doesn't contain any null values.
-  /// Also, if [flavors] is not empty it adds it to the map.
+  /// Returns update vscode settings
+  bool? get updateVscodeSettings => _updateVscodeSettings;
 
-  @override
-  Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      ...super.toMap(),
-      if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
-      if (_updateVscodeSettings != null)
-        'updateVscodeSettings': _updateVscodeSettings,
-      if (_updateGitIgnore != null) 'updateGitIgnore': _updateGitIgnore,
-      if (_runPubGetOnSdkChanges != null)
-        'runPubGetOnSdkChanges': _runPubGetOnSdkChanges,
-      if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
-    };
-  }
+  /// Returns update git ignore
+  bool? get updateGitIgnore => _updateGitIgnore;
+
+  /// Returns run pub get on sdk changes
+  bool? get runPubGetOnSdkChanges => _runPubGetOnSdkChanges;
 
   /// Copies current config and overrides with new values
   /// Returns a new ConfigDto
 
   ProjectConfig copyWith({
     String? cachePath,
-    String? fvmVersionsDir,
     String? flutterSdkVersion,
     bool? useGitCache,
     bool? updateVscodeSettings,
@@ -378,7 +357,6 @@ class ProjectConfig extends Config {
     String? gitCachePath,
     String? flutterUrl,
     Map<String, String>? flavors,
-    bool? disableUpdate,
   }) {
     // merge map and override the keys
     final mergedFlavors = <String, String>{
@@ -419,5 +397,23 @@ class ProjectConfig extends Config {
     final jsonContents = prettyJson(toMap());
 
     path.file.write(jsonContents);
+  }
+
+  /// It checks each property for null prior to adding it to the map.
+  /// This is to ensure the returned map doesn't contain any null values.
+  /// Also, if [flavors] is not empty it adds it to the map.
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      ...super.toMap(),
+      if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
+      if (_updateVscodeSettings != null)
+        'updateVscodeSettings': _updateVscodeSettings,
+      if (_updateGitIgnore != null) 'updateGitIgnore': _updateGitIgnore,
+      if (_runPubGetOnSdkChanges != null)
+        'runPubGetOnSdkChanges': _runPubGetOnSdkChanges,
+      if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
+    };
   }
 }
