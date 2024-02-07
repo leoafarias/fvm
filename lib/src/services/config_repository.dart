@@ -5,6 +5,8 @@ import 'package:fvm/src/utils/helpers.dart';
 
 import '../../fvm.dart';
 
+const String flutterGitUrl = 'FLUTTER_GIT_URL';
+
 /// Service to manage FVM Config
 class ConfigRepository {
   const ConfigRepository._();
@@ -47,6 +49,11 @@ class ConfigRepository {
     String? flutterUrl;
     String? cachePath;
     bool? priviledgedAccess;
+
+    // Default to Flutter's environment variable if present; can still be overridden
+    if (environments.containsKey(flutterGitUrl)) {
+      flutterUrl = environments[flutterGitUrl];
+    }
 
     for (final variable in ConfigKeys.values) {
       final value = environments[variable.envKey];
