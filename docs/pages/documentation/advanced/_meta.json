@@ -1,0 +1,11 @@
+{
+  "custom-version": {
+    "title": "Custom Version"
+  },
+  "install-revision": {
+    "title": "Install Revision"
+  },
+  "release-multiple-channels": {
+    "title": "Release Multiple Channels"
+  }
+}

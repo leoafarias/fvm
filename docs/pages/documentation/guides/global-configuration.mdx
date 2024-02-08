@@ -1,9 +1,11 @@
 ---
 id: global_version
-title: Global Flutter SDK
-sidebar_position: 3
+title: Configure Global Version
 ---
 
+import { Callout } from "nextra/components";
+
+# Configure Global Version
 
 You can have the default Flutter version in your machine but still, preserve the dynamic switching. It allows you not to make any changes on how you currently use Flutter but benefit from faster switching and version caching.
 
@@ -29,6 +31,8 @@ fvm global stable
 flutter --version # Will be stable release
 ```
 
-:::info
-After you run the command, FVM will check if the global version is configured in your environment path. If it is not it will provide you with the path that it needs to be configured.
-:::
+<Callout type="info">
+  After you run the command, FVM will check if the global version is configured
+  in your environment path. If it is not it will provide you with the path that
+  it needs to be configured.
+</Callout>

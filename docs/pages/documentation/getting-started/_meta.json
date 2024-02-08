@@ -1,0 +1,14 @@
+{
+  "index": {
+    "title": "Overview"
+  },
+  "installation": {
+    "title": "Installation"
+  },
+  "configuration": {
+    "title": "Configuration"
+  },
+  "faq": {
+    "title": "FAQ"
+  }
+}

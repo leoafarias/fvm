@@ -1,8 +1,9 @@
 ---
 id: release_multiple_channels
 title: Release In Multiple Channels
-sidebar_position: 2
 ---
+
+# Release In Multiple Channels
 
 In some cases a Flutter release can show up on multiple channels. FVM will prioritize the channel by stability. Stable > Beta > Dev. Which means any version number will resolve to the most "stable" channel if exists in multiple channels.
 

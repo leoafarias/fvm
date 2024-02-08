@@ -15,7 +15,7 @@ class ReleasesCommand extends BaseCommand {
   final name = 'releases';
 
   @override
-  final description = 'View all Flutter SDK releases available for install.';
+  final description = 'View all Flutter SDK releases available for install. ';
 
   /// Constructor
   // Add option to pass channel name
@@ -23,6 +23,7 @@ class ReleasesCommand extends BaseCommand {
     argParser.addOption(
       'channel',
       help: 'Filter by channel name',
+      defaultsTo: 'stable',
       abbr: 'c',
       allowed: ['stable', 'beta', 'dev', 'all'],
       defaultsTo: 'stable',

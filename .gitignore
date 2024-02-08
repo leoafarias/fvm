@@ -47,3 +47,4 @@ test/support_assets/*/pubspec.lock
 # FVM Version Cache
 .fvm
 .fvmrc
+docs/.next

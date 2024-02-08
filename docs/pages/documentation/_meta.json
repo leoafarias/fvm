@@ -1,0 +1,26 @@
+{
+  "-- Getting Started": {
+    "type": "separator",
+    "title": "Getting Started"
+  },
+  "getting-started": {
+    "title": "Getting Started",
+    "display": "children"
+  },
+  "-- Guides": {
+    "type": "separator",
+    "title": "Guides"
+  },
+  "guides": {
+    "title": "Guides",
+    "display": "children"
+  },
+  "-- Advanced": {
+    "type": "separator",
+    "title": "Advanced"
+  },
+  "advanced": {
+    "title": "Advanced",
+    "display": "children"
+  }
+}
