@@ -1,0 +1,7 @@
+.buttons-row {
+  display: flex;
+  flex-direction: row;
+
+  justify-content: center;
+  margin: 0 auto;
+}

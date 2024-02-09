@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Link } from "nextra-theme-docs";
+import { Button } from "./ui/button";
 
 const MainHeading = () => {
   return (
@@ -18,8 +18,10 @@ const MainHeading = () => {
           </p>
           <p className="subtitle">
             <br className="sm:block hidden" />
-            <Link href="/documentation">
-              <Button>Get Started</Button>
+            <Link href="/documentation" className="nextjs-link">
+              <Button>
+                <>Get Started</>
+              </Button>
             </Link>
           </p>
         </div>
