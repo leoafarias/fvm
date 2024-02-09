@@ -1,8 +1,9 @@
 ---
 id: project_flavors
 title: Project Flavors
-sidebar_position: 3
 ---
+
+# Project Flavors
 
 You can have multiple Flutter SDK versions configured per project environment or release type. FVM follows the same convention of Flutter and calls this `flavors`.
 

@@ -1,8 +1,9 @@
 ---
 id: faq
 title: FAQ
-sidebar_position: 4
 ---
+
+# FAQ
 
 ### Upgrade Flutter Channel
 

@@ -1,0 +1,14 @@
+{
+  "basic-commands": {
+    "title": "Basic Commands"
+  },
+  "running-flutter": {
+    "title": "Running Flutter"
+  },
+  "global-configuration": {
+    "title": "Global Configuration"
+  },
+  "project-flavors": {
+    "title": "Project Flavors"
+  }
+}

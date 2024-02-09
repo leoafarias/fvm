@@ -44,6 +44,7 @@ class UseCommand extends BaseCommand {
       ..addFlag(
         'skip-setup',
         help: 'Skips Flutter setup after install',
+        abbr: 's',
         negatable: false,
       );
   }

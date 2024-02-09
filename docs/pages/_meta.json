@@ -1,0 +1,16 @@
+{
+  "index": {
+    "title": "Overview",
+    "type": "page"
+  },
+  "documentation": {
+    "title": "Documentation",
+    "type": "page"
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://twitter.com/leoafarias",
+    "newWindow": true
+  }
+}

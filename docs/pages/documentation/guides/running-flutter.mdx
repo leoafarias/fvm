@@ -1,8 +1,11 @@
 ---
 id: running_flutter
 title: Running Flutter
-sidebar_position: 2
 ---
+
+import { Callout } from "nextra/components";
+
+# Running Flutter
 
 There are a few ways you can interact with the Flutter SDK setup. These will depend primarily on preference.
 
@@ -28,7 +31,7 @@ You are able to proxy any `flutter` or `dart` commands to the configured version
 > dart {command}
 ```
 
-:::tip
+<Callout type="info">
 
 Configure the following alias for a shorthand version of the command
 
@@ -41,7 +44,7 @@ d="fvm dart"
 f run
 ```
 
-:::
+</Callout>
 
 ### Benefits
 
@@ -69,7 +72,7 @@ Using the symlink will dynamically call the configured version for the project.
 .fvm/flutter_sdk/bin/flutter run
 ```
 
-:::tip
+<Callout type="info">
 
 Configure the following alias to call the relative project version, without the need to proxy.
 
@@ -77,7 +80,7 @@ Configure the following alias to call the relative project version, without the 
 fv=".fvm/flutter_sdk/bin/flutter"
 ```
 
-:::
+</Callout>
 
 ## Spawn Command
 
