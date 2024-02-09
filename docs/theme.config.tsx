@@ -138,7 +138,7 @@ const themeConfig = {
             rel="noreferrer"
           >
             <Image
-              alt="mix logo"
+              alt="fvm logo"
               src="/assets/powered-by-vercel.svg"
               height={43}
               width={211}
