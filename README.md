@@ -34,7 +34,7 @@ Checkout Flutter Sidekick. [Read more about it here.](https://github.com/leoafar
 
 ## Troubleshooting
 
-Please view our [FAQ](https://fvm.app/docs/guides/faq).
+Please view our [FAQ](https://www.fvm.app/documentation/getting-started/faq).
 
 ## License
 
