@@ -7,9 +7,9 @@ const MainHeading = () => {
       <div className="home-content">
         <div className="content-container">
           <h1 className="headline">
-            Effortlessly Manage
+            Simple Flutter
             <br className="sm:block hidden" />
-            Flutter Versions
+            Version Management
           </h1>
           <p className="subtitle">
             Easy, powerful and flexible tool to

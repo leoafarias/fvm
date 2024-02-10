@@ -21,7 +21,7 @@ void main(List<String> args) {
   pkg.githubUser.value = owner;
   pkg.githubRepo.value = 'leoafarias/fvm';
   pkg.homebrewRepo.value = 'leoafarias/homebrew-fvm';
-  pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
+  pkg.githubBearerToken.value = Platform.environment['GITHUB_BEARER_TOKEN'];
 
   pkg.addAllTasks();
   addTask(homebrewTask());
