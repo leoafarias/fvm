@@ -1,3 +1,8 @@
+## 3.0.1
+
+- Fixed Dart SDK download on brew installations.
+- Do not ask for setup flow on VSCode if not detected.
+
 ## 3.0.0
 
 ### Added
