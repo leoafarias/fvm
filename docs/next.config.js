@@ -18,6 +18,11 @@ module.exports = withNextra({
         destination: "/documentation/getting-started",
         permanent: true,
       },
+      {
+        source: "/docs/guides/faq",
+        destination: "/documentation/getting-started/faq",
+        permanent: true,
+      },
     ];
   },
 });

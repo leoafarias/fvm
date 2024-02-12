@@ -52,59 +52,6 @@ Location where Flutter SDK versions will be stored. If nothing is set, the defau
   uses the latest version of the configurations in some situations.
 </Callout>
 
-### VS Code
-
-#### Option 1 - Automatic Switching (Recommended)
-
-You can add the version symlink for a dynamic switch. VS Code will always use the version selected within the project for all IDE tooling. Also, remove the Flutter SDK from search to make things easier. Just create a folder inside the project called `.vscode` and then create a file called `settings.json` and add the following file:
-
-```json title=".vscode/settings.json"
-{
-  "dart.flutterSdkPath": ".fvm/flutter_sdk",
-  // Remove .fvm files from search
-  "search.exclude": {
-    "**/.fvm": true
-  },
-  // Remove from file watching
-  "files.watcherExclude": {
-    "**/.fvm": true
-  }
-}
-```
-
-Execute `fvm use <desired version>` in the project root directory; If configured correctly, this will switch the version used on VSCode. If you are having issues, click on the Flutter version text on the status bar of VSCode, to show all the current SDKs installed on your machine. Select auto-detect, which will check `.vscode` dir inside your project and then change your Flutter SDK depending on the fvm config or manually select the Flutter SDK from fvm cache directory.
-
-#### Option 2 - View all SDKs (Manual switching)
-
-VSCode has the ability for you to switch between all cached Flutter SDKs using `Flutter: Change SDK`.
-
-<Callout>
-  Use command `fvm list` to show you the cache path to the versions.
-</Callout>
-
-#### List all versions installed by FVM
-
-You can see all the versions installed by FVM in VS Code by just providing path to `versions` directory. In the following example path for macOS, replace `$USER` with your username:
-
-```json
-{
-  "dart.flutterSdkPaths": ["/Users/$USER/fvm/versions"]
-}
-```
-
-Alternatively, you can specify only selected versions. The following snippet will cause VS Code to show only `stable` and `dev` versions of Flutter.
-
-```json
-{
-  "dart.flutterSdkPaths": [
-    "/Users/$USER/fvm/versions/stable",
-    "/Users/$USER/fvm/versions/dev"
-  ]
-}
-```
-
-To change current Flutter version open a project and select `Flutter: Change SDK` in the command palette. You should see all the versions as depicted in the following screenshot.
-
 ### Android Studio
 
 1. Go to `Languages & Frameworks > Flutter` or search for Flutter and change Flutter SDK path.
