@@ -2,24 +2,24 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
-import 'package:fvm/src/utils/which.dart';
-import 'package:fvm/src/workflows/resolve_dependencies.workflow.dart';
-import 'package:fvm/src/workflows/setup_flutter.workflow.dart';
 import 'package:git/git.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../../constants.dart';
+import '../../exceptions.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../models/project_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../utils/context.dart';
+import '../utils/extensions.dart';
+import '../utils/helpers.dart';
+import '../utils/pretty_json.dart';
+import '../utils/which.dart';
+import 'resolve_dependencies.workflow.dart';
+import 'setup_flutter.workflow.dart';
 
 /// Checks if version is installed, and installs or exits
 Future<void> useVersionWorkflow({
@@ -64,10 +64,7 @@ Future<void> useVersionWorkflow({
   await resolveDependenciesWorkflow(updatedProject, version);
 
   _updateLocalSdkReference(updatedProject, version);
-  _updateCurrentSdkReference(
-    updatedProject,
-    version,
-  );
+  _updateCurrentSdkReference(updatedProject, version);
 
   _manageVscodeSettings(updatedProject);
 
@@ -83,6 +80,7 @@ Future<void> useVersionWorkflow({
 
   if (version.flutterExec == which('flutter')) {
     logger.detail('Flutter SDK is already in your PATH');
+
     return;
   }
 
@@ -111,6 +109,7 @@ Future<void> _checkGitignore(Project project) async {
   logger.detail('Update gitignore: $updateGitIgnore');
   if (!await GitDir.isGitDir(project.path)) {
     logger.detail('Project is not a git repository.');
+
     return;
   }
 
@@ -118,6 +117,7 @@ Future<void> _checkGitignore(Project project) async {
     logger.detail(
       '$kPackageName does not manage .gitignore for this project.',
     );
+
     return;
   }
 
@@ -133,6 +133,7 @@ Future<void> _checkGitignore(Project project) async {
 
   if (lines.any((line) => line.trim() == pathToAdd)) {
     logger.detail('$pathToAdd already exists in .gitignore');
+
     return;
   }
 
@@ -154,6 +155,7 @@ Future<void> _checkGitignore(Project project) async {
       }
       previousValue.add(element);
     }
+
     return previousValue;
   });
 
@@ -290,21 +292,12 @@ void _manageVscodeSettings(Project project) {
         'Please remove "updateVscodeSettings: false" from $kFvmConfigFileName',
       );
     }
+
     return;
   }
 
   if (!isUsingVscode) {
-    final confirmation = logger.confirm(
-      'Are you using $kVsCode for this project?',
-    );
-
-    if (!confirmation) {
-      ProjectService.fromContext.update(
-        project,
-        updateVscodeSettings: false,
-      );
-      return;
-    }
+    return;
   }
 
   if (!vscodeSettingsFile.existsSync()) {
@@ -327,6 +320,7 @@ void _manageVscodeSettings(Project project) {
         vscodeSettingsFile.path,
         from: ctx.workingDirectory,
       );
+
       throw AppDetailedException(
         'Error parsing $kVsCode settings at $relativePath',
         'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
