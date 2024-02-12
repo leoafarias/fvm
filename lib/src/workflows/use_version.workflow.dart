@@ -315,15 +315,19 @@ void _manageVscodeSettings(Project project) {
       if (sanitizedContent.isNotEmpty) {
         currentSettings = json.decode(sanitizedContent);
       }
-    } on FormatException {
+    } on FormatException catch (_, stackTrace) {
       final relativePath = relative(
         vscodeSettingsFile.path,
         from: ctx.workingDirectory,
       );
 
-      throw AppDetailedException(
-        'Error parsing $kVsCode settings at $relativePath',
-        'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+
+      Error.throwWithStackTrace(
+        AppDetailedException(
+          'Error parsing $kVsCode settings at $relativePath',
+          'Please use a tool like https://jsonlint.com to validate and fix it',
+        ),
+        stackTrace,
       );
     }
   } else {
