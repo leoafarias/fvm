@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 
-import '../../fvm.dart';
+import '../models/config_model.dart';
 import '../services/config_repository.dart';
 import '../services/logger_service.dart';
 import 'constants.dart';
@@ -97,5 +97,5 @@ void _warnDeprecatedEnvVars() {
     logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
   }
 
-  if (flutterRoot == null || fvmHome == null) {}
+  // if (flutterRoot == null || fvmHome == null) {}
 }

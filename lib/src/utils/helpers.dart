@@ -63,6 +63,7 @@ String assignVersionWeight(String version) {
   }
 
   try {
+    // ignore: avoid-unused-instances
     Version.parse(version);
   } on Exception {
     logger.warn('Version $version is not a valid semver');

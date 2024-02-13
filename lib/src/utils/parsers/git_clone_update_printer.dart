@@ -1,3 +1,5 @@
+// ignore_for_file: avoid-unassigned-stream-subscriptions
+
 import 'dart:convert';
 import 'dart:io';
 

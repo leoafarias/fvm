@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 /// Formats [json]
+// ignore: avoid-dynamic
 String prettyJson(dynamic json) {
   var spaces = ' ' * 2;
   var encoder = JsonEncoder.withIndent(spaces);

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../fvm.dart';
+import '../models/cache_flutter_version_model.dart';
 import 'context.dart';
 import 'helpers.dart';
 import 'run_command.dart';

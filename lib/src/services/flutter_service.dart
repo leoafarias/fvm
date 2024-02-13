@@ -90,8 +90,9 @@ class FlutterService extends ContextService {
         echoOutput: !(context.isTest || !logger.isVerbose),
       );
 
-      final isGit = await GitDir.isGitDir(versionDir.path);
-
+      final gitVersionDir =
+          CacheService(context).getVersionCacheDir(version.name);
+      final isGit = await GitDir.isGitDir(gitVersionDir.path);
       if (!isGit) {
         throw AppException(
           'Flutter SDK is not a valid git repository after clone. Please try again.',
@@ -100,7 +101,7 @@ class FlutterService extends ContextService {
 
       /// If version is not a channel reset to version
       if (!version.isChannel) {
-        final gitDir = await GitDir.fromExisting(versionDir.path);
+        final gitDir = await GitDir.fromExisting(gitVersionDir.path);
         // reset --hard $version
         await gitDir.runCommand(['reset', '--hard', version.version]);
       }
