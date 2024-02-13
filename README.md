@@ -4,7 +4,7 @@
 [![Pub Version](https://img.shields.io/pub/v/fvm?label=version&style=for-the-badge&logo=dart&logoColor=3DB0F3&labelColor=white&color=3DB0F3)](https://pub.dev/packages/fvm/changelog)
 [![Pub Likes](https://img.shields.io/pub/likes/fvm?style=for-the-badge&logo=dart&logoColor=3DB0F3&label=Pub%20Likes&labelColor=white&color=3DB0F3)](https://pub.dev/packages/fvm/score)
 [![Pub Points](https://img.shields.io/pub/points/fvm?style=for-the-badge&logo=dart&logoColor=3DB0F3&label=Points&labelColor=white&color=3DB0F3)](https://pub.dev/packages/fvm/score)
-[![All Contributors](https://img.shields.io/github/all-contributors/leoafarias/fvm?style=for-the-badge&color=018D5B&labelColor=004F32)](https://github.com/leoafarias/fvm/graphs/contributors)
+[![All Contributors](https://img.shields.io/github/contributors/leoafarias/fvm?style=for-the-badge&color=018D5B&labelColor=004F32)](https://github.com/leoafarias/fvm/graphs/contributors)
 [![MIT License](https://img.shields.io/github/license/leoafarias/fvm?style=for-the-badge&color=FF2E00&labelColor=CB2500)](https://opensource.org/licenses/mit-license.php)
 ![Codecov](https://img.shields.io/codecov/c/github/leoafarias/fvm?style=for-the-badge&color=FFD43A&labelColor=F3BE00)
 [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-8A00CB?style=for-the-badge&color=8A00CB&labelColor=630092)](https://github.com/Solido/awesome-flutter)
