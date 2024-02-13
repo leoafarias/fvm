@@ -2,19 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/parsers/git_clone_update_printer.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../exceptions.dart';
-import '../../fvm.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/parsers/git_clone_update_printer.dart';
+import 'base_service.dart';
+import 'cache_service.dart';
+import 'logger_service.dart';
+import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextService {
@@ -78,17 +79,18 @@ class FlutterService extends ContextService {
     ];
 
     try {
-      final result = await runGit([
-        'clone',
-        '--progress',
-        ...cloneArgs,
-        context.flutterUrl,
-        versionDir.path,
-      ], echoOutput: !(context.isTest || !logger.isVerbose));
+      final result = await runGit(
+        [
+          'clone',
+          '--progress',
+          ...cloneArgs,
+          context.flutterUrl,
+          versionDir.path,
+        ],
+        echoOutput: !(context.isTest || !logger.isVerbose),
+      );
 
-      final gitVersionDir =
-          CacheService(context).getVersionCacheDir(version.name);
-      final isGit = await GitDir.isGitDir(gitVersionDir.path);
+      final isGit = await GitDir.isGitDir(versionDir.path);
 
       if (!isGit) {
         throw AppException(
@@ -98,7 +100,7 @@ class FlutterService extends ContextService {
 
       /// If version is not a channel reset to version
       if (!version.isChannel) {
-        final gitDir = await GitDir.fromExisting(gitVersionDir.path);
+        final gitDir = await GitDir.fromExisting(versionDir.path);
         // reset --hard $version
         await gitDir.runCommand(['reset', '--hard', version.version]);
       }
@@ -152,6 +154,7 @@ class FlutterService extends ContextService {
     if (commitSha == null) {
       return false;
     }
+
     return commit.contains(commitSha);
   }
 
@@ -164,7 +167,8 @@ class FlutterService extends ContextService {
     }
 
     final tags = await getTags();
-    return tags.where((t) => t == tag).isNotEmpty;
+
+    return tags.any((t) => t == tag);
   }
 
   Future<List<String>> getTags() async {

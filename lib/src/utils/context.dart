@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/services/global_version_service.dart';
-import 'package:fvm/src/services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
-import '../../constants.dart';
 import '../../fvm.dart';
+import '../services/config_repository.dart';
+import '../services/flutter_service.dart';
+import '../services/global_version_service.dart';
+import '../services/logger_service.dart';
+import 'constants.dart';
 
 final contextKey = ScopeKey<FVMContext>();
 
@@ -69,7 +69,6 @@ class FVMContext {
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
-      isTest: isTest,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -81,6 +80,7 @@ class FVMContext {
         GlobalVersionService: GlobalVersionService.new,
         ...overrides,
       },
+      isTest: isTest,
     );
   }
 
@@ -106,6 +106,7 @@ class FVMContext {
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
     if (config.gitCachePath != null) return config.gitCachePath!;
+
     return join(fvmDir, 'cache.git');
   }
 
@@ -140,6 +141,7 @@ class FVMContext {
     if (generators != null && generators!.containsKey(T)) {
       final generator = generators![T] as Generator;
       _dependencies[T] = generator(this);
+
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');

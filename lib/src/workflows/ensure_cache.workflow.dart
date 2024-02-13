@@ -1,15 +1,15 @@
 import 'dart:io';
 
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
+import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
+import '../services/flutter_service.dart';
 import '../services/logger_service.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/helpers.dart';
 
 /// Ensures that the specified Flutter SDK version is cached locally.
 ///
@@ -36,10 +36,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       }
 
       if (integrity == CacheIntegrity.versionMismatch) {
-        return await _handleVersionMismatch(
-          cacheVersion,
-          shouldInstall: shouldInstall,
-        );
+        return await _handleVersionMismatch(cacheVersion);
       }
 
       // If shouldl install notifiy the user that is already installed
@@ -121,6 +118,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
     logger.info(
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
+
     return ensureCacheWorkflow(version.name, shouldInstall: shouldInstall);
   }
 
@@ -129,9 +127,8 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 
 // Clarity on why the version mismatch happened and how it can be fixed
 Future<CacheFlutterVersion> _handleVersionMismatch(
-  CacheFlutterVersion version, {
-  required bool shouldInstall,
-}) {
+  CacheFlutterVersion version,
+) {
   logger
     ..notice(
       'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
@@ -186,6 +183,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
           'FVM only supports short commit SHAs (10 characters) should be ($commitSha)',
         );
       }
+
       return flutterVersion;
     }
   }
@@ -199,6 +197,7 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
   if (askConfirmation) {
     // Jump a line after confirmation
     logger.spacer;
+
     return flutterVersion;
   }
 

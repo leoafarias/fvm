@@ -58,6 +58,7 @@ class ChangeCase {
 
   String _upperCaseFirstLetter(String word) {
     if (word.isEmpty) return '';
+
     return word.capitalize;
   }
 
@@ -79,6 +80,7 @@ class ChangeCase {
 extension on String {
   String get capitalize {
     if (isEmpty) return this;
+
     return this[0].toUpperCase() + substring(1).toLowerCase();
   }
 }

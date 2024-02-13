@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/helpers.dart';
-
-import '../../fvm.dart';
+import '../models/config_model.dart';
+import '../utils/constants.dart';
+import '../utils/helpers.dart';
 
 const String flutterGitUrl = 'FLUTTER_GIT_URL';
 
@@ -14,6 +13,7 @@ class ConfigRepository {
   static AppConfig loadFile() {
     final appConfig = AppConfig.loadFromPath(_configPath);
     if (appConfig != null) return appConfig;
+
     return AppConfig.empty();
   }
 
@@ -57,9 +57,9 @@ class ConfigRepository {
 
     for (final variable in ConfigKeys.values) {
       final value = environments[variable.envKey];
-      final legacyFvmHome = environments['FVM_HOME'];
 
       if (variable == ConfigKeys.cachePath) {
+        final legacyFvmHome = environments['FVM_HOME'];
         cachePath = value ?? legacyFvmHome;
         break;
       }

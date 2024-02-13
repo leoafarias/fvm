@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
+import 'package:fvm/src/utils/constants.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';

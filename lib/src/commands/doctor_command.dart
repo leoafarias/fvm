@@ -2,16 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/which.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
+import '../models/config_model.dart';
+import '../models/project_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/constants.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/which.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
@@ -38,9 +40,9 @@ class DoctorCommand extends BaseCommand {
       ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
       [
         'Dart Tool Generator Version',
-        project.dartToolGeneratorVersion ?? 'Not available',
+        project.dartToolGeneratorVersion ?? 'N/A',
       ],
-      ['Dart tool version', project.dartToolVersion ?? 'Not available'],
+      ['Dart tool version', project.dartToolVersion ?? 'N/A'],
       ['.gitignore Present', project.gitignoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
       ['Pinned Version', project.pinnedVersion ?? 'None'],
@@ -68,10 +70,10 @@ class DoctorCommand extends BaseCommand {
     table.insertRow([kVsCode]);
     // Check for .vscode directory
     final vscodeDir = Directory(join(project.path, '.vscode'));
-    final settingsPath = join(vscodeDir.path, 'settings.json');
-    final settingsFile = File(settingsPath);
 
     if (vscodeDir.existsSync()) {
+      final settingsPath = join(vscodeDir.path, 'settings.json');
+      final settingsFile = File(settingsPath);
       if (settingsFile.existsSync()) {
         try {
           final settings = jsonDecode(settingsFile.readAsStringSync());
@@ -87,14 +89,17 @@ class DoctorCommand extends BaseCommand {
           table.insertRow(
             ['Matches pinned version:', sdkPath == relativeSymlinkPath],
           );
-        } on FormatException {
+        } on FormatException catch (_, stackTrace) {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
             ..err(
-              'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
+              'Please use a tool like https://jsonlint.com to validate and fix it',
             );
-          throw AppException(
-            'Could not get vscode settings, please check settings.json',
+          Error.throwWithStackTrace(
+            AppException(
+              'Could not get vscode settings, please check settings.json',
+            ),
+            stackTrace,
           );
         }
       } else {
@@ -134,9 +139,9 @@ class DoctorCommand extends BaseCommand {
       final dartSdk = dartSdkFile.readAsStringSync();
       final containsUserHome = dartSdk.contains(r'$USER_HOME$');
       final containsProjectDir = dartSdk.contains(r'$PROJECT_DIR$');
-      final containsSymLinkName = dartSdk.contains('.fvm/flutter_sdk');
 
       if (!containsUserHome && containsProjectDir) {
+        final containsSymLinkName = dartSdk.contains('.fvm/flutter_sdk');
         if (containsSymLinkName) {
           table.insertRow([
             'SDK Path',
@@ -155,10 +160,7 @@ class DoctorCommand extends BaseCommand {
         ]);
       }
     } else {
-      table.insertRow([
-        kIntelliJ,
-        'No .idea folder found',
-      ]);
+      table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
     logger.write(table.toString());
@@ -198,7 +200,6 @@ class DoctorCommand extends BaseCommand {
     logger.write(table.toString());
   }
 
-  void printFVMDetails() {}
   @override
   Future<int> run() async {
     final project = ProjectService.fromContext.findAncestor();

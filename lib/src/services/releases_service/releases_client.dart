@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/releases_service/models/channels.model.dart';
-import 'package:fvm/src/services/releases_service/models/release.model.dart';
-import 'package:fvm/src/utils/http.dart';
-
-import '../../../exceptions.dart';
+import '../../utils/exceptions.dart';
+import '../../utils/http.dart';
 import '../logger_service.dart';
+import 'models/channels.model.dart';
 import 'models/flutter_releases.model.dart';
+import 'models/release.model.dart';
 
 final _envVars = Platform.environment;
 final _storageUrl = 'https://storage.googleapis.com';
@@ -46,9 +45,11 @@ class FlutterReleases {
       final response = await fetch(releasesUrl);
 
       _cacheReleasesRes = Releases.fromJson(response);
+
       return await Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
       logger.detail(err.toString());
+
       return _getFromFlutterUrl(platform);
     }
   }
@@ -57,13 +58,17 @@ class FlutterReleases {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
       _cacheReleasesRes = Releases.fromJson(response);
+
       return await Future.value(_cacheReleasesRes);
-    } on Exception {
-      throw AppException(
-        'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'
-        'Fvm will use the value set on '
-        'env FLUTTER_STORAGE_BASE_URL to check versions\n'
-        'if you are located in China, please see this page: https://flutter.dev/community/china',
+    } on Exception catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'
+          'Fvm will use the value set on '
+          'env FLUTTER_STORAGE_BASE_URL to check versions\n'
+          'if you are located in China, please see this page: https://flutter.dev/community/china',
+        ),
+        stackTrace,
       );
     }
   }
@@ -73,12 +78,14 @@ class FlutterReleases {
     FlutterChannel channel,
   ) async {
     final releases = await get();
+
     return releases.getLatestChannelRelease(channel.name);
   }
 
   /// Returns a [FlutterChannel] from a [version]
   static Future<Release?> getReleaseFromVersion(String version) async {
     final releases = await get();
+
     return releases.getReleaseFromVersion(version);
   }
 }

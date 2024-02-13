@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/utils/context.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
+
+import '../utils/context.dart';
+import 'base_service.dart';
 
 /// Sets default logger mode
 LoggerService get logger => getProvider();
@@ -58,6 +59,7 @@ class LoggerService extends ContextService {
       // Replace for a normal log
       logger.info(message);
     }
+
     return progress;
   }
 

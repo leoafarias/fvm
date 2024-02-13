@@ -1,8 +1,8 @@
-import 'package:fvm/src/utils/compare_semver.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/git_utils.dart';
+import '../utils/compare_semver.dart';
+import '../utils/extensions.dart';
+import '../utils/git_utils.dart';
 
-import '../../constants.dart';
+import '../utils/constants.dart';
 import '../utils/helpers.dart';
 
 /// Provides a structured way to handle Flutter SDK versions.
@@ -121,6 +121,7 @@ class FlutterVersion {
   int compareTo(FlutterVersion other) {
     final otherVersion = assignVersionWeight(other.version);
     final versionWeight = assignVersionWeight(version);
+
     return compareSemver(versionWeight, otherVersion);
   }
 

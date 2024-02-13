@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/version.g.dart';
+import '../utils/constants.dart';
+import '../services/logger_service.dart';
+import '../version.g.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
@@ -24,6 +24,7 @@ class UpdateCommand extends Command<int> {
     } catch (error) {
       updateCheckProgress.fail();
       logger.err('$error');
+
       return ExitCode.software.code;
     }
     updateCheckProgress.complete('Checked for updates');
@@ -31,6 +32,7 @@ class UpdateCommand extends Command<int> {
     final isUpToDate = packageVersion == latestVersion;
     if (isUpToDate) {
       logger.info('CLI is already at the latest version.');
+
       return ExitCode.success.code;
     }
 
@@ -45,12 +47,14 @@ class UpdateCommand extends Command<int> {
     } catch (error) {
       updateProgress.fail();
       logger.err('$error');
+
       return ExitCode.software.code;
     }
 
     if (result.exitCode != ExitCode.success.code) {
       updateProgress.fail();
       logger.err('Error updating CLI: ${result.stderr}');
+
       return ExitCode.software.code;
     }
 

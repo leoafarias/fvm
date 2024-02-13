@@ -1,12 +1,14 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
+import '../services/cache_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../services/releases_service/models/channels.model.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
+import '../utils/helpers.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
@@ -24,15 +26,15 @@ class UseCommand extends BaseCommand {
     argParser
       ..addFlag(
         'force',
-        help: 'Skips command guards that does Flutter project checks.',
         abbr: 'f',
+        help: 'Skips command guards that does Flutter project checks.',
         negatable: false,
       )
       ..addFlag(
         'pin',
+        abbr: 'p',
         help:
             '''If version provided is a channel. Will pin the latest release of the channel''',
-        abbr: 'p',
         negatable: false,
       )
       ..addOption(
@@ -43,8 +45,8 @@ class UseCommand extends BaseCommand {
       )
       ..addFlag(
         'skip-setup',
-        help: 'Skips Flutter setup after install',
         abbr: 's',
+        help: 'Skips Flutter setup after install',
         negatable: false,
       );
   }
@@ -64,7 +66,7 @@ class UseCommand extends BaseCommand {
       version = project.pinnedVersion?.name;
       final versions = await CacheService.fromContext.getAllVersions();
       // If no config found, ask which version to select.
-      version ??= await cacheVersionSelector(versions);
+      version ??= cacheVersionSelector(versions);
     }
 
     // Get version from first arg
@@ -115,8 +117,8 @@ class UseCommand extends BaseCommand {
       version: cacheVersion,
       project: project,
       force: forceOption,
-      flavor: flavorOption,
       skipSetup: skipSetup,
+      flavor: flavorOption,
     );
 
     return ExitCode.success.code;

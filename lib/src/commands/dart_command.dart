@@ -1,9 +1,10 @@
 import 'package:args/args.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/commands.dart';
 
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../utils/commands.dart';
+import '../utils/constants.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -40,6 +41,7 @@ class DartCommand extends BaseCommand {
       // Running null will default to dart version on path
     }
     final results = await runDart(args, version: cacheVersion);
+
     return results.exitCode;
   }
 }

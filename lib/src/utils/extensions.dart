@@ -8,6 +8,7 @@ extension ListExtension<T> on Iterable<T> {
         return element;
       }
     }
+
     return null;
   }
 }
@@ -76,6 +77,7 @@ extension StringExtensions on String {
     if (isEmpty) return this;
     final firstChar = substring(0, 1).toUpperCase();
     final remainingChars = substring(1);
+
     return '$firstChar$remainingChars';
   }
 }
