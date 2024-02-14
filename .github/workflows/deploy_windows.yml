@@ -16,6 +16,9 @@ jobs:
     
           - name: Prepare environment
             uses: ./.github/actions/prepare
+
+          - name: Build version and env
+            run: dart run grinder build-version --deploy-type=chocolatey
     
           - name: Deploy Github Windows
             run: dart run grinder pkg-github-windows
