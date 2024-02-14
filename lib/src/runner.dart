@@ -195,9 +195,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       ..detail('')
       ..detail('Argument information:');
 
-    final hasTopLevelOption = topLevelResults.options
-        .where((e) => topLevelResults.wasParsed(e))
-        .isNotEmpty;
+    final hasTopLevelOption =
+        topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
       logger.detail('  Top level options:');
@@ -214,9 +213,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       logger.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
-      final hasCommandOption = commandResult.options
-          .where((e) => commandResult.wasParsed(e))
-          .isNotEmpty;
+      final hasCommandOption =
+          commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
         logger.detail('  Command options:');

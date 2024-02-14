@@ -60,12 +60,15 @@ class FlutterReleases {
       _cacheReleasesRes = Releases.fromJson(response);
 
       return await Future.value(_cacheReleasesRes);
-    } on Exception {
-      throw AppException(
-        'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'
-        'Fvm will use the value set on '
-        'env FLUTTER_STORAGE_BASE_URL to check versions\n'
-        'if you are located in China, please see this page: https://flutter.dev/community/china',
+    } on Exception catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to retrieve the Flutter SDK from: ${getFlutterReleasesUrl(platform)}\n'
+          'Fvm will use the value set on '
+          'env FLUTTER_STORAGE_BASE_URL to check versions\n'
+          'if you are located in China, please see this page: https://flutter.dev/community/china',
+        ),
+        stackTrace,
       );
     }
   }

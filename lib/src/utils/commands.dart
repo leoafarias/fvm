@@ -1,10 +1,9 @@
 import 'dart:io';
 
+import '../models/cache_flutter_version_model.dart';
 import 'context.dart';
-import 'run_command.dart';
-
-import '../../fvm.dart';
 import 'helpers.dart';
+import 'run_command.dart';
 
 final _dartCmd = 'dart';
 final _flutterCmd = 'flutter';

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import '../../fvm.dart';
+import '../models/config_model.dart';
 import '../utils/constants.dart';
 import '../utils/helpers.dart';
 

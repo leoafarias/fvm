@@ -1,7 +1,8 @@
 import 'package:args/args.dart';
 
-import '../../fvm.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/constants.dart';
 import '../workflows/ensure_cache.workflow.dart';

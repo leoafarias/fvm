@@ -1,12 +1,14 @@
 import 'package:args/command_runner.dart';
-import '../../fvm.dart';
-import '../services/releases_service/releases_client.dart';
-import '../utils/helpers.dart';
-import '../workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
+import '../services/cache_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../services/releases_service/models/channels.model.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
+import '../utils/helpers.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 

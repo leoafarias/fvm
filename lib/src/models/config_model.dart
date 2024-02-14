@@ -96,7 +96,7 @@ class ConfigKeys {
   String get propKey => _recase.camelCase;
 
   @override
-  operator ==(other) => other is ConfigKeys && other.key == key;
+  operator ==(Object other) => other is ConfigKeys && other.key == key;
 
   @override
   int get hashCode => key.hashCode;
@@ -363,12 +363,13 @@ class ProjectConfig extends Config {
   }) {
     // merge map and override the keys
     final mergedFlavors = <String, String>{
-      if (this.flavors != null) ...this.flavors!,
+      if (this.flavors != null) ...?this.flavors,
+      // ignore: prefer-null-aware-spread
       if (flavors != null) ...flavors,
     };
 
     return ProjectConfig(
-      cachePath: cachePath ?? cachePath,
+      cachePath: cachePath ?? this.cachePath,
       useGitCache: useGitCache ?? this.useGitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,

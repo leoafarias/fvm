@@ -4,11 +4,13 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
-import '../../fvm.dart';
+import '../models/config_model.dart';
+import '../services/cache_service.dart';
 import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import 'constants.dart';
 
 final contextKey = ScopeKey<FVMContext>();
@@ -17,6 +19,7 @@ final contextKey = ScopeKey<FVMContext>();
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
+// ignore: avoid-dynamic
 typedef Generator = dynamic Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
@@ -56,9 +59,10 @@ class FVMContext {
     // Load config from file in config path
     final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
     final envConfig = ConfigRepository.loadEnv();
-    var appConfig = ConfigRepository.loadFile();
 
-    appConfig = appConfig.mergeConfig(envConfig).mergeConfig(projectConfig);
+    final appConfig = ConfigRepository.loadFile()
+        .mergeConfig(envConfig)
+        .mergeConfig(projectConfig);
 
     // Merge config from file with env config
     final config = appConfig.merge(configOverrides);

@@ -21,6 +21,7 @@ abstract class BaseCommand extends Command<int> {
   }
 
   /// Gets the parsed command-line option named [name] as `List<String>`.
+  // ignore: prefer-correct-json-casts
   List<String?> stringsArg(String name) => argResults![name] as List<String>;
   @override
   String get invocation => 'fvm $name';

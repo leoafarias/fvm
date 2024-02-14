@@ -6,13 +6,14 @@ import 'package:git/git.dart';
 import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../fvm.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/parsers/git_clone_update_printer.dart';
 import 'base_service.dart';
+import 'cache_service.dart';
 import 'logger_service.dart';
 import 'releases_service/releases_client.dart';
 
@@ -78,13 +79,16 @@ class FlutterService extends ContextService {
     ];
 
     try {
-      final result = await runGit([
-        'clone',
-        '--progress',
-        ...cloneArgs,
-        context.flutterUrl,
-        versionDir.path,
-      ], echoOutput: !(context.isTest || !logger.isVerbose));
+      final result = await runGit(
+        [
+          'clone',
+          '--progress',
+          ...cloneArgs,
+          context.flutterUrl,
+          versionDir.path,
+        ],
+        echoOutput: !(context.isTest || !logger.isVerbose),
+      );
 
       final gitVersionDir =
           CacheService(context).getVersionCacheDir(version.name);
@@ -166,7 +170,7 @@ class FlutterService extends ContextService {
 
     final tags = await getTags();
 
-    return tags.where((t) => t == tag).isNotEmpty;
+    return tags.any((t) => t == tag);
   }
 
   Future<List<String>> getTags() async {

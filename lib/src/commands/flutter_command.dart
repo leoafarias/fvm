@@ -1,7 +1,8 @@
 import 'package:args/args.dart';
 
-import '../../fvm.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/constants.dart';
 import '../utils/exceptions.dart';
@@ -23,7 +24,7 @@ class FlutterCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final version = ProjectService.fromContext.findVersion();
-    final args = [...argResults!.arguments];
+    final args = [...?argResults?.arguments];
 
     CacheFlutterVersion? cacheVersion;
 
