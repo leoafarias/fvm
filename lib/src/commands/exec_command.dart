@@ -1,10 +1,11 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
 
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import '../utils/commands.dart';
+import '../utils/constants.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -31,7 +32,7 @@ class ExecCommand extends BaseCommand {
     final cmd = argResults!.rest[0];
 
     // Removes version from first arg
-    final execArgs = [...argResults!.rest]..removeAt(0);
+    final execArgs = [...?argResults?.rest]..removeAt(0);
 
     // If no version is provided try to use global
     CacheFlutterVersion? cacheVersion;

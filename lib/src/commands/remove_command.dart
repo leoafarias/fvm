@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/logger_service.dart';
 import '../utils/console_utils.dart';
+import '../utils/constants.dart';
+import '../utils/context.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
@@ -21,8 +21,8 @@ class RemoveCommand extends BaseCommand {
   RemoveCommand() {
     argParser.addFlag(
       'all',
-      help: 'Removes all versions',
       abbr: 'a',
+      help: 'Removes all versions',
       negatable: false,
     );
   }
@@ -48,6 +48,7 @@ class RemoveCommand extends BaseCommand {
           );
         }
       }
+
       return ExitCode.success.code;
     }
 
@@ -55,7 +56,7 @@ class RemoveCommand extends BaseCommand {
 
     if (argResults!.rest.isEmpty) {
       final versions = await CacheService.fromContext.getAllVersions();
-      version = await cacheVersionSelector(versions);
+      version = cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
@@ -65,6 +66,7 @@ class RemoveCommand extends BaseCommand {
     // Check if version is installed
     if (cacheVersion == null) {
       logger.info('Flutter SDK: $validVersion is not installed');
+
       return ExitCode.success.code;
     }
 

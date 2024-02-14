@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
 import '../services/logger_service.dart';
 import '../utils/context.dart';
+import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
 
 /// Ensures that the specified Flutter SDK version is cached locally.

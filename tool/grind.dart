@@ -83,7 +83,7 @@ Future<void> getReleases() async {
 
   final stringBuffer = StringBuffer();
 
-  List<dynamic> releases = jsonDecode(response);
+  List releases = jsonDecode(response);
   for (var release in releases) {
     String tagName = release['tag_name'];
     String date = release['published_at'];

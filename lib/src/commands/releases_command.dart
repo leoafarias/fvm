@@ -22,10 +22,10 @@ class ReleasesCommand extends BaseCommand {
   ReleasesCommand() {
     argParser.addOption(
       'channel',
-      help: 'Filter by channel name',
-      defaultsTo: 'stable',
       abbr: 'c',
+      help: 'Filter by channel name',
       allowed: ['stable', 'beta', 'dev', 'all'],
+      defaultsTo: 'stable',
     );
   }
 
@@ -45,6 +45,7 @@ class ReleasesCommand extends BaseCommand {
       if (channelName == allChannel) {
         return false;
       }
+
       return release.channel.name != channelName;
     }
 

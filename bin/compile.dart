@@ -10,6 +10,7 @@ Future<void> main() async {
 
   if (os != 'macos' && os != 'linux') {
     print('Unsupported OS. Only MacOS and Linux are supported.');
+
     return;
   }
 
@@ -28,6 +29,7 @@ Future<void> main() async {
   // Error checking for compile process
   if (compileResult.exitCode != 0) {
     print('Error occurred in compilation:\n ${compileResult.stderr}');
+
     return;
   }
 

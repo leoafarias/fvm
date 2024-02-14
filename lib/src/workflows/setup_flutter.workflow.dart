@@ -1,5 +1,5 @@
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/services/logger_service.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../services/logger_service.dart';
 
 Future<void> setupFlutterWorkflow(CacheFlutterVersion version) async {
   logger

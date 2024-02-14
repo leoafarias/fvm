@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:fvm/src/models/config_model.dart';
-import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../models/config_model.dart';
+import '../models/project_model.dart';
+import 'base_service.dart';
+import '../utils/context.dart';
+import '../utils/extensions.dart';
+import '../utils/pretty_json.dart';
 import 'package:path/path.dart' as path;
 
 /// Flutter Project Services
@@ -57,6 +57,7 @@ class ProjectService extends ContextService {
   /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
   String? findVersion() {
     final project = findAncestor();
+
     return project.pinnedVersion?.name;
   }
 
@@ -77,9 +78,9 @@ class ProjectService extends ContextService {
     final newConfig = project.config ?? ProjectConfig();
 
     final config = newConfig.copyWith(
-      flavors: flavors,
       flutterSdkVersion: flutterSdkVersion,
       updateVscodeSettings: updateVscodeSettings,
+      flavors: flavors,
     );
 
     // Update flavors

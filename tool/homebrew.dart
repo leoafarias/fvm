@@ -34,7 +34,7 @@ Future<void> _homebrewFormula() async {
   final response = await fetch(url.toString(), headers: headers);
 
   final Map<String, dynamic> release = json.decode(response);
-  final List<dynamic> assets = release['assets'];
+  final List assets = release['assets'];
   final Map<String, dynamic> assetData = {};
 
   for (final asset in assets) {
@@ -85,8 +85,10 @@ Future<String> _downloadFile(
     // Calculate SHA-256 hash
     final sha256Hash = sha256.convert(bytes).toString();
     print('SHA-256 Hash: $sha256Hash');
+
     return sha256Hash;
   }
   print('Failed to download $filename: ${response.statusCode}');
+
   return '';
 }

@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/extensions.dart';
 import 'package:mason_logger/mason_logger.dart';
+
+import '../../services/logger_service.dart';
+import '../extensions.dart';
 
 final regexes = {
   'Enumerating objects:': RegExp(r'Enumerating objects: +(\d+)%'),
@@ -61,10 +62,12 @@ void printProgressBar(String label, int percentage) {
 Future<void> runGitCloneUpdate(List<String> args) async {
   final process = await Process.start('git', args);
 
+  // ignore: avoid-unassigned-stream-subscriptions
   process.stderr.transform(utf8.decoder).listen((line) {
     updateProgress(line);
   });
 
+  // ignore: avoid-unassigned-stream-subscriptions
   process.stdout.transform(utf8.decoder).listen((line) {
     logger.info(line);
   });

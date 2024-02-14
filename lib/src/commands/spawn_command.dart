@@ -30,7 +30,7 @@ class SpawnCommand extends BaseCommand {
     final version = argResults!.rest[0];
 
     // Removes version from first arg
-    final flutterArgs = [...argResults!.rest]..removeAt(0);
+    final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
     // Will install version if not already instaled
     final cacheVersion = await ensureCacheWorkflow(version);
@@ -38,6 +38,7 @@ class SpawnCommand extends BaseCommand {
     logger.info('Spawning version "$version"...');
 
     final results = await runFlutter(flutterArgs, version: cacheVersion);
+
     return results.exitCode;
   }
 }

@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:date_format/date_format.dart';
-import 'package:fvm/src/utils/git_utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../../constants.dart';
 import '../services/logger_service.dart';
+import 'constants.dart';
+import 'git_utils.dart';
 
 /// Checks if [name] is a channel
 
@@ -63,9 +63,12 @@ String assignVersionWeight(String version) {
   }
 
   try {
+    // Checking to throw an issue if it cannot parse
+    // ignore: avoid-unused-instances
     Version.parse(version);
   } on Exception {
     logger.warn('Version $version is not a valid semver');
+
     return '0.0.0';
   }
 
@@ -176,6 +179,7 @@ String extractDartVersionOutput(String input) {
 bool isValidGitUrl(String url) {
   try {
     final uri = Uri.parse(url);
+
     return uri.scheme.isNotEmpty &&
         (uri.host.isNotEmpty || uri.path.isNotEmpty) &&
         uri.path.endsWith('.git');

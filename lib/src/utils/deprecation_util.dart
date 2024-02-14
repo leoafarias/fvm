@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/context.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
+
+import '../models/config_model.dart';
+import '../services/config_repository.dart';
+import '../services/logger_service.dart';
+import 'constants.dart';
+import 'context.dart';
 
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
@@ -87,6 +88,7 @@ void _warnDeprecatedEnvVars() {
     if (!confirmation) {
       exit(ExitCode.success.code);
     }
+
     return;
   }
 
@@ -94,6 +96,4 @@ void _warnDeprecatedEnvVars() {
     logger.warn('$oldCachePathEnv environment variable is deprecated. ');
     logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
   }
-
-  if (flutterRoot == null || fvmHome == null) {}
 }

@@ -69,7 +69,7 @@ class Releases {
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
         'channels': channels.toMap(),
-        'releases': List<dynamic>.from(releases.map((x) => x.toMap())),
+        'releases': List.from(releases.map((x) => x.toMap())),
       };
 }
 
@@ -79,6 +79,7 @@ class Releases {
 Releases _parseCurrentReleases(Map<String, dynamic> map) {
   final baseUrl = map['base_url'] as String;
   final currentRelease = map['current_release'] as Map<String, dynamic>;
+  // ignore: avoid-dynamic
   final releasesJson = map['releases'] as List<dynamic>;
 
   final systemArch = 'x64';
@@ -125,8 +126,8 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
   final stableRelease = hashReleaseMap[stable];
 
   final channels = Channels(
-    dev: devRelease!,
     beta: betaRelease!,
+    dev: devRelease!,
     stable: stableRelease!,
   );
 
@@ -134,7 +135,7 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
     baseUrl: baseUrl,
     channels: channels,
     releases: releasesList,
-    versionReleaseMap: versionReleaseMap,
     hashReleaseMap: hashReleaseMap,
+    versionReleaseMap: versionReleaseMap,
   );
 }

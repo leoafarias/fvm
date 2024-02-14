@@ -51,10 +51,10 @@ class Release {
         channel: FlutterChannel.fromName(map['channel'] as String),
         version: map['version'] as String,
         releaseDate: DateTime.parse(map['release_date'] as String),
-        dartSdkArch: map['dart_sdk_arch'] as String?,
-        dartSdkVersion: map['dart_sdk_version'] as String?,
         archive: map['archive'] as String,
         sha256: map['sha256'] as String,
+        dartSdkArch: map['dart_sdk_arch'] as String?,
+        dartSdkVersion: map['dart_sdk_version'] as String?,
         activeChannel: map['active_channel'] as bool? ?? false,
       );
 

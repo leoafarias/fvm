@@ -1,8 +1,8 @@
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/services/global_version_service.dart';
-import 'package:fvm/src/services/releases_service/models/release.model.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import '../services/global_version_service.dart';
+import '../services/releases_service/models/release.model.dart';
+import '../services/releases_service/releases_client.dart';
+import '../utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
@@ -29,6 +29,7 @@ class ListCommand extends BaseCommand {
       logger
         ..info('No SDKs have been installed yet. Flutter. SDKs')
         ..info('installed outside of fvm will not be displayed.');
+
       return ExitCode.success.code;
     }
 
@@ -78,8 +79,10 @@ class ListCommand extends BaseCommand {
           if (latestRelease.version != version.flutterSdkVersion) {
             return '$flutterSdkVersion $rightArrow ${(green.wrap(latestRelease.version))}';
           }
+
           return flutterSdkVersion;
         }
+
         return flutterSdkVersion;
       }
 

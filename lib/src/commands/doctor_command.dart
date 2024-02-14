@@ -2,16 +2,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/which.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
+import '../models/config_model.dart';
+import '../models/project_model.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/constants.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/which.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
@@ -87,14 +89,17 @@ class DoctorCommand extends BaseCommand {
           table.insertRow(
             ['Matches pinned version:', sdkPath == relativeSymlinkPath],
           );
-        } on FormatException {
+        } on FormatException catch (_, stackTrace) {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
             ..err(
               'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
             );
-          throw AppException(
-            'Could not get vscode settings, please check settings.json',
+          Error.throwWithStackTrace(
+            AppException(
+              'Could not get vscode settings, please check settings.json',
+            ),
+            stackTrace,
           );
         }
       } else {
@@ -155,10 +160,7 @@ class DoctorCommand extends BaseCommand {
         ]);
       }
     } else {
-      table.insertRow([
-        kIntelliJ,
-        'No .idea folder found',
-      ]);
+      table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
     logger.write(table.toString());
@@ -198,7 +200,6 @@ class DoctorCommand extends BaseCommand {
     logger.write(table.toString());
   }
 
-  void printFVMDetails() {}
   @override
   Future<int> run() async {
     final project = ProjectService.fromContext.findAncestor();

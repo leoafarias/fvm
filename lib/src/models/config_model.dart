@@ -4,10 +4,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/change_case.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+
+import '../utils/change_case.dart';
+import '../utils/constants.dart';
+import '../utils/extensions.dart';
+import '../utils/pretty_json.dart';
 
 class ConfigKeys {
   final String key;
@@ -57,8 +58,8 @@ class ConfigKeys {
           ConfigKeys.useGitCache.paramKey,
           help:
               'Enable/Disable git cache globally, which is used for faster version installs.',
-          negatable: true,
           defaultsTo: true,
+          negatable: true,
         );
       },
       ConfigKeys.gitCachePath.key: () {
@@ -77,8 +78,8 @@ class ConfigKeys {
         argParser.addFlag(
           ConfigKeys.priviledgedAccess.paramKey,
           help: 'Enable/Disable priviledged access for FVM',
-          negatable: true,
           defaultsTo: true,
+          negatable: true,
         );
       },
     };
@@ -95,7 +96,7 @@ class ConfigKeys {
   String get propKey => _recase.camelCase;
 
   @override
-  operator ==(other) => other is ConfigKeys && other.key == key;
+  operator ==(Object other) => other is ConfigKeys && other.key == key;
 
   @override
   int get hashCode => key.hashCode;
@@ -188,16 +189,17 @@ class AppConfig extends Config {
 
   factory AppConfig.fromMap(Map<String, dynamic> map) {
     final envConfig = Config.fromMap(map);
+
     return AppConfig(
-      cachePath: envConfig.cachePath,
-      gitCachePath: envConfig.gitCachePath,
-      flutterUrl: envConfig.flutterUrl,
-      useGitCache: envConfig.useGitCache,
-      priviledgedAccess: envConfig.priviledgedAccess,
       disableUpdateCheck: map['disableUpdateCheck'] as bool?,
       lastUpdateCheck: map['lastUpdateCheck'] != null
           ? DateTime.parse(map['lastUpdateCheck'] as String)
           : null,
+      cachePath: envConfig.cachePath,
+      useGitCache: envConfig.useGitCache,
+      gitCachePath: envConfig.gitCachePath,
+      flutterUrl: envConfig.flutterUrl,
+      priviledgedAccess: envConfig.priviledgedAccess,
     );
   }
 
@@ -223,13 +225,13 @@ class AppConfig extends Config {
     bool? priviledgedAccess,
   }) {
     return AppConfig(
+      disableUpdateCheck: disableUpdateCheck ?? this.disableUpdateCheck,
+      lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
       cachePath: cachePath ?? this.cachePath,
       useGitCache: useGitCache ?? this.useGitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
-      disableUpdateCheck: disableUpdateCheck ?? this.disableUpdateCheck,
       priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
-      lastUpdateCheck: lastUpdateCheck ?? this.lastUpdateCheck,
     );
   }
 
@@ -240,8 +242,8 @@ class AppConfig extends Config {
       gitCachePath: config?.gitCachePath,
       flutterUrl: config?.flutterUrl,
       disableUpdateCheck: config?.disableUpdateCheck,
-      priviledgedAccess: config?.priviledgedAccess,
       lastUpdateCheck: config?.lastUpdateCheck,
+      priviledgedAccess: config?.priviledgedAccess,
     );
   }
 
@@ -308,17 +310,18 @@ class ProjectConfig extends Config {
   /// Returns ConfigDto from a map
   factory ProjectConfig.fromMap(Map<String, dynamic> map) {
     final envConfig = Config.fromMap(map);
+
     return ProjectConfig(
       cachePath: envConfig.cachePath,
+      useGitCache: envConfig.useGitCache,
       gitCachePath: envConfig.gitCachePath,
       flutterUrl: envConfig.flutterUrl,
-      useGitCache: envConfig.useGitCache,
       priviledgedAccess: envConfig.priviledgedAccess,
-      updateGitIgnore: map['updateGitIgnore'] as bool?,
       flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
-      updateVscodeSettings: map['updateVscodeSettings'] as bool?,
-      runPubGetOnSdkChanges: map['runPubGetOnSdkChanges'] as bool?,
       flavors: map['flavors'] != null ? Map.from(map['flavors'] as Map) : null,
+      updateVscodeSettings: map['updateVscodeSettings'] as bool?,
+      updateGitIgnore: map['updateGitIgnore'] as bool?,
+      runPubGetOnSdkChanges: map['runPubGetOnSdkChanges'] as bool?,
     );
   }
 
@@ -360,36 +363,37 @@ class ProjectConfig extends Config {
   }) {
     // merge map and override the keys
     final mergedFlavors = <String, String>{
-      if (this.flavors != null) ...this.flavors!,
+      if (this.flavors != null) ...?this.flavors,
+      // ignore: prefer-null-aware-spread
       if (flavors != null) ...flavors,
     };
 
     return ProjectConfig(
-      cachePath: cachePath ?? cachePath,
-      flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
-      flavors: mergedFlavors,
-      priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
-      updateVscodeSettings: updateVscodeSettings ?? _updateVscodeSettings,
-      runPubGetOnSdkChanges: runPubGetOnSdkChanges ?? _runPubGetOnSdkChanges,
-      updateGitIgnore: updateGitIgnore ?? _updateGitIgnore,
+      cachePath: cachePath ?? this.cachePath,
       useGitCache: useGitCache ?? this.useGitCache,
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
+      priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
+      flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
+      flavors: mergedFlavors,
+      updateVscodeSettings: updateVscodeSettings ?? _updateVscodeSettings,
+      updateGitIgnore: updateGitIgnore ?? _updateGitIgnore,
+      runPubGetOnSdkChanges: runPubGetOnSdkChanges ?? _runPubGetOnSdkChanges,
     );
   }
 
   ProjectConfig merge(ProjectConfig config) {
     return copyWith(
       cachePath: config.cachePath,
-      useGitCache: config.useGitCache,
-      gitCachePath: config.gitCachePath,
-      flutterUrl: config.flutterUrl,
       flutterSdkVersion: config.flutterSdkVersion,
-      priviledgedAccess: config.priviledgedAccess,
-      flavors: config.flavors,
+      useGitCache: config.useGitCache,
       updateVscodeSettings: config._updateVscodeSettings,
       updateGitIgnore: config._updateGitIgnore,
       runPubGetOnSdkChanges: config._runPubGetOnSdkChanges,
+      priviledgedAccess: config.priviledgedAccess,
+      gitCachePath: config.gitCachePath,
+      flutterUrl: config.flutterUrl,
+      flavors: config.flavors,
     );
   }
 

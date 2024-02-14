@@ -3,29 +3,29 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/commands/global_command.dart';
-import 'package:fvm/src/commands/update_command.dart';
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/deprecation_util.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-import '../exceptions.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
 import 'commands/flutter_command.dart';
+import 'commands/global_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
+import 'commands/update_command.dart';
 import 'commands/use_command.dart';
+import 'services/config_repository.dart';
+import 'services/logger_service.dart';
+import 'utils/constants.dart';
+import 'utils/context.dart';
+import 'utils/deprecation_util.dart';
+import 'utils/exceptions.dart';
 import 'version.g.dart';
 
 /// Command Runner for FVM
@@ -41,8 +41,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       ..addFlag(
         'version',
         abbr: 'v',
-        negatable: false,
         help: 'Print the current version.',
+        negatable: false,
       );
     addCommand(InstallCommand());
     addCommand(UseCommand());
@@ -142,6 +142,7 @@ class FvmCommandRunner extends CommandRunner<int> {
           "Try running with sudo or administrator priviledges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
         );
+
         return ExitCode.noPerm.code;
       }
 
@@ -179,6 +180,7 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..err(err.toString());
 
       _printTrace(stackTrace);
+
       return ExitCode.unavailable.code;
     } finally {
       // Add spacer after the last line always
@@ -193,9 +195,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       ..detail('')
       ..detail('Argument information:');
 
-    final hasTopLevelOption = topLevelResults.options
-        .where((e) => topLevelResults.wasParsed(e))
-        .isNotEmpty;
+    final hasTopLevelOption =
+        topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
       logger.detail('  Top level options:');
@@ -212,9 +213,8 @@ class FvmCommandRunner extends CommandRunner<int> {
       logger.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
-      final hasCommandOption = commandResult.options
-          .where((e) => commandResult.wasParsed(e))
-          .isNotEmpty;
+      final hasCommandOption =
+          commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
         logger.detail('  Command options:');

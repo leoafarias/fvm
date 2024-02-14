@@ -55,6 +55,7 @@ String get _configHome {
     if (appdata == null) {
       throw Exception('Environment variable %APPDATA% is not defined!');
     }
+
     return appdata;
   }
 
@@ -67,6 +68,7 @@ String get _configHome {
     if (xdgConfigHome != null) {
       return xdgConfigHome;
     }
+
     // XDG Base Directory Specification says to use $HOME/.config/ when
     // $XDG_CONFIG_HOME isn't defined.
     return join(kUserHome, '.config');
