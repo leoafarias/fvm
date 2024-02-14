@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/services/global_version_service.dart';
-import 'package:fvm/src/services/logger_service.dart';
+import '../services/config_repository.dart';
+import '../services/flutter_service.dart';
+import '../services/global_version_service.dart';
+import '../services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';

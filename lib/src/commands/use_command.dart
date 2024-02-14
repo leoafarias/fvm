@@ -1,8 +1,8 @@
 import 'package:args/command_runner.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import '../../fvm.dart';
+import '../services/releases_service/releases_client.dart';
+import '../utils/helpers.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 
 import '../services/logger_service.dart';
@@ -64,7 +64,7 @@ class UseCommand extends BaseCommand {
       version = project.pinnedVersion?.name;
       final versions = await CacheService.fromContext.getAllVersions();
       // If no config found, ask which version to select.
-      version ??= await cacheVersionSelector(versions);
+      version ??= cacheVersionSelector(versions);
     }
 
     // Get version from first arg

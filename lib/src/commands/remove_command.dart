@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/context.dart';
+import '../../constants.dart';
+import '../utils/context.dart';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
@@ -55,7 +55,7 @@ class RemoveCommand extends BaseCommand {
 
     if (argResults!.rest.isEmpty) {
       final versions = await CacheService.fromContext.getAllVersions();
-      version = await cacheVersionSelector(versions);
+      version = cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];

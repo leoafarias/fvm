@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:date_format/date_format.dart';
-import 'package:fvm/src/utils/git_utils.dart';
+import 'git_utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../../constants.dart';

@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/project_model.dart';
-import 'package:fvm/src/services/logger_service.dart';
+import '../../exceptions.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../models/project_model.dart';
+import '../services/logger_service.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 Future<void> resolveDependenciesWorkflow(

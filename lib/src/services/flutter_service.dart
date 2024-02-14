@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/parsers/git_clone_update_printer.dart';
+import 'base_service.dart';
+import 'logger_service.dart';
+import 'releases_service/releases_client.dart';
+import '../utils/context.dart';
+import '../utils/parsers/git_clone_update_printer.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';

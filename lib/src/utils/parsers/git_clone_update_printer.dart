@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/extensions.dart';
+import '../../services/logger_service.dart';
+import '../extensions.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 final regexes = {

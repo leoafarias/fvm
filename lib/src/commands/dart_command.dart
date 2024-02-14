@@ -1,7 +1,7 @@
 import 'package:args/args.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/commands.dart';
+import '../../constants.dart';
+import '../../fvm.dart';
+import '../utils/commands.dart';
 
 import '../services/logger_service.dart';
 import '../workflows/ensure_cache.workflow.dart';

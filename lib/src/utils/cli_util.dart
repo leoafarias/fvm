@@ -6,7 +6,7 @@
 
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
+import '../../constants.dart';
 import 'package:path/path.dart' as path;
 
 /// Return the path to the current Dart SDK.

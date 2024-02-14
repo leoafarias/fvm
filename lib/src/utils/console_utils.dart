@@ -1,5 +1,5 @@
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import '../models/cache_flutter_version_model.dart';
 
 import '../../exceptions.dart';
 import '../services/logger_service.dart';

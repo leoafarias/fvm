@@ -1,7 +1,7 @@
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/logger_service.dart';
+import '../../constants.dart';
+import '../../fvm.dart';
+import '../services/config_repository.dart';
+import '../services/logger_service.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 

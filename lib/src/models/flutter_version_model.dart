@@ -1,6 +1,6 @@
-import 'package:fvm/src/utils/compare_semver.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/git_utils.dart';
+import '../utils/compare_semver.dart';
+import '../utils/extensions.dart';
+import '../utils/git_utils.dart';
 
 import '../../constants.dart';
 import '../utils/helpers.dart';

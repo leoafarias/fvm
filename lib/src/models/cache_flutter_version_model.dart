@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/utils/commands.dart';
-import 'package:fvm/src/utils/compare_semver.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import 'flutter_version_model.dart';
+import '../utils/commands.dart';
+import '../utils/compare_semver.dart';
+import '../utils/extensions.dart';
+import '../utils/helpers.dart';
 import 'package:path/path.dart';
 
 import '../../constants.dart';

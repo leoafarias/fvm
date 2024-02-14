@@ -1,11 +1,11 @@
 import 'dart:io';
 
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/base_service.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/extensions.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../models/flutter_version_model.dart';
+import 'base_service.dart';
+import 'cache_service.dart';
+import '../utils/context.dart';
+import '../utils/extensions.dart';
 import 'package:path/path.dart' as path;
 
 class GlobalVersionService extends ContextService {

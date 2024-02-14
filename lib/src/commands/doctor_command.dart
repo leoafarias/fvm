@@ -2,12 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/exceptions.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/which.dart';
+import '../../constants.dart';
+import '../../exceptions.dart';
+import '../../fvm.dart';
+import '../utils/console_utils.dart';
+import '../utils/context.dart';
+import '../utils/which.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 

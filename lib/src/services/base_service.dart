@@ -1,4 +1,4 @@
-import 'package:fvm/src/utils/context.dart';
+import '../utils/context.dart';
 
 abstract class ContextService {
   final FVMContext? _context;

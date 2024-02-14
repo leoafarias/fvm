@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/config_repository.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/context.dart';
+import '../../constants.dart';
+import '../../fvm.dart';
+import '../services/config_repository.dart';
+import '../services/logger_service.dart';
+import 'context.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 

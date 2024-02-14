@@ -1,12 +1,12 @@
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/services/global_version_service.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/console_utils.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/utils/which.dart';
+import '../../constants.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../services/global_version_service.dart';
+import '../services/logger_service.dart';
+import '../services/project_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/context.dart';
+import '../utils/helpers.dart';
+import '../utils/which.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
@@ -32,7 +32,7 @@ class GlobalCommand extends BaseCommand {
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
       final versions = await CacheService.fromContext.getAllVersions();
-      version = await cacheVersionSelector(versions);
+      version = cacheVersionSelector(versions);
     }
 
     // Get first arg if it was not empty

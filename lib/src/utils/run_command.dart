@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/context.dart';
+import '../services/logger_service.dart';
+import 'context.dart';
 
 Future<ProcessResult> runCommand(
   String command, {

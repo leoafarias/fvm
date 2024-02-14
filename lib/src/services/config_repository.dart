@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/helpers.dart';
+import '../../constants.dart';
+import '../utils/helpers.dart';
 
 import '../../fvm.dart';
 

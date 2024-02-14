@@ -321,7 +321,6 @@ void _manageVscodeSettings(Project project) {
         from: ctx.workingDirectory,
       );
 
-
       Error.throwWithStackTrace(
         AppDetailedException(
           'Error parsing $kVsCode settings at $relativePath',

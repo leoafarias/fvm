@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:fvm/src/services/releases_service/models/channels.model.dart';
-import 'package:fvm/src/services/releases_service/models/release.model.dart';
-import 'package:fvm/src/utils/http.dart';
+import 'models/channels.model.dart';
+import 'models/release.model.dart';
+import '../../utils/http.dart';
 
 import '../../../exceptions.dart';
 import '../logger_service.dart';

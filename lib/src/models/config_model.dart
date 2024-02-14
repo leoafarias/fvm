@@ -4,10 +4,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:fvm/constants.dart';
-import 'package:fvm/src/utils/change_case.dart';
-import 'package:fvm/src/utils/extensions.dart';
-import 'package:fvm/src/utils/pretty_json.dart';
+import '../../constants.dart';
+import '../utils/change_case.dart';
+import '../utils/extensions.dart';
+import '../utils/pretty_json.dart';
 
 class ConfigKeys {
   final String key;

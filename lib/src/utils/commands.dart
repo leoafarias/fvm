@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/run_command.dart';
+import 'context.dart';
+import 'run_command.dart';
 
 import '../../fvm.dart';
 import 'helpers.dart';

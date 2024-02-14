@@ -1,7 +1,5 @@
 include: package:lints/recommended.yaml
 analyzer:
-  exclude: 
-    - "**/*.g.dart"
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.
 linter:
@@ -25,15 +23,17 @@ dart_code_metrics:
         only-in-src: true
     prefer-match-file-name: false
     prefer-correct-callback-field-name: false
-    # Remove later when cleaning up
-    prefer-single-widget-per-file: false
-    # End of remove later
     match-getter-setter-field-names: false
+    avoid-duplicate-cascades: false
     prefer-dedicated-media-query-methods: false
     avoid-shadowing: false
+    avoid-duplicate-initializers: false
     enum-constants-ordering: false
+    avoid-accessing-collections-by-constant-index: false
     avoid-unsafe-collection-methods: false
+    move-variable-closer-to-its-usage: false
     prefer-prefixed-global-constants: false
+    avoid-nullable-interpolation: false
     avoid-returning-widgets: false
     arguments-ordering:
       child-last: true
