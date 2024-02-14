@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../constants.dart';
+import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart';
+
 import '../../fvm.dart';
 import '../services/config_repository.dart';
 import '../services/logger_service.dart';
+import 'constants.dart';
 import 'context.dart';
-import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart';
 
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
@@ -87,6 +88,7 @@ void _warnDeprecatedEnvVars() {
     if (!confirmation) {
       exit(ExitCode.success.code);
     }
+
     return;
   }
 

@@ -1,16 +1,16 @@
-import '../../constants.dart';
+import 'package:mason_logger/mason_logger.dart';
+import 'package:tint/tint.dart';
+
 import '../models/cache_flutter_version_model.dart';
+import '../services/cache_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
+import '../utils/constants.dart';
 import '../utils/context.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
-import 'package:mason_logger/mason_logger.dart';
-import 'package:tint/tint.dart';
-
-import '../services/cache_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 

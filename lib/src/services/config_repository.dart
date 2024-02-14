@@ -1,9 +1,8 @@
 import 'dart:io';
 
-import '../../constants.dart';
-import '../utils/helpers.dart';
-
 import '../../fvm.dart';
+import '../utils/constants.dart';
+import '../utils/helpers.dart';
 
 const String flutterGitUrl = 'FLUTTER_GIT_URL';
 

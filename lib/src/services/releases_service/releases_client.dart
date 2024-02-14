@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'models/channels.model.dart';
-import 'models/release.model.dart';
+import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
-
-import '../../../exceptions.dart';
 import '../logger_service.dart';
+import 'models/channels.model.dart';
 import 'models/flutter_releases.model.dart';
+import 'models/release.model.dart';
 
 final _envVars = Platform.environment;
 final _storageUrl = 'https://storage.googleapis.com';
@@ -46,9 +45,11 @@ class FlutterReleases {
       final response = await fetch(releasesUrl);
 
       _cacheReleasesRes = Releases.fromJson(response);
+
       return await Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
       logger.detail(err.toString());
+
       return _getFromFlutterUrl(platform);
     }
   }
@@ -57,6 +58,7 @@ class FlutterReleases {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
       _cacheReleasesRes = Releases.fromJson(response);
+
       return await Future.value(_cacheReleasesRes);
     } on Exception {
       throw AppException(
@@ -73,12 +75,14 @@ class FlutterReleases {
     FlutterChannel channel,
   ) async {
     final releases = await get();
+
     return releases.getLatestChannelRelease(channel.name);
   }
 
   /// Returns a [FlutterChannel] from a [version]
   static Future<Release?> getReleaseFromVersion(String version) async {
     final releases = await get();
+
     return releases.getReleaseFromVersion(version);
   }
 }

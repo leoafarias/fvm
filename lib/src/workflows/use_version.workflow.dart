@@ -7,13 +7,13 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../../constants.dart';
-import '../../exceptions.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
+import '../utils/constants.dart';
 import '../utils/context.dart';
+import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
 import '../utils/pretty_json.dart';

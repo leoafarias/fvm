@@ -1,10 +1,10 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
-import '../../constants.dart';
-import '../../fvm.dart';
 
+import '../../fvm.dart';
 import '../services/logger_service.dart';
 import '../utils/commands.dart';
+import '../utils/constants.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 

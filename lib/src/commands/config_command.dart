@@ -1,10 +1,10 @@
-import '../../constants.dart';
-import '../../fvm.dart';
-import '../services/config_repository.dart';
-import '../services/logger_service.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
 
+import '../../fvm.dart';
+import '../services/config_repository.dart';
+import '../services/logger_service.dart';
+import '../utils/constants.dart';
 import '../utils/context.dart';
 import 'base_command.dart';
 

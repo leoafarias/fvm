@@ -2,16 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
-import '../../constants.dart';
-import '../../exceptions.dart';
-import '../../fvm.dart';
-import '../utils/console_utils.dart';
-import '../utils/context.dart';
-import '../utils/which.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
+import '../../fvm.dart';
 import '../services/logger_service.dart';
+import '../utils/console_utils.dart';
+import '../utils/constants.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/which.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
@@ -155,10 +155,7 @@ class DoctorCommand extends BaseCommand {
         ]);
       }
     } else {
-      table.insertRow([
-        kIntelliJ,
-        'No .idea folder found',
-      ]);
+      table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
     logger.write(table.toString());

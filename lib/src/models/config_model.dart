@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import '../../constants.dart';
+
 import '../utils/change_case.dart';
+import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
 

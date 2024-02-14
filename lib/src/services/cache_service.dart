@@ -1,14 +1,14 @@
 import 'dart:io';
 
-import '../../exceptions.dart';
-import 'base_service.dart';
-import '../utils/context.dart';
-import '../utils/extensions.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/extensions.dart';
+import 'base_service.dart';
 
 enum CacheIntegrity {
   valid,
@@ -34,6 +34,7 @@ class CacheService extends ContextService {
     if (version.isChannel) return true;
     // If sdkVersion is not available return true
     if (version.flutterSdkVersion == null) return true;
+
     return version.flutterSdkVersion == version.version;
   }
 
@@ -45,6 +46,7 @@ class CacheService extends ContextService {
     final versionDir = getVersionCacheDir(version.name);
     // Return null if version does not exist
     if (!versionDir.existsSync()) return null;
+
     return CacheFlutterVersion(version, directory: versionDir.path);
   }
 

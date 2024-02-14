@@ -6,8 +6,9 @@
 
 import 'dart:io';
 
-import '../../constants.dart';
 import 'package:path/path.dart' as path;
+
+import 'constants.dart';
 
 /// Return the path to the current Dart SDK.
 String getSdkPath() => path.dirname(path.dirname(Platform.resolvedExecutable));
@@ -33,6 +34,7 @@ String get _configHome {
     if (xdgConfigHome != null) {
       return xdgConfigHome;
     }
+
     // XDG Base Directory Specification says to use $HOME/.config/ when
     // $XDG_CONFIG_HOME isn't defined.
     return path.join(kUserHome, '.config');

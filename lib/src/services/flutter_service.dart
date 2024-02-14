@@ -2,19 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'base_service.dart';
-import 'logger_service.dart';
-import 'releases_service/releases_client.dart';
-import '../utils/context.dart';
-import '../utils/parsers/git_clone_update_printer.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart' as io;
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../exceptions.dart';
 import '../../fvm.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/commands.dart';
+import '../utils/context.dart';
+import '../utils/exceptions.dart';
+import '../utils/parsers/git_clone_update_printer.dart';
+import 'base_service.dart';
+import 'logger_service.dart';
+import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextService {
@@ -152,6 +152,7 @@ class FlutterService extends ContextService {
     if (commitSha == null) {
       return false;
     }
+
     return commit.contains(commitSha);
   }
 
@@ -164,6 +165,7 @@ class FlutterService extends ContextService {
     }
 
     final tags = await getTags();
+
     return tags.where((t) => t == tag).isNotEmpty;
   }
 

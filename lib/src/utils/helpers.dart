@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:date_format/date_format.dart';
-import 'git_utils.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../../constants.dart';
 import '../services/logger_service.dart';
+import 'constants.dart';
+import 'git_utils.dart';
 
 /// Checks if [name] is a channel
 

@@ -1,8 +1,8 @@
 import 'package:dart_console/dart_console.dart';
-import '../models/cache_flutter_version_model.dart';
 
-import '../../exceptions.dart';
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
+import 'exceptions.dart';
 
 Table createTable([List<String> columns = const []]) {
   final table = Table()
@@ -14,6 +14,7 @@ Table createTable([List<String> columns = const []]) {
   for (final column in columns) {
     table.insertColumn(header: column, alignment: TextAlignment.left);
   }
+
   return table;
 }
 

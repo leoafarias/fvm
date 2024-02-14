@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'flutter_version_model.dart';
-import '../utils/commands.dart';
-import '../utils/compare_semver.dart';
-import '../utils/extensions.dart';
-import '../utils/helpers.dart';
 import 'package:path/path.dart';
 
-import '../../constants.dart';
+import '../utils/commands.dart';
+import '../utils/compare_semver.dart';
+import '../utils/constants.dart';
+import '../utils/extensions.dart';
+import '../utils/helpers.dart';
+import 'flutter_version_model.dart';
 
 /// Cache Version model
 class CacheFlutterVersion extends FlutterVersion {
@@ -41,6 +41,7 @@ class CacheFlutterVersion extends FlutterVersion {
     /// Get old bin path
     /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
     if (hasOldBinPath) return join(_dartSdkCache, 'bin');
+
     return binPath;
   }
 
@@ -53,11 +54,13 @@ class CacheFlutterVersion extends FlutterVersion {
   /// Gets Flutter SDK version from CacheVersion sync
   String? get flutterSdkVersion {
     final versionFile = join(directory, 'version');
+
     return versionFile.file.read()?.trim();
   }
 
   String? get dartSdkVersion {
     final versionFile = join(_dartSdkCache, 'version');
+
     return versionFile.file.read()?.trim();
   }
 
