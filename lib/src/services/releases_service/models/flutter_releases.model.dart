@@ -125,8 +125,8 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
   final stableRelease = hashReleaseMap[stable];
 
   final channels = Channels(
-    dev: devRelease!,
     beta: betaRelease!,
+    dev: devRelease!,
     stable: stableRelease!,
   );
 
@@ -134,7 +134,7 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
     baseUrl: baseUrl,
     channels: channels,
     releases: releasesList,
-    versionReleaseMap: versionReleaseMap,
     hashReleaseMap: hashReleaseMap,
+    versionReleaseMap: versionReleaseMap,
   );
 }

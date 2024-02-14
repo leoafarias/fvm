@@ -22,22 +22,23 @@ Future<ProcessResult> runCommand(
     processResult = await Process.run(
       command,
       args,
+      workingDirectory: workingDirectory,
       environment: environment,
       runInShell: true,
-      workingDirectory: workingDirectory,
     );
 
     if (throwOnError) {
       _throwIfProcessFailed(processResult, command, args);
     }
+
     return processResult;
   }
   final process = await Process.start(
     command,
     args,
+    workingDirectory: workingDirectory,
     environment: environment,
     runInShell: true,
-    workingDirectory: workingDirectory,
     mode: ProcessStartMode.inheritStdio,
   );
 
@@ -50,6 +51,7 @@ Future<ProcessResult> runCommand(
   if (throwOnError) {
     _throwIfProcessFailed(processResult, command, args);
   }
+
   return processResult;
 }
 

@@ -29,6 +29,7 @@ class ListCommand extends BaseCommand {
       logger
         ..info('No SDKs have been installed yet. Flutter. SDKs')
         ..info('installed outside of fvm will not be displayed.');
+
       return ExitCode.success.code;
     }
 
@@ -78,8 +79,10 @@ class ListCommand extends BaseCommand {
           if (latestRelease.version != version.flutterSdkVersion) {
             return '$flutterSdkVersion $rightArrow ${(green.wrap(latestRelease.version))}';
           }
+
           return flutterSdkVersion;
         }
+
         return flutterSdkVersion;
       }
 

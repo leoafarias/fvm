@@ -27,6 +27,7 @@ class GlobalVersionService extends ContextService {
     final version = path.basename(_globalCacheLink.targetSync());
     // Make sure its a valid version
     final validVersion = FlutterVersion.parse(version);
+
     // Verify version is cached
     return CacheService(context).getVersion(validVersion);
   }
@@ -34,12 +35,14 @@ class GlobalVersionService extends ContextService {
   /// Checks if a cached [version] is configured as global
   bool isGlobal(CacheFlutterVersion version) {
     if (!_globalCacheLink.existsSync()) return false;
+
     return _globalCacheLink.targetSync() == version.directory;
   }
 
   /// Returns a global version name if exists
   String? getGlobalVersion() {
     if (!_globalCacheLink.existsSync()) return null;
+
     // Get directory name
     return path.basename(_globalCacheLink.targetSync());
   }

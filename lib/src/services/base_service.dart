@@ -7,6 +7,7 @@ abstract class ContextService {
   /// Gets context, if no context is passed will get from scope
   FVMContext get context {
     if (_context == null) return ctx;
+
     return _context!;
   }
 }

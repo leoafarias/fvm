@@ -21,6 +21,7 @@ String? which(String command, {bool binDir = false}) {
 
     if (exec.existsSync()) {
       final exectPath = exec.absolute.path;
+
       return binDir ? dirname(exectPath) : exectPath;
     }
 
@@ -30,6 +31,7 @@ String? which(String command, {bool binDir = false}) {
         exec = File(winPath);
         if (exec.existsSync()) {
           final exectPath = exec.absolute.path;
+
           return binDir ? dirname(exectPath) : exectPath;
         }
       }

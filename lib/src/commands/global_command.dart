@@ -97,6 +97,7 @@ class GlobalCommand extends BaseCommand {
         )
         ..info('Run the command outside of the IDE to verify.');
     }
+
     return ExitCode.success.code;
   }
 

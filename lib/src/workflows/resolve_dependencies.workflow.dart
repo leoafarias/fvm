@@ -23,6 +23,7 @@ Future<void> resolveDependenciesWorkflow(
     logger
       ..info('Skipping "pub get" because of config setting.')
       ..spacer;
+
     return;
   }
 
@@ -55,6 +56,7 @@ Future<void> resolveDependenciesWorkflow(
       if (!confirmation) {
         throw AppException('Dependencies not resolved.');
       }
+
       return;
     }
   }
@@ -94,6 +96,7 @@ void logDetails(CacheFlutterVersion version, Project project) {
 
   if (dartToolVersion == flutterSdkVersion) {
     logger.detail('✅ Dart tool version matches SDK version, skipping resolve.');
+
     return;
   }
 

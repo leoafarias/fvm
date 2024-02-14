@@ -9,5 +9,6 @@ int compareSemver(String version, String otherVersion) {
   // Use the built-in comparison
   if (ver1 < ver2) return -1;
   if (ver1 > ver2) return 1;
+
   return 0; // versions are equal
 }

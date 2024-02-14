@@ -24,15 +24,15 @@ class UseCommand extends BaseCommand {
     argParser
       ..addFlag(
         'force',
-        help: 'Skips command guards that does Flutter project checks.',
         abbr: 'f',
+        help: 'Skips command guards that does Flutter project checks.',
         negatable: false,
       )
       ..addFlag(
         'pin',
+        abbr: 'p',
         help:
             '''If version provided is a channel. Will pin the latest release of the channel''',
-        abbr: 'p',
         negatable: false,
       )
       ..addOption(
@@ -43,8 +43,8 @@ class UseCommand extends BaseCommand {
       )
       ..addFlag(
         'skip-setup',
-        help: 'Skips Flutter setup after install',
         abbr: 's',
+        help: 'Skips Flutter setup after install',
         negatable: false,
       );
   }
@@ -115,8 +115,8 @@ class UseCommand extends BaseCommand {
       version: cacheVersion,
       project: project,
       force: forceOption,
-      flavor: flavorOption,
       skipSetup: skipSetup,
+      flavor: flavorOption,
     );
 
     return ExitCode.success.code;

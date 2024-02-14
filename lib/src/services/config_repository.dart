@@ -13,6 +13,7 @@ class ConfigRepository {
   static AppConfig loadFile() {
     final appConfig = AppConfig.loadFromPath(_configPath);
     if (appConfig != null) return appConfig;
+
     return AppConfig.empty();
   }
 

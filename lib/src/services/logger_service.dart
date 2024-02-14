@@ -58,6 +58,7 @@ class LoggerService extends ContextService {
       // Replace for a normal log
       logger.info(message);
     }
+
     return progress;
   }
 

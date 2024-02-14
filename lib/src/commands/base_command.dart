@@ -16,6 +16,7 @@ abstract class BaseCommand extends Command<int> {
     if (arg == 'null' || (arg == null || arg.isEmpty)) {
       return null;
     }
+
     return arg;
   }
 

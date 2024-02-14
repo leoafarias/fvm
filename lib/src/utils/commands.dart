@@ -19,6 +19,7 @@ Future<ProcessResult> runFlutter(
   if (version == null) {
     return _runCmd(_flutterCmd, args: args);
   }
+
   return _runOnVersion(
     _flutterCmd,
     version,
@@ -38,6 +39,7 @@ Future<ProcessResult> runDart(
   if (version == null) {
     return _runCmd(_dartCmd, args: args);
   }
+
   return _runOnVersion(
     _dartCmd,
     version,
@@ -61,10 +63,7 @@ Future<ProcessResult> _runOnVersion(
 
   // Update environment
   final environment = updateEnvironmentVariables(
-    [
-      version.binPath,
-      version.dartBinPath,
-    ],
+    [version.binPath, version.dartBinPath],
     ctx.environment,
   );
 
@@ -89,10 +88,7 @@ Future<ProcessResult> execCmd(
   var environment = ctx.environment;
   if (version != null) {
     environment = updateEnvironmentVariables(
-      [
-        version.binPath,
-        version.dartBinPath,
-      ],
+      [version.binPath, version.dartBinPath],
       ctx.environment,
     );
   }
@@ -110,6 +106,7 @@ Future<ProcessResult> _runCmd(
 }) async {
   echoOutput ??= true;
   throwOnError ??= false;
+
   return await runCommand(
     execPath,
     args: args,

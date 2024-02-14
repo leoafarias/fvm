@@ -55,7 +55,7 @@ class Project {
         ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
         : null;
 
-    return Project(path: path, pubspec: pubspec, config: config);
+    return Project(config: config, path: path, pubspec: pubspec);
   }
 
   /// Retrieves the name of the project.
@@ -69,6 +69,7 @@ class Project {
     if (sdkVersion != null) {
       return FlutterVersion.parse(sdkVersion);
     }
+
     return null;
   }
 
@@ -154,7 +155,7 @@ String? _dartToolGeneratorVersion(String projectPath) {
 
   return file.existsSync()
       ? (jsonDecode(file.readAsStringSync())
-          as Map<String, dynamic>)['generatorVersion']
+          as Map<String, dynamic>)['generatorVersion'] as String?
       : null;
 }
 

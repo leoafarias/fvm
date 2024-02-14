@@ -69,7 +69,6 @@ class FVMContext {
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
-      isTest: isTest,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -81,6 +80,7 @@ class FVMContext {
         GlobalVersionService: GlobalVersionService.new,
         ...overrides,
       },
+      isTest: isTest,
     );
   }
 
@@ -106,6 +106,7 @@ class FVMContext {
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
     if (config.gitCachePath != null) return config.gitCachePath!;
+
     return join(fvmDir, 'cache.git');
   }
 
@@ -140,6 +141,7 @@ class FVMContext {
     if (generators != null && generators!.containsKey(T)) {
       final generator = generators![T] as Generator;
       _dependencies[T] = generator(this);
+
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');

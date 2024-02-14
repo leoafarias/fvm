@@ -22,8 +22,8 @@ class ConfigCommand extends BaseCommand {
     argParser.addFlag(
       'update-check',
       help: 'Checks if there is a new version of $kPackageName available.',
-      negatable: true,
       defaultsTo: true,
+      negatable: true,
     );
   }
   @override

@@ -38,6 +38,7 @@ class SpawnCommand extends BaseCommand {
     logger.info('Spawning version "$version"...');
 
     final results = await runFlutter(flutterArgs, version: cacheVersion);
+
     return results.exitCode;
   }
 }
