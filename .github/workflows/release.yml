@@ -49,6 +49,9 @@ jobs:
     
           - name: Prepare environment
             uses: ./.github/actions/prepare
+
+          - name: Build version and env
+            run: dart run grinder build-version --deploy-type=chocolatey
     
           - name: Deploy Github Windows
             run: dart run grinder pkg-github-windows
@@ -61,8 +64,8 @@ jobs:
       runs-on: macos-latest
       needs: release
       env:
-          PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
       steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,11 +73,16 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Build version and env
+        run: dart run grinder build-version --deploy-type=brew
+
       - name: Deploy Github Mac
         run: dart run grinder pkg-github-macos
 
       - name: Deploy Homebrew
         run: dart run grinder pkg-homebrew-update
+        env:
+          GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
           
 
 

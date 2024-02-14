@@ -1,3 +1,7 @@
+## 3.0.3
+
+- Added check on update command for homebrew and chocolatey deployment.
+
 ## 3.0.2
 
 - Removed validation for long commit hashes. FVM will now accept any length hash that git can return as a reference.
