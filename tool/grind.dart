@@ -22,7 +22,6 @@ void main(List<String> args) {
   pkg.githubRepo.value = 'leoafarias/fvm';
   pkg.homebrewRepo.value = 'leoafarias/homebrew-fvm';
   pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
-  pkg.homebrewCreateVersionedFormula.value = true;
 
   pkg.addAllTasks();
   addTask(homebrewTask());
