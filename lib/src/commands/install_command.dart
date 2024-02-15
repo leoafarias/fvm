@@ -6,6 +6,7 @@ import '../services/project_service.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
+import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
 /// Installs Flutter SDK
@@ -34,7 +35,9 @@ class InstallCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = ProjectService.fromContext.findVersion();
+      final project = ProjectService.fromContext.findAncestor();
+
+      final version = project.pinnedVersion;
 
       // If no config found is version throw error
       if (version == null) {
@@ -43,6 +46,19 @@ class InstallCommand extends BaseCommand {
           ' this command in a Flutter project that has FVM configured.',
         );
       }
+
+      final cacheVersion = await ensureCacheWorkflow(
+        version.name,
+        shouldInstall: true,
+      );
+
+      await useVersionWorkflow(
+        version: cacheVersion,
+        project: project,
+        skipSetup: false,
+      );
+
+      return ExitCode.success.code;
     }
     version ??= argResults!.rest[0];
 
