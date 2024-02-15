@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:jsonc/jsonc.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -313,7 +313,7 @@ void _manageVscodeSettings(Project project) {
       String contents = vscodeSettingsFile.readAsStringSync();
 
       if (contents.isNotEmpty) {
-        currentSettings = json.decode(contents);
+        currentSettings = jsonc.decode(contents);
       }
     } on FormatException catch (err, stackTrace) {
       final relativePath = relative(

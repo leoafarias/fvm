@@ -265,6 +265,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.8.1"
+  jsonc:
+    dependency: "direct main"
+    description:
+      name: jsonc
+      sha256: "326a3c5c774a77c3c4e327f359e0268bff34135d0c16078beee6d921c49a16ed"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.3"
   lints:
     dependency: "direct dev"
     description:

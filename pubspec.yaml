@@ -27,6 +27,7 @@ dependencies:
   tint: ^2.0.1
   stack_trace: ^1.11.1
   pubspec: ^2.3.0
+  jsonc: ^0.0.3
 
 dev_dependencies:
   cli_pkg: ^2.5.0
