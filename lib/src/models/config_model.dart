@@ -403,6 +403,13 @@ class ProjectConfig extends Config {
     path.file.write(jsonContents);
   }
 
+  Map<String, dynamic> toLegacyMap() {
+    return {
+      if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
+      if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
+    };
+  }
+
   /// It checks each property for null prior to adding it to the map.
   /// This is to ensure the returned map doesn't contain any null values.
   /// Also, if [flavors] is not empty it adds it to the map.

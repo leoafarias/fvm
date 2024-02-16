@@ -40,15 +40,14 @@ class Project {
     final configFile = _fvmConfigPath(path);
     final legacyConfigFile = _legacyFvmConfigPath(path);
 
+    final config = ProjectConfig.loadFromPath(configFile);
+
     // Used for migration of config files
     final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
 
-    if (legacyConfig != null) {
+    if (config == null && legacyConfig != null) {
       legacyConfig.save(configFile);
-      legacyConfigFile.file.deleteSync();
     }
-
-    final config = ProjectConfig.loadFromPath(configFile);
 
     final pubspecFile = File(join(path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
@@ -121,6 +120,9 @@ class Project {
 
   /// Returns the path of the FVM config file.
   String get configPath => _fvmConfigPath(path);
+
+  /// Returns legacy path of the FVM config file.
+  String get legacyConfigPath => _legacyFvmConfigPath(path);
 
   /// Indicates whether the project has an FVM config file.
   bool get hasConfig => config != null;
