@@ -73,6 +73,12 @@ class FlutterReleases {
     }
   }
 
+  static Future<bool> isVersionValid(String version) async {
+    final releases = await get();
+
+    return releases.containsVersion(version);
+  }
+
   /// Returns a [Release]  channel [version]
   static Future<Release> getLatestReleaseOfChannel(
     FlutterChannel channel,
