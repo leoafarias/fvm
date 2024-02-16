@@ -7,6 +7,7 @@ import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
 import '../services/logger_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
@@ -171,6 +172,13 @@ Future<FlutterVersion> validateFlutterVersion(String version) async {
     final isTag =
         await FlutterService.fromContext.isTag(flutterVersion.version);
     if (isTag) {
+      return flutterVersion;
+    }
+
+    final isVersion =
+        await FlutterReleases.isVersionValid(flutterVersion.version);
+
+    if (isVersion) {
       return flutterVersion;
     }
   }

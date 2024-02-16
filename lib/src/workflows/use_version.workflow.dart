@@ -207,9 +207,8 @@ void _checkProjectVersionConstraints(
 
     final allowedInConstraint = constraints.allows(dartSdkVersion);
 
-    final message = cachedVersion.isRelease
-        ? 'Version: ${cachedVersion.name}.'
-        : '${cachedVersion.printFriendlyName} has SDK $sdkVersion';
+    final message =
+        '${cachedVersion.printFriendlyName} has Dart SDK $sdkVersion';
 
     if (!allowedInConstraint) {
       logger.notice('Flutter SDK does not meet project constraints');
