@@ -51,7 +51,7 @@ Future<void> useVersionWorkflow({
   }
 
   // Checks if the project constraints are met
-  _checkProjectVersionConstraints(project, version);
+  _checkProjectVersionConstraints(project, version, force: force);
 
   final updatedProject = ProjectService.fromContext.update(
     project,
@@ -59,14 +59,14 @@ Future<void> useVersionWorkflow({
     flutterSdkVersion: version.name,
   );
 
-  await _checkGitignore(updatedProject);
+  await _checkGitignore(updatedProject, force: force);
 
-  await resolveDependenciesWorkflow(updatedProject, version);
+  await resolveDependenciesWorkflow(updatedProject, version, force: force);
 
   _updateLocalSdkReference(updatedProject, version);
   _updateCurrentSdkReference(updatedProject, version);
 
-  _manageVscodeSettings(updatedProject);
+  _manageVsCodeSettings(updatedProject);
 
   final versionLabel = cyan.wrap(version.printFriendlyName);
   // Different message if configured environment
@@ -101,7 +101,7 @@ Future<void> useVersionWorkflow({
 ///
 /// The method prompts the user for confirmation before actually adding the path,
 /// unless running in a test environment.
-Future<void> _checkGitignore(Project project) async {
+Future<void> _checkGitignore(Project project, {required bool force}) async {
   logger.detail('Checking .gitignore');
 
   final updateGitIgnore = project.config?.updateGitIgnore ?? true;
@@ -160,8 +160,16 @@ Future<void> _checkGitignore(Project project) async {
   });
 
   logger.info(
-    'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore?',
+    'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore.',
   );
+
+  if (force) {
+    logger.warn(
+      'Skipping .gitignore confirmation because of --force flag detected',
+    );
+
+    return;
+  }
 
   if (logger.confirm('Would you like to do that now?', defaultValue: true)) {
     ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
@@ -177,8 +185,9 @@ Future<void> _checkGitignore(Project project) async {
 /// parameter is the cached version of the Flutter SDK.
 void _checkProjectVersionConstraints(
   Project project,
-  CacheFlutterVersion cachedVersion,
-) {
+  CacheFlutterVersion cachedVersion, {
+  required bool force,
+}) {
   final sdkVersion = cachedVersion.dartSdkVersion;
   final constraints = project.sdkConstraint;
 
@@ -211,6 +220,14 @@ void _checkProjectVersionConstraints(
         )
         ..info('This could cause unexpected behavior or issues.')
         ..spacer;
+
+      if (force) {
+        logger.warn(
+          'Skipping version constraint confirmation because of --force flag detected',
+        );
+
+        return;
+      }
 
       if (!logger.confirm('Would you like to proceed?', defaultValue: true)) {
         throw AppException(
@@ -272,7 +289,7 @@ void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
 /// the .fvm/versions directory from search and file watchers.///
 /// The method also updates the "dart.flutterSdkPath" setting to use the relative
 /// path of the .fvm symlink.
-void _manageVscodeSettings(Project project) {
+void _manageVsCodeSettings(Project project) {
   final updateVscodeSettings = project.config?.updateVscodeSettings ?? true;
 
   final vscodeDir = Directory(join(project.path, '.vscode'));

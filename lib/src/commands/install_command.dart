@@ -55,7 +55,8 @@ class InstallCommand extends BaseCommand {
       await useVersionWorkflow(
         version: cacheVersion,
         project: project,
-        skipSetup: false,
+        force: true,
+        skipSetup: !setup,
       );
 
       return ExitCode.success.code;
