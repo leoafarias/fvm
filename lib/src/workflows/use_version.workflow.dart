@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:jsonc/jsonc.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -311,11 +311,11 @@ void _manageVscodeSettings(Project project) {
   if (vscodeSettingsFile.existsSync()) {
     try {
       String contents = vscodeSettingsFile.readAsStringSync();
-      final sanitizedContent = contents.replaceAll(RegExp(r'\/\/.*'), '');
-      if (sanitizedContent.isNotEmpty) {
-        currentSettings = json.decode(sanitizedContent);
+
+      if (contents.isNotEmpty) {
+        currentSettings = jsonc.decode(contents);
       }
-    } on FormatException catch (_, stackTrace) {
+    } on FormatException catch (err, stackTrace) {
       final relativePath = relative(
         vscodeSettingsFile.path,
         from: ctx.workingDirectory,
@@ -324,7 +324,7 @@ void _manageVscodeSettings(Project project) {
       Error.throwWithStackTrace(
         AppDetailedException(
           'Error parsing $kVsCode settings at $relativePath',
-          'Please use a tool like https://jsonlint.com to validate and fix it',
+          'Please use a tool like https://jsonlint.com to validate and fix it\n $err',
         ),
         stackTrace,
       );
