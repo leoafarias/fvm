@@ -9,8 +9,9 @@ import '../utils/exceptions.dart';
 
 Future<void> resolveDependenciesWorkflow(
   Project project,
-  CacheFlutterVersion version,
-) async {
+  CacheFlutterVersion version, {
+  required bool force,
+}) async {
   if (version.notSetup) return;
 
   if (project.dartToolVersion == version.flutterSdkVersion) {
@@ -48,6 +49,12 @@ Future<void> resolveDependenciesWorkflow(
       logger.info(
         'The error could indicate incompatible dependencies to the SDK.',
       );
+
+      if (force) {
+        logger.warn('Force pinning due to --force flag.');
+
+        return;
+      }
 
       final confirmation = logger.confirm(
         'Would you like to continue pinning this version anyway?',
