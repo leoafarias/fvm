@@ -30,10 +30,10 @@ Future<void> useVersionWorkflow({
   String? flavor,
 }) async {
   // If project use check that is Flutter project
-  if (!project.isFlutter && !force) {
+  if (!project.hasPubspec && !force) {
     logger
       ..spacer
-      ..info('This does not seem to be a Flutter project directory');
+      ..info('No pubspec.yaml detected in this directory');
     final proceed = logger.confirm('Would you like to continue?');
 
     if (!proceed) exit(ExitCode.success.code);
