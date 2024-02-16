@@ -1,3 +1,7 @@
+## 3.0.5
+
+* Added fallback when cannot validate Flutter SDK version using git tags. [#627](https://github.com/leoafarias/fvm/issues/627)
+
 ## 3.0.4
 
 * VsCode settings now supports jsonc (comments, trailing commma) 
