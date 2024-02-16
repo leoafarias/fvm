@@ -1,3 +1,7 @@
+## 3.0.6
+
+* `fvm flutter` command falls back to global fvm version if version not found in directory.
+
 ## 3.0.5
 
 * Added fallback when cannot validate Flutter SDK version using git tags. [#627](https://github.com/leoafarias/fvm/issues/627)
