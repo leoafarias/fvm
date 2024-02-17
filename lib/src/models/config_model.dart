@@ -257,12 +257,6 @@ class AppConfig extends Config {
     );
   }
 
-  void save(String path) {
-    final jsonContents = prettyJson(toMap());
-
-    path.file.write(jsonContents);
-  }
-
   @override
   Map<String, dynamic> toMap() {
     return {

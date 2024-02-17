@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec/pubspec.dart';
 
+import '../services/logger_service.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import 'config_model.dart';
@@ -40,14 +41,31 @@ class Project {
     final configFile = _fvmConfigPath(path);
     final legacyConfigFile = _legacyFvmConfigPath(path);
 
-    final config = ProjectConfig.loadFromPath(configFile);
+    ProjectConfig? config = ProjectConfig.loadFromPath(configFile);
 
     // Used for migration of config files
     final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
 
+    if (legacyConfig != null && config != null) {
+      final legacyVersion = legacyConfig.flutterSdkVersion;
+      final version = config.flutterSdkVersion;
+
+      if (legacyVersion != version) {
+        logger
+          ..warn(
+            'Found fvm_config.json with SDK version different than .fvmrc\n'
+            'fvm_config.json is deprecated and will be removed in future versions.\n'
+            'Please do not modify this file manually.',
+          )
+          ..spacer;
+      }
+    }
+
     if (config == null && legacyConfig != null) {
       legacyConfig.save(configFile);
     }
+
+    config = ProjectConfig.loadFromPath(configFile);
 
     final pubspecFile = File(join(path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
