@@ -57,7 +57,8 @@ class Project {
             'fvm_config.json is deprecated and will be removed in future versions.\n'
             'Please do not modify this file manually.',
           )
-          ..spacer;
+          ..spacer
+          ..warn('Ignoring fvm_config.json');
       }
     }
 
