@@ -122,7 +122,7 @@
 ## 2.2.0 - 2021-06-17
 
 * Resolves channel unknown when pulling release version.
-* Allows for release install of different channels [Read more](https://fvm.app/docs/advanced/release_multiple_channels).
+* Allows for release install of different channels [Read more](https://fvm.app/documentation).
 
 ## 2.1.1 - 2021-06-16
 
