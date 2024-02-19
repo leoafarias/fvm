@@ -6,7 +6,7 @@ labels: enhancement
 assignees: ""
 ---
 
-## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/docs/getting_started/overview#principles)
+## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/docs/#principles)
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
