@@ -11,7 +11,7 @@ on:
 
   pull_request:
     paths-ignore:
-      - "website/**"
+      - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
 
