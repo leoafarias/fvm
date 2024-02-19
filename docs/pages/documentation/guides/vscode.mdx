@@ -1,0 +1,46 @@
+---
+id: vscode
+title: VSCode Configuration
+---
+
+import { Callout } from "nextra/components";
+
+# VSCode Configuration
+
+## Overview
+
+The integration of FVM with Visual Studio Code simplifies the process of managing and using multiple Flutter SDK versions within your projects.
+
+FVM automatically configures Visual Studio Code to use the appropriate Flutter SDK version for each project, enhancing workflow efficiency and ensuring that all team members use the correct SDK version.
+
+## Automatic Detection and Configuration
+
+FVM detects the use of Visual Studio Code through two methods:
+
+1. The presence of a .vscode directory at the root of your project.
+2. The `TERM_PROGRAM` environment variable set to vscode, indicating that the Visual Studio Code terminal is in use.
+
+Upon detection, FVM automatically updates the .vscode/settings.json file within your project to specify the Flutter SDK path. This configuration directs Visual Studio Code to use the Flutter SDK version managed by FVM for your project.
+
+```json
+{
+  "dart.flutterSdkPath": ".fvm/versions/stable"
+}
+```
+
+## Integation witih Dart Code Extension
+
+The [Dart Code extension](https://marketplace.visualstudio.com/items?itemName=Dart-Code.dart-code) for VSCode, essential for Flutter development, responds to the SDK path changes made by FVM. It notifies you about the environment change through the terminal and automatically switches to the new Flutter SDK version for both terminal commands and IDE tools.
+
+## Benefits of FVM Integration
+
+- **Simplified SDK Management**: Automatically switches between Flutter SDK versions based on project requirements without manual configuration changes.
+- **Consistent Development Environment**: Ensures all developers in a team are using the same Flutter SDK version, as specified by FVM configuration.
+- **Enhanced Workflow**: Removes the need to prefix commands with fvm in the Visual Studio Code terminal, allowing you to use flutter commands directly.
+
+<Callout type="warning">
+  With the Dart Code extension's automatic SDK path update, the `flutter`
+  command within VSCode terminal will reference the Flutter SDK version managed
+  by FVM, not the version installed globally on your system or specified in your
+  OS environment PATH.
+</Callout>
