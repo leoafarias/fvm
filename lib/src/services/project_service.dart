@@ -1,12 +1,13 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import '../models/config_model.dart';
 import '../models/project_model.dart';
-import 'base_service.dart';
 import '../utils/context.dart';
 import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
-import 'package:path/path.dart' as path;
+import 'base_service.dart';
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
@@ -85,6 +86,7 @@ class ProjectService extends ContextService {
 
     // Update flavors
     final configFile = project.configPath.file;
+    final legacyConfigFile = project.legacyConfigPath.file;
 
     // If config file does not exists create it
     if (!configFile.existsSync()) {
@@ -94,6 +96,7 @@ class ProjectService extends ContextService {
     final jsonContents = prettyJson(config.toMap());
 
     configFile.write(jsonContents);
+    legacyConfigFile.write(prettyJson(config.toLegacyMap()));
 
     return Project.loadFromPath(project.path);
   }

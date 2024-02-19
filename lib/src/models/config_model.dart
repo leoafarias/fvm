@@ -257,12 +257,6 @@ class AppConfig extends Config {
     );
   }
 
-  void save(String path) {
-    final jsonContents = prettyJson(toMap());
-
-    path.file.write(jsonContents);
-  }
-
   @override
   Map<String, dynamic> toMap() {
     return {
@@ -401,6 +395,13 @@ class ProjectConfig extends Config {
     final jsonContents = prettyJson(toMap());
 
     path.file.write(jsonContents);
+  }
+
+  Map<String, dynamic> toLegacyMap() {
+    return {
+      if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
+      if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
+    };
   }
 
   /// It checks each property for null prior to adding it to the map.

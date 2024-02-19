@@ -2,7 +2,9 @@ import 'dart:io';
 
 import '../models/config_model.dart';
 import '../utils/constants.dart';
+import '../utils/extensions.dart';
 import '../utils/helpers.dart';
+import '../utils/pretty_json.dart';
 
 const String flutterGitUrl = 'FLUTTER_GIT_URL';
 
@@ -18,7 +20,9 @@ class ConfigRepository {
   }
 
   static void save(AppConfig config) {
-    config.save(_configPath);
+    final jsonContents = prettyJson(config.toMap());
+
+    _configPath.file.write(jsonContents);
   }
 
   static void update({
