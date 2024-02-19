@@ -11,9 +11,10 @@ on:
 
   pull_request:
     paths-ignore:
-      - "website/**"
+      - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
+      - ".github/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -87,3 +88,12 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
+  
+  linkinator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: JustinBeckwith/linkinator-action@v1
+        with:
+          concurrency: 3
+          markdown: true
