@@ -1,3 +1,8 @@
+## 3.0.7
+
+* `fvm use [version]` and `fvm install` now also create legacy `fvm_config.json` file for easier 3.0 migration path.
+* However `fvm_config.json` is now deprecated in favor of `.fvmrc` file. FVM will migrate it automatically.
+
 ## 3.0.6
 
 * `fvm flutter` command falls back to global fvm version if version not found in directory.
