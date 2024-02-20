@@ -115,8 +115,6 @@ class FvmCommandRunner extends CommandRunner<int> {
       if (argResults['verbose'] == true) {
         logger.level = Level.verbose;
       }
-      // Add space before any output
-      logger.spacer;
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
