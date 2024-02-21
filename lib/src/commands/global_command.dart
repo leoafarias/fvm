@@ -23,10 +23,37 @@ class GlobalCommand extends BaseCommand {
   final description = 'Sets Flutter SDK Version as a global';
 
   /// Constructor
-  GlobalCommand();
+  GlobalCommand() {
+    argParser.addFlag(
+      'unlink',
+      abbr: 'u',
+      help: 'Unlinks the global version',
+      defaultsTo: false,
+      negatable: false,
+    );
+  }
 
   @override
   Future<int> run() async {
+    final unlinkArg = boolArg('unlink');
+
+    if (unlinkArg) {
+      final globalVersion = GlobalVersionService.fromContext.getGlobal();
+
+      if (globalVersion == null) {
+        logger
+          ..info('No global version is set')
+          ..spacer;
+      } else {
+        GlobalVersionService.fromContext.unlinkGlobal();
+        logger
+          ..success('global version unlinked')
+          ..spacer;
+      }
+
+      return ExitCode.success.code;
+    }
+
     String? version;
 
     // Show chooser if not version is provided
