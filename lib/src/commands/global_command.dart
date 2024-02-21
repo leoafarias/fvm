@@ -47,7 +47,7 @@ class GlobalCommand extends BaseCommand {
       } else {
         GlobalVersionService.fromContext.unlinkGlobal();
         logger
-          ..success('global version unlinked')
+          ..success('Global version unlinked')
           ..spacer;
       }
 

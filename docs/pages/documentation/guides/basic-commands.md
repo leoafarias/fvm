@@ -74,6 +74,13 @@ For a project with multiple flavors, set a version for a specific flavor like th
 fvm use 2.2.3 --flavor production
 ```
 
+**Using a Flavor**
+To switch to a specific flavor, you can use the `use` command with the name of the flavor:
+
+```bash
+fvm use production
+```
+
 ## Install
 
 Installs a specified Flutter SDK version to your machine and caches it for future use. 
@@ -163,34 +170,6 @@ If you have a script that should be run with the project's Flutter SDK, you can 
 fvm exec path/to/script.sh
 ```
 
-## Flavor
-
-Switches between project flavors, each using potentially different Flutter SDK versions, ideal for multi-flavored projects.
-
-**Usage**
-
-```bash
-> fvm flavor [flavor_name] [options]
-```
-
-`[flavor_name]`: The name of the project flavor you want to switch to.
-
-**Options**
-
-- `--skip-setup`:  Omits post-flavor-switch Flutter setup, useful if setup is preconfigured.
-
-- `-f, --force`: Ignores Flutter project checks for swift flavor configuration changes.
-
-
-**Examples**
-
-**Switching to a Specific Flavor**:  
-To switch to a flavor named `production`, you would run:
-
-```bash
-fvm flavor production
-```
-
 ## Global
 
 The `global` command in FVM (Flutter Version Management) is used to set a specific Flutter SDK version as the global version on your machine. This command is essential for defining a default Flutter SDK version for use across all Flutter projects that do not have a project-specific version set through FVM.
@@ -211,6 +190,13 @@ To set Flutter SDK version `2.5.0` as your global version, you would run:
 
 ```bash
 fvm global 2.5.0
+```
+
+**Unlinking the Global Version**:
+To unlink the global version, you can run:
+
+```bash
+fvm global --unlink
 ```
 
 
