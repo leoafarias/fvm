@@ -11,11 +11,11 @@ It allows you to create the following configuration for your project.
 
 ```json
 {
-  "flutterSdkVersion": "stable",
+  "flutter": "stable",
   "flavors": {
-    "dev": "beta",
-    "staging": "2.0.3",
-    "production": "1.22.6"
+    "development": "stable",
+    "staging": "3.16.9",
+    "production": "3.10.3"
   }
 }
 ```
@@ -35,15 +35,7 @@ This will pin `version` to `flavor_name`
 Will get the version configured for the flavor and set as the project version.
 
 ```bash
-fvm flavor {flavor_name}
+fvm use {flavor_name}
 ```
 
-## View flavors
 
-To list all configured flavors:
-
-```bash
-fvm flavor
-```
-
-[Learn more about Flutter flavors](https://flutter.dev/docs/deployment/flavors)
