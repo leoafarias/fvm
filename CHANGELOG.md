@@ -1,3 +1,8 @@
+## 3.0.8
+
+* Implemented better validation checks for flavors [#639](https://github.com/leoafarias/fvm/issues/639)
+* Added flag to unlink global version `fvm global --unlink` [#619](https://github.com/leoafarias/fvm/issues/619)
+
 ## 3.0.7
 
 * `fvm use [version]` and `fvm install` now also create legacy `fvm_config.json` file for easier 3.0 migration path.
