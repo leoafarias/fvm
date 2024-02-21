@@ -105,9 +105,19 @@ class UseCommand extends BaseCommand {
       }
 
       logger.info(
-        'Using Flutter SDK from "$flavorOption" which is "$flavorVersion"',
+        'Using Flutter SDK from flavor: "$version" which is "$flavorVersion"',
       );
       version = flavorVersion;
+    }
+
+    if (flavorOption != null) {
+      // check if flavor option is not a channel name or semver
+      if (isFlutterChannel(flavorOption)) {
+        throw UsageException(
+          'Cannot use a channel as a flavor, use a different name for flavor',
+          usage,
+        );
+      }
     }
 
     final cacheVersion = await ensureCacheWorkflow(version);
