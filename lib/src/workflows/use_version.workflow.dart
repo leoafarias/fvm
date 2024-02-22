@@ -112,9 +112,6 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
       'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
       'to determine what to index and display on searches,',
     );
-    logger.detail('Project is not a git repository.');
-
-    return;
   }
 
   if (!updateGitIgnore) {
