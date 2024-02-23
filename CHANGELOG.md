@@ -1,3 +1,7 @@
+## 3.0.10
+
+* Re-enables finding project without a previous FVM config based on pubspec.yaml.
+
 ## 3.0.9
 
 * Adds .gitignore even if project is not a git repository. As IDEs and tools use it as a reference for project indexing.
