@@ -108,9 +108,10 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
 
   logger.detail('Update gitignore: $updateGitIgnore');
   if (!await GitDir.isGitDir(project.path)) {
-    logger.detail('Project is not a git repository.');
-
-    return;
+    logger.warn(
+      'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
+      'to determine what to index and display on searches,',
+    );
   }
 
   if (!updateGitIgnore) {
