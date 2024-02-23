@@ -1,3 +1,7 @@
+## 3.0.9
+
+* Adds .gitignore even if project is not a git repository. As IDEs and tools use it as a reference for project indexing.
+
 ## 3.0.8
 
 * Implemented better validation checks for flavors [#639](https://github.com/leoafarias/fvm/issues/639)
