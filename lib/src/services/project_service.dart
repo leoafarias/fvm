@@ -39,10 +39,7 @@ class ProjectService extends ContextService {
     final project = Project.loadFromPath(directory.path);
 
     // If project has a config return it
-    if (project.hasConfig) return project;
-
-    // if project has a pubspec file return it
-    // if (project.hasPubspec) return project;
+    if (project.hasConfig && project.hasPubspec) return project;
 
     // Return working directory if has reached root
     if (isRootDir) return Project.loadFromPath(context.workingDirectory);
