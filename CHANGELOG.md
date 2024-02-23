@@ -1,3 +1,7 @@
+## 3.0.10
+
+* Fixed issue when config is found in directory no pubspec.yaml. [#638](https://github.com/leoafarias/fvm/issues/638)
+
 ## 3.0.9
 
 * Adds .gitignore even if project is not a git repository. As IDEs and tools use it as a reference for project indexing.
