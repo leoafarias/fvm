@@ -19,3 +19,7 @@ runs:
     - name: Get dependencies
       run: dart pub get
       shell: bash
+
+    - name: Build Version
+      run: dart run grinder build-version
+      shell: bash

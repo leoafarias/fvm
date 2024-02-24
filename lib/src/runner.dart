@@ -18,7 +18,6 @@ import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
-import 'commands/update_command.dart';
 import 'commands/use_command.dart';
 import 'services/config_repository.dart';
 import 'services/logger_service.dart';
@@ -55,7 +54,6 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(ExecCommand());
-    addCommand(UpdateCommand());
     addCommand(GlobalCommand());
   }
 
@@ -85,14 +83,12 @@ class FvmCommandRunner extends CommandRunner<int> {
         final updateAvailableLabel = lightYellow.wrap('Update available!');
         final currentVersionLabel = lightCyan.wrap(packageVersion);
         final latestVersionLabel = lightCyan.wrap(latestVersion);
-        final updateCommandLabel = lightCyan.wrap('$executableName update');
 
         logger
           ..spacer
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
           )
-          ..info('Run $updateCommandLabel to update')
           ..spacer;
       };
     } catch (_) {
