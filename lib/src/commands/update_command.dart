@@ -37,27 +37,6 @@ class UpdateCommand extends Command<int> {
       return ExitCode.success.code;
     }
 
-    switch (deployType) {
-      case 'brew':
-        final upgradeCommand = cyan.wrap('brew upgrade $kPackageName');
-        logger
-          ..info('')
-          ..info('This version was installed using brew.')
-          ..notice('Please update using: $upgradeCommand');
-
-        return ExitCode.success.code;
-      case 'chocolatey':
-        final upgradeCommand = cyan.wrap('choco upgrade $kPackageName');
-        logger
-          ..info('')
-          ..info('This version was installed using chocolatey.')
-          ..notice('Please update using: $upgradeCommand');
-
-        return ExitCode.success.code;
-      default:
-        break;
-    }
-
     final updateProgress = logger.progress('Updating to $latestVersion');
 
     late final ProcessResult result;

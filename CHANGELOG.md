@@ -1,3 +1,7 @@
+## 3.0.11
+
+* Removed `fvm update` command. Due to issue with brew and chocolatey install.
+
 ## 3.0.10
 
 * Fixed issue when config is found in directory no pubspec.yaml. [#638](https://github.com/leoafarias/fvm/issues/638)
