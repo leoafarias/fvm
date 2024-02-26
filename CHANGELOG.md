@@ -1,3 +1,7 @@
+## 3.0.12
+
+* Adds skipping version mismatch handling when using force or running with a custom fvm version.
+
 ## 3.0.11
 
 * Removed `fvm update` command. Due to issue with brew and chocolatey install.
