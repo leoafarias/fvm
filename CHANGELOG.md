@@ -1,3 +1,7 @@
+## Unreleased
+
+* Fixes parsing error of vscode settings when there are commas [#656](https://github.com/leoafarias/fvm/issues/656)
+
 ## 3.0.11
 
 * Removed `fvm update` command. Due to issue with brew and chocolatey install.
