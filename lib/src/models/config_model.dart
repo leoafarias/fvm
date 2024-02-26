@@ -1,9 +1,9 @@
 // Use just for reference, should not change
 
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:jsonc/jsonc.dart';
 
 import '../utils/change_case.dart';
 import '../utils/constants.dart';
@@ -204,7 +204,7 @@ class AppConfig extends Config {
   }
 
   factory AppConfig.fromJson(String source) {
-    return AppConfig.fromMap(json.decode(source) as Map<String, dynamic>);
+    return AppConfig.fromMap(jsonc.decode(source) as Map<String, dynamic>);
   }
 
   static AppConfig? loadFromPath(String path) {
@@ -321,7 +321,7 @@ class ProjectConfig extends Config {
 
   /// Returns ConfigDto from a json string
   factory ProjectConfig.fromJson(String source) =>
-      ProjectConfig.fromMap(json.decode(source) as Map<String, dynamic>);
+      ProjectConfig.fromMap(jsonc.decode(source) as Map<String, dynamic>);
 
   static ProjectConfig? loadFromPath(String path) {
     final configFile = File(path);
