@@ -165,7 +165,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   return ensureCacheWorkflow(version.name, shouldInstall: true);
 }
 
-Future<FlutterVersion> validateFlutterVersion(String version, {bool force}) async {
+Future<FlutterVersion> validateFlutterVersion(String version, {bool force = false}) async {
   final flutterVersion = FlutterVersion.parse(version);
 
   if (force) {
