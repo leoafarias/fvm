@@ -18,10 +18,11 @@ import '../utils/helpers.dart';
 Future<CacheFlutterVersion> ensureCacheWorkflow(
   String version, {
   bool shouldInstall = false,
+  bool force = false,
 }) async {
   _validateContext();
   // Get valid flutter version
-  final validVersion = await validateFlutterVersion(version);
+  final validVersion = await validateFlutterVersion(version, force: force);
   try {
     final cacheVersion = CacheService.fromContext.getVersion(validVersion);
 
@@ -36,8 +37,12 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         );
       }
 
-      if (integrity == CacheIntegrity.versionMismatch) {
+      if (integrity == CacheIntegrity.versionMismatch && !force && !validVersion.isCustom) {
         return await _handleVersionMismatch(cacheVersion);
+      } else if (force) {
+        logger.warn('Not checking for version mismatch as --force flag is set.');
+      } else if (validVersion.isCustom) {
+        logger.warn('Not checking for version mismatch as custom version is being used.');
       }
 
       // If shouldl install notifiy the user that is already installed
@@ -160,8 +165,13 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   return ensureCacheWorkflow(version.name, shouldInstall: true);
 }
 
-Future<FlutterVersion> validateFlutterVersion(String version) async {
+Future<FlutterVersion> validateFlutterVersion(String version, {bool force = false}) async {
   final flutterVersion = FlutterVersion.parse(version);
+
+  if (force) {
+    return flutterVersion;
+  }
+
   // If its channel or commit no need for further validation
   if (flutterVersion.isChannel || flutterVersion.isCustom) {
     return flutterVersion;

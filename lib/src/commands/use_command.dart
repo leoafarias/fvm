@@ -120,7 +120,7 @@ class UseCommand extends BaseCommand {
       }
     }
 
-    final cacheVersion = await ensureCacheWorkflow(version);
+    final cacheVersion = await ensureCacheWorkflow(version, force: forceOption);
 
     /// Run use workflow
     await useVersionWorkflow(
