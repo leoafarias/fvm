@@ -37,12 +37,17 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         );
       }
 
-      if (integrity == CacheIntegrity.versionMismatch && !force && !validVersion.isCustom) {
+      if (integrity == CacheIntegrity.versionMismatch &&
+          !force &&
+          !validVersion.isCustom) {
         return await _handleVersionMismatch(cacheVersion);
       } else if (force) {
-        logger.warn('Not checking for version mismatch as --force flag is set.');
+        logger
+            .warn('Not checking for version mismatch as --force flag is set.');
       } else if (validVersion.isCustom) {
-        logger.warn('Not checking for version mismatch as custom version is being used.');
+        logger.warn(
+          'Not checking for version mismatch as custom version is being used.',
+        );
       }
 
       // If shouldl install notifiy the user that is already installed
@@ -165,7 +170,10 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   return ensureCacheWorkflow(version.name, shouldInstall: true);
 }
 
-Future<FlutterVersion> validateFlutterVersion(String version, {bool force = false}) async {
+Future<FlutterVersion> validateFlutterVersion(
+  String version, {
+  bool force = false,
+}) async {
   final flutterVersion = FlutterVersion.parse(version);
 
   if (force) {

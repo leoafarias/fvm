@@ -38,6 +38,7 @@ Future<ProcessResult> runDart(
   bool? echoOutput,
   bool? throwOnError,
 }) {
+  version ??= GlobalVersionService.fromContext.getGlobal();
   if (version == null) {
     return _runCmd(_dartCmd, args: args);
   }
