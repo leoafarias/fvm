@@ -35,11 +35,10 @@ class DartCommand extends BaseCommand {
         ..detail('');
     } else {
       logger
-        ..detail('$kPackageName: Running Dart version configured in path.')
+        ..detail('$kPackageName: Running Dart version configured in PATH.')
         ..detail('');
-
-      // Running null will default to dart version on path
     }
+    // Running null will default to dart version on path
     final results = await runDart(args, version: cacheVersion);
 
     return results.exitCode;
