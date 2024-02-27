@@ -13,13 +13,13 @@ import 'context.dart';
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
   final fvmDir = ctx.fvmDir;
-  final settingsFile = File(join(fvmDir, '.settings'));
+  final legacySettingsFile = File(join(fvmDir, '.settings'));
 
-  if (!settingsFile.existsSync()) {
+  if (!legacySettingsFile.existsSync()) {
     return;
   }
 
-  final payload = settingsFile.readAsStringSync();
+  final payload = legacySettingsFile.readAsStringSync();
   try {
     final settings = jsonDecode(payload);
     final settingsCachePath = settings['cachePath'] as String?;
@@ -27,9 +27,9 @@ void deprecationWorkflow() {
       var appConfig = ConfigRepository.loadFile();
       appConfig = appConfig.copyWith(cachePath: fvmDir);
       ConfigRepository.save(appConfig);
-      settingsFile.deleteSync(recursive: true);
+      legacySettingsFile.deleteSync(recursive: true);
       logger.success(
-        'We have moved the settings file ${settingsFile.path}'
+        'We have moved the settings file ${legacySettingsFile.path}'
         'Your settings have been migrated to $kAppConfigFile'
         'Your cachePath is now $settingsCachePath. FVM will exit now. Please run the command again.',
       );
@@ -37,7 +37,8 @@ void deprecationWorkflow() {
       exit(ExitCode.success.code);
     }
   } catch (_) {
-    logger.warn('Could not parse legact settings file');
+    logger.warn('Could not parse legacy settings file');
+    legacySettingsFile.deleteSync(recursive: true);
   }
 }
 
