@@ -1,6 +1,7 @@
 ## 3.0.12
 
-* Adds skipping version mismatch handling when using force or running with a custom fvm version.
+* Adds skipping version mismatch handling when using force or running with a custom fvm version. [#653](https://github.com/leoafarias/fvm/issues/653)
+* Fixes parsing error of vscode settings when there are commas [#656](https://github.com/leoafarias/fvm/issues/656)
 
 ## 3.0.11
 
