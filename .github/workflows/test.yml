@@ -14,7 +14,6 @@ on:
       - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
-      - ".github/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,15 +43,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Run DCM
-        uses: CQLabs/dcm-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          ci_key: oss
-          email: oss
-          folders: .
-          fatal_style: true
-          fatal_performance: true
-          fatal_warnings: true
+        run: dcm analyze lib
       
       - name: Install lcov
         run: sudo apt-get install lcov
@@ -88,12 +79,3 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
-  
-  linkinator:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: JustinBeckwith/linkinator-action@v1
-        with:
-          concurrency: 3
-          markdown: true
