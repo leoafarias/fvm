@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:fvm/src/utils/http.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
+import 'package:jsonc/jsonc.dart';
 import 'package:path/path.dart' as path;
 
 import 'grind.dart';
@@ -33,7 +33,7 @@ Future<void> _homebrewFormula() async {
 
   final response = await fetch(url.toString(), headers: headers);
 
-  final Map<String, dynamic> release = json.decode(response);
+  final Map<String, dynamic> release = jsonc.decode(response);
   final List assets = release['assets'];
   final Map<String, dynamic> assetData = {};
 

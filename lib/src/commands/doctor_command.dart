@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
 import 'package:io/io.dart';
+import 'package:jsonc/jsonc.dart';
 import 'package:path/path.dart';
 
 import '../models/config_model.dart';
@@ -76,7 +76,7 @@ class DoctorCommand extends BaseCommand {
     if (vscodeDir.existsSync()) {
       if (settingsFile.existsSync()) {
         try {
-          final settings = jsonDecode(settingsFile.readAsStringSync());
+          final settings = jsonc.decode(settingsFile.readAsStringSync());
 
           final relativeSymlinkPath = relative(
             project.localVersionSymlinkPath,

@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:dart_console/dart_console.dart';
-import 'base_service.dart';
-import '../utils/context.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
+
+import '../utils/context.dart';
+import 'base_service.dart';
 
 /// Sets default logger mode
 LoggerService get logger => getProvider();

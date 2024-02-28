@@ -13,13 +13,13 @@ import 'context.dart';
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
   final fvmDir = ctx.fvmDir;
-  final settingsFile = File(join(fvmDir, '.settings'));
+  final legacySettingsFile = File(join(fvmDir, '.settings'));
 
-  if (!settingsFile.existsSync()) {
+  if (!legacySettingsFile.existsSync()) {
     return;
   }
 
-  final payload = settingsFile.readAsStringSync();
+  final payload = legacySettingsFile.readAsStringSync();
   try {
     final settings = jsonDecode(payload);
     final settingsCachePath = settings['cachePath'] as String?;
@@ -27,9 +27,9 @@ void deprecationWorkflow() {
       var appConfig = ConfigRepository.loadFile();
       appConfig = appConfig.copyWith(cachePath: fvmDir);
       ConfigRepository.save(appConfig);
-      settingsFile.deleteSync(recursive: true);
+      legacySettingsFile.deleteSync(recursive: true);
       logger.success(
-        'We have moved the settings file ${settingsFile.path}'
+        'We have moved the settings file ${legacySettingsFile.path}'
         'Your settings have been migrated to $kAppConfigFile'
         'Your cachePath is now $settingsCachePath. FVM will exit now. Please run the command again.',
       );
@@ -37,40 +37,10 @@ void deprecationWorkflow() {
       exit(ExitCode.success.code);
     }
   } catch (_) {
-    logger.warn('Could not parse legact settings file');
+    logger.warn('Could not parse legacy settings file');
+    legacySettingsFile.deleteSync(recursive: true);
   }
 }
-
-// Future<void> _migrateVersionSyntax() async {
-//   final versions = await CacheService.fromContext.getAllVersions();
-
-//   final oldVersions = versions.where((version) {
-//     final versionName = version.name;
-//     final versionParts = versionName.split('@');
-//     if (versionParts.length > 1) {
-//       return true;
-//     }
-//     return false;
-//   });
-
-//   if (oldVersions.isEmpty) {
-//     return;
-//   }
-
-//   logger.warn('You have a deprecated version / channel syntax. ');
-
-//   for (var element in oldVersions) {
-//     logger
-//       ..info(element.name)
-//       ..spacer
-//       ..info('Run: fvm remove ${element.name}}')
-//       ..spacer
-//       ..info('Then run: fvm install ${element.name.split('@').first}')
-//       ..info(
-//         'if you need to force install a channel run: fvm install ${element.name.split('@').first} --channel beta',
-//       );
-//   }
-// }
 
 // TODO: Removed on future version of the app
 // Deprecated on 3.0.0
