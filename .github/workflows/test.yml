@@ -9,7 +9,7 @@ on:
         required: false
         default: "3.1.3"
 
-  pull_request_target:
+  pull_request:
     paths-ignore:
       - "docs/**"
       - "README.md"
@@ -23,8 +23,6 @@ jobs:
   test:
     name: Test
     timeout-minutes: 30
-    permissions:
-      issues: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -44,17 +42,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
-      - name: Run DCM
-        uses: CQLabs/dcm-action@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          ci_key: oss
-          email: oss
-          folders: .
-          fatal_style: true
-          fatal_performance: true
-          fatal_warnings: true
-
       - name: Run DCM
         run: dcm analyze lib
       
