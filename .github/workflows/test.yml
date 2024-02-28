@@ -14,7 +14,8 @@ on:
       - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
-      - ".github/**"
+
+permissions: write-all
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -24,10 +25,6 @@ jobs:
   test:
     name: Test
     timeout-minutes: 30
-    permissions:
-      issues: write
-      contents: read
-      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
