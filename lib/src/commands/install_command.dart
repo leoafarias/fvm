@@ -19,18 +19,26 @@ class InstallCommand extends BaseCommand {
 
   /// Constructor
   InstallCommand() {
-    argParser.addFlag(
-      'setup',
-      abbr: 's',
-      help: 'Builds SDK after install after install',
-      defaultsTo: false,
-      negatable: false,
-    );
+    argParser
+      ..addFlag(
+        'setup',
+        abbr: 's',
+        help: 'Builds SDK after install after install',
+        defaultsTo: false,
+        negatable: false,
+      )
+      ..addFlag(
+        'deps',
+        help: 'Resolves dependencies after switching Flutter SDK',
+        negatable: true,
+        defaultsTo: true,
+      );
   }
 
   @override
   Future<int> run() async {
     final setup = boolArg('setup');
+    final resolveDependencies = boolArg('deps');
     String? version;
 
     // If no version was passed as argument check project config.
@@ -57,6 +65,7 @@ class InstallCommand extends BaseCommand {
         project: project,
         force: true,
         skipSetup: !setup,
+        resolveDependencies: resolveDependencies,
       );
 
       return ExitCode.success.code;
