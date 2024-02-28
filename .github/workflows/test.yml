@@ -24,6 +24,10 @@ jobs:
   test:
     name: Test
     timeout-minutes: 30
+    permissions:
+      issues: write
+      contents: read
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -53,6 +57,9 @@ jobs:
           fatal_style: true
           fatal_performance: true
           fatal_warnings: true
+
+      - name: Run DCM
+        run: dcm analyze lib
       
       - name: Install lcov
         run: sudo apt-get install lcov
@@ -88,12 +95,3 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
-  
-  linkinator:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: JustinBeckwith/linkinator-action@v1
-        with:
-          concurrency: 3
-          markdown: true
