@@ -28,17 +28,17 @@ class InstallCommand extends BaseCommand {
         negatable: false,
       )
       ..addFlag(
-        'deps',
+        'skip-pub-get',
         help: 'Resolves dependencies after switching Flutter SDK',
-        negatable: true,
-        defaultsTo: true,
+        negatable: false,
+        defaultsTo: false,
       );
   }
 
   @override
   Future<int> run() async {
     final setup = boolArg('setup');
-    final resolveDependencies = boolArg('deps');
+    final skipPubGet = boolArg('skip-pub-get');
     String? version;
 
     // If no version was passed as argument check project config.
@@ -65,7 +65,7 @@ class InstallCommand extends BaseCommand {
         project: project,
         force: true,
         skipSetup: !setup,
-        resolveDependencies: resolveDependencies,
+        resolveDependencies: !skipPubGet,
       );
 
       return ExitCode.success.code;

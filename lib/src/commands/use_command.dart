@@ -44,10 +44,10 @@ class UseCommand extends BaseCommand {
         aliases: ['env'],
       )
       ..addFlag(
-        'deps',
+        'skip-pub-get',
         help: 'Resolves dependencies after switching Flutter SDK',
-        negatable: true,
-        defaultsTo: true,
+        negatable: false,
+        defaultsTo: false,
       )
       ..addFlag(
         'skip-setup',
@@ -60,7 +60,7 @@ class UseCommand extends BaseCommand {
   Future<int> run() async {
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
-    final resolveDependencies = boolArg('deps');
+    final skipPubGet = boolArg('skip-pub-get');
     final flavorOption = stringArg('flavor');
     final skipSetup = boolArg('skip-setup');
 
@@ -136,7 +136,7 @@ class UseCommand extends BaseCommand {
       force: forceOption,
       skipSetup: skipSetup,
       flavor: flavorOption,
-      resolveDependencies: resolveDependencies,
+      resolveDependencies: !skipPubGet,
     );
 
     return ExitCode.success.code;
