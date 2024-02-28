@@ -40,11 +40,13 @@ jobs:
   
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
+        if: github.repository == 'leoafarias/fvm'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Run DCM
         uses: CQLabs/dcm-action@v1
+        if: github.repository == 'leoafarias/fvm'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ci_key: oss
@@ -88,12 +90,3 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
-  
-  linkinator:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: JustinBeckwith/linkinator-action@v1
-        with:
-          concurrency: 3
-          markdown: true
