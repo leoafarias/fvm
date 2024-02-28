@@ -93,7 +93,9 @@ class ProjectService extends ContextService {
     final jsonContents = prettyJson(config.toMap());
 
     configFile.write(jsonContents);
-    legacyConfigFile.write(prettyJson(config.toLegacyMap()));
+    if (legacyConfigFile.existsSync()) {
+      legacyConfigFile.write(prettyJson(config.toLegacyMap()));
+    }
 
     return Project.loadFromPath(project.path);
   }
