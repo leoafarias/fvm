@@ -271,7 +271,6 @@ class AppConfig extends Config {
 /// Project config
 class ProjectConfig extends Config {
   /// Flutter SDK version configured
-  String? flutterSdkVersion;
 
   /// Flavors configured
   Map<String, String>? flavors;
@@ -292,7 +291,6 @@ class ProjectConfig extends Config {
     super.gitCachePath,
     super.flutterUrl,
     super.priviledgedAccess,
-    this.flutterSdkVersion,
     this.flavors,
     bool? updateVscodeSettings,
     bool? updateGitIgnore,
@@ -311,7 +309,6 @@ class ProjectConfig extends Config {
       gitCachePath: envConfig.gitCachePath,
       flutterUrl: envConfig.flutterUrl,
       priviledgedAccess: envConfig.priviledgedAccess,
-      flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
       flavors: map['flavors'] != null ? Map.from(map['flavors'] as Map) : null,
       updateVscodeSettings: map['updateVscodeSettings'] as bool?,
       updateGitIgnore: map['updateGitIgnore'] as bool?,
@@ -368,7 +365,6 @@ class ProjectConfig extends Config {
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
       priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
-      flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
       flavors: mergedFlavors,
       updateVscodeSettings: updateVscodeSettings ?? _updateVscodeSettings,
       updateGitIgnore: updateGitIgnore ?? _updateGitIgnore,
@@ -379,7 +375,6 @@ class ProjectConfig extends Config {
   ProjectConfig merge(ProjectConfig config) {
     return copyWith(
       cachePath: config.cachePath,
-      flutterSdkVersion: config.flutterSdkVersion,
       useGitCache: config.useGitCache,
       updateVscodeSettings: config._updateVscodeSettings,
       updateGitIgnore: config._updateGitIgnore,
@@ -399,7 +394,6 @@ class ProjectConfig extends Config {
 
   Map<String, dynamic> toLegacyMap() {
     return {
-      if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }
@@ -412,7 +406,6 @@ class ProjectConfig extends Config {
   Map<String, dynamic> toMap() {
     return {
       ...super.toMap(),
-      if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
       if (_updateVscodeSettings != null)
         'updateVscodeSettings': _updateVscodeSettings,
       if (_updateGitIgnore != null) 'updateGitIgnore': _updateGitIgnore,
