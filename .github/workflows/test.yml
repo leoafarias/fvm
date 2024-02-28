@@ -9,7 +9,7 @@ on:
         required: false
         default: "3.1.3"
 
-  pull_request:
+  pull_request_target:
     paths-ignore:
       - "docs/**"
       - "README.md"
