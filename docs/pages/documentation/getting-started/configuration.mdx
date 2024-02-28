@@ -11,74 +11,60 @@ Configure FVM and IDEs for better support for different development environments
 
 ## Project
 
-FVM will create a relative symlink in your project from `.fvm/flutter_sdk` to the cache of the selected version. Add it to your `.gitignore`
+There are two main parts for a project that has FVM configured. The `.fvmrc config file and the `.fvm` directory.
 
-```title=".gitignore"
-.fvm/flutter_sdk
+### Config File `.fvmrc`
+
+This contains version linked to the project. This file is automatically created when you run `fvm use {version}`. Here you can also find project specific settings, and flavors.
+
+```json
+{
+  "flutter": "3.19.1",
+  "flavors": {
+    "development": "beta",
+    "production": "3.19.1"
+  },
+  "updateVscodeSettings": true,
+  "updateGitIgnore": true,
+  "runPubGetOnSdkChanges": true
+}
 ```
 
-## FVM
+- `cachePath`: Defines the path to the project's cache directory.
+- `useGitCache`: (default: true) Indicates whether the Git cache is used for dependencies.
+- `gitCachePath`: Sets the path to the Git cache directory, applicable if useGitCache is true.
+- `flutterUrl`: Specifies the URL to the Flutter SDK repository.
+- `priviledgedAccess`:(default: true) Determines if configurations requiring elevated permissions are enabled.
+- `flutterSdkVersion`: The version of the Flutter SDK to be used, falling back to the flutter value if not explicitly set.
+- `flavors`: A map defining custom project flavors for different configurations.
+- `updateVscodeSettings`: (default: true) Flags whether to auto-update VS Code settings on configuration changes.
+- `updateGitIgnore`: (default:true) Indicates whether to auto-update the .gitignore file based on project configurations.
+- `runPubGetOnSdkChanges`: (default: true) Triggers flutter pub get automatically upon Flutter SDK version changes.
 
-### Cache Directory
+### .fvm Directory
 
-You can configure the **fvm** cache directory by setting `FVM_HOME` environment variable. If nothing is set the default **fvm** path will be used. You are also able to change the directory by setting the `--cache-path` on the config. See below
+Inside the directory you will find the following files and directories:
 
-### Config
+- **flutter_sdk** - Symlink to the Flutter SDK version linked to the project.
+- **versions/{version}** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk, but is used for better VsCode compatibility.
+- **fvm_config.json** - (deprecated) This is a legacy configuration file.
+- **release** - (internal use only) File containing the release version of FVM.
+- **version** - (internal use only) File containing the version of FVM.
 
-There are some configurations which you can change on FVM. **All settings set on CLI are compatible with the Sidekick(GUI)**.
-
-### Different Flutter Repo
-
-You can use a different Flutter repo, a fork or as a local cache, by setting the `FVM_GIT_CACHE` environment variable.
-
-#### List config
-
-```bash
-> fvm config
-```
-
-#### Set cache path
-
-Location where Flutter SDK versions will be stored. If nothing is set, the default will be used.
-
-```bash
-> fvm config --cache-path <CACHE_PATH>
-```
-
-## IDE
-
-<Callout>
-  You might have to restart your IDE and the Flutter debugger to make sure it
-  uses the latest version of the configurations in some situations.
+<Callout type="info">
+  Starting version 3.0 and above it is recommended to add the `.fvm` directory
+  to your `.gitignore` file. FVM will automatically add it to .gitignore when
+  pinning a version to a project, if `updateGitIgnore` is set to `true`.
 </Callout>
 
-### Android Studio
+## Envioronment Variables
 
-1. Go to `Languages & Frameworks > Flutter` or search for Flutter and change Flutter SDK path.
-2. Copy the **_absolute_** path of fvm symbolic link in your root project directory. Example: `/absolute-project-path/.fvm/flutter_sdk`
-3. Apply the changes.
-4. Restart Android Studio to see the new settings applied.
+Set environment variables at the system level to apply configurations globally. These are typically used for settings that remain constant across multiple projects or runtime environments.
 
-<Callout type="warning">
-For Android Studio to detect the dynamic change of SDKs, the installed SDK must have finished setup.
+## Supported Environment Variables:
 
-Using `fvm install <VERSION>` will ensure that setup during install.
-
-If you have installed through another command and setup was not completed. You can finish by just running `fvm flutter --version`
-
-Android Studio might take a few seconds to detect the dynamic SDK change.
-
-</Callout>
-
-If you want to ignore the Flutter SDK root directory within Android Studio you can add the following to `.idea/workspace.xml`.
-
-```xml
-<component name="VcsManagerConfiguration">
-  <ignored-roots>
-    <path value="$PROJECT_DIR$/.fvm/flutter_sdk" />
-  </ignored-roots>
-</component>
-...
-```
-
-If that doesn't work, go to Android Studio -> Preferences -> Editor -> File Types -> Ignored Files and Folders and add `flutter_sdk`:
+- `FVM_CACHE_PATH`: Specifies the cache path for Flutter versions.
+- `FVM_GIT_CACHE`: Enables/disables the git cache globally (`true`/`false`).
+- `FVM_GIT_CACHE_PATH`: Sets the path for the local git reference cache.
+- `FVM_FLUTTER_URL`: Defines the Flutter repository git URL.
+- `FVM_PRIVILEDGED_ACCESS`: Enables/disables privileged access for FVM (`true`/`false`).
