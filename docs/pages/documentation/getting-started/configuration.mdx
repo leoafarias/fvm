@@ -4,6 +4,7 @@ title: Configuration
 ---
 
 import { Callout } from "nextra/components";
+import { FileTree } from "nextra/components";
 
 # Configuration
 
@@ -30,12 +31,12 @@ This contains version linked to the project. This file is automatically created 
 }
 ```
 
+- `flutter`: The version of the Flutter SDK to be used, falling back to the flutter value if not explicitly set.
 - `cachePath`: Defines the path to the project's cache directory.
 - `useGitCache`: (default: true) Indicates whether the Git cache is used for dependencies.
 - `gitCachePath`: Sets the path to the Git cache directory, applicable if useGitCache is true.
 - `flutterUrl`: Specifies the URL to the Flutter SDK repository.
 - `priviledgedAccess`:(default: true) Determines if configurations requiring elevated permissions are enabled.
-- `flutterSdkVersion`: The version of the Flutter SDK to be used, falling back to the flutter value if not explicitly set.
 - `flavors`: A map defining custom project flavors for different configurations.
 - `updateVscodeSettings`: (default: true) Flags whether to auto-update VS Code settings on configuration changes.
 - `updateGitIgnore`: (default:true) Indicates whether to auto-update the .gitignore file based on project configurations.
@@ -45,8 +46,21 @@ This contains version linked to the project. This file is automatically created 
 
 Inside the directory you will find the following files and directories:
 
+<FileTree>
+  <FileTree.Folder name=".fvm" defaultOpen>
+    <FileTree.Folder name="versions" defaultOpen>
+      <FileTree.File name="stable" />
+      <FileTree.File name="beta" />
+      <FileTree.File name="3.19.1" />
+    </FileTree.Folder>
+    <FileTree.Folder name="flutter_sdk" />
+    <FileTree.File name="release" />
+    <FileTree.File name="version" />
+  </FileTree.Folder>
+</FileTree>
+
 - **flutter_sdk** - Symlink to the Flutter SDK version linked to the project.
-- **versions/[version]** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk, but is used for better VsCode compatibility.
+- **versions** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk, but is used for better VsCode compatibility.
 - **fvm_config.json** - (deprecated) This is a legacy configuration file.
 - **release** - (internal use only) File containing the release version of FVM.
 - **version** - (internal use only) File containing the version of FVM.

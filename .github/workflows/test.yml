@@ -25,6 +25,8 @@ jobs:
     name: Test
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,13 +42,11 @@ jobs:
   
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
-        if: github.repository == 'leoafarias/fvm'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
   
       - name: Run DCM
         uses: CQLabs/dcm-action@v1
-        if: github.repository == 'leoafarias/fvm'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           ci_key: oss
@@ -55,6 +55,9 @@ jobs:
           fatal_style: true
           fatal_performance: true
           fatal_warnings: true
+
+      - name: Run DCM
+        run: dcm analyze lib
       
       - name: Install lcov
         run: sudo apt-get install lcov
