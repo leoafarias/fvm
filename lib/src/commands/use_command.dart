@@ -45,7 +45,7 @@ class UseCommand extends BaseCommand {
       )
       ..addFlag(
         'skip-pub-get',
-        help: 'Resolves dependencies after switching Flutter SDK',
+        help: 'Skip resolving dependencies after switching Flutter SDK',
         negatable: false,
         defaultsTo: false,
       )
