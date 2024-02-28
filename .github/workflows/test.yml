@@ -15,8 +15,6 @@ on:
       - "README.md"
       - "CHANGELOG.md"
 
-permissions: write-all
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -25,6 +23,8 @@ jobs:
   test:
     name: Test
     timeout-minutes: 30
+    permissions:
+      issues: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
