@@ -85,11 +85,6 @@ class ProjectService extends ContextService {
     final configFile = project.configPath.file;
     final legacyConfigFile = project.legacyConfigPath.file;
 
-    // If config file does not exists create it
-    if (!configFile.existsSync()) {
-      configFile.createSync(recursive: true);
-    }
-
     final jsonContents = prettyJson(config.toMap());
 
     configFile.write(jsonContents);
