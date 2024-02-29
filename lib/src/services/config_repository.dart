@@ -48,15 +48,11 @@ class ConfigRepository {
   static Config loadEnv() {
     final environments = Platform.environment;
 
-    bool? gitCache;
-    String? gitCachePath;
-    String? flutterUrl;
-    String? cachePath;
-    bool? priviledgedAccess;
+    final config = Config.empty();
 
     // Default to Flutter's environment variable if present; can still be overridden
     if (environments.containsKey(flutterGitUrl)) {
-      flutterUrl = environments[flutterGitUrl];
+      config.flutterUrl = environments[flutterGitUrl];
     }
 
     for (final variable in ConfigKeys.values) {
@@ -64,40 +60,33 @@ class ConfigRepository {
       final legacyFvmHome = environments['FVM_HOME'];
 
       if (variable == ConfigKeys.cachePath) {
-        cachePath = value ?? legacyFvmHome;
-        break;
+        config.cachePath = value ?? legacyFvmHome;
       }
 
       if (value == null) continue;
 
       if (variable == ConfigKeys.useGitCache) {
-        gitCache = stringToBool(value);
-        break;
+        config.useGitCache = stringToBool(value);
       }
 
       if (variable == ConfigKeys.gitCachePath) {
-        gitCachePath = value;
-        break;
+        config.gitCachePath = value;
       }
 
       if (variable == ConfigKeys.flutterUrl) {
-        flutterUrl = value;
-        break;
+        config.flutterUrl = value;
       }
 
       if (variable == ConfigKeys.priviledgedAccess) {
-        priviledgedAccess = stringToBool(value);
-        break;
+        config.priviledgedAccess = stringToBool(value);
+      }
+
+      if (variable == ConfigKeys.runPubGetOnSdkChanges) {
+        config.runPubGetOnSdkChanges = stringToBool(value);
       }
     }
 
-    return Config(
-      cachePath: cachePath,
-      useGitCache: gitCache,
-      gitCachePath: gitCachePath,
-      flutterUrl: flutterUrl,
-      priviledgedAccess: priviledgedAccess,
-    );
+    return config;
   }
 
   static String get _configPath => kAppConfigFile;

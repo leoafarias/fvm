@@ -9,6 +9,30 @@ import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
 import 'base_service.dart';
 
+class ProjectRepository {
+  const ProjectRepository._();
+  static Project findAncestor(Directory directory) {
+    // Checks if the directory is root
+    final isRootDir = path.rootPrefix(directory.path) == directory.path;
+
+    // Gets project from directory
+    final project = Project.loadFromPath(directory.path);
+
+    // If project has a config return it
+    if (project.hasConfig && project.hasPubspec) {
+      return project;
+    }
+
+    // Return working directory if has reached root
+    if (isRootDir) {
+      return Project.loadFromPath(directory.path);
+    }
+
+    // Recursive look up
+    return findAncestor(directory.parent);
+  }
+}
+
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
 ///
@@ -32,19 +56,7 @@ class ProjectService extends ContextService {
     // Get directory, defined root or current
     directory ??= Directory(context.workingDirectory);
 
-    // Checks if the directory is root
-    final isRootDir = path.rootPrefix(directory.path) == directory.path;
-
-    // Gets project from directory
-    final project = Project.loadFromPath(directory.path);
-
-    // If project has a config return it
-    if (project.hasConfig && project.hasPubspec) return project;
-
-    // Return working directory if has reached root
-    if (isRootDir) return Project.loadFromPath(context.workingDirectory);
-
-    return findAncestor(directory: directory.parent);
+    return ProjectRepository.findAncestor(directory);
   }
 
   /// Search for version configured

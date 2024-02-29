@@ -18,6 +18,8 @@ class ConfigKeys {
   static const ConfigKeys gitCachePath = ConfigKeys('git_cache_path');
   static const ConfigKeys flutterUrl = ConfigKeys('flutter_url');
   static const ConfigKeys priviledgedAccess = ConfigKeys('priviledged_access');
+  static const ConfigKeys runPubGetOnSdkChanges =
+      ConfigKeys('run_pub_get_on_sdk_changes');
 
   static const values = <ConfigKeys>[
     cachePath,
@@ -117,6 +119,9 @@ class Config {
   /// If FVM should run with priviledged access
   bool? priviledgedAccess;
 
+  // Run pub get on sdk changes
+  bool? runPubGetOnSdkChanges;
+
   /// Constructor
   Config({
     required this.cachePath,
@@ -124,6 +129,7 @@ class Config {
     required this.gitCachePath,
     required this.flutterUrl,
     required this.priviledgedAccess,
+    required this.runPubGetOnSdkChanges,
   });
 
   factory Config.empty() {
@@ -133,6 +139,7 @@ class Config {
       gitCachePath: null,
       flutterUrl: null,
       priviledgedAccess: null,
+      runPubGetOnSdkChanges: null,
     );
   }
 
@@ -143,6 +150,8 @@ class Config {
       gitCachePath: map[ConfigKeys.gitCachePath.propKey] as String?,
       flutterUrl: map[ConfigKeys.flutterUrl.propKey] as String?,
       priviledgedAccess: map[ConfigKeys.priviledgedAccess.propKey] as bool?,
+      runPubGetOnSdkChanges:
+          map[ConfigKeys.runPubGetOnSdkChanges.propKey] as bool?,
     );
   }
 
@@ -154,6 +163,8 @@ class Config {
       if (flutterUrl != null) ConfigKeys.flutterUrl.propKey: flutterUrl,
       if (priviledgedAccess != null)
         ConfigKeys.priviledgedAccess.propKey: priviledgedAccess,
+      if (runPubGetOnSdkChanges != null)
+        ConfigKeys.runPubGetOnSdkChanges.propKey: runPubGetOnSdkChanges,
     };
   }
 }
@@ -173,6 +184,7 @@ class AppConfig extends Config {
     required super.gitCachePath,
     required super.flutterUrl,
     required super.priviledgedAccess,
+    required super.runPubGetOnSdkChanges,
   });
 
   factory AppConfig.empty() {
@@ -184,6 +196,7 @@ class AppConfig extends Config {
       gitCachePath: null,
       flutterUrl: null,
       priviledgedAccess: null,
+      runPubGetOnSdkChanges: null,
     );
   }
 
@@ -200,6 +213,7 @@ class AppConfig extends Config {
       gitCachePath: envConfig.gitCachePath,
       flutterUrl: envConfig.flutterUrl,
       priviledgedAccess: envConfig.priviledgedAccess,
+      runPubGetOnSdkChanges: envConfig.runPubGetOnSdkChanges,
     );
   }
 
@@ -223,6 +237,7 @@ class AppConfig extends Config {
     bool? disableUpdateCheck,
     DateTime? lastUpdateCheck,
     bool? priviledgedAccess,
+    bool? runPubGetOnSdkChanges,
   }) {
     return AppConfig(
       disableUpdateCheck: disableUpdateCheck ?? this.disableUpdateCheck,
@@ -232,6 +247,8 @@ class AppConfig extends Config {
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
       priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
+      runPubGetOnSdkChanges:
+          runPubGetOnSdkChanges ?? this.runPubGetOnSdkChanges,
     );
   }
 
@@ -244,6 +261,7 @@ class AppConfig extends Config {
       disableUpdateCheck: config?.disableUpdateCheck,
       lastUpdateCheck: config?.lastUpdateCheck,
       priviledgedAccess: config?.priviledgedAccess,
+      runPubGetOnSdkChanges: config?.runPubGetOnSdkChanges,
     );
   }
 
@@ -254,6 +272,7 @@ class AppConfig extends Config {
       gitCachePath: config?.gitCachePath,
       flutterUrl: config?.flutterUrl,
       priviledgedAccess: config?.priviledgedAccess,
+      runPubGetOnSdkChanges: config?.runPubGetOnSdkChanges,
     );
   }
 
@@ -277,13 +296,10 @@ class ProjectConfig extends Config {
   Map<String, String>? flavors;
 
   /// If Vscode settings is not managed by FVM
-  bool? _updateVscodeSettings;
+  bool? updateVscodeSettings;
 
   /// If FVM should update .gitignore
-  bool? _updateGitIgnore;
-
-  /// If should run pub get on sdk change
-  bool? _runPubGetOnSdkChanges;
+  bool? updateGitIgnore;
 
   /// Constructor
   ProjectConfig({
@@ -292,14 +308,12 @@ class ProjectConfig extends Config {
     super.gitCachePath,
     super.flutterUrl,
     super.priviledgedAccess,
+    super.runPubGetOnSdkChanges,
     this.flutterSdkVersion,
     this.flavors,
-    bool? updateVscodeSettings,
-    bool? updateGitIgnore,
-    bool? runPubGetOnSdkChanges,
-  })  : _updateVscodeSettings = updateVscodeSettings,
-        _updateGitIgnore = updateGitIgnore,
-        _runPubGetOnSdkChanges = runPubGetOnSdkChanges;
+    this.updateVscodeSettings,
+    this.updateGitIgnore,
+  });
 
   /// Returns ConfigDto from a map
   factory ProjectConfig.fromMap(Map<String, dynamic> map) {
@@ -311,11 +325,11 @@ class ProjectConfig extends Config {
       gitCachePath: envConfig.gitCachePath,
       flutterUrl: envConfig.flutterUrl,
       priviledgedAccess: envConfig.priviledgedAccess,
+      runPubGetOnSdkChanges: envConfig.runPubGetOnSdkChanges,
       flutterSdkVersion: map['flutterSdkVersion'] ?? map['flutter'] as String?,
       flavors: map['flavors'] != null ? Map.from(map['flavors'] as Map) : null,
       updateVscodeSettings: map['updateVscodeSettings'] as bool?,
       updateGitIgnore: map['updateGitIgnore'] as bool?,
-      runPubGetOnSdkChanges: map['runPubGetOnSdkChanges'] as bool?,
     );
   }
 
@@ -330,15 +344,6 @@ class ProjectConfig extends Config {
         ? ProjectConfig.fromJson(configFile.readAsStringSync())
         : null;
   }
-
-  /// Returns update vscode settings
-  bool? get updateVscodeSettings => _updateVscodeSettings;
-
-  /// Returns update git ignore
-  bool? get updateGitIgnore => _updateGitIgnore;
-
-  /// Returns run pub get on sdk changes
-  bool? get runPubGetOnSdkChanges => _runPubGetOnSdkChanges;
 
   /// Copies current config and overrides with new values
   /// Returns a new ConfigDto
@@ -368,11 +373,12 @@ class ProjectConfig extends Config {
       gitCachePath: gitCachePath ?? this.gitCachePath,
       flutterUrl: flutterUrl ?? this.flutterUrl,
       priviledgedAccess: priviledgedAccess ?? this.priviledgedAccess,
+      runPubGetOnSdkChanges:
+          runPubGetOnSdkChanges ?? this.runPubGetOnSdkChanges,
       flutterSdkVersion: flutterSdkVersion ?? this.flutterSdkVersion,
       flavors: mergedFlavors,
-      updateVscodeSettings: updateVscodeSettings ?? _updateVscodeSettings,
-      updateGitIgnore: updateGitIgnore ?? _updateGitIgnore,
-      runPubGetOnSdkChanges: runPubGetOnSdkChanges ?? _runPubGetOnSdkChanges,
+      updateVscodeSettings: updateVscodeSettings ?? this.updateVscodeSettings,
+      updateGitIgnore: updateGitIgnore ?? this.updateGitIgnore,
     );
   }
 
@@ -381,9 +387,9 @@ class ProjectConfig extends Config {
       cachePath: config.cachePath,
       flutterSdkVersion: config.flutterSdkVersion,
       useGitCache: config.useGitCache,
-      updateVscodeSettings: config._updateVscodeSettings,
-      updateGitIgnore: config._updateGitIgnore,
-      runPubGetOnSdkChanges: config._runPubGetOnSdkChanges,
+      updateVscodeSettings: config.updateVscodeSettings,
+      updateGitIgnore: config.updateGitIgnore,
+      runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
       priviledgedAccess: config.priviledgedAccess,
       gitCachePath: config.gitCachePath,
       flutterUrl: config.flutterUrl,
@@ -413,11 +419,10 @@ class ProjectConfig extends Config {
     return {
       ...super.toMap(),
       if (flutterSdkVersion != null) 'flutter': flutterSdkVersion,
-      if (_updateVscodeSettings != null)
-        'updateVscodeSettings': _updateVscodeSettings,
-      if (_updateGitIgnore != null) 'updateGitIgnore': _updateGitIgnore,
-      if (_runPubGetOnSdkChanges != null)
-        'runPubGetOnSdkChanges': _runPubGetOnSdkChanges,
+      if (updateVscodeSettings != null)
+        'updateVscodeSettings': updateVscodeSettings,
+      if (updateGitIgnore != null) 'updateGitIgnore': updateGitIgnore,
+      'runPubGetOnSdkChanges': runPubGetOnSdkChanges,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }

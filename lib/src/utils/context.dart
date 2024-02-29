@@ -57,6 +57,7 @@ class FVMContext {
     workingDirectory ??= Directory.current.path;
 
     // Load config from file in config path
+
     final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
     final envConfig = ConfigRepository.loadEnv();
 
@@ -105,7 +106,16 @@ class FVMContext {
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
   /// Flag to determine if should use git cache
-  bool get gitCache => config.useGitCache ?? true;
+  bool get gitCache {
+    return config.useGitCache != null ? config.useGitCache! : true;
+  }
+
+  /// Run pub get on sdk changes
+  bool get runPubGetOnSdkChanges {
+    return config.runPubGetOnSdkChanges != null
+        ? config.runPubGetOnSdkChanges!
+        : true;
+  }
 
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
@@ -121,10 +131,16 @@ class FVMContext {
   DateTime? get lastUpdateCheck => config.lastUpdateCheck;
 
   /// Flutter SDK Path
-  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
+  bool get updateCheckDisabled {
+    return config.disableUpdateCheck != null
+        ? config.disableUpdateCheck!
+        : false;
+  }
 
   /// Priviledged access
-  bool get priviledgedAccess => config.priviledgedAccess ?? true;
+  bool get priviledgedAccess {
+    return config.priviledgedAccess != null ? config.priviledgedAccess! : true;
+  }
 
   /// Where Default Flutter SDK is stored
   String get globalCacheLink => join(fvmDir, 'default');
