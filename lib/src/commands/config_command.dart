@@ -33,43 +33,18 @@ class ConfigCommand extends BaseCommand {
     final currentConfig = ConfigRepository.loadAppConfig();
     var updatedConfig = currentConfig;
 
-    // TODO: Consolidate redundant code
-
-    if (wasParsed(ConfigKeys.flutterUrl.paramKey)) {
-      final flutterRepo = stringArg(ConfigKeys.flutterUrl.paramKey);
-      logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
-      // current.flutterUrl = flutterRepo;
-      updatedConfig = currentConfig.copyWith(flutterUrl: flutterRepo);
+    void updateConfigKey<T>(ConfigKeys key, T value) {
+      if (wasParsed(key.paramKey)) {
+        final updatedMap = AppConfig.fromMap({key.name: value});
+        logger.info(
+          'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
+        );
+        updatedConfig = updatedConfig.merge(updatedMap);
+      }
     }
 
-    if (wasParsed(ConfigKeys.gitCachePath.paramKey)) {
-      final gitCachePath = stringArg(ConfigKeys.gitCachePath.paramKey);
-      logger.info('Setting git cache path to: ${yellow.wrap(gitCachePath)}');
-      // currentConfig.gitCachePath = gitCachePath;
-      updatedConfig = currentConfig.copyWith(gitCachePath: gitCachePath);
-    }
-
-    if (wasParsed(ConfigKeys.useGitCache.paramKey)) {
-      final gitCache = boolArg(ConfigKeys.useGitCache.paramKey);
-      logger.info(
-        'Setting use git cache to: ${yellow.wrap(gitCache.toString())}',
-      );
-      updatedConfig = currentConfig.copyWith(useGitCache: gitCache);
-    }
-
-    if (wasParsed(ConfigKeys.cachePath.paramKey)) {
-      final cachePath = stringArg(ConfigKeys.cachePath.paramKey);
-      logger.info('Setting fvm path to: ${yellow.wrap(cachePath)}');
-      updatedConfig = currentConfig.copyWith(cachePath: cachePath);
-    }
-
-    if (wasParsed(ConfigKeys.priviledgedAccess.paramKey)) {
-      final priviledgedAccess = boolArg(ConfigKeys.priviledgedAccess.paramKey);
-      logger.info(
-        'Setting priviledged access to: ${yellow.wrap(priviledgedAccess.toString())}',
-      );
-      updatedConfig =
-          currentConfig.copyWith(priviledgedAccess: priviledgedAccess);
+    for (var key in ConfigKeys.values) {
+      updateConfigKey(key, argResults![key.paramKey]);
     }
 
     // Save
@@ -78,7 +53,7 @@ class ConfigCommand extends BaseCommand {
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        ConfigRepository.save(currentConfig);
+        ConfigRepository.save(updatedConfig);
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         rethrow;

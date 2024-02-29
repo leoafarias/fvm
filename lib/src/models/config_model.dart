@@ -28,7 +28,7 @@ enum ConfigKeys {
 
   final String description;
 
-  ChangeCase get _recase => ChangeCase(toString());
+  ChangeCase get _recase => ChangeCase(name);
 
   String get envKey => 'FVM_${_recase.constantCase}';
 
@@ -41,14 +41,13 @@ enum ConfigKeys {
       ConfigKeys.cachePath: () {
         argParser.addOption(
           ConfigKeys.cachePath.paramKey,
-          help: 'Path where $kPackageName will cache versions',
+          help: ConfigKeys.cachePath.description,
         );
       },
       ConfigKeys.useGitCache: () {
         argParser.addFlag(
           ConfigKeys.useGitCache.paramKey,
-          help:
-              'Enable/Disable git cache globally, which is used for faster version installs.',
+          help: ConfigKeys.useGitCache.description,
           defaultsTo: true,
           negatable: true,
         );
@@ -56,19 +55,19 @@ enum ConfigKeys {
       ConfigKeys.gitCachePath: () {
         argParser.addOption(
           ConfigKeys.gitCachePath.paramKey,
-          help: 'Path where local Git reference cache is stored',
+          help: ConfigKeys.gitCachePath.description,
         );
       },
       ConfigKeys.flutterUrl: () {
         argParser.addOption(
           ConfigKeys.flutterUrl.paramKey,
-          help: 'Flutter repository Git URL to clone from',
+          help: ConfigKeys.flutterUrl.description,
         );
       },
       ConfigKeys.priviledgedAccess: () {
         argParser.addFlag(
           ConfigKeys.priviledgedAccess.paramKey,
-          help: 'Enable/Disable priviledged access for FVM',
+          help: ConfigKeys.priviledgedAccess.description,
           defaultsTo: true,
           negatable: true,
         );
