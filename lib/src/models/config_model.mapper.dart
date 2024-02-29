@@ -470,34 +470,34 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
 
   static bool? _$disableUpdateCheck(AppConfig v) => v.disableUpdateCheck;
   static const Field<AppConfig, bool> _f$disableUpdateCheck =
-      Field('disableUpdateCheck', _$disableUpdateCheck);
+      Field('disableUpdateCheck', _$disableUpdateCheck, opt: true);
   static DateTime? _$lastUpdateCheck(AppConfig v) => v.lastUpdateCheck;
   static const Field<AppConfig, DateTime> _f$lastUpdateCheck =
-      Field('lastUpdateCheck', _$lastUpdateCheck);
+      Field('lastUpdateCheck', _$lastUpdateCheck, opt: true);
   static String? _$cachePath(AppConfig v) => v.cachePath;
   static const Field<AppConfig, String> _f$cachePath =
-      Field('cachePath', _$cachePath);
+      Field('cachePath', _$cachePath, opt: true);
   static bool? _$useGitCache(AppConfig v) => v.useGitCache;
   static const Field<AppConfig, bool> _f$useGitCache =
-      Field('useGitCache', _$useGitCache);
+      Field('useGitCache', _$useGitCache, opt: true);
   static String? _$gitCachePath(AppConfig v) => v.gitCachePath;
   static const Field<AppConfig, String> _f$gitCachePath =
-      Field('gitCachePath', _$gitCachePath);
+      Field('gitCachePath', _$gitCachePath, opt: true);
   static String? _$flutterUrl(AppConfig v) => v.flutterUrl;
   static const Field<AppConfig, String> _f$flutterUrl =
-      Field('flutterUrl', _$flutterUrl);
+      Field('flutterUrl', _$flutterUrl, opt: true);
   static bool? _$priviledgedAccess(AppConfig v) => v.priviledgedAccess;
   static const Field<AppConfig, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess);
+      Field('priviledgedAccess', _$priviledgedAccess, opt: true);
   static bool? _$runPubGetOnSdkChanges(AppConfig v) => v.runPubGetOnSdkChanges;
   static const Field<AppConfig, bool> _f$runPubGetOnSdkChanges =
-      Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges);
+      Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges, opt: true);
   static bool? _$updateVscodeSettings(AppConfig v) => v.updateVscodeSettings;
   static const Field<AppConfig, bool> _f$updateVscodeSettings =
-      Field('updateVscodeSettings', _$updateVscodeSettings);
+      Field('updateVscodeSettings', _$updateVscodeSettings, opt: true);
   static bool? _$updateGitIgnore(AppConfig v) => v.updateGitIgnore;
   static const Field<AppConfig, bool> _f$updateGitIgnore =
-      Field('updateGitIgnore', _$updateGitIgnore);
+      Field('updateGitIgnore', _$updateGitIgnore, opt: true);
 
   @override
   final MappableFields<AppConfig> fields = const {
@@ -512,6 +512,8 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
   };
+  @override
+  final bool ignoreNull = true;
 
   static AppConfig _instantiate(DecodingData data) {
     return AppConfig(
@@ -669,36 +671,36 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
 
   static String? _$flutterSdkVersion(ProjectConfig v) => v.flutterSdkVersion;
   static const Field<ProjectConfig, String> _f$flutterSdkVersion =
-      Field('flutterSdkVersion', _$flutterSdkVersion);
+      Field('flutterSdkVersion', _$flutterSdkVersion, opt: true);
   static Map<String, String>? _$flavors(ProjectConfig v) => v.flavors;
   static const Field<ProjectConfig, Map<String, String>> _f$flavors =
-      Field('flavors', _$flavors);
+      Field('flavors', _$flavors, opt: true);
   static String? _$cachePath(ProjectConfig v) => v.cachePath;
   static const Field<ProjectConfig, String> _f$cachePath =
-      Field('cachePath', _$cachePath);
+      Field('cachePath', _$cachePath, opt: true);
   static bool? _$useGitCache(ProjectConfig v) => v.useGitCache;
   static const Field<ProjectConfig, bool> _f$useGitCache =
-      Field('useGitCache', _$useGitCache);
+      Field('useGitCache', _$useGitCache, opt: true);
   static String? _$gitCachePath(ProjectConfig v) => v.gitCachePath;
   static const Field<ProjectConfig, String> _f$gitCachePath =
-      Field('gitCachePath', _$gitCachePath);
+      Field('gitCachePath', _$gitCachePath, opt: true);
   static String? _$flutterUrl(ProjectConfig v) => v.flutterUrl;
   static const Field<ProjectConfig, String> _f$flutterUrl =
-      Field('flutterUrl', _$flutterUrl);
+      Field('flutterUrl', _$flutterUrl, opt: true);
   static bool? _$priviledgedAccess(ProjectConfig v) => v.priviledgedAccess;
   static const Field<ProjectConfig, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess);
+      Field('priviledgedAccess', _$priviledgedAccess, opt: true);
   static bool? _$runPubGetOnSdkChanges(ProjectConfig v) =>
       v.runPubGetOnSdkChanges;
   static const Field<ProjectConfig, bool> _f$runPubGetOnSdkChanges =
-      Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges);
+      Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges, opt: true);
   static bool? _$updateVscodeSettings(ProjectConfig v) =>
       v.updateVscodeSettings;
   static const Field<ProjectConfig, bool> _f$updateVscodeSettings =
-      Field('updateVscodeSettings', _$updateVscodeSettings);
+      Field('updateVscodeSettings', _$updateVscodeSettings, opt: true);
   static bool? _$updateGitIgnore(ProjectConfig v) => v.updateGitIgnore;
   static const Field<ProjectConfig, bool> _f$updateGitIgnore =
-      Field('updateGitIgnore', _$updateGitIgnore);
+      Field('updateGitIgnore', _$updateGitIgnore, opt: true);
 
   @override
   final MappableFields<ProjectConfig> fields = const {
@@ -713,6 +715,8 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
   };
+  @override
+  final bool ignoreNull = true;
 
   static ProjectConfig _instantiate(DecodingData data) {
     return ProjectConfig(

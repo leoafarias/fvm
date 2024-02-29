@@ -159,7 +159,7 @@ class FileConfig extends BaseConfig with FileConfigMappable {
   }
 }
 
-@MappableClass()
+@MappableClass(ignoreNull: true)
 class AppConfig extends FileConfig with AppConfigMappable {
   /// Disables update notification
 
@@ -171,16 +171,16 @@ class AppConfig extends FileConfig with AppConfigMappable {
 
   /// Constructor
   const AppConfig({
-    required this.disableUpdateCheck,
-    required this.lastUpdateCheck,
-    required super.cachePath,
-    required super.useGitCache,
-    required super.gitCachePath,
-    required super.flutterUrl,
-    required super.priviledgedAccess,
-    required super.runPubGetOnSdkChanges,
-    required super.updateVscodeSettings,
-    required super.updateGitIgnore,
+    this.disableUpdateCheck,
+    this.lastUpdateCheck,
+    super.cachePath,
+    super.useGitCache,
+    super.gitCachePath,
+    super.flutterUrl,
+    super.priviledgedAccess,
+    super.runPubGetOnSdkChanges,
+    super.updateVscodeSettings,
+    super.updateGitIgnore,
   });
 
   static AppConfig empty() {
@@ -208,55 +208,47 @@ class AppConfig extends FileConfig with AppConfigMappable {
 
   AppConfig merge(BaseConfig? config) {
     if (config == null) return this;
+    AppConfig newConfig;
     if (config is EnvConfig) {
-      return copyWith(
-        cachePath: config.cachePath,
+      newConfig = AppConfig(
         disableUpdateCheck: disableUpdateCheck,
-        flutterUrl: config.flutterUrl,
-        gitCachePath: config.gitCachePath,
+        cachePath: config.cachePath,
         useGitCache: config.useGitCache,
+        gitCachePath: config.gitCachePath,
+        flutterUrl: config.flutterUrl,
       );
     }
 
     if (config is ProjectConfig) {
-      return copyWith(
+      newConfig = AppConfig(
         cachePath: config.cachePath,
-        flutterUrl: config.flutterUrl,
+        useGitCache: config.useGitCache,
         gitCachePath: config.gitCachePath,
+        flutterUrl: config.flutterUrl,
         priviledgedAccess: config.priviledgedAccess,
         runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
-        updateGitIgnore: config.updateGitIgnore,
         updateVscodeSettings: config.updateVscodeSettings,
-        useGitCache: config.useGitCache,
+        updateGitIgnore: config.updateGitIgnore,
       );
     }
 
     if (config is AppConfig) {
-      return copyWith(
-        cachePath: config.cachePath,
-        disableUpdateCheck: config.disableUpdateCheck,
-        flutterUrl: config.flutterUrl,
-        gitCachePath: config.gitCachePath,
-        lastUpdateCheck: config.lastUpdateCheck,
-        priviledgedAccess: config.priviledgedAccess,
-        runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
-        updateGitIgnore: config.updateGitIgnore,
-        updateVscodeSettings: config.updateVscodeSettings,
-        useGitCache: config.useGitCache,
-      );
+      return copyWith.$merge(config);
     }
 
-    return copyWith(
+    newConfig = AppConfig(
       cachePath: config.cachePath,
-      flutterUrl: config.flutterUrl,
-      gitCachePath: config.gitCachePath,
       useGitCache: config.useGitCache,
+      gitCachePath: config.gitCachePath,
+      flutterUrl: config.flutterUrl,
     );
+
+    return copyWith.$merge(newConfig);
   }
 }
 
 /// Project config
-@MappableClass()
+@MappableClass(ignoreNull: true)
 class ProjectConfig extends FileConfig with ProjectConfigMappable {
   final String? flutterSdkVersion;
   final Map<String, String>? flavors;
@@ -265,16 +257,16 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
 
   /// Constructor
   const ProjectConfig({
-    required this.flutterSdkVersion,
-    required this.flavors,
-    required super.cachePath,
-    required super.useGitCache,
-    required super.gitCachePath,
-    required super.flutterUrl,
-    required super.priviledgedAccess,
-    required super.runPubGetOnSdkChanges,
-    required super.updateVscodeSettings,
-    required super.updateGitIgnore,
+    this.flutterSdkVersion,
+    this.flavors,
+    super.cachePath,
+    super.useGitCache,
+    super.gitCachePath,
+    super.flutterUrl,
+    super.priviledgedAccess,
+    super.runPubGetOnSdkChanges,
+    super.updateVscodeSettings,
+    super.updateGitIgnore,
   });
 
   static ProjectConfig empty() {

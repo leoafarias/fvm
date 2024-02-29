@@ -106,7 +106,7 @@ packages:
     source: hosted
     version: "7.3.0"
   build_verify:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: build_verify
       sha256: abbb9b9eda076854ac1678d284c053a5ec608e64da741d0801f56d4bbea27e23
@@ -114,7 +114,7 @@ packages:
     source: hosted
     version: "3.1.0"
   build_version:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: build_version
       sha256: "4e8eafbf722eac3bd60c8d38f108c04bd69b80100f8792b32be3407725c7fa6a"

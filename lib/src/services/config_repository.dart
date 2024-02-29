@@ -7,6 +7,7 @@ import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
 import '../utils/pretty_json.dart';
+import 'logger_service.dart';
 
 const String flutterGitUrl = 'FLUTTER_GIT_URL';
 
@@ -24,13 +25,17 @@ class ConfigRepository {
 
   static AppConfig loadAppConfig() {
     final appConfig = AppConfig.loadFromPath(_configPath);
-    if (appConfig != null) return appConfig;
+    if (appConfig == null) {
+      save(AppConfig.empty());
+    }
 
-    return AppConfig.empty();
+    return AppConfig.loadFromPath(_configPath)!;
   }
 
   static void save(AppConfig config) {
     final jsonContents = prettyJson(config.toMap());
+    logger.warn('Saving config to $_configPath');
+    print(jsonContents);
 
     _configPath.file.write(jsonContents);
   }
@@ -56,24 +61,24 @@ class ConfigRepository {
 
   static void update({
     String? cachePath,
-    bool? useGitCache,
     String? gitCachePath,
     String? flutterUrl,
     bool? disableUpdateCheck,
     DateTime? lastUpdateCheck,
     bool? priviledgedAccess,
+    bool? useGitCache,
   }) {
     final currentConfig = loadAppConfig();
-    final newConfig = currentConfig.copyWith(
-      cachePath: cachePath,
+    final newConfig = AppConfig(
       disableUpdateCheck: disableUpdateCheck,
-      flutterUrl: flutterUrl,
-      gitCachePath: gitCachePath,
       lastUpdateCheck: lastUpdateCheck,
-      priviledgedAccess: priviledgedAccess,
+      cachePath: cachePath,
       useGitCache: useGitCache,
+      gitCachePath: gitCachePath,
+      flutterUrl: flutterUrl,
+      priviledgedAccess: priviledgedAccess,
     );
-    save(newConfig);
+    save(currentConfig.copyWith.$merge(newConfig));
   }
 
   static EnvConfig _loadEnvironment() {

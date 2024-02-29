@@ -39,6 +39,8 @@ class ConfigCommand extends BaseCommand {
         logger.info(
           'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
         );
+
+        logger.info(updatedMap.toString());
         updatedConfig = updatedConfig.merge(updatedMap);
       }
     }
