@@ -38,11 +38,11 @@ class FVMContext {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
-  /// App config
-  final AppConfig config;
-
   /// Generators for dependencies
   final Map<Type, dynamic>? generators;
+
+  /// App config
+  final AppConfig _config;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -58,12 +58,9 @@ class FVMContext {
 
     // Load config from file in config path
 
-    final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
     final envConfig = ConfigRepository.loadEnv();
 
-    final appConfig = ConfigRepository.loadFile()
-        .mergeConfig(envConfig)
-        .mergeConfig(projectConfig);
+    final appConfig = ConfigRepository.loadFile().mergeConfig(envConfig);
 
     // Merge config from file with env config
     final config = appConfig.merge(configOverrides);
@@ -94,10 +91,18 @@ class FVMContext {
   FVMContext._({
     required this.id,
     required this.workingDirectory,
-    required this.config,
+    required AppConfig config,
     this.generators = const {},
     this.isTest = false,
-  });
+  }) : _config = config;
+
+  AppConfig get config {
+    // TODO: Need to optimize this
+    // For now optimizing for correctness
+    final projectConfig = ProjectService(this).findAncestor().config;
+
+    return _config.mergeConfig(projectConfig);
+  }
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
