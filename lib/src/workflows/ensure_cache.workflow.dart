@@ -50,7 +50,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         );
       }
 
-      // If shouldl install notifiy the user that is already installed
+      // If should install notify the user that is already installed
       if (shouldInstall) {
         logger.success(
           'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is already installed.',
@@ -69,13 +69,15 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
       );
 
-      final shouldInstallConfirmed = logger.confirm(
-        'Would you like to install it now?',
-        defaultValue: true,
-      );
+      if (!force) {
+        final shouldInstallConfirmed = logger.confirm(
+          'Would you like to install it now?',
+          defaultValue: true,
+        );
 
-      if (!shouldInstallConfirmed) {
-        exit(ExitCode.success.code);
+        if (!shouldInstallConfirmed) {
+          exit(ExitCode.success.code);
+        }
       }
     }
 
