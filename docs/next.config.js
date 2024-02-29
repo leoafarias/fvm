@@ -23,6 +23,11 @@ module.exports = withNextra({
         destination: "/documentation/getting-started/faq",
         permanent: true,
       },
+      {
+        source: "/docs/guides/global_version",
+        destination: "/documentation/guides/global-configuration",
+        permanent: true,
+      },
     ];
   },
 });
