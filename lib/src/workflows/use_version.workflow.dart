@@ -27,6 +27,7 @@ Future<void> useVersionWorkflow({
   required Project project,
   bool force = false,
   bool skipSetup = false,
+  bool resolveDependencies = true,
   String? flavor,
 }) async {
   // If project use check that is Flutter project
@@ -61,7 +62,9 @@ Future<void> useVersionWorkflow({
 
   await _checkGitignore(updatedProject, force: force);
 
-  await resolveDependenciesWorkflow(updatedProject, version, force: force);
+  if (resolveDependencies) {
+    await resolveDependenciesWorkflow(updatedProject, version, force: force);
+  }
 
   _updateLocalSdkReference(updatedProject, version);
   _updateCurrentSdkReference(updatedProject, version);
