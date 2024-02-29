@@ -28,6 +28,9 @@ dependencies:
   stack_trace: ^1.11.1
   pubspec: ^2.3.0
   jsonc: ^0.0.3
+  dart_mappable: ^4.2.0
+  build_verify: ^3.1.0
+  build_version: ^2.1.1
 
 dev_dependencies:
   cli_pkg: ^2.5.0
@@ -37,4 +40,6 @@ dev_dependencies:
   crypto: ^3.0.3
   http: ^1.1.0
   dart_code_metrics_presets: ^2.9.0
+  build_runner: ^2.4.8
+  dart_mappable_builder: ^4.2.0
 

@@ -24,7 +24,7 @@ void deprecationWorkflow() {
     final settings = jsonDecode(payload);
     final settingsCachePath = settings['cachePath'] as String?;
     if (settingsCachePath != null && settingsCachePath != fvmDir) {
-      var appConfig = ConfigRepository.loadFile();
+      var appConfig = ConfigRepository.loadAppConfig();
       appConfig = appConfig.copyWith(cachePath: fvmDir);
       ConfigRepository.save(appConfig);
       legacySettingsFile.deleteSync(recursive: true);

@@ -29,23 +29,24 @@ class ConfigCommand extends BaseCommand {
   @override
   Future<int> run() async {
     // Flag if settings should be saved
-    var shouldSave = false;
 
-    var current = ConfigRepository.loadFile();
+    final currentConfig = ConfigRepository.loadAppConfig();
+    var updatedConfig = currentConfig;
+
+    // TODO: Consolidate redundant code
 
     if (wasParsed(ConfigKeys.flutterUrl.paramKey)) {
       final flutterRepo = stringArg(ConfigKeys.flutterUrl.paramKey);
       logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
-      current.flutterUrl = flutterRepo;
-
-      shouldSave = true;
+      // current.flutterUrl = flutterRepo;
+      updatedConfig = currentConfig.copyWith(flutterUrl: flutterRepo);
     }
 
     if (wasParsed(ConfigKeys.gitCachePath.paramKey)) {
       final gitCachePath = stringArg(ConfigKeys.gitCachePath.paramKey);
       logger.info('Setting git cache path to: ${yellow.wrap(gitCachePath)}');
-      current.gitCachePath = gitCachePath;
-      shouldSave = true;
+      // currentConfig.gitCachePath = gitCachePath;
+      updatedConfig = currentConfig.copyWith(gitCachePath: gitCachePath);
     }
 
     if (wasParsed(ConfigKeys.useGitCache.paramKey)) {
@@ -53,24 +54,31 @@ class ConfigCommand extends BaseCommand {
       logger.info(
         'Setting use git cache to: ${yellow.wrap(gitCache.toString())}',
       );
-      current.useGitCache = gitCache;
-      shouldSave = true;
+      updatedConfig = currentConfig.copyWith(useGitCache: gitCache);
     }
 
     if (wasParsed(ConfigKeys.cachePath.paramKey)) {
       final cachePath = stringArg(ConfigKeys.cachePath.paramKey);
       logger.info('Setting fvm path to: ${yellow.wrap(cachePath)}');
-      current.cachePath = cachePath;
-      shouldSave = true;
+      updatedConfig = currentConfig.copyWith(cachePath: cachePath);
+    }
+
+    if (wasParsed(ConfigKeys.priviledgedAccess.paramKey)) {
+      final priviledgedAccess = boolArg(ConfigKeys.priviledgedAccess.paramKey);
+      logger.info(
+        'Setting priviledged access to: ${yellow.wrap(priviledgedAccess.toString())}',
+      );
+      updatedConfig =
+          currentConfig.copyWith(priviledgedAccess: priviledgedAccess);
     }
 
     // Save
-    if (shouldSave) {
+    if (updatedConfig != currentConfig) {
       logger.info('');
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        ConfigRepository.save(current);
+        ConfigRepository.save(currentConfig);
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         rethrow;
@@ -84,7 +92,7 @@ class ConfigCommand extends BaseCommand {
         ..info('Located at ${ctx.configPath}')
         ..info('');
 
-      final options = current.toMap();
+      final options = currentConfig.toMap();
 
       if (options.keys.isEmpty) {
         logger.info('No settings have been configured.');

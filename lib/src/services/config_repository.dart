@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
 import '../models/config_model.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
@@ -12,7 +14,15 @@ const String flutterGitUrl = 'FLUTTER_GIT_URL';
 class ConfigRepository {
   const ConfigRepository._();
 
-  static AppConfig loadFile() {
+  static AppConfig load({AppConfig? overrides}) {
+    final appConfig = loadAppConfig();
+    final envConfig = _loadEnvironment();
+    final projectConfig = _loadProjectConfig();
+
+    return appConfig.merge(envConfig).merge(projectConfig).merge(overrides);
+  }
+
+  static AppConfig loadAppConfig() {
     final appConfig = AppConfig.loadFromPath(_configPath);
     if (appConfig != null) return appConfig;
 
@@ -25,6 +35,25 @@ class ConfigRepository {
     _configPath.file.write(jsonContents);
   }
 
+  static ProjectConfig? _loadProjectConfig({Directory? directory}) {
+    // Get directory, defined root or current
+    directory ??= Directory.current;
+
+    // Checks if the directory is root
+    final isRootDir = path.rootPrefix(directory.path) == directory.path;
+
+    // Gets project from directory
+    final projectConfig = ProjectConfig.loadFromPath(directory.path);
+
+    // If project has a config return it
+    if (projectConfig != null) return projectConfig;
+
+    // Return working directory if has reached root
+    if (isRootDir) return null;
+
+    return _loadProjectConfig(directory: directory.parent);
+  }
+
   static void update({
     String? cachePath,
     bool? useGitCache,
@@ -32,57 +61,51 @@ class ConfigRepository {
     String? flutterUrl,
     bool? disableUpdateCheck,
     DateTime? lastUpdateCheck,
+    bool? priviledgedAccess,
   }) {
-    final currentConfig = loadFile();
+    final currentConfig = loadAppConfig();
     final newConfig = currentConfig.copyWith(
       cachePath: cachePath,
-      useGitCache: useGitCache,
-      gitCachePath: gitCachePath,
-      flutterUrl: flutterUrl,
       disableUpdateCheck: disableUpdateCheck,
+      flutterUrl: flutterUrl,
+      gitCachePath: gitCachePath,
       lastUpdateCheck: lastUpdateCheck,
+      priviledgedAccess: priviledgedAccess,
+      useGitCache: useGitCache,
     );
     save(newConfig);
   }
 
-  static Config loadEnv() {
+  static EnvConfig _loadEnvironment() {
     final environments = Platform.environment;
 
-    final config = Config.empty();
+    var config = EnvConfig.empty();
 
     // Default to Flutter's environment variable if present; can still be overridden
     if (environments.containsKey(flutterGitUrl)) {
-      config.flutterUrl = environments[flutterGitUrl];
+      config = config.copyWith(flutterUrl: environments[flutterGitUrl]);
     }
 
-    for (final variable in ConfigKeys.values) {
-      final value = environments[variable.envKey];
+    for (final envVar in ConfigKeys.values) {
+      final value = environments[envVar.envKey];
       final legacyFvmHome = environments['FVM_HOME'];
 
-      if (variable == ConfigKeys.cachePath) {
-        config.cachePath = value ?? legacyFvmHome;
+      if (envVar == ConfigKeys.cachePath) {
+        config = config.copyWith(cachePath: value ?? legacyFvmHome);
       }
 
       if (value == null) continue;
 
-      if (variable == ConfigKeys.useGitCache) {
-        config.useGitCache = stringToBool(value);
+      if (envVar == ConfigKeys.useGitCache) {
+        config = config.copyWith(useGitCache: stringToBool(value));
       }
 
-      if (variable == ConfigKeys.gitCachePath) {
-        config.gitCachePath = value;
+      if (envVar == ConfigKeys.gitCachePath) {
+        config = config.copyWith(gitCachePath: value);
       }
 
-      if (variable == ConfigKeys.flutterUrl) {
-        config.flutterUrl = value;
-      }
-
-      if (variable == ConfigKeys.priviledgedAccess) {
-        config.priviledgedAccess = stringToBool(value);
-      }
-
-      if (variable == ConfigKeys.runPubGetOnSdkChanges) {
-        config.runPubGetOnSdkChanges = stringToBool(value);
+      if (envVar == ConfigKeys.flutterUrl) {
+        config = config.copyWith(flutterUrl: value);
       }
     }
 

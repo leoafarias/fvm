@@ -56,14 +56,8 @@ class FVMContext {
   }) {
     workingDirectory ??= Directory.current.path;
 
-    // Load config from file in config path
-
-    final envConfig = ConfigRepository.loadEnv();
-
-    final appConfig = ConfigRepository.loadFile().mergeConfig(envConfig);
-
-    // Merge config from file with env config
-    final config = appConfig.merge(configOverrides);
+    // Load all configs
+    final config = ConfigRepository.load(overrides: configOverrides);
 
     final level = isTest ? Level.warning : Level.info;
 
@@ -96,13 +90,7 @@ class FVMContext {
     this.isTest = false,
   }) : _config = config;
 
-  AppConfig get config {
-    // TODO: Need to optimize this
-    // For now optimizing for correctness
-    final projectConfig = ProjectService(this).findAncestor().config;
-
-    return _config.mergeConfig(projectConfig);
-  }
+  AppConfig get config => _config;
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;

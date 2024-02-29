@@ -25,7 +25,7 @@ import 'utils/constants.dart';
 import 'utils/context.dart';
 import 'utils/deprecation_util.dart';
 import 'utils/exceptions.dart';
-import 'version.g.dart';
+import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
