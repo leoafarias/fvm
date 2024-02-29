@@ -35,7 +35,6 @@ class ConfigRepository {
   static void save(AppConfig config) {
     final jsonContents = prettyJson(config.toMap());
     logger.warn('Saving config to $_configPath');
-    print(jsonContents);
 
     _configPath.file.write(jsonContents);
   }

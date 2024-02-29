@@ -66,7 +66,6 @@ class FvmCommandRunner extends CommandRunner<int> {
       if (ctx.updateCheckDisabled) return null;
       final oneDay = lastUpdateCheck.add(const Duration(days: 1));
 
-      print(DateTime.now().isBefore(oneDay));
       if (DateTime.now().isBefore(oneDay)) {
         return null;
       }
