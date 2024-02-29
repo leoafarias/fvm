@@ -12,7 +12,7 @@ Future<void> resolveDependenciesWorkflow(
   CacheFlutterVersion version, {
   required bool force,
 }) async {
-  if (version.notSetup) return;
+  if (version.isNotSetup) return;
 
   if (project.dartToolVersion == version.flutterSdkVersion) {
     return;
