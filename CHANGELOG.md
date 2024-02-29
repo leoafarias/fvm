@@ -1,3 +1,8 @@
+## Unreleased
+
+* feat: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
+* feat: Added flag to skip pub get on `install` and `use`, `--skip-pub-get` by @mrgnhnt96
+
 ## 3.0.12
 
 * Adds skipping version mismatch handling when using force or running with a custom fvm version. [#653](https://github.com/leoafarias/fvm/issues/653)

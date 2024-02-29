@@ -1,13 +1,13 @@
 import 'package:dart_console/dart_console.dart';
-import '../services/global_version_service.dart';
-import '../services/releases_service/models/release.model.dart';
-import '../services/releases_service/releases_client.dart';
-import '../utils/helpers.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
+import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
+import '../services/releases_service/models/release.model.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
+import '../utils/helpers.dart';
 import 'base_command.dart';
 
 /// List installed SDK Versions
@@ -71,7 +71,7 @@ class ListCommand extends BaseCommand {
       String flutterSdkVersion = version.flutterSdkVersion ?? '';
 
       String getVersionOutput() {
-        if (version.notSetup) {
+        if (version.isNotSetup) {
           return flutterSdkVersion = '${yellow.wrap('Need setup')}';
         }
         if (latestRelease != null && version.isChannel) {
