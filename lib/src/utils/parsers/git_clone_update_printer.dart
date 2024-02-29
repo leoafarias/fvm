@@ -20,30 +20,42 @@ String lastMatchedEntry = '';
 final maxLabelLength =
     regexes.keys.map((e) => e.length).reduce((a, b) => a > b ? a : b);
 
+var _hasFailedPrint = false;
+
 void updateProgress(String line) {
-  final matchedEntry = regexes.entries.firstWhereOrNull(
-    (entry) => line.contains(entry.key),
-  );
+  if (_hasFailedPrint) {
+    logger.info('\n');
 
-  if (matchedEntry != null) {
-    final label = matchedEntry.key.padRight(maxLabelLength);
-    final match = matchedEntry.value.firstMatch(line);
-    final percentVaue = match?.group(1);
-    int? percentage = int.tryParse(percentVaue ?? '');
+    return;
+  }
+  try {
+    final matchedEntry = regexes.entries.firstWhereOrNull(
+      (entry) => line.contains(entry.key),
+    );
 
-    if (percentage != lastPercentage) {
-      if (percentage == null) return;
+    if (matchedEntry != null) {
+      final label = matchedEntry.key.padRight(maxLabelLength);
+      final match = matchedEntry.value.firstMatch(line);
+      final percentVaue = match?.group(1);
+      int? percentage = int.tryParse(percentVaue ?? '');
 
-      if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
-        printProgressBar(lastMatchedEntry, 100);
-        logger.write('\n');
+      if (percentage != lastPercentage) {
+        if (percentage == null) return;
+
+        if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
+          printProgressBar(lastMatchedEntry, 100);
+          logger.write('\n');
+        }
+
+        printProgressBar(label, percentage);
+
+        lastPercentage = percentage;
+        lastMatchedEntry = label;
       }
-
-      printProgressBar(label, percentage);
-
-      lastPercentage = percentage;
-      lastMatchedEntry = label;
     }
+  } catch (e) {
+    logger.detail('Failed to update progress bar $e');
+    _hasFailedPrint = true;
   }
 }
 
@@ -60,7 +72,7 @@ void printProgressBar(String label, int percentage) {
 
 // Create a custom Process.start, that prints using the progress bar
 Future<void> runGitCloneUpdate(List<String> args) async {
-  final process = await Process.start('git', args);
+  final process = await Process.start('git', args, runInShell: true);
 
   // ignore: avoid-unassigned-stream-subscriptions
   process.stderr.transform(utf8.decoder).listen((line) {
