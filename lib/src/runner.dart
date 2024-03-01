@@ -62,7 +62,7 @@ class FvmCommandRunner extends CommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      if (ctx.updateCheckDisabled || ctx.isCI) return null;
+      if (ctx.updateCheckDisabled || ctx.isCI || ctx.isTest) return null;
       final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
       if (ctx.lastUpdateCheck?.isBefore(oneDayAgo) ?? false) {
         return null;
