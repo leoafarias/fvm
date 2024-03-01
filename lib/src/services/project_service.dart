@@ -84,13 +84,15 @@ class ProjectService extends ContextService {
     String? flutterSdkVersion,
     bool? updateVscodeSettings,
   }) {
-    final newConfig = project.config ?? ProjectConfig.empty();
+    final currentConfig = project.config ?? ProjectConfig.empty();
 
-    final config = newConfig.copyWith(
+    final newConfig = ProjectConfig(
       flavors: flavors,
-      flutterSdkVersion: flutterSdkVersion,
+      flutter: flutterSdkVersion,
       updateVscodeSettings: updateVscodeSettings,
     );
+
+    final config = currentConfig.copyWith.$merge(newConfig);
 
     // Update flavors
     final configFile = project.configPath.file;

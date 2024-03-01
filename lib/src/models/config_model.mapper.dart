@@ -100,6 +100,8 @@ class BaseConfigMapper extends ClassMapperBase<BaseConfig> {
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
   };
+  @override
+  final bool ignoreNull = true;
 
   static BaseConfig _instantiate(DecodingData data) {
     throw MapperException.missingConstructor('BaseConfig');
@@ -168,6 +170,8 @@ class EnvConfigMapper extends ClassMapperBase<EnvConfig> {
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
   };
+  @override
+  final bool ignoreNull = true;
 
   static EnvConfig _instantiate(DecodingData data) {
     return EnvConfig(
@@ -324,6 +328,8 @@ class FileConfigMapper extends ClassMapperBase<FileConfig> {
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
   };
+  @override
+  final bool ignoreNull = true;
 
   static FileConfig _instantiate(DecodingData data) {
     return FileConfig(
@@ -669,9 +675,9 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
   @override
   final String id = 'ProjectConfig';
 
-  static String? _$flutterSdkVersion(ProjectConfig v) => v.flutterSdkVersion;
-  static const Field<ProjectConfig, String> _f$flutterSdkVersion =
-      Field('flutterSdkVersion', _$flutterSdkVersion, opt: true);
+  static String? _$flutter(ProjectConfig v) => v.flutter;
+  static const Field<ProjectConfig, String> _f$flutter =
+      Field('flutter', _$flutter, opt: true);
   static Map<String, String>? _$flavors(ProjectConfig v) => v.flavors;
   static const Field<ProjectConfig, Map<String, String>> _f$flavors =
       Field('flavors', _$flavors, opt: true);
@@ -704,7 +710,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
 
   @override
   final MappableFields<ProjectConfig> fields = const {
-    #flutterSdkVersion: _f$flutterSdkVersion,
+    #flutter: _f$flutter,
     #flavors: _f$flavors,
     #cachePath: _f$cachePath,
     #useGitCache: _f$useGitCache,
@@ -720,7 +726,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
 
   static ProjectConfig _instantiate(DecodingData data) {
     return ProjectConfig(
-        flutterSdkVersion: data.dec(_f$flutterSdkVersion),
+        flutter: data.dec(_f$flutter),
         flavors: data.dec(_f$flavors),
         cachePath: data.dec(_f$cachePath),
         useGitCache: data.dec(_f$useGitCache),
@@ -791,7 +797,7 @@ abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
       get flavors;
   @override
   $R call(
-      {String? flutterSdkVersion,
+      {String? flutter,
       Map<String, String>? flavors,
       String? cachePath,
       bool? useGitCache,
@@ -822,7 +828,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           : null;
   @override
   $R call(
-          {Object? flutterSdkVersion = $none,
+          {Object? flutter = $none,
           Object? flavors = $none,
           Object? cachePath = $none,
           Object? useGitCache = $none,
@@ -833,7 +839,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none}) =>
       $apply(FieldCopyWithData({
-        if (flutterSdkVersion != $none) #flutterSdkVersion: flutterSdkVersion,
+        if (flutter != $none) #flutter: flutter,
         if (flavors != $none) #flavors: flavors,
         if (cachePath != $none) #cachePath: cachePath,
         if (useGitCache != $none) #useGitCache: useGitCache,
@@ -848,8 +854,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
       }));
   @override
   ProjectConfig $make(CopyWithData data) => ProjectConfig(
-      flutterSdkVersion:
-          data.get(#flutterSdkVersion, or: $value.flutterSdkVersion),
+      flutter: data.get(#flutter, or: $value.flutter),
       flavors: data.get(#flavors, or: $value.flavors),
       cachePath: data.get(#cachePath, or: $value.cachePath),
       useGitCache: data.get(#useGitCache, or: $value.useGitCache),

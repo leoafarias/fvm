@@ -1,5 +1,6 @@
 // Use just for reference, should not change
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -250,14 +251,12 @@ class AppConfig extends FileConfig with AppConfigMappable {
 /// Project config
 @MappableClass(ignoreNull: true)
 class ProjectConfig extends FileConfig with ProjectConfigMappable {
-  final String? flutterSdkVersion;
+  final String? flutter;
   final Map<String, String>? flavors;
-
-  static final fromJson = ProjectConfigMapper.fromJson;
 
   /// Constructor
   const ProjectConfig({
-    this.flutterSdkVersion,
+    this.flutter,
     this.flavors,
     super.cachePath,
     super.useGitCache,
@@ -271,7 +270,7 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
 
   static ProjectConfig empty() {
     return ProjectConfig(
-      flutterSdkVersion: null,
+      flutter: null,
       flavors: null,
       cachePath: null,
       useGitCache: null,
@@ -292,16 +291,20 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
         : null;
   }
 
-  ProjectConfig fromMap(Map<String, dynamic> map) {
+  static ProjectConfig fromJson(String json) {
+    return ProjectConfig.fromMap(jsonDecode(json));
+  }
+
+  static ProjectConfig fromMap(Map<String, dynamic> map) {
     return ProjectConfigMapper.fromMap({
       ...map,
-      'flutterSdkVersion': map['flutterSdkVersion'] ?? map['flutter'],
+      'flutter': map['flutterSdkVersion'] ?? map['flutter'],
     });
   }
 
   Map<String, dynamic> toLegacyMap() {
     return {
-      if (flutterSdkVersion != null) 'flutterSdkVersion': flutterSdkVersion,
+      if (flutter != null) 'flutterSdkVersion': flutter,
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }

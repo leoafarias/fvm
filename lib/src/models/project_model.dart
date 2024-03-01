@@ -49,8 +49,8 @@ class Project {
     final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
 
     if (legacyConfig != null && config != null) {
-      final legacyVersion = legacyConfig.flutterSdkVersion;
-      final version = config.flutterSdkVersion;
+      final legacyVersion = legacyConfig.flutter;
+      final version = config.flutter;
 
       if (legacyVersion != version) {
         logger
@@ -85,7 +85,7 @@ class Project {
   ///
   /// Returns `null` if no version is pinned.
   FlutterVersion? get pinnedVersion {
-    final sdkVersion = config?.flutterSdkVersion;
+    final sdkVersion = config?.flutter;
     if (sdkVersion != null) {
       return FlutterVersion.parse(sdkVersion);
     }
