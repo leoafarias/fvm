@@ -5,8 +5,6 @@ import 'package:cli_pkg/cli_pkg.dart' as pkg;
 import 'package:fvm/src/utils/http.dart';
 import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
-import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec/pubspec.dart';
 
 import '../test/testing_helpers/prepare_test_environment.dart';
 import 'homebrew.dart';
@@ -27,39 +25,6 @@ void main(List<String> args) {
   addTask(homebrewTask());
 
   grind(args);
-}
-
-@Task('Builds the version file')
-Future<void> buildVersion() async {
-  final args = context.invocation.arguments;
-  final versionArg = args.getOption('version');
-
-  final pubspec = await PubSpec.load(Directory.current);
-  Version? version = pubspec.version;
-
-  if (versionArg != null) {
-    version = Version.parse(versionArg);
-  }
-
-  if (version != pubspec.version) {
-    var newPubSpec = pubspec.copy(version: version);
-    await newPubSpec.save(Directory.current);
-  }
-
-  final versionFile = File(
-    path.join(Directory.current.path, 'lib', 'src', 'version.g.dart'),
-  );
-
-  if (!versionFile.existsSync()) {
-    versionFile.createSync(recursive: true);
-  }
-
-  String fileContent = '// GENERATED CODE - DO NOT MODIFY BY HAND\n\n';
-  fileContent += "const packageVersion = '$version';\n";
-
-  versionFile.writeAsStringSync(fileContent);
-
-  log('Version $version written to version.g.dart');
 }
 
 @Task('Get all releases')
@@ -88,7 +53,6 @@ Future<void> getReleases() async {
 }
 
 @Task('Prepare test environment')
-@Depends(buildVersion)
 void testSetup() {
   final testDir = Directory(getTempTestDir());
   if (testDir.existsSync()) {

@@ -38,11 +38,11 @@ class FVMContext {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
-  /// App config
-  final AppConfig config;
-
   /// Generators for dependencies
   final Map<Type, dynamic>? generators;
+
+  /// App config
+  final AppConfig _config;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -56,16 +56,8 @@ class FVMContext {
   }) {
     workingDirectory ??= Directory.current.path;
 
-    // Load config from file in config path
-    final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
-    final envConfig = ConfigRepository.loadEnv();
-
-    final appConfig = ConfigRepository.loadFile()
-        .mergeConfig(envConfig)
-        .mergeConfig(projectConfig);
-
-    // Merge config from file with env config
-    final config = appConfig.merge(configOverrides);
+    // Load all configs
+    final config = ConfigRepository.load(overrides: configOverrides);
 
     final level = isTest ? Level.warning : Level.info;
 
@@ -93,10 +85,12 @@ class FVMContext {
   FVMContext._({
     required this.id,
     required this.workingDirectory,
-    required this.config,
+    required AppConfig config,
     this.generators = const {},
     this.isTest = false,
-  });
+  }) : _config = config;
+
+  AppConfig get config => _config;
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
@@ -105,7 +99,16 @@ class FVMContext {
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
   /// Flag to determine if should use git cache
-  bool get gitCache => config.useGitCache ?? true;
+  bool get gitCache {
+    return config.useGitCache != null ? config.useGitCache! : true;
+  }
+
+  /// Run pub get on sdk changes
+  bool get runPubGetOnSdkChanges {
+    return config.runPubGetOnSdkChanges != null
+        ? config.runPubGetOnSdkChanges!
+        : true;
+  }
 
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
@@ -121,10 +124,16 @@ class FVMContext {
   DateTime? get lastUpdateCheck => config.lastUpdateCheck;
 
   /// Flutter SDK Path
-  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
+  bool get updateCheckDisabled {
+    return config.disableUpdateCheck != null
+        ? config.disableUpdateCheck!
+        : false;
+  }
 
   /// Priviledged access
-  bool get priviledgedAccess => config.priviledgedAccess ?? true;
+  bool get priviledgedAccess {
+    return config.priviledgedAccess != null ? config.priviledgedAccess! : true;
+  }
 
   /// Where Default Flutter SDK is stored
   String get globalCacheLink => join(fvmDir, 'default');

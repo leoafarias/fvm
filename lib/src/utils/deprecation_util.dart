@@ -1,45 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart';
 
 import '../models/config_model.dart';
-import '../services/config_repository.dart';
 import '../services/logger_service.dart';
-import 'constants.dart';
-import 'context.dart';
 
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
-  final fvmDir = ctx.fvmDir;
-  final legacySettingsFile = File(join(fvmDir, '.settings'));
-
-  if (!legacySettingsFile.existsSync()) {
-    return;
-  }
-
-  final payload = legacySettingsFile.readAsStringSync();
-  try {
-    final settings = jsonDecode(payload);
-    final settingsCachePath = settings['cachePath'] as String?;
-    if (settingsCachePath != null && settingsCachePath != fvmDir) {
-      var appConfig = ConfigRepository.loadFile();
-      appConfig = appConfig.copyWith(cachePath: fvmDir);
-      ConfigRepository.save(appConfig);
-      legacySettingsFile.deleteSync(recursive: true);
-      logger.success(
-        'We have moved the settings file ${legacySettingsFile.path}'
-        'Your settings have been migrated to $kAppConfigFile'
-        'Your cachePath is now $settingsCachePath. FVM will exit now. Please run the command again.',
-      );
-      // Exit to prevent execution with wrong cache path
-      exit(ExitCode.success.code);
-    }
-  } catch (_) {
-    logger.warn('Could not parse legacy settings file');
-    legacySettingsFile.deleteSync(recursive: true);
-  }
 }
 
 // TODO: Removed on future version of the app

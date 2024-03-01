@@ -21,5 +21,5 @@ runs:
       shell: bash
 
     - name: Build Version
-      run: dart run grinder build-version
+      run: dart run build_runner build --delete-conflicting-outputs
       shell: bash

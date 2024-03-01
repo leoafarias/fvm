@@ -25,14 +25,16 @@ class Project {
 
   final PubSpec? pubspec;
 
-  const
-
   /// Creates a new instance of [Project].
   ///
   /// The [config] parameter represents the configuration of the project.
   /// The [path] parameter is the directory path of the project.
   /// The [pubspec] parameter represents the pubspec.yaml file of the project.
-  Project({required this.config, required this.path, required this.pubspec});
+  const Project({
+    required this.config,
+    required this.path,
+    required this.pubspec,
+  });
 
   /// Loads the Flutter project from the given [path].
   ///

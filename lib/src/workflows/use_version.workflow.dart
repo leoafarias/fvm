@@ -27,7 +27,7 @@ Future<void> useVersionWorkflow({
   required Project project,
   bool force = false,
   bool skipSetup = false,
-  bool resolveDependencies = true,
+  bool runPubGetOnSdkChange = true,
   String? flavor,
 }) async {
   // If project use check that is Flutter project
@@ -47,7 +47,7 @@ Future<void> useVersionWorkflow({
     ..detail('Project path: ${project.path}')
     ..detail('');
 
-  if (!skipSetup && version.notSetup) {
+  if (!skipSetup && version.isNotSetup) {
     await setupFlutterWorkflow(version);
   }
 
@@ -62,7 +62,7 @@ Future<void> useVersionWorkflow({
 
   await _checkGitignore(updatedProject, force: force);
 
-  if (resolveDependencies) {
+  if (runPubGetOnSdkChange) {
     await resolveDependenciesWorkflow(updatedProject, version, force: force);
   }
 

@@ -2,6 +2,7 @@ import '../utils/context.dart';
 
 abstract class ContextService {
   final FVMContext? _context;
+
   const ContextService(FVMContext? context) : _context = context;
 
   /// Gets context, if no context is passed will get from scope

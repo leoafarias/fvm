@@ -6,7 +6,7 @@ import 'package:pub_updater/pub_updater.dart';
 
 import '../services/logger_service.dart';
 import '../utils/constants.dart';
-import '../version.g.dart';
+import '../version.dart';
 
 class UpdateCommand extends Command<int> {
   static const String commandName = 'update';
