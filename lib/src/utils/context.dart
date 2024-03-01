@@ -138,6 +138,41 @@ class FVMContext {
   /// Config path
   String get configPath => kAppConfigFile;
 
+  /// Checks if the current environment is a Continuous Integration (CI) environment.
+  /// This is done by checking for common CI environment variables.
+  bool get isCI {
+    // List of common CI environment variables
+    const ciEnvironmentVariables = [
+      // General CI indicator, used by many CI providers
+      'CI',
+      // Travis CI
+      'TRAVIS',
+      // CircleCI
+      'CIRCLECI',
+      // GitHub Actions
+      'GITHUB_ACTIONS',
+      // GitLab CI
+      'GITLAB_CI',
+      // Jenkins
+      'JENKINS_URL',
+      // Bamboo
+      'BAMBOO_BUILD_NUMBER',
+      // TeamCity
+      'TEAMCITY_VERSION',
+      // Azure Pipelines
+      'TF_BUILD'
+    ];
+
+    // Check if any of the common CI environment variables are present
+    for (final varName in ciEnvironmentVariables) {
+      if (Platform.environment.containsKey(varName)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   T get<T>() {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
