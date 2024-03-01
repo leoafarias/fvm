@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
 import '../models/config_model.dart';
+import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
@@ -19,8 +20,8 @@ final contextKey = ScopeKey<FVMContext>();
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
-// ignore: avoid-dynamic
-typedef Generator = dynamic Function(FVMContext context);
+
+typedef Generator<T extends ContextService> = T Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
@@ -39,10 +40,13 @@ class FVMContext {
   final bool isTest;
 
   /// Generators for dependencies
-  final Map<Type, dynamic>? generators;
+  final Map<Type, Generator>? generators;
 
   /// App config
   final AppConfig config;
+
+  /// Environment variables
+  final Map<String, String> environment;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -51,7 +55,8 @@ class FVMContext {
     String? id,
     AppConfig? configOverrides,
     String? workingDirectory,
-    Map<Type, dynamic> overrides = const {},
+    Map<Type, dynamic> generatorOverrides = const {},
+    Map<String, String>? environmentOverrides,
     bool isTest = false,
   }) {
     workingDirectory ??= Directory.current.path;
@@ -59,12 +64,15 @@ class FVMContext {
     // Load all configs
     final config = ConfigRepository.load(overrides: configOverrides);
 
-    final level = isTest ? Level.warning : Level.info;
+    final level = isTest ? Level.error : Level.info;
+
+    final environment = {...Platform.environment, ...?environmentOverrides};
 
     return FVMContext._(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
+      environment: environment,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -74,7 +82,7 @@ class FVMContext {
         FlutterService: FlutterService.new,
         CacheService: CacheService.new,
         GlobalVersionService: GlobalVersionService.new,
-        ...overrides,
+        ...generatorOverrides,
       },
       isTest: isTest,
     );
@@ -86,12 +94,10 @@ class FVMContext {
     required this.id,
     required this.workingDirectory,
     required this.config,
+    required this.environment,
     this.generators = const {},
     this.isTest = false,
   });
-
-  /// Environment variables
-  Map<String, String> get environment => Platform.environment;
 
   /// Directory where FVM is stored
   String get fvmDir => config.cachePath ?? kAppDirHome;
@@ -148,36 +154,7 @@ class FVMContext {
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
   bool get isCI {
-    // List of common CI environment variables
-    const ciEnvironmentVariables = [
-      // General CI indicator, used by many CI providers
-      'CI',
-      // Travis CI
-      'TRAVIS',
-      // CircleCI
-      'CIRCLECI',
-      // GitHub Actions
-      'GITHUB_ACTIONS',
-      // GitLab CI
-      'GITLAB_CI',
-      // Jenkins
-      'JENKINS_URL',
-      // Bamboo
-      'BAMBOO_BUILD_NUMBER',
-      // TeamCity
-      'TEAMCITY_VERSION',
-      // Azure Pipelines
-      'TF_BUILD',
-    ];
-
-    // Check if any of the common CI environment variables are present
-    for (final varName in ciEnvironmentVariables) {
-      if (Platform.environment.containsKey(varName)) {
-        return true;
-      }
-    }
-
-    return false;
+    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
   }
 
   T get<T>() {
