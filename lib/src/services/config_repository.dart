@@ -25,7 +25,7 @@ class ConfigRepository {
   static AppConfig loadAppConfig() {
     final appConfig = AppConfig.loadFromPath(_configPath);
     if (appConfig == null) {
-      save(AppConfig(lastUpdateCheck: DateTime.now()));
+      save(AppConfig.empty());
     }
 
     return AppConfig.loadFromPath(_configPath)!;
