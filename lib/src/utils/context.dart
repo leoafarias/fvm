@@ -42,7 +42,7 @@ class FVMContext {
   final Map<Type, dynamic>? generators;
 
   /// App config
-  final AppConfig _config;
+  final AppConfig config;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -85,12 +85,10 @@ class FVMContext {
   FVMContext._({
     required this.id,
     required this.workingDirectory,
-    required AppConfig config,
+    required this.config,
     this.generators = const {},
     this.isTest = false,
-  }) : _config = config;
-
-  AppConfig get config => _config;
+  });
 
   /// Environment variables
   Map<String, String> get environment => Platform.environment;
