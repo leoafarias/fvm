@@ -129,10 +129,7 @@ class FlutterService extends ContextService {
       logger.detail('Syncing local mirror...');
 
       try {
-        await gitDir.runCommand([
-          'pull',
-          'origin',
-        ]);
+        await gitDir.runCommand(['pull', 'origin']);
       } on ProcessException catch (e) {
         logger.err(e.message);
       }

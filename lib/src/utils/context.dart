@@ -169,7 +169,7 @@ class FVMContext {
       // TeamCity
       'TEAMCITY_VERSION',
       // Azure Pipelines
-      'TF_BUILD'
+      'TF_BUILD',
     ];
 
     // Check if any of the common CI environment variables are present
