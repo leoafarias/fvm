@@ -1,7 +1,11 @@
 ## Unreleased
 
-* feat: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
-* feat: Added flag to skip pub get on `install` and `use`, `--skip-pub-get` by @mrgnhnt96
+* Added: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
+* Added: Added flag to skip pub get on `install` and `use`, `--skip-pub-get` by @mrgnhnt96
+* Improvement: CI Flag now skips check update by @leoafarias
+* Fix: Improve App Config and Project Config overrides by @leoafarias
+* Fix: Incorrect check version update logic by @leoafarias
+* Improvemnet: Better exception handling during mirror creation by @leoafarias
 
 ## 3.0.12
 
