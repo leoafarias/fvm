@@ -80,7 +80,7 @@ enum ConfigKeys {
   }
 }
 
-@MappableClass()
+@MappableClass(ignoreNull: true)
 abstract class BaseConfig with BaseConfigMappable {
   // If should use gitCache
   final bool? useGitCache;
@@ -102,7 +102,7 @@ abstract class BaseConfig with BaseConfigMappable {
   });
 }
 
-@MappableClass()
+@MappableClass(ignoreNull: true)
 class EnvConfig extends BaseConfig with EnvConfigMappable {
   static final fromMap = EnvConfigMapper.fromMap;
   static final fromJson = EnvConfigMapper.fromJson;
@@ -124,7 +124,7 @@ class EnvConfig extends BaseConfig with EnvConfigMappable {
   }
 }
 
-@MappableClass()
+@MappableClass(ignoreNull: true)
 class FileConfig extends BaseConfig with FileConfigMappable {
   /// If Vscode settings is not managed by FVM
   final bool? updateVscodeSettings;

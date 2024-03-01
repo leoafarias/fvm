@@ -7,7 +7,6 @@ import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
 import '../utils/pretty_json.dart';
-import 'logger_service.dart';
 
 const String flutterGitUrl = 'FLUTTER_GIT_URL';
 
@@ -26,7 +25,7 @@ class ConfigRepository {
   static AppConfig loadAppConfig() {
     final appConfig = AppConfig.loadFromPath(_configPath);
     if (appConfig == null) {
-      save(AppConfig.empty());
+      save(AppConfig(lastUpdateCheck: DateTime.now()));
     }
 
     return AppConfig.loadFromPath(_configPath)!;
@@ -34,7 +33,6 @@ class ConfigRepository {
 
   static void save(AppConfig config) {
     final jsonContents = prettyJson(config.toMap());
-    logger.warn('Saving config to $_configPath');
 
     _configPath.file.write(jsonContents);
   }
