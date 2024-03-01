@@ -62,8 +62,6 @@ class ConfigCommand extends BaseCommand {
       }
       updateProgress.complete('Settings saved.');
     } else {
-      // How do I scape a file.path?
-
       logger
         ..info('FVM Configuration:')
         ..info('Located at ${ctx.configPath}')
