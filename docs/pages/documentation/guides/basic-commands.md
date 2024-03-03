@@ -27,6 +27,8 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 
 - `-s,--skip-setup`:  Omits Flutter setup post-installation for expedited process.
 
+- `--skip-pub-get`: Skip resolving dependencies (`flutter pub get`) after switching Flutter SDK.
+
 **Examples**
 
 **Setting a Specific Version**:  
