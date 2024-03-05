@@ -71,3 +71,26 @@ C:\Users\<user>\AppData\Roaming\Pub\Cache\bin
 C:\src\flutter\bin\cache\dart-sdk\bin
 C:\src\flutter\bin
 ```
+
+### Git not found after install on Windows
+
+Some users may be greeted by this error after installing FVM in a project.  
+
+```
+Error: Unable to find git in your PATH. 
+```
+
+This happens because of a security update from git where Git now checks for ownership of the folder trying to ensure that the folder you are using Git in has the same user as the owner as your current user account.
+To fix this, we need to mark our repos as safe using the following command:
+
+```
+git config --global --add safe.directory '*'
+```
+
+Restart your terminals and VS Code after running this command. This should fix the issue  
+
+If you don’t want to mark all the repos as safe, then you can mark only the flutter repo as safe by passing the flutter path instead of *
+
+```
+git config --global --add safe.directory C:\Users\someUser\flutter\.git\
+```
