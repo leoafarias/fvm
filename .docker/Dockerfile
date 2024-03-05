@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . /app
 
 # Update and install dependencies
-RUN apt-get update && apt-get install -y curl git
+RUN apt-get update && apt-get install -y curl git unzip xz-utils zip
 
 # Run install.sh
 RUN curl -fsSL https://raw.githubusercontent.com/leoafarias/fvm/main/scripts/install.sh | bash
