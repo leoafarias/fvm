@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -15,6 +16,9 @@ import '../services/project_service.dart';
 import 'constants.dart';
 
 final contextKey = ScopeKey<FVMContext>();
+
+final globalArgParser = ArgParser()
+  ..addFlag('json', help: 'Outputs a json response', negatable: false);
 
 /// Generates an [FVMContext] value.
 ///
@@ -32,6 +36,9 @@ class FVMContext {
 
   /// Name of the context
   final String id;
+
+  /// Json response
+  final bool json;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -53,6 +60,7 @@ class FVMContext {
 
   factory FVMContext.create({
     String? id,
+    List<String>? args,
     AppConfig? configOverrides,
     String? workingDirectory,
     Map<Type, dynamic> generatorOverrides = const {},
@@ -68,10 +76,13 @@ class FVMContext {
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
+    final wantsJson = globalArgParser.parse(args ?? []).wasParsed('json');
+
     return FVMContext._(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
+      json: wantsJson,
       environment: environment,
       generators: {
         LoggerService: (context) => LoggerService(
@@ -94,6 +105,7 @@ class FVMContext {
     required this.id,
     required this.workingDirectory,
     required this.config,
+    required this.json,
     required this.environment,
     this.generators = const {},
     this.isTest = false,

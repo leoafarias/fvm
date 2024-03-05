@@ -38,7 +38,6 @@ class ReleasesCommandResponse extends ApiResponse {
   String toString() => releases.toString();
 }
 
-@
 class InstallCommandResponse extends ApiResponse {
   final bool success;
   final CacheFlutterVersion? version;

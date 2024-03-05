@@ -7,6 +7,8 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:stack_trace/stack_trace.dart';
 
+import 'api/models/json_response.dart';
+import 'commands/api_command.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/doctor_command.dart';
@@ -54,6 +56,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(ExecCommand());
+    addCommand(ApiCommand());
     addCommand(GlobalCommand());
   }
 
@@ -170,6 +173,10 @@ class FvmCommandRunner extends CommandRunner<int> {
         ..info(err.usage);
 
       return ExitCode.usage.code;
+    } on ApiResponse catch (err) {
+      print(prettyJson(err.toMap()));
+
+      return ExitCode.success.code;
     } on Exception catch (err, stackTrace) {
       logger
         ..spacer

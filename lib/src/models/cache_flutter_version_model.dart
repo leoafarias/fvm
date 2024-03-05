@@ -83,6 +83,21 @@ class CacheFlutterVersion extends FlutterVersion {
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'directory': directory,
+      'releaseFromChannel': releaseFromChannel,
+      'isChannel': isChannel,
+      'isRelease': isRelease,
+      'isCommit': isCommit,
+      'isCustom': isCustom,
+      'flutterSdkVersion': flutterSdkVersion,
+      'dartSdkVersion': dartSdkVersion,
+      'notSetup': notSetup,
+    };
+  }
+
   @override
   String toString() {
     return name;
@@ -94,9 +109,21 @@ class CacheFlutterVersion extends FlutterVersion {
 
     return other is CacheFlutterVersion &&
         other.name == name &&
-        other.directory == directory;
+        other.directory == directory &&
+        other.releaseFromChannel == releaseFromChannel &&
+        other.isChannel == isChannel &&
+        other.isRelease == isRelease &&
+        other.isCommit == isCommit &&
+        other.isCustom == isCustom;
   }
 
   @override
-  int get hashCode => name.hashCode ^ directory.hashCode;
+  int get hashCode =>
+      name.hashCode ^
+      directory.hashCode ^
+      releaseFromChannel.hashCode ^
+      isChannel.hashCode ^
+      isRelease.hashCode ^
+      isCommit.hashCode ^
+      isCustom.hashCode;
 }

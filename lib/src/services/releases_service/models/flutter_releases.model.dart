@@ -69,7 +69,7 @@ class Releases {
   Map<String, dynamic> toMap() => {
         'base_url': baseUrl,
         'channels': channels.toMap(),
-        'releases': List.from(releases.map((x) => x.toMap())),
+        'releases': releases.map((e) => e.toMap()).toList(),
       };
 }
 

@@ -109,9 +109,9 @@ class Channels {
 
   /// Return a map of values from the Channels model
   Map<String, dynamic> toMap() => {
-        'beta': beta,
-        'dev': dev,
-        'stable': stable,
+        'beta': beta.toMap(),
+        'dev': dev.toMap(),
+        'stable': stable.toMap(),
       };
 
   /// Returns a hash map of the channels model

@@ -1,6 +1,7 @@
 import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
+import '../api/models/json_response.dart';
 import '../services/cache_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
@@ -19,11 +20,22 @@ class ListCommand extends BaseCommand {
   final description = 'Lists installed Flutter SDK Versions';
 
   /// Constructor
-  ListCommand();
+  ListCommand() {
+    argParser.addFlag(
+      'json',
+      help: 'Outputs a json response',
+      negatable: false,
+    );
+  }
 
   @override
   Future<int> run() async {
     final cacheVersions = await CacheService.fromContext.getAllVersions();
+    final isJson = boolArg('json');
+
+    if (isJson) {
+      throw ListCommandResponse(cacheVersions);
+    }
 
     if (cacheVersions.isEmpty) {
       logger
