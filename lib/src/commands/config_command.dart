@@ -29,62 +29,45 @@ class ConfigCommand extends BaseCommand {
   @override
   Future<int> run() async {
     // Flag if settings should be saved
-    var shouldSave = false;
 
-    var current = ConfigRepository.loadFile();
+    final currentConfig = ConfigRepository.loadAppConfig();
+    var updatedConfig = currentConfig;
 
-    if (wasParsed(ConfigKeys.flutterUrl.paramKey)) {
-      final flutterRepo = stringArg(ConfigKeys.flutterUrl.paramKey);
-      logger.info('Setting flutter repo to: ${yellow.wrap(flutterRepo)}');
-      current.flutterUrl = flutterRepo;
+    void updateConfigKey<T>(ConfigKeys key, T value) {
+      if (wasParsed(key.paramKey)) {
+        final updatedMap = AppConfig.fromMap({key.name: value});
+        logger.info(
+          'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
+        );
 
-      shouldSave = true;
+        logger.info(updatedMap.toString());
+        updatedConfig = updatedConfig.merge(updatedMap);
+      }
     }
 
-    if (wasParsed(ConfigKeys.gitCachePath.paramKey)) {
-      final gitCachePath = stringArg(ConfigKeys.gitCachePath.paramKey);
-      logger.info('Setting git cache path to: ${yellow.wrap(gitCachePath)}');
-      current.gitCachePath = gitCachePath;
-      shouldSave = true;
-    }
-
-    if (wasParsed(ConfigKeys.useGitCache.paramKey)) {
-      final gitCache = boolArg(ConfigKeys.useGitCache.paramKey);
-      logger.info(
-        'Setting use git cache to: ${yellow.wrap(gitCache.toString())}',
-      );
-      current.useGitCache = gitCache;
-      shouldSave = true;
-    }
-
-    if (wasParsed(ConfigKeys.cachePath.paramKey)) {
-      final cachePath = stringArg(ConfigKeys.cachePath.paramKey);
-      logger.info('Setting fvm path to: ${yellow.wrap(cachePath)}');
-      current.cachePath = cachePath;
-      shouldSave = true;
+    for (var key in ConfigKeys.values) {
+      updateConfigKey(key, argResults![key.paramKey]);
     }
 
     // Save
-    if (shouldSave) {
+    if (updatedConfig != currentConfig) {
       logger.info('');
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        ConfigRepository.save(current);
+        ConfigRepository.save(updatedConfig);
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         rethrow;
       }
       updateProgress.complete('Settings saved.');
     } else {
-      // How do I scape a file.path?
-
       logger
         ..info('FVM Configuration:')
         ..info('Located at ${ctx.configPath}')
         ..info('');
 
-      final options = current.toMap();
+      final options = currentConfig.toMap();
 
       if (options.keys.isEmpty) {
         logger.info('No settings have been configured.');

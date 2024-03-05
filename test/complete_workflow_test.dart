@@ -29,7 +29,7 @@ void main() {
       expect(existingChannel, channel);
 
       expect(
-        cacheVersion?.notSetup,
+        cacheVersion?.isNotSetup,
         true,
         reason: 'Version should not be setup',
       );
@@ -63,7 +63,7 @@ void main() {
       expect(project.pinnedVersion?.name, channel);
 
       expect(
-        cacheVersion?.notSetup,
+        cacheVersion?.isNotSetup,
         true,
         reason: 'Version should not be setup',
       );

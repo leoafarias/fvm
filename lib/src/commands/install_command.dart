@@ -30,8 +30,8 @@ class InstallCommand extends BaseCommand {
       ..addFlag(
         'skip-pub-get',
         help: 'Skip resolving dependencies after switching Flutter SDK',
-        negatable: false,
         defaultsTo: false,
+        negatable: false,
       );
   }
 
@@ -65,7 +65,7 @@ class InstallCommand extends BaseCommand {
         project: project,
         force: true,
         skipSetup: !setup,
-        resolveDependencies: !skipPubGet,
+        runPubGetOnSdkChange: !skipPubGet,
       );
 
       return ExitCode.success.code;

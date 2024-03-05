@@ -25,7 +25,7 @@ import 'utils/constants.dart';
 import 'utils/context.dart';
 import 'utils/deprecation_util.dart';
 import 'utils/exceptions.dart';
-import 'version.g.dart';
+import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CommandRunner<int> {
@@ -62,9 +62,11 @@ class FvmCommandRunner extends CommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
+      final lastUpdateCheck = ctx.lastUpdateCheck ?? DateTime.now();
       if (ctx.updateCheckDisabled) return null;
-      final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
-      if (ctx.lastUpdateCheck?.isBefore(oneDayAgo) ?? false) {
+      final oneDay = lastUpdateCheck.add(const Duration(days: 1));
+
+      if (DateTime.now().isBefore(oneDay)) {
         return null;
       }
 

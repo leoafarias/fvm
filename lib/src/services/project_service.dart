@@ -8,6 +8,7 @@ import '../utils/context.dart';
 import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
 import 'base_service.dart';
+import 'logger_service.dart';
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
@@ -32,6 +33,8 @@ class ProjectService extends ContextService {
     // Get directory, defined root or current
     directory ??= Directory(context.workingDirectory);
 
+    logger.detail('Searching for project in ${directory.path}');
+
     // Checks if the directory is root
     final isRootDir = path.rootPrefix(directory.path) == directory.path;
 
@@ -39,10 +42,18 @@ class ProjectService extends ContextService {
     final project = Project.loadFromPath(directory.path);
 
     // If project has a config return it
-    if (project.hasConfig && project.hasPubspec) return project;
+    if (project.hasConfig && project.hasPubspec) {
+      logger.detail('Found project in ${project.path}');
+
+      return project;
+    }
 
     // Return working directory if has reached root
-    if (isRootDir) return Project.loadFromPath(context.workingDirectory);
+    if (isRootDir) {
+      logger.detail('No project found in ${context.workingDirectory}');
+
+      return Project.loadFromPath(context.workingDirectory);
+    }
 
     return findAncestor(directory: directory.parent);
   }
@@ -73,13 +84,15 @@ class ProjectService extends ContextService {
     String? flutterSdkVersion,
     bool? updateVscodeSettings,
   }) {
-    final newConfig = project.config ?? ProjectConfig();
+    final currentConfig = project.config ?? ProjectConfig.empty();
 
-    final config = newConfig.copyWith(
-      flutterSdkVersion: flutterSdkVersion,
-      updateVscodeSettings: updateVscodeSettings,
+    final newConfig = ProjectConfig(
+      flutter: flutterSdkVersion,
       flavors: flavors,
+      updateVscodeSettings: updateVscodeSettings,
     );
+
+    final config = currentConfig.copyWith.$merge(newConfig);
 
     // Update flavors
     final configFile = project.configPath.file;

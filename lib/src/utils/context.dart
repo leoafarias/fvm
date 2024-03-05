@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
 import '../models/config_model.dart';
+import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
@@ -19,8 +20,8 @@ final contextKey = ScopeKey<FVMContext>();
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
-// ignore: avoid-dynamic
-typedef Generator = dynamic Function(FVMContext context);
+
+typedef Generator<T extends ContextService> = T Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
@@ -38,11 +39,14 @@ class FVMContext {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
+  /// Generators for dependencies
+  final Map<Type, Generator>? generators;
+
   /// App config
   final AppConfig config;
 
-  /// Generators for dependencies
-  final Map<Type, dynamic>? generators;
+  /// Environment variables
+  final Map<String, String> environment;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -51,28 +55,24 @@ class FVMContext {
     String? id,
     AppConfig? configOverrides,
     String? workingDirectory,
-    Map<Type, dynamic> overrides = const {},
+    Map<Type, dynamic> generatorOverrides = const {},
+    Map<String, String>? environmentOverrides,
     bool isTest = false,
   }) {
     workingDirectory ??= Directory.current.path;
 
-    // Load config from file in config path
-    final projectConfig = ProjectConfig.loadFromPath(workingDirectory);
-    final envConfig = ConfigRepository.loadEnv();
+    // Load all configs
+    final config = ConfigRepository.load(overrides: configOverrides);
 
-    final appConfig = ConfigRepository.loadFile()
-        .mergeConfig(envConfig)
-        .mergeConfig(projectConfig);
+    final level = isTest ? Level.error : Level.info;
 
-    // Merge config from file with env config
-    final config = appConfig.merge(configOverrides);
-
-    final level = isTest ? Level.warning : Level.info;
+    final environment = {...Platform.environment, ...?environmentOverrides};
 
     return FVMContext._(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
+      environment: environment,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -82,7 +82,7 @@ class FVMContext {
         FlutterService: FlutterService.new,
         CacheService: CacheService.new,
         GlobalVersionService: GlobalVersionService.new,
-        ...overrides,
+        ...generatorOverrides,
       },
       isTest: isTest,
     );
@@ -94,18 +94,25 @@ class FVMContext {
     required this.id,
     required this.workingDirectory,
     required this.config,
+    required this.environment,
     this.generators = const {},
     this.isTest = false,
   });
-
-  /// Environment variables
-  Map<String, String> get environment => Platform.environment;
 
   /// Directory where FVM is stored
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
   /// Flag to determine if should use git cache
-  bool get gitCache => config.useGitCache ?? true;
+  bool get gitCache {
+    return config.useGitCache != null ? config.useGitCache! : true;
+  }
+
+  /// Run pub get on sdk changes
+  bool get runPubGetOnSdkChanges {
+    return config.runPubGetOnSdkChanges != null
+        ? config.runPubGetOnSdkChanges!
+        : true;
+  }
 
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
@@ -121,10 +128,16 @@ class FVMContext {
   DateTime? get lastUpdateCheck => config.lastUpdateCheck;
 
   /// Flutter SDK Path
-  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
+  bool get updateCheckDisabled {
+    return config.disableUpdateCheck != null
+        ? config.disableUpdateCheck!
+        : false;
+  }
 
   /// Priviledged access
-  bool get priviledgedAccess => config.priviledgedAccess ?? true;
+  bool get priviledgedAccess {
+    return config.priviledgedAccess != null ? config.priviledgedAccess! : true;
+  }
 
   /// Where Default Flutter SDK is stored
   String get globalCacheLink => join(fvmDir, 'default');
@@ -137,6 +150,12 @@ class FVMContext {
 
   /// Config path
   String get configPath => kAppConfigFile;
+
+  /// Checks if the current environment is a Continuous Integration (CI) environment.
+  /// This is done by checking for common CI environment variables.
+  bool get isCI {
+    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
+  }
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {

@@ -78,3 +78,25 @@ String get _configHome {
   // same as XDG specification would specify as fallback.
   return join(kUserHome, '.config');
 }
+
+/// List of common CI environment variables
+const kCiEnvironmentVariables = [
+  // General CI indicator, used by many CI providers
+  'CI',
+  // Travis CI
+  'TRAVIS',
+  // CircleCI
+  'CIRCLECI',
+  // GitHub Actions
+  'GITHUB_ACTIONS',
+  // GitLab CI
+  'GITLAB_CI',
+  // Jenkins
+  'JENKINS_URL',
+  // Bamboo
+  'BAMBOO_BUILD_NUMBER',
+  // TeamCity
+  'TEAMCITY_VERSION',
+  // Azure Pipelines
+  'TF_BUILD',
+];
