@@ -17,6 +17,8 @@ Suppose you have a nested package(s) that you want to share the same Flutter ver
 
 FVM will do an ancestor look-up to find the config and use it as the default.
 
+Make sure you have a pubspec.yaml at the root of the monorepo directory.
+
 ---
 
 ### Cannot install latest version of FVM
