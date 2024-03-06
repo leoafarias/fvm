@@ -33,12 +33,13 @@ class GetCacheVersionsResponse extends APIResponse
 
 @MappableClass()
 class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
+  final int count;
   final FlutterReleasesResponse releases;
 
   static final fromMap = GetReleasesResponseMapper.fromMap;
   static final fromJson = GetReleasesResponseMapper.fromJson;
 
-  const GetReleasesResponse({required this.releases});
+  const GetReleasesResponse({required this.count, required this.releases});
 }
 
 @MappableClass()

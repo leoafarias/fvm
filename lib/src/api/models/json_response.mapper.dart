@@ -210,6 +210,9 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
   @override
   final String id = 'GetReleasesResponse';
 
+  static int _$count(GetReleasesResponse v) => v.count;
+  static const Field<GetReleasesResponse, int> _f$count =
+      Field('count', _$count);
   static FlutterReleasesResponse _$releases(GetReleasesResponse v) =>
       v.releases;
   static const Field<GetReleasesResponse, FlutterReleasesResponse> _f$releases =
@@ -217,11 +220,13 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
 
   @override
   final MappableFields<GetReleasesResponse> fields = const {
+    #count: _f$count,
     #releases: _f$releases,
   };
 
   static GetReleasesResponse _instantiate(DecodingData data) {
-    return GetReleasesResponse(releases: data.dec(_f$releases));
+    return GetReleasesResponse(
+        count: data.dec(_f$count), releases: data.dec(_f$releases));
   }
 
   @override
@@ -284,7 +289,7 @@ abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
   FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse,
       FlutterReleasesResponse> get releases;
   @override
-  $R call({FlutterReleasesResponse? releases});
+  $R call({int? count, FlutterReleasesResponse? releases});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -302,11 +307,15 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
           FlutterReleasesResponse>
       get releases => $value.releases.copyWith.$chain((v) => call(releases: v));
   @override
-  $R call({FlutterReleasesResponse? releases}) =>
-      $apply(FieldCopyWithData({if (releases != null) #releases: releases}));
+  $R call({int? count, FlutterReleasesResponse? releases}) =>
+      $apply(FieldCopyWithData({
+        if (count != null) #count: count,
+        if (releases != null) #releases: releases
+      }));
   @override
-  GetReleasesResponse $make(CopyWithData data) =>
-      GetReleasesResponse(releases: data.get(#releases, or: $value.releases));
+  GetReleasesResponse $make(CopyWithData data) => GetReleasesResponse(
+      count: data.get(#count, or: $value.count),
+      releases: data.get(#releases, or: $value.releases));
 
   @override
   GetReleasesResponseCopyWith<$R2, GetReleasesResponse, $Out2>

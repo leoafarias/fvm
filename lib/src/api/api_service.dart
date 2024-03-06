@@ -22,15 +22,18 @@ class APIService extends ContextService {
     }));
 
     return GetCacheVersionsResponse(
-      versions: versions,
       size: formatBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
+      versions: versions,
     );
   }
 
   Future<GetReleasesResponse> getReleases() async {
     final releases = await FlutterReleases.get();
 
-    return GetReleasesResponse(releases: releases);
+    return GetReleasesResponse(
+      count: releases.releases.length,
+      releases: releases,
+    );
   }
 
   GetProjectResponse getProject() {
