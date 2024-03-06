@@ -1,4 +1,4 @@
-## Unreleased
+## 3.0.13
 
 * Added: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
 * Added: Added flag to skip pub get on `install` and `use`, `--skip-pub-get` by @mrgnhnt96
