@@ -48,6 +48,12 @@ class ProjectService extends ContextService {
       return project;
     }
 
+    if (project.hasConfig && !project.hasPubspec) {
+      logger.warn(
+        'Found project in ${project.path} but it does not contain a pubspec.yaml file \n A pubspec.yaml is needed at the root of the project.',
+      );
+    }
+
     // Return working directory if has reached root
     if (isRootDir) {
       logger.detail('No project found in ${context.workingDirectory}');
