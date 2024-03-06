@@ -1,51 +1,46 @@
+import 'package:dart_mappable/dart_mappable.dart';
+
 import '../../models/cache_flutter_version_model.dart';
+import '../../models/project_model.dart';
 import '../../services/releases_service/models/flutter_releases.model.dart';
+import '../../utils/pretty_json.dart';
+
+part 'json_response.mapper.dart';
 
 typedef JSONMap = Map<String, dynamic>;
 
-abstract class ApiResponse {
-  const ApiResponse();
+@MappableClass()
+abstract class APIResponse<TPayload> with APIResponseMappable {
+  final TPayload data;
 
-  Map<String, dynamic> toMap();
+  const APIResponse({required this.data});
 
-  @override
-  String toString();
+  String formattedJson() => prettyJson(toMap());
 }
 
-class ListCommandResponse extends ApiResponse {
-  final List<CacheFlutterVersion> versions;
-  const ListCommandResponse(this.versions);
+@MappableClass()
+class GetCacheVersionsResponse extends APIResponse<List<CacheFlutterVersion>>
+    with GetCacheVersionsResponseMappable {
+  static final fromMap = GetCacheVersionsResponseMapper.fromMap;
+  static final fromJson = GetCacheVersionsResponseMapper.fromJson;
 
-  @override
-  Map<String, dynamic> toMap() {
-    return {'data': versions.map((version) => version.toMap()).toList()};
-  }
-
-  @override
-  String toString() {
-    return versions.map((version) => version.toString()).join('\n');
-  }
+  const GetCacheVersionsResponse({required super.data});
 }
 
-class ReleasesCommandResponse extends ApiResponse {
-  final Releases releases;
-  const ReleasesCommandResponse(this.releases);
+@MappableClass()
+class GetReleasesResponse extends APIResponse<FlutterReleasesResponse>
+    with GetReleasesResponseMappable {
+  static final fromMap = GetReleasesResponseMapper.fromMap;
+  static final fromJson = GetReleasesResponseMapper.fromJson;
 
-  @override
-  Map<String, dynamic> toMap() => {'data': releases.toMap()};
-
-  @override
-  String toString() => releases.toString();
+  const GetReleasesResponse({required super.data});
 }
 
-class InstallCommandResponse extends ApiResponse {
-  final bool success;
-  final CacheFlutterVersion? version;
-  const InstallCommandResponse({required this.success, this.version});
+@MappableClass()
+class GetProjectResponse extends APIResponse<Project>
+    with GetProjectResponseMappable {
+  static final fromMap = GetProjectResponseMapper.fromMap;
+  static final fromJson = GetProjectResponseMapper.fromJson;
 
-  @override
-  Map<String, dynamic> toMap() => version.toMap();
-
-  @override
-  String toString() => version.toString();
+  const GetProjectResponse({required super.data});
 }

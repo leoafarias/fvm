@@ -27,12 +27,13 @@ String getReleasesUrl(String platform) {
 }
 
 class FlutterReleases {
-  static Releases? _cacheReleasesRes;
+  static FlutterReleasesResponse? _cacheReleasesRes;
   const FlutterReleases._();
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.
-  static Future<Releases> get({bool cache = true, String? platform}) async {
+  static Future<FlutterReleasesResponse> get(
+      {bool cache = true, String? platform}) async {
     platform ??= Platform.operatingSystem;
     final releasesUrl = getReleasesUrl(platform);
     try {
@@ -43,7 +44,7 @@ class FlutterReleases {
 
       final response = await fetch(releasesUrl);
 
-      _cacheReleasesRes = Releases.fromJson(response);
+      _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
 
       return await Future.value(_cacheReleasesRes);
     } on Exception catch (err) {
@@ -53,10 +54,11 @@ class FlutterReleases {
     }
   }
 
-  static Future<Releases> _getFromFlutterUrl(String platform) async {
+  static Future<FlutterReleasesResponse> _getFromFlutterUrl(
+      String platform) async {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
-      _cacheReleasesRes = Releases.fromJson(response);
+      _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
 
       return await Future.value(_cacheReleasesRes);
     } on Exception catch (_, stackTrace) {

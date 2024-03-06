@@ -2,10 +2,7 @@ import 'dart:async';
 
 import 'package:io/io.dart';
 
-import '../api/models/json_response.dart';
-import '../services/cache_service.dart';
 import '../services/project_service.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
@@ -64,11 +61,11 @@ class InstallCommand extends BaseCommand {
       );
 
       await useVersionWorkflow(
-        resolveDependencies: !skipPubGet,
         version: cacheVersion,
         project: project,
         force: true,
         skipSetup: !setup,
+        runPubGetOnSdkChange: !skipPubGet,
       );
 
       return ExitCode.success.code;
@@ -82,12 +79,6 @@ class InstallCommand extends BaseCommand {
 
     if (setup) {
       await setupFlutterWorkflow(cacheVersion);
-    }
-
-    if (ctx.json) {
-      throw InstallCommandResponse(
-        CacheService.fromContext.getVersion(cacheVersion.name),
-      );
     }
 
     return ExitCode.success.code;

@@ -16,7 +16,7 @@ void main() {
       () async {
         // Expect to throw UsageException
         expect(() => apiCommand.run(['api', 'list']),
-            throwsA(isA<ListCommandResponse>()));
+            throwsA(isA<GetCacheVersionsResponse>()));
       },
     );
 
@@ -26,7 +26,7 @@ void main() {
         // Expect to print releases
         expect(
           () => apiCommand.run(['api', 'releases']),
-          throwsA(isA<ReleasesCommandResponse>()),
+          throwsA(isA<GetReleasesResponse>()),
         );
       },
     );

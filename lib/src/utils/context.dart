@@ -1,10 +1,10 @@
 import 'dart:io';
 
-import 'package:args/args.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
+import '../api/api_service.dart';
 import '../models/config_model.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
@@ -16,9 +16,6 @@ import '../services/project_service.dart';
 import 'constants.dart';
 
 final contextKey = ScopeKey<FVMContext>();
-
-final globalArgParser = ArgParser()
-  ..addFlag('json', help: 'Outputs a json response', negatable: false);
 
 /// Generates an [FVMContext] value.
 ///
@@ -37,9 +34,6 @@ class FVMContext {
   /// Name of the context
   final String id;
 
-  /// Json response
-  final bool json;
-
   /// Working Directory for FVM
   final String workingDirectory;
 
@@ -54,6 +48,8 @@ class FVMContext {
 
   /// Environment variables
   final Map<String, String> environment;
+
+  final List<String> args;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -76,14 +72,12 @@ class FVMContext {
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
-    final wantsJson = globalArgParser.parse(args ?? []).wasParsed('json');
-
     return FVMContext._(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
-      json: wantsJson,
       environment: environment,
+      args: args ?? [],
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,
@@ -93,6 +87,7 @@ class FVMContext {
         FlutterService: FlutterService.new,
         CacheService: CacheService.new,
         GlobalVersionService: GlobalVersionService.new,
+        APIService: APIService.new,
         ...generatorOverrides,
       },
       isTest: isTest,
@@ -105,8 +100,8 @@ class FVMContext {
     required this.id,
     required this.workingDirectory,
     required this.config,
-    required this.json,
     required this.environment,
+    required this.args,
     this.generators = const {},
     this.isTest = false,
   });

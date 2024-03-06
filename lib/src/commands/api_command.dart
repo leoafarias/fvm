@@ -1,8 +1,10 @@
-import 'package:args/command_runner.dart';
+import 'dart:io';
 
+import 'package:args/command_runner.dart';
+import 'package:io/io.dart';
+
+import '../api/api_service.dart';
 import '../api/models/json_response.dart';
-import '../services/cache_service.dart';
-import '../services/releases_service/releases_client.dart';
 import 'base_command.dart';
 
 /// Friendly API for implementations with FVM
@@ -29,18 +31,34 @@ class ApiCommand extends BaseCommand {
 
     final prettyOutput = boolArg('pretty');
 
-    final command = argResults!.rest.first;
+    void printAndExitResponse<T>(APIResponse<T> response) {
+      if (prettyOutput) {
+        print(response.formattedJson());
+      } else {
+        print(response.toJson());
+      }
 
-    if (command == 'list') {
-      final versions = await CacheService.fromContext.getAllVersions();
-
-      throw ListCommandResponse(versions);
+      exit(ExitCode.success.code);
     }
 
-    if (command == 'releases') {
-      final releases = await FlutterReleases.get();
+    final command = argResults!.rest.first;
 
-      throw ReleasesCommandResponse(releases);
+    switch (command) {
+      case 'list':
+        final response = await APIService.fromContext.getCachedVersions();
+
+        printAndExitResponse(response);
+        break;
+      case 'releases':
+        final response = await APIService.fromContext.getReleases();
+        printAndExitResponse(response);
+        break;
+      case 'project':
+        final response = APIService.fromContext.getProject();
+        printAndExitResponse(response);
+        break;
+      default:
+        throw UsageException('Command not found', usage);
     }
 
     return 0;

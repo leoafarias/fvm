@@ -1,8 +1,13 @@
+import 'package:dart_mappable/dart_mappable.dart';
+
 import '../releases_client.dart';
 import 'channels.model.dart';
 
+part 'release.model.mapper.dart';
+
 /// Release Model
-class Release {
+@MappableClass()
+class Release with ReleaseMappable {
   /// Release hash
   final String hash;
 
@@ -13,6 +18,7 @@ class Release {
   final String version;
 
   /// Release date
+  @MappableField(key: 'release_date')
   final DateTime releaseDate;
 
   /// Release archive name
@@ -22,18 +28,21 @@ class Release {
   final String sha256;
 
   /// Is release active in a channel
+  @MappableField(key: 'active_channel')
   final bool activeChannel;
 
   /// Version of the Dart SDK
+  @MappableField(key: 'dart_sdk_version')
   final String? dartSdkVersion;
 
   /// Dart SDK architecture
+  @MappableField(key: 'dart_sdk_arch')
   final String? dartSdkArch;
 
-  const
+  static final fromMap = ReleaseMapper.fromMap;
+  static final fromJson = ReleaseMapper.fromJson;
 
-  /// Constructor
-  Release({
+  const Release({
     required this.hash,
     required this.channel,
     required this.version,
@@ -45,43 +54,20 @@ class Release {
     this.activeChannel = false,
   });
 
-  /// Creates a release from a map of values
-  factory Release.fromMap(Map<String, dynamic> map) => Release(
-        hash: map['hash'] as String,
-        channel: FlutterChannel.fromName(map['channel'] as String),
-        version: map['version'] as String,
-        releaseDate: DateTime.parse(map['release_date'] as String),
-        archive: map['archive'] as String,
-        sha256: map['sha256'] as String,
-        dartSdkArch: map['dart_sdk_arch'] as String?,
-        dartSdkVersion: map['dart_sdk_version'] as String?,
-        activeChannel: map['active_channel'] as bool? ?? false,
-      );
-
   /// Returns channel name of the release
+  @MappableField()
   String get channelName => channel.name;
 
   /// Returns archive url of the release
+  @MappableField()
   String get archiveUrl {
     return '$storageUrl/flutter_infra_release/releases/$archive';
   }
-
-  /// Turns Release model into a map of values
-  Map<String, dynamic> toMap() => {
-        'hash': hash,
-        'channel': channel.name,
-        'version': version,
-        'release_date': releaseDate.toIso8601String(),
-        'archive': archive,
-        'sha256': sha256,
-        'dart_sdk_arch': dartSdkArch,
-        'dart_sdk_version': dartSdkVersion,
-        'active_channel': activeChannel,
-      };
 }
 
 /// Release channels model
-class Channels {
+@MappableClass()
+class Channels with ChannelsMappable {
   /// Beta channel release
   final Release beta;
 
@@ -91,10 +77,11 @@ class Channels {
   /// Stable channel release
   final Release stable;
 
-  const
+  static final fromMap = ChannelsMapper.fromMap;
+  static final fromJson = ChannelsMapper.fromJson;
 
   /// Channel model contructor
-  Channels({required this.beta, required this.dev, required this.stable});
+  const Channels({required this.beta, required this.dev, required this.stable});
 
   /// Returns a list of all releases
   List<Release> get toList => [dev, beta, stable];
@@ -106,13 +93,6 @@ class Channels {
     if (channelName == 'stable') return stable;
     throw Exception('Not a valid channel $channelName');
   }
-
-  /// Return a map of values from the Channels model
-  Map<String, dynamic> toMap() => {
-        'beta': beta.toMap(),
-        'dev': dev.toMap(),
-        'stable': stable.toMap(),
-      };
 
   /// Returns a hash map of the channels model
   Map<String, dynamic> toHashMap() => {
