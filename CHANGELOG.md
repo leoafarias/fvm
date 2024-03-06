@@ -6,6 +6,7 @@
 * Fix: Improve App Config and Project Config overrides by @leoafarias
 * Fix: Incorrect check version update logic by @leoafarias
 * Improvemnet: Better exception handling during mirror creation by @leoafarias
+* Improvement: Added warning when .fvmrc is found but not pubspec.yaml by @leoafarias
 
 ## 3.0.12
 
