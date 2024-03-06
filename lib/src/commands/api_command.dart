@@ -18,8 +18,8 @@ class ApiCommand extends BaseCommand {
   /// Constructor
   ApiCommand() {
     argParser.addFlag(
-      'pretty',
-      help: 'Prints JSON in pretty format',
+      'compress',
+      help: 'Prints JSON with no whitespace',
       negatable: false,
     );
   }
@@ -29,13 +29,13 @@ class ApiCommand extends BaseCommand {
       throw UsageException('No command was provided', usage);
     }
 
-    final prettyOutput = boolArg('pretty');
+    final compressArg = boolArg('compress');
 
-    void printAndExitResponse<T>(APIResponse<T> response) {
-      if (prettyOutput) {
-        print(response.formattedJson());
-      } else {
+    void printAndExitResponse(APIResponse response) {
+      if (compressArg) {
         print(response.toJson());
+      } else {
+        print(response.toPrettyJson());
       }
 
       exit(ExitCode.success.code);

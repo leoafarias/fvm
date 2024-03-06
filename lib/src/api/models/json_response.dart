@@ -10,37 +10,43 @@ part 'json_response.mapper.dart';
 typedef JSONMap = Map<String, dynamic>;
 
 @MappableClass()
-abstract class APIResponse<TPayload> with APIResponseMappable {
-  final TPayload data;
+abstract class APIResponse with APIResponseMappable {
+  const APIResponse();
 
-  const APIResponse({required this.data});
-
-  String formattedJson() => prettyJson(toMap());
+  String toPrettyJson() => prettyJson(toMap());
 }
 
 @MappableClass()
-class GetCacheVersionsResponse extends APIResponse<List<CacheFlutterVersion>>
+class GetCacheVersionsResponse extends APIResponse
     with GetCacheVersionsResponseMappable {
+  final String size;
+  final List<CacheFlutterVersion> versions;
+
   static final fromMap = GetCacheVersionsResponseMapper.fromMap;
   static final fromJson = GetCacheVersionsResponseMapper.fromJson;
 
-  const GetCacheVersionsResponse({required super.data});
+  const GetCacheVersionsResponse({
+    required this.size,
+    required this.versions,
+  });
 }
 
 @MappableClass()
-class GetReleasesResponse extends APIResponse<FlutterReleasesResponse>
-    with GetReleasesResponseMappable {
+class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
+  final FlutterReleasesResponse releases;
+
   static final fromMap = GetReleasesResponseMapper.fromMap;
   static final fromJson = GetReleasesResponseMapper.fromJson;
 
-  const GetReleasesResponse({required super.data});
+  const GetReleasesResponse({required this.releases});
 }
 
 @MappableClass()
-class GetProjectResponse extends APIResponse<Project>
-    with GetProjectResponseMappable {
+class GetProjectResponse extends APIResponse with GetProjectResponseMappable {
+  final Project project;
+
   static final fromMap = GetProjectResponseMapper.fromMap;
   static final fromJson = GetProjectResponseMapper.fromJson;
 
-  const GetProjectResponse({required super.data});
+  const GetProjectResponse({required this.project});
 }

@@ -22,47 +22,36 @@ class APIResponseMapper extends ClassMapperBase<APIResponse> {
 
   @override
   final String id = 'APIResponse';
-  @override
-  Function get typeFactory => <TPayload>(f) => f<APIResponse<TPayload>>();
-
-  static dynamic _$data(APIResponse v) => v.data;
-  static dynamic _arg$data<TPayload>(f) => f<TPayload>();
-  static const Field<APIResponse, dynamic> _f$data =
-      Field('data', _$data, arg: _arg$data);
 
   @override
-  final MappableFields<APIResponse> fields = const {
-    #data: _f$data,
-  };
+  final MappableFields<APIResponse> fields = const {};
 
-  static APIResponse<TPayload> _instantiate<TPayload>(DecodingData data) {
+  static APIResponse _instantiate(DecodingData data) {
     throw MapperException.missingConstructor('APIResponse');
   }
 
   @override
   final Function instantiate = _instantiate;
 
-  static APIResponse<TPayload> fromMap<TPayload>(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<APIResponse<TPayload>>(map);
+  static APIResponse fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<APIResponse>(map);
   }
 
-  static APIResponse<TPayload> fromJson<TPayload>(String json) {
-    return ensureInitialized().decodeJson<APIResponse<TPayload>>(json);
+  static APIResponse fromJson(String json) {
+    return ensureInitialized().decodeJson<APIResponse>(json);
   }
 }
 
-mixin APIResponseMappable<TPayload> {
+mixin APIResponseMappable {
   String toJson();
   Map<String, dynamic> toMap();
-  APIResponseCopyWith<APIResponse<TPayload>, APIResponse<TPayload>,
-      APIResponse<TPayload>, TPayload> get copyWith;
+  APIResponseCopyWith<APIResponse, APIResponse, APIResponse> get copyWith;
 }
 
-abstract class APIResponseCopyWith<$R, $In extends APIResponse<TPayload>, $Out,
-    TPayload> implements ClassCopyWith<$R, $In, $Out> {
-  $R call({TPayload? data});
-  APIResponseCopyWith<$R2, $In, $Out2, TPayload> $chain<$R2, $Out2>(
-      Then<$Out2, $R2> t);
+abstract class APIResponseCopyWith<$R, $In extends APIResponse, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call();
+  APIResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
 class GetCacheVersionsResponseMapper
@@ -83,17 +72,23 @@ class GetCacheVersionsResponseMapper
   @override
   final String id = 'GetCacheVersionsResponse';
 
-  static List<CacheFlutterVersion> _$data(GetCacheVersionsResponse v) => v.data;
+  static String _$size(GetCacheVersionsResponse v) => v.size;
+  static const Field<GetCacheVersionsResponse, String> _f$size =
+      Field('size', _$size);
+  static List<CacheFlutterVersion> _$versions(GetCacheVersionsResponse v) =>
+      v.versions;
   static const Field<GetCacheVersionsResponse, List<CacheFlutterVersion>>
-      _f$data = Field('data', _$data);
+      _f$versions = Field('versions', _$versions);
 
   @override
   final MappableFields<GetCacheVersionsResponse> fields = const {
-    #data: _f$data,
+    #size: _f$size,
+    #versions: _f$versions,
   };
 
   static GetCacheVersionsResponse _instantiate(DecodingData data) {
-    return GetCacheVersionsResponse(data: data.dec(_f$data));
+    return GetCacheVersionsResponse(
+        size: data.dec(_f$size), versions: data.dec(_f$versions));
   }
 
   @override
@@ -151,17 +146,17 @@ extension GetCacheVersionsResponseValueCopy<$R, $Out>
           .as((v, t, t2) => _GetCacheVersionsResponseCopyWithImpl(v, t, t2));
 }
 
-abstract class GetCacheVersionsResponseCopyWith<$R,
-        $In extends GetCacheVersionsResponse, $Out>
-    implements APIResponseCopyWith<$R, $In, $Out, List<CacheFlutterVersion>> {
-  @override
+abstract class GetCacheVersionsResponseCopyWith<
+    $R,
+    $In extends GetCacheVersionsResponse,
+    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
   ListCopyWith<
       $R,
       CacheFlutterVersion,
       CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
-          CacheFlutterVersion>> get data;
+          CacheFlutterVersion>> get versions;
   @override
-  $R call({List<CacheFlutterVersion>? data});
+  $R call({String? size, List<CacheFlutterVersion>? versions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -180,14 +175,18 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
       $R,
       CacheFlutterVersion,
       CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
-          CacheFlutterVersion>> get data => ListCopyWith(
-      $value.data, (v, t) => v.copyWith.$chain(t), (v) => call(data: v));
+          CacheFlutterVersion>> get versions => ListCopyWith($value.versions,
+      (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
-  $R call({List<CacheFlutterVersion>? data}) =>
-      $apply(FieldCopyWithData({if (data != null) #data: data}));
+  $R call({String? size, List<CacheFlutterVersion>? versions}) =>
+      $apply(FieldCopyWithData({
+        if (size != null) #size: size,
+        if (versions != null) #versions: versions
+      }));
   @override
-  GetCacheVersionsResponse $make(CopyWithData data) =>
-      GetCacheVersionsResponse(data: data.get(#data, or: $value.data));
+  GetCacheVersionsResponse $make(CopyWithData data) => GetCacheVersionsResponse(
+      size: data.get(#size, or: $value.size),
+      versions: data.get(#versions, or: $value.versions));
 
   @override
   GetCacheVersionsResponseCopyWith<$R2, GetCacheVersionsResponse, $Out2>
@@ -211,17 +210,18 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
   @override
   final String id = 'GetReleasesResponse';
 
-  static FlutterReleasesResponse _$data(GetReleasesResponse v) => v.data;
-  static const Field<GetReleasesResponse, FlutterReleasesResponse> _f$data =
-      Field('data', _$data);
+  static FlutterReleasesResponse _$releases(GetReleasesResponse v) =>
+      v.releases;
+  static const Field<GetReleasesResponse, FlutterReleasesResponse> _f$releases =
+      Field('releases', _$releases);
 
   @override
   final MappableFields<GetReleasesResponse> fields = const {
-    #data: _f$data,
+    #releases: _f$releases,
   };
 
   static GetReleasesResponse _instantiate(DecodingData data) {
-    return GetReleasesResponse(data: data.dec(_f$data));
+    return GetReleasesResponse(releases: data.dec(_f$releases));
   }
 
   @override
@@ -280,13 +280,11 @@ extension GetReleasesResponseValueCopy<$R, $Out>
 }
 
 abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
-        $Out>
-    implements APIResponseCopyWith<$R, $In, $Out, FlutterReleasesResponse> {
-  @override
+    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
   FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse,
-      FlutterReleasesResponse> get data;
+      FlutterReleasesResponse> get releases;
   @override
-  $R call({FlutterReleasesResponse? data});
+  $R call({FlutterReleasesResponse? releases});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -302,15 +300,13 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
   @override
   FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse,
           FlutterReleasesResponse>
-      get data => ($value.data as FlutterReleasesResponse)
-          .copyWith
-          .$chain((v) => call(data: v));
+      get releases => $value.releases.copyWith.$chain((v) => call(releases: v));
   @override
-  $R call({FlutterReleasesResponse? data}) =>
-      $apply(FieldCopyWithData({if (data != null) #data: data}));
+  $R call({FlutterReleasesResponse? releases}) =>
+      $apply(FieldCopyWithData({if (releases != null) #releases: releases}));
   @override
   GetReleasesResponse $make(CopyWithData data) =>
-      GetReleasesResponse(data: data.get(#data, or: $value.data));
+      GetReleasesResponse(releases: data.get(#releases, or: $value.releases));
 
   @override
   GetReleasesResponseCopyWith<$R2, GetReleasesResponse, $Out2>
@@ -334,17 +330,17 @@ class GetProjectResponseMapper extends ClassMapperBase<GetProjectResponse> {
   @override
   final String id = 'GetProjectResponse';
 
-  static Project _$data(GetProjectResponse v) => v.data;
-  static const Field<GetProjectResponse, Project> _f$data =
-      Field('data', _$data);
+  static Project _$project(GetProjectResponse v) => v.project;
+  static const Field<GetProjectResponse, Project> _f$project =
+      Field('project', _$project);
 
   @override
   final MappableFields<GetProjectResponse> fields = const {
-    #data: _f$data,
+    #project: _f$project,
   };
 
   static GetProjectResponse _instantiate(DecodingData data) {
-    return GetProjectResponse(data: data.dec(_f$data));
+    return GetProjectResponse(project: data.dec(_f$project));
   }
 
   @override
@@ -403,11 +399,10 @@ extension GetProjectResponseValueCopy<$R, $Out>
 }
 
 abstract class GetProjectResponseCopyWith<$R, $In extends GetProjectResponse,
-    $Out> implements APIResponseCopyWith<$R, $In, $Out, Project> {
+    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
+  ProjectCopyWith<$R, Project, Project> get project;
   @override
-  ProjectCopyWith<$R, Project, Project> get data;
-  @override
-  $R call({Project? data});
+  $R call({Project? project});
   GetProjectResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -421,14 +416,14 @@ class _GetProjectResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetProjectResponse> $mapper =
       GetProjectResponseMapper.ensureInitialized();
   @override
-  ProjectCopyWith<$R, Project, Project> get data =>
-      ($value.data as Project).copyWith.$chain((v) => call(data: v));
+  ProjectCopyWith<$R, Project, Project> get project =>
+      $value.project.copyWith.$chain((v) => call(project: v));
   @override
-  $R call({Project? data}) =>
-      $apply(FieldCopyWithData({if (data != null) #data: data}));
+  $R call({Project? project}) =>
+      $apply(FieldCopyWithData({if (project != null) #project: project}));
   @override
   GetProjectResponse $make(CopyWithData data) =>
-      GetProjectResponse(data: data.get(#data, or: $value.data));
+      GetProjectResponse(project: data.get(#project, or: $value.project));
 
   @override
   GetProjectResponseCopyWith<$R2, GetProjectResponse, $Out2> $chain<$R2, $Out2>(

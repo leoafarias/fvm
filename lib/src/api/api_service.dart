@@ -1,10 +1,10 @@
-import '../models/project_model.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
-import '../services/releases_service/models/flutter_releases.model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
+import '../utils/extensions.dart';
+import '../utils/get_directory_size.dart';
 import 'models/json_response.dart';
 
 class APIService extends ContextService {
@@ -15,18 +15,27 @@ class APIService extends ContextService {
   Future<GetCacheVersionsResponse> getCachedVersions() async {
     final versions = await CacheService.fromContext.getAllVersions();
 
-    return GetCacheVersionsResponse(data: versions);
+    final versionSizes = await Future.wait(versions.map((version) async {
+      final size = await getDirectorySize(version.directory.dir);
+
+      return size;
+    }));
+
+    return GetCacheVersionsResponse(
+      versions: versions,
+      size: formatBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
+    );
   }
 
-  Future<APIResponse<FlutterReleasesResponse>> getReleases() async {
+  Future<GetReleasesResponse> getReleases() async {
     final releases = await FlutterReleases.get();
 
-    return GetReleasesResponse(data: releases);
+    return GetReleasesResponse(releases: releases);
   }
 
-  APIResponse<Project> getProject() {
+  GetProjectResponse getProject() {
     final project = ProjectService.fromContext.findAncestor();
 
-    return GetProjectResponse(data: project);
+    return GetProjectResponse(project: project);
   }
 }

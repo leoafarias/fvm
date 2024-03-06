@@ -151,10 +151,10 @@ class Project with ProjectMappable {
   }
 
   @MappableField()
-  String get gitignorePath => join(path, '.gitignore');
+  String get gitIgnorePath => join(path, '.gitignore');
 
   /// Indicates whether the project has `.gitignore` file.
-  File get gitignoreFile => File(gitignorePath);
+  File get gitIgnoreFile => File(gitIgnorePath);
 
   /// Returns the path of the pubspec.yaml file.
   @MappableField()

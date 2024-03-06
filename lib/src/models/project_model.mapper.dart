@@ -60,9 +60,9 @@ class ProjectMapper extends ClassMapperBase<Project> {
       v.localVersionSymlinkPath;
   static const Field<Project, String> _f$localVersionSymlinkPath =
       Field('localVersionSymlinkPath', _$localVersionSymlinkPath);
-  static String _$gitignorePath(Project v) => v.gitignorePath;
-  static const Field<Project, String> _f$gitignorePath =
-      Field('gitignorePath', _$gitignorePath);
+  static String _$gitIgnorePath(Project v) => v.gitIgnorePath;
+  static const Field<Project, String> _f$gitIgnorePath =
+      Field('gitIgnorePath', _$gitIgnorePath);
   static String _$pubspecPath(Project v) => v.pubspecPath;
   static const Field<Project, String> _f$pubspecPath =
       Field('pubspecPath', _$pubspecPath);
@@ -94,7 +94,7 @@ class ProjectMapper extends ClassMapperBase<Project> {
     #localFvmPath: _f$localFvmPath,
     #localVersionsCachePath: _f$localVersionsCachePath,
     #localVersionSymlinkPath: _f$localVersionSymlinkPath,
-    #gitignorePath: _f$gitignorePath,
+    #gitIgnorePath: _f$gitIgnorePath,
     #pubspecPath: _f$pubspecPath,
     #configPath: _f$configPath,
     #legacyConfigPath: _f$legacyConfigPath,
