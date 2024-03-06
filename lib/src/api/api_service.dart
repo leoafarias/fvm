@@ -27,11 +27,13 @@ class APIService extends ContextService {
     );
   }
 
-  Future<GetReleasesResponse> getReleases() async {
+  Future<GetReleasesResponse> getReleases({int limit = 30}) async {
     final releases = await FlutterReleases.get();
 
+    final limitedReleases = releases.releases.take(limit).toList();
+
     return GetReleasesResponse(
-      count: releases.releases.length,
+      count: limitedReleases.length,
       releases: releases,
     );
   }

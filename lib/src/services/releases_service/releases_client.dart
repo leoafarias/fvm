@@ -32,8 +32,10 @@ class FlutterReleases {
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.
-  static Future<FlutterReleasesResponse> get(
-      {bool cache = true, String? platform}) async {
+  static Future<FlutterReleasesResponse> get({
+    bool cache = true,
+    String? platform,
+  }) async {
     platform ??= Platform.operatingSystem;
     final releasesUrl = getReleasesUrl(platform);
     try {
@@ -55,7 +57,8 @@ class FlutterReleases {
   }
 
   static Future<FlutterReleasesResponse> _getFromFlutterUrl(
-      String platform) async {
+    String platform,
+  ) async {
     try {
       final response = await fetch(getFlutterReleasesUrl(platform));
       _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);

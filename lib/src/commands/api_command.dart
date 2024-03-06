@@ -61,15 +61,24 @@ class APIReleasesCommand extends BaseCommand {
 
   /// Constructor
   APIReleasesCommand() {
-    argParser.addFlag(
-      'compress',
-      help: 'Prints JSON with no whitespace',
-      negatable: false,
-    );
+    argParser
+      ..addFlag(
+        'compress',
+        help: 'Prints JSON with no whitespace',
+        negatable: false,
+      )
+      ..addOption(
+        'limit',
+        help: 'Limits the amount of releases',
+        valueHelp: 'limit',
+        defaultsTo: '30',
+      );
   }
 
   @override
   Future<int> run() async {
+    final limitArg = int.tryParse(argResults!['limit'])!;
+
     final compressArg = boolArg('compress');
     final response = await APIService.fromContext.getReleases();
 
