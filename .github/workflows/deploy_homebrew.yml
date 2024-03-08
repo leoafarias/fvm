@@ -17,5 +17,8 @@ jobs:
           - name: Prepare environment
             uses: ./.github/actions/prepare
 
+          - name: Deploy versioned formula
+            run: dart run grinder pkg-homebrew-update --versioned-formula
+
           - name: Deploy homebrew
             run: dart run grinder pkg-homebrew-update
