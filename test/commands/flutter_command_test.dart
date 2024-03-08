@@ -28,7 +28,7 @@ void main() {
         expect(project.pinnedVersion?.name, channel);
 
         expect(
-          cacheVersion?.notSetup,
+          cacheVersion?.isNotSetup,
           false,
           reason: 'Version should be setup',
         );

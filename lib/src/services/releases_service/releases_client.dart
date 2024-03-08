@@ -28,7 +28,6 @@ String getReleasesUrl(String platform) {
 
 class FlutterReleases {
   static Releases? _cacheReleasesRes;
-
   const FlutterReleases._();
 
   /// Gets Flutter SDK Releases

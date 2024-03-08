@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/utils/helpers.dart';
-import 'package:fvm/src/version.g.dart';
+import 'package:fvm/src/version.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';

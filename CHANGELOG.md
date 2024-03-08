@@ -1,3 +1,13 @@
+## 3.0.13
+
+* Added: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
+* Added: Added flag to skip pub get on `install` and `use`, `--skip-pub-get` by @mrgnhnt96
+* Improvement: CI Flag now skips check update by @leoafarias
+* Fix: Improve App Config and Project Config overrides by @leoafarias
+* Fix: Incorrect check version update logic by @leoafarias
+* Improvement: Better exception handling during mirror creation by @leoafarias
+* Improvement: Added warning when .fvmrc is found but not pubspec.yaml by @leoafarias
+
 ## 3.0.12
 
 * Adds skipping version mismatch handling when using force or running with a custom fvm version. [#653](https://github.com/leoafarias/fvm/issues/653)

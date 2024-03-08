@@ -65,7 +65,10 @@ class CacheFlutterVersion extends FlutterVersion {
   }
 
   /// Verifies that cacheVersion has been setup
-  bool get notSetup => flutterSdkVersion == null;
+  bool get isNotSetup => flutterSdkVersion == null;
+
+  /// Returns bool if version is setup
+  bool get isSetup => flutterSdkVersion != null;
 
   Future<ProcessResult> run(
     String command, {

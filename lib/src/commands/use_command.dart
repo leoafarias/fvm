@@ -46,8 +46,8 @@ class UseCommand extends BaseCommand {
       ..addFlag(
         'skip-pub-get',
         help: 'Skip resolving dependencies after switching Flutter SDK',
-        negatable: false,
         defaultsTo: false,
+        negatable: false,
       )
       ..addFlag(
         'skip-setup',
@@ -135,8 +135,8 @@ class UseCommand extends BaseCommand {
       project: project,
       force: forceOption,
       skipSetup: skipSetup,
+      runPubGetOnSdkChange: !skipPubGet,
       flavor: flavorOption,
-      resolveDependencies: !skipPubGet,
     );
 
     return ExitCode.success.code;

@@ -25,14 +25,16 @@ class Project {
 
   final PubSpec? pubspec;
 
-  const
-
   /// Creates a new instance of [Project].
   ///
   /// The [config] parameter represents the configuration of the project.
   /// The [path] parameter is the directory path of the project.
   /// The [pubspec] parameter represents the pubspec.yaml file of the project.
-  Project({required this.config, required this.path, required this.pubspec});
+  const Project({
+    required this.config,
+    required this.path,
+    required this.pubspec,
+  });
 
   /// Loads the Flutter project from the given [path].
   ///
@@ -47,8 +49,8 @@ class Project {
     final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
 
     if (legacyConfig != null && config != null) {
-      final legacyVersion = legacyConfig.flutterSdkVersion;
-      final version = config.flutterSdkVersion;
+      final legacyVersion = legacyConfig.flutter;
+      final version = config.flutter;
 
       if (legacyVersion != version) {
         logger
@@ -83,7 +85,7 @@ class Project {
   ///
   /// Returns `null` if no version is pinned.
   FlutterVersion? get pinnedVersion {
-    final sdkVersion = config?.flutterSdkVersion;
+    final sdkVersion = config?.flutter;
     if (sdkVersion != null) {
       return FlutterVersion.parse(sdkVersion);
     }
