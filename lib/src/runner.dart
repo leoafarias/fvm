@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
+import 'commands/destroy_command.dart';
 import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
 import 'commands/flutter_command.dart';
@@ -54,6 +55,7 @@ class FvmCommandRunner extends CommandRunner<int> {
     addCommand(SpawnCommand());
     addCommand(ConfigCommand());
     addCommand(ExecCommand());
+    addCommand(DestroyCommand());
     addCommand(GlobalCommand());
   }
 
