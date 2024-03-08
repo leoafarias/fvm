@@ -23,3 +23,7 @@ runs:
     - name: Build Version
       run: dart run build_runner build --delete-conflicting-outputs
       shell: bash
+
+    - name: Move public install scripts
+      run: dart run grinder move-scripts
+      shell: bash
