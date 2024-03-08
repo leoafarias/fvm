@@ -7,7 +7,6 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 
 import '../test/testing_helpers/prepare_test_environment.dart';
-import 'homebrew.dart';
 
 const _packageName = 'fvm';
 const owner = 'leoafarias';
@@ -17,12 +16,15 @@ void main(List<String> args) {
   pkg.name.value = _packageName;
   pkg.humanName.value = _packageName;
   pkg.githubUser.value = owner;
-  pkg.githubRepo.value = 'leoafarias/fvm';
-  pkg.homebrewRepo.value = 'leoafarias/homebrew-fvm';
+  pkg.githubRepo.value = '$owner/$_packageName';
+  pkg.homebrewRepo.value = '$owner/homebrew-$_packageName';
   pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
 
+  if (args.contains('--versioned-formula')) {
+    pkg.homebrewCreateVersionedFormula.value = true;
+  }
+
   pkg.addAllTasks();
-  addTask(homebrewTask());
 
   grind(args);
 }
