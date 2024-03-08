@@ -7,7 +7,6 @@ import 'package:grinder/grinder.dart';
 import 'package:path/path.dart' as path;
 
 import '../test/testing_helpers/prepare_test_environment.dart';
-import 'homebrew.dart';
 
 const _packageName = 'fvm';
 const owner = 'leoafarias';
@@ -17,12 +16,15 @@ void main(List<String> args) {
   pkg.name.value = _packageName;
   pkg.humanName.value = _packageName;
   pkg.githubUser.value = owner;
-  pkg.githubRepo.value = 'leoafarias/fvm';
-  pkg.homebrewRepo.value = 'leoafarias/homebrew-fvm';
+  pkg.githubRepo.value = '$owner/$_packageName';
+  pkg.homebrewRepo.value = '$owner/homebrew-$_packageName';
   pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
 
+  if (args.contains('--versioned-formula')) {
+    pkg.homebrewCreateVersionedFormula.value = true;
+  }
+
   pkg.addAllTasks();
-  addTask(homebrewTask());
 
   grind(args);
 }
@@ -60,6 +62,27 @@ void testSetup() {
   }
 
   runDartScript('bin/main.dart', arguments: ['install', 'stable']);
+}
+
+@Task('Move install.sh and uninstall.sh to public directory')
+void moveScripts() {
+  final installScript = File('scripts/install.sh');
+  final uninstallScript = File('scripts/uninstall.sh');
+
+  if (!installScript.existsSync() || !uninstallScript.existsSync()) {
+    throw Exception('Install or uninstall script does not exist');
+  }
+
+  final publicDir = Directory('docs/public');
+
+  if (!publicDir.existsSync()) {
+    throw Exception('Public directory does not exist');
+  }
+
+  installScript.copySync(path.join(publicDir.path, 'install.sh'));
+  uninstallScript.copySync(path.join(publicDir.path, 'uninstall.sh'));
+
+  print('Moved install.sh and uninstall.sh to public directory');
 }
 
 @Task('Run tests')
