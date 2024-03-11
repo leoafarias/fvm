@@ -29,6 +29,7 @@ dependencies:
   pubspec: ^2.3.0
   jsonc: ^0.0.3
   dart_mappable: ^4.2.0
+  cli_completion: ^0.5.0
   
 
 dev_dependencies:
