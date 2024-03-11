@@ -80,7 +80,7 @@ class APIReleasesCommand extends BaseCommand {
     final limitArg = int.tryParse(argResults!['limit'])!;
 
     final compressArg = boolArg('compress');
-    final response = await APIService.fromContext.getReleases();
+    final response = await APIService.fromContext.getReleases(limit: limitArg);
 
     _printAndExitResponse(response, compress: compressArg);
 

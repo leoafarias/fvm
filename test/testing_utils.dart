@@ -80,7 +80,7 @@ const forceRelease = '2.2.2@beta';
 
 Future<FlutterVersion> getRandomFlutterVersion() async {
   final payload = await FlutterReleases.get();
-  final release = payload.releases[Random().nextInt(payload.releases.length)];
+  final release = payload.versions[Random().nextInt(payload.versions.length)];
   return FlutterVersion.parse(release.version);
 }
 

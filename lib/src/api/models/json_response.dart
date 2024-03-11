@@ -2,7 +2,7 @@ import 'package:dart_mappable/dart_mappable.dart';
 
 import '../../models/cache_flutter_version_model.dart';
 import '../../models/project_model.dart';
-import '../../services/releases_service/models/flutter_releases.model.dart';
+import '../../services/releases_service/models/version_model.dart';
 import '../../utils/pretty_json.dart';
 
 part 'json_response.mapper.dart';
@@ -34,12 +34,21 @@ class GetCacheVersionsResponse extends APIResponse
 @MappableClass()
 class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
   final int count;
-  final FlutterReleasesResponse releases;
+
+  /// Channels in Flutter releases
+  final Channels channels;
+
+  /// LIst of all releases
+  final List<FlutterSdkVersion> versions;
 
   static final fromMap = GetReleasesResponseMapper.fromMap;
   static final fromJson = GetReleasesResponseMapper.fromJson;
 
-  const GetReleasesResponse({required this.count, required this.releases});
+  const GetReleasesResponse({
+    required this.count,
+    required this.versions,
+    required this.channels,
+  });
 }
 
 @MappableClass()

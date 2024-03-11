@@ -202,7 +202,8 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = GetReleasesResponseMapper._());
       APIResponseMapper.ensureInitialized();
-      FlutterReleasesResponseMapper.ensureInitialized();
+      FlutterSdkVersionMapper.ensureInitialized();
+      ChannelsMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -213,20 +214,26 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
   static int _$count(GetReleasesResponse v) => v.count;
   static const Field<GetReleasesResponse, int> _f$count =
       Field('count', _$count);
-  static FlutterReleasesResponse _$releases(GetReleasesResponse v) =>
-      v.releases;
-  static const Field<GetReleasesResponse, FlutterReleasesResponse> _f$releases =
-      Field('releases', _$releases);
+  static List<FlutterSdkVersion> _$versions(GetReleasesResponse v) =>
+      v.versions;
+  static const Field<GetReleasesResponse, List<FlutterSdkVersion>> _f$versions =
+      Field('versions', _$versions);
+  static Channels _$channels(GetReleasesResponse v) => v.channels;
+  static const Field<GetReleasesResponse, Channels> _f$channels =
+      Field('channels', _$channels);
 
   @override
   final MappableFields<GetReleasesResponse> fields = const {
     #count: _f$count,
-    #releases: _f$releases,
+    #versions: _f$versions,
+    #channels: _f$channels,
   };
 
   static GetReleasesResponse _instantiate(DecodingData data) {
     return GetReleasesResponse(
-        count: data.dec(_f$count), releases: data.dec(_f$releases));
+        count: data.dec(_f$count),
+        versions: data.dec(_f$versions),
+        channels: data.dec(_f$channels));
   }
 
   @override
@@ -286,10 +293,12 @@ extension GetReleasesResponseValueCopy<$R, $Out>
 
 abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
     $Out> implements APIResponseCopyWith<$R, $In, $Out> {
-  FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse,
-      FlutterReleasesResponse> get releases;
+  ListCopyWith<$R, FlutterSdkVersion,
+          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+      get versions;
+  ChannelsCopyWith<$R, Channels, Channels> get channels;
   @override
-  $R call({int? count, FlutterReleasesResponse? releases});
+  $R call({int? count, List<FlutterSdkVersion>? versions, Channels? channels});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -303,19 +312,28 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetReleasesResponse> $mapper =
       GetReleasesResponseMapper.ensureInitialized();
   @override
-  FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse,
-          FlutterReleasesResponse>
-      get releases => $value.releases.copyWith.$chain((v) => call(releases: v));
+  ListCopyWith<$R, FlutterSdkVersion,
+          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+      get versions => ListCopyWith($value.versions,
+          (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
-  $R call({int? count, FlutterReleasesResponse? releases}) =>
+  ChannelsCopyWith<$R, Channels, Channels> get channels =>
+      $value.channels.copyWith.$chain((v) => call(channels: v));
+  @override
+  $R call(
+          {int? count,
+          List<FlutterSdkVersion>? versions,
+          Channels? channels}) =>
       $apply(FieldCopyWithData({
         if (count != null) #count: count,
-        if (releases != null) #releases: releases
+        if (versions != null) #versions: versions,
+        if (channels != null) #channels: channels
       }));
   @override
   GetReleasesResponse $make(CopyWithData data) => GetReleasesResponse(
       count: data.get(#count, or: $value.count),
-      releases: data.get(#releases, or: $value.releases));
+      versions: data.get(#versions, or: $value.versions),
+      channels: data.get(#channels, or: $value.channels));
 
   @override
   GetReleasesResponseCopyWith<$R2, GetReleasesResponse, $Out2>

@@ -4,7 +4,7 @@ import 'package:io/io.dart';
 import '../services/cache_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
-import '../services/releases_service/models/channels.model.dart';
+import '../services/releases_service/models/channels_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
 import '../utils/helpers.dart';

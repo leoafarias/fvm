@@ -3,9 +3,9 @@ import 'dart:io';
 import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
 import '../logger_service.dart';
-import 'models/channels.model.dart';
-import 'models/flutter_releases.model.dart';
-import 'models/release.model.dart';
+import 'models/channels_model.dart';
+import 'models/flutter_releases_model.dart';
+import 'models/version_model.dart';
 
 final _envVars = Platform.environment;
 final _storageUrl = 'https://storage.googleapis.com';
@@ -83,8 +83,8 @@ class FlutterReleases {
     return releases.containsVersion(version);
   }
 
-  /// Returns a [Release]  channel [version]
-  static Future<Release> getLatestReleaseOfChannel(
+  /// Returns a [FlutterSdkVersion]  channel [version]
+  static Future<FlutterSdkVersion> getLatestReleaseOfChannel(
     FlutterChannel channel,
   ) async {
     final releases = await get();
@@ -93,7 +93,9 @@ class FlutterReleases {
   }
 
   /// Returns a [FlutterChannel] from a [version]
-  static Future<Release?> getReleaseFromVersion(String version) async {
+  static Future<FlutterSdkVersion?> getReleaseFromVersion(
+    String version,
+  ) async {
     final releases = await get();
 
     return releases.getReleaseFromVersion(version);

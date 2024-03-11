@@ -4,7 +4,7 @@ import 'package:mason_logger/mason_logger.dart';
 import '../services/cache_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
-import '../services/releases_service/models/release.model.dart';
+import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
 import '../utils/extensions.dart';
@@ -56,7 +56,7 @@ class ListCommand extends BaseCommand {
 
     for (var version in cacheVersions) {
       var printVersion = version.name;
-      Release? latestRelease;
+      FlutterSdkVersion? latestRelease;
 
       if (version.isChannel && !version.isMaster) {
         latestRelease = releases.getLatestChannelRelease(version.name);

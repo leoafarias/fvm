@@ -3,7 +3,7 @@ import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/logger_service.dart';
-import '../services/releases_service/models/release.model.dart';
+import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
@@ -41,7 +41,7 @@ class ReleasesCommand extends BaseCommand {
       }
     }
 
-    bool shouldFilterRelease(Release release) {
+    bool shouldFilterRelease(FlutterSdkVersion release) {
       if (channelName == allChannel) {
         return false;
       }
@@ -53,7 +53,7 @@ class ReleasesCommand extends BaseCommand {
 
     final releases = await FlutterReleases.get();
 
-    final versions = releases.releases.reversed;
+    final versions = releases.versions.reversed;
 
     final table = createTable()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
