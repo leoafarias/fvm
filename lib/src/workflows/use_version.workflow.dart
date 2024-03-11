@@ -56,7 +56,10 @@ Future<void> useVersionWorkflow({
 
   final updatedProject = ProjectService.fromContext.update(
     project,
-    flavors: {if (flavor != null) flavor: version.name},
+    flavors: {
+      if (flavor != null) flavor: version.name,
+      ...project.flavors,
+    },
     flutterSdkVersion: version.name,
   );
 
