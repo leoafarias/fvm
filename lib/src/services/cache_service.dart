@@ -42,7 +42,7 @@ class CacheService extends ContextService {
   static CacheService get fromContext => getProvider();
 
   /// Returns a [CacheFlutterVersion] from a [version]
-  CacheFlutterVersion? getVersionSync(FlutterVersion version) {
+  CacheFlutterVersion? getVersion(FlutterVersion version) {
     final versionDir = getVersionCacheDir(version.name);
     // Return null if version does not exist
     if (!versionDir.existsSync()) return null;
@@ -63,7 +63,7 @@ class CacheService extends ContextService {
     for (var version in versions) {
       if (version.path.isDir()) {
         final name = path.basename(version.path);
-        final cacheVersion = getVersionSync(FlutterVersion.parse(name));
+        final cacheVersion = getVersion(FlutterVersion.parse(name));
 
         if (cacheVersion != null) {
           cacheVersions.add(cacheVersion);
@@ -77,7 +77,7 @@ class CacheService extends ContextService {
   }
 
   /// Removes a Version of Flutter SDK
-  void removeSync(FlutterVersion version) {
+  void remove(FlutterVersion version) {
     final versionDir = getVersionCacheDir(version.name);
     if (versionDir.existsSync()) versionDir.deleteSync(recursive: true);
   }

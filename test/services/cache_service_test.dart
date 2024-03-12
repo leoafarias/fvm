@@ -14,20 +14,20 @@ final _version = FlutterVersion.parse('1.20.2');
 void main() {
   groupWithContext('Cache Service Test:', () {
     testWithContext('Cache Version', () async {
-      var validChannel = CacheService.fromContext.getVersionSync(_channel);
-      var validVersion = CacheService.fromContext.getVersionSync(_version);
+      var validChannel = CacheService.fromContext.getVersion(_channel);
+      var validVersion = CacheService.fromContext.getVersion(_version);
       expect(validChannel, null);
       expect(validVersion, null);
 
       await FlutterService.fromContext.install(_channel);
       await FlutterService.fromContext.install(_version);
 
-      final cacheChannel = CacheService.fromContext.getVersionSync(_channel);
+      final cacheChannel = CacheService.fromContext.getVersion(_channel);
 
-      final cacheVersion = CacheService.fromContext.getVersionSync(_version);
+      final cacheVersion = CacheService.fromContext.getVersion(_version);
 
       final invalidVersion = CacheService.fromContext
-          .getVersionSync(FlutterVersion.parse('invalid-version'));
+          .getVersion(FlutterVersion.parse('invalid-version'));
 
       final channelIntegrity =
           await CacheService.fromContext.verifyCacheIntegrity(cacheChannel!);
@@ -39,7 +39,7 @@ void main() {
 
       forceUpdateFlutterSdkVersionFile(cacheVersion, '2.7.0');
 
-      final cacheVersion2 = CacheService.fromContext.getVersionSync(_version);
+      final cacheVersion2 = CacheService.fromContext.getVersion(_version);
       final versionIntegrity2 =
           await CacheService.fromContext.verifyCacheIntegrity(cacheVersion2!);
 
@@ -55,8 +55,8 @@ void main() {
       globalVersion = GlobalVersionService.fromContext.getGlobal();
       expect(globalVersion, null);
 
-      final channel = CacheService.fromContext.getVersionSync(_channel);
-      final version = CacheService.fromContext.getVersionSync(_version);
+      final channel = CacheService.fromContext.getVersion(_channel);
+      final version = CacheService.fromContext.getVersion(_version);
       // Set channel as global
       GlobalVersionService.fromContext.setGlobal(channel!);
       globalVersion = GlobalVersionService.fromContext.getGlobal();
