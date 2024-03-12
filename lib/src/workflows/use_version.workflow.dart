@@ -362,8 +362,7 @@ void _manageVsCodeSettings(Project project) {
 
     currentSettings["dart.flutterSdkPath"] = convertToPosixPath(relativePath);
   } else {
-    currentSettings["dart.flutterSdkPath"] =
-        convertToPosixPath(project.localVersionSymlinkPath);
+    currentSettings["dart.flutterSdkPath"] = project.localVersionSymlinkPath;
   }
 
   vscodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
