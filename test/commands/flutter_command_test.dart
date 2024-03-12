@@ -21,7 +21,7 @@ void main() {
         await runner.run('fvm use $channel');
 
         final project = ProjectService.fromContext.findAncestor();
-        final cacheVersion = CacheService.fromContext.getVersion(
+        final cacheVersion = CacheService.fromContext.getVersionSync(
           FlutterVersion.parse(channel),
         );
 
@@ -78,7 +78,7 @@ void main() {
 
       await runner.run('fvm install $versionNumber --setup');
       final cacheVersion = CacheService.fromContext
-          .getVersion(FlutterVersion.parse(versionNumber));
+          .getVersionSync(FlutterVersion.parse(versionNumber));
 
       final updatedEnvironments = updateEnvironmentVariables(
         [cacheVersion!.binPath, cacheVersion.dartBinPath],
@@ -123,7 +123,7 @@ void main() {
 
       await runner.run('fvm install $versionNumber --setup');
       final cacheVersion = CacheService.fromContext
-          .getVersion(FlutterVersion.parse(versionNumber));
+          .getVersionSync(FlutterVersion.parse(versionNumber));
 
       expect(cacheVersion, isNotNull);
 

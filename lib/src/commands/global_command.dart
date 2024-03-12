@@ -82,7 +82,8 @@ class GlobalCommand extends BaseCommand {
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      pinnedCacheVersion = CacheService.fromContext.getVersion(pinnedVersion);
+      pinnedCacheVersion =
+          CacheService.fromContext.getVersionSync(pinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;

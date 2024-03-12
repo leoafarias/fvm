@@ -21,8 +21,8 @@ void main() {
       // await testContextWrapper(contextKey, () async {
       await runner.run('fvm install $channel');
 
-      final cacheVersion =
-          CacheService.fromContext.getVersion(FlutterVersion.parse(channel));
+      final cacheVersion = CacheService.fromContext
+          .getVersionSync(FlutterVersion.parse(channel));
 
       final existingChannel = await getBranch(channel);
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -86,7 +86,7 @@ void main() {
       final valid = FlutterVersion.parse(release);
       final existingRelease = await getTag(valid.name);
 
-      final cacheVersion = CacheService.fromContext.getVersion(valid);
+      final cacheVersion = CacheService.fromContext.getVersionSync(valid);
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
@@ -99,7 +99,8 @@ void main() {
       await runner.run('fvm install $shortGitHash');
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersionShort = CacheService.fromContext.getVersion(validShort);
+      final cacheVersionShort =
+          CacheService.fromContext.getVersionSync(validShort);
 
       expect(
         cacheVersionShort != null,

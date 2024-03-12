@@ -34,17 +34,29 @@ class APIListCommand extends BaseCommand {
 
   /// Constructor
   APIListCommand() {
-    argParser.addFlag(
-      'compress',
-      help: 'Prints JSON with no whitespace',
-      negatable: false,
-    );
+    argParser
+      ..addFlag(
+        'compress',
+        abbr: 'c',
+        help: 'Prints JSON with no whitespace',
+        negatable: false,
+      )
+      ..addFlag(
+        'skip-size-calculation',
+        abbr: 's',
+        help:
+            'Skips calculating the size of the versions, useful for large caches',
+        negatable: false,
+      );
   }
 
   @override
   Future<int> run() async {
     final compressArg = boolArg('compress');
-    final response = await APIService.fromContext.getCachedVersions();
+    final skipSizeArg = boolArg('skip-size-calculation');
+
+    final response = await APIService.fromContext
+        .getCachedVersions(skipCacheSizeCalculation: skipSizeArg);
 
     _printAndExitResponse(response, compress: compressArg);
 

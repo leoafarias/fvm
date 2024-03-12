@@ -12,14 +12,18 @@ class APIService extends ContextService {
 
   static APIService get fromContext => getProvider();
 
-  Future<GetCacheVersionsResponse> getCachedVersions() async {
+  Future<GetCacheVersionsResponse> getCachedVersions({
+    bool skipCacheSizeCalculation = false,
+  }) async {
     final versions = await CacheService.fromContext.getAllVersions();
 
-    final versionSizes = await Future.wait(versions.map((version) async {
-      final size = await getDirectorySize(version.directory.dir);
+    var versionSizes = List.filled(versions.length, 0);
 
-      return size;
-    }));
+    if (!skipCacheSizeCalculation) {
+      versionSizes = await Future.wait(versions.map((version) async {
+        return await getDirectorySize(version.directory.dir);
+      }));
+    }
 
     return GetCacheVersionsResponse(
       size: formatBytes(versionSizes.fold<int>(0, (a, b) => a + b)),

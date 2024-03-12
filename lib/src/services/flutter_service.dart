@@ -113,7 +113,7 @@ class FlutterService extends ContextService {
         );
       }
     } on Exception {
-      CacheService(context).remove(version);
+      CacheService(context).removeSync(version);
       rethrow;
     }
   }
@@ -219,10 +219,10 @@ class FlutterServiveMock extends FlutterService {
     /// Moves directory from main context HOME/fvm/versions to test context
 
     final mainContext = FVMContext.main;
-    var cachedVersion = CacheService(mainContext).getVersion(version);
+    var cachedVersion = CacheService(mainContext).getVersionSync(version);
     if (cachedVersion == null) {
       await FlutterService(mainContext).install(version);
-      cachedVersion = CacheService(mainContext).getVersion(version);
+      cachedVersion = CacheService(mainContext).getVersionSync(version);
     }
     final versionDir = CacheService(mainContext).getVersionCacheDir(
       version.name,

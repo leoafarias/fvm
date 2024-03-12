@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'dart:math';
 
+import '../models/cache_flutter_version_model.dart';
+import 'extensions.dart';
+
 Future<int> getDirectorySize(Directory dir) async {
   int total = 0;
 
@@ -13,6 +16,21 @@ Future<int> getDirectorySize(Directory dir) async {
   }
 
   return total;
+}
+
+Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
+  final promises = <Future<int>>[];
+
+  final directories = versions.map((version) => version.directory.dir).toList();
+
+  for (var dir in directories) {
+    promises.add(getDirectorySize(dir));
+  }
+
+  final sizes = await Future.wait(promises);
+
+  // Sum all sizes
+  return sizes.fold<int>(0, (a, b) => a + b);
 }
 
 String formatBytes(int bytes, [int decimals = 2]) {

@@ -24,7 +24,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   // Get valid flutter version
   final validVersion = await validateFlutterVersion(version, force: force);
   try {
-    final cacheVersion = CacheService.fromContext.getVersion(validVersion);
+    final cacheVersion = CacheService.fromContext.getVersionSync(validVersion);
 
     if (cacheVersion != null) {
       final integrity =
@@ -98,7 +98,8 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       rethrow;
     }
 
-    final newCacheVersion = CacheService.fromContext.getVersion(validVersion);
+    final newCacheVersion =
+        CacheService.fromContext.getVersionSync(validVersion);
     if (newCacheVersion == null) {
       throw AppException('Could not verify cache version $validVersion');
     }
@@ -127,7 +128,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
   );
 
   if (shouldReinstall) {
-    CacheService.fromContext.remove(version);
+    CacheService.fromContext.removeSync(version);
     logger.info(
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
@@ -167,7 +168,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
   }
 
   logger.info('Removing incorrect SDK version...');
-  CacheService.fromContext.remove(version);
+  CacheService.fromContext.removeSync(version);
 
   return ensureCacheWorkflow(version.name, shouldInstall: true);
 }

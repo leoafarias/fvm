@@ -15,7 +15,7 @@ void main() {
       await runner.run('fvm install $channel');
 
       Future<CacheFlutterVersion?> getCacheVersion() async {
-        return CacheService.fromContext.getVersion(
+        return CacheService.fromContext.getVersionSync(
           FlutterVersion.parse(channel),
         );
       }

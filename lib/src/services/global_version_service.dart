@@ -37,7 +37,7 @@ class GlobalVersionService extends ContextService {
     final validVersion = FlutterVersion.parse(version);
 
     // Verify version is cached
-    return CacheService(context).getVersion(validVersion);
+    return CacheService(context).getVersionSync(validVersion);
   }
 
   /// Checks if a cached [version] is configured as global
