@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
@@ -15,6 +16,8 @@ import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import 'constants.dart';
 
+part 'context.mapper.dart';
+
 final contextKey = ScopeKey<FVMContext>();
 
 /// Generates an [FVMContext] value.
@@ -28,7 +31,8 @@ FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 T getProvider<T>() => ctx.get();
 
-class FVMContext {
+@MappableClass()
+class FVMContext with FVMContextMappable {
   static FVMContext main = FVMContext.create();
 
   /// Name of the context
@@ -41,7 +45,7 @@ class FVMContext {
   final bool isTest;
 
   /// Generators for dependencies
-  final Map<Type, Generator>? generators;
+  final Map<Type, Generator> generators;
 
   /// App config
   final AppConfig config;
@@ -59,7 +63,7 @@ class FVMContext {
     List<String>? args,
     AppConfig? configOverrides,
     String? workingDirectory,
-    Map<Type, dynamic> generatorOverrides = const {},
+    Map<Type, dynamic>? generatorOverrides,
     Map<String, String>? environmentOverrides,
     bool isTest = false,
   }) {
@@ -88,7 +92,7 @@ class FVMContext {
         CacheService: CacheService.new,
         GlobalVersionService: GlobalVersionService.new,
         APIService: APIService.new,
-        ...generatorOverrides,
+        ...?generatorOverrides,
       },
       isTest: isTest,
     );
@@ -102,25 +106,29 @@ class FVMContext {
     required this.config,
     required this.environment,
     required this.args,
-    this.generators = const {},
+    required this.generators,
     this.isTest = false,
   });
 
   /// Directory where FVM is stored
+  @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
   /// Flag to determine if should use git cache
+  @MappableField()
   bool get gitCache {
     return config.useGitCache != null ? config.useGitCache! : true;
   }
 
   /// Run pub get on sdk changes
+  @MappableField()
   bool get runPubGetOnSdkChanges {
     return config.runPubGetOnSdkChanges != null
         ? config.runPubGetOnSdkChanges!
         : true;
   }
 
+  @MappableField()
   String get gitCachePath {
     // If git cache is not overriden use default based on fvmDir
     if (config.gitCachePath != null) return config.gitCachePath!;
@@ -129,12 +137,15 @@ class FVMContext {
   }
 
   /// Flutter Git Repo
+  @MappableField()
   String get flutterUrl => config.flutterUrl ?? kDefaultFlutterUrl;
 
   /// Last updated check
+  @MappableField()
   DateTime? get lastUpdateCheck => config.lastUpdateCheck;
 
   /// Flutter SDK Path
+  @MappableField()
   bool get updateCheckDisabled {
     return config.disableUpdateCheck != null
         ? config.disableUpdateCheck!
@@ -142,24 +153,30 @@ class FVMContext {
   }
 
   /// Priviledged access
+  @MappableField()
   bool get priviledgedAccess {
     return config.priviledgedAccess != null ? config.priviledgedAccess! : true;
   }
 
   /// Where Default Flutter SDK is stored
+  @MappableField()
   String get globalCacheLink => join(fvmDir, 'default');
 
   /// Directory for Global Flutter SDK bin
+  @MappableField()
   String get globalCacheBinPath => join(globalCacheLink, 'bin');
 
   /// Directory where FVM versions are stored
+  @MappableField()
   String get versionsCachePath => join(fvmDir, 'versions');
 
   /// Config path
+  @MappableField()
   String get configPath => kAppConfigFile;
 
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
+  @MappableField()
   bool get isCI {
     return kCiEnvironmentVariables.any(Platform.environment.containsKey);
   }
@@ -168,8 +185,8 @@ class FVMContext {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
     }
-    if (generators != null && generators!.containsKey(T)) {
-      final generator = generators![T] as Generator;
+    if (generators.containsKey(T)) {
+      final generator = generators[T] as Generator;
       _dependencies[T] = generator(this);
 
       return _dependencies[T];
