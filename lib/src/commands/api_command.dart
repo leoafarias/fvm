@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:io/io.dart';
 
 import '../api/api_service.dart';
 import '../api/models/json_response.dart';
+import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
 /// Friendly API for implementations with FVM
@@ -18,8 +20,8 @@ class ApiCommand extends BaseCommand {
   ApiCommand() {
     addSubcommand(APIListCommand());
     addSubcommand(APIReleasesCommand());
-    addSubcommand(APIProjectCommand());
     addSubcommand(APIInfoCommand());
+    addSubcommand(APIQueryCommand());
   }
 
   @override
@@ -128,15 +130,26 @@ class APIReleasesCommand extends BaseCommand {
   }
 }
 
-class APIProjectCommand extends BaseCommand {
+void _printAndExitResponse(APIResponse response, {bool compress = false}) {
+  if (compress) {
+    print(response.toJson());
+  } else {
+    print(response.toPrettyJson());
+  }
+
+  exit(ExitCode.success.code);
+}
+
+class APIQueryCommand extends BaseCommand {
   @override
-  final name = 'project';
+  final name = 'query';
 
   @override
-  final description = 'Gets the current project';
+  final description =
+      'Query the API with dot notation. Example: fvm api query project.flavors.production';
 
   /// Constructor
-  APIProjectCommand() {
+  APIQueryCommand() {
     argParser.addFlag(
       'compress',
       help: 'Prints JSON with no whitespace',
@@ -147,20 +160,37 @@ class APIProjectCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final compressArg = boolArg('compress');
-    final response = APIService.fromContext.getProject();
 
-    _printAndExitResponse(response, compress: compressArg);
+    final response = APIService.fromContext.getInfo();
 
-    return 0;
+    // Get arguments that were passed
+
+    if (argResults!.rest.isEmpty) {
+      _printAndExitResponse(response, compress: compressArg);
+
+      return 0;
+    }
+
+    final args = argResults!.rest.first.split('.');
+    final payload = jsonDecode(response.toJson());
+    final result = navigateJson(payload, args);
+
+    print(prettyJson(result));
+    exit(ExitCode.success.code);
   }
 }
 
-void _printAndExitResponse(APIResponse response, {bool compress = false}) {
-  if (compress) {
-    print(response.toJson());
-  } else {
-    print(response.toPrettyJson());
+// ignore: avoid-dynamic
+dynamic navigateJson(dynamic currentPart, List<String> path) {
+  if (path.isEmpty || currentPart == null) return currentPart;
+  String currentKey = path.first;
+  if (currentPart[currentKey] is String) {
+    return {currentKey: currentPart[currentKey]};
+  }
+  if (currentPart is Map<String, dynamic> &&
+      currentPart.containsKey(currentKey)) {
+    return navigateJson(currentPart[currentKey], path.sublist(1));
   }
 
-  exit(ExitCode.success.code);
+  return currentPart[currentKey];
 }

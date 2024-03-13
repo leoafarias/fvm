@@ -468,6 +468,7 @@ class GetInfoResponseMapper extends ClassMapperBase<GetInfoResponse> {
       MapperContainer.globals.use(_instance = GetInfoResponseMapper._());
       APIResponseMapper.ensureInitialized();
       FVMContextMapper.ensureInitialized();
+      ProjectMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -481,16 +482,22 @@ class GetInfoResponseMapper extends ClassMapperBase<GetInfoResponse> {
   static String _$fvmVersion(GetInfoResponse v) => v.fvmVersion;
   static const Field<GetInfoResponse, String> _f$fvmVersion =
       Field('fvmVersion', _$fvmVersion);
+  static Project _$project(GetInfoResponse v) => v.project;
+  static const Field<GetInfoResponse, Project> _f$project =
+      Field('project', _$project);
 
   @override
   final MappableFields<GetInfoResponse> fields = const {
     #context: _f$context,
     #fvmVersion: _f$fvmVersion,
+    #project: _f$project,
   };
 
   static GetInfoResponse _instantiate(DecodingData data) {
     return GetInfoResponse(
-        context: data.dec(_f$context), fvmVersion: data.dec(_f$fvmVersion));
+        context: data.dec(_f$context),
+        fvmVersion: data.dec(_f$fvmVersion),
+        project: data.dec(_f$project));
   }
 
   @override
@@ -549,8 +556,9 @@ extension GetInfoResponseValueCopy<$R, $Out>
 abstract class GetInfoResponseCopyWith<$R, $In extends GetInfoResponse, $Out>
     implements APIResponseCopyWith<$R, $In, $Out> {
   FVMContextCopyWith<$R, FVMContext, FVMContext> get context;
+  ProjectCopyWith<$R, Project, Project> get project;
   @override
-  $R call({FVMContext? context, String? fvmVersion});
+  $R call({FVMContext? context, String? fvmVersion, Project? project});
   GetInfoResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -567,15 +575,20 @@ class _GetInfoResponseCopyWithImpl<$R, $Out>
   FVMContextCopyWith<$R, FVMContext, FVMContext> get context =>
       $value.context.copyWith.$chain((v) => call(context: v));
   @override
-  $R call({FVMContext? context, String? fvmVersion}) =>
+  ProjectCopyWith<$R, Project, Project> get project =>
+      $value.project.copyWith.$chain((v) => call(project: v));
+  @override
+  $R call({FVMContext? context, String? fvmVersion, Project? project}) =>
       $apply(FieldCopyWithData({
         if (context != null) #context: context,
-        if (fvmVersion != null) #fvmVersion: fvmVersion
+        if (fvmVersion != null) #fvmVersion: fvmVersion,
+        if (project != null) #project: project
       }));
   @override
   GetInfoResponse $make(CopyWithData data) => GetInfoResponse(
       context: data.get(#context, or: $value.context),
-      fvmVersion: data.get(#fvmVersion, or: $value.fvmVersion));
+      fvmVersion: data.get(#fvmVersion, or: $value.fvmVersion),
+      project: data.get(#project, or: $value.project));
 
   @override
   GetInfoResponseCopyWith<$R2, GetInfoResponse, $Out2> $chain<$R2, $Out2>(

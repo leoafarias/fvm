@@ -13,8 +13,15 @@ class APIService extends ContextService {
 
   static APIService get fromContext => getProvider();
 
-  GetInfoResponse getInfo() =>
-      GetInfoResponse(context: context, fvmVersion: packageVersion);
+  GetInfoResponse getInfo() {
+    final project = ProjectService.fromContext.findAncestor();
+
+    return GetInfoResponse(
+      context: context,
+      fvmVersion: packageVersion,
+      project: project,
+    );
+  }
 
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,
@@ -45,11 +52,5 @@ class APIService extends ContextService {
       versions: limitedReleases,
       channels: payload.channels,
     );
-  }
-
-  GetProjectResponse getProject() {
-    final project = ProjectService.fromContext.findAncestor();
-
-    return GetProjectResponse(project: project);
   }
 }

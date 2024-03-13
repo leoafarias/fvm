@@ -66,8 +66,14 @@ class GetProjectResponse extends APIResponse with GetProjectResponseMappable {
 class GetInfoResponse extends APIResponse with GetInfoResponseMappable {
   final FVMContext context;
   final String fvmVersion;
+  final Project project;
+
   static final fromMap = GetInfoResponseMapper.fromMap;
   static final fromJson = GetInfoResponseMapper.fromJson;
 
-  const GetInfoResponse({required this.context, required this.fvmVersion});
+  const GetInfoResponse({
+    required this.context,
+    required this.fvmVersion,
+    required this.project,
+  });
 }
