@@ -12,6 +12,8 @@ class APIService extends ContextService {
 
   static APIService get fromContext => getProvider();
 
+  GetContextResponse getContext() => GetContextResponse(context: context);
+
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,
   }) async {
