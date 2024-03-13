@@ -1,3 +1,13 @@
+## 3.0.14
+
+* Improvement: versioned brew formulae by @leoafarias
+* Added: cli completion  by @leoafarias
+* Improvement: Use posix path by @leoafarias
+* Fixed: links in FAQ by @Pavel-Sulimau
+* Fixed: forward configured flavors by @mrgnhnt96
+* Added: destroy command by @leoafarias
+* Aded: install.sh scripts @leoafarias
+
 ## 3.0.13
 
 * Added: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
