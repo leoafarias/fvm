@@ -13,6 +13,7 @@ import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../utils/constants.dart';
 import '../utils/context.dart';
+import '../utils/convert_posix_path.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
@@ -56,10 +57,7 @@ Future<void> useVersionWorkflow({
 
   final updatedProject = ProjectService.fromContext.update(
     project,
-    flavors: {
-      if (flavor != null) flavor: version.name,
-      ...project.flavors,
-    },
+    flavors: {if (flavor != null) flavor: version.name, ...project.flavors},
     flutterSdkVersion: version.name,
   );
 
@@ -362,7 +360,7 @@ void _manageVsCodeSettings(Project project) {
       from: project.path,
     );
 
-    currentSettings["dart.flutterSdkPath"] = relativePath;
+    currentSettings["dart.flutterSdkPath"] = convertToPosixPath(relativePath);
   } else {
     currentSettings["dart.flutterSdkPath"] = project.localVersionSymlinkPath;
   }
