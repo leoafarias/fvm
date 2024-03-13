@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
+import 'package:cli_completion/cli_completion.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -29,7 +30,7 @@ import 'utils/exceptions.dart';
 import 'version.dart';
 
 /// Command Runner for FVM
-class FvmCommandRunner extends CommandRunner<int> {
+class FvmCommandRunner extends CompletionCommandRunner<int> {
   final PubUpdater _pubUpdater;
 
   /// Constructor
@@ -192,6 +193,12 @@ class FvmCommandRunner extends CommandRunner<int> {
     logger
       ..detail('')
       ..detail('Argument information:');
+
+    if (topLevelResults.command?.name == 'completion') {
+      super.runCommand(topLevelResults);
+
+      return ExitCode.success.code;
+    }
 
     final hasTopLevelOption =
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
