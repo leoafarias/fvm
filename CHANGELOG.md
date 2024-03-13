@@ -1,3 +1,13 @@
+## 3.0.14
+
+* Improvement: versioned brew formulae by @leoafarias in https://github.com/leoafarias/fvm/pull/685
+* Added: cli completion  by @leoafarias in https://github.com/leoafarias/fvm/pull/690
+* Improvement: Use posix path by @leoafarias in https://github.com/leoafarias/fvm/pull/693
+* Fixed: links in FAQ by @Pavel-Sulimau in https://github.com/leoafarias/fvm/pull/680
+* Fixed: forward configured flavors by @mrgnhnt96 in https://github.com/leoafarias/fvm/pull/691
+* Added: destroy command by @leoafarias in https://github.com/leoafarias/fvm/pull/686
+* Aded: install.sh scripts @leoafarias in https://github.com/leoafarias/fvm/pull/684
+
 ## 3.0.13
 
 * Added: `fvm use [version] --force` now skips install confirmation prompt by @mrgnhnt96
