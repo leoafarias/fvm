@@ -73,10 +73,16 @@ jobs:
       - name: Deploy Github Mac
         run: dart run grinder pkg-github-macos
 
+      - name: Deploy versioned formula
+        run: dart run grinder pkg-homebrew-update --versioned-formula
+        env:
+          GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+
       - name: Deploy Homebrew
         run: dart run grinder pkg-homebrew-update
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+      
           
 
 
