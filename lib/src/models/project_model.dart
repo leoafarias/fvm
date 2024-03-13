@@ -224,5 +224,5 @@ class PubspecMapper extends SimpleMapper<PubSpec> {
 
   @override
   // ignore: avoid-dynamic
-  dynamic encode(PubSpec self) => self.toString();
+  dynamic encode(PubSpec self) => self.toJson();
 }

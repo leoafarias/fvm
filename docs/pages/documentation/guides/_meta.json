@@ -10,5 +10,8 @@
   },
   "project-flavors": {
     "title": "Project Flavors"
+  },
+  "json-api": {
+    "title": "JSON API"
   }
 }

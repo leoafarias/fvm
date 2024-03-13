@@ -94,7 +94,7 @@ class ProjectService extends ContextService {
 
     final newConfig = ProjectConfig(
       flutter: flutterSdkVersion,
-      flavors: flavors,
+      flavors: {...?currentConfig.flavors, ...flavors},
       updateVscodeSettings: updateVscodeSettings,
     );
 
