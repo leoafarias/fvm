@@ -5,6 +5,7 @@ import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
 import '../utils/extensions.dart';
 import '../utils/get_directory_size.dart';
+import '../version.dart';
 import 'models/json_response.dart';
 
 class APIService extends ContextService {
@@ -12,7 +13,8 @@ class APIService extends ContextService {
 
   static APIService get fromContext => getProvider();
 
-  GetContextResponse getContext() => GetContextResponse(context: context);
+  GetInfoResponse getInfo() =>
+      GetInfoResponse(context: context, fvmVersion: packageVersion);
 
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,

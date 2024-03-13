@@ -19,22 +19,22 @@ class ApiCommand extends BaseCommand {
     addSubcommand(APIListCommand());
     addSubcommand(APIReleasesCommand());
     addSubcommand(APIProjectCommand());
-    addSubcommand(APIContextCommand());
+    addSubcommand(APIInfoCommand());
   }
 
   @override
   String get invocation => 'fvm api {command}';
 }
 
-class APIContextCommand extends BaseCommand {
+class APIInfoCommand extends BaseCommand {
   @override
-  final name = 'context';
+  final name = 'info';
 
   @override
-  final description = 'Gets the current context';
+  final description = 'Gets info for FVM';
 
   /// Constructor
-  APIContextCommand() {
+  APIInfoCommand() {
     argParser.addFlag(
       'compress',
       help: 'Prints JSON with no whitespace',
@@ -45,7 +45,7 @@ class APIContextCommand extends BaseCommand {
   @override
   Future<int> run() async {
     final compressArg = boolArg('compress');
-    final response = APIService.fromContext.getContext();
+    final response = APIService.fromContext.getInfo();
 
     _printAndExitResponse(response, compress: compressArg);
 
