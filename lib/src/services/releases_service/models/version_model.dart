@@ -7,7 +7,7 @@ part 'version_model.mapper.dart';
 
 /// Release Model
 @MappableClass()
-class FlutterSdkVersion with FlutterSdkVersionMappable {
+class FlutterSdkRelease with FlutterSdkReleaseMappable {
   /// Release hash
   final String hash;
 
@@ -39,10 +39,10 @@ class FlutterSdkVersion with FlutterSdkVersionMappable {
   @MappableField(key: 'dart_sdk_arch')
   final String? dartSdkArch;
 
-  static final fromMap = FlutterSdkVersionMapper.fromMap;
-  static final fromJson = FlutterSdkVersionMapper.fromJson;
+  static final fromMap = FlutterSdkReleaseMapper.fromMap;
+  static final fromJson = FlutterSdkReleaseMapper.fromJson;
 
-  const FlutterSdkVersion({
+  const FlutterSdkRelease({
     required this.hash,
     required this.channel,
     required this.version,
@@ -69,13 +69,13 @@ class FlutterSdkVersion with FlutterSdkVersionMappable {
 @MappableClass()
 class Channels with ChannelsMappable {
   /// Beta channel release
-  final FlutterSdkVersion beta;
+  final FlutterSdkRelease beta;
 
   /// Dev channel release
-  final FlutterSdkVersion dev;
+  final FlutterSdkRelease dev;
 
   /// Stable channel release
-  final FlutterSdkVersion stable;
+  final FlutterSdkRelease stable;
 
   static final fromMap = ChannelsMapper.fromMap;
   static final fromJson = ChannelsMapper.fromJson;
@@ -84,10 +84,10 @@ class Channels with ChannelsMappable {
   const Channels({required this.beta, required this.dev, required this.stable});
 
   /// Returns a list of all releases
-  List<FlutterSdkVersion> get toList => [dev, beta, stable];
+  List<FlutterSdkRelease> get toList => [dev, beta, stable];
 
   /// Returns channel by name
-  FlutterSdkVersion operator [](String channelName) {
+  FlutterSdkRelease operator [](String channelName) {
     if (channelName == 'beta') return beta;
     if (channelName == 'dev') return dev;
     if (channelName == 'stable') return stable;

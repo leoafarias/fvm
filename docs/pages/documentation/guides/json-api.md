@@ -65,12 +65,13 @@ fvm api releases [options]
 
 - `--compress`: Outputs JSON with no whitespace.
 - `--limit [number]`: Limits the number of releases listed.
+- `--filter-channel [channel]`: Filters the releases by channel. Available channels are `stable`, `beta`, and `dev`.
+
 
 **Response Payload:**
 
 ```json
 {
-  "count": 30,
   "versions": [
     ...
     {
@@ -94,14 +95,14 @@ fvm api releases [options]
 }
 ```
 
-### `info`
+### `context`
 
-Returns information about the FVM version and the current context.
+Returns information about the FVM's current context.
 
 **Usage:**
 
 ```bash
-fvm api info [options]
+fvm api context [options]
 ```
 
 **Options:**
@@ -112,13 +113,9 @@ fvm api info [options]
 
 ```json
 {
-  "fvmVersion": "3.0.14",
+  
   "context": {
-    "id": "MAIN",
-    "args": [
-      "api",
-      "info"
-    ],
+    "fvmVersion": "3.0.14",
     "workingDirectory": "/path/to/project",
     "isTest": false,
     "fvmDir": "/path/to/.fvm",
@@ -133,7 +130,12 @@ fvm api info [options]
     "globalCacheBinPath": "/path/to/.fvm/default/bin",
     "versionsCachePath": "/path/to/.fvm/versions",
     "configPath": "/Users/username/Library/Application Support/fvm/.fvmrc",
-    "isCI": false
+    "isCI": false,
+    "id": "MAIN",
+    "args": [
+      "api",
+      "info"
+    ],
   }
 }
 ```
@@ -151,6 +153,7 @@ fvm api project [options]
 **Options:**
 
 - `--compress`: Outputs JSON with no whitespace.
+- `--path [path]`: The path to the project. Defaults to the current working directory.
 
 **Response Payload:**
 

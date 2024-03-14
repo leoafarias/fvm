@@ -41,7 +41,7 @@ class ReleasesCommand extends BaseCommand {
       }
     }
 
-    bool shouldFilterRelease(FlutterSdkVersion release) {
+    bool shouldFilterRelease(FlutterSdkRelease release) {
       if (channelName == allChannel) {
         return false;
       }
@@ -51,7 +51,7 @@ class ReleasesCommand extends BaseCommand {
 
     logger.detail('Filtering by channel: $channelName');
 
-    final releases = await FlutterReleases.get();
+    final releases = await FlutterReleasesClient.getReleases();
 
     final versions = releases.versions.reversed;
 

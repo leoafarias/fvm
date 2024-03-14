@@ -7,7 +7,7 @@ class TestCommandRunner extends CommandRunner<int> {
   TestCommandRunner() : super('fvm', '');
 }
 
-final apiCommand = TestCommandRunner()..addCommand(ApiCommand());
+final apiCommand = TestCommandRunner()..addCommand(APICommand());
 
 void main() {
   group('ApiCommand test', () {

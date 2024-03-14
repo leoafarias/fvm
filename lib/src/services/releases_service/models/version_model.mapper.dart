@@ -6,57 +6,57 @@
 
 part of 'version_model.dart';
 
-class FlutterSdkVersionMapper extends ClassMapperBase<FlutterSdkVersion> {
-  FlutterSdkVersionMapper._();
+class FlutterSdkReleaseMapper extends ClassMapperBase<FlutterSdkRelease> {
+  FlutterSdkReleaseMapper._();
 
-  static FlutterSdkVersionMapper? _instance;
-  static FlutterSdkVersionMapper ensureInitialized() {
+  static FlutterSdkReleaseMapper? _instance;
+  static FlutterSdkReleaseMapper ensureInitialized() {
     if (_instance == null) {
-      MapperContainer.globals.use(_instance = FlutterSdkVersionMapper._());
+      MapperContainer.globals.use(_instance = FlutterSdkReleaseMapper._());
       FlutterChannelMapper.ensureInitialized();
     }
     return _instance!;
   }
 
   @override
-  final String id = 'FlutterSdkVersion';
+  final String id = 'FlutterSdkRelease';
 
-  static String _$hash(FlutterSdkVersion v) => v.hash;
-  static const Field<FlutterSdkVersion, String> _f$hash = Field('hash', _$hash);
-  static FlutterChannel _$channel(FlutterSdkVersion v) => v.channel;
-  static const Field<FlutterSdkVersion, FlutterChannel> _f$channel =
+  static String _$hash(FlutterSdkRelease v) => v.hash;
+  static const Field<FlutterSdkRelease, String> _f$hash = Field('hash', _$hash);
+  static FlutterChannel _$channel(FlutterSdkRelease v) => v.channel;
+  static const Field<FlutterSdkRelease, FlutterChannel> _f$channel =
       Field('channel', _$channel);
-  static String _$version(FlutterSdkVersion v) => v.version;
-  static const Field<FlutterSdkVersion, String> _f$version =
+  static String _$version(FlutterSdkRelease v) => v.version;
+  static const Field<FlutterSdkRelease, String> _f$version =
       Field('version', _$version);
-  static DateTime _$releaseDate(FlutterSdkVersion v) => v.releaseDate;
-  static const Field<FlutterSdkVersion, DateTime> _f$releaseDate =
+  static DateTime _$releaseDate(FlutterSdkRelease v) => v.releaseDate;
+  static const Field<FlutterSdkRelease, DateTime> _f$releaseDate =
       Field('releaseDate', _$releaseDate, key: 'release_date');
-  static String _$archive(FlutterSdkVersion v) => v.archive;
-  static const Field<FlutterSdkVersion, String> _f$archive =
+  static String _$archive(FlutterSdkRelease v) => v.archive;
+  static const Field<FlutterSdkRelease, String> _f$archive =
       Field('archive', _$archive);
-  static String _$sha256(FlutterSdkVersion v) => v.sha256;
-  static const Field<FlutterSdkVersion, String> _f$sha256 =
+  static String _$sha256(FlutterSdkRelease v) => v.sha256;
+  static const Field<FlutterSdkRelease, String> _f$sha256 =
       Field('sha256', _$sha256);
-  static String? _$dartSdkArch(FlutterSdkVersion v) => v.dartSdkArch;
-  static const Field<FlutterSdkVersion, String> _f$dartSdkArch =
+  static String? _$dartSdkArch(FlutterSdkRelease v) => v.dartSdkArch;
+  static const Field<FlutterSdkRelease, String> _f$dartSdkArch =
       Field('dartSdkArch', _$dartSdkArch, key: 'dart_sdk_arch');
-  static String? _$dartSdkVersion(FlutterSdkVersion v) => v.dartSdkVersion;
-  static const Field<FlutterSdkVersion, String> _f$dartSdkVersion =
+  static String? _$dartSdkVersion(FlutterSdkRelease v) => v.dartSdkVersion;
+  static const Field<FlutterSdkRelease, String> _f$dartSdkVersion =
       Field('dartSdkVersion', _$dartSdkVersion, key: 'dart_sdk_version');
-  static bool _$activeChannel(FlutterSdkVersion v) => v.activeChannel;
-  static const Field<FlutterSdkVersion, bool> _f$activeChannel = Field(
+  static bool _$activeChannel(FlutterSdkRelease v) => v.activeChannel;
+  static const Field<FlutterSdkRelease, bool> _f$activeChannel = Field(
       'activeChannel', _$activeChannel,
       key: 'active_channel', opt: true, def: false);
-  static String _$channelName(FlutterSdkVersion v) => v.channelName;
-  static const Field<FlutterSdkVersion, String> _f$channelName =
+  static String _$channelName(FlutterSdkRelease v) => v.channelName;
+  static const Field<FlutterSdkRelease, String> _f$channelName =
       Field('channelName', _$channelName);
-  static String _$archiveUrl(FlutterSdkVersion v) => v.archiveUrl;
-  static const Field<FlutterSdkVersion, String> _f$archiveUrl =
+  static String _$archiveUrl(FlutterSdkRelease v) => v.archiveUrl;
+  static const Field<FlutterSdkRelease, String> _f$archiveUrl =
       Field('archiveUrl', _$archiveUrl);
 
   @override
-  final MappableFields<FlutterSdkVersion> fields = const {
+  final MappableFields<FlutterSdkRelease> fields = const {
     #hash: _f$hash,
     #channel: _f$channel,
     #version: _f$version,
@@ -70,8 +70,8 @@ class FlutterSdkVersionMapper extends ClassMapperBase<FlutterSdkVersion> {
     #archiveUrl: _f$archiveUrl,
   };
 
-  static FlutterSdkVersion _instantiate(DecodingData data) {
-    return FlutterSdkVersion(
+  static FlutterSdkRelease _instantiate(DecodingData data) {
+    return FlutterSdkRelease(
         hash: data.dec(_f$hash),
         channel: data.dec(_f$channel),
         version: data.dec(_f$version),
@@ -86,59 +86,59 @@ class FlutterSdkVersionMapper extends ClassMapperBase<FlutterSdkVersion> {
   @override
   final Function instantiate = _instantiate;
 
-  static FlutterSdkVersion fromMap(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<FlutterSdkVersion>(map);
+  static FlutterSdkRelease fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<FlutterSdkRelease>(map);
   }
 
-  static FlutterSdkVersion fromJson(String json) {
-    return ensureInitialized().decodeJson<FlutterSdkVersion>(json);
+  static FlutterSdkRelease fromJson(String json) {
+    return ensureInitialized().decodeJson<FlutterSdkRelease>(json);
   }
 }
 
-mixin FlutterSdkVersionMappable {
+mixin FlutterSdkReleaseMappable {
   String toJson() {
-    return FlutterSdkVersionMapper.ensureInitialized()
-        .encodeJson<FlutterSdkVersion>(this as FlutterSdkVersion);
+    return FlutterSdkReleaseMapper.ensureInitialized()
+        .encodeJson<FlutterSdkRelease>(this as FlutterSdkRelease);
   }
 
   Map<String, dynamic> toMap() {
-    return FlutterSdkVersionMapper.ensureInitialized()
-        .encodeMap<FlutterSdkVersion>(this as FlutterSdkVersion);
+    return FlutterSdkReleaseMapper.ensureInitialized()
+        .encodeMap<FlutterSdkRelease>(this as FlutterSdkRelease);
   }
 
-  FlutterSdkVersionCopyWith<FlutterSdkVersion, FlutterSdkVersion,
-          FlutterSdkVersion>
-      get copyWith => _FlutterSdkVersionCopyWithImpl(
-          this as FlutterSdkVersion, $identity, $identity);
+  FlutterSdkReleaseCopyWith<FlutterSdkRelease, FlutterSdkRelease,
+          FlutterSdkRelease>
+      get copyWith => _FlutterSdkReleaseCopyWithImpl(
+          this as FlutterSdkRelease, $identity, $identity);
   @override
   String toString() {
-    return FlutterSdkVersionMapper.ensureInitialized()
-        .stringifyValue(this as FlutterSdkVersion);
+    return FlutterSdkReleaseMapper.ensureInitialized()
+        .stringifyValue(this as FlutterSdkRelease);
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (runtimeType == other.runtimeType &&
-            FlutterSdkVersionMapper.ensureInitialized()
-                .isValueEqual(this as FlutterSdkVersion, other));
+            FlutterSdkReleaseMapper.ensureInitialized()
+                .isValueEqual(this as FlutterSdkRelease, other));
   }
 
   @override
   int get hashCode {
-    return FlutterSdkVersionMapper.ensureInitialized()
-        .hashValue(this as FlutterSdkVersion);
+    return FlutterSdkReleaseMapper.ensureInitialized()
+        .hashValue(this as FlutterSdkRelease);
   }
 }
 
-extension FlutterSdkVersionValueCopy<$R, $Out>
-    on ObjectCopyWith<$R, FlutterSdkVersion, $Out> {
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, $Out>
-      get $asFlutterSdkVersion =>
-          $base.as((v, t, t2) => _FlutterSdkVersionCopyWithImpl(v, t, t2));
+extension FlutterSdkReleaseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, FlutterSdkRelease, $Out> {
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, $Out>
+      get $asFlutterSdkRelease =>
+          $base.as((v, t, t2) => _FlutterSdkReleaseCopyWithImpl(v, t, t2));
 }
 
-abstract class FlutterSdkVersionCopyWith<$R, $In extends FlutterSdkVersion,
+abstract class FlutterSdkReleaseCopyWith<$R, $In extends FlutterSdkRelease,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call(
       {String? hash,
@@ -150,18 +150,18 @@ abstract class FlutterSdkVersionCopyWith<$R, $In extends FlutterSdkVersion,
       String? dartSdkArch,
       String? dartSdkVersion,
       bool? activeChannel});
-  FlutterSdkVersionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+  FlutterSdkReleaseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
 
-class _FlutterSdkVersionCopyWithImpl<$R, $Out>
-    extends ClassCopyWithBase<$R, FlutterSdkVersion, $Out>
-    implements FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, $Out> {
-  _FlutterSdkVersionCopyWithImpl(super.value, super.then, super.then2);
+class _FlutterSdkReleaseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, FlutterSdkRelease, $Out>
+    implements FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, $Out> {
+  _FlutterSdkReleaseCopyWithImpl(super.value, super.then, super.then2);
 
   @override
-  late final ClassMapperBase<FlutterSdkVersion> $mapper =
-      FlutterSdkVersionMapper.ensureInitialized();
+  late final ClassMapperBase<FlutterSdkRelease> $mapper =
+      FlutterSdkReleaseMapper.ensureInitialized();
   @override
   $R call(
           {String? hash,
@@ -185,7 +185,7 @@ class _FlutterSdkVersionCopyWithImpl<$R, $Out>
         if (activeChannel != null) #activeChannel: activeChannel
       }));
   @override
-  FlutterSdkVersion $make(CopyWithData data) => FlutterSdkVersion(
+  FlutterSdkRelease $make(CopyWithData data) => FlutterSdkRelease(
       hash: data.get(#hash, or: $value.hash),
       channel: data.get(#channel, or: $value.channel),
       version: data.get(#version, or: $value.version),
@@ -197,9 +197,9 @@ class _FlutterSdkVersionCopyWithImpl<$R, $Out>
       activeChannel: data.get(#activeChannel, or: $value.activeChannel));
 
   @override
-  FlutterSdkVersionCopyWith<$R2, FlutterSdkVersion, $Out2> $chain<$R2, $Out2>(
+  FlutterSdkReleaseCopyWith<$R2, FlutterSdkRelease, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FlutterSdkVersionCopyWithImpl($value, $cast, t);
+      _FlutterSdkReleaseCopyWithImpl($value, $cast, t);
 }
 
 class ChannelsMapper extends ClassMapperBase<Channels> {
@@ -209,7 +209,7 @@ class ChannelsMapper extends ClassMapperBase<Channels> {
   static ChannelsMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = ChannelsMapper._());
-      FlutterSdkVersionMapper.ensureInitialized();
+      FlutterSdkReleaseMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -217,13 +217,13 @@ class ChannelsMapper extends ClassMapperBase<Channels> {
   @override
   final String id = 'Channels';
 
-  static FlutterSdkVersion _$beta(Channels v) => v.beta;
-  static const Field<Channels, FlutterSdkVersion> _f$beta =
+  static FlutterSdkRelease _$beta(Channels v) => v.beta;
+  static const Field<Channels, FlutterSdkRelease> _f$beta =
       Field('beta', _$beta);
-  static FlutterSdkVersion _$dev(Channels v) => v.dev;
-  static const Field<Channels, FlutterSdkVersion> _f$dev = Field('dev', _$dev);
-  static FlutterSdkVersion _$stable(Channels v) => v.stable;
-  static const Field<Channels, FlutterSdkVersion> _f$stable =
+  static FlutterSdkRelease _$dev(Channels v) => v.dev;
+  static const Field<Channels, FlutterSdkRelease> _f$dev = Field('dev', _$dev);
+  static FlutterSdkRelease _$stable(Channels v) => v.stable;
+  static const Field<Channels, FlutterSdkRelease> _f$stable =
       Field('stable', _$stable);
 
   @override
@@ -291,14 +291,14 @@ extension ChannelsValueCopy<$R, $Out> on ObjectCopyWith<$R, Channels, $Out> {
 
 abstract class ChannelsCopyWith<$R, $In extends Channels, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion> get beta;
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion> get dev;
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get beta;
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get dev;
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
       get stable;
   $R call(
-      {FlutterSdkVersion? beta,
-      FlutterSdkVersion? dev,
-      FlutterSdkVersion? stable});
+      {FlutterSdkRelease? beta,
+      FlutterSdkRelease? dev,
+      FlutterSdkRelease? stable});
   ChannelsCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -311,19 +311,19 @@ class _ChannelsCopyWithImpl<$R, $Out>
   late final ClassMapperBase<Channels> $mapper =
       ChannelsMapper.ensureInitialized();
   @override
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
       get beta => $value.beta.copyWith.$chain((v) => call(beta: v));
   @override
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion> get dev =>
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get dev =>
       $value.dev.copyWith.$chain((v) => call(dev: v));
   @override
-  FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>
+  FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
       get stable => $value.stable.copyWith.$chain((v) => call(stable: v));
   @override
   $R call(
-          {FlutterSdkVersion? beta,
-          FlutterSdkVersion? dev,
-          FlutterSdkVersion? stable}) =>
+          {FlutterSdkRelease? beta,
+          FlutterSdkRelease? dev,
+          FlutterSdkRelease? stable}) =>
       $apply(FieldCopyWithData({
         if (beta != null) #beta: beta,
         if (dev != null) #dev: dev,

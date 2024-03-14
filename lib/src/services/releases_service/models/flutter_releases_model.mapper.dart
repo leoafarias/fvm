@@ -16,7 +16,7 @@ class FlutterReleasesResponseMapper
       MapperContainer.globals
           .use(_instance = FlutterReleasesResponseMapper._());
       ChannelsMapper.ensureInitialized();
-      FlutterSdkVersionMapper.ensureInitialized();
+      FlutterSdkReleaseMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -30,14 +30,14 @@ class FlutterReleasesResponseMapper
   static Channels _$channels(FlutterReleasesResponse v) => v.channels;
   static const Field<FlutterReleasesResponse, Channels> _f$channels =
       Field('channels', _$channels);
-  static List<FlutterSdkVersion> _$versions(FlutterReleasesResponse v) =>
+  static List<FlutterSdkRelease> _$versions(FlutterReleasesResponse v) =>
       v.versions;
-  static const Field<FlutterReleasesResponse, List<FlutterSdkVersion>>
+  static const Field<FlutterReleasesResponse, List<FlutterSdkRelease>>
       _f$versions = Field('versions', _$versions);
-  static Map<String, FlutterSdkVersion> _$_versionReleaseMap(
+  static Map<String, FlutterSdkRelease> _$_versionReleaseMap(
           FlutterReleasesResponse v) =>
       v._versionReleaseMap;
-  static const Field<FlutterReleasesResponse, Map<String, FlutterSdkVersion>>
+  static const Field<FlutterReleasesResponse, Map<String, FlutterSdkRelease>>
       _f$_versionReleaseMap = Field('_versionReleaseMap', _$_versionReleaseMap,
           key: 'versionReleaseMap');
 
@@ -117,17 +117,17 @@ abstract class FlutterReleasesResponseCopyWith<
     $In extends FlutterReleasesResponse,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
   ChannelsCopyWith<$R, Channels, Channels> get channels;
-  ListCopyWith<$R, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get versions;
-  MapCopyWith<$R, String, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  MapCopyWith<$R, String, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get _versionReleaseMap;
   $R call(
       {String? baseUrl,
       Channels? channels,
-      List<FlutterSdkVersion>? versions,
-      Map<String, FlutterSdkVersion>? versionReleaseMap});
+      List<FlutterSdkRelease>? versions,
+      Map<String, FlutterSdkRelease>? versionReleaseMap});
   FlutterReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -145,21 +145,21 @@ class _FlutterReleasesResponseCopyWithImpl<$R, $Out>
   ChannelsCopyWith<$R, Channels, Channels> get channels =>
       $value.channels.copyWith.$chain((v) => call(channels: v));
   @override
-  ListCopyWith<$R, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get versions => ListCopyWith($value.versions,
           (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
-  MapCopyWith<$R, String, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  MapCopyWith<$R, String, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get _versionReleaseMap => MapCopyWith($value._versionReleaseMap,
           (v, t) => v.copyWith.$chain(t), (v) => call(versionReleaseMap: v));
   @override
   $R call(
           {String? baseUrl,
           Channels? channels,
-          List<FlutterSdkVersion>? versions,
-          Map<String, FlutterSdkVersion>? versionReleaseMap}) =>
+          List<FlutterSdkRelease>? versions,
+          Map<String, FlutterSdkRelease>? versionReleaseMap}) =>
       $apply(FieldCopyWithData({
         if (baseUrl != null) #baseUrl: baseUrl,
         if (channels != null) #channels: channels,

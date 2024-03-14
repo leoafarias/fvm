@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
@@ -5,7 +7,6 @@ import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
 import '../utils/extensions.dart';
 import '../utils/get_directory_size.dart';
-import '../version.dart';
 import 'models/json_response.dart';
 
 class APIService extends ContextService {
@@ -13,14 +14,13 @@ class APIService extends ContextService {
 
   static APIService get fromContext => getProvider();
 
-  GetInfoResponse getInfo() {
-    final project = ProjectService.fromContext.findAncestor();
+  GetContextResponse getContext() => GetContextResponse(context: context);
 
-    return GetInfoResponse(
-      context: context,
-      fvmVersion: packageVersion,
-      project: project,
-    );
+  GetProjectResponse getProject([Directory? projectDir]) {
+    final project =
+        ProjectService.fromContext.findAncestor(directory: projectDir);
+
+    return GetProjectResponse(project: project);
   }
 
   Future<GetCacheVersionsResponse> getCachedVersions({
@@ -42,14 +42,24 @@ class APIService extends ContextService {
     );
   }
 
-  Future<GetReleasesResponse> getReleases({int limit = 30}) async {
-    final payload = await FlutterReleases.get();
+  Future<GetReleasesResponse> getReleases({
+    int? limit,
+    String? channelName,
+  }) async {
+    final payload = await FlutterReleasesClient.getReleases();
 
-    final limitedReleases = payload.versions.take(limit).toList();
+    var filteredVersions = payload.versions.where((version) {
+      if (channelName == null) return true;
+
+      return version.channel.name == channelName;
+    });
+
+    if (limit != null) {
+      filteredVersions = filteredVersions.take(limit);
+    }
 
     return GetReleasesResponse(
-      count: limitedReleases.length,
-      versions: limitedReleases,
+      versions: filteredVersions.toList(),
       channels: payload.channels,
     );
   }

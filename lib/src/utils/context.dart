@@ -14,6 +14,7 @@ import '../services/flutter_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
+import '../version.dart';
 import 'constants.dart';
 
 part 'context.mapper.dart';
@@ -127,6 +128,10 @@ class FVMContext with FVMContextMappable {
         ? config.runPubGetOnSdkChanges!
         : true;
   }
+
+  /// FVM Version
+  @MappableField()
+  String get fvmVersion => packageVersion;
 
   @MappableField()
   String get gitCachePath {

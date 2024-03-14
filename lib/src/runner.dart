@@ -58,7 +58,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(ConfigCommand());
     addCommand(ExecCommand());
     addCommand(DestroyCommand());
-    addCommand(ApiCommand());
+    addCommand(APICommand());
     addCommand(GlobalCommand());
   }
 

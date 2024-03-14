@@ -1,42 +1,15 @@
-import 'dart:convert';
+import 'dart:async';
 import 'dart:io';
 
-import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 import '../api/api_service.dart';
 import '../api/models/json_response.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
-/// Friendly API for implementations with FVM
-class ApiCommand extends BaseCommand {
-  @override
-  final name = 'api';
-
-  @override
-  String description = 'JSON API for FVM data';
-
-  /// Constructor
-  ApiCommand() {
-    addSubcommand(APIListCommand());
-    addSubcommand(APIReleasesCommand());
-    addSubcommand(APIInfoCommand());
-    addSubcommand(APIQueryCommand());
-  }
-
-  @override
-  String get invocation => 'fvm api {command}';
-}
-
-class APIInfoCommand extends BaseCommand {
-  @override
-  final name = 'info';
-
-  @override
-  final description = 'Gets info for FVM';
-
-  /// Constructor
-  APIInfoCommand() {
+abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
+  APISubCommand() {
     argParser.addFlag(
       'compress',
       help: 'Prints JSON with no whitespace',
@@ -44,18 +17,95 @@ class APIInfoCommand extends BaseCommand {
     );
   }
 
+  FutureOr<T> runSubCommand();
+
   @override
   Future<int> run() async {
-    final compressArg = boolArg('compress');
-    final response = APIService.fromContext.getInfo();
+    try {
+      final shouldCompress = boolArg('compress');
 
-    _printAndExitResponse(response, compress: compressArg);
+      final response = await runSubCommand();
 
-    return 0;
+      if (shouldCompress) {
+        print(response.toJson());
+      } else {
+        print(prettyJson(response.toMap()));
+      }
+
+      exit(ExitCode.success.code);
+    } on Exception catch (_) {
+      rethrow;
+    }
   }
 }
 
-class APIListCommand extends BaseCommand {
+/// Friendly JSON API for implementations with FVM
+class APICommand extends BaseCommand {
+  @override
+  final name = 'api';
+
+  @override
+  String description = 'JSON API for FVM data';
+
+  /// Constructor
+  APICommand() {
+    addSubcommand(APIListCommand());
+    addSubcommand(APIReleasesCommand());
+    addSubcommand(APIContextCommand());
+    addSubcommand(APIProjectCommand());
+  }
+
+  @override
+  String get invocation => 'fvm api [command]';
+}
+
+class APIContextCommand extends APISubCommand<GetContextResponse> {
+  @override
+  final name = 'context';
+
+  @override
+  final description = 'Gets context data for FVM';
+
+  /// Constructor
+  APIContextCommand();
+
+  @override
+  FutureOr<GetContextResponse> runSubCommand() async {
+    return APIService.fromContext.getContext();
+  }
+}
+
+class APIProjectCommand extends APISubCommand<GetProjectResponse> {
+  @override
+  final name = 'project';
+
+  @override
+  final description = 'Gets project data for FVM';
+
+  /// Constructor
+  APIProjectCommand() {
+    argParser.addOption(
+      'path',
+      abbr: 'p',
+      help: 'Path to project, defaults to working directory if not provided',
+    );
+  }
+
+  @override
+  FutureOr<GetProjectResponse> runSubCommand() async {
+    final projectPath = stringArg('path');
+
+    Directory? projectDir;
+
+    if (projectPath != null) {
+      projectDir = Directory(projectPath);
+    }
+
+    return APIService.fromContext.getProject(projectDir);
+  }
+}
+
+class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   @override
   final name = 'list';
 
@@ -64,37 +114,25 @@ class APIListCommand extends BaseCommand {
 
   /// Constructor
   APIListCommand() {
-    argParser
-      ..addFlag(
-        'compress',
-        abbr: 'c',
-        help: 'Prints JSON with no whitespace',
-        negatable: false,
-      )
-      ..addFlag(
-        'skip-size-calculation',
-        abbr: 's',
-        help:
-            'Skips calculating the size of the versions, useful for large caches',
-        negatable: false,
-      );
+    argParser.addFlag(
+      'skip-size-calculation',
+      abbr: 's',
+      help:
+          'Skips calculating the size of the versions, useful for large caches',
+      negatable: false,
+    );
   }
 
   @override
-  Future<int> run() async {
-    final compressArg = boolArg('compress');
-    final skipSizeArg = boolArg('skip-size-calculation');
+  Future<GetCacheVersionsResponse> runSubCommand() async {
+    final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    final response = await APIService.fromContext
-        .getCachedVersions(skipCacheSizeCalculation: skipSizeArg);
-
-    _printAndExitResponse(response, compress: compressArg);
-
-    return 0;
+    return await APIService.fromContext
+        .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
   }
 }
 
-class APIReleasesCommand extends BaseCommand {
+class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   @override
   final name = 'releases';
 
@@ -104,93 +142,24 @@ class APIReleasesCommand extends BaseCommand {
   /// Constructor
   APIReleasesCommand() {
     argParser
-      ..addFlag(
-        'compress',
-        help: 'Prints JSON with no whitespace',
-        negatable: false,
-      )
       ..addOption(
         'limit',
         help: 'Limits the amount of releases',
         valueHelp: 'limit',
-        defaultsTo: '30',
+      )
+      ..addOption(
+        'filter-channel',
+        help: 'Filter by channel name',
+        allowed: ['stable', 'beta', 'dev'],
       );
   }
 
   @override
-  Future<int> run() async {
-    final limitArg = int.tryParse(argResults!['limit'])!;
+  Future<GetReleasesResponse> runSubCommand() async {
+    final limitArg = intArg('limit');
+    final channelArg = stringArg('filter-channel');
 
-    final compressArg = boolArg('compress');
-    final response = await APIService.fromContext.getReleases(limit: limitArg);
-
-    _printAndExitResponse(response, compress: compressArg);
-
-    return 0;
+    return await APIService.fromContext
+        .getReleases(limit: limitArg, channelName: channelArg);
   }
-}
-
-void _printAndExitResponse(APIResponse response, {bool compress = false}) {
-  if (compress) {
-    print(response.toJson());
-  } else {
-    print(response.toPrettyJson());
-  }
-
-  exit(ExitCode.success.code);
-}
-
-class APIQueryCommand extends BaseCommand {
-  @override
-  final name = 'query';
-
-  @override
-  final description =
-      'Query the API with dot notation. Example: fvm api query project.flavors.production';
-
-  /// Constructor
-  APIQueryCommand() {
-    argParser.addFlag(
-      'compress',
-      help: 'Prints JSON with no whitespace',
-      negatable: false,
-    );
-  }
-
-  @override
-  Future<int> run() async {
-    final compressArg = boolArg('compress');
-
-    final response = APIService.fromContext.getInfo();
-
-    // Get arguments that were passed
-
-    if (argResults!.rest.isEmpty) {
-      _printAndExitResponse(response, compress: compressArg);
-
-      return 0;
-    }
-
-    final args = argResults!.rest.first.split('.');
-    final payload = jsonDecode(response.toJson());
-    final result = navigateJson(payload, args);
-
-    print(prettyJson(result));
-    exit(ExitCode.success.code);
-  }
-}
-
-// ignore: avoid-dynamic
-dynamic navigateJson(dynamic currentPart, List<String> path) {
-  if (path.isEmpty || currentPart == null) return currentPart;
-  String currentKey = path.first;
-  if (currentPart[currentKey] is String) {
-    return {currentKey: currentPart[currentKey]};
-  }
-  if (currentPart is Map<String, dynamic> &&
-      currentPart.containsKey(currentKey)) {
-    return navigateJson(currentPart[currentKey], path.sublist(1));
-  }
-
-  return currentPart[currentKey];
 }

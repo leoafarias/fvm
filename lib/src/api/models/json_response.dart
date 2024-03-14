@@ -34,19 +34,16 @@ class GetCacheVersionsResponse extends APIResponse
 
 @MappableClass()
 class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
-  final int count;
-
   /// Channels in Flutter releases
   final Channels channels;
 
   /// LIst of all releases
-  final List<FlutterSdkVersion> versions;
+  final List<FlutterSdkRelease> versions;
 
   static final fromMap = GetReleasesResponseMapper.fromMap;
   static final fromJson = GetReleasesResponseMapper.fromJson;
 
   const GetReleasesResponse({
-    required this.count,
     required this.versions,
     required this.channels,
   });
@@ -63,17 +60,10 @@ class GetProjectResponse extends APIResponse with GetProjectResponseMappable {
 }
 
 @MappableClass()
-class GetInfoResponse extends APIResponse with GetInfoResponseMappable {
+class GetContextResponse extends APIResponse with GetContextResponseMappable {
   final FVMContext context;
-  final String fvmVersion;
-  final Project project;
+  static final fromMap = GetContextResponseMapper.fromMap;
+  static final fromJson = GetContextResponseMapper.fromJson;
 
-  static final fromMap = GetInfoResponseMapper.fromMap;
-  static final fromJson = GetInfoResponseMapper.fromJson;
-
-  const GetInfoResponse({
-    required this.context,
-    required this.fvmVersion,
-    required this.project,
-  });
+  const GetContextResponse({required this.context});
 }

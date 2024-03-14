@@ -196,7 +196,7 @@ Future<FlutterVersion> validateFlutterVersion(
     }
 
     final isVersion =
-        await FlutterReleases.isVersionValid(flutterVersion.version);
+        await FlutterReleasesClient.isVersionValid(flutterVersion.version);
 
     if (isVersion) {
       return flutterVersion;

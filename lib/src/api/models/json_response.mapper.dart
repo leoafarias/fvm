@@ -16,7 +16,7 @@ class APIResponseMapper extends ClassMapperBase<APIResponse> {
       GetCacheVersionsResponseMapper.ensureInitialized();
       GetReleasesResponseMapper.ensureInitialized();
       GetProjectResponseMapper.ensureInitialized();
-      GetInfoResponseMapper.ensureInitialized();
+      GetContextResponseMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -203,7 +203,7 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = GetReleasesResponseMapper._());
       APIResponseMapper.ensureInitialized();
-      FlutterSdkVersionMapper.ensureInitialized();
+      FlutterSdkReleaseMapper.ensureInitialized();
       ChannelsMapper.ensureInitialized();
     }
     return _instance!;
@@ -212,12 +212,9 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
   @override
   final String id = 'GetReleasesResponse';
 
-  static int _$count(GetReleasesResponse v) => v.count;
-  static const Field<GetReleasesResponse, int> _f$count =
-      Field('count', _$count);
-  static List<FlutterSdkVersion> _$versions(GetReleasesResponse v) =>
+  static List<FlutterSdkRelease> _$versions(GetReleasesResponse v) =>
       v.versions;
-  static const Field<GetReleasesResponse, List<FlutterSdkVersion>> _f$versions =
+  static const Field<GetReleasesResponse, List<FlutterSdkRelease>> _f$versions =
       Field('versions', _$versions);
   static Channels _$channels(GetReleasesResponse v) => v.channels;
   static const Field<GetReleasesResponse, Channels> _f$channels =
@@ -225,16 +222,13 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
 
   @override
   final MappableFields<GetReleasesResponse> fields = const {
-    #count: _f$count,
     #versions: _f$versions,
     #channels: _f$channels,
   };
 
   static GetReleasesResponse _instantiate(DecodingData data) {
     return GetReleasesResponse(
-        count: data.dec(_f$count),
-        versions: data.dec(_f$versions),
-        channels: data.dec(_f$channels));
+        versions: data.dec(_f$versions), channels: data.dec(_f$channels));
   }
 
   @override
@@ -294,12 +288,12 @@ extension GetReleasesResponseValueCopy<$R, $Out>
 
 abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
     $Out> implements APIResponseCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get versions;
   ChannelsCopyWith<$R, Channels, Channels> get channels;
   @override
-  $R call({int? count, List<FlutterSdkVersion>? versions, Channels? channels});
+  $R call({List<FlutterSdkRelease>? versions, Channels? channels});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -313,26 +307,21 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetReleasesResponse> $mapper =
       GetReleasesResponseMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, FlutterSdkVersion,
-          FlutterSdkVersionCopyWith<$R, FlutterSdkVersion, FlutterSdkVersion>>
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get versions => ListCopyWith($value.versions,
           (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
   ChannelsCopyWith<$R, Channels, Channels> get channels =>
       $value.channels.copyWith.$chain((v) => call(channels: v));
   @override
-  $R call(
-          {int? count,
-          List<FlutterSdkVersion>? versions,
-          Channels? channels}) =>
+  $R call({List<FlutterSdkRelease>? versions, Channels? channels}) =>
       $apply(FieldCopyWithData({
-        if (count != null) #count: count,
         if (versions != null) #versions: versions,
         if (channels != null) #channels: channels
       }));
   @override
   GetReleasesResponse $make(CopyWithData data) => GetReleasesResponse(
-      count: data.get(#count, or: $value.count),
       versions: data.get(#versions, or: $value.versions),
       channels: data.get(#channels, or: $value.channels));
 
@@ -459,139 +448,119 @@ class _GetProjectResponseCopyWithImpl<$R, $Out>
       _GetProjectResponseCopyWithImpl($value, $cast, t);
 }
 
-class GetInfoResponseMapper extends ClassMapperBase<GetInfoResponse> {
-  GetInfoResponseMapper._();
+class GetContextResponseMapper extends ClassMapperBase<GetContextResponse> {
+  GetContextResponseMapper._();
 
-  static GetInfoResponseMapper? _instance;
-  static GetInfoResponseMapper ensureInitialized() {
+  static GetContextResponseMapper? _instance;
+  static GetContextResponseMapper ensureInitialized() {
     if (_instance == null) {
-      MapperContainer.globals.use(_instance = GetInfoResponseMapper._());
+      MapperContainer.globals.use(_instance = GetContextResponseMapper._());
       APIResponseMapper.ensureInitialized();
       FVMContextMapper.ensureInitialized();
-      ProjectMapper.ensureInitialized();
     }
     return _instance!;
   }
 
   @override
-  final String id = 'GetInfoResponse';
+  final String id = 'GetContextResponse';
 
-  static FVMContext _$context(GetInfoResponse v) => v.context;
-  static const Field<GetInfoResponse, FVMContext> _f$context =
+  static FVMContext _$context(GetContextResponse v) => v.context;
+  static const Field<GetContextResponse, FVMContext> _f$context =
       Field('context', _$context);
-  static String _$fvmVersion(GetInfoResponse v) => v.fvmVersion;
-  static const Field<GetInfoResponse, String> _f$fvmVersion =
-      Field('fvmVersion', _$fvmVersion);
-  static Project _$project(GetInfoResponse v) => v.project;
-  static const Field<GetInfoResponse, Project> _f$project =
-      Field('project', _$project);
 
   @override
-  final MappableFields<GetInfoResponse> fields = const {
+  final MappableFields<GetContextResponse> fields = const {
     #context: _f$context,
-    #fvmVersion: _f$fvmVersion,
-    #project: _f$project,
   };
 
-  static GetInfoResponse _instantiate(DecodingData data) {
-    return GetInfoResponse(
-        context: data.dec(_f$context),
-        fvmVersion: data.dec(_f$fvmVersion),
-        project: data.dec(_f$project));
+  static GetContextResponse _instantiate(DecodingData data) {
+    return GetContextResponse(context: data.dec(_f$context));
   }
 
   @override
   final Function instantiate = _instantiate;
 
-  static GetInfoResponse fromMap(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<GetInfoResponse>(map);
+  static GetContextResponse fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<GetContextResponse>(map);
   }
 
-  static GetInfoResponse fromJson(String json) {
-    return ensureInitialized().decodeJson<GetInfoResponse>(json);
+  static GetContextResponse fromJson(String json) {
+    return ensureInitialized().decodeJson<GetContextResponse>(json);
   }
 }
 
-mixin GetInfoResponseMappable {
+mixin GetContextResponseMappable {
   String toJson() {
-    return GetInfoResponseMapper.ensureInitialized()
-        .encodeJson<GetInfoResponse>(this as GetInfoResponse);
+    return GetContextResponseMapper.ensureInitialized()
+        .encodeJson<GetContextResponse>(this as GetContextResponse);
   }
 
   Map<String, dynamic> toMap() {
-    return GetInfoResponseMapper.ensureInitialized()
-        .encodeMap<GetInfoResponse>(this as GetInfoResponse);
+    return GetContextResponseMapper.ensureInitialized()
+        .encodeMap<GetContextResponse>(this as GetContextResponse);
   }
 
-  GetInfoResponseCopyWith<GetInfoResponse, GetInfoResponse, GetInfoResponse>
-      get copyWith => _GetInfoResponseCopyWithImpl(
-          this as GetInfoResponse, $identity, $identity);
+  GetContextResponseCopyWith<GetContextResponse, GetContextResponse,
+          GetContextResponse>
+      get copyWith => _GetContextResponseCopyWithImpl(
+          this as GetContextResponse, $identity, $identity);
   @override
   String toString() {
-    return GetInfoResponseMapper.ensureInitialized()
-        .stringifyValue(this as GetInfoResponse);
+    return GetContextResponseMapper.ensureInitialized()
+        .stringifyValue(this as GetContextResponse);
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (runtimeType == other.runtimeType &&
-            GetInfoResponseMapper.ensureInitialized()
-                .isValueEqual(this as GetInfoResponse, other));
+            GetContextResponseMapper.ensureInitialized()
+                .isValueEqual(this as GetContextResponse, other));
   }
 
   @override
   int get hashCode {
-    return GetInfoResponseMapper.ensureInitialized()
-        .hashValue(this as GetInfoResponse);
+    return GetContextResponseMapper.ensureInitialized()
+        .hashValue(this as GetContextResponse);
   }
 }
 
-extension GetInfoResponseValueCopy<$R, $Out>
-    on ObjectCopyWith<$R, GetInfoResponse, $Out> {
-  GetInfoResponseCopyWith<$R, GetInfoResponse, $Out> get $asGetInfoResponse =>
-      $base.as((v, t, t2) => _GetInfoResponseCopyWithImpl(v, t, t2));
+extension GetContextResponseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, GetContextResponse, $Out> {
+  GetContextResponseCopyWith<$R, GetContextResponse, $Out>
+      get $asGetContextResponse =>
+          $base.as((v, t, t2) => _GetContextResponseCopyWithImpl(v, t, t2));
 }
 
-abstract class GetInfoResponseCopyWith<$R, $In extends GetInfoResponse, $Out>
-    implements APIResponseCopyWith<$R, $In, $Out> {
+abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
+    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
   FVMContextCopyWith<$R, FVMContext, FVMContext> get context;
-  ProjectCopyWith<$R, Project, Project> get project;
   @override
-  $R call({FVMContext? context, String? fvmVersion, Project? project});
-  GetInfoResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+  $R call({FVMContext? context});
+  GetContextResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
 
-class _GetInfoResponseCopyWithImpl<$R, $Out>
-    extends ClassCopyWithBase<$R, GetInfoResponse, $Out>
-    implements GetInfoResponseCopyWith<$R, GetInfoResponse, $Out> {
-  _GetInfoResponseCopyWithImpl(super.value, super.then, super.then2);
+class _GetContextResponseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, GetContextResponse, $Out>
+    implements GetContextResponseCopyWith<$R, GetContextResponse, $Out> {
+  _GetContextResponseCopyWithImpl(super.value, super.then, super.then2);
 
   @override
-  late final ClassMapperBase<GetInfoResponse> $mapper =
-      GetInfoResponseMapper.ensureInitialized();
+  late final ClassMapperBase<GetContextResponse> $mapper =
+      GetContextResponseMapper.ensureInitialized();
   @override
   FVMContextCopyWith<$R, FVMContext, FVMContext> get context =>
       $value.context.copyWith.$chain((v) => call(context: v));
   @override
-  ProjectCopyWith<$R, Project, Project> get project =>
-      $value.project.copyWith.$chain((v) => call(project: v));
+  $R call({FVMContext? context}) =>
+      $apply(FieldCopyWithData({if (context != null) #context: context}));
   @override
-  $R call({FVMContext? context, String? fvmVersion, Project? project}) =>
-      $apply(FieldCopyWithData({
-        if (context != null) #context: context,
-        if (fvmVersion != null) #fvmVersion: fvmVersion,
-        if (project != null) #project: project
-      }));
-  @override
-  GetInfoResponse $make(CopyWithData data) => GetInfoResponse(
-      context: data.get(#context, or: $value.context),
-      fvmVersion: data.get(#fvmVersion, or: $value.fvmVersion),
-      project: data.get(#project, or: $value.project));
+  GetContextResponse $make(CopyWithData data) =>
+      GetContextResponse(context: data.get(#context, or: $value.context));
 
   @override
-  GetInfoResponseCopyWith<$R2, GetInfoResponse, $Out2> $chain<$R2, $Out2>(
+  GetContextResponseCopyWith<$R2, GetContextResponse, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _GetInfoResponseCopyWithImpl($value, $cast, t);
+      _GetContextResponseCopyWithImpl($value, $cast, t);
 }

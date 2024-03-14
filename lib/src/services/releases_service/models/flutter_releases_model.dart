@@ -19,16 +19,16 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
   final Channels channels;
 
   /// LIst of all releases
-  final List<FlutterSdkVersion> versions;
+  final List<FlutterSdkRelease> versions;
 
   /// Version release map
-  final Map<String, FlutterSdkVersion> _versionReleaseMap;
+  final Map<String, FlutterSdkRelease> _versionReleaseMap;
 
   const FlutterReleasesResponse({
     required this.baseUrl,
     required this.channels,
     required this.versions,
-    required Map<String, FlutterSdkVersion> versionReleaseMap,
+    required Map<String, FlutterSdkRelease> versionReleaseMap,
   }) : _versionReleaseMap = versionReleaseMap;
 
   /// Creates a FlutterRelease from a [json] string
@@ -44,7 +44,7 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
   }
 
   /// Returns a [FlutterVersion] release from channel [version]
-  FlutterSdkVersion getLatestChannelRelease(String channelName) {
+  FlutterSdkRelease getLatestChannelRelease(String channelName) {
     if (!_flutterChannels.contains(channelName)) {
       throw Exception('Can only infer release on valid channel');
     }
@@ -56,7 +56,7 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
   }
 
   /// Retrieves version information
-  FlutterSdkVersion? getReleaseFromVersion(String version) {
+  FlutterSdkRelease? getReleaseFromVersion(String version) {
     return _versionReleaseMap[version];
   }
 
@@ -77,9 +77,9 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
 
   final systemArch = 'x64';
 
-  final releasesList = <FlutterSdkVersion>[];
-  final versionReleaseMap = <String, FlutterSdkVersion>{};
-  final hashReleaseMap = <String, FlutterSdkVersion>{};
+  final releasesList = <FlutterSdkRelease>[];
+  final versionReleaseMap = <String, FlutterSdkRelease>{};
+  final hashReleaseMap = <String, FlutterSdkRelease>{};
 
   // Filter out channel/currentRelease versions
   // Could be more efficient
@@ -103,7 +103,7 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
     }
 
     final releaseItem =
-        FlutterSdkVersion.fromMap(release as Map<String, dynamic>);
+        FlutterSdkRelease.fromMap(release as Map<String, dynamic>);
 
     /// Add to releases
     releasesList.add(releaseItem);

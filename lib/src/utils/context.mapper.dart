@@ -57,6 +57,9 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static bool _$runPubGetOnSdkChanges(FVMContext v) => v.runPubGetOnSdkChanges;
   static const Field<FVMContext, bool> _f$runPubGetOnSdkChanges =
       Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges);
+  static String _$fvmVersion(FVMContext v) => v.fvmVersion;
+  static const Field<FVMContext, String> _f$fvmVersion =
+      Field('fvmVersion', _$fvmVersion);
   static String _$gitCachePath(FVMContext v) => v.gitCachePath;
   static const Field<FVMContext, String> _f$gitCachePath =
       Field('gitCachePath', _$gitCachePath);
@@ -102,6 +105,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #fvmDir: _f$fvmDir,
     #gitCache: _f$gitCache,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
+    #fvmVersion: _f$fvmVersion,
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
     #lastUpdateCheck: _f$lastUpdateCheck,

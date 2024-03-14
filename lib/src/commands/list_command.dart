@@ -42,7 +42,7 @@ class ListCommand extends BaseCommand {
       ..info('Directory Size: ${formatBytes(directorySize)}')
       ..spacer;
 
-    final releases = await FlutterReleases.get();
+    final releases = await FlutterReleasesClient.getReleases();
     final globalVersion = GlobalVersionService.fromContext.getGlobal();
 
     final table = Table()
@@ -55,7 +55,7 @@ class ListCommand extends BaseCommand {
 
     for (var version in cacheVersions) {
       var printVersion = version.name;
-      FlutterSdkVersion? latestRelease;
+      FlutterSdkRelease? latestRelease;
 
       if (version.isChannel && !version.isMaster) {
         latestRelease = releases.getLatestChannelRelease(version.name);
