@@ -12,6 +12,7 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
   APISubCommand() {
     argParser.addFlag(
       'compress',
+      abbr: 'c',
       help: 'Prints JSON with no whitespace',
       negatable: false,
     );
