@@ -5,23 +5,14 @@
   "running-flutter": {
     "title": "Running Flutter"
   },
-  "global-configuration": {
-    "title": "Global Configuration"
-  },
   "project-flavors": {
     "title": "Project Flavors"
   },
   "monorepo": {
     "title": "Monorepo Support"
   },
-  "json-api": {
-    "title": "JSON API"
-  },
-  "custom-version": {
-    "title": "Custom Flutter SDK"
-  },
-  "release-multiple-channels": {
-    "title": "Release Multiple Channels"
+  "global-configuration": {
+    "title": "Global Configuration"
   },
 
   "vscode": {

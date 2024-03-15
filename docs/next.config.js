@@ -28,17 +28,6 @@ module.exports = withNextra({
         destination: "/documentation/guides/global-configuration",
         permanent: true,
       },
-      {
-        source: "/documentation/advanced/custom-version",
-        destination: "/documentation/guides/custom-version",
-        permanent: true,
-      },
-
-      {
-        source: "/documentation/advanced/release-multiple-channels",
-        destination: "/documentation/guides/release-multiple-channels",
-        permanent: true,
-      },
     ];
   },
 });
