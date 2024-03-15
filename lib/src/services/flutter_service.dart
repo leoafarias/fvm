@@ -58,7 +58,7 @@ class FlutterService extends ContextService {
         channel = version.releaseFromChannel;
       } else {
         final release =
-            await FlutterReleases.getReleaseFromVersion(version.name);
+            await FlutterReleasesClient.getReleaseFromVersion(version.name);
         channel = release?.channel.name;
       }
     }

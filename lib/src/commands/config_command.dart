@@ -14,7 +14,7 @@ class ConfigCommand extends BaseCommand {
   final name = 'config';
 
   @override
-  final description = 'Set configuration for FVM';
+  final description = 'Set global configuration settings for FVM';
 
   /// Constructor
   ConfigCommand() {

@@ -37,7 +37,7 @@ const themeConfig = {
   //     </a>
   //   ),
   // },
-  docsRepositoryBase: "https://github.com/leoafarias/fvm/blob/main",
+  docsRepositoryBase: "https://github.com/leoafarias/fvm/blob/main/docs",
   search: {
     component: <CustomSearch />,
   },

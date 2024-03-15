@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
 
 import '../utils/commands.dart';
@@ -9,34 +10,54 @@ import '../utils/extensions.dart';
 import '../utils/helpers.dart';
 import 'flutter_version_model.dart';
 
+part 'cache_flutter_version_model.mapper.dart';
+
 /// Cache Version model
-class CacheFlutterVersion extends FlutterVersion {
+@MappableClass()
+class CacheFlutterVersion extends FlutterVersion
+    with CacheFlutterVersionMappable {
   /// Directory of the cache version
   final String directory;
 
+  static final fromMap = CacheFlutterVersionMapper.fromMap;
+  static final fromJson = CacheFlutterVersionMapper.fromJson;
+  // static final fromJson = CacheFlutterVersion.fromJson;
+
+  const CacheFlutterVersion.raw(
+    super.name, {
+    required this.directory,
+    required super.releaseFromChannel,
+    required super.type,
+  });
+
   /// Constructor
-  CacheFlutterVersion(FlutterVersion version, {required this.directory})
-      : super(
-          version.name,
-          releaseFromChannel: version.releaseFromChannel,
-          isChannel: version.isChannel,
-          isRelease: version.isRelease,
-          isCommit: version.isCommit,
-          isCustom: version.isCustom,
-        );
+  factory CacheFlutterVersion(
+    FlutterVersion version, {
+    required String directory,
+  }) {
+    return CacheFlutterVersion.raw(
+      version.name,
+      directory: directory,
+      releaseFromChannel: version.releaseFromChannel,
+      type: version.type,
+    );
+  }
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
   /// Get version bin path
+  @MappableField()
   String get binPath => join(directory, 'bin');
 
   /// Has old dart path structure
   // Last version with the old dart path structure
+  @MappableField()
   bool get hasOldBinPath {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
   }
 
   /// Returns dart exec file for cache version
+  @MappableField()
   String get dartBinPath {
     /// Get old bin path
     /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
@@ -46,18 +67,22 @@ class CacheFlutterVersion extends FlutterVersion {
   }
 
   /// Returns dart exec file for cache version
+  @MappableField()
   String get dartExec => join(dartBinPath, dartExecFileName);
 
   /// Returns flutter exec file for cache version
+  @MappableField()
   String get flutterExec => join(binPath, flutterExecFileName);
 
   /// Gets Flutter SDK version from CacheVersion sync
+  @MappableField()
   String? get flutterSdkVersion {
     final versionFile = join(directory, 'version');
 
     return versionFile.file.read()?.trim();
   }
 
+  @MappableField()
   String? get dartSdkVersion {
     final versionFile = join(_dartSdkCache, 'version');
 
@@ -68,6 +93,7 @@ class CacheFlutterVersion extends FlutterVersion {
   bool get isNotSetup => flutterSdkVersion == null;
 
   /// Returns bool if version is setup
+  @MappableField()
   bool get isSetup => flutterSdkVersion != null;
 
   Future<ProcessResult> run(
@@ -82,21 +108,4 @@ class CacheFlutterVersion extends FlutterVersion {
       throwOnError: throwOnError,
     );
   }
-
-  @override
-  String toString() {
-    return name;
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-
-    return other is CacheFlutterVersion &&
-        other.name == name &&
-        other.directory == directory;
-  }
-
-  @override
-  int get hashCode => name.hashCode ^ directory.hashCode;
 }

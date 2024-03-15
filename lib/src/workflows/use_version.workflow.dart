@@ -57,7 +57,7 @@ Future<void> useVersionWorkflow({
 
   final updatedProject = ProjectService.fromContext.update(
     project,
-    flavors: {if (flavor != null) flavor: version.name, ...project.flavors},
+    flavors: {if (flavor != null) flavor: version.name},
     flutterSdkVersion: version.name,
   );
 
@@ -128,7 +128,7 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
 
   final pathToAdd = '.fvm/';
   final heading = '# FVM Version Cache';
-  final ignoreFile = project.gitignoreFile;
+  final ignoreFile = project.gitIgnoreFile;
 
   if (!ignoreFile.existsSync()) {
     ignoreFile.createSync(recursive: true);

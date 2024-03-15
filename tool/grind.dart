@@ -29,6 +29,11 @@ void main(List<String> args) {
   grind(args);
 }
 
+@Task('Compile')
+void compile() {
+  run('dart', arguments: ['compile', 'exe', 'bin/main.dart', '-o', 'fvm']);
+}
+
 @Task('Get all releases')
 Future<void> getReleases() async {
   String owner = 'leoafarias';

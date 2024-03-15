@@ -43,7 +43,7 @@ class DoctorCommand extends BaseCommand {
         project.dartToolGeneratorVersion ?? 'Not available',
       ],
       ['Dart tool version', project.dartToolVersion ?? 'Not available'],
-      ['.gitignore Present', project.gitignoreFile.existsSync() ? 'Yes' : 'No'],
+      ['.gitignore Present', project.gitIgnoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
       ['Pinned Version', project.pinnedVersion ?? 'None'],
       ['Config path', relative(project.configPath, from: project.path)],

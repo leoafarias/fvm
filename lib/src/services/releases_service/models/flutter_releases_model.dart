@@ -1,12 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'release.model.dart';
+import 'package:dart_mappable/dart_mappable.dart';
+
+import 'version_model.dart';
+
+part 'flutter_releases_model.mapper.dart';
 
 const _flutterChannels = ['stable', 'beta', 'dev', 'master'];
 
 /// Flutter Releases
-class Releases {
+@MappableClass()
+class FlutterReleasesResponse with FlutterReleasesResponseMappable {
   /// Base url for Flutter   /// Channels in Flutter releases
   final String baseUrl;
 
@@ -14,37 +19,32 @@ class Releases {
   final Channels channels;
 
   /// LIst of all releases
-  final List<Release> releases;
+  final List<FlutterSdkRelease> versions;
 
   /// Version release map
-  final Map<String, Release> versionReleaseMap;
+  final Map<String, FlutterSdkRelease> _versionReleaseMap;
 
-  /// Hash release map
-  final Map<String, Release> hashReleaseMap;
-
-  const
-
-  /// Constructor
-  Releases({
+  const FlutterReleasesResponse({
     required this.baseUrl,
     required this.channels,
-    required this.releases,
-    required this.hashReleaseMap,
-    required this.versionReleaseMap,
-  });
+    required this.versions,
+    required Map<String, FlutterSdkRelease> versionReleaseMap,
+  }) : _versionReleaseMap = versionReleaseMap;
 
   /// Creates a FlutterRelease from a [json] string
-  factory Releases.fromJson(String json) {
-    return Releases.fromMap(jsonDecode(json) as Map<String, dynamic>);
+  factory FlutterReleasesResponse.fromJson(String json) {
+    return FlutterReleasesResponse.fromMap(
+      jsonDecode(json) as Map<String, dynamic>,
+    );
   }
 
   /// Create FlutterRelease from a map of values
-  factory Releases.fromMap(Map<String, dynamic> json) {
+  factory FlutterReleasesResponse.fromMap(Map<String, dynamic> json) {
     return _parseCurrentReleases(json);
   }
 
   /// Returns a [FlutterVersion] release from channel [version]
-  Release getLatestChannelRelease(String channelName) {
+  FlutterSdkRelease getLatestChannelRelease(String channelName) {
     if (!_flutterChannels.contains(channelName)) {
       throw Exception('Can only infer release on valid channel');
     }
@@ -56,27 +56,20 @@ class Releases {
   }
 
   /// Retrieves version information
-  Release? getReleaseFromVersion(String version) {
-    return versionReleaseMap[version];
+  FlutterSdkRelease? getReleaseFromVersion(String version) {
+    return _versionReleaseMap[version];
   }
 
   /// Checks if version is a release
   bool containsVersion(String version) {
-    return versionReleaseMap.containsKey(version);
+    return _versionReleaseMap.containsKey(version);
   }
-
-  /// Return map of model
-  Map<String, dynamic> toMap() => {
-        'base_url': baseUrl,
-        'channels': channels.toMap(),
-        'releases': List.from(releases.map((x) => x.toMap())),
-      };
 }
 
 /// Goes through the current_release payload.
 /// Finds the proper release base on the hash
 /// Assings to the current_release
-Releases _parseCurrentReleases(Map<String, dynamic> map) {
+FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
   final baseUrl = map['base_url'] as String;
   final currentRelease = map['current_release'] as Map<String, dynamic>;
   // ignore: avoid-dynamic
@@ -84,9 +77,9 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
 
   final systemArch = 'x64';
 
-  final releasesList = <Release>[];
-  final versionReleaseMap = <String, Release>{};
-  final hashReleaseMap = <String, Release>{};
+  final releasesList = <FlutterSdkRelease>[];
+  final versionReleaseMap = <String, FlutterSdkRelease>{};
+  final hashReleaseMap = <String, FlutterSdkRelease>{};
 
   // Filter out channel/currentRelease versions
   // Could be more efficient
@@ -109,7 +102,8 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    final releaseItem = Release.fromMap(release as Map<String, dynamic>);
+    final releaseItem =
+        FlutterSdkRelease.fromMap(release as Map<String, dynamic>);
 
     /// Add to releases
     releasesList.add(releaseItem);
@@ -131,11 +125,10 @@ Releases _parseCurrentReleases(Map<String, dynamic> map) {
     stable: stableRelease!,
   );
 
-  return Releases(
+  return FlutterReleasesResponse(
     baseUrl: baseUrl,
     channels: channels,
-    releases: releasesList,
-    hashReleaseMap: hashReleaseMap,
+    versions: releasesList,
     versionReleaseMap: versionReleaseMap,
   );
 }

@@ -1,19 +1,16 @@
+import 'package:dart_mappable/dart_mappable.dart';
+
+part 'channels_model.mapper.dart';
+
 /// Enum of a channel
+@MappableEnum()
 enum FlutterChannel {
-  /// stable channel
-  stable('stable'),
+  stable,
+  dev,
+  beta,
+  master;
 
-  /// dev channel
-  dev('dev'),
-
-  /// beta channel
-  beta('beta'),
-
-  master('master');
-
-  const FlutterChannel(this.name);
-
-  final String name;
+  const FlutterChannel();
 
   /// Returns a channel from a name
   static FlutterChannel fromName(String name) {
