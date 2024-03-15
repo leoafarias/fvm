@@ -1,0 +1,85 @@
+---
+id: basic_commands
+title: Basic Commands
+---
+
+import { Cards, Card } from "nextra/components";
+import {
+  DeviceFloppyIcon,
+  DownloadIcon,
+  TrashIcon,
+  TerminalIcon,
+  GlobeIcon,
+  ListIcon,
+  EyeIcon,
+  ArrowRightOnRectangleIcon,
+  PlayIcon,
+} from "@radix-ui/react-icons";
+
+# Basic Commands
+
+This guide offers an overview of essential FVM commands to help you efficiently manage multiple Flutter SDK versions across your projects. FVM streamlines the process of switching between Flutter versions, ensuring compatibility, and facilitating a more productive development workflow.
+
+### **`use`**
+
+**Description**: Sets a specific Flutter SDK version for a project. This command ensures that everyone working on the project uses the same Flutter SDK version, enhancing consistency across development environments.
+
+```bash
+fvm use <version>
+```
+
+Read more about the `use` command [here](/documentation/commands/use-command).
+
+### **`install`**
+
+**Description**: Installs and caches a Flutter SDK version on your machine. If no version is specified, it installs the version defined in the project's `fvm` configuration.
+
+```bash
+fvm install [version]
+```
+
+Read more about the `install` command [here](/documentation/commands/install-command).
+
+### **`list`**
+
+**Description**: Displays a list of Flutter SDK versions installed through FVM. It helps you keep track of available versions on your machine.
+
+```bash
+fvm list
+```
+
+Read more about the `list` command [here](/documentation/commands/list-command).
+
+### **`releases`**
+
+**Description**: Shows all available Flutter SDK releases. This command is useful for identifying which versions or channels you might want to install or switch to.
+
+```bash
+fvm releases
+```
+
+Read more about the `releases` command [here](/documentation/commands/releases-command).
+
+### **`remove`**
+
+**Description**: Removes a specific Flutter SDK version from your machine. This helps manage your environment and free up disk space.
+
+```bash
+fvm remove <version>
+```
+
+Read more about the `remove` command [here](/documentation/commands/remove-command).
+
+## More Commands
+
+<Cards>
+  <Card title="Use" href="/documentation/commands/use-command" />
+  <Card title="Install" href="/documentation/commands/install-command" />
+  <Card title="Destroy" href="/documentation/commands/destroy-command" />
+  <Card title="Exec" href="/documentation/commands/exec-command" />
+  <Card title="Global" href="/documentation/commands/global-command" />
+  <Card title="List" href="/documentation/commands/list-command" />
+  <Card title="Releases" href="/documentation/commands/releases-command" />
+  <Card title="Remove" href="/documentation/commands/remove-command" />
+  <Card title="Spawn" href="/documentation/commands/spawn-command" />
+</Cards>

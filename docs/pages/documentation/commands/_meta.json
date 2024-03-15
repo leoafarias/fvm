@@ -1,0 +1,11 @@
+{
+  "install-command": "install",
+  "use-command": "use",
+  "list-command": "list",
+  "releases-command": "releases",
+  "global-command": "global",
+  "remove-command": "remove",
+  "spawn-command": "spawn",
+  "exec-command": "exec",
+  "destroy-command": "destroy"
+}

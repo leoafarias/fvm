@@ -15,6 +15,14 @@
     "title": "Guides",
     "display": "children"
   },
+  "-- Commands": {
+    "type": "separator",
+    "title": "Commands"
+  },
+  "commands": {
+    "title": "Commands",
+    "display": "children"
+  },
   "-- Advanced": {
     "type": "separator",
     "title": "Advanced"
