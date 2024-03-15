@@ -22,13 +22,5 @@
   "advanced": {
     "title": "Advanced",
     "display": "children"
-  },
-  "-- Commands": {
-    "type": "separator",
-    "title": "Commands"
-  },
-  "commands": {
-    "title": "Commands",
-    "display": "children"
   }
 }
