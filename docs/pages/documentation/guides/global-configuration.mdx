@@ -5,11 +5,20 @@ title: Configure Global Version
 
 import { Callout } from "nextra/components";
 
-# Configure Global Version
+# Overview
 
-You can have the default Flutter version in your machine but still, preserve the dynamic switching. It allows you not to make any changes on how you currently use Flutter but benefit from faster switching and version caching.
+You can have the default Flutter version on your machine and still preserve dynamic switching. This allows you to make no changes to how you currently use Flutter, but benefit from faster switching and version caching.
 
-To accomplish this FVM provides you a helper command to configure a global version.
+<Callout type="warning">
+  It is recommended that you install FVM as a standalone executable instead of
+  through pub.dev to avoid dependency conflicts.
+</Callout>
+
+If you are configuring a global version, FVM will check if the global version is set in your environment path. If it is not, it will provide you with the path that needs to be configured.
+
+### Link global version
+
+To accomplish this, FVM provides you with a helper command to configure a global version.
 
 ```bash
 fvm global {version}
@@ -31,14 +40,8 @@ fvm global stable
 flutter --version # Will be stable release
 ```
 
-** Unlink global version **
-
-```bash
-fvm global --unlink
-```
-
 <Callout type="info">
   After you run the command, FVM will check if the global version is configured
-  in your environment path. If it is not it will provide you with the path that
-  it needs to be configured.
+  in your environment path. If it is not, it will provide you with the path that
+  needs to be configured.
 </Callout>

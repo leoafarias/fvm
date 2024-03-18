@@ -7,7 +7,7 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  final scope = Scope()..value(contextKey, FVMContext.main);
+  final scope = Scope()..value(contextKey, FVMContext.create(args: args));
 
   await _flushThenExit(
     await scope.run(() => FvmCommandRunner().run((args))),

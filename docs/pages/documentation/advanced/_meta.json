@@ -1,6 +1,9 @@
 {
+  "json-api": {
+    "title": "JSON API"
+  },
   "custom-version": {
-    "title": "Custom Version"
+    "title": "Custom Flutter SDK"
   },
   "release-multiple-channels": {
     "title": "Release Multiple Channels"

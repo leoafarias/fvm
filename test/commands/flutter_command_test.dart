@@ -99,7 +99,7 @@ void main() {
         environment: updatedEnvironments,
       );
 
-      final release = await FlutterReleases.getReleaseFromVersion(
+      final release = await FlutterReleasesClient.getReleaseFromVersion(
         versionNumber,
       );
 
@@ -150,7 +150,7 @@ void main() {
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      final release = await FlutterReleases.getReleaseFromVersion(
+      final release = await FlutterReleasesClient.getReleaseFromVersion(
         versionNumber,
       );
 

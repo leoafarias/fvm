@@ -5,10 +5,17 @@
   "running-flutter": {
     "title": "Running Flutter"
   },
+  "project-flavors": {
+    "title": "Project Flavors"
+  },
+  "monorepo": {
+    "title": "Monorepo Support"
+  },
   "global-configuration": {
     "title": "Global Configuration"
   },
-  "project-flavors": {
-    "title": "Project Flavors"
+
+  "vscode": {
+    "title": "VSCode Configuration"
   }
 }

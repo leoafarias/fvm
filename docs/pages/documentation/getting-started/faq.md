@@ -11,25 +11,15 @@ As described in our [Principles](../getting-started/#principles) FVM does not ov
 
 ---
 
-### Monorepo support
-
-Suppose you have a nested package(s) that you want to share the same Flutter version. You can set up the FVM config at the root of the monorepo.
-
-FVM will do an ancestor look-up to find the config and use it as the default.
-
-Make sure you have a pubspec.yaml at the root of the monorepo directory.
-
----
-
 ### Cannot install latest version of FVM
 
-When running `pub global activate fvm`, pub will grab the latest FVM version that is compatible with the installed dart-sdk. Upgrade to the latest version of the Dart, and run the command again. Go to https://dart.dev/get-dart for more information.
+When running `dart pub global activate fvm`, pub will grab the latest FVM version that is compatible with the installed dart-sdk. Upgrade to the latest version of the Dart, and run the command again. Go to https://dart.dev/get-dart for more information.
 
 ---
 
 ### How to uninstall FVM
 
-Run command `fvm list` this will output the directory used for Flutter cache. Delete that directory.
+Run command `fvm destroy` to remove FVM from your system.
 If you installed using pub run `dart pub global deactivate fvm`, if you used a standalone installation please follow its instructions.
 
 ---

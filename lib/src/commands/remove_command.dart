@@ -65,18 +65,18 @@ class RemoveCommand extends BaseCommand {
 
     // Check if version is installed
     if (cacheVersion == null) {
-      logger.info('Flutter SDK: $validVersion is not installed');
+      logger.info('Flutter SDK: ${validVersion.name} is not installed');
 
       return ExitCode.success.code;
     }
 
-    final progress = logger.progress('Removing $validVersion...');
+    final progress = logger.progress('Removing ${validVersion.name}...');
     try {
       /// Remove if version is cached
 
       CacheService.fromContext.remove(cacheVersion);
 
-      progress.complete('$validVersion removed.');
+      progress.complete('${validVersion.name} removed.');
     } on Exception {
       progress.fail('Could not remove $validVersion');
       rethrow;
