@@ -1,3 +1,7 @@
+## 3.1.0
+
+* Initial release of [JSON API](https://fvm.app/documentation/advanced/json-api), allows for better integration of third-party tools and CI/CD workflows.
+
 ## 3.0.14
 
 * Improvement: versioned brew formulae by @leoafarias
