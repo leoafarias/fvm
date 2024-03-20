@@ -1,7 +1,4 @@
-# syntax=docker/dockerfile:1
-
-# Use an official Linux runtime as a parent image
-FROM ubuntu:latest
+FROM dart:latest
 
 # Set fvm version
 ARG FVM_VERSION
