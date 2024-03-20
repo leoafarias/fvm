@@ -15,14 +15,17 @@ We recommend install Flutter SDK globally using the official installation guide 
 
 Use FVM to manage the Flutter SDK version for your projects.
 
-## Standalone
-
 You can download the standalone packages from the GitHub repo [here](https://github.com/leoafarias/fvm/releases).
 
-<Tabs items={['MacOS', 'Windows', 'Linux']}>
+<Tabs items={['MacOS', 'Windows', 'Linux', 'Pub']}>
   <Tabs.Tab>
+### Install.sh
 
-If you use the [Homebrew package manager](https://brew.sh) for Mac OS X, you can install FVM by running
+```bash
+curl -fsSL https://fvm.app/install.sh | bash
+```
+
+### Homebrew
 
 Install
 
@@ -50,8 +53,13 @@ choco install fvm
   </Tabs.Tab>
 
   <Tabs.Tab>
+### Install.sh
 
-If you use the [Homebrew package manager](https://brew.sh) for Linux, you can install FVM by running
+```bash
+curl -fsSL https://fvm.app/install.sh | bash
+```
+
+### Homebrew
 
 Install
 
@@ -68,10 +76,8 @@ brew untap leoafarias/fvm
 ```
 
 </Tabs.Tab>
-</Tabs>
 
-## Pub package
-
+<Tabs.Tab>
 You are able to also install FVM as a [pub package](https://pub.dev/packages/fvm).
 
 However if you plan on using FVM to manage your [global Flutter install](/docs/guides/global_version) we recommend installing as a standalone.
@@ -84,3 +90,6 @@ However if you plan on using FVM to manage your [global Flutter install](/docs/g
 ```bash
 dart pub global activate fvm
 ```
+
+</Tabs.Tab>
+</Tabs>
