@@ -51,3 +51,4 @@ docs/.next
 
 # Ignore fvm binary
 fvm
+.env.local

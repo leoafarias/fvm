@@ -82,10 +82,7 @@ jobs:
         run: dart run grinder pkg-homebrew-update
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-      
           
-
-
   deploy-docker:
     name: Docker Deploy (latest)
     runs-on: ubuntu-latest
