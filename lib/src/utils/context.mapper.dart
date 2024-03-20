@@ -22,33 +22,26 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   final String id = 'FVMContext';
 
   static String _$id(FVMContext v) => v.id;
-  static const Field<FVMContext, String> _f$id = Field('id', _$id, opt: true);
-  static List<String> _$args(FVMContext v) => v.args;
-  static const Field<FVMContext, List<String>> _f$args =
-      Field('args', _$args, opt: true);
-  static const Field<FVMContext, AppConfig> _f$configOverrides =
-      Field('configOverrides', null, mode: FieldMode.param, opt: true);
+  static const Field<FVMContext, String> _f$id = Field('id', _$id);
   static String _$workingDirectory(FVMContext v) => v.workingDirectory;
   static const Field<FVMContext, String> _f$workingDirectory =
-      Field('workingDirectory', _$workingDirectory, opt: true);
-  static const Field<FVMContext, Map<Type, dynamic>> _f$generatorOverrides =
-      Field('generatorOverrides', null, mode: FieldMode.param, opt: true);
-  static const Field<FVMContext, Map<String, String>> _f$environmentOverrides =
-      Field('environmentOverrides', null, mode: FieldMode.param, opt: true);
-  static bool _$isTest(FVMContext v) => v.isTest;
-  static const Field<FVMContext, bool> _f$isTest =
-      Field('isTest', _$isTest, opt: true, def: false);
+      Field('workingDirectory', _$workingDirectory);
+  static AppConfig _$config(FVMContext v) => v.config;
+  static const Field<FVMContext, AppConfig> _f$config =
+      Field('config', _$config);
+  static Map<String, String> _$environment(FVMContext v) => v.environment;
+  static const Field<FVMContext, Map<String, String>> _f$environment =
+      Field('environment', _$environment);
+  static List<String> _$args(FVMContext v) => v.args;
+  static const Field<FVMContext, List<String>> _f$args = Field('args', _$args);
   static Map<Type, ContextService Function(FVMContext)> _$generators(
           FVMContext v) =>
       v.generators;
   static const Field<FVMContext, Map<Type, ContextService Function(FVMContext)>>
-      _f$generators = Field('generators', _$generators, mode: FieldMode.member);
-  static AppConfig _$config(FVMContext v) => v.config;
-  static const Field<FVMContext, AppConfig> _f$config =
-      Field('config', _$config, mode: FieldMode.member);
-  static Map<String, String> _$environment(FVMContext v) => v.environment;
-  static const Field<FVMContext, Map<String, String>> _f$environment =
-      Field('environment', _$environment, mode: FieldMode.member);
+      _f$generators = Field('generators', _$generators);
+  static bool _$isTest(FVMContext v) => v.isTest;
+  static const Field<FVMContext, bool> _f$isTest =
+      Field('isTest', _$isTest, opt: true, def: false);
   static String _$fvmDir(FVMContext v) => v.fvmDir;
   static const Field<FVMContext, String> _f$fvmDir = Field('fvmDir', _$fvmDir);
   static bool _$gitCache(FVMContext v) => v.gitCache;
@@ -93,15 +86,12 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   @override
   final MappableFields<FVMContext> fields = const {
     #id: _f$id,
-    #args: _f$args,
-    #configOverrides: _f$configOverrides,
     #workingDirectory: _f$workingDirectory,
-    #generatorOverrides: _f$generatorOverrides,
-    #environmentOverrides: _f$environmentOverrides,
-    #isTest: _f$isTest,
-    #generators: _f$generators,
     #config: _f$config,
     #environment: _f$environment,
+    #args: _f$args,
+    #generators: _f$generators,
+    #isTest: _f$isTest,
     #fvmDir: _f$fvmDir,
     #gitCache: _f$gitCache,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
@@ -119,13 +109,13 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   };
 
   static FVMContext _instantiate(DecodingData data) {
-    return FVMContext.create(
+    return FVMContext.raw(
         id: data.dec(_f$id),
-        args: data.dec(_f$args),
-        configOverrides: data.dec(_f$configOverrides),
         workingDirectory: data.dec(_f$workingDirectory),
-        generatorOverrides: data.dec(_f$generatorOverrides),
-        environmentOverrides: data.dec(_f$environmentOverrides),
+        config: data.dec(_f$config),
+        environment: data.dec(_f$environment),
+        args: data.dec(_f$args),
+        generators: data.dec(_f$generators),
         isTest: data.dec(_f$isTest));
   }
 
@@ -182,14 +172,23 @@ extension FVMContextValueCopy<$R, $Out>
 
 abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
+  AppConfigCopyWith<$R, AppConfig, AppConfig> get config;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+      get environment;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args;
+  MapCopyWith<
+      $R,
+      Type,
+      ContextService Function(FVMContext),
+      ObjectCopyWith<$R, ContextService Function(FVMContext),
+          ContextService Function(FVMContext)>> get generators;
   $R call(
       {String? id,
-      List<String>? args,
-      AppConfig? configOverrides,
       String? workingDirectory,
-      Map<Type, dynamic>? generatorOverrides,
-      Map<String, String>? environmentOverrides,
+      AppConfig? config,
+      Map<String, String>? environment,
+      List<String>? args,
+      Map<Type, ContextService Function(FVMContext)>? generators,
       bool? isTest});
   FVMContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
@@ -203,36 +202,55 @@ class _FVMContextCopyWithImpl<$R, $Out>
   late final ClassMapperBase<FVMContext> $mapper =
       FVMContextMapper.ensureInitialized();
   @override
+  AppConfigCopyWith<$R, AppConfig, AppConfig> get config =>
+      $value.config.copyWith.$chain((v) => call(config: v));
+  @override
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+      get environment => MapCopyWith(
+          $value.environment,
+          (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(environment: v));
+  @override
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args =>
       ListCopyWith($value.args, (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(args: v));
   @override
+  MapCopyWith<
+      $R,
+      Type,
+      ContextService Function(FVMContext),
+      ObjectCopyWith<$R, ContextService Function(FVMContext),
+          ContextService Function(FVMContext)>> get generators => MapCopyWith(
+      $value.generators,
+      (v, t) => ObjectCopyWith(v, $identity, t),
+      (v) => call(generators: v));
+  @override
   $R call(
-          {Object? id = $none,
-          Object? args = $none,
-          AppConfig? configOverrides,
-          Object? workingDirectory = $none,
-          Map<Type, dynamic>? generatorOverrides,
-          Map<String, String>? environmentOverrides,
+          {String? id,
+          String? workingDirectory,
+          AppConfig? config,
+          Map<String, String>? environment,
+          List<String>? args,
+          Map<Type, ContextService Function(FVMContext)>? generators,
           bool? isTest}) =>
       $apply(FieldCopyWithData({
-        if (id != $none) #id: id,
-        if (args != $none) #args: args,
-        #configOverrides: configOverrides,
-        if (workingDirectory != $none) #workingDirectory: workingDirectory,
-        #generatorOverrides: generatorOverrides,
-        #environmentOverrides: environmentOverrides,
+        if (id != null) #id: id,
+        if (workingDirectory != null) #workingDirectory: workingDirectory,
+        if (config != null) #config: config,
+        if (environment != null) #environment: environment,
+        if (args != null) #args: args,
+        if (generators != null) #generators: generators,
         if (isTest != null) #isTest: isTest
       }));
   @override
-  FVMContext $make(CopyWithData data) => FVMContext.create(
+  FVMContext $make(CopyWithData data) => FVMContext.raw(
       id: data.get(#id, or: $value.id),
-      args: data.get(#args, or: $value.args),
-      configOverrides: data.get(#configOverrides),
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
-      generatorOverrides: data.get(#generatorOverrides),
-      environmentOverrides: data.get(#environmentOverrides),
+      config: data.get(#config, or: $value.config),
+      environment: data.get(#environment, or: $value.environment),
+      args: data.get(#args, or: $value.args),
+      generators: data.get(#generators, or: $value.generators),
       isTest: data.get(#isTest, or: $value.isTest));
 
   @override

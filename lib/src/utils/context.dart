@@ -59,7 +59,19 @@ class FVMContext with FVMContextMappable {
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
 
-  factory FVMContext.create({
+  /// Constructor
+  /// If nothing is provided set default
+  FVMContext.raw({
+    required this.id,
+    required this.workingDirectory,
+    required this.config,
+    required this.environment,
+    required this.args,
+    required this.generators,
+    this.isTest = false,
+  });
+
+  static FVMContext create({
     String? id,
     List<String>? args,
     AppConfig? configOverrides,
@@ -77,7 +89,7 @@ class FVMContext with FVMContextMappable {
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
-    return FVMContext._(
+    return FVMContext.raw(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
@@ -98,18 +110,6 @@ class FVMContext with FVMContextMappable {
       isTest: isTest,
     );
   }
-
-  /// Constructor
-  /// If nothing is provided set default
-  FVMContext._({
-    required this.id,
-    required this.workingDirectory,
-    required this.config,
-    required this.environment,
-    required this.args,
-    required this.generators,
-    this.isTest = false,
-  });
 
   /// Directory where FVM is stored
   @MappableField()

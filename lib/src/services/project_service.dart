@@ -86,15 +86,17 @@ class ProjectService extends ContextService {
   /// or updates the project's config file. The updated project is returned.
   Project update(
     Project project, {
-    Map<String, String> flavors = const {},
+    Map<String, String>? flavors,
     String? flutterSdkVersion,
     bool? updateVscodeSettings,
   }) {
     final currentConfig = project.config ?? ProjectConfig.empty();
 
+    final mergedFlavors = {...?currentConfig.flavors, ...?flavors};
+
     final newConfig = ProjectConfig(
       flutter: flutterSdkVersion,
-      flavors: {...?currentConfig.flavors, ...flavors},
+      flavors: mergedFlavors.isNotEmpty ? mergedFlavors : null,
       updateVscodeSettings: updateVscodeSettings,
     );
 

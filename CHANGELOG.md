@@ -1,3 +1,7 @@
+## 3.1.1
+
+* Fixed: Empty flavors map been added to the project config by @leoafarias
+
 ## 3.1.0
 
 * Initial release of [JSON API](https://fvm.app/documentation/advanced/json-api), allows for better integration of third-party tools and CI/CD workflows.
