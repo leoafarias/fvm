@@ -17,7 +17,7 @@ BIN_LINK_FOR_LINUX="$HOME/.local/bin/fvm"
 BIN_LINK_FOR_MACOS="/usr/local/bin/fvm"
 
 BIN_LINK=""
-if [ $OS = "linux" ]; then
+if [ "$OS" == "linux" ]; then
      BIN_LINK=$BIN_LINK_FOR_LINUX
 else
      BIN_LINK=$BIN_LINK_FOR_MACOS

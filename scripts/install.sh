@@ -71,7 +71,7 @@ FMV_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET_FOR_LINUX="$HOME/.local/bin/fvm"
 SYMLINK_TARGET_FOR_MACOS="/usr/local/bin/fvm"
 SYMLINK_TARGET=""
-if [ $OS = "linux" ]; then
+if [ "$OS" == "linux" ]; then
      SYMLINK_TARGET=$SYMLINK_TARGET_FOR_LINUX
 else
      SYMLINK_TARGET=$SYMLINK_TARGET_FOR_MACOS
