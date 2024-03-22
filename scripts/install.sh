@@ -67,9 +67,9 @@ log_message "Installing FVM version $FVM_VERSION."
 # Setup installation directory and symlink
 FVM_DIR="$HOME/.fvm_flutter"
 FMV_DIR_BIN="$FVM_DIR/bin"
+
 SYMLINK_TARGET_FOR_LINUX="$HOME/.local/bin/fvm"
 SYMLINK_TARGET_FOR_MACOS="/usr/local/bin/fvm"
-
 SYMLINK_TARGET=""
 if [ $OS = "linux" ]; then
      SYMLINK_TARGET=$SYMLINK_TARGET_FOR_LINUX
@@ -112,7 +112,6 @@ if ! mv "$FVM_DIR/fvm" "$FMV_DIR_BIN"; then
 fi
 
 # Create a symlink
-
 if ! ln -sf "$FMV_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
     error "Failed to create symlink."
 fi
