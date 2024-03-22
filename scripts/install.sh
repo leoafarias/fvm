@@ -67,7 +67,7 @@ log_message "Installing FVM version $FVM_VERSION."
 # Setup installation directory and symlink
 FVM_DIR="$HOME/.fvm_flutter"
 FMV_DIR_BIN="$FVM_DIR/bin"
-SYMLINK_TARGET="/usr/local/bin/fvm"
+SYMLINK_TARGET="$HOME/.local/bin/fvm"
 
 
 # Create FVM directory if it doesn't exist

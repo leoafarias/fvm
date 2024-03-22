@@ -2,7 +2,7 @@
 
 # Define the FVM directory and binary path
 FVM_DIR="$HOME/.fvm_flutter"
-BIN_LINK="/usr/local/bin/fvm"
+BIN_LINK="$HOME/.local/bin/fvm"
 
 # Check if FVM is installed
 if ! command -v fvm &> /dev/null
