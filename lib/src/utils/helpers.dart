@@ -62,6 +62,10 @@ String assignVersionWeight(String version) {
     version = version.replaceFirst('v', '');
   }
 
+  if (version.contains('custom_')) {
+    version = version.replaceFirst('custom_', '');
+  }
+
   try {
     // Checking to throw an issue if it cannot parse
     // ignore: avoid-unused-instances
