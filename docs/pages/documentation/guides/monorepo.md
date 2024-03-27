@@ -19,10 +19,6 @@ For detailed configuration instructions, refer to the [sdkPath](https://melos.in
 
 ## Project with Subfolders
 
-This setup involves repositories segmented into subfolders, with each housing a distinct Flutter project, and lacking a unified monorepo management tool:
+This setup involves repositories segmented into subfolders, with each housing a distinct Flutter project, and lacking a unified monorepo management tool.
 
-- **Root-Level `pubspec.yaml`**: To enable FVM's shared configuration across subprojects, create a `pubspec.yaml` at the repository's root. This file needs only include the `name` field to be parsed correctly by FVM.
-
-```yaml title="pubspec.yaml"
-name: workspace_name
-```
+Run `fvm use` at the root folder of the Flutter projects to generate a `.fvmrc` file. Now, each project can use the same Flutter SDK version.
