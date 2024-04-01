@@ -32,7 +32,7 @@ String cacheVersionSelector(List<CacheFlutterVersion> versions) {
 
   final versionsList = versions.map((version) => version.name).toList();
 
-  final choise = logger.select('Select a version:', options: versionsList);
+  final choise = logger.select('Select a version: ', options: versionsList);
 
   return choise;
 }
