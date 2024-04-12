@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:cli_completion/installer.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart';
@@ -64,6 +66,10 @@ class LoggerService extends ContextService {
   }
 
   bool confirm(String? message, {bool? defaultValue}) {
+    if (context.noConfirm) {
+      exit(ExitCode.usage.code);
+    }
+
     // When running tests, always return true.
     if (context.isTest) return true;
 
