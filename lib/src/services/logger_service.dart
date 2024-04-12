@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cli_completion/installer.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart';
@@ -66,7 +65,7 @@ class LoggerService extends ContextService {
   }
 
   bool confirm(String? message, {bool? defaultValue}) {
-    if (context.noConfirm) {
+    if (context.noInteract) {
       exit(ExitCode.usage.code);
     }
 
@@ -78,6 +77,10 @@ class LoggerService extends ContextService {
   }
 
   String select(String? message, {required List<String> options}) {
+    if (context.noInteract) {
+      exit(ExitCode.usage.code);
+    }
+
     final selection = interact.Select(
       prompt: message ?? '',
       options: options,
