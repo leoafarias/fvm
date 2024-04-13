@@ -32,7 +32,7 @@ FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 T getProvider<T>() => ctx.get();
 
-@MappableClass()
+@MappableClass(includeCustomMappers: [GeneratorsMapper()])
 class FVMContext with FVMContextMappable {
   static FVMContext main = FVMContext.create();
 
@@ -61,7 +61,8 @@ class FVMContext with FVMContextMappable {
 
   /// Constructor
   /// If nothing is provided set default
-  FVMContext.raw({
+  @MappableConstructor()
+  FVMContext.base({
     required this.id,
     required this.workingDirectory,
     required this.config,
@@ -89,7 +90,7 @@ class FVMContext with FVMContextMappable {
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
-    return FVMContext.raw(
+    return FVMContext.base(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
@@ -201,4 +202,18 @@ class FVMContext with FVMContextMappable {
 
   @override
   String toString() => id;
+}
+
+class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
+  const GeneratorsMapper();
+
+  @override
+  // ignore: avoid-dynamic
+  Map<Type, Generator> decode(dynamic value) {
+    return {};
+  }
+
+  @override
+  // ignore: avoid-dynamic
+  dynamic encode(Map<Type, Generator> self) => null;
 }

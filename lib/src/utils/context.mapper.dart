@@ -13,6 +13,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static FVMContextMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = FVMContextMapper._());
+      MapperContainer.globals.useAll([GeneratorsMapper()]);
       AppConfigMapper.ensureInitialized();
     }
     return _instance!;
@@ -109,7 +110,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   };
 
   static FVMContext _instantiate(DecodingData data) {
-    return FVMContext.raw(
+    return FVMContext.base(
         id: data.dec(_f$id),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
@@ -243,7 +244,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (isTest != null) #isTest: isTest
       }));
   @override
-  FVMContext $make(CopyWithData data) => FVMContext.raw(
+  FVMContext $make(CopyWithData data) => FVMContext.base(
       id: data.get(#id, or: $value.id),
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),

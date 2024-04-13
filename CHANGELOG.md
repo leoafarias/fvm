@@ -1,3 +1,12 @@
+## 3.1.3
+
+* Fixed: Version weight handles custom versions properly by @quyenvsp
+* Remove requirement for pubspec at the root for monorepos by @leoafarias
+
+## 3.1.2
+
+* Fixed: `fvm api context` command not been parsed correctly by @leoafarias
+
 ## 3.1.1
 
 * Fixed: Empty flavors map been added to the project config by @leoafarias
