@@ -11,6 +11,16 @@
       "channel": "beta",
       "version": "3.22.0-0.2.pre",
       "dart_sdk_version": "3.4.0 (build 3.4.0-282.2.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-04-19T16:04:30.187808Z",
+      "archive": "beta/macos/flutter_macos_3.22.0-0.2.pre-beta.zip",
+      "sha256": "e9b9ad1d1aee7a04826b460c2bc68304f6394d6d20a707664a806cdde21da1eb"
+    },
+    {
+      "hash": "312b9e81e93663b38f8e58d540be860fc75372b9",
+      "channel": "beta",
+      "version": "3.22.0-0.2.pre",
+      "dart_sdk_version": "3.4.0 (build 3.4.0-282.2.beta)",
       "dart_sdk_arch": "arm64",
       "release_date": "2024-04-19T16:00:19.587514Z",
       "archive": "beta/macos/flutter_macos_arm64_3.22.0-0.2.pre-beta.zip",
