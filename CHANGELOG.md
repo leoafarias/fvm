@@ -1,3 +1,9 @@
+## 3.1.4
+
+* Disable git cache on CI environment by @leoafarias
+* Add force flag to global command by @Rexios80
+* Adds trailing space to version prompt by @pastrefvm/pull/705
+
 ## 3.1.3
 
 * Fixed: Version weight handles custom versions properly by @quyenvsp
