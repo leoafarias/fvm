@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, unnecessary_cast
+// ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
 // ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
 part of 'json_response.dart';
@@ -127,10 +127,8 @@ mixin GetCacheVersionsResponseMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            GetCacheVersionsResponseMapper.ensureInitialized()
-                .isValueEqual(this as GetCacheVersionsResponse, other));
+    return GetCacheVersionsResponseMapper.ensureInitialized()
+        .equalsValue(this as GetCacheVersionsResponse, other);
   }
 
   @override
@@ -266,10 +264,8 @@ mixin GetReleasesResponseMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            GetReleasesResponseMapper.ensureInitialized()
-                .isValueEqual(this as GetReleasesResponse, other));
+    return GetReleasesResponseMapper.ensureInitialized()
+        .equalsValue(this as GetReleasesResponse, other);
   }
 
   @override
@@ -395,10 +391,8 @@ mixin GetProjectResponseMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            GetProjectResponseMapper.ensureInitialized()
-                .isValueEqual(this as GetProjectResponse, other));
+    return GetProjectResponseMapper.ensureInitialized()
+        .equalsValue(this as GetProjectResponse, other);
   }
 
   @override
@@ -512,10 +506,8 @@ mixin GetContextResponseMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            GetContextResponseMapper.ensureInitialized()
-                .isValueEqual(this as GetContextResponse, other));
+    return GetContextResponseMapper.ensureInitialized()
+        .equalsValue(this as GetContextResponse, other);
   }
 
   @override

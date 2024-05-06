@@ -1,7 +1,7 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint
-// ignore_for_file: unused_element, unnecessary_cast
+// ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
 // ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
 
 part of 'config_model.dart';
@@ -214,10 +214,8 @@ mixin EnvConfigMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            EnvConfigMapper.ensureInitialized()
-                .isValueEqual(this as EnvConfig, other));
+    return EnvConfigMapper.ensureInitialized()
+        .equalsValue(this as EnvConfig, other);
   }
 
   @override
@@ -376,10 +374,8 @@ mixin FileConfigMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            FileConfigMapper.ensureInitialized()
-                .isValueEqual(this as FileConfig, other));
+    return FileConfigMapper.ensureInitialized()
+        .equalsValue(this as FileConfig, other);
   }
 
   @override
@@ -568,10 +564,8 @@ mixin AppConfigMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            AppConfigMapper.ensureInitialized()
-                .isValueEqual(this as AppConfig, other));
+    return AppConfigMapper.ensureInitialized()
+        .equalsValue(this as AppConfig, other);
   }
 
   @override
@@ -772,10 +766,8 @@ mixin ProjectConfigMappable {
 
   @override
   bool operator ==(Object other) {
-    return identical(this, other) ||
-        (runtimeType == other.runtimeType &&
-            ProjectConfigMapper.ensureInitialized()
-                .isValueEqual(this as ProjectConfig, other));
+    return ProjectConfigMapper.ensureInitialized()
+        .equalsValue(this as ProjectConfig, other);
   }
 
   @override
