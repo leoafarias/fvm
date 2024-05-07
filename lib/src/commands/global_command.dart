@@ -24,18 +24,27 @@ class GlobalCommand extends BaseCommand {
 
   /// Constructor
   GlobalCommand() {
-    argParser.addFlag(
-      'unlink',
-      abbr: 'u',
-      help: 'Unlinks the global version',
-      defaultsTo: false,
-      negatable: false,
-    );
+    argParser
+      ..addFlag(
+        'unlink',
+        abbr: 'u',
+        help: 'Unlinks the global version',
+        defaultsTo: false,
+        negatable: false,
+      )
+      ..addFlag(
+        'force',
+        abbr: 'f',
+        help: 'Skips validation checks',
+        defaultsTo: false,
+        negatable: false,
+      );
   }
 
   @override
   Future<int> run() async {
     final unlinkArg = boolArg('unlink');
+    final forceArg = boolArg('force');
 
     if (unlinkArg) {
       final globalVersion = GlobalVersionService.fromContext.getGlobal();
@@ -66,7 +75,7 @@ class GlobalCommand extends BaseCommand {
     version ??= argResults!.rest[0];
 
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(version);
+    final cacheVersion = await ensureCacheWorkflow(version, force: forceArg);
 
     // Sets version as the global
     GlobalVersionService.fromContext.setGlobal(cacheVersion);

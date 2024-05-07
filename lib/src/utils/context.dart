@@ -124,7 +124,9 @@ class FVMContext with FVMContextMappable {
   /// Flag to determine if should use git cache
   @MappableField()
   bool get gitCache {
-    return config.useGitCache != null ? config.useGitCache! : true;
+    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
+
+    return useGitCache && !isCI;
   }
 
   /// Run pub get on sdk changes
