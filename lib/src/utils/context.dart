@@ -56,7 +56,8 @@ class FVMContext with FVMContextMappable {
 
   final List<String> args;
 
-  final bool skipInput;
+  /// True if the `--fvm-skip-input` flag was passed to the command
+  final bool _skipInput;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -70,10 +71,10 @@ class FVMContext with FVMContextMappable {
     required this.config,
     required this.environment,
     required this.args,
-    required this.skipInput,
+    required bool skipInput,
     required this.generators,
     this.isTest = false,
-  });
+  }) : _skipInput = skipInput;
 
   static FVMContext create({
     String? id,
@@ -193,6 +194,9 @@ class FVMContext with FVMContextMappable {
   bool get isCI {
     return kCiEnvironmentVariables.any(Platform.environment.containsKey);
   }
+
+  @MappableField()
+  bool get skipInput => isCI || _skipInput;
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
