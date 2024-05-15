@@ -66,6 +66,9 @@ class LoggerService extends ContextService {
 
   bool confirm(String? message, {bool? defaultValue}) {
     if (context.skipInput) {
+      if (defaultValue != null) {
+        return defaultValue;
+      }
       exit(ExitCode.usage.code);
     }
 
@@ -76,15 +79,22 @@ class LoggerService extends ContextService {
         .interact();
   }
 
-  String select(String? message, {required List<String> options}) {
+  String select(
+    String? message, {
+    required List<String> options,
+    int? defaultSelection,
+  }) {
     if (context.skipInput) {
+      if (defaultSelection != null) {
+        return options[defaultSelection];
+      }
       exit(ExitCode.usage.code);
     }
 
     final selection = interact.Select(
       prompt: message ?? '',
       options: options,
-      initialIndex: 0,
+      initialIndex: defaultSelection ?? 0,
     ).interact();
 
     return options[selection];
