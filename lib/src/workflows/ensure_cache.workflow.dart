@@ -73,6 +73,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         final shouldInstallConfirmed = logger.confirm(
           'Would you like to install it now?',
           defaultValue: true,
+          ciDefaultValue: false,
         );
 
         if (!shouldInstallConfirmed) {

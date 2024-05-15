@@ -64,12 +64,14 @@ class LoggerService extends ContextService {
     return progress;
   }
 
-  bool confirm(String? message, {bool? defaultValue}) {
+  bool confirm(String? message, {bool? defaultValue, bool? ciDefaultValue}) {
     // When running tests, always return true.
     if (context.isTest) return true;
 
     if (context.skipInput) {
-      if (defaultValue != null) {
+      if (ciDefaultValue != null) {
+        return ciDefaultValue;
+      } else if (defaultValue != null) {
         return defaultValue;
       }
       exit(ExitCode.usage.code);
