@@ -56,7 +56,7 @@ class FVMContext with FVMContextMappable {
 
   final List<String> args;
 
-  final bool noInteract;
+  final bool skipInput;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -70,7 +70,7 @@ class FVMContext with FVMContextMappable {
     required this.config,
     required this.environment,
     required this.args,
-    required this.noInteract,
+    required this.skipInput,
     required this.generators,
     this.isTest = false,
   });
@@ -78,7 +78,7 @@ class FVMContext with FVMContextMappable {
   static FVMContext create({
     String? id,
     List<String>? args,
-    bool? noInteract,
+    bool? skipInput,
     AppConfig? configOverrides,
     String? workingDirectory,
     Map<Type, dynamic>? generatorOverrides,
@@ -100,7 +100,7 @@ class FVMContext with FVMContextMappable {
       config: config,
       environment: environment,
       args: args ?? [],
-      noInteract: noInteract ?? false,
+      skipInput: skipInput ?? false,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,

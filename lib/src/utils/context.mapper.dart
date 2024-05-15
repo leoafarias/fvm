@@ -35,9 +35,9 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
       Field('environment', _$environment);
   static List<String> _$args(FVMContext v) => v.args;
   static const Field<FVMContext, List<String>> _f$args = Field('args', _$args);
-  static bool _$noInteract(FVMContext v) => v.noInteract;
-  static const Field<FVMContext, bool> _f$noInteract =
-      Field('noInteract', _$noInteract);
+  static bool _$skipInput(FVMContext v) => v.skipInput;
+  static const Field<FVMContext, bool> _f$skipInput =
+      Field('skipInput', _$skipInput);
   static Map<Type, ContextService Function(FVMContext)> _$generators(
           FVMContext v) =>
       v.generators;
@@ -94,7 +94,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #config: _f$config,
     #environment: _f$environment,
     #args: _f$args,
-    #noInteract: _f$noInteract,
+    #skipInput: _f$skipInput,
     #generators: _f$generators,
     #isTest: _f$isTest,
     #fvmDir: _f$fvmDir,
@@ -120,7 +120,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
         config: data.dec(_f$config),
         environment: data.dec(_f$environment),
         args: data.dec(_f$args),
-        noInteract: data.dec(_f$noInteract),
+        skipInput: data.dec(_f$skipInput),
         generators: data.dec(_f$generators),
         isTest: data.dec(_f$isTest));
   }
@@ -192,7 +192,7 @@ abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
       AppConfig? config,
       Map<String, String>? environment,
       List<String>? args,
-      bool? noInteract,
+      bool? skipInput,
       Map<Type, ContextService Function(FVMContext)>? generators,
       bool? isTest});
   FVMContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -236,7 +236,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
           AppConfig? config,
           Map<String, String>? environment,
           List<String>? args,
-          bool? noInteract,
+          bool? skipInput,
           Map<Type, ContextService Function(FVMContext)>? generators,
           bool? isTest}) =>
       $apply(FieldCopyWithData({
@@ -245,7 +245,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (config != null) #config: config,
         if (environment != null) #environment: environment,
         if (args != null) #args: args,
-        if (noInteract != null) #noInteract: noInteract,
+        if (skipInput != null) #skipInput: skipInput,
         if (generators != null) #generators: generators,
         if (isTest != null) #isTest: isTest
       }));
@@ -257,7 +257,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
       config: data.get(#config, or: $value.config),
       environment: data.get(#environment, or: $value.environment),
       args: data.get(#args, or: $value.args),
-      noInteract: data.get(#noInteract, or: $value.noInteract),
+      skipInput: data.get(#skipInput, or: $value.skipInput),
       generators: data.get(#generators, or: $value.generators),
       isTest: data.get(#isTest, or: $value.isTest));
 

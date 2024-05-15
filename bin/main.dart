@@ -8,13 +8,13 @@ import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
   final editableArgs = List<String>.from(args);
-  final noInteract = editableArgs.remove('--no-interact');
+  final skipInput = editableArgs.remove('--fvm-skip-input');
   final scope = Scope()
     ..value(
       contextKey,
       FVMContext.create(
         args: editableArgs,
-        noInteract: noInteract,
+        skipInput: skipInput,
       ),
     );
 

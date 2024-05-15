@@ -65,7 +65,7 @@ class LoggerService extends ContextService {
   }
 
   bool confirm(String? message, {bool? defaultValue}) {
-    if (context.noInteract) {
+    if (context.skipInput) {
       exit(ExitCode.usage.code);
     }
 
@@ -77,7 +77,7 @@ class LoggerService extends ContextService {
   }
 
   String select(String? message, {required List<String> options}) {
-    if (context.noInteract) {
+    if (context.skipInput) {
       exit(ExitCode.usage.code);
     }
 
