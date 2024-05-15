@@ -65,15 +65,15 @@ class LoggerService extends ContextService {
   }
 
   bool confirm(String? message, {bool? defaultValue}) {
+    // When running tests, always return true.
+    if (context.isTest) return true;
+
     if (context.skipInput) {
       if (defaultValue != null) {
         return defaultValue;
       }
       exit(ExitCode.usage.code);
     }
-
-    // When running tests, always return true.
-    if (context.isTest) return true;
 
     return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
         .interact();
