@@ -77,7 +77,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
         );
 
         if (!shouldInstallConfirmed) {
-          exit(ExitCode.success.code);
+          exit(ExitCode.unavailable.code);
         }
       }
     }
