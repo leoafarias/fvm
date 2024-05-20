@@ -22,6 +22,7 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
+import 'commands/update_command.dart';
 import 'services/config_repository.dart';
 import 'services/logger_service.dart';
 import 'utils/constants.dart';
@@ -60,6 +61,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(DestroyCommand());
     addCommand(APICommand());
     addCommand(GlobalCommand());
+    addCommand(UpdateCommand());
   }
 
   /// Checks if the current version (set by the build runner on the
