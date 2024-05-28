@@ -173,10 +173,10 @@ packages:
     dependency: "direct dev"
     description:
       name: cli_pkg
-      sha256: "009e19944bbfb07c3b97f2f8c9941aa01ca70a7d3d0018e813303b4c3905c9b9"
+      sha256: f812467b5d6a5f26ad0fba5dcfc95133df02edbae47dfa4ade3df5d2b5afdcf2
       url: "https://pub.dev"
     source: hosted
-    version: "2.5.0"
+    version: "2.10.0"
   cli_util:
     dependency: transitive
     description:
@@ -473,6 +473,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.5"
+  native_stack_traces:
+    dependency: transitive
+    description:
+      name: native_stack_traces
+      sha256: "64d2f4bcf3b69326fb9bc91b4dd3a06f94bb5bbc3a65e25ae6467ace0b34bfd3"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.7"
   node_interop:
     dependency: transitive
     description:
