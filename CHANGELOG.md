@@ -1,4 +1,5 @@
 ## 3.2.0
+
 * Adds support for skipping input requests by @Rexios80. Input requests are skipped when:
   * The `--fvm-skip-input` flag is passed
   * Running in CI
