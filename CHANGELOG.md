@@ -1,8 +1,12 @@
 ## 3.2.0
-- Adds support for skipping input requests by @Rexios80. Input requests are skipped when:
-  - The `--fvm-skip-input` flag is passed
-  - Running in CI
-- Exits with `ExitCode.unavailable` if the request to install a Flutter version is denied by @Rexios80
+* Adds support for skipping input requests by @Rexios80. Input requests are skipped when:
+  * The `--fvm-skip-input` flag is passed
+  * Running in CI
+* Exits with `ExitCode.unavailable` if the request to install a Flutter version is denied by @Rexios80
+
+## 3.1.5
+
+* Improved mirror creation logging
 
 ## 3.1.4
 
