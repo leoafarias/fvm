@@ -27,6 +27,14 @@ Future<void> resolveDependenciesWorkflow(
     return;
   }
 
+  if (!project.hasPubspec) {
+    logger
+      ..info('Skipping "pub get" because no pubspec.yaml found.')
+      ..spacer;
+
+    return;
+  }
+
   final progress = logger.progress('Resolving dependencies...');
 
   // Try to resolve offline

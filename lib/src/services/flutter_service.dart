@@ -198,8 +198,8 @@ class FlutterService extends ContextService {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(context.gitCachePath);
     try {
+      final gitDir = await GitDir.fromExisting(context.gitCachePath);
       final result = await gitDir.runCommand(
         ['rev-parse', '--short', '--verify', ref],
       );

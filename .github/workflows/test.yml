@@ -61,7 +61,6 @@ jobs:
 
   test-os:
     name: Test on ${{ matrix.os }}
-    needs: test
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:

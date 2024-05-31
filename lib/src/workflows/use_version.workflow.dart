@@ -33,12 +33,25 @@ Future<void> useVersionWorkflow({
 }) async {
   // If project use check that is Flutter project
   if (!project.hasPubspec && !force) {
-    logger
-      ..spacer
-      ..info('No pubspec.yaml detected in this directory');
-    final proceed = logger.confirm('Would you like to continue?');
+    if (project.hasConfig) {
+      if (project.path != ctx.workingDirectory) {
+        logger
+          ..spacer
+          ..info('Using $kFvmConfigFileName in ${project.path}')
+          ..spacer
+          ..info(
+            'If this is incorrect either use the --force flag or remove the $kFvmConfigFileName and the $kFvmDirName directory.',
+          )
+          ..spacer;
+      }
+    } else {
+      logger
+        ..spacer
+        ..info('No pubspec.yaml detected in this directory');
+      final proceed = logger.confirm('Would you like to continue?');
 
-    if (!proceed) exit(ExitCode.success.code);
+      if (!proceed) exit(ExitCode.success.code);
+    }
   }
 
   logger
@@ -111,12 +124,6 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   final updateGitIgnore = project.config?.updateGitIgnore ?? true;
 
   logger.detail('Update gitignore: $updateGitIgnore');
-  if (!await GitDir.isGitDir(project.path)) {
-    logger.warn(
-      'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
-      'to determine what to index and display on searches,',
-    );
-  }
 
   if (!updateGitIgnore) {
     logger.detail(
@@ -131,6 +138,12 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   final ignoreFile = project.gitIgnoreFile;
 
   if (!ignoreFile.existsSync()) {
+    if (!await GitDir.isGitDir(project.path)) {
+      logger.warn(
+        'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
+        'to determine what to index and display on searches,',
+      );
+    }
     ignoreFile.createSync(recursive: true);
   }
 
