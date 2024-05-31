@@ -111,12 +111,6 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   final updateGitIgnore = project.config?.updateGitIgnore ?? true;
 
   logger.detail('Update gitignore: $updateGitIgnore');
-  if (!await GitDir.isGitDir(project.path)) {
-    logger.warn(
-      'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
-      'to determine what to index and display on searches,',
-    );
-  }
 
   if (!updateGitIgnore) {
     logger.detail(
@@ -131,6 +125,12 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   final ignoreFile = project.gitIgnoreFile;
 
   if (!ignoreFile.existsSync()) {
+    if (!await GitDir.isGitDir(project.path)) {
+      logger.warn(
+        'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
+        'to determine what to index and display on searches,',
+      );
+    }
     ignoreFile.createSync(recursive: true);
   }
 
