@@ -1,3 +1,7 @@
+## 3.1.5
+
+* Improved mirror creation logging
+
 ## 3.1.4
 
 * Disable git cache on CI environment by @leoafarias
