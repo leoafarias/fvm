@@ -33,12 +33,25 @@ Future<void> useVersionWorkflow({
 }) async {
   // If project use check that is Flutter project
   if (!project.hasPubspec && !force) {
-    logger
-      ..spacer
-      ..info('No pubspec.yaml detected in this directory');
-    final proceed = logger.confirm('Would you like to continue?');
+    if (project.hasConfig) {
+      if (project.path != ctx.workingDirectory) {
+        logger
+          ..spacer
+          ..info('Using $kFvmConfigFileName in ${project.path}')
+          ..spacer
+          ..info(
+            'If this is incorrect either use the --force flag or remove the $kFvmConfigFileName and the $kFvmDirName directory.',
+          )
+          ..spacer;
+      }
+    } else {
+      logger
+        ..spacer
+        ..info('No pubspec.yaml detected in this directory');
+      final proceed = logger.confirm('Would you like to continue?');
 
-    if (!proceed) exit(ExitCode.success.code);
+      if (!proceed) exit(ExitCode.success.code);
+    }
   }
 
   logger
