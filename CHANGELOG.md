@@ -1,3 +1,8 @@
+## 3.1.6
+
+- Improved messages when nested .fvmrc file is found.
+- Better error handling for .git directory check.
+
 ## 3.1.5
 
 * Improved mirror creation logging
