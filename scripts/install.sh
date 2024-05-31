@@ -27,9 +27,14 @@ esac
 Color_Off='\033[0m'       # Reset
 Green='\033[0;32m'        # Green
 Red='\033[0;31m'          
+Bold_White='\033[1m'    # Bold White
 
 success() {
     log_message "${Green}$1${Color_Off}"
+}
+
+info_bold() {
+    log_message "${Bold_White}$1${Color_Off}"
 }
 
 error() {
@@ -68,16 +73,6 @@ log_message "Installing FVM version $FVM_VERSION."
 FVM_DIR="$HOME/.fvm_flutter"
 FMV_DIR_BIN="$FVM_DIR/bin"
 
-SYMLINK_TARGET_FOR_LINUX="$HOME/.local/bin/fvm"
-SYMLINK_TARGET_FOR_MACOS="/usr/local/bin/fvm"
-SYMLINK_TARGET=""
-if [ "$OS" == "linux" ]; then
-     SYMLINK_TARGET=$SYMLINK_TARGET_FOR_LINUX
-else
-     SYMLINK_TARGET=$SYMLINK_TARGET_FOR_MACOS
-fi
-
-
 # Create FVM directory if it doesn't exist
 mkdir -p "$FVM_DIR" || error "Failed to create FVM directory: $FVM_DIR."
 
@@ -111,13 +106,11 @@ if ! mv "$FVM_DIR/fvm" "$FMV_DIR_BIN"; then
     error "Failed to move fvm to bin directory."
 fi
 
-# Create a symlink
-if ! ln -sf "$FMV_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
-    error "Failed to create symlink."
-fi
-
 # Verify installation
 if ! command -v fvm &> /dev/null; then
+    echo 'Manually add the directory to ~/.bashrc, ~/.zshrc (or similar):'
+    info_bold "     export PATH=$FMV_DIR_BIN:\$PATH"
+
     error "Installation verification failed. FVM may not be in PATH or failed to execute."
 fi
 
