@@ -76,16 +76,21 @@ Future<void> runGitCloneUpdate(List<String> args) async {
 
   final processLogs = <String>[];
 
-  // ignore: avoid-unassigned-stream-subscriptions
-  process.stderr.transform(utf8.decoder).listen((line) {
-    updateProgress(line);
-    processLogs.add(line);
-  });
+  try {
+    // ignore: avoid-unassigned-stream-subscriptions
+    process.stderr.transform(utf8.decoder).listen((line) {
+      updateProgress(line);
+      processLogs.add(line);
+    });
 
-  // ignore: avoid-unassigned-stream-subscriptions
-  process.stdout.transform(utf8.decoder).listen((line) {
-    logger.info(line);
-  });
+    // ignore: avoid-unassigned-stream-subscriptions
+    process.stdout.transform(utf8.decoder).listen((line) {
+      logger.info(line);
+    });
+  } catch (e) {
+    logger.detail('Formatting error due to invalid return $e');
+    logger.info('Updating....');
+  }
 
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
