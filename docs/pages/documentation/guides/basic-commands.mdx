@@ -329,3 +329,35 @@ To destroy the FVM cache and delete all cached Flutter SDK versions, simply run:
 ```bash
 fvm destroy
 ```
+
+## Flavor
+
+The `flavor` command is used to execute Flutter commands using a specific Flutter SDK version defined by a project flavor.
+
+This command is particularly useful when you need to run a Flutter command (such as flutter build) with a version of the SDK associated with a particular flavor of your project.
+
+### Usage
+
+```bash
+> fvm flavor [flavor] [flutter_command] [flutter_command_args]
+```
+
+`[flavor]`: The flavor of your project which defines the Flutter SDK version you want to use for running the command.
+
+`[flutter_command]`: The Flutter command you want to execute.
+
+`[flutter_command_args]`: Any additional arguments you want to pass to the Flutter command.
+
+### Examples
+**Running a Build with a Specific Flavor**:
+To build your Flutter project using the Flutter SDK version associated with the `development` flavor:
+
+```bash
+> fvm flavor development flutter build
+```
+**Running Tests with a Different Flavor**:
+If you need to run tests using the Flutter SDK version associated with the `staging` flavor:
+
+```bash
+> fvm flavor staging flutter test
+```

@@ -38,4 +38,12 @@ Will get the version configured for the flavor and set as the project version.
 fvm use {flavor_name}
 ```
 
+## Spwan a command with a flavor version
+
+Will get the version configured for the flavor and use to run a Flutter command.
+
+```bash
+fvm flavor {flavor_name} {flutter_command} {flutter_command_args}
+```
+
 
