@@ -1,7 +1,12 @@
+## 3.1.7
+
+* Display the configured version in the `fvm list` command by @digoreis
+* Handle progress printer exceptions by @leoafarias
+
 ## 3.1.6
 
-- Improved messages when nested .fvmrc file is found.
-- Better error handling for .git directory check.
+* Improved messages when nested .fvmrc file is found.
+* Better error handling for .git directory check.
 
 ## 3.1.5
 
