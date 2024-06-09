@@ -12,11 +12,11 @@ Configure FVM and IDEs for better support for different development environments
 
 ## Project
 
-There are two main parts for a project that has FVM configured. The `.fvmrc` config file and the `.fvm` directory.
+There are two main parts for a project that has FVM configured: the `.fvmrc` config file and the `.fvm` directory.
 
 ### Config File `.fvmrc`
 
-This contains version linked to the project. This file is automatically created when you run `fvm use {version}`. Here you can also find project specific settings, and flavors.
+This contains the version linked to the project. This file is automatically created when you run `fvm use {version}`. Here you can also find project-specific settings and flavors.
 
 ```json
 {
@@ -31,20 +31,20 @@ This contains version linked to the project. This file is automatically created 
 }
 ```
 
-- `flutter`: The version of the Flutter SDK to be used, falling back to the flutter value if not explicitly set.
-- `cachePath`: Defines the path to the project's cache directory.
-- `useGitCache`: (default: true) Indicates whether the Git cache is used for dependencies.
-- `gitCachePath`: Sets the path to the Git cache directory, applicable if useGitCache is true.
-- `flutterUrl`: Specifies the URL to the Flutter SDK repository.
-- `priviledgedAccess`:(default: true) Determines if configurations requiring elevated permissions are enabled.
-- `flavors`: A map defining custom project flavors for different configurations.
-- `updateVscodeSettings`: (default: true) Flags whether to auto-update VS Code settings on configuration changes.
-- `updateGitIgnore`: (default:true) Indicates whether to auto-update the .gitignore file based on project configurations.
-- `runPubGetOnSdkChanges`: (default: true) Triggers flutter pub get automatically upon Flutter SDK version changes.
+-  `flutter`: The version of the Flutter SDK to be used, falling back to the flutter value if not explicitly set.
+-  `cachePath`: Defines the path to the project's cache directory.
+-  `useGitCache`: (default: true) Indicates whether the Git cache is used for dependencies.
+-  `gitCachePath`: Sets the path to the Git cache directory, applicable if useGitCache is true.
+-  `flutterUrl`: Specifies the URL to the Flutter SDK repository.
+-  `privilegedAccess`: (default: true) Determines if configurations requiring elevated permissions are enabled.
+-  `flavors`: A map defining custom project flavors for different configurations.
+-  `updateVscodeSettings`: (default: true) Flags whether to auto-update VS Code settings on configuration changes.
+-  `updateGitIgnore`: (default: true) Indicates whether to auto-update the .gitignore file based on project configurations.
+-  `runPubGetOnSdkChanges`: (default: true) Triggers flutter pub get automatically upon Flutter SDK version changes.
 
 ### .fvm Directory
 
-Inside the directory you will find the following files and directories:
+Inside the directory, you will find the following files and directories:
 
 <FileTree>
   <FileTree.Folder name=".fvm" defaultOpen>
@@ -59,16 +59,16 @@ Inside the directory you will find the following files and directories:
   </FileTree.Folder>
 </FileTree>
 
-- **flutter_sdk** - Symlink to the Flutter SDK version linked to the project.
-- **versions** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk, but is used for better VsCode compatibility.
-- **fvm_config.json** - (deprecated) This is a legacy configuration file.
-- **release** - (internal use only) File containing the release version of FVM.
-- **version** - (internal use only) File containing the version of FVM.
+-  **flutter_sdk** - Symlink to the Flutter SDK version linked to the project.
+-  **versions** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk but is used for better VS Code compatibility.
+-  **fvm_config.json** - (deprecated) This is a legacy configuration file.
+-  **release** - (internal use only) File containing the release version of FVM.
+-  **version** - (internal use only) File containing the version of FVM.
 
 <Callout type="info">
-  Starting version 3.0 and above it is recommended to add the `.fvm` directory
+  Starting with version 3.0 and above, it is recommended to add the `.fvm` directory
   to your `.gitignore` file. FVM will automatically add it to .gitignore when
-  pinning a version to a project, if `updateGitIgnore` is set to `true`.
+  pinning a version to a project if `updateGitIgnore` is set to `true`.
 </Callout>
 
 ## Environment Variables
@@ -77,8 +77,8 @@ Set environment variables at the system level to apply configurations globally. 
 
 ## Supported Environment Variables:
 
-- `FVM_CACHE_PATH`: Specifies the cache path for Flutter versions.
-- `FVM_USE_GIT_CACHE`: Enables/disables the git cache globally (`true`/`false`).
-- `FVM_GIT_CACHE_PATH`: Sets the path for the local git reference cache.
-- `FVM_FLUTTER_URL`: Defines the Flutter repository git URL.
-- `FVM_PRIVILEDGED_ACCESS`: Enables/disables privileged access for FVM (`true`/`false`).
+-  `FVM_CACHE_PATH`: Specifies the cache path for Flutter versions.
+-  `FVM_USE_GIT_CACHE`: Enables/disables the git cache globally (`true`/`false`).
+-  `FVM_GIT_CACHE_PATH`: Sets the path for the local git reference cache.
+-  `FVM_FLUTTER_URL`: Defines the Flutter repository git URL.
+-  `FVM_PRIVILEGED_ACCESS`: Enables/disables privileged access for FVM (`true`/`false`).

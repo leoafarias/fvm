@@ -5,7 +5,7 @@ title: Project Flavors
 
 # Project Flavors
 
-You can have multiple Flutter SDK versions configured per project environment or release type. FVM follows the same convention of Flutter and calls this `flavors`.
+You can have multiple Flutter SDK versions configured per project environment or release type. FVM follows the same convention as Flutter and calls this `flavors`.
 
 It allows you to create the following configuration for your project.
 
@@ -22,28 +22,26 @@ It allows you to create the following configuration for your project.
 
 ## Pin flavor version
 
-To choose a Flutter SDK version for a specific flavor you just use the `use` command.
+To choose a Flutter SDK version for a specific flavor, you just use the `use` command.
 
 ```bash
 fvm use {version} --flavor {flavor_name}
 ```
 
-This will pin `version` to `flavor_name`
+This will pin `version` to `flavor_name`.
 
 ## Switch flavors
 
-Will get the version configured for the flavor and set as the project version.
+This will get the version configured for the flavor and set it as the project version.
 
 ```bash
 fvm use {flavor_name}
 ```
 
-## Spwan a command with a flavor version
+## Spawn a command with a flavor version
 
-Will get the version configured for the flavor and use to run a Flutter command.
+This will get the version configured for the flavor and use it to run a Flutter command.
 
 ```bash
 fvm flavor {flavor_name} {flutter_command} {flutter_command_args}
 ```
-
-

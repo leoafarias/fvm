@@ -62,7 +62,7 @@ class ConfigRepository {
     String? flutterUrl,
     bool? disableUpdateCheck,
     DateTime? lastUpdateCheck,
-    bool? priviledgedAccess,
+    bool? privilegedAccess,
     bool? useGitCache,
   }) {
     final currentConfig = loadAppConfig();
@@ -73,7 +73,7 @@ class ConfigRepository {
       useGitCache: useGitCache,
       gitCachePath: gitCachePath,
       flutterUrl: flutterUrl,
-      priviledgedAccess: priviledgedAccess,
+      privilegedAccess: privilegedAccess,
     );
     save(currentConfig.copyWith.$merge(newConfig));
   }

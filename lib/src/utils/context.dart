@@ -162,8 +162,8 @@ class FVMContext with FVMContextMappable {
 
   /// Priviledged access
   @MappableField()
-  bool get priviledgedAccess {
-    return config.priviledgedAccess != null ? config.priviledgedAccess! : true;
+  bool get privilegedAccess {
+    return config.privilegedAccess != null ? config.privilegedAccess! : true;
   }
 
   /// Where Default Flutter SDK is stored
