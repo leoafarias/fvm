@@ -33,7 +33,7 @@ You are able to proxy any `flutter` or `dart` commands to the configured version
 
 <Callout type="info">
 
-Configure the following alias for a shorthand version of the command
+Configure the following alias for a shorthand version of the command:
 
 ```bash
 # aliases
@@ -54,7 +54,7 @@ f run
 
 ### Routing
 
-When proxying commands, `FVM` will look for an SDK in the following order.
+When proxying commands, `FVM` will look for an SDK in the following order:
 
 1. Project
 2. Ancestor directory
@@ -74,7 +74,7 @@ Using the symlink will dynamically call the configured version for the project.
 
 <Callout type="info">
 
-Configure the following alias to call the relative project version, without the need to proxy.
+Configure the following alias to call the relative project version, without the need to proxy:
 
 ```bash
 fv=".fvm/flutter_sdk/bin/flutter"
@@ -84,7 +84,7 @@ fv=".fvm/flutter_sdk/bin/flutter"
 
 <Callout type="info">
 
-If you wish to reroute `flutter` and `dart` calls to FVM i.e. ensure that running `flutter` on the terminal internally runs `fvm flutter` then you could run the below commands.
+If you wish to reroute `flutter` and `dart` calls to FVM, i.e., ensure that running `flutter` on the terminal internally runs `fvm flutter`, then you could run the below commands.
 
 **On Mac**
 
@@ -99,21 +99,25 @@ sudo echo 'fvm dart ${@:1}' > "/usr/local/bin/dart" && sudo chmod +x /usr/local/
 echo 'fvm flutter ${@:1}' > "$HOME/.local/bin/flutter" && chmod +x "$HOME/.local/bin/flutter"
 echo 'fvm dart ${@:1}' > "$HOME/.local/bin/dart" && chmod +x "$HOME/.local/bin/dart"
 ```
-If you've installed flutter/dart using native package managers, the binaries might conflict with these new shortcuts so consider deleting the existing ones and taking a backup for easier restoration.
+
+If you've installed flutter/dart using native package managers, the binaries might conflict with these new shortcuts, so consider deleting the existing ones and taking a backup for easier restoration.
 
 If you wish to remove these reroutes, just delete the corresponding files as shown below:
 
 **On Mac**
+
 ```bash
 sudo rm /usr/local/bin/flutter
 sudo rm /usr/local/bin/dart
 ```
 
 **On Linux**
+
 ```bash
 rm "$HOME/.local/bin/flutter"
 rm "$HOME/.local/bin/dart"
 ```
+
 </Callout>
 
 ## Spawn Command
@@ -126,7 +130,7 @@ fvm spawn {version}
 
 ## Examples
 
-The following will run `flutter analyze` on the `master` channel
+The following will run `flutter analyze` on the `master` channel:
 
 ```bash
 fvm spawn master analyze
