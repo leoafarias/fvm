@@ -11,7 +11,7 @@ FVM helps ensure that all projects or packages within a monorepo utilize a consi
 
 A shared `pubspec.yaml` at the monorepo's root is beneficial for projects with common dependencies, ensuring they all adhere to a unified Flutter SDK version.
 
-Melos requires a `pubspec.yaml` at the root of the monorepo. Running `fvm use` at the root of the monorepo will generate a `.fvmrc` file to be generate at the root, and will allow or packages to use the same Flutter SDK version.
+Melos requires a `pubspec.yaml` at the root of the monorepo. Running `fvm use` at the root of the monorepo will generate a `.fvmrc` file at the root, allowing all packages to use the same Flutter SDK version.
 
 Specify the Flutter SDK version in `melos.yaml`. This configuration ensures that all scripts and Melos commands utilize the designated Flutter SDK version, maintaining consistency across the monorepo.
 

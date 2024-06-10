@@ -273,7 +273,7 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
   sdkVersionFile.file.write(project.dartToolVersion ?? '');
   releaseFile.file.write(version.name);
 
-  if (!ctx.priviledgedAccess) return;
+  if (!ctx.privilegedAccess) return;
 
   project.localVersionsCachePath.dir
     ..deleteIfExists()
@@ -294,7 +294,7 @@ void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
     currentSdkLink.link.deleteSync();
   }
 
-  if (!ctx.priviledgedAccess) return;
+  if (!ctx.privilegedAccess) return;
 
   currentSdkLink.link.createLink(version.directory);
 }
@@ -367,7 +367,7 @@ void _manageVsCodeSettings(Project project) {
     vscodeSettingsFile.create(recursive: true);
   }
 
-  if (ctx.priviledgedAccess) {
+  if (ctx.privilegedAccess) {
     final relativePath = relative(
       project.localVersionSymlinkPath,
       from: project.path,
