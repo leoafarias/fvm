@@ -33,8 +33,8 @@ class ConfigKeysMapper extends EnumMapper<ConfigKeys> {
         return ConfigKeys.gitCachePath;
       case 'flutterUrl':
         return ConfigKeys.flutterUrl;
-      case 'priviledgedAccess':
-        return ConfigKeys.priviledgedAccess;
+      case 'privilegedAccess':
+        return ConfigKeys.privilegedAccess;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -51,8 +51,8 @@ class ConfigKeysMapper extends EnumMapper<ConfigKeys> {
         return 'gitCachePath';
       case ConfigKeys.flutterUrl:
         return 'flutterUrl';
-      case ConfigKeys.priviledgedAccess:
-        return 'priviledgedAccess';
+      case ConfigKeys.privilegedAccess:
+        return 'privilegedAccess';
     }
   }
 }
@@ -302,9 +302,9 @@ class FileConfigMapper extends ClassMapperBase<FileConfig> {
   static String? _$flutterUrl(FileConfig v) => v.flutterUrl;
   static const Field<FileConfig, String> _f$flutterUrl =
       Field('flutterUrl', _$flutterUrl);
-  static bool? _$priviledgedAccess(FileConfig v) => v.priviledgedAccess;
-  static const Field<FileConfig, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess);
+  static bool? _$privilegedAccess(FileConfig v) => v.privilegedAccess;
+  static const Field<FileConfig, bool> _f$privilegedAccess =
+      Field('privilegedAccess', _$privilegedAccess);
   static bool? _$runPubGetOnSdkChanges(FileConfig v) => v.runPubGetOnSdkChanges;
   static const Field<FileConfig, bool> _f$runPubGetOnSdkChanges =
       Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges);
@@ -321,7 +321,7 @@ class FileConfigMapper extends ClassMapperBase<FileConfig> {
     #useGitCache: _f$useGitCache,
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
-    #priviledgedAccess: _f$priviledgedAccess,
+    #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
@@ -335,7 +335,7 @@ class FileConfigMapper extends ClassMapperBase<FileConfig> {
         useGitCache: data.dec(_f$useGitCache),
         gitCachePath: data.dec(_f$gitCachePath),
         flutterUrl: data.dec(_f$flutterUrl),
-        priviledgedAccess: data.dec(_f$priviledgedAccess),
+        privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore));
@@ -398,7 +398,7 @@ abstract class FileConfigCopyWith<$R, $In extends FileConfig, $Out>
       bool? useGitCache,
       String? gitCachePath,
       String? flutterUrl,
-      bool? priviledgedAccess,
+      bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
       bool? updateGitIgnore});
@@ -419,7 +419,7 @@ class _FileConfigCopyWithImpl<$R, $Out>
           Object? useGitCache = $none,
           Object? gitCachePath = $none,
           Object? flutterUrl = $none,
-          Object? priviledgedAccess = $none,
+          Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none}) =>
@@ -428,7 +428,7 @@ class _FileConfigCopyWithImpl<$R, $Out>
         if (useGitCache != $none) #useGitCache: useGitCache,
         if (gitCachePath != $none) #gitCachePath: gitCachePath,
         if (flutterUrl != $none) #flutterUrl: flutterUrl,
-        if (priviledgedAccess != $none) #priviledgedAccess: priviledgedAccess,
+        if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
         if (runPubGetOnSdkChanges != $none)
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
@@ -441,8 +441,8 @@ class _FileConfigCopyWithImpl<$R, $Out>
       useGitCache: data.get(#useGitCache, or: $value.useGitCache),
       gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
       flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-      priviledgedAccess:
-          data.get(#priviledgedAccess, or: $value.priviledgedAccess),
+      privilegedAccess:
+          data.get(#privilegedAccess, or: $value.privilegedAccess),
       runPubGetOnSdkChanges:
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
@@ -488,9 +488,9 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
   static String? _$flutterUrl(AppConfig v) => v.flutterUrl;
   static const Field<AppConfig, String> _f$flutterUrl =
       Field('flutterUrl', _$flutterUrl, opt: true);
-  static bool? _$priviledgedAccess(AppConfig v) => v.priviledgedAccess;
-  static const Field<AppConfig, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess, opt: true);
+  static bool? _$privilegedAccess(AppConfig v) => v.privilegedAccess;
+  static const Field<AppConfig, bool> _f$privilegedAccess =
+      Field('privilegedAccess', _$privilegedAccess, opt: true);
   static bool? _$runPubGetOnSdkChanges(AppConfig v) => v.runPubGetOnSdkChanges;
   static const Field<AppConfig, bool> _f$runPubGetOnSdkChanges =
       Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges, opt: true);
@@ -509,7 +509,7 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
     #useGitCache: _f$useGitCache,
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
-    #priviledgedAccess: _f$priviledgedAccess,
+    #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
@@ -525,7 +525,7 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
         useGitCache: data.dec(_f$useGitCache),
         gitCachePath: data.dec(_f$gitCachePath),
         flutterUrl: data.dec(_f$flutterUrl),
-        priviledgedAccess: data.dec(_f$priviledgedAccess),
+        privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore));
@@ -589,7 +589,7 @@ abstract class AppConfigCopyWith<$R, $In extends AppConfig, $Out>
       bool? useGitCache,
       String? gitCachePath,
       String? flutterUrl,
-      bool? priviledgedAccess,
+      bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
       bool? updateGitIgnore});
@@ -612,7 +612,7 @@ class _AppConfigCopyWithImpl<$R, $Out>
           Object? useGitCache = $none,
           Object? gitCachePath = $none,
           Object? flutterUrl = $none,
-          Object? priviledgedAccess = $none,
+          Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none}) =>
@@ -624,7 +624,7 @@ class _AppConfigCopyWithImpl<$R, $Out>
         if (useGitCache != $none) #useGitCache: useGitCache,
         if (gitCachePath != $none) #gitCachePath: gitCachePath,
         if (flutterUrl != $none) #flutterUrl: flutterUrl,
-        if (priviledgedAccess != $none) #priviledgedAccess: priviledgedAccess,
+        if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
         if (runPubGetOnSdkChanges != $none)
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
@@ -640,8 +640,8 @@ class _AppConfigCopyWithImpl<$R, $Out>
       useGitCache: data.get(#useGitCache, or: $value.useGitCache),
       gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
       flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-      priviledgedAccess:
-          data.get(#priviledgedAccess, or: $value.priviledgedAccess),
+      privilegedAccess:
+          data.get(#privilegedAccess, or: $value.privilegedAccess),
       runPubGetOnSdkChanges:
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
@@ -687,9 +687,9 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
   static String? _$flutterUrl(ProjectConfig v) => v.flutterUrl;
   static const Field<ProjectConfig, String> _f$flutterUrl =
       Field('flutterUrl', _$flutterUrl, opt: true);
-  static bool? _$priviledgedAccess(ProjectConfig v) => v.priviledgedAccess;
-  static const Field<ProjectConfig, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess, opt: true);
+  static bool? _$privilegedAccess(ProjectConfig v) => v.privilegedAccess;
+  static const Field<ProjectConfig, bool> _f$privilegedAccess =
+      Field('privilegedAccess', _$privilegedAccess, opt: true);
   static bool? _$runPubGetOnSdkChanges(ProjectConfig v) =>
       v.runPubGetOnSdkChanges;
   static const Field<ProjectConfig, bool> _f$runPubGetOnSdkChanges =
@@ -710,7 +710,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
     #useGitCache: _f$useGitCache,
     #gitCachePath: _f$gitCachePath,
     #flutterUrl: _f$flutterUrl,
-    #priviledgedAccess: _f$priviledgedAccess,
+    #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
@@ -726,7 +726,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
         useGitCache: data.dec(_f$useGitCache),
         gitCachePath: data.dec(_f$gitCachePath),
         flutterUrl: data.dec(_f$flutterUrl),
-        priviledgedAccess: data.dec(_f$priviledgedAccess),
+        privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore));
@@ -795,7 +795,7 @@ abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
       bool? useGitCache,
       String? gitCachePath,
       String? flutterUrl,
-      bool? priviledgedAccess,
+      bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
       bool? updateGitIgnore});
@@ -826,7 +826,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           Object? useGitCache = $none,
           Object? gitCachePath = $none,
           Object? flutterUrl = $none,
-          Object? priviledgedAccess = $none,
+          Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none}) =>
@@ -837,7 +837,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
         if (useGitCache != $none) #useGitCache: useGitCache,
         if (gitCachePath != $none) #gitCachePath: gitCachePath,
         if (flutterUrl != $none) #flutterUrl: flutterUrl,
-        if (priviledgedAccess != $none) #priviledgedAccess: priviledgedAccess,
+        if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
         if (runPubGetOnSdkChanges != $none)
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
@@ -852,8 +852,8 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
       useGitCache: data.get(#useGitCache, or: $value.useGitCache),
       gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
       flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-      priviledgedAccess:
-          data.get(#priviledgedAccess, or: $value.priviledgedAccess),
+      privilegedAccess:
+          data.get(#privilegedAccess, or: $value.privilegedAccess),
       runPubGetOnSdkChanges:
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:

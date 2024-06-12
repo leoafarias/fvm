@@ -18,7 +18,7 @@ import {
 
 # Commands
 
-This a reference of essential FVM commands to help you efficiently manage multiple Flutter SDK versions across your projects.
+This is a reference of essential FVM commands to help you efficiently manage multiple Flutter SDK versions across your projects.
 
 ## Use
 
@@ -34,15 +34,11 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 
 ### Options
 
-- `-f, --force`: Bypasses Flutter project checks, assuming version compatibility.
-
-- `-p, --pin`: Pins the latest release of a specified channel.
-
-- `--flavor`: Specifies the SDK version for a particular project flavor in multi-flavored projects.
-
-- `-s,--skip-setup`: Omits Flutter setup post-installation for expedited process.
-
-- `--skip-pub-get`: Skip resolving dependencies (`flutter pub get`) after switching Flutter SDK.
+-  `-f, --force`: Bypasses Flutter project checks, assuming version compatibility.
+-  `-p, --pin`: Pins the latest release of a specified channel.
+-  `--flavor`: Specifies the SDK version for a particular project flavor in multi-flavored projects.
+-  `-s, --skip-setup`: Omits Flutter setup post-installation for expedited process.
+-  `--skip-pub-get`: Skips resolving dependencies (`flutter pub get`) after switching Flutter SDK.
 
 - `--fvm-skip-input`: Skips requests for user input and uses default values.
 
@@ -68,9 +64,9 @@ If you want to pin this channel to its current latest release, use the `--pin` f
 fvm use stable -p
 ```
 
-**Using a commit hash**:
+**Using a Commit Hash**:
 
-You are able to install and bind a specific framework revision by providing the git commit or short hash.
+You can install and bind a specific framework revision by providing the git commit or short hash.
 
 ```bash
 ## Short hash
@@ -93,7 +89,7 @@ For a project with multiple flavors, set a version for a specific flavor like th
 fvm use 2.2.3 --flavor production
 ```
 
-**Using a Flavor**
+**Using a Flavor**  
 To switch to a specific flavor, you can use the `use` command with the name of the flavor:
 
 ```bash
@@ -114,7 +110,7 @@ Without `[version]`, installs the version specified in the project's FVM setting
 
 ### Options
 
-- `-s, --setup`: Builds the SDK post-installation for immediate readiness.
+-  `-s, --setup`: Builds the SDK post-installation for immediate readiness.
 
 ### Examples
 
@@ -176,7 +172,7 @@ The `releases` command in FVM (Flutter Version Management) allows you to view al
 
 ### Options
 
-- `-c, --channel [channel_name]`: Filter the releases by a specific channel (e.g., `stable`, `beta`, `dev`). If no channel is specified, it defaults to showing releases from the `stable` channel.
+-  `-c, --channel [channel_name]`: Filter the releases by a specific channel (e.g., `stable`, `beta`, `dev`). If no channel is specified, it defaults to showing releases from the `stable` channel.
 
 ### Examples
 
@@ -229,9 +225,8 @@ The `global` command in FVM (Flutter Version Management) is used to set a specif
 
 ### Options
 
-- `-f, --force`: Bypasses Flutter project checks.
-
-- `-u, --unlink`: Unlinks the global version, reverting to the default Flutter SDK version.
+-  `-f, --force`: Bypasses Flutter project checks.
+-  `-u, --unlink`: Unlinks the global version, reverting to the default Flutter SDK version.
 
 ### Examples
 
@@ -242,7 +237,7 @@ To set Flutter SDK version `2.5.0` as your global version, you would run:
 fvm global 2.5.0
 ```
 
-**Unlinking the Global Version**:
+**Unlinking the Global Version**:  
 To unlink the global version, you can run:
 
 ```bash
@@ -330,4 +325,38 @@ To destroy the FVM cache and delete all cached Flutter SDK versions, simply run:
 
 ```bash
 fvm destroy
+```
+
+## Flavor
+
+The `flavor` command is used to execute Flutter commands using a specific Flutter SDK version defined by a project flavor.
+
+This command is particularly useful when you need to run a Flutter command (such as `flutter build`) with a version of the SDK associated with a particular flavor of your project.
+
+### Usage
+
+```bash
+> fvm flavor [flavor] [flutter_command] [flutter_command_args]
+```
+
+`[flavor]`: The flavor of your project which defines the Flutter SDK version you want to use for running the command.
+
+`[flutter_command]`: The Flutter command you want to execute.
+
+`[flutter_command_args]`: Any additional arguments you want to pass to the Flutter command.
+
+### Examples
+
+**Running a Build with a Specific Flavor**:  
+To build your Flutter project using the Flutter SDK version associated with the `development` flavor:
+
+```bash
+> fvm flavor development flutter build
+```
+
+**Running Tests with a Different Flavor**:  
+If you need to run tests using the Flutter SDK version associated with the `staging` flavor:
+
+```bash
+> fvm flavor staging flutter test
 ```

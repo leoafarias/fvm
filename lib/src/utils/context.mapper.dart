@@ -69,9 +69,9 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static bool _$updateCheckDisabled(FVMContext v) => v.updateCheckDisabled;
   static const Field<FVMContext, bool> _f$updateCheckDisabled =
       Field('updateCheckDisabled', _$updateCheckDisabled);
-  static bool _$priviledgedAccess(FVMContext v) => v.priviledgedAccess;
-  static const Field<FVMContext, bool> _f$priviledgedAccess =
-      Field('priviledgedAccess', _$priviledgedAccess);
+  static bool _$privilegedAccess(FVMContext v) => v.privilegedAccess;
+  static const Field<FVMContext, bool> _f$privilegedAccess =
+      Field('privilegedAccess', _$privilegedAccess);
   static String _$globalCacheLink(FVMContext v) => v.globalCacheLink;
   static const Field<FVMContext, String> _f$globalCacheLink =
       Field('globalCacheLink', _$globalCacheLink);
@@ -108,7 +108,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #flutterUrl: _f$flutterUrl,
     #lastUpdateCheck: _f$lastUpdateCheck,
     #updateCheckDisabled: _f$updateCheckDisabled,
-    #priviledgedAccess: _f$priviledgedAccess,
+    #privilegedAccess: _f$privilegedAccess,
     #globalCacheLink: _f$globalCacheLink,
     #globalCacheBinPath: _f$globalCacheBinPath,
     #versionsCachePath: _f$versionsCachePath,

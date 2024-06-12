@@ -23,8 +23,8 @@ fvm api list [options]
 
 **Options:**
 
-- `--compress` (`-c`): Outputs JSON with no whitespace.
-- `--skip-size-calculation` (`-s`): Skips calculating the size of cached versions.
+-  `--compress` (`-c`): Outputs JSON with no whitespace.
+-  `--skip-size-calculation` (`-s`): Skips calculating the size of cached versions.
 
 **Response Payload:**
 
@@ -63,10 +63,9 @@ fvm api releases [options]
 
 **Options:**
 
-- `--compress`: Outputs JSON with no whitespace.
-- `--limit [number]`: Limits the number of releases listed.
-- `--filter-channel [channel]`: Filters the releases by channel. Available channels are `stable`, `beta`, and `dev`.
-
+-  `--compress`: Outputs JSON with no whitespace.
+-  `--limit [number]`: Limits the number of releases listed.
+-  `--filter-channel [channel]`: Filters the releases by channel. Available channels are `stable`, `beta`, and `dev`.
 
 **Response Payload:**
 
@@ -107,13 +106,12 @@ fvm api context [options]
 
 **Options:**
 
-- `--compress`: Outputs JSON with no whitespace.
+-  `--compress`: Outputs JSON with no whitespace.
 
 **Response Payload:**
 
 ```json
 {
-  
   "context": {
     "fvmVersion": "3.0.14",
     "workingDirectory": "/path/to/project",
@@ -125,7 +123,7 @@ fvm api context [options]
     "flutterUrl": "https://github.com/flutter/flutter.git",
     "lastUpdateCheck": "2024-03-13T14:46:08.735250Z",
     "updateCheckDisabled": false,
-    "priviledgedAccess": false,
+    "privilegedAccess": false,
     "globalCacheLink": "/path/to/.fvm/default",
     "globalCacheBinPath": "/path/to/.fvm/default/bin",
     "versionsCachePath": "/path/to/.fvm/versions",
@@ -135,7 +133,7 @@ fvm api context [options]
     "args": [
       "api",
       "info"
-    ],
+    ]
   }
 }
 ```
@@ -152,8 +150,8 @@ fvm api project [options]
 
 **Options:**
 
-- `--compress`: Outputs JSON with no whitespace.
-- `--path [path]`: The path to the project. Defaults to the current working directory.
+-  `--compress`: Outputs JSON with no whitespace.
+-  `--path [path]`: The path to the project. Defaults to the current working directory.
 
 **Response Payload:**
 
@@ -203,12 +201,12 @@ fvm api project [options]
         ...
       },
       "dev_dependencies": {
-       ...
+        ...
       },
       "flutter": {
-        "uses-material-design": true,
-      },
-    },
+        "uses-material-design": true
+      }
+    }
   }
 }
 ```
