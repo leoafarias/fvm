@@ -23,7 +23,7 @@ enum ConfigKeys {
   gitCachePath(description: 'Path where local Git reference cache is stored'),
   flutterUrl(description: 'Flutter repository Git URL to clone from'),
 
-  priviledgedAccess(description: 'Enable/Disable priviledged access for FVM');
+  privilegedAccess(description: 'Enable/Disable priviledged access for FVM');
 
   const ConfigKeys({required this.description});
 
@@ -65,10 +65,10 @@ enum ConfigKeys {
           help: ConfigKeys.flutterUrl.description,
         );
       },
-      ConfigKeys.priviledgedAccess: () {
+      ConfigKeys.privilegedAccess: () {
         argParser.addFlag(
-          ConfigKeys.priviledgedAccess.paramKey,
-          help: ConfigKeys.priviledgedAccess.description,
+          ConfigKeys.privilegedAccess.paramKey,
+          help: ConfigKeys.privilegedAccess.description,
           defaultsTo: true,
           negatable: true,
         );
@@ -136,7 +136,7 @@ class FileConfig extends BaseConfig with FileConfigMappable {
   final bool? runPubGetOnSdkChanges;
 
   /// If FVM should run with priviledged access
-  final bool? priviledgedAccess;
+  final bool? privilegedAccess;
 
   static final fromMap = FileConfigMapper.fromMap;
   static final fromJson = FileConfigMapper.fromJson;
@@ -147,7 +147,7 @@ class FileConfig extends BaseConfig with FileConfigMappable {
     required super.useGitCache,
     required super.gitCachePath,
     required super.flutterUrl,
-    required this.priviledgedAccess,
+    required this.privilegedAccess,
     required this.runPubGetOnSdkChanges,
     required this.updateVscodeSettings,
     required this.updateGitIgnore,
@@ -178,7 +178,7 @@ class AppConfig extends FileConfig with AppConfigMappable {
     super.useGitCache,
     super.gitCachePath,
     super.flutterUrl,
-    super.priviledgedAccess,
+    super.privilegedAccess,
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
@@ -192,7 +192,7 @@ class AppConfig extends FileConfig with AppConfigMappable {
       useGitCache: null,
       gitCachePath: null,
       flutterUrl: null,
-      priviledgedAccess: null,
+      privilegedAccess: null,
       runPubGetOnSdkChanges: null,
       updateVscodeSettings: null,
       updateGitIgnore: null,
@@ -226,7 +226,7 @@ class AppConfig extends FileConfig with AppConfigMappable {
         useGitCache: config.useGitCache,
         gitCachePath: config.gitCachePath,
         flutterUrl: config.flutterUrl,
-        priviledgedAccess: config.priviledgedAccess,
+        privilegedAccess: config.privilegedAccess,
         runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
         updateVscodeSettings: config.updateVscodeSettings,
         updateGitIgnore: config.updateGitIgnore,
@@ -262,7 +262,7 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
     super.useGitCache,
     super.gitCachePath,
     super.flutterUrl,
-    super.priviledgedAccess,
+    super.privilegedAccess,
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
@@ -276,7 +276,7 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
       useGitCache: null,
       gitCachePath: null,
       flutterUrl: null,
-      priviledgedAccess: null,
+      privilegedAccess: null,
       runPubGetOnSdkChanges: null,
       updateVscodeSettings: null,
       updateGitIgnore: null,

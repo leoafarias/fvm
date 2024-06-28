@@ -3,6 +3,7 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
 import '../services/global_version_service.dart';
+import '../services/project_service.dart';
 import '../services/logger_service.dart';
 import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
@@ -44,6 +45,7 @@ class ListCommand extends BaseCommand {
 
     final releases = await FlutterReleasesClient.getReleases();
     final globalVersion = GlobalVersionService.fromContext.getGlobal();
+    final localVersion = ProjectService.fromContext.findVersion();
 
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
@@ -51,7 +53,8 @@ class ListCommand extends BaseCommand {
       ..insertColumn(header: 'Flutter Version', alignment: TextAlignment.left)
       ..insertColumn(header: 'Dart Version', alignment: TextAlignment.left)
       ..insertColumn(header: 'Release Date', alignment: TextAlignment.left)
-      ..insertColumn(header: 'Global', alignment: TextAlignment.left);
+      ..insertColumn(header: 'Global', alignment: TextAlignment.left)
+      ..insertColumn(header: 'Local', alignment: TextAlignment.left);
 
     for (var version in cacheVersions) {
       var printVersion = version.name;
@@ -99,6 +102,9 @@ class ListCommand extends BaseCommand {
             version.dartSdkVersion ?? '',
             releaseDate,
             globalVersion == version ? green.wrap(dot)! : '',
+            localVersion == printVersion && localVersion != null
+                ? green.wrap(dot)!
+                : '',
           ],
         ])
         ..borderStyle = BorderStyle.square

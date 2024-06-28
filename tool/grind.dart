@@ -115,10 +115,4 @@ Future<void> coverage() async {
       '--out=coverage/lcov.info',
     ],
   );
-
-  // Generate html
-  await runAsync(
-    'genhtml',
-    arguments: ['coverage/lcov.info', '-o', 'coverage/html'],
-  );
 }
