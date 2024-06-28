@@ -26,7 +26,7 @@ esac
 # Terminal colors setup
 Color_Off='\033[0m'       # Reset
 Green='\033[0;32m'        # Green
-Red='\033[0;31m'          
+Red='\033[0;31m'          # Red
 
 success() {
     log_message "${Green}$1${Color_Off}"
@@ -66,18 +66,17 @@ log_message "Installing FVM version $FVM_VERSION."
 
 # Setup installation directory and symlink
 FVM_DIR="$HOME/.fvm_flutter"
-FMV_DIR_BIN="$FVM_DIR/bin"
+FVM_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET="/usr/local/bin/fvm"
 
-
 # Create FVM directory if it doesn't exist
-mkdir -p "$FVM_DIR" || error "Failed to create FVM directory: $FVM_DIR."
+mkdir -p "$FVM_DIR_BIN" || error "Failed to create FVM directory: $FVM_DIR_BIN."
 
-# Check if FVM_DIR exists, and if it does delete it
-if [ -d "$FMV_DIR_BIN" ]; then
+# Check if FVM_DIR_BIN exists, and if it does delete it
+if [ -d "$FVM_DIR_BIN" ]; then
     log_message "FVM bin directory already exists. Removing it."
-    if ! rm -rf "$FMV_DIR_BIN"; then
-        error "Failed to remove existing FVM directory: $FMV_DIR_BIN."
+    if ! rm -rf "$FVM_DIR_BIN"; then
+        error "Failed to remove existing FVM directory: $FVM_DIR_BIN."
     fi
 fi
 
@@ -86,7 +85,6 @@ URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_V
 if ! curl -L "$URL" -o fvm.tar.gz; then
     error "Download failed. Check your internet connection and URL: $URL"
 fi
-
 
 # Extract binary to the new location
 if ! tar xzf fvm.tar.gz -C "$FVM_DIR" 2>&1; then
@@ -99,12 +97,12 @@ if ! rm -f fvm.tar.gz; then
 fi
 
 # Rename FVM_DIR/fvm to FVM_DIR/bin
-if ! mv "$FVM_DIR/fvm" "$FMV_DIR_BIN"; then
+if ! mv "$FVM_DIR/fvm" "$FVM_DIR_BIN"; then
     error "Failed to move fvm to bin directory."
 fi
 
 # Create a symlink
-if ! ln -sf "$FMV_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+if ! sudo ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
     error "Failed to create symlink."
 fi
 
