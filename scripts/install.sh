@@ -18,7 +18,7 @@ esac
 
 case "$ARCH" in
   x86_64)  ARCH='x64' ;;
-  arm64)   ARCH='arm64' ;;
+  arm64|aarch64)   ARCH='arm64' ;;
   armv7l)  ARCH='arm' ;;
   *)       log_message "Unsupported architecture"; exit 1 ;;
 esac
