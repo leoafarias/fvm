@@ -185,9 +185,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       _printTrace(stackTrace);
 
       return ExitCode.unavailable.code;
-    } finally {
-      // Add spacer after the last line always
-      logger.spacer;
     }
   }
 

@@ -19,7 +19,7 @@ Future<void> main(List<String> args) async {
     );
 
   await _flushThenExit(
-    await scope.run(() => FvmCommandRunner().run((editableArgs))),
+    await scope.run(() async => FvmCommandRunner().run((args))),
   );
 }
 

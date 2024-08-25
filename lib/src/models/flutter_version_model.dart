@@ -122,4 +122,7 @@ class FlutterVersion with FlutterVersionMappable {
 
     return compareSemver(versionWeight, otherVersion);
   }
+
+  @override
+  String toString() => name;
 }

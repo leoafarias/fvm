@@ -5,6 +5,7 @@ import 'package:mason_logger/mason_logger.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
+import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
 import '../services/logger_service.dart';
 import '../services/releases_service/releases_client.dart';
@@ -21,6 +22,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   bool force = false,
 }) async {
   _validateContext();
+  _validateGit();
   // Get valid flutter version
   final validVersion = await validateFlutterVersion(version, force: force);
   try {
@@ -82,15 +84,37 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       }
     }
 
-    if (ctx.gitCache) {
-      await FlutterService.fromContext.updateLocalMirror();
+    bool useGitCache = ctx.gitCache;
+
+    if (useGitCache) {
+      try {
+        await FlutterService.fromContext.updateLocalMirror();
+      } on Exception {
+        useGitCache = false;
+        logger.warn(
+          'Failed to setup local cache. Falling back to git clone.',
+        );
+        logger.info('Git cache will be disabled.');
+        try {
+          final config = ConfigRepository.loadAppConfig();
+          final updatedConfig = config.copyWith(useGitCache: false);
+          ConfigRepository.save(updatedConfig);
+          logger.success('Git cache has been disabled.');
+        } on Exception {
+          logger.warn('Failed to update config file');
+        }
+      }
     }
 
     final progress = logger.progress(
       'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
     );
     try {
-      await FlutterService.fromContext.install(validVersion);
+      await FlutterService.fromContext.install(
+        validVersion,
+        useGitCache: useGitCache,
+      );
+
       progress.complete(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
       );
@@ -237,5 +261,12 @@ void _validateContext() {
     throw AppException(
       'Invalid Flutter URL: "${ctx.flutterUrl}". Please change config to a valid git url',
     );
+  }
+}
+
+void _validateGit() {
+  final isGitInstalled = Process.runSync('git', ['--version']).exitCode == 0;
+  if (!isGitInstalled) {
+    throw AppException('Git is not installed');
   }
 }
