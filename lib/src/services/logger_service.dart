@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
@@ -63,19 +64,39 @@ class LoggerService extends ContextService {
     return progress;
   }
 
-  bool confirm(String? message, {bool? defaultValue}) {
+  bool confirm(String? message, {bool? defaultValue, bool? ciDefaultValue}) {
     // When running tests, always return true.
     if (context.isTest) return true;
+
+    if (context.skipInput) {
+      if (ciDefaultValue != null) {
+        return ciDefaultValue;
+      } else if (defaultValue != null) {
+        return defaultValue;
+      }
+      exit(ExitCode.usage.code);
+    }
 
     return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
         .interact();
   }
 
-  String select(String? message, {required List<String> options}) {
+  String select(
+    String? message, {
+    required List<String> options,
+    int? defaultSelection,
+  }) {
+    if (context.skipInput) {
+      if (defaultSelection != null) {
+        return options[defaultSelection];
+      }
+      exit(ExitCode.usage.code);
+    }
+
     final selection = interact.Select(
       prompt: message ?? '',
       options: options,
-      initialIndex: 0,
+      initialIndex: defaultSelection ?? 0,
     ).interact();
 
     return options[selection];
