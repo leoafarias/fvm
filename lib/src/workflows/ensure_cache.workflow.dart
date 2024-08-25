@@ -22,6 +22,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   bool force = false,
 }) async {
   _validateContext();
+  _validateGit();
   // Get valid flutter version
   final validVersion = await validateFlutterVersion(version, force: force);
   try {
@@ -259,5 +260,12 @@ void _validateContext() {
     throw AppException(
       'Invalid Flutter URL: "${ctx.flutterUrl}". Please change config to a valid git url',
     );
+  }
+}
+
+void _validateGit() {
+  final isGitInstalled = Process.runSync('git', ['--version']).exitCode == 0;
+  if (!isGitInstalled) {
+    throw AppException('Git is not installed');
   }
 }
