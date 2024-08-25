@@ -1,9 +1,12 @@
 ## 3.2.0
 
-* Adds support for skipping input requests by @Rexios80. Input requests are skipped when:
-  * The `--fvm-skip-input` flag is passed
-  * Running in CI
-* Exits with `ExitCode.unavailable` if the request to install a Flutter version is denied by @Rexios80
+* add: support for skipping input requests by @Rexios80. Input requests are skipped when the `--fvm-skip-input` flag is passed.
+* add: documentation for command rerouting by @humblerookie
+* fix(cosmetics): fvm has one newline too much by @jonasbadstuebner
+* fix: unsupported architecture on arm64 by @MrCyjaneK
+* add: tags for Docker deployment by @CodeRedDev
+* add: Validate if git is installed by @leoafarias
+* add: Disable local mirror on exception by @leoafarias
 
 ## 3.1.7
 
