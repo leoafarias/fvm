@@ -64,17 +64,17 @@ class LoggerService extends ContextService {
     return progress;
   }
 
-  bool confirm(String? message, {bool? defaultValue, bool? ciDefaultValue}) {
+  bool confirm(String? message, {required bool defaultValue}) {
     // When running tests, always return true.
     if (context.isTest) return true;
 
-    if (context.skipInput) {
-      if (ciDefaultValue != null) {
-        return ciDefaultValue;
-      } else if (defaultValue != null) {
-        return defaultValue;
-      }
-      exit(ExitCode.usage.code);
+    if (context.isCI || context.skipInput) {
+      logger.info(message ?? '');
+      logger
+        ..warn('Skipping input confirmation')
+        ..warn('Using default value of $defaultValue');
+
+      return defaultValue;
     }
 
     return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
@@ -134,8 +134,6 @@ class LoggerService extends ContextService {
 final dot = '\u{25CF}'; // ●
 final rightArrow = '\u{2192}'; // →
 
-/// Logger for FVM
-/// Console controller instance
 final consoleController = ConsoleController();
 
 /// Console Controller

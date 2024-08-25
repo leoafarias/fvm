@@ -79,7 +79,6 @@ class FVMContext with FVMContextMappable {
   static FVMContext create({
     String? id,
     List<String>? args,
-    bool? skipInput,
     AppConfig? configOverrides,
     String? workingDirectory,
     Map<Type, dynamic>? generatorOverrides,
@@ -95,13 +94,16 @@ class FVMContext with FVMContextMappable {
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
+    // Skips input if running in CI
+    final skipInput = args?.remove('--fvm-skip-input') ?? false;
+
     return FVMContext.base(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
       environment: environment,
       args: args ?? [],
-      skipInput: skipInput ?? false,
+      skipInput: skipInput,
       generators: {
         LoggerService: (context) => LoggerService(
               level: level,

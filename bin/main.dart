@@ -7,16 +7,7 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  final editableArgs = List<String>.from(args);
-  final skipInput = editableArgs.remove('--fvm-skip-input');
-  final scope = Scope()
-    ..value(
-      contextKey,
-      FVMContext.create(
-        args: editableArgs,
-        skipInput: skipInput,
-      ),
-    );
+  final scope = Scope()..value(contextKey, FVMContext.create(args: args));
 
   await _flushThenExit(
     await scope.run(() async => FvmCommandRunner().run((args))),
