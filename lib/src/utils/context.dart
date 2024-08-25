@@ -95,7 +95,7 @@ class FVMContext with FVMContextMappable {
     final environment = {...Platform.environment, ...?environmentOverrides};
 
     // Skips input if running in CI
-    final skipInput = args?.remove('--fvm-skip-input') ?? false;
+    final skipInput = args?.contains('--fvm-skip-input') ?? false;
 
     return FVMContext.base(
       id: id ?? 'MAIN',
