@@ -10,7 +10,7 @@ Future<void> main(List<String> args) async {
   final scope = Scope()..value(contextKey, FVMContext.create(args: args));
 
   await _flushThenExit(
-    await scope.run(() => FvmCommandRunner().run((args))),
+    await scope.run(() async => FvmCommandRunner().run((args))),
   );
 }
 
