@@ -1,6 +1,7 @@
 ## 3.2.1
 
 * fix: `--fvm-skip-input` flag not applying to context
+* add: `fvm list` now displays the cache path even if no version is installed
 
 ## 3.2.0
 

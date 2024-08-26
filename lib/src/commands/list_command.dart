@@ -3,8 +3,8 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
 import '../services/global_version_service.dart';
-import '../services/project_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/context.dart';
@@ -27,14 +27,6 @@ class ListCommand extends BaseCommand {
   Future<int> run() async {
     final cacheVersions = await CacheService.fromContext.getAllVersions();
 
-    if (cacheVersions.isEmpty) {
-      logger
-        ..info('No SDKs have been installed yet. Flutter. SDKs')
-        ..info('installed outside of fvm will not be displayed.');
-
-      return ExitCode.success.code;
-    }
-
     final directorySize = await getFullDirectorySize(cacheVersions);
 
     // Print where versions are stored
@@ -42,6 +34,14 @@ class ListCommand extends BaseCommand {
       ..info('Cache directory:  ${cyan.wrap(ctx.versionsCachePath)}')
       ..info('Directory Size: ${formatBytes(directorySize)}')
       ..spacer;
+
+    if (cacheVersions.isEmpty) {
+      logger
+        ..info('No SDKs have been installed yet. Flutter. SDKs')
+        ..info('installed outside of fvm will not be displayed.');
+
+      return ExitCode.success.code;
+    }
 
     final releases = await FlutterReleasesClient.getReleases();
     final globalVersion = GlobalVersionService.fromContext.getGlobal();
