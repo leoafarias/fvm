@@ -1,3 +1,7 @@
+## 3.2.1
+
+* fix: `--fvm-skip-input` flag not applying to context
+
 ## 3.2.0
 
 * add: support for skipping input requests by @Rexios80. Input requests are skipped when the `--fvm-skip-input` flag is passed.
