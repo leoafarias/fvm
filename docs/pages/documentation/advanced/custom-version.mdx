@@ -40,6 +40,11 @@ When cloning, make sure to prefix the version with `custom_` and then add the na
 The prefix `custom_` is used to differentiate the custom versions from the official Flutter versions and allows FVM to not apply the same level of validation as it does with the official versions.
 
 Now, when you run `fvm list`, you should see the custom version in the list.
+<Callout type="warning">
+Make sure you always clone the whole repository using the command `git clone url-to-repository.git`.
+Do not use `--depth` or `--single-branch` as it might cause issues with the Flutter SDK.
+Flutter Tools depends on repository references to determine its version correct version.
+</Callout>
 
 Output:
 

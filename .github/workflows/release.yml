@@ -100,14 +100,14 @@ jobs:
       - name: Get and modify tag name
         id: get_tag_name
         run: |
-          # Extract the tag name
-          TAG_NAME=${ github.event.release.tag_name }
+          # Extract the tag name from the GitHub ref
+          TAG_NAME=${{ github.ref_name }}
           
-          # Remove 'v' from the beginning of the tag name, if present
-          MODIFIED_TAG_NAME=${TAG_NAME#v}
+          # Remove leading 'v' from the tag name, if present
+          MODIFIED_TAG_NAME=$(echo "$TAG_NAME" | sed 's/^v//')
           
-          # Set the modified tag name as an output
-          echo "modified_tag_name=$MODIFIED_TAG_NAME" >> $GITHUB_ENV
+          # Set the modified tag name as an environment variable
+          echo "MODIFIED_TAG_NAME=$MODIFIED_TAG_NAME" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
