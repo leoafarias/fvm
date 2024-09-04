@@ -35,6 +35,16 @@ class ListCommand extends BaseCommand {
       ..info('Directory Size: ${formatBytes(directorySize)}')
       ..spacer;
 
+    if (cacheVersions.any((e) => e.isNotSetup)) {
+      logger
+        ..warn(
+          'Some versions might still require finishing setup - SDKs have been cloned, but they have not downloaded their dependencies.',
+        )
+        ..info(
+          'This will complete the first time you run any command with the SDK.',
+        )
+        ..spacer;
+    }
     if (cacheVersions.isEmpty) {
       logger
         ..info('No SDKs have been installed yet. Flutter. SDKs')
@@ -79,7 +89,7 @@ class ListCommand extends BaseCommand {
 
       String getVersionOutput() {
         if (version.isNotSetup) {
-          return flutterSdkVersion = '${yellow.wrap('Need setup')}';
+          return flutterSdkVersion = '${yellow.wrap('Need setup*')}';
         }
         if (latestRelease != null && version.isChannel) {
           // If its not the latest version
