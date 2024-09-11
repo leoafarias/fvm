@@ -27,7 +27,7 @@ class FlutterVersion with FlutterVersionMappable {
   /// Represents the underlying string value of the Flutter version.
   final String name;
 
-  /// Has a cannel which the version is part of
+  /// Has a channel which the version is part of
   final String? releaseFromChannel;
 
   final VersionType type;

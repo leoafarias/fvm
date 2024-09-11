@@ -1,7 +1,7 @@
 const _snakeCaseSeparator = '_';
 const _paramCaseSeparator = '-';
 const _spaceSeparator = ' ';
-const _nospaceSeparator = '';
+const _noSpaceSeparator = '';
 final RegExp _upperAlphaRegex = RegExp(r'[A-Z]');
 
 final _symbolSet = {
@@ -49,7 +49,7 @@ class ChangeCase {
       words[0] = words[0].toLowerCase();
     }
 
-    return words.join(_nospaceSeparator);
+    return words.join(_noSpaceSeparator);
   }
 
   String _uppercase(String separator) => _words.uppercase.join(separator);

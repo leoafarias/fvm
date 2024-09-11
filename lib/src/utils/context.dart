@@ -149,7 +149,7 @@ class FVMContext with FVMContextMappable {
 
   @MappableField()
   String get gitCachePath {
-    // If git cache is not overriden use default based on fvmDir
+    // If git cache is not override use default based on fvmDir
     if (config.gitCachePath != null) return config.gitCachePath!;
 
     return join(fvmDir, 'cache.git');
@@ -171,7 +171,7 @@ class FVMContext with FVMContextMappable {
         : false;
   }
 
-  /// Priviledged access
+  /// Privileged access
   @MappableField()
   bool get privilegedAccess {
     return config.privilegedAccess != null ? config.privilegedAccess! : true;

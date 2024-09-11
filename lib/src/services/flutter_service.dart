@@ -214,8 +214,8 @@ class FlutterService extends ContextService {
   }
 }
 
-class FlutterServiveMock extends FlutterService {
-  FlutterServiveMock(FVMContext context) : super(context);
+class FlutterServiceMock extends FlutterService {
+  FlutterServiceMock(FVMContext context) : super(context);
 
   @override
   Future<void> install(

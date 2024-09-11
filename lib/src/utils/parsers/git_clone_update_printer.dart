@@ -36,8 +36,8 @@ void updateProgress(String line) {
     if (matchedEntry != null) {
       final label = matchedEntry.key.padRight(maxLabelLength);
       final match = matchedEntry.value.firstMatch(line);
-      final percentVaue = match?.group(1);
-      int? percentage = int.tryParse(percentVaue ?? '');
+      final percentValue = match?.group(1);
+      int? percentage = int.tryParse(percentValue ?? '');
 
       if (percentage != lastPercentage) {
         if (percentage == null) return;

@@ -20,7 +20,7 @@ String get storageUrl {
 String _getFlutterReleasesUrl(String platform) =>
     '$storageUrl/flutter_infra_release/releases/releases_$platform.json';
 
-/// Returns a CDN cached version of the releaes per platform
+/// Returns a CDN cached version of the releases per platform
 String _getGithubCacheUrl(String platform) {
   return _envVars['FLUTTER_RELEASES_URL'] ??
       'https://raw.githubusercontent.com/leoafarias/fvm/main/releases_$platform.json';

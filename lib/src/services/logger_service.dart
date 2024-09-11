@@ -141,7 +141,7 @@ class ConsoleController {
   /// stdout stream
   final stdout = StreamController<List<int>>();
 
-  /// sderr stream
+  /// stderr stream
   final stderr = StreamController<List<int>>();
 
   /// warning stream
@@ -150,7 +150,7 @@ class ConsoleController {
   /// fine stream
   final fine = StreamController<List<int>>();
 
-  /// info streamm
+  /// info stream
   final info = StreamController<List<int>>();
 
   /// error stream

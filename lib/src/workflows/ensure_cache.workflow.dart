@@ -187,7 +187,7 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 
   if (selectedOption == firstOption) {
     logger.info('Moving SDK to the correct cache directory...');
-    CacheService.fromContext.moveToSdkVersionDiretory(version);
+    CacheService.fromContext.moveToSdkVersionDirectory(version);
   }
 
   logger.info('Removing incorrect SDK version...');

@@ -23,7 +23,7 @@ enum ConfigKeys {
   gitCachePath(description: 'Path where local Git reference cache is stored'),
   flutterUrl(description: 'Flutter repository Git URL to clone from'),
 
-  privilegedAccess(description: 'Enable/Disable priviledged access for FVM');
+  privilegedAccess(description: 'Enable/Disable privileged access for FVM');
 
   const ConfigKeys({required this.description});
 
@@ -38,7 +38,7 @@ enum ConfigKeys {
   String get propKey => _recase.camelCase;
 
   static injectArgParser(ArgParser argParser) {
-    final configKeysFuncs = {
+    final configKeysFunctions = {
       ConfigKeys.cachePath: () {
         argParser.addOption(
           ConfigKeys.cachePath.paramKey,
@@ -76,7 +76,7 @@ enum ConfigKeys {
     };
 
     for (final key in ConfigKeys.values) {
-      configKeysFuncs[key]?.call();
+      configKeysFunctions[key]?.call();
     }
   }
 }
@@ -135,7 +135,7 @@ class FileConfig extends BaseConfig with FileConfigMappable {
 
   final bool? runPubGetOnSdkChanges;
 
-  /// If FVM should run with priviledged access
+  /// If FVM should run with privileged access
   final bool? privilegedAccess;
 
   static final fromMap = FileConfigMapper.fromMap;
