@@ -106,7 +106,7 @@ fi
 # Create a symlink
 if ! ln -sf "$FMV_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
     # verify if linux and try with sudo
-    if [[ "$(uname)" == "Linux" ]]; then
+    if [ "$OS" == "linux" ]; then
         echo -e "Trying to create symlink with sudo..."
         if ! sudo ln -sf "$FMV_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
             error "Failed to create symlink"
