@@ -27,6 +27,7 @@ case "$ARCH" in
 esac
 
 # Terminal colors setup
+
 Color_Off='\033[0m' # Reset
 Green='\033[0;32m'  # Green
 Red='\033[0;31m'
@@ -76,10 +77,15 @@ log_message "Installing FVM version $FVM_VERSION."
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
 
-# Create FVM directory if it doesn't exist
-mkdir -p "$FVM_DIR" || error "Failed to create FVM directory: $FVM_DIR."
+SYMLINK_TARGET="/usr/local/bin/fvm"
 
-# Check if FVM_DIR exists, and if it does delete it
+
+# Create FVM directory if it doesn't exist
+mkdir -p "$FVM_DIR_BIN" || error "Failed to create FVM directory: $FVM_DIR_BIN."
+
+
+# Check if FVM_DIR_BIN exists, and if it does delete it
+
 if [ -d "$FVM_DIR_BIN" ]; then
     log_message "FVM bin directory already exists. Removing it."
     if ! rm -rf "$FVM_DIR_BIN"; then
@@ -106,6 +112,12 @@ fi
 # Rename FVM_DIR/fvm to FVM_DIR/bin
 if ! mv "$FVM_DIR/fvm" "$FVM_DIR_BIN"; then
     error "Failed to move fvm to bin directory."
+fi
+
+
+# Create a symlink
+if ! sudo ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+    error "Failed to create symlink."
 fi
 
 tildify() {
@@ -234,6 +246,7 @@ esac
 echo
 log_message "To get started, run:"
 echo
+
 
 if [[ $refresh_command ]]; then
     info_bold "  $refresh_command"
