@@ -20,9 +20,9 @@ String? which(String command, {bool binDir = false}) {
     File exec = File(fullPath);
 
     if (exec.existsSync()) {
-      final exectPath = exec.absolute.path;
+      final execPath = exec.absolute.path;
 
-      return binDir ? dirname(exectPath) : exectPath;
+      return binDir ? dirname(execPath) : execPath;
     }
 
     if (Platform.isWindows && pathExtEnv != null) {
@@ -30,9 +30,9 @@ String? which(String command, {bool binDir = false}) {
         String winPath = '$fullPath$ext';
         exec = File(winPath);
         if (exec.existsSync()) {
-          final exectPath = exec.absolute.path;
+          final execPath = exec.absolute.path;
 
-          return binDir ? dirname(exectPath) : exectPath;
+          return binDir ? dirname(execPath) : execPath;
         }
       }
     }

@@ -47,7 +47,7 @@ class FlavorCommand extends BaseCommand {
       // Removes flavor from first arg
       final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
-      // Will install version if not already instaled
+      // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(version);
       // Runs flutter command with pinned version
       logger

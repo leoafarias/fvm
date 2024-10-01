@@ -111,7 +111,7 @@ class DoctorCommand extends BaseCommand {
 
     table.insertRow([kIntelliJ]);
 
-    // Get localproperties file within flutter project
+    // Get local properties file within flutter project
     final localPropertiesFile =
         File(join(project.path, 'android', 'local.properties'));
 

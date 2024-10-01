@@ -27,7 +27,7 @@ class DartCommand extends BaseCommand {
     CacheFlutterVersion? cacheVersion;
 
     if (version != null) {
-      // Will install version if not already instaled
+      // Will install version if not already installed
       cacheVersion = await ensureCacheWorkflow(version);
 
       logger

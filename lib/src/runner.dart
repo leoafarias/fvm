@@ -137,12 +137,12 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       if (checkIfNeedsPrivilegePermission(err)) {
         logger
           ..spacer
-          ..fail('Requires administrator priviledges to run this command.')
+          ..fail('Requires administrator privileges to run this command.')
           ..spacer;
 
         logger.notice(
-          "You don't have the required priviledges to run this command.\n"
-          "Try running with sudo or administrator priviledges.\n"
+          "You don't have the required privileges to run this command.\n"
+          "Try running with sudo or administrator privileges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
         );
 
@@ -169,7 +169,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       return e.errorCode;
     } on UsageException catch (err) {
-      // On usagerr errors, show the commands usage message and
+      // On usage errors, show the commands usage message and
       // exit with an error code
       logger
         ..err(err.message)

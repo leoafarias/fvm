@@ -80,7 +80,7 @@ class Channels with ChannelsMappable {
   static final fromMap = ChannelsMapper.fromMap;
   static final fromJson = ChannelsMapper.fromJson;
 
-  /// Channel model contructor
+  /// Channel model constructor
   const Channels({required this.beta, required this.dev, required this.stable});
 
   /// Returns a list of all releases

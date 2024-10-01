@@ -100,7 +100,7 @@ class CacheService extends ContextService {
   }
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
-  void moveToSdkVersionDiretory(CacheFlutterVersion version) {
+  void moveToSdkVersionDirectory(CacheFlutterVersion version) {
     final sdkVersion = version.flutterSdkVersion;
 
     if (sdkVersion == null) {

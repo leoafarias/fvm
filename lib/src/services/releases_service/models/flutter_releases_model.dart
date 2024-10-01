@@ -68,7 +68,7 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
 
 /// Goes through the current_release payload.
 /// Finds the proper release base on the hash
-/// Assings to the current_release
+/// Assigns to the current_release
 FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
   final baseUrl = map['base_url'] as String;
   final currentRelease = map['current_release'] as Map<String, dynamic>;
