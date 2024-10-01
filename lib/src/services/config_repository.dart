@@ -45,7 +45,9 @@ class ConfigRepository {
     final isRootDir = path.rootPrefix(directory.path) == directory.path;
 
     // Gets project from directory
-    final projectConfig = ProjectConfig.loadFromPath(directory.path);
+    final projectConfig = ProjectConfig.loadFromPath(
+      path.join(directory.path, kFvmConfigFileName),
+    );
 
     // If project has a config return it
     if (projectConfig != null) return projectConfig;

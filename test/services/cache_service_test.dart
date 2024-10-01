@@ -19,8 +19,8 @@ void main() {
       expect(validChannel, null);
       expect(validVersion, null);
 
-      await FlutterService.fromContext.install(_channel);
-      await FlutterService.fromContext.install(_version);
+      await FlutterService.fromContext.install(_channel, useGitCache: true);
+      await FlutterService.fromContext.install(_version, useGitCache: true);
 
       final cacheChannel = CacheService.fromContext.getVersion(_channel);
 

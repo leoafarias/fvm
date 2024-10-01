@@ -32,4 +32,5 @@ jobs:
             with:
               file: ./.docker/Dockerfile
               push: true
+              tags: leoafarias/fvm:latest
     

@@ -97,6 +97,18 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
 
+      - name: Get and modify tag name
+        id: get_tag_name
+        run: |
+          # Extract the tag name from the GitHub ref
+          TAG_NAME=${{ github.ref_name }}
+          
+          # Remove leading 'v' from the tag name, if present
+          MODIFIED_TAG_NAME=$(echo "$TAG_NAME" | sed 's/^v//')
+          
+          # Set the modified tag name as an environment variable
+          echo "MODIFIED_TAG_NAME=$MODIFIED_TAG_NAME" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
@@ -112,4 +124,4 @@ jobs:
         with:
           file: ./.docker/Dockerfile
           push: true
-          tags: leoafarias/fvm:{{ github.event.release.tag_name }}
+          tags: leoafarias/fvm:{{ steps.get_tag_name.outputs.modified_tag_name}}

@@ -1,3 +1,18 @@
+## 3.2.1
+
+* fix: `--fvm-skip-input` flag not applying to context
+* add: `fvm list` now displays the cache path even if no version is installed
+
+## 3.2.0
+
+* add: support for skipping input requests by @Rexios80. Input requests are skipped when the `--fvm-skip-input` flag is passed.
+* add: documentation for command rerouting by @humblerookie
+* fix(cosmetics): fvm has one newline too much by @jonasbadstuebner
+* fix: unsupported architecture on arm64 by @MrCyjaneK
+* add: tags for Docker deployment by @CodeRedDev
+* add: Validate if git is installed by @leoafarias
+* add: Disable local mirror on exception by @leoafarias
+
 ## 3.1.7
 
 * Display the configured version in the `fvm list` command by @digoreis

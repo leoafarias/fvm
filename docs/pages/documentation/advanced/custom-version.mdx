@@ -6,16 +6,105 @@ import { Callout } from "nextra/components";
 
 # Custom Flutter Version (Forks)
 
-You can use custom Flutter versions (forks) within the FVM cache.
+In case you need to have a custom version of the Flutter SDK (a fork), referenced within a project, and you want to continue to use FVM, you can do so by following the steps below.
 
-To do that, you have to prefix the version with `custom_` and then add the name of the version. For example, if you want to use a custom version of Flutter, you can do the following:
+There are two ways to use a custom version of the Flutter SDK:
+
+## **Clone the fork within the FVM cache**
+
+This method is useful if you want to use a fork of the Flutter SDK within a project and reference that "custom" version like you would releases or channels.
+
+**1. Look for the path where FVM caches the versions. You can find this path by running the following command:**
 
 ```bash
-fvm use [custom_name]
+fvm list
 ```
 
-<Callout type="info">
+Output:
+```ansi terminal
+Cache directory:  /Users/{user}/fvm/versions
+Directory Size: 6.47 GB
 
-Run `fvm list` to view the cache directory and the current cached versions.
+[37m┌────────────────┬─────────┬────────────────────┬─────────────────┬──────────────┬────────┬───────┐[m
+[37m│ [m[1mVersion       [m[37m │ [m[1mChannel[m[37m │ [m[1mFlutter Version   [m[37m │ [m[1mDart Version   [m[37m │ [m[1mRelease Date[m[37m │ [m[1mGlobal[m[37m │ [m[1mLocal[m[37m │[m
+[37m├────────────────┼─────────┼────────────────────┼─────────────────┼──────────────┼────────┼───────┤[m
+[37m│ [mstable        [37m │ [mstable [37m │ [m3.24.1            [37m │ [m3.5.1          [37m │ [mAug 21, 2024[37m │ [m      [37m │ [m     [37m │[m
+[37m├────────────────┼─────────┼────────────────────┼─────────────────┼──────────────┼────────┼───────┤[m
+[37m│ [m3.19.0        [37m │ [mstable [37m │ [m3.19.0            [37m │ [m3.3.0          [37m │ [mFeb 15, 2024[37m │ [m      [37m │ [m     [37m │[m
+[37m└────────────────┴─────────┴────────────────────┴─────────────────┴──────────────┴────────┴───────┘[m
+```
+**2. Clone the fork of the Flutter SDK into the cache directory.**
 
+When cloning, make sure to prefix the version with `custom_` and then add the name of the version. For example, if you want to fork a version called `special`, you will have to clone it into the cache directory as `custom_special`.
+
+The prefix `custom_` is used to differentiate the custom versions from the official Flutter versions and allows FVM to not apply the same level of validation as it does with the official versions.
+
+Now, when you run `fvm list`, you should see the custom version in the list.
+<Callout type="warning">
+Make sure you always clone the whole repository using the command `git clone url-to-repository.git`.
+Do not use `--depth` or `--single-branch` as it might cause issues with the Flutter SDK.
+Flutter Tools depends on repository references to determine its version correct version.
 </Callout>
+
+Output:
+
+```ansi
+Cache directory:  /Users/{user}/fvm/versions
+Directory Size: 6.47 GB
+
+[37m┌────────────────┬─────────┬────────────────────┬─────────────────┬──────────────┬────────┬───────┐[m
+[37m│ [m[1mVersion       [m[37m │ [m[1mChannel[m[37m │ [m[1mFlutter Version   [m[37m │ [m[1mDart Version   [m[37m │ [m[1mRelease Date[m[37m │ [m[1mGlobal[m[37m │ [m[1mLocal[m[37m │[m
+[37m├────────────────┼─────────┼────────────────────┼─────────────────┼──────────────┼────────┼───────┤[m
+[37m│ [mcustom_special[37m │ [m       [37m │ [m3.24.0-1.0.pre.575[37m │ [m3.6.0-146.0.dev[37m │ [m            [37m │ [m      [37m │ [m     [37m │[m
+[37m├────────────────┼─────────┼────────────────────┼─────────────────┼──────────────┼────────┼───────┤[m
+[37m│ [mstable        [37m │ [mstable [37m │ [m3.24.1            [37m │ [m3.5.1          [37m │ [mAug 21, 2024[37m │ [m      [37m │ [m     [37m │[m
+[37m├────────────────┼─────────┼────────────────────┼─────────────────┼──────────────┼────────┼───────┤[m
+[37m│ [m3.19.0        [37m │ [mstable [37m │ [m3.19.0            [37m │ [m3.3.0          [37m │ [mFeb 15, 2024[37m │ [m      [37m │ [m     [37m │[m
+[37m└────────────────┴─────────┴────────────────────┴─────────────────┴──────────────┴────────┴───────┘[m
+```
+**3. Use the custom version within your project.**
+
+You can now use the custom version within your project by running the following command, but referencing it as `custom_special`:
+
+```bash
+fvm use custom_special
+```
+
+## **Change the repository URL to the fork**
+
+With FVM, you can also change the repository URL to the fork you want to use. This method is useful if you want to use a fork of the Flutter SDK globally and want to continue to reference releases and channels from the fork version.
+
+There are a few ways you can do this:
+
+**Option 1. Change the repository URL globally used by FVM**
+```bash
+fvm config --flutter-url https://github.com/org/custom-flutter.git
+```
+
+Now, when you run `fvm install` or `fvm use`, it will use the custom repository URL.
+
+<Callout type="info">
+If you already have versions installed, you will have to reinstall them to use the custom repository URL version of them.
+</Callout>
+
+**Option 2. Change the environment variable**
+
+You can also change the repository URL by setting the environment variable `FVM_FLUTTER_URL`:
+
+```bash
+# Change the env var in your shell profile
+export FVM_FLUTTER_URL="https://github.com/org/custom-flutter.git"
+```
+### **Setting the custom repository URL per project**
+
+You can also set the custom repository URL per project by creating a `.fvmrc` file in the root of your project and adding the following:
+
+<Callout type="warning">
+Keep in mind that for each project, the releases and channels need to be different from the ones used in other projects; otherwise, there might be some conflict. A good idea would be to reserve certain versions like `master`, for example.
+</Callout>
+
+```json filename=".fvmrc"
+{
+  "flutterUrl": "https://github.com/org/custom-flutter.git"
+}
+```

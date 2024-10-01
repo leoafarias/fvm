@@ -21,6 +21,7 @@ void _warnDeprecatedEnvVars() {
     logger.info('Please use ${ConfigKeys.flutterUrl.envKey}');
     final confirmation = logger.confirm(
       'Do you want to proceed? This might impact the expected behavior.',
+      defaultValue: false,
     );
     if (!confirmation) {
       exit(ExitCode.success.code);

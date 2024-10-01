@@ -48,7 +48,10 @@ Future<void> useVersionWorkflow({
       logger
         ..spacer
         ..info('No pubspec.yaml detected in this directory');
-      final proceed = logger.confirm('Would you like to continue?');
+      final proceed = logger.confirm(
+        'Would you like to continue?',
+        defaultValue: true,
+      );
 
       if (!proceed) exit(ExitCode.success.code);
     }

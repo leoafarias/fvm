@@ -23,7 +23,7 @@ class InstallCommand extends BaseCommand {
       ..addFlag(
         'setup',
         abbr: 's',
-        help: 'Builds SDK after install after install',
+        help: 'Builds SDK after install',
         defaultsTo: false,
         negatable: false,
       )

@@ -62,7 +62,9 @@ String assignVersionWeight(String version) {
     version = version.replaceFirst('v', '');
   }
 
-  if (version.contains('custom_')) {
+  bool isCustom = version.contains('custom_');
+
+  if (isCustom) {
     version = version.replaceFirst('custom_', '');
   }
 
@@ -71,7 +73,11 @@ String assignVersionWeight(String version) {
     // ignore: avoid-unused-instances
     Version.parse(version);
   } on Exception {
-    logger.warn('Version $version is not a valid semver');
+    if (isCustom) {
+      return '400.0.0';
+    }
+
+    logger.detail('Cache version $version is not a valid semver');
 
     return '0.0.0';
   }
