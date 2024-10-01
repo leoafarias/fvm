@@ -43,7 +43,10 @@ class FlutterService extends ContextService {
   }
 
   /// Clones Flutter SDK from Version Number or Channel
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    required bool useGitCache,
+  }) async {
     final versionDir = CacheService(context).getVersionCacheDir(version.name);
 
     // Check if its git commit
@@ -75,7 +78,7 @@ class FlutterService extends ContextService {
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (context.gitCache) ...useMirrorParams,
+      if (useGitCache) ...useMirrorParams,
     ];
 
     try {
@@ -215,13 +218,17 @@ class FlutterServiveMock extends FlutterService {
   FlutterServiveMock(FVMContext context) : super(context);
 
   @override
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    required bool useGitCache,
+  }) async {
     /// Moves directory from main context HOME/fvm/versions to test context
 
     final mainContext = FVMContext.main;
     var cachedVersion = CacheService(mainContext).getVersion(version);
     if (cachedVersion == null) {
-      await FlutterService(mainContext).install(version);
+      await FlutterService(mainContext)
+          .install(version, useGitCache: useGitCache);
       cachedVersion = CacheService(mainContext).getVersion(version);
     }
     final versionDir = CacheService(mainContext).getVersionCacheDir(

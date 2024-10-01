@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
@@ -63,19 +64,39 @@ class LoggerService extends ContextService {
     return progress;
   }
 
-  bool confirm(String? message, {bool? defaultValue}) {
+  bool confirm(String? message, {required bool defaultValue}) {
     // When running tests, always return true.
     if (context.isTest) return true;
+
+    if (context.isCI || context.skipInput) {
+      logger.info(message ?? '');
+      logger
+        ..warn('Skipping input confirmation')
+        ..warn('Using default value of $defaultValue');
+
+      return defaultValue;
+    }
 
     return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
         .interact();
   }
 
-  String select(String? message, {required List<String> options}) {
+  String select(
+    String? message, {
+    required List<String> options,
+    int? defaultSelection,
+  }) {
+    if (context.skipInput) {
+      if (defaultSelection != null) {
+        return options[defaultSelection];
+      }
+      exit(ExitCode.usage.code);
+    }
+
     final selection = interact.Select(
       prompt: message ?? '',
       options: options,
-      initialIndex: 0,
+      initialIndex: defaultSelection ?? 0,
     ).interact();
 
     return options[selection];
@@ -113,8 +134,6 @@ class LoggerService extends ContextService {
 final dot = '\u{25CF}'; // ●
 final rightArrow = '\u{2192}'; // →
 
-/// Logger for FVM
-/// Console controller instance
 final consoleController = ConsoleController();
 
 /// Console Controller

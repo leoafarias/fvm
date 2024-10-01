@@ -1,11 +1,101 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "2feea7a4071e25c1e3aac9c17016531bc4442f2a",
+    "beta": "ee624bc4fd41413cbb89099b0701a42287643d9a",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "761747bfc538b5af34aa0d3fac380f1bc331ec49"
+    "stable": "2663184aa79047d0a33a14a3b607954f8fdd8730"
   },
   "releases": [
+    {
+      "hash": "2663184aa79047d0a33a14a3b607954f8fdd8730",
+      "channel": "stable",
+      "version": "3.24.3",
+      "dart_sdk_version": "3.5.3",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-09-12T17:36:05.717800Z",
+      "archive": "stable/windows/flutter_windows_3.24.3-stable.zip",
+      "sha256": "74007227350e1c73278e90fba5b1d02780e7299d4d48fdacff035c669530a6d8"
+    },
+    {
+      "hash": "ee624bc4fd41413cbb89099b0701a42287643d9a",
+      "channel": "beta",
+      "version": "3.26.0-0.1.pre",
+      "dart_sdk_version": "3.6.0 (build 3.6.0-216.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-09-11T16:51:50.566051Z",
+      "archive": "beta/windows/flutter_windows_3.26.0-0.1.pre-beta.zip",
+      "sha256": "9da2415ec0afaef07a1a32e705784f803318f7934e1f63a4708e8828a63ba959"
+    },
+    {
+      "hash": "4cf269e36de2573851eaef3c763994f8f9be494d",
+      "channel": "stable",
+      "version": "3.24.2",
+      "dart_sdk_version": "3.5.2",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-09-04T14:43:58.842261Z",
+      "archive": "stable/windows/flutter_windows_3.24.2-stable.zip",
+      "sha256": "0ffd1b929fc1269379f7cbbed8ef0e95331f2ccaaf2f0e4e5ef8afa2e1957340"
+    },
+    {
+      "hash": "d3733fcb0ecb65cc845b3426bd32ecc1323db1cd",
+      "channel": "beta",
+      "version": "3.25.0-0.1.pre",
+      "dart_sdk_version": "3.6.0 (build 3.6.0-149.3.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-08-21T17:50:26.676091Z",
+      "archive": "beta/windows/flutter_windows_3.25.0-0.1.pre-beta.zip",
+      "sha256": "da16608a86e7dce015ddff9d629e689dacf23fee576cff90806a55b583399245"
+    },
+    {
+      "hash": "5874a72aa4c779a02553007c47dacbefba2374dc",
+      "channel": "stable",
+      "version": "3.24.1",
+      "dart_sdk_version": "3.5.1",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-08-21T16:26:32.971654Z",
+      "archive": "stable/windows/flutter_windows_3.24.1-stable.zip",
+      "sha256": "7a48358189b510211d829cd0e78ce2b27ec3009060dc6fb2e8deb9ad282fccc8"
+    },
+    {
+      "hash": "80c2e84975bbd28ecf5f8d4bd4ca5a2490bfc819",
+      "channel": "stable",
+      "version": "3.24.0",
+      "dart_sdk_version": "3.5.0",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-08-06T17:49:54.043144Z",
+      "archive": "stable/windows/flutter_windows_3.24.0-stable.zip",
+      "sha256": "68dbcb68b3a193a67f69924bf9fa48e8e34ec8ca942dea912d20f9106d07a9b9"
+    },
+    {
+      "hash": "7c6b7e9ca485f7eaaed913c6bb50f4be6da47e30",
+      "channel": "beta",
+      "version": "3.24.0-0.2.pre",
+      "dart_sdk_version": "3.5.0 (build 3.5.0-323.2.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-07-30T09:40:40.260872Z",
+      "archive": "beta/windows/flutter_windows_3.24.0-0.2.pre-beta.zip",
+      "sha256": "3ab5b5cb9bc47168059b2ea5ed33548c9cb55590541cdee0d9325f5dea243292"
+    },
+    {
+      "hash": "b864805a681ae6bb7d7f6cafb7a5a21489819bcf",
+      "channel": "beta",
+      "version": "3.24.0-0.1.pre",
+      "dart_sdk_version": "3.5.0 (build 3.5.0-323.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-07-24T18:56:18.297979Z",
+      "archive": "beta/windows/flutter_windows_3.24.0-0.1.pre-beta.zip",
+      "sha256": "a9dcd4150c67ceee454583f9cc5b639059703480f11aab5e8b4268f9cf47bd30"
+    },
+    {
+      "hash": "b0850beeb25f6d5b10426284f506557f66181b36",
+      "channel": "stable",
+      "version": "3.22.3",
+      "dart_sdk_version": "3.4.4",
+      "dart_sdk_arch": "x64",
+      "release_date": "2024-07-18T01:15:44.215253Z",
+      "archive": "stable/windows/flutter_windows_3.22.3-stable.zip",
+      "sha256": "fd7e3e4f4484a8608866bdb12d82051d34f525f80710e87ecae84f5104fc264d"
+    },
     {
       "hash": "2feea7a4071e25c1e3aac9c17016531bc4442f2a",
       "channel": "beta",

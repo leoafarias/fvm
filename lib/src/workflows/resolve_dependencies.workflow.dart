@@ -65,6 +65,7 @@ Future<void> resolveDependenciesWorkflow(
 
       final confirmation = logger.confirm(
         'Would you like to continue pinning this version anyway?',
+        defaultValue: false,
       );
 
       if (!confirmation) {
