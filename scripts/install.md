@@ -13,7 +13,7 @@ FVM will be installed to the following paths.
 ```bash
 FVM_DIR="$HOME/.fvm_flutter}"
 FVM_DIR_BIN="$HOME/bin}"
-SYMLINK_TARGET="/usr/local/bin/fvm"
+FVM_SYMLINK_TARGET="/usr/local/bin/fvm"
 ```
 
 Target paths can be overridden using environment variables.
