@@ -122,9 +122,21 @@ if ! mv "$FVM_DIR/fvm" "$FVM_DIR_BIN"; then
 fi
 
 # Create a symlink
-if ! sudo ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
-  error "Failed to create symlink."
+if [ -n "${FVM_SYMLINK_TARGET}" ]; then
+  # Skip sudo if FVM_SYMLINK_TARGET is explicitly set
+  if ! ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+    echo "Failed to create symlink at $SYMLINK_TARGET."
+    exit 1
+  fi
+else
+  # Use sudo for default SYMLINK_TARGET
+  if ! sudo ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+    echo "Failed to create symlink at $SYMLINK_TARGET with sudo."
+    exit 1
+  fi
 fi
+
+echo "Symlink created at $SYMLINK_TARGET pointing to $FVM_DIR_BIN/fvm"
 
 tildify() {
   if [[ $1 = $HOME/* ]]; then
