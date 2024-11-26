@@ -8,6 +8,20 @@ Run the command below in your terminal.
 curl -fsSL https://fvm.app/install.sh | bash
 ```
 
+FVM will be installed to the following paths.
+
+```bash
+FVM_DIR="$HOME/.fvm_flutter}"
+FVM_DIR_BIN="$HOME/bin}"
+SYMLINK_TARGET="/usr/local/bin/fvm"
+```
+
+Target paths can be overridden using environment variables.
+
+```bash
+curl -fsSL https://fvm.app/install.sh | FVM_SYMLINK_TARGET=$HOME/.local/bin/fvm bash
+```
+
 ### Install FVM on Windows
 
 **Run as Admin**: Open PowerShell as Administrator.
