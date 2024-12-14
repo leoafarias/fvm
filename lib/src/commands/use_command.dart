@@ -79,6 +79,31 @@ class UseCommand extends BaseCommand {
     // Get version from first arg
     version ??= argResults!.rest[0];
 
+    // Prompt user to confirm or adjust version format if needed
+    final versionParts = version.split('.');
+    if (versionParts.length == 1 || versionParts.length == 2) {
+      final suggestedVersion = versionParts.length == 1
+          ? '$version.0.0'
+          : '$version.0';
+      final proceed = logger.confirm(
+        'You specified version $version. Did you mean $suggestedVersion?',
+        defaultValue: true,
+      );
+
+      if (proceed) {
+        logger.info('Proceeding with suggested version: $suggestedVersion');
+        version = suggestedVersion;
+      } else {
+        logger.err('Please specify the full version, e.g., 3.0.0 or 3.27.0.');
+        return ExitCode.success.code;
+      }
+    } else if (versionParts.length != 3) {
+      logger.err(
+        'Invalid version format "$version". Please specify a version like "3.27.0".',
+      );
+      return ExitCode.success.code;
+    }
+
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {
       if (!isFlutterChannel(version) || version == 'master') {
