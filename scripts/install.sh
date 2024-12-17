@@ -46,6 +46,11 @@ error() {
     exit 1
 }
 
+# Check if running as root
+if [[ $(id -u) -eq 0 ]]; then
+    error "Should not run as root"
+fi
+
 # Log detected OS and architecture
 log_message "Detected OS: $OS"
 log_message "Detected Architecture: $ARCH"
@@ -53,6 +58,18 @@ log_message "Detected Architecture: $ARCH"
 # Check for curl
 if ! command -v curl &>/dev/null; then
     error "curl is required but not installed."
+fi
+
+# Check for escalation tool
+for cmd in sudo doas; do
+    if command -v "$cmd" &>/dev/null; then
+        ESCALATION_TOOL="$cmd"
+        break
+    fi
+done
+
+if [ -z "$ESCALATION_TOOL" ]; then
+    error "Cannot find sudo or doas for escalated privileges"
 fi
 
 # Get installed FVM version if exists
@@ -116,7 +133,7 @@ fi
 
 
 # Create a symlink
-if ! sudo ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+if ! "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
     error "Failed to create symlink."
 fi
 
