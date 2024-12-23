@@ -58,8 +58,12 @@ class FlutterVersion with FlutterVersionMappable {
       : type = VersionType.release;
 
   factory FlutterVersion.parse(String version) {
-    final parts = version.split('@');
+    // Check if its custom.
+    if (version.startsWith('custom_')) {
+      return FlutterVersion.custom(version);
+    }
 
+    final parts = version.split('@');
     if (parts.length == 2) {
       final channel = parts.last;
       if (kFlutterChannels.contains(channel)) {
@@ -67,10 +71,6 @@ class FlutterVersion with FlutterVersionMappable {
       }
 
       throw FormatException('Invalid version format');
-    }
-    // Check if its custom.
-    if (version.startsWith('custom_')) {
-      return FlutterVersion.custom(version);
     }
 
     // Check if its commit
