@@ -3,7 +3,6 @@ import 'package:io/io.dart';
 
 import '../models/config_model.dart';
 import '../services/config_repository.dart';
-import '../services/logger_service.dart';
 import '../utils/constants.dart';
 import '../utils/context.dart';
 import 'base_command.dart';
@@ -36,11 +35,11 @@ class ConfigCommand extends BaseCommand {
     void updateConfigKey<T>(ConfigKeys key, T value) {
       if (wasParsed(key.paramKey)) {
         final updatedMap = AppConfig.fromMap({key.name: value});
-        logger.info(
+        ctx.loggerService.info(
           'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
         );
 
-        logger.info(updatedMap.toString());
+        ctx.loggerService.info(updatedMap.toString());
         updatedConfig = updatedConfig.merge(updatedMap);
       }
     }
@@ -51,8 +50,8 @@ class ConfigCommand extends BaseCommand {
 
     // Save
     if (updatedConfig != currentConfig) {
-      logger.info('');
-      final updateProgress = logger.progress('Saving settings');
+      ctx.loggerService.info('');
+      final updateProgress = ctx.loggerService.progress('Saving settings');
       // Update settings
       try {
         ConfigRepository.save(updatedConfig);
@@ -62,7 +61,7 @@ class ConfigCommand extends BaseCommand {
       }
       updateProgress.complete('Settings saved.');
     } else {
-      logger
+      ctx.loggerService
         ..info('FVM Configuration:')
         ..info('Located at ${ctx.configPath}')
         ..info('');
@@ -70,14 +69,14 @@ class ConfigCommand extends BaseCommand {
       final options = currentConfig.toMap();
 
       if (options.keys.isEmpty) {
-        logger.info('No settings have been configured.');
+        ctx.loggerService.info('No settings have been configured.');
       } else {
         // Print options and it's values
         for (var key in options.keys) {
           final value = options[key];
           if (value != null) {
             final valuePrint = yellow.wrap(value.toString());
-            logger.info('$key: $valuePrint');
+            ctx.loggerService.info('$key: $valuePrint');
           }
         }
       }

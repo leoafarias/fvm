@@ -37,7 +37,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static const Field<FVMContext, List<String>> _f$args = Field('args', _$args);
   static bool _$_skipInput(FVMContext v) => v._skipInput;
   static const Field<FVMContext, bool> _f$_skipInput =
-      Field('_skipInput', _$_skipInput, key: 'skipInput');
+      Field('_skipInput', _$_skipInput, key: r'skipInput');
   static Map<Type, ContextService Function(FVMContext)> _$generators(
           FVMContext v) =>
       v.generators;
@@ -46,6 +46,9 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static bool _$isTest(FVMContext v) => v.isTest;
   static const Field<FVMContext, bool> _f$isTest =
       Field('isTest', _$isTest, opt: true, def: false);
+  static Level _$logLevel(FVMContext v) => v.logLevel;
+  static const Field<FVMContext, Level> _f$logLevel =
+      Field('logLevel', _$logLevel, opt: true, def: Level.info);
   static String _$fvmDir(FVMContext v) => v.fvmDir;
   static const Field<FVMContext, String> _f$fvmDir = Field('fvmDir', _$fvmDir);
   static bool _$gitCache(FVMContext v) => v.gitCache;
@@ -100,6 +103,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #_skipInput: _f$_skipInput,
     #generators: _f$generators,
     #isTest: _f$isTest,
+    #logLevel: _f$logLevel,
     #fvmDir: _f$fvmDir,
     #gitCache: _f$gitCache,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
@@ -126,7 +130,8 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
         args: data.dec(_f$args),
         skipInput: data.dec(_f$_skipInput),
         generators: data.dec(_f$generators),
-        isTest: data.dec(_f$isTest));
+        isTest: data.dec(_f$isTest),
+        logLevel: data.dec(_f$logLevel));
   }
 
   @override
@@ -198,7 +203,8 @@ abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
       List<String>? args,
       bool? skipInput,
       Map<Type, ContextService Function(FVMContext)>? generators,
-      bool? isTest});
+      bool? isTest,
+      Level? logLevel});
   FVMContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -242,7 +248,8 @@ class _FVMContextCopyWithImpl<$R, $Out>
           List<String>? args,
           bool? skipInput,
           Map<Type, ContextService Function(FVMContext)>? generators,
-          bool? isTest}) =>
+          bool? isTest,
+          Level? logLevel}) =>
       $apply(FieldCopyWithData({
         if (id != null) #id: id,
         if (workingDirectory != null) #workingDirectory: workingDirectory,
@@ -251,7 +258,8 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (args != null) #args: args,
         if (skipInput != null) #skipInput: skipInput,
         if (generators != null) #generators: generators,
-        if (isTest != null) #isTest: isTest
+        if (isTest != null) #isTest: isTest,
+        if (logLevel != null) #logLevel: logLevel
       }));
   @override
   FVMContext $make(CopyWithData data) => FVMContext.base(
@@ -263,7 +271,8 @@ class _FVMContextCopyWithImpl<$R, $Out>
       args: data.get(#args, or: $value.args),
       skipInput: data.get(#skipInput, or: $value._skipInput),
       generators: data.get(#generators, or: $value.generators),
-      isTest: data.get(#isTest, or: $value.isTest));
+      isTest: data.get(#isTest, or: $value.isTest),
+      logLevel: data.get(#logLevel, or: $value.logLevel));
 
   @override
   FVMContextCopyWith<$R2, FVMContext, $Out2> $chain<$R2, $Out2>(

@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
 
-import '../api/api_service.dart';
 import '../api/models/json_response.dart';
+import '../utils/context.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
@@ -72,7 +72,7 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
 
   @override
   FutureOr<GetContextResponse> runSubCommand() async {
-    return APIService.fromContext.getContext();
+    return ctx.apiService.getContext();
   }
 }
 
@@ -102,7 +102,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return APIService.fromContext.getProject(projectDir);
+    return ctx.apiService.getProject(projectDir);
   }
 }
 
@@ -128,7 +128,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   Future<GetCacheVersionsResponse> runSubCommand() async {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return await APIService.fromContext
+    return await ctx.apiService
         .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
   }
 }
@@ -160,7 +160,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return await APIService.fromContext
+    return await ctx.apiService
         .getReleases(limit: limitArg, channelName: channelArg);
   }
 }

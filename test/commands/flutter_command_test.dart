@@ -2,10 +2,8 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/commands.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -20,8 +18,8 @@ void main() {
       () async {
         await runner.run('fvm use $channel');
 
-        final project = ProjectService.fromContext.findAncestor();
-        final cacheVersion = CacheService.fromContext.getVersion(
+        final project = ctx.projectService.findAncestor();
+        final cacheVersion = ctx.cacheService.getVersion(
           FlutterVersion.parse(channel),
         );
 
@@ -77,8 +75,9 @@ void main() {
       final versionNumber = "2.2.0";
 
       await runner.run('fvm install $versionNumber --setup');
-      final cacheVersion = CacheService.fromContext
-          .getVersion(FlutterVersion.parse(versionNumber));
+      final cacheVersion = ctx.cacheService.getVersion(
+        FlutterVersion.parse(versionNumber),
+      );
 
       final updatedEnvironments = updateEnvironmentVariables(
         [cacheVersion!.binPath, cacheVersion.dartBinPath],
@@ -99,7 +98,7 @@ void main() {
         environment: updatedEnvironments,
       );
 
-      final release = await FlutterReleasesClient.getReleaseFromVersion(
+      final release = await ctx.flutterReleasesServices.getReleaseFromVersion(
         versionNumber,
       );
 
@@ -122,8 +121,9 @@ void main() {
       final versionNumber = "3.10.5";
 
       await runner.run('fvm install $versionNumber --setup');
-      final cacheVersion = CacheService.fromContext
-          .getVersion(FlutterVersion.parse(versionNumber));
+      final cacheVersion = ctx.cacheService.getVersion(
+        FlutterVersion.parse(versionNumber),
+      );
 
       expect(cacheVersion, isNotNull);
 
@@ -150,7 +150,7 @@ void main() {
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      final release = await FlutterReleasesClient.getReleaseFromVersion(
+      final release = await ctx.flutterReleasesServices.getReleaseFromVersion(
         versionNumber,
       );
 

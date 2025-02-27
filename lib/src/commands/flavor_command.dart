@@ -1,9 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/commands.dart';
+import '../utils/context.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -16,8 +15,6 @@ class FlavorCommand extends BaseCommand {
       'Executes a Flutter command using a specified version defined by the project flavor';
   @override
   final argParser = ArgParser.allowAnything();
-  @override
-  String get invocation => 'fvm flavor {flavor}';
 
   /// Constructor
   FlavorCommand();
@@ -31,7 +28,7 @@ class FlavorCommand extends BaseCommand {
       );
     }
 
-    final project = ProjectService.fromContext.findAncestor();
+    final project = ctx.projectService.findAncestor();
 
     final flavor = argResults!.rest[0];
 
@@ -50,17 +47,19 @@ class FlavorCommand extends BaseCommand {
       // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(version);
       // Runs flutter command with pinned version
-      logger
+      ctx.loggerService
           .info('Using Flutter version "$version" for the "$flavor" flavor...');
 
       final results = await runFlutter(flutterArgs, version: cacheVersion);
 
       return results.exitCode;
-    } else {
-      throw UsageException(
-        'A version must be specified for the flavor "$flavor" in the project configuration file to execute the Flutter command',
-        usage,
-      );
     }
+    throw UsageException(
+      'A version must be specified for the flavor "$flavor" in the project configuration file to execute the Flutter command',
+      usage,
+    );
   }
+
+  @override
+  String get invocation => 'fvm flavor {flavor}';
 }

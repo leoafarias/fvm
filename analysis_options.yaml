@@ -35,8 +35,6 @@ dart_code_metrics:
     prefer-prefixed-global-constants: false
     avoid-nullable-interpolation: false
     avoid-returning-widgets: false
-    arguments-ordering:
-      child-last: true
     avoid-nested-conditional-expressions:
         acceptable-level: 3
     member-ordering:

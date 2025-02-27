@@ -3,12 +3,10 @@ import 'dart:io';
 import 'package:dart_console/dart_console.dart';
 import 'package:io/io.dart';
 import 'package:jsonc/jsonc.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 
 import '../models/config_model.dart';
 import '../models/project_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
 import '../utils/context.dart';
@@ -31,7 +29,7 @@ class DoctorCommand extends BaseCommand {
   DoctorCommand();
 
   void _printProject(Project project) {
-    logger.info('Project:');
+    ctx.loggerService.info('Project:');
     final table = createTable(['Project', project.name]);
 
     table.insertRows([
@@ -46,31 +44,31 @@ class DoctorCommand extends BaseCommand {
       ['.gitignore Present', project.gitIgnoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
       ['Pinned Version', project.pinnedVersion ?? 'None'],
-      ['Config path', relative(project.configPath, from: project.path)],
+      ['Config path', p.relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.localVersionsCachePath, from: project.path),
+        p.relative(project.localVersionsCachePath, from: project.path),
       ],
       [
         'Version symlink',
-        relative(project.localVersionSymlinkPath, from: project.path),
+        p.relative(project.localVersionSymlinkPath, from: project.path),
       ],
     ]);
 
-    logger.write(table.toString());
-    logger.spacer;
+    ctx.loggerService.write(table.toString());
+    ctx.loggerService.spacer;
   }
 
   void _printIdeLinks(Project project) {
-    logger
+    ctx.loggerService
       ..spacer
       ..info('IDEs:');
     final table = createTable(['IDEs', 'Value']);
 
     table.insertRow([kVsCode]);
     // Check for .vscode directory
-    final vscodeDir = Directory(join(project.path, '.vscode'));
-    final settingsPath = join(vscodeDir.path, 'settings.json');
+    final vscodeDir = Directory(p.join(project.path, '.vscode'));
+    final settingsPath = p.join(vscodeDir.path, 'settings.json');
     final settingsFile = File(settingsPath);
 
     if (vscodeDir.existsSync()) {
@@ -78,7 +76,7 @@ class DoctorCommand extends BaseCommand {
         try {
           final settings = jsonc.decode(settingsFile.readAsStringSync());
 
-          final relativeSymlinkPath = relative(
+          final relativeSymlinkPath = p.relative(
             project.localVersionSymlinkPath,
             from: project.path,
           );
@@ -90,7 +88,7 @@ class DoctorCommand extends BaseCommand {
             ['Matches pinned version:', sdkPath == relativeSymlinkPath],
           );
         } on FormatException catch (_, stackTrace) {
-          logger
+          ctx.loggerService
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
             ..err(
               'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
@@ -113,7 +111,7 @@ class DoctorCommand extends BaseCommand {
 
     // Get local properties file within flutter project
     final localPropertiesFile =
-        File(join(project.path, 'android', 'local.properties'));
+        File(p.join(project.path, 'android', 'local.properties'));
 
     if (localPropertiesFile.existsSync()) {
       final localProperties = localPropertiesFile.readAsLinesSync();
@@ -133,7 +131,7 @@ class DoctorCommand extends BaseCommand {
     }
 
     final dartSdkFile =
-        File(join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
+        File(p.join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
 
     if (dartSdkFile.existsSync()) {
       final dartSdk = dartSdkFile.readAsStringSync();
@@ -163,11 +161,11 @@ class DoctorCommand extends BaseCommand {
       table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
-    logger.write(table.toString());
+    ctx.loggerService.write(table.toString());
   }
 
   void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
-    logger
+    ctx.loggerService
       ..spacer
       ..info('Environment:');
 
@@ -187,7 +185,7 @@ class DoctorCommand extends BaseCommand {
       ['Dart PATH', dartWhich ?? 'Not found'],
     ]);
 
-    logger.write(table.toString());
+    ctx.loggerService.write(table.toString());
 
     table = createTable(['Platform', 'Value']);
 
@@ -197,12 +195,12 @@ class DoctorCommand extends BaseCommand {
       ['Dart runtime', Platform.version],
     ]);
 
-    logger.write(table.toString());
+    ctx.loggerService.write(table.toString());
   }
 
   @override
   Future<int> run() async {
-    final project = ProjectService.fromContext.findAncestor();
+    final project = ctx.projectService.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

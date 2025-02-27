@@ -4,11 +4,9 @@ import 'package:path/path.dart' as path;
 
 import '../models/config_model.dart';
 import '../models/project_model.dart';
-import '../utils/context.dart';
 import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
 import 'base_service.dart';
-import 'logger_service.dart';
 
 /// Flutter Project Services
 /// APIs for interacting with local Flutter projects
@@ -16,9 +14,6 @@ import 'logger_service.dart';
 /// This class provides methods for interacting with local Flutter projects.
 class ProjectService extends ContextService {
   const ProjectService(super.context);
-
-  /// Gets project service from context
-  static ProjectService get fromContext => getProvider();
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided

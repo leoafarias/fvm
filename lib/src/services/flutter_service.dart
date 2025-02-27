@@ -14,8 +14,6 @@ import '../utils/exceptions.dart';
 import '../utils/parsers/git_clone_update_printer.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
-import 'logger_service.dart';
-import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextService {
@@ -23,15 +21,13 @@ class FlutterService extends ContextService {
 
   // Ensures cache.dir exists and its up to date
   Future<void> _ensureCacheDir() async {
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
 
     // If cache file does not exists create it
     if (!isGitDir) {
       await updateLocalMirror();
     }
   }
-
-  static FlutterService get fromContext => getProvider();
 
   /// Upgrades a cached channel
   Future<void> runUpgrade(CacheFlutterVersion version) async {
@@ -47,7 +43,7 @@ class FlutterService extends ContextService {
     FlutterVersion version, {
     required bool useGitCache,
   }) async {
-    final versionDir = CacheService(context).getVersionCacheDir(version.name);
+    final versionDir = CacheService(ctx).getVersionCacheDir(version.name);
 
     // Check if its git commit
     String? channel;
@@ -60,8 +56,8 @@ class FlutterService extends ContextService {
         // Version name forces channel version
         channel = version.releaseFromChannel;
       } else {
-        final release =
-            await FlutterReleasesClient.getReleaseFromVersion(version.name);
+        final release = await ctx.flutterReleasesServices
+            .getReleaseFromVersion(version.name);
         channel = release?.channel.name;
       }
     }
@@ -73,7 +69,7 @@ class FlutterService extends ContextService {
       channel ?? version.name,
     ];
 
-    final useMirrorParams = ['--reference', context.gitCachePath];
+    final useMirrorParams = ['--reference', ctx.gitCachePath];
 
     final cloneArgs = [
       //if its a git hash
@@ -87,14 +83,13 @@ class FlutterService extends ContextService {
           'clone',
           '--progress',
           ...cloneArgs,
-          context.flutterUrl,
+          ctx.flutterUrl,
           versionDir.path,
         ],
-        echoOutput: !(context.isTest || !logger.isVerbose),
+        echoOutput: !(ctx.isTest || !logger.isVerbose),
       );
 
-      final gitVersionDir =
-          CacheService(context).getVersionCacheDir(version.name);
+      final gitVersionDir = CacheService(ctx).getVersionCacheDir(version.name);
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
@@ -116,7 +111,7 @@ class FlutterService extends ContextService {
         );
       }
     } on Exception {
-      CacheService(context).remove(version);
+      CacheService(ctx).remove(version);
       rethrow;
     }
   }
@@ -124,11 +119,11 @@ class FlutterService extends ContextService {
   /// Updates local Flutter repo mirror
   /// Will be used mostly for testing
   Future<void> updateLocalMirror() async {
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
 
     // If cache file does not exists create it
     if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(context.gitCachePath);
+      final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
       logger.detail('Syncing local mirror...');
 
       try {
@@ -137,7 +132,7 @@ class FlutterService extends ContextService {
         logger.err(e.message);
       }
     } else {
-      final gitCacheDir = Directory(context.gitCachePath);
+      final gitCacheDir = Directory(ctx.gitCachePath);
       // Ensure brand new directory
       if (gitCacheDir.existsSync()) {
         gitCacheDir.deleteSync(recursive: true);
@@ -147,7 +142,7 @@ class FlutterService extends ContextService {
       logger.info('Creating local mirror...');
 
       await runGitCloneUpdate(
-        ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
+        ['clone', '--progress', ctx.flutterUrl, gitCacheDir.path],
       );
     }
   }
@@ -178,12 +173,12 @@ class FlutterService extends ContextService {
 
   Future<List<String>> getTags() async {
     await _ensureCacheDir();
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
-    final gitDir = await GitDir.fromExisting(context.gitCachePath);
+    final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
     final result = await gitDir.runCommand(['tag']);
     if (result.exitCode != 0) {
       return [];
@@ -196,13 +191,13 @@ class FlutterService extends ContextService {
 
   Future<String?> getReference(String ref) async {
     await _ensureCacheDir();
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(ctx.gitCachePath);
     if (!isGitDir) {
       throw Exception('Git cache directory does not exist');
     }
 
     try {
-      final gitDir = await GitDir.fromExisting(context.gitCachePath);
+      final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
       final result = await gitDir.runCommand(
         ['rev-parse', '--short', '--verify', ref],
       );
@@ -215,7 +210,7 @@ class FlutterService extends ContextService {
 }
 
 class FlutterServiceMock extends FlutterService {
-  FlutterServiceMock(FVMContext context) : super(context);
+  const FlutterServiceMock(super.context);
 
   @override
   Future<void> install(
@@ -234,7 +229,7 @@ class FlutterServiceMock extends FlutterService {
     final versionDir = CacheService(mainContext).getVersionCacheDir(
       version.name,
     );
-    final testVersionDir = CacheService(context).getVersionCacheDir(
+    final testVersionDir = CacheService(ctx).getVersionCacheDir(
       version.name,
     );
 

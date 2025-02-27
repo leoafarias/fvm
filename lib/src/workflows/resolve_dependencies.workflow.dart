@@ -4,7 +4,6 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
-import '../services/logger_service.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 
@@ -20,7 +19,7 @@ Future<void> resolveDependenciesWorkflow(
   }
 
   if (!ctx.runPubGetOnSdkChanges) {
-    logger
+    ctx.loggerService
       ..info('Skipping "pub get" because of config setting.')
       ..spacer;
 
@@ -28,20 +27,21 @@ Future<void> resolveDependenciesWorkflow(
   }
 
   if (!project.hasPubspec) {
-    logger
+    ctx.loggerService
       ..info('Skipping "pub get" because no pubspec.yaml found.')
       ..spacer;
 
     return;
   }
 
-  final progress = logger.progress('Resolving dependencies...');
+  final progress = ctx.loggerService.progress('Resolving dependencies...');
 
   // Try to resolve offline
   ProcessResult pubGetResults = await version.run('pub get --offline');
 
   if (pubGetResults.exitCode != ExitCode.success.code) {
-    logger.detail('Could not resolve dependencies using offline mode.');
+    ctx.loggerService
+        .detail('Could not resolve dependencies using offline mode.');
 
     progress.update('Trying to resolve dependencies...');
 
@@ -49,21 +49,21 @@ Future<void> resolveDependenciesWorkflow(
 
     if (pubGetResults.exitCode != ExitCode.success.code) {
       progress.fail('Could not resolve dependencies.');
-      logger
+      ctx.loggerService
         ..spacer
         ..err(pubGetResults.stderr.toString());
 
-      logger.info(
+      ctx.loggerService.info(
         'The error could indicate incompatible dependencies to the SDK.',
       );
 
       if (force) {
-        logger.warn('Force pinning due to --force flag.');
+        ctx.loggerService.warn('Force pinning due to --force flag.');
 
         return;
       }
 
-      final confirmation = logger.confirm(
+      final confirmation = ctx.loggerService.confirm(
         'Would you like to continue pinning this version anyway?',
         defaultValue: false,
       );
@@ -79,7 +79,7 @@ Future<void> resolveDependenciesWorkflow(
   progress.complete('Dependencies resolved.');
 
   if (pubGetResults.stdout != null) {
-    logger.detail(pubGetResults.stdout);
+    ctx.loggerService.detail(pubGetResults.stdout);
   }
 }
 
@@ -89,39 +89,40 @@ void logDetails(CacheFlutterVersion version, Project project) {
   final dartSdkVersion = version.dartSdkVersion;
   final flutterSdkVersion = version.flutterSdkVersion;
   // Print a separator line for easier reading
-  logger.detail('----------------------------------------');
+  ctx.loggerService.detail('----------------------------------------');
 
   // Print general information
-  logger.detail('🔍  Verbose Details');
-  logger.detail('');
+  ctx.loggerService.detail('🔍  Verbose Details');
+  ctx.loggerService.detail('');
 
   // Dart Information
-  logger.detail('🎯 Dart Info:');
-  logger.detail('   Dart Generator Version: $dartGeneratorVersion');
-  logger.detail('   Dart SDK Version:       $dartSdkVersion');
+  ctx.loggerService.detail('🎯 Dart Info:');
+  ctx.loggerService.detail('   Dart Generator Version: $dartGeneratorVersion');
+  ctx.loggerService.detail('   Dart SDK Version:       $dartSdkVersion');
 
   // Tool Information
-  logger.detail('');
-  logger.detail('🛠️ Tool Info:');
-  logger.detail('   Dart Tool Version:      $dartToolVersion');
-  logger.detail('   SDK Version:            $flutterSdkVersion');
+  ctx.loggerService.detail('');
+  ctx.loggerService.detail('🛠️ Tool Info:');
+  ctx.loggerService.detail('   Dart Tool Version:      $dartToolVersion');
+  ctx.loggerService.detail('   SDK Version:            $flutterSdkVersion');
 
   // Print another separator line for clarity
-  logger.detail('----------------------------------------');
+  ctx.loggerService.detail('----------------------------------------');
 
   if (dartToolVersion == flutterSdkVersion) {
-    logger.detail('✅ Dart tool version matches SDK version, skipping resolve.');
+    ctx.loggerService
+        .detail('✅ Dart tool version matches SDK version, skipping resolve.');
 
     return;
   }
 
   // Print a warning for mismatch
-  logger.detail('');
-  logger.detail('⚠️ SDK version mismatch:');
-  logger.detail('   Dart Tool Version:      $dartToolVersion');
-  logger.detail('   Flutter SDK Version:    $flutterSdkVersion');
-  logger.detail('');
+  ctx.loggerService.detail('');
+  ctx.loggerService.detail('⚠️ SDK version mismatch:');
+  ctx.loggerService.detail('   Dart Tool Version:      $dartToolVersion');
+  ctx.loggerService.detail('   Flutter SDK Version:    $flutterSdkVersion');
+  ctx.loggerService.detail('');
 
   // Final separator line
-  logger.detail('----------------------------------------');
+  ctx.loggerService.detail('----------------------------------------');
 }

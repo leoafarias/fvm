@@ -4,13 +4,11 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:jsonc/jsonc.dart';
 import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/constants.dart';
 import '../utils/context.dart';
 import '../utils/convert_posix_path.dart';
@@ -35,7 +33,7 @@ Future<void> useVersionWorkflow({
   if (!project.hasPubspec && !force) {
     if (project.hasConfig) {
       if (project.path != ctx.workingDirectory) {
-        logger
+        ctx.loggerService
           ..spacer
           ..info('Using $kFvmConfigFileName in ${project.path}')
           ..spacer
@@ -45,10 +43,10 @@ Future<void> useVersionWorkflow({
           ..spacer;
       }
     } else {
-      logger
+      ctx.loggerService
         ..spacer
         ..info('No pubspec.yaml detected in this directory');
-      final proceed = logger.confirm(
+      final proceed = ctx.loggerService.confirm(
         'Would you like to continue?',
         defaultValue: true,
       );
@@ -57,7 +55,7 @@ Future<void> useVersionWorkflow({
     }
   }
 
-  logger
+  ctx.loggerService
     ..detail('')
     ..detail('Updating project config')
     ..detail('Project name: ${project.name}')
@@ -71,7 +69,7 @@ Future<void> useVersionWorkflow({
   // Checks if the project constraints are met
   _checkProjectVersionConstraints(project, version, force: force);
 
-  final updatedProject = ProjectService.fromContext.update(
+  final updatedProject = ctx.projectService.update(
     project,
     flavors: {if (flavor != null) flavor: version.name},
     flutterSdkVersion: version.name,
@@ -91,21 +89,21 @@ Future<void> useVersionWorkflow({
   final versionLabel = cyan.wrap(version.printFriendlyName);
   // Different message if configured environment
   if (flavor != null) {
-    logger.success(
+    ctx.loggerService.success(
       'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.',
     );
   } else {
-    logger.success('Project now uses Flutter SDK : $versionLabel');
+    ctx.loggerService.success('Project now uses Flutter SDK : $versionLabel');
   }
 
   if (version.flutterExec == which('flutter')) {
-    logger.detail('Flutter SDK is already in your PATH');
+    ctx.loggerService.detail('Flutter SDK is already in your PATH');
 
     return;
   }
 
   if (isVsCode()) {
-    logger
+    ctx.loggerService
       ..important(
         'Running on VsCode, please restart the terminal to apply changes.',
       )
@@ -122,14 +120,14 @@ Future<void> useVersionWorkflow({
 /// The method prompts the user for confirmation before actually adding the path,
 /// unless running in a test environment.
 Future<void> _checkGitignore(Project project, {required bool force}) async {
-  logger.detail('Checking .gitignore');
+  ctx.loggerService.detail('Checking .gitignore');
 
   final updateGitIgnore = project.config?.updateGitIgnore ?? true;
 
-  logger.detail('Update gitignore: $updateGitIgnore');
+  ctx.loggerService.detail('Update gitignore: $updateGitIgnore');
 
   if (!updateGitIgnore) {
-    logger.detail(
+    ctx.loggerService.detail(
       '$kPackageName does not manage .gitignore for this project.',
     );
 
@@ -142,7 +140,7 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
 
   if (!ignoreFile.existsSync()) {
     if (!await GitDir.isGitDir(project.path)) {
-      logger.warn(
+      ctx.loggerService.warn(
         'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
         'to determine what to index and display on searches,',
       );
@@ -153,7 +151,7 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   List<String> lines = ignoreFile.readAsLinesSync();
 
   if (lines.any((line) => line.trim() == pathToAdd)) {
-    logger.detail('$pathToAdd already exists in .gitignore');
+    ctx.loggerService.detail('$pathToAdd already exists in .gitignore');
 
     return;
   }
@@ -180,21 +178,24 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
     return previousValue;
   });
 
-  logger.info(
+  ctx.loggerService.info(
     'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore.',
   );
 
   if (force) {
-    logger.warn(
+    ctx.loggerService.warn(
       'Skipping .gitignore confirmation because of --force flag detected',
     );
 
     return;
   }
 
-  if (logger.confirm('Would you like to do that now?', defaultValue: true)) {
+  if (ctx.loggerService.confirm(
+    'Would you like to do that now?',
+    defaultValue: true,
+  )) {
     ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
-    logger
+    ctx.loggerService
       ..success('Added $pathToAdd to .gitignore')
       ..spacer;
   }
@@ -221,7 +222,7 @@ void _checkProjectVersionConstraints(
     try {
       dartSdkVersion = Version.parse(sdkVersion);
     } on FormatException {
-      logger.warn('Could not parse Flutter SDK version $sdkVersion');
+      ctx.loggerService.warn('Could not parse Flutter SDK version $sdkVersion');
 
       return;
     }
@@ -232,9 +233,7 @@ void _checkProjectVersionConstraints(
         '${cachedVersion.printFriendlyName} has Dart SDK $sdkVersion';
 
     if (!allowedInConstraint) {
-      logger.notice('Flutter SDK does not meet project constraints');
-
-      logger
+      ctx.loggerService
         ..info(
           '$message does not meet the project constraints of $constraints.',
         )
@@ -242,14 +241,17 @@ void _checkProjectVersionConstraints(
         ..spacer;
 
       if (force) {
-        logger.warn(
+        ctx.loggerService.warn(
           'Skipping version constraint confirmation because of --force flag detected',
         );
 
         return;
       }
 
-      if (!logger.confirm('Would you like to proceed?', defaultValue: true)) {
+      if (!ctx.loggerService.confirm(
+        'Would you like to proceed?',
+        defaultValue: true,
+      )) {
         throw AppException(
           'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
         );
@@ -270,8 +272,8 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
     project.localFvmPath.file.createSync(recursive: true);
   }
 
-  final sdkVersionFile = join(project.localFvmPath, 'version');
-  final releaseFile = join(project.localFvmPath, 'release');
+  final sdkVersionFile = p.join(project.localFvmPath, 'version');
+  final releaseFile = p.join(project.localFvmPath, 'release');
 
   sdkVersionFile.file.write(project.dartToolVersion ?? '');
   releaseFile.file.write(version.name);
@@ -291,7 +293,7 @@ void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
 ///
 /// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
 void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
-  final currentSdkLink = join(project.localFvmPath, 'flutter_sdk');
+  final currentSdkLink = p.join(project.localFvmPath, 'flutter_sdk');
 
   if (currentSdkLink.link.existsSync()) {
     currentSdkLink.link.deleteSync();
@@ -312,18 +314,18 @@ void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
 void _manageVsCodeSettings(Project project) {
   final updateVscodeSettings = project.config?.updateVscodeSettings ?? true;
 
-  final vscodeDir = Directory(join(project.path, '.vscode'));
-  final vscodeSettingsFile = File(join(vscodeDir.path, 'settings.json'));
+  final vscodeDir = Directory(p.join(project.path, '.vscode'));
+  final vscodeSettingsFile = File(p.join(vscodeDir.path, 'settings.json'));
 
   final isUsingVscode = isVsCode() || vscodeDir.existsSync();
 
   if (!updateVscodeSettings) {
-    logger.detail(
+    ctx.loggerService.detail(
       '$kPackageName does not manage $kVsCode settings for this project.',
     );
 
     if (isUsingVscode) {
-      logger.warn(
+      ctx.loggerService.warn(
         'You are using $kVsCode, but $kPackageName is '
         'not managing $kVsCode settings for this project.'
         'Please remove "updateVscodeSettings: false" from $kFvmConfigFileName',
@@ -338,7 +340,7 @@ void _manageVsCodeSettings(Project project) {
   }
 
   if (!vscodeSettingsFile.existsSync()) {
-    logger.detail('$kVsCode settings not found, to update.');
+    ctx.loggerService.detail('$kVsCode settings not found, to update.');
     vscodeSettingsFile.createSync(recursive: true);
   }
 
@@ -353,7 +355,7 @@ void _manageVsCodeSettings(Project project) {
         currentSettings = jsonc.decode(contents);
       }
     } on FormatException catch (err, stackTrace) {
-      final relativePath = relative(
+      final relativePath = p.relative(
         vscodeSettingsFile.path,
         from: ctx.workingDirectory,
       );
@@ -371,7 +373,7 @@ void _manageVsCodeSettings(Project project) {
   }
 
   if (ctx.privilegedAccess) {
-    final relativePath = relative(
+    final relativePath = p.relative(
       project.localVersionSymlinkPath,
       from: project.path,
     );

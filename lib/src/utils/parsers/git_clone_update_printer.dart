@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
 
-import '../../services/logger_service.dart';
+import '../context.dart';
 import '../extensions.dart';
 
 final regexes = {
@@ -24,7 +24,7 @@ var _hasFailedPrint = false;
 
 void updateProgress(String line) {
   if (_hasFailedPrint) {
-    logger.info('\n');
+    ctx.loggerService.info('\n');
 
     return;
   }
@@ -44,7 +44,7 @@ void updateProgress(String line) {
 
         if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
           printProgressBar(lastMatchedEntry, 100);
-          logger.write('\n');
+          ctx.loggerService.write('\n');
         }
 
         printProgressBar(label, percentage);
@@ -54,7 +54,7 @@ void updateProgress(String line) {
       }
     }
   } catch (e) {
-    logger.detail('Failed to update progress bar $e');
+    ctx.loggerService.detail('Failed to update progress bar $e');
     _hasFailedPrint = true;
   }
 }
@@ -67,7 +67,7 @@ void printProgressBar(String label, int percentage) {
 
   final output = '\r $label [$progressBlocks$remainingBlocks] $percentage%';
 
-  logger.write(output);
+  ctx.loggerService.write(output);
 }
 
 // Create a custom Process.start, that prints using the progress bar
@@ -85,19 +85,19 @@ Future<void> runGitCloneUpdate(List<String> args) async {
 
     // ignore: avoid-unassigned-stream-subscriptions
     process.stdout.transform(utf8.decoder).listen((line) {
-      logger.info(line);
+      ctx.loggerService.info(line);
     });
   } catch (e) {
-    logger.detail('Formatting error due to invalid return $e');
-    logger.info('Updating....');
+    ctx.loggerService.detail('Formatting error due to invalid return $e');
+    ctx.loggerService.info('Updating....');
   }
 
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
-    logger.err(processLogs.join('\n'));
+    ctx.loggerService.err(processLogs.join('\n'));
     throw Exception('Git clone failed');
   }
-  logger
+  ctx.loggerService
     ..spacer
     ..success('Clone complete');
 }

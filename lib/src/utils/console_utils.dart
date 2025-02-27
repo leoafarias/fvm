@@ -1,7 +1,7 @@
 import 'package:dart_console/dart_console.dart';
 
 import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
+import 'context.dart';
 import 'exceptions.dart';
 
 Table createTable([List<String> columns = const []]) {
@@ -32,7 +32,8 @@ String cacheVersionSelector(List<CacheFlutterVersion> versions) {
 
   final versionsList = versions.map((version) => version.name).toList();
 
-  final choice = logger.select('Select a version: ', options: versionsList);
+  final choice =
+      ctx.loggerService.select('Select a version: ', options: versionsList);
 
   return choice;
 }

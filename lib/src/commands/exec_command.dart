@@ -2,10 +2,9 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/commands.dart';
 import '../utils/constants.dart';
+import '../utils/context.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -23,7 +22,7 @@ class ExecCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = ProjectService.fromContext.findVersion();
+    final version = ctx.projectService.findVersion();
 
     if (argResults!.rest.isEmpty) {
       throw UsageException('No command was provided to be executed', usage);
@@ -40,7 +39,7 @@ class ExecCommand extends BaseCommand {
     if (version != null) {
       // Will install version if not already installed
       cacheVersion = await ensureCacheWorkflow(version);
-      logger
+      ctx.loggerService
         ..info('$kPackageName: Running version: "$version"')
         ..spacer;
     }

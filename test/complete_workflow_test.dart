@@ -1,8 +1,7 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:test/test.dart';
 
 import 'testing_utils.dart';
@@ -15,7 +14,7 @@ void main() {
       await runner.run('fvm install $channel');
 
       Future<CacheFlutterVersion?> getCacheVersion() async {
-        return CacheService.fromContext.getVersion(
+        return ctx.cacheService.getVersion(
           FlutterVersion.parse(channel),
         );
       }
@@ -50,13 +49,13 @@ void main() {
         reason: 'Version should not have dart sdk version',
       );
 
-      var project = ProjectService.fromContext.findAncestor();
+      var project = ctx.projectService.findAncestor();
 
       expect(project.pinnedVersion, isNull);
 
       await runner.run('fvm use $channel --skip-setup');
 
-      project = ProjectService.fromContext.findAncestor();
+      project = ctx.projectService.findAncestor();
 
       cacheVersion = await getCacheVersion();
 

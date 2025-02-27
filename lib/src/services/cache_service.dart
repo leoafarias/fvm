@@ -38,9 +38,6 @@ class CacheService extends ContextService {
     return version.flutterSdkVersion == version.version;
   }
 
-  /// Directory where local versions are cached
-  static CacheService get fromContext => getProvider();
-
   /// Returns a [CacheFlutterVersion] from a [version]
   CacheFlutterVersion? getVersion(FlutterVersion version) {
     final versionDir = getVersionCacheDir(version.name);
@@ -52,7 +49,7 @@ class CacheService extends ContextService {
 
   /// Lists Installed Flutter SDK Version
   Future<List<CacheFlutterVersion>> getAllVersions() async {
-    final versionsDir = Directory(context.versionsCachePath);
+    final versionsDir = Directory(ctx.versionsCachePath);
     // Returns empty array if directory does not exist
     if (!await versionsDir.exists()) return [];
 
@@ -83,7 +80,7 @@ class CacheService extends ContextService {
   }
 
   Directory getVersionCacheDir(String version) {
-    return Directory(path.join(context.versionsCachePath, version));
+    return Directory(path.join(ctx.versionsCachePath, version));
   }
 
   // Verifies that cache can be executed and matches version

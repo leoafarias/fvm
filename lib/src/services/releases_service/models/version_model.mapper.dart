@@ -31,7 +31,7 @@ class FlutterSdkReleaseMapper extends ClassMapperBase<FlutterSdkRelease> {
       Field('version', _$version);
   static DateTime _$releaseDate(FlutterSdkRelease v) => v.releaseDate;
   static const Field<FlutterSdkRelease, DateTime> _f$releaseDate =
-      Field('releaseDate', _$releaseDate, key: 'release_date');
+      Field('releaseDate', _$releaseDate, key: r'release_date');
   static String _$archive(FlutterSdkRelease v) => v.archive;
   static const Field<FlutterSdkRelease, String> _f$archive =
       Field('archive', _$archive);
@@ -40,14 +40,14 @@ class FlutterSdkReleaseMapper extends ClassMapperBase<FlutterSdkRelease> {
       Field('sha256', _$sha256);
   static String? _$dartSdkArch(FlutterSdkRelease v) => v.dartSdkArch;
   static const Field<FlutterSdkRelease, String> _f$dartSdkArch =
-      Field('dartSdkArch', _$dartSdkArch, key: 'dart_sdk_arch');
+      Field('dartSdkArch', _$dartSdkArch, key: r'dart_sdk_arch');
   static String? _$dartSdkVersion(FlutterSdkRelease v) => v.dartSdkVersion;
   static const Field<FlutterSdkRelease, String> _f$dartSdkVersion =
-      Field('dartSdkVersion', _$dartSdkVersion, key: 'dart_sdk_version');
+      Field('dartSdkVersion', _$dartSdkVersion, key: r'dart_sdk_version');
   static bool _$activeChannel(FlutterSdkRelease v) => v.activeChannel;
   static const Field<FlutterSdkRelease, bool> _f$activeChannel = Field(
       'activeChannel', _$activeChannel,
-      key: 'active_channel', opt: true, def: false);
+      key: r'active_channel', opt: true, def: false);
   static String _$channelName(FlutterSdkRelease v) => v.channelName;
   static const Field<FlutterSdkRelease, String> _f$channelName =
       Field('channelName', _$channelName);

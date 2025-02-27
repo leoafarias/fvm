@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import '../../utils/context.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
-import '../logger_service.dart';
+import '../base_service.dart';
 import 'models/channels_model.dart';
 import 'models/flutter_releases_model.dart';
 import 'models/version_model.dart';
@@ -26,13 +27,13 @@ String _getGithubCacheUrl(String platform) {
       'https://raw.githubusercontent.com/leoafarias/fvm/main/releases_$platform.json';
 }
 
-class FlutterReleasesClient {
+class FlutterReleasesService extends ContextService {
   static FlutterReleasesResponse? _cacheReleasesRes;
-  const FlutterReleasesClient._();
+  const FlutterReleasesService(super.context);
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.
-  static Future<FlutterReleasesResponse> getReleases({
+  Future<FlutterReleasesResponse> getReleases({
     bool cache = true,
     String? platform,
   }) async {
@@ -48,7 +49,7 @@ class FlutterReleasesClient {
 
       return _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
     } catch (err) {
-      logger.detail(err.toString());
+      context.loggerService.detail(err.toString());
       try {
         return _cacheReleasesRes = await getReleasesFromGoogle(platform);
       } catch (_, stackTrace) {
@@ -65,7 +66,7 @@ class FlutterReleasesClient {
     }
   }
 
-  static Future<FlutterReleasesResponse> getReleasesFromGoogle(
+  Future<FlutterReleasesResponse> getReleasesFromGoogle(
     String platform,
   ) async {
     final response = await fetch(_getFlutterReleasesUrl(platform));
@@ -74,7 +75,7 @@ class FlutterReleasesClient {
   }
 
   // Function to filter releases based on channel
-  static Future<List<FlutterSdkRelease>> getReleasesFilteredByChannel(
+  Future<List<FlutterSdkRelease>> getReleasesFilteredByChannel(
     String channelName,
   ) async {
     if (!FlutterChannel.values.any((element) => element.name == channelName)) {
@@ -88,14 +89,14 @@ class FlutterReleasesClient {
         .toList();
   }
 
-  static Future<bool> isVersionValid(String version) async {
+  Future<bool> isVersionValid(String version) async {
     final releases = await getReleases();
 
     return releases.containsVersion(version);
   }
 
   /// Returns a [FlutterSdkRelease]  channel [version]
-  static Future<FlutterSdkRelease> getLatestReleaseOfChannel(
+  Future<FlutterSdkRelease> getLatestReleaseOfChannel(
     FlutterChannel channel,
   ) async {
     final releases = await getReleases();
@@ -104,9 +105,7 @@ class FlutterReleasesClient {
   }
 
   /// Returns a [FlutterChannel] from a [version]
-  static Future<FlutterSdkRelease?> getReleaseFromVersion(
-    String version,
-  ) async {
+  Future<FlutterSdkRelease?> getReleaseFromVersion(String version) async {
     final releases = await getReleases();
 
     return releases.getReleaseFromVersion(version);

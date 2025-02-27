@@ -39,7 +39,7 @@ class FlutterReleasesResponseMapper
       v._versionReleaseMap;
   static const Field<FlutterReleasesResponse, Map<String, FlutterSdkRelease>>
       _f$_versionReleaseMap = Field('_versionReleaseMap', _$_versionReleaseMap,
-          key: 'versionReleaseMap');
+          key: r'versionReleaseMap');
 
   @override
   final MappableFields<FlutterReleasesResponse> fields = const {

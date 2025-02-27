@@ -1,8 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../services/logger_service.dart';
 import '../utils/commands.dart';
+import '../utils/context.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -35,7 +35,7 @@ class SpawnCommand extends BaseCommand {
     // Will install version if not already installed
     final cacheVersion = await ensureCacheWorkflow(version);
     // Runs flutter command with pinned version
-    logger.info('Spawning version "$version"...');
+    ctx.loggerService.info('Spawning version "$version"...');
 
     final results = await runFlutter(flutterArgs, version: cacheVersion);
 

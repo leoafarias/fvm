@@ -1,10 +1,13 @@
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:test/test.dart';
 
+import '../testing_utils.dart';
+
 void main() {
   group('Flutter Releases API', () {
     test('Has Flutter Releases', () async {
-      final releases = await FlutterReleasesClient.getReleases();
+      final flutterReleases = FlutterReleasesService(createTestContext());
+      final releases = await flutterReleases.getReleases();
       final versionsExists = releases.containsVersion('v1.8.1') &&
           releases.containsVersion('v1.9.6') &&
           releases.containsVersion('v1.10.5') &&

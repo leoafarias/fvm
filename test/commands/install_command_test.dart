@@ -1,7 +1,7 @@
 @Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -29,8 +29,9 @@ void main() {
         () async {
           final exitCode = await runner.run('fvm install $version');
 
-          final cacheVersion = CacheService.fromContext
-              .getVersion(FlutterVersion.parse(version));
+          final cacheVersion = ctx.cacheService.getVersion(
+            FlutterVersion.parse(version),
+          );
 
           String? releaseChannel;
 
@@ -40,7 +41,8 @@ void main() {
             if (cacheVersion!.releaseFromChannel != null) {
               releaseChannel = cacheVersion.releaseFromChannel;
             } else {
-              final release = await FlutterReleasesClient.getReleaseFromVersion(
+              final release =
+                  await ctx.flutterReleasesServices.getReleaseFromVersion(
                 cacheVersion.version,
               );
 

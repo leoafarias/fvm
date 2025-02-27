@@ -2,8 +2,7 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/services/global_version_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -14,34 +13,35 @@ final _version = FlutterVersion.parse('1.20.2');
 void main() {
   groupWithContext('Cache Service Test:', () {
     testWithContext('Cache Version', () async {
-      var validChannel = CacheService.fromContext.getVersion(_channel);
-      var validVersion = CacheService.fromContext.getVersion(_version);
+      var validChannel = ctx.cacheService.getVersion(_channel);
+      var validVersion = ctx.cacheService.getVersion(_version);
       expect(validChannel, null);
       expect(validVersion, null);
 
-      await FlutterService.fromContext.install(_channel, useGitCache: true);
-      await FlutterService.fromContext.install(_version, useGitCache: true);
+      await ctx.flutterService.install(_channel, useGitCache: true);
+      await ctx.flutterService.install(_version, useGitCache: true);
 
-      final cacheChannel = CacheService.fromContext.getVersion(_channel);
+      final cacheChannel = ctx.cacheService.getVersion(_channel);
 
-      final cacheVersion = CacheService.fromContext.getVersion(_version);
+      final cacheVersion = ctx.cacheService.getVersion(_version);
 
-      final invalidVersion = CacheService.fromContext
-          .getVersion(FlutterVersion.parse('invalid-version'));
+      final invalidVersion = ctx.cacheService.getVersion(
+        FlutterVersion.parse('invalid-version'),
+      );
 
       final channelIntegrity =
-          await CacheService.fromContext.verifyCacheIntegrity(cacheChannel!);
+          await ctx.cacheService.verifyCacheIntegrity(cacheChannel!);
       final versionIntegrity =
-          await CacheService.fromContext.verifyCacheIntegrity(cacheVersion!);
+          await ctx.cacheService.verifyCacheIntegrity(cacheVersion!);
 
-      final versions = await CacheService.fromContext.getAllVersions();
+      final versions = await ctx.cacheService.getAllVersions();
       expect(versions.length, 2);
 
       forceUpdateFlutterSdkVersionFile(cacheVersion, '2.7.0');
 
-      final cacheVersion2 = CacheService.fromContext.getVersion(_version);
+      final cacheVersion2 = ctx.cacheService.getVersion(_version);
       final versionIntegrity2 =
-          await CacheService.fromContext.verifyCacheIntegrity(cacheVersion2!);
+          await ctx.cacheService.verifyCacheIntegrity(cacheVersion2!);
 
       expect(versionIntegrity, CacheIntegrity.valid);
       expect(channelIntegrity, CacheIntegrity.valid);
@@ -52,26 +52,26 @@ void main() {
     testWithContext('Set/Get Global Cache Version ', () async {
       CacheFlutterVersion? globalVersion;
       bool isChanneGlobal, isVersionGlobal;
-      globalVersion = GlobalVersionService.fromContext.getGlobal();
+      globalVersion = ctx.globalVersionService.getGlobal();
       expect(globalVersion, null);
 
-      final channel = CacheService.fromContext.getVersion(_channel);
-      final version = CacheService.fromContext.getVersion(_version);
+      final channel = ctx.cacheService.getVersion(_channel);
+      final version = ctx.cacheService.getVersion(_version);
       // Set channel as global
-      GlobalVersionService.fromContext.setGlobal(channel!);
-      globalVersion = GlobalVersionService.fromContext.getGlobal();
-      isChanneGlobal = GlobalVersionService.fromContext.isGlobal(channel);
-      isVersionGlobal = GlobalVersionService.fromContext.isGlobal(version!);
+      ctx.globalVersionService.setGlobal(channel!);
+      globalVersion = ctx.globalVersionService.getGlobal();
+      isChanneGlobal = ctx.globalVersionService.isGlobal(channel);
+      isVersionGlobal = ctx.globalVersionService.isGlobal(version!);
 
       expect(globalVersion?.name, channel.name);
       expect(isChanneGlobal, true);
       expect(isVersionGlobal, false);
 
       // Set version as global
-      GlobalVersionService.fromContext.setGlobal(version);
-      globalVersion = GlobalVersionService.fromContext.getGlobal();
-      isChanneGlobal = GlobalVersionService.fromContext.isGlobal(channel);
-      isVersionGlobal = GlobalVersionService.fromContext.isGlobal(version);
+      ctx.globalVersionService.setGlobal(version);
+      globalVersion = ctx.globalVersionService.getGlobal();
+      isChanneGlobal = ctx.globalVersionService.isGlobal(channel);
+      isVersionGlobal = ctx.globalVersionService.isGlobal(version);
 
       expect(globalVersion?.name, version.name);
       expect(isChanneGlobal, false);

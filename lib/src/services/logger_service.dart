@@ -9,16 +9,13 @@ import 'package:tint/tint.dart';
 import '../utils/context.dart';
 import 'base_service.dart';
 
-/// Sets default logger mode
-LoggerService get logger => getProvider();
+// LoggerService get logger => ctx.loggerService;
 
 class LoggerService extends ContextService {
   final Logger _logger;
 
   /// Constructor
-  LoggerService({Level? level, FVMContext? context})
-      : _logger = Logger(level: level ?? Level.info),
-        super(context);
+  LoggerService(super.context) : _logger = Logger(level: context.logLevel);
 
   void get spacer => _logger.info('');
 
@@ -27,7 +24,7 @@ class LoggerService extends ContextService {
   Level get level => _logger.level;
 
   String get stdout {
-    return logger.stdout;
+    return context.loggerService.stdout;
   }
 
   void get divider {
@@ -58,7 +55,7 @@ class LoggerService extends ContextService {
       // if verbose then cancel for other data been displayed and overlapping
       progress.cancel();
       // Replace for a normal log
-      logger.info(message);
+      info(message);
     }
 
     return progress;
@@ -66,13 +63,12 @@ class LoggerService extends ContextService {
 
   bool confirm(String? message, {required bool defaultValue}) {
     // When running tests, always return true.
-    if (context.isTest) return true;
+    if (ctx.isTest) return true;
 
-    if (context.isCI || context.skipInput) {
-      logger.info(message ?? '');
-      logger
-        ..warn('Skipping input confirmation')
-        ..warn('Using default value of $defaultValue');
+    if (ctx.isCI || ctx.skipInput) {
+      info(message ?? '');
+      warn('Skipping input confirmation');
+      warn('Using default value of $defaultValue');
 
       return defaultValue;
     }
@@ -86,7 +82,7 @@ class LoggerService extends ContextService {
     required List<String> options,
     int? defaultSelection,
   }) {
-    if (context.skipInput) {
+    if (ctx.skipInput) {
       if (defaultSelection != null) {
         return options[defaultSelection];
       }

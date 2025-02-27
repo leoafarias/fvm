@@ -14,6 +14,7 @@ import '../services/flutter_service.dart';
 import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../version.dart';
 import 'constants.dart';
 
@@ -29,8 +30,6 @@ final contextKey = ScopeKey<FVMContext>();
 typedef Generator<T extends ContextService> = T Function(FVMContext context);
 
 FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
-
-T getProvider<T>() => ctx.get();
 
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
 class FVMContext with FVMContextMappable {
@@ -56,6 +55,9 @@ class FVMContext with FVMContextMappable {
 
   final List<String> args;
 
+  /// Log level
+  final Level logLevel;
+
   /// True if the `--fvm-skip-input` flag was passed to the command
   final bool _skipInput;
 
@@ -74,6 +76,7 @@ class FVMContext with FVMContextMappable {
     required bool skipInput,
     required this.generators,
     this.isTest = false,
+    this.logLevel = Level.info,
   }) : _skipInput = skipInput;
 
   static FVMContext create({
@@ -81,7 +84,7 @@ class FVMContext with FVMContextMappable {
     List<String>? args,
     AppConfig? configOverrides,
     String? workingDirectory,
-    Map<Type, dynamic>? generatorOverrides,
+    ContextGenerators? generatorOverrides,
     Map<String, String>? environmentOverrides,
     bool isTest = false,
   }) {
@@ -89,8 +92,6 @@ class FVMContext with FVMContextMappable {
 
     // Load all configs
     final config = ConfigRepository.load(overrides: configOverrides);
-
-    final level = isTest ? Level.error : Level.info;
 
     final environment = {...Platform.environment, ...?environmentOverrides};
 
@@ -100,24 +101,24 @@ class FVMContext with FVMContextMappable {
 
     final skipInput = updatedArgs.remove('--fvm-skip-input');
 
+    final generators = generatorOverrides ?? ContextGenerators();
+
     return FVMContext.base(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectory,
       config: config,
       environment: environment,
       args: updatedArgs,
+      logLevel: isTest ? Level.error : Level.info,
       skipInput: skipInput,
       generators: {
-        LoggerService: (context) => LoggerService(
-              level: level,
-              context: context,
-            ),
-        ProjectService: ProjectService.new,
-        FlutterService: FlutterService.new,
-        CacheService: CacheService.new,
-        GlobalVersionService: GlobalVersionService.new,
-        APIService: APIService.new,
-        ...?generatorOverrides,
+        ProjectService: generators.projectService,
+        CacheService: generators.cacheService,
+        FlutterService: generators.flutterService,
+        GlobalVersionService: generators.globalVersionService,
+        APIService: generators.apiService,
+        LoggerService: generators.loggerService,
+        FlutterReleasesService: generators.flutterReleasesServices,
       },
       isTest: isTest,
     );
@@ -232,4 +233,34 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   @override
   // ignore: avoid-dynamic
   dynamic encode(Map<Type, Generator> self) => null;
+}
+
+class ContextGenerators {
+  final Generator<ProjectService> projectService;
+  final Generator<CacheService> cacheService;
+  final Generator<FlutterService> flutterService;
+  final Generator<GlobalVersionService> globalVersionService;
+  final Generator<APIService> apiService;
+  final Generator<LoggerService> loggerService;
+  final Generator<FlutterReleasesService> flutterReleasesServices;
+
+  const ContextGenerators({
+    this.projectService = ProjectService.new,
+    this.cacheService = CacheService.new,
+    this.flutterService = FlutterService.new,
+    this.globalVersionService = GlobalVersionService.new,
+    this.apiService = APIService.new,
+    this.loggerService = LoggerService.new,
+    this.flutterReleasesServices = FlutterReleasesService.new,
+  });
+}
+
+extension FvmContextX on FVMContext {
+  FlutterService get flutterService => get();
+  CacheService get cacheService => get();
+  ProjectService get projectService => get();
+  GlobalVersionService get globalVersionService => get();
+  APIService get apiService => get();
+  LoggerService get loggerService => get();
+  FlutterReleasesService get flutterReleasesServices => get();
 }

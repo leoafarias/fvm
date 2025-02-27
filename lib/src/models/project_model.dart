@@ -6,8 +6,8 @@ import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:pubspec/pubspec.dart';
 
-import '../services/logger_service.dart';
 import '../utils/constants.dart';
+import '../utils/context.dart';
 import '../utils/extensions.dart';
 import 'config_model.dart';
 import 'flutter_version_model.dart';
@@ -29,9 +29,6 @@ class Project with ProjectMappable {
 
   final PubSpec? pubspec;
 
-  static final fromMap = ProjectMapper.fromMap;
-  static final fromJson = ProjectMapper.fromJson;
-
   /// Creates a new instance of [Project].
   ///
   /// The [config] parameter represents the configuration of the project.
@@ -47,35 +44,9 @@ class Project with ProjectMappable {
   ///
   /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
   static Project loadFromPath(String path) {
-    final configFile = _fvmConfigPath(path);
-    final legacyConfigFile = _legacyFvmConfigPath(path);
+    final config = ProjectConfig.loadFromPath(_fvmConfigPath(path));
 
-    ProjectConfig? config = ProjectConfig.loadFromPath(configFile);
-
-    // Used for migration of config files
-    final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
-
-    if (legacyConfig != null && config != null) {
-      final legacyVersion = legacyConfig.flutter;
-      final version = config.flutter;
-
-      if (legacyVersion != version) {
-        logger
-          ..warn(
-            'Found fvm_config.json with SDK version different than .fvmrc\n'
-            'fvm_config.json is deprecated and will be removed in future versions.\n'
-            'Please do not modify this file manually.',
-          )
-          ..spacer
-          ..warn('Ignoring fvm_config.json');
-      }
-    }
-
-    if (config == null && legacyConfig != null) {
-      legacyConfig.save(configFile);
-    }
-
-    config = ProjectConfig.loadFromPath(configFile);
+    _migrateLegacyConfigFile(ctx, config, path);
 
     final pubspecFile = File(join(path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
@@ -95,11 +66,8 @@ class Project with ProjectMappable {
   @MappableField()
   FlutterVersion? get pinnedVersion {
     final sdkVersion = config?.flutter;
-    if (sdkVersion != null) {
-      return FlutterVersion.parse(sdkVersion);
-    }
 
-    return null;
+    return sdkVersion != null ? FlutterVersion.parse(sdkVersion) : null;
   }
 
   /// Retrieves the active configured flavor of the project.
@@ -225,4 +193,28 @@ class PubspecMapper extends SimpleMapper<PubSpec> {
   @override
   // ignore: avoid-dynamic
   dynamic encode(PubSpec self) => self.toJson();
+}
+
+/// _migrate legacy config file
+void _migrateLegacyConfigFile(
+    FVMContext context, ProjectConfig? config, String path) {
+  final legacyConfigFile = _legacyFvmConfigPath(path);
+  // Used for migration of config files
+  final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
+
+  if (legacyConfig != null && config != null) {
+    final legacyVersion = legacyConfig.flutter;
+    final version = config.flutter;
+
+    if (legacyVersion != version) {
+      context.loggerService
+        ..warn(
+          'Found fvm_config.json with SDK version different than .fvmrc\n'
+          'fvm_config.json is deprecated and will be removed in future versions.\n'
+          'Please do not modify this file manually.',
+        )
+        ..spacer
+        ..warn('Ignoring fvm_config.json');
+    }
+  }
 }

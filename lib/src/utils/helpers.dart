@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:date_format/date_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../services/logger_service.dart';
 import 'constants.dart';
+import 'context.dart';
 import 'git_utils.dart';
 
 /// Checks if [name] is a channel
@@ -21,7 +21,7 @@ Map<String, String> updateEnvironmentVariables(
   // within the list of paths.
   paths = paths.toSet().toList();
 
-  logger.detail('Starting to update environment variables...');
+  ctx.loggerService.detail('Starting to update environment variables...');
 
   final updatedEnvironment = Map<String, String>.from(env);
 
@@ -77,7 +77,7 @@ String assignVersionWeight(String version) {
       return '400.0.0';
     }
 
-    logger.detail('Cache version $version is not a valid semver');
+    ctx.loggerService.detail('Cache version $version is not a valid semver');
 
     return '0.0.0';
   }

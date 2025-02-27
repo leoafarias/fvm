@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../models/config_model.dart';
-import '../services/logger_service.dart';
+import 'context.dart';
 
 void deprecationWorkflow() {
   _warnDeprecatedEnvVars();
@@ -17,9 +17,10 @@ void _warnDeprecatedEnvVars() {
   final flutterRoot = Platform.environment[oldFlutterUrlEnv];
   final fvmHome = Platform.environment[oldCachePathEnv];
   if (flutterRoot != null) {
-    logger.err('$oldFlutterUrlEnv environment variable is deprecated. ');
-    logger.info('Please use ${ConfigKeys.flutterUrl.envKey}');
-    final confirmation = logger.confirm(
+    ctx.loggerService
+        .err('$oldFlutterUrlEnv environment variable is deprecated. ');
+    ctx.loggerService.info('Please use ${ConfigKeys.flutterUrl.envKey}');
+    final confirmation = ctx.loggerService.confirm(
       'Do you want to proceed? This might impact the expected behavior.',
       defaultValue: false,
     );
@@ -31,7 +32,8 @@ void _warnDeprecatedEnvVars() {
   }
 
   if (fvmHome != null) {
-    logger.warn('$oldCachePathEnv environment variable is deprecated. ');
-    logger.info('Please use ${ConfigKeys.cachePath.envKey} instead');
+    ctx.loggerService
+        .warn('$oldCachePathEnv environment variable is deprecated. ');
+    ctx.loggerService.info('Please use ${ConfigKeys.cachePath.envKey} instead');
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import '../models/cache_flutter_version_model.dart';
-import '../services/global_version_service.dart';
 import 'context.dart';
 import 'helpers.dart';
 import 'run_command.dart';
@@ -16,7 +15,7 @@ Future<ProcessResult> runFlutter(
   bool? echoOutput,
   bool? throwOnError,
 }) {
-  version ??= GlobalVersionService.fromContext.getGlobal();
+  version ??= ctx.globalVersionService.getGlobal();
 
   if (version == null) {
     return _runCmd(_flutterCmd, args: args);
@@ -38,7 +37,7 @@ Future<ProcessResult> runDart(
   bool? echoOutput,
   bool? throwOnError,
 }) {
-  version ??= GlobalVersionService.fromContext.getGlobal();
+  version ??= ctx.globalVersionService.getGlobal();
   if (version == null) {
     return _runCmd(_dartCmd, args: args);
   }

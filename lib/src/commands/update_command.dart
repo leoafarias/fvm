@@ -4,8 +4,8 @@ import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
-import '../services/logger_service.dart';
 import '../utils/constants.dart';
+import '../utils/context.dart';
 import '../version.dart';
 
 class UpdateCommand extends Command<int> {
@@ -18,13 +18,14 @@ class UpdateCommand extends Command<int> {
 
   @override
   Future<int> run() async {
-    final updateCheckProgress = logger.progress('Checking for updates');
+    final updateCheckProgress =
+        ctx.loggerService.progress('Checking for updates');
     final String latestVersion;
     try {
       latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
     } catch (error) {
       updateCheckProgress.fail();
-      logger.err('$error');
+      ctx.loggerService.err('$error');
 
       return ExitCode.software.code;
     }
@@ -32,12 +33,13 @@ class UpdateCommand extends Command<int> {
 
     final isUpToDate = packageVersion == latestVersion;
     if (isUpToDate) {
-      logger.success('You are already using the latest version.');
+      ctx.loggerService.success('You are already using the latest version.');
 
       return ExitCode.success.code;
     }
 
-    final updateProgress = logger.progress('Updating to $latestVersion');
+    final updateProgress =
+        ctx.loggerService.progress('Updating to $latestVersion');
 
     late final ProcessResult result;
     try {
@@ -47,14 +49,14 @@ class UpdateCommand extends Command<int> {
       );
     } catch (error) {
       updateProgress.fail();
-      logger.err('$error');
+      ctx.loggerService.err('$error');
 
       return ExitCode.software.code;
     }
 
     if (result.exitCode != ExitCode.success.code) {
       updateProgress.fail();
-      logger.err('Error updating CLI: ${result.stderr}');
+      ctx.loggerService.err('Error updating CLI: ${result.stderr}');
 
       return ExitCode.software.code;
     }

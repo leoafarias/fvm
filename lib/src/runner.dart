@@ -24,7 +24,6 @@ import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
 import 'services/config_repository.dart';
-import 'services/logger_service.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
 import 'utils/deprecation_util.dart';
@@ -93,7 +92,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final currentVersionLabel = lightCyan.wrap(packageVersion);
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
-        logger
+        ctx.loggerService
           ..spacer
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
@@ -102,13 +101,13 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       };
     } catch (_) {
       return () {
-        logger.detail("Failed to check for updates.");
+        ctx.loggerService.detail("Failed to check for updates.");
       };
     }
   }
 
   @override
-  void printUsage() => logger.info(usage);
+  void printUsage() => ctx.loggerService.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -118,14 +117,14 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
-        logger.level = Level.verbose;
+        ctx.loggerService.level = Level.verbose;
       }
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
     } on AppDetailedException catch (err, stackTrace) {
-      logger
+      ctx.loggerService
         ..fail(err.message)
         ..spacer
         ..err(err.info);
@@ -135,12 +134,12 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
-        logger
+        ctx.loggerService
           ..spacer
           ..fail('Requires administrator privileges to run this command.')
           ..spacer;
 
-        logger.notice(
+        ctx.loggerService.notice(
           "You don't have the required privileges to run this command.\n"
           "Try running with sudo or administrator privileges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
@@ -149,7 +148,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return ExitCode.noPerm.code;
       }
 
-      logger
+      ctx.loggerService
         ..err(err.message)
         ..spacer
         ..err('Path: ${err.path}');
@@ -158,11 +157,11 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {
-      logger.fail(err.message);
+      ctx.loggerService.fail(err.message);
 
       return ExitCode.data.code;
     } on ProcessException catch (e) {
-      logger
+      ctx.loggerService
         ..spacer
         ..err(e.toString())
         ..spacer;
@@ -171,14 +170,14 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     } on UsageException catch (err) {
       // On usage errors, show the commands usage message and
       // exit with an error code
-      logger
+      ctx.loggerService
         ..err(err.message)
         ..spacer
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
-      logger
+      ctx.loggerService
         ..spacer
         ..err(err.toString());
 
@@ -191,7 +190,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
-    logger
+    ctx.loggerService
       ..detail('')
       ..detail('Argument information:');
 
@@ -205,33 +204,33 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      logger.detail('  Top level options:');
+      ctx.loggerService.detail('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          logger.detail('  - $option: ${topLevelResults[option]}');
+          ctx.loggerService.detail('  - $option: ${topLevelResults[option]}');
         }
       }
-      logger.detail('');
+      ctx.loggerService.detail('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      logger.detail('Command: ${commandResult.name}');
+      ctx.loggerService.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        logger.detail('  Command options:');
+        ctx.loggerService.detail('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            logger.detail('    - $option: ${commandResult[option]}');
+            ctx.loggerService.detail('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      logger.detail('');
+      ctx.loggerService.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates();
@@ -239,7 +238,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
-      logger.info(packageVersion);
+      ctx.loggerService.info(packageVersion);
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);
@@ -254,12 +253,12 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
 void _printTrace(StackTrace stackTrace) {
   final trace = Trace.from(stackTrace).toString();
-  logger
+  ctx.loggerService
     ..detail('')
     ..detail(trace);
 
-  if (logger.level != Level.verbose) {
-    logger
+  if (ctx.loggerService.level != Level.verbose) {
+    ctx.loggerService
       ..spacer
       ..info(
         'Please run command with  --verbose if you want more information',

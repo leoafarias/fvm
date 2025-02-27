@@ -2,10 +2,6 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
-import '../services/cache_service.dart';
-import '../services/global_version_service.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
 import '../utils/context.dart';
@@ -47,15 +43,15 @@ class GlobalCommand extends BaseCommand {
     final forceArg = boolArg('force');
 
     if (unlinkArg) {
-      final globalVersion = GlobalVersionService.fromContext.getGlobal();
+      final globalVersion = ctx.globalVersionService.getGlobal();
 
       if (globalVersion == null) {
-        logger
+        ctx.loggerService
           ..info('No global version is set')
           ..spacer;
       } else {
-        GlobalVersionService.fromContext.unlinkGlobal();
-        logger
+        ctx.globalVersionService.unlinkGlobal();
+        ctx.loggerService
           ..success('Global version unlinked')
           ..spacer;
       }
@@ -67,7 +63,7 @@ class GlobalCommand extends BaseCommand {
 
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
-      final versions = await CacheService.fromContext.getAllVersions();
+      final versions = await ctx.cacheService.getAllVersions();
       version = cacheVersionSelector(versions);
     }
 
@@ -78,12 +74,12 @@ class GlobalCommand extends BaseCommand {
     final cacheVersion = await ensureCacheWorkflow(version, force: forceArg);
 
     // Sets version as the global
-    GlobalVersionService.fromContext.setGlobal(cacheVersion);
+    ctx.globalVersionService.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter', binDir: true);
 
     // Get pinned version, for comparison on terminal
-    final project = ProjectService.fromContext.findAncestor();
+    final project = ctx.projectService.findAncestor();
 
     final pinnedVersion = project.pinnedVersion;
 
@@ -91,14 +87,14 @@ class GlobalCommand extends BaseCommand {
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      pinnedCacheVersion = CacheService.fromContext.getVersion(pinnedVersion);
+      pinnedCacheVersion = ctx.cacheService.getVersion(pinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;
     final isCachedVersionInPath = flutterInPath == cacheVersion.binPath;
     final isPinnedVersionInPath = flutterInPath == pinnedCacheVersion?.binPath;
 
-    logger
+    ctx.loggerService
       ..detail('')
       ..detail('Default in path: $isDefaultInPath')
       ..detail('Cached version in path: $isCachedVersionInPath')
@@ -110,12 +106,12 @@ class GlobalCommand extends BaseCommand {
       ..detail('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
       ..detail('');
 
-    logger.info(
+    ctx.loggerService.info(
       'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
     );
 
     if (!isDefaultInPath && !isCachedVersionInPath && !isPinnedVersionInPath) {
-      logger
+      ctx.loggerService
         ..info('')
         ..notice('However your configured "flutter" path is incorrect')
         ..info(
@@ -127,7 +123,7 @@ class GlobalCommand extends BaseCommand {
     }
 
     if (isVsCode()) {
-      logger
+      ctx.loggerService
         ..notice(
           '$kVsCode might override the PATH to the Flutter in their terminal',
         )

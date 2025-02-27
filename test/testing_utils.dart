@@ -2,16 +2,12 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:fvm/src/models/cache_flutter_version_model.dart';
-import 'package:fvm/src/models/config_model.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
-import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:git/git.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:scope/scope.dart';
 import 'package:test/test.dart';
 
@@ -42,9 +38,9 @@ Future<String> getStdout(String command) async {
   // This directory is most likely in the user home folder but could be anywhere
   // So we need to get the relative path from the script to the current directory
   // and then join it to the ctx.workingDirectory
-  final scriptPath = join(Directory.current.path, executable);
-  final relativePath = relative(scriptPath, from: ctx.workingDirectory);
-  final executablePath = join(ctx.workingDirectory, relativePath);
+  final scriptPath = p.join(Directory.current.path, executable);
+  final relativePath = p.relative(scriptPath, from: ctx.workingDirectory);
+  final executablePath = p.join(ctx.workingDirectory, relativePath);
 
   final arguments = command.split(' ').sublist(1);
   final result = await Process.run(
@@ -78,12 +74,6 @@ const channel = 'beta';
 const gitCommit = 'f4c74a6ec3';
 const forceRelease = '2.2.2@beta';
 
-Future<FlutterVersion> getRandomFlutterVersion() async {
-  final payload = await FlutterReleasesClient.getReleases();
-  final release = payload.versions[Random().nextInt(payload.versions.length)];
-  return FlutterVersion.parse(release.version);
-}
-
 @isTest
 void testWithContext(
   String description,
@@ -109,18 +99,6 @@ void testWithContext(
     onPlatform: onPlatform,
     retry: retry,
     testOn: testOn,
-  );
-}
-
-@isTestGroup
-void testGroupWithContext(String description, Future<void> Function() body) {
-  // Create random key if it does not exist
-
-  final scope = Scope()..value(contextKey, ctx);
-
-  return test(
-    description,
-    () => scope.run(body),
   );
 }
 
@@ -175,7 +153,7 @@ void groupWithContext(
 
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
-  final versionDir = Directory(join(ctx.versionsCachePath, version));
+  final versionDir = Directory(p.join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -190,7 +168,7 @@ Future<String?> getBranch(String version) async {
 
 /// Returns the [name] of a tag [version]
 Future<String?> getTag(String version) async {
-  final versionDir = Directory(join(ctx.versionsCachePath, version));
+  final versionDir = Directory(p.join(ctx.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -211,7 +189,7 @@ void forceUpdateFlutterSdkVersionFile(
   CacheFlutterVersion version,
   String sdkVersion,
 ) {
-  final sdkVersionFile = File(join(version.directory, 'version'));
+  final sdkVersionFile = File(p.join(version.directory, 'version'));
   sdkVersionFile.writeAsStringSync(sdkVersion);
 }
 
@@ -222,7 +200,7 @@ Future<void> getCommitCount() async {
     echoOutput: true,
   );
   final commitCount = result.stdout.trim();
-  logger.info(commitCount);
+  ctx.loggerService.info(commitCount);
 }
 
 Future<DateTime> getDateOfLastCommit() async {
@@ -233,4 +211,169 @@ Future<DateTime> getDateOfLastCommit() async {
   final lastCommitDate = result.stdout.trim();
 
   return DateTime.parse(lastCommitDate);
+}
+
+const _kTempTestDirPrefix = 'FVM_TEST_DIR';
+
+Directory createTempDir([String prefix = '']) {
+  prefix = prefix.isEmpty ? '' : '_$prefix';
+  return Directory.systemTemp.createTempSync('$_kTempTestDirPrefix$prefix');
+}
+
+File createPubspecYaml(Directory directory, {String? projectName}) {
+  projectName ??= _generateUuid();
+  final file = File(p.join(directory.path, 'pubspec.yaml'));
+  file.writeAsStringSync('name: $projectName');
+  return file;
+}
+
+File createFvmConfig(ProjectConfig config, Directory directory) {
+  final file = File(p.join(directory.path, '.fvmrc'));
+  file.writeAsStringSync(config.toJson());
+  return file;
+}
+
+/// Generate a random uuid without any dependencies
+String _generateUuid() {
+  final random = Random();
+  const hexDigits = '0123456789abcdef';
+  final uuid = List.filled(36, '', growable: false);
+
+  // Generate random hex digits
+  for (var i = 0; i < 36; i++) {
+    if (i == 8 || i == 13 || i == 18 || i == 23) {
+      uuid[i] = '-';
+    } else if (i == 14) {
+      // Version 4 UUID has '4' as the version number
+      uuid[i] = '4';
+    } else if (i == 19) {
+      // UUID variant (8, 9, a, or b)
+      uuid[i] = hexDigits[(random.nextInt(4) + 8)];
+    } else {
+      uuid[i] = hexDigits[random.nextInt(16)];
+    }
+  }
+
+  return uuid.join();
+}
+
+String _replaceTempDirectory(String path) {
+  return path.substring(
+    path.indexOf(_kTempTestDirPrefix) + _kTempTestDirPrefix.length,
+  );
+}
+
+/// Custom matcher to check that a Project has a configuration.
+Matcher isProjectMatcher({
+  Directory? expectedDirectory,
+  bool hasConfig = true,
+}) =>
+    _ProjectHasConfigMatcher(
+      expectedDirectory: expectedDirectory,
+      hasConfig: hasConfig,
+    );
+
+class _ProjectHasConfigMatcher extends Matcher {
+  final Directory? _expectedDirectory;
+
+  final bool _hasConfig;
+  _ProjectHasConfigMatcher({
+    Directory? expectedDirectory,
+    required bool hasConfig,
+  })  : _expectedDirectory = expectedDirectory,
+        _hasConfig = hasConfig;
+
+  String? get expectedConfigPath => p.join(_expectedDirectory!.path, '.fvmrc');
+
+  @override
+  bool matches(item, Map matchState) {
+    if (item is! Project) return false;
+    if (!item.hasConfig && _hasConfig == true) return false;
+    if (item.hasConfig && _hasConfig == false) return false;
+
+    if (expectedConfigPath != null) {
+      if (item.configPath != expectedConfigPath) {
+        matchState['expected'] = expectedConfigPath;
+        matchState['found'] = item.configPath;
+        return false;
+      }
+    }
+    if (_hasConfig == false) {
+      if (File(item.configPath).existsSync()) {
+        matchState['expected'] = 'no config file';
+        matchState['found'] = 'has config file';
+        return false;
+      }
+    }
+    if (_hasConfig == true) {
+      if (!File(item.configPath).existsSync()) {
+        matchState['expected'] = 'has config file';
+        matchState['found'] = 'no config file';
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  Description describe(Description description) {
+    if (expectedConfigPath != null) {
+      return description.add(
+          'a Project with config at "${_replaceTempDirectory(expectedConfigPath!)}"');
+    }
+    return description.add('a Project with a valid config');
+  }
+
+  @override
+  Description describeMismatch(
+    item,
+    Description mismatchDescription,
+    Map matchState,
+    bool verbose,
+  ) {
+    if (item is! Project) {
+      return mismatchDescription.add('is not a Project');
+    }
+    if (!item.hasConfig) {
+      return mismatchDescription.add('does not have a config');
+    }
+    if (expectedConfigPath != null && item.configPath != expectedConfigPath) {
+      return mismatchDescription.add(
+          'has config at "${_replaceTempDirectory(item.configPath)}" instead of "${_replaceTempDirectory(matchState['expected'] as String)}"');
+    }
+    final configFileExists = File(item.configPath).existsSync();
+    if (_hasConfig == true && !configFileExists) {
+      return mismatchDescription.add('config file does not exist');
+    }
+    if (_hasConfig == false && configFileExists) {
+      return mismatchDescription.add('config file exists');
+    }
+
+    return mismatchDescription;
+  }
+}
+
+FVMContext createTestContext({String? name, AppConfig? appConfig}) {
+  name ??= _generateUuid();
+
+  // Create a configuration for the test context using a temporary directory for cache
+  // and the main git cache path from the existing FVMContext.
+  final config = AppConfig.empty().copyWith(
+    cachePath: createTempDir().path,
+    gitCachePath: FVMContext.main.gitCachePath,
+  );
+
+  // Create the test context using the computed contextId, the config overrides,
+  // and a temporary directory for the working directory.
+  final testContext = FVMContext.create(
+    id: name,
+    configOverrides: config,
+    workingDirectory: createTempDir(name).path,
+    isTest: true,
+  );
+
+  // Optionally, you can also add the context to a scope if needed:
+  // Scope().value(contextKey, testContext);
+
+  return testContext;
 }

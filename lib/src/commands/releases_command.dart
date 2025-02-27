@@ -2,10 +2,9 @@ import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-import '../services/logger_service.dart';
 import '../services/releases_service/models/version_model.dart';
-import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
+import '../utils/context.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
 
@@ -49,9 +48,9 @@ class ReleasesCommand extends BaseCommand {
       return release.channel.name != channelName;
     }
 
-    logger.detail('Filtering by channel: $channelName');
+    ctx.loggerService.detail('Filtering by channel: $channelName');
 
-    final releases = await FlutterReleasesClient.getReleases();
+    final releases = await ctx.flutterReleasesServices.getReleases();
 
     final versions = releases.versions.reversed;
 
@@ -82,9 +81,9 @@ class ReleasesCommand extends BaseCommand {
       ]);
     }
 
-    logger.info(table.toString());
+    ctx.loggerService.info(table.toString());
 
-    logger.info('Channel:');
+    ctx.loggerService.info('Channel:');
 
     final channelsTable = createTable()
       ..insertColumn(header: 'Channel', alignment: TextAlignment.left)
@@ -102,7 +101,7 @@ class ReleasesCommand extends BaseCommand {
       ]);
     }
 
-    logger.info(channelsTable.toString());
+    ctx.loggerService.info(channelsTable.toString());
 
     return ExitCode.success.code;
   }

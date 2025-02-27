@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import '../services/logger_service.dart';
 import 'context.dart';
 
 Future<ProcessResult> runCommand(
@@ -13,7 +12,7 @@ Future<ProcessResult> runCommand(
   bool throwOnError = true,
   bool echoOutput = false,
 }) async {
-  logger
+  ctx.loggerService
     ..detail('')
     ..detail('Running: $command')
     ..detail('');

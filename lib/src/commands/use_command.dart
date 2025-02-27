@@ -1,12 +1,10 @@
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
-import '../services/cache_service.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../services/releases_service/models/channels_model.dart';
-import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
+import '../utils/context.dart';
 import '../utils/helpers.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
@@ -66,12 +64,12 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = ProjectService.fromContext.findAncestor();
+    final project = ctx.projectService.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await CacheService.fromContext.getAllVersions();
+      final versions = await ctx.cacheService.getAllVersions();
       // If no config found, ask which version to select.
       version ??= cacheVersionSelector(versions);
     }
@@ -92,9 +90,9 @@ class UseCommand extends BaseCommand {
       final channel = FlutterChannel.fromName(version);
 
       final release =
-          await FlutterReleasesClient.getLatestReleaseOfChannel(channel);
+          await ctx.flutterReleasesServices.getLatestReleaseOfChannel(channel);
 
-      logger.info(
+      ctx.loggerService.info(
         'Pinning version ${release.version} from "$version" release channel...',
       );
 
@@ -112,7 +110,7 @@ class UseCommand extends BaseCommand {
         );
       }
 
-      logger.info(
+      ctx.loggerService.info(
         'Using Flutter SDK from flavor: "$version" which is "$flavorVersion"',
       );
       version = flavorVersion;
