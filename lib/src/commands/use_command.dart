@@ -4,6 +4,7 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/releases_service/models/channels_model.dart';
 import '../utils/helpers.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
@@ -17,7 +18,7 @@ class UseCommand extends BaseCommand {
       'Sets Flutter SDK Version you would like to use in a project';
 
   /// Constructor
-  UseCommand(super.context) {
+  UseCommand(super.controller) {
     argParser
       ..addFlag(
         'force',
@@ -61,12 +62,12 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = context.projectService.findAncestor();
+    final project = controller.projectService.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await context.cacheService.getAllVersions();
+      final versions = await controller.cacheService.getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     }
@@ -86,7 +87,7 @@ class UseCommand extends BaseCommand {
       /// Pin release to channel
       final channel = FlutterChannel.fromName(version);
 
-      final release = await context.flutterReleasesServices
+      final release = await controller.flutterReleasesServices
           .getLatestReleaseOfChannel(channel);
 
       logger.info(
@@ -123,7 +124,11 @@ class UseCommand extends BaseCommand {
       }
     }
 
-    final cacheVersion = await ensureCacheWorkflow(version, force: forceOption);
+    final cacheVersion = await ensureCacheWorkflow(
+      version,
+      force: forceOption,
+      controller: controller,
+    );
 
     /// Run use workflow
     await useVersionWorkflow(
@@ -133,6 +138,7 @@ class UseCommand extends BaseCommand {
       skipSetup: skipSetup,
       runPubGetOnSdkChange: !skipPubGet,
       flavor: flavorOption,
+      controller: controller,
     );
 
     return ExitCode.success.code;

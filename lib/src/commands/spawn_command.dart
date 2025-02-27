@@ -1,8 +1,6 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../utils/commands.dart';
-import '../utils/context.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -16,7 +14,7 @@ class SpawnCommand extends BaseCommand {
   final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  SpawnCommand();
+  SpawnCommand(super.controller);
 
   @override
   Future<int> run() async {
@@ -33,11 +31,17 @@ class SpawnCommand extends BaseCommand {
     final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
     // Will install version if not already installed
-    final cacheVersion = await ensureCacheWorkflow(version);
+    final cacheVersion = await ensureCacheWorkflow(
+      version,
+      controller: controller,
+    );
     // Runs flutter command with pinned version
-    ctx.loggerService.info('Spawning version "$version"...');
+    controller.logger.info('Spawning version "$version"...');
 
-    final results = await runFlutter(flutterArgs, version: cacheVersion);
+    final results = await controller.flutterService.runFlutter(
+      flutterArgs,
+      version: cacheVersion,
+    );
 
     return results.exitCode;
   }

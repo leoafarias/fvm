@@ -1,9 +1,7 @@
 import 'package:args/args.dart';
 
 import '../models/cache_flutter_version_model.dart';
-import '../utils/commands.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
@@ -18,20 +16,23 @@ class FlutterCommand extends BaseCommand {
   final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  FlutterCommand();
+  FlutterCommand(super.context);
 
   @override
   Future<int> run() async {
-    final version = ctx.projectService.findVersion();
+    final version = controller.projectService.findVersion();
     final args = [...?argResults?.arguments];
 
     CacheFlutterVersion? cacheVersion;
 
     if (version != null) {
       // Will install version if not already installed
-      cacheVersion = await ensureCacheWorkflow(version);
+      cacheVersion = await ensureCacheWorkflow(
+        version,
+        controller: controller,
+      );
 
-      ctx.loggerService
+      logger
         ..detail('$kPackageName: Running Flutter SDK from version $version')
         ..detail('');
 
@@ -50,12 +51,15 @@ class FlutterCommand extends BaseCommand {
       }
       // Runs flutter command with pinned version
     } else {
-      ctx.loggerService
+      logger
         ..detail('$kPackageName: Running Flutter SDK from PATH')
         ..detail('');
       // Running null will default to flutter version on paths
     }
-    final results = await runFlutter(args, version: cacheVersion);
+    final results = await controller.flutterService.runFlutter(
+      args,
+      version: cacheVersion,
+    );
 
     return results.exitCode;
   }

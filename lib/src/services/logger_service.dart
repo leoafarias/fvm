@@ -8,6 +8,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
+import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 
@@ -45,6 +46,15 @@ class Logger {
   final bool _isTest;
   final bool _isCI;
   final bool _skipInput;
+
+  factory Logger.fromContext(FVMContext context) {
+    return Logger(
+      logLevel: context.logLevel,
+      isTest: context.isTest,
+      isCI: context.isCI,
+      skipInput: context.skipInput,
+    );
+  }
 
   /// Constructor
   Logger({

@@ -109,7 +109,8 @@ void groupWithContext(
       final testContext = FVMContext.create(
         id: contextId,
         configOverrides: config,
-        workingDirectory: getTempTestProjectDir(contextId, 'flutter_app'),
+        workingDirectoryOverride:
+            getTempTestProjectDir(contextId, 'flutter_app'),
         isTest: true,
       );
 
@@ -341,7 +342,7 @@ FVMContext createTestContext({String? name, AppConfig? appConfig}) {
   final testContext = FVMContext.create(
     id: name,
     configOverrides: config,
-    workingDirectory: createTempDir(name).path,
+    workingDirectoryOverride: createTempDir(name).path,
     isTest: true,
   );
 

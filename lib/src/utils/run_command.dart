@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../services/logger_service.dart';
 import 'context.dart';
 
 Future<ProcessResult> runCommand(
@@ -12,8 +13,9 @@ Future<ProcessResult> runCommand(
   bool throwOnError = true,
   bool echoOutput = false,
   required FVMContext context,
+  required Logger logger,
 }) async {
-  context.logger
+  logger
     ..detail('')
     ..detail('Running: $command')
     ..detail('');

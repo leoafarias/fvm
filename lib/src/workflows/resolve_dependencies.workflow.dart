@@ -11,6 +11,7 @@ Future<void> resolveDependenciesWorkflow(
   Project project,
   CacheFlutterVersion version, {
   required bool force,
+  required FvmController controller,
 }) async {
   if (version.isNotSetup) return;
 
@@ -18,8 +19,8 @@ Future<void> resolveDependenciesWorkflow(
     return;
   }
 
-  if (!ctx.runPubGetOnSdkChanges) {
-    ctx.loggerService
+  if (!controller.context.runPubGetOnSdkChanges) {
+    controller.logger
       ..info('Skipping "pub get" because of config setting.')
       ..spacer;
 
@@ -27,43 +28,49 @@ Future<void> resolveDependenciesWorkflow(
   }
 
   if (!project.hasPubspec) {
-    ctx.loggerService
+    controller.logger
       ..info('Skipping "pub get" because no pubspec.yaml found.')
       ..spacer;
 
     return;
   }
 
-  final progress = ctx.loggerService.progress('Resolving dependencies...');
+  final progress = controller.logger.progress('Resolving dependencies...');
 
   // Try to resolve offline
-  ProcessResult pubGetResults = await version.run('pub get --offline');
+  ProcessResult pubGetResults = await controller.flutterService.runFlutter(
+    ['pub', 'get', '--offline'],
+    version: version,
+  );
 
   if (pubGetResults.exitCode != ExitCode.success.code) {
-    ctx.loggerService
+    controller.logger
         .detail('Could not resolve dependencies using offline mode.');
 
     progress.update('Trying to resolve dependencies...');
 
-    pubGetResults = await version.run('pub get');
+    pubGetResults = await controller.flutterService.runFlutter(
+      ['pub', 'get'],
+      version: version,
+    );
 
     if (pubGetResults.exitCode != ExitCode.success.code) {
       progress.fail('Could not resolve dependencies.');
-      ctx.loggerService
+      controller.logger
         ..spacer
         ..err(pubGetResults.stderr.toString());
 
-      ctx.loggerService.info(
+      controller.logger.info(
         'The error could indicate incompatible dependencies to the SDK.',
       );
 
       if (force) {
-        ctx.loggerService.warn('Force pinning due to --force flag.');
+        controller.logger.warn('Force pinning due to --force flag.');
 
         return;
       }
 
-      final confirmation = ctx.loggerService.confirm(
+      final confirmation = controller.logger.confirm(
         'Would you like to continue pinning this version anyway?',
         defaultValue: false,
       );
@@ -79,50 +86,55 @@ Future<void> resolveDependenciesWorkflow(
   progress.complete('Dependencies resolved.');
 
   if (pubGetResults.stdout != null) {
-    ctx.loggerService.detail(pubGetResults.stdout);
+    controller.logger.detail(pubGetResults.stdout);
   }
 }
 
-void logDetails(CacheFlutterVersion version, Project project) {
+void logDetails(
+  CacheFlutterVersion version,
+  Project project, {
+  required FvmController controller,
+}) {
+  final logger = controller.logger;
   final dartGeneratorVersion = project.dartToolGeneratorVersion;
   final dartToolVersion = project.dartToolVersion;
   final dartSdkVersion = version.dartSdkVersion;
   final flutterSdkVersion = version.flutterSdkVersion;
   // Print a separator line for easier reading
-  ctx.loggerService.detail('----------------------------------------');
+  logger.detail('----------------------------------------');
 
   // Print general information
-  ctx.loggerService.detail('🔍  Verbose Details');
-  ctx.loggerService.detail('');
+  logger.detail('🔍  Verbose Details');
+  logger.detail('');
 
   // Dart Information
-  ctx.loggerService.detail('🎯 Dart Info:');
-  ctx.loggerService.detail('   Dart Generator Version: $dartGeneratorVersion');
-  ctx.loggerService.detail('   Dart SDK Version:       $dartSdkVersion');
+  logger.detail('🎯 Dart Info:');
+  logger.detail('   Dart Generator Version: $dartGeneratorVersion');
+  logger.detail('   Dart SDK Version:       $dartSdkVersion');
 
   // Tool Information
-  ctx.loggerService.detail('');
-  ctx.loggerService.detail('🛠️ Tool Info:');
-  ctx.loggerService.detail('   Dart Tool Version:      $dartToolVersion');
-  ctx.loggerService.detail('   SDK Version:            $flutterSdkVersion');
+  logger.detail('');
+  logger.detail('🛠️ Tool Info:');
+  logger.detail('   Dart Tool Version:      $dartToolVersion');
+  logger.detail('   SDK Version:            $flutterSdkVersion');
 
   // Print another separator line for clarity
-  ctx.loggerService.detail('----------------------------------------');
+  logger.detail('----------------------------------------');
 
   if (dartToolVersion == flutterSdkVersion) {
-    ctx.loggerService
+    controller.logger
         .detail('✅ Dart tool version matches SDK version, skipping resolve.');
 
     return;
   }
 
   // Print a warning for mismatch
-  ctx.loggerService.detail('');
-  ctx.loggerService.detail('⚠️ SDK version mismatch:');
-  ctx.loggerService.detail('   Dart Tool Version:      $dartToolVersion');
-  ctx.loggerService.detail('   Flutter SDK Version:    $flutterSdkVersion');
-  ctx.loggerService.detail('');
+  logger.detail('');
+  logger.detail('⚠️ SDK version mismatch:');
+  logger.detail('   Dart Tool Version:      $dartToolVersion');
+  logger.detail('   Flutter SDK Version:    $flutterSdkVersion');
+  logger.detail('');
 
   // Final separator line
-  ctx.loggerService.detail('----------------------------------------');
+  logger.detail('----------------------------------------');
 }

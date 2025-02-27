@@ -4,7 +4,6 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/releases_service/models/version_model.dart';
 import '../utils/console_utils.dart';
-import '../utils/context.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
 
@@ -18,7 +17,7 @@ class ReleasesCommand extends BaseCommand {
 
   /// Constructor
   // Add option to pass channel name
-  ReleasesCommand() {
+  ReleasesCommand(super.controller) {
     argParser.addOption(
       'channel',
       abbr: 'c',
@@ -48,9 +47,9 @@ class ReleasesCommand extends BaseCommand {
       return release.channel.name != channelName;
     }
 
-    ctx.loggerService.detail('Filtering by channel: $channelName');
+    controller.logger.detail('Filtering by channel: $channelName');
 
-    final releases = await ctx.flutterReleasesServices.getReleases();
+    final releases = await controller.flutterReleasesServices.getReleases();
 
     final versions = releases.versions.reversed;
 
@@ -81,9 +80,9 @@ class ReleasesCommand extends BaseCommand {
       ]);
     }
 
-    ctx.loggerService.info(table.toString());
+    logger.info(table.toString());
 
-    ctx.loggerService.info('Channel:');
+    logger.info('Channel:');
 
     final channelsTable = createTable()
       ..insertColumn(header: 'Channel', alignment: TextAlignment.left)
@@ -101,7 +100,7 @@ class ReleasesCommand extends BaseCommand {
       ]);
     }
 
-    ctx.loggerService.info(channelsTable.toString());
+    logger.info(channelsTable.toString());
 
     return ExitCode.success.code;
   }

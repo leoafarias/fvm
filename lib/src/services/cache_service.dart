@@ -16,8 +16,8 @@ enum CacheIntegrity {
 }
 
 /// Service to interact with FVM Cache
-class CacheService extends ContextService {
-  const CacheService(super.context);
+class CacheService extends Contextual {
+  CacheService(super.context);
 
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not

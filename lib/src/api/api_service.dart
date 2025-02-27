@@ -8,12 +8,12 @@ import '../utils/extensions.dart';
 import '../utils/get_directory_size.dart';
 import 'models/json_response.dart';
 
-class APIService extends ContextService {
+class APIService extends Contextual {
   final ProjectService _projectService;
   final CacheService _cacheService;
   final FlutterReleasesService _flutterReleasesServices;
 
-  const APIService(
+  APIService(
     super.context, {
     required ProjectService projectService,
     required CacheService cacheService,

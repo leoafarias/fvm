@@ -38,11 +38,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static bool _$_skipInput(FVMContext v) => v._skipInput;
   static const Field<FVMContext, bool> _f$_skipInput =
       Field('_skipInput', _$_skipInput, key: r'skipInput');
-  static Map<Type, ContextService Function(FVMContext)> _$generators(
-          FVMContext v) =>
-      v.generators;
-  static const Field<FVMContext, Map<Type, ContextService Function(FVMContext)>>
-      _f$generators = Field('generators', _$generators);
   static bool _$isTest(FVMContext v) => v.isTest;
   static const Field<FVMContext, bool> _f$isTest =
       Field('isTest', _$isTest, opt: true, def: false);
@@ -101,7 +96,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #environment: _f$environment,
     #args: _f$args,
     #_skipInput: _f$_skipInput,
-    #generators: _f$generators,
     #isTest: _f$isTest,
     #logLevel: _f$logLevel,
     #fvmDir: _f$fvmDir,
@@ -122,14 +116,13 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   };
 
   static FVMContext _instantiate(DecodingData data) {
-    return FVMContext.base(
+    return FVMContext.raw(
         id: data.dec(_f$id),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
         environment: data.dec(_f$environment),
         args: data.dec(_f$args),
         skipInput: data.dec(_f$_skipInput),
-        generators: data.dec(_f$generators),
         isTest: data.dec(_f$isTest),
         logLevel: data.dec(_f$logLevel));
   }
@@ -189,12 +182,6 @@ abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
       get environment;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args;
-  MapCopyWith<
-      $R,
-      Type,
-      ContextService Function(FVMContext),
-      ObjectCopyWith<$R, ContextService Function(FVMContext),
-          ContextService Function(FVMContext)>> get generators;
   $R call(
       {String? id,
       String? workingDirectory,
@@ -202,7 +189,6 @@ abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
       Map<String, String>? environment,
       List<String>? args,
       bool? skipInput,
-      Map<Type, ContextService Function(FVMContext)>? generators,
       bool? isTest,
       Level? logLevel});
   FVMContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -230,16 +216,6 @@ class _FVMContextCopyWithImpl<$R, $Out>
       ListCopyWith($value.args, (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(args: v));
   @override
-  MapCopyWith<
-      $R,
-      Type,
-      ContextService Function(FVMContext),
-      ObjectCopyWith<$R, ContextService Function(FVMContext),
-          ContextService Function(FVMContext)>> get generators => MapCopyWith(
-      $value.generators,
-      (v, t) => ObjectCopyWith(v, $identity, t),
-      (v) => call(generators: v));
-  @override
   $R call(
           {String? id,
           String? workingDirectory,
@@ -247,7 +223,6 @@ class _FVMContextCopyWithImpl<$R, $Out>
           Map<String, String>? environment,
           List<String>? args,
           bool? skipInput,
-          Map<Type, ContextService Function(FVMContext)>? generators,
           bool? isTest,
           Level? logLevel}) =>
       $apply(FieldCopyWithData({
@@ -257,12 +232,11 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (environment != null) #environment: environment,
         if (args != null) #args: args,
         if (skipInput != null) #skipInput: skipInput,
-        if (generators != null) #generators: generators,
         if (isTest != null) #isTest: isTest,
         if (logLevel != null) #logLevel: logLevel
       }));
   @override
-  FVMContext $make(CopyWithData data) => FVMContext.base(
+  FVMContext $make(CopyWithData data) => FVMContext.raw(
       id: data.get(#id, or: $value.id),
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
@@ -270,7 +244,6 @@ class _FVMContextCopyWithImpl<$R, $Out>
       environment: data.get(#environment, or: $value.environment),
       args: data.get(#args, or: $value.args),
       skipInput: data.get(#skipInput, or: $value._skipInput),
-      generators: data.get(#generators, or: $value.generators),
       isTest: data.get(#isTest, or: $value.isTest),
       logLevel: data.get(#logLevel, or: $value.logLevel));
 

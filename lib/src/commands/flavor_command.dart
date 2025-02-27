@@ -1,8 +1,6 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../utils/commands.dart';
-import '../utils/context.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
@@ -17,7 +15,7 @@ class FlavorCommand extends BaseCommand {
   final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  FlavorCommand();
+  FlavorCommand(super.context);
 
   @override
   Future<int> run() async {
@@ -28,7 +26,7 @@ class FlavorCommand extends BaseCommand {
       );
     }
 
-    final project = ctx.projectService.findAncestor();
+    final project = controller.projectService.findAncestor();
 
     final flavor = argResults!.rest[0];
 
@@ -45,12 +43,18 @@ class FlavorCommand extends BaseCommand {
       final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
       // Will install version if not already installed
-      final cacheVersion = await ensureCacheWorkflow(version);
+      final cacheVersion = await ensureCacheWorkflow(
+        version,
+        controller: controller,
+      );
       // Runs flutter command with pinned version
-      ctx.loggerService
+      logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');
 
-      final results = await runFlutter(flutterArgs, version: cacheVersion);
+      final results = await controller.flutterService.runFlutter(
+        flutterArgs,
+        version: cacheVersion,
+      );
 
       return results.exitCode;
     }

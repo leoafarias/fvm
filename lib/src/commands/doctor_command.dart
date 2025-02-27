@@ -9,7 +9,6 @@ import '../models/config_model.dart';
 import '../models/project_model.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/which.dart';
 import 'base_command.dart';
@@ -26,10 +25,10 @@ class DoctorCommand extends BaseCommand {
   final console = Console();
 
   /// Constructor
-  DoctorCommand();
+  DoctorCommand(super.controller);
 
   void _printProject(Project project) {
-    ctx.loggerService.info('Project:');
+    logger.info('Project:');
     final table = createTable(['Project', project.name]);
 
     table.insertRows([
@@ -55,12 +54,12 @@ class DoctorCommand extends BaseCommand {
       ],
     ]);
 
-    ctx.loggerService.write(table.toString());
-    ctx.loggerService.spacer;
+    logger.write(table.toString());
+    logger.spacer;
   }
 
   void _printIdeLinks(Project project) {
-    ctx.loggerService
+    logger
       ..spacer
       ..info('IDEs:');
     final table = createTable(['IDEs', 'Value']);
@@ -88,7 +87,7 @@ class DoctorCommand extends BaseCommand {
             ['Matches pinned version:', sdkPath == relativeSymlinkPath],
           );
         } on FormatException catch (_, stackTrace) {
-          ctx.loggerService
+          logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
             ..err(
               'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
@@ -161,11 +160,11 @@ class DoctorCommand extends BaseCommand {
       table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
-    ctx.loggerService.write(table.toString());
+    logger.write(table.toString());
   }
 
   void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
-    ctx.loggerService
+    logger
       ..spacer
       ..info('Environment:');
 
@@ -177,7 +176,9 @@ class DoctorCommand extends BaseCommand {
     ]);
 
     for (var key in ConfigKeys.values) {
-      table.insertRow([key.envKey, ctx.environment[key.envKey] ?? 'N/A']);
+      table.insertRow(
+        [key.envKey, controller.context.environment[key.envKey] ?? 'N/A'],
+      );
     }
 
     table.insertRows([
@@ -185,7 +186,7 @@ class DoctorCommand extends BaseCommand {
       ['Dart PATH', dartWhich ?? 'Not found'],
     ]);
 
-    ctx.loggerService.write(table.toString());
+    logger.write(table.toString());
 
     table = createTable(['Platform', 'Value']);
 
@@ -195,12 +196,12 @@ class DoctorCommand extends BaseCommand {
       ['Dart runtime', Platform.version],
     ]);
 
-    ctx.loggerService.write(table.toString());
+    logger.write(table.toString());
   }
 
   @override
   Future<int> run() async {
-    final project = ctx.projectService.findAncestor();
+    final project = controller.projectService.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

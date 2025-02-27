@@ -1,6 +1,5 @@
 import 'package:io/io.dart';
 
-import '../utils/context.dart';
 import '../utils/extensions.dart';
 import 'base_command.dart';
 
@@ -13,19 +12,19 @@ class DestroyCommand extends BaseCommand {
   final description = 'Destroy FVM cache by deleting FVM directory';
 
   /// Constructor
-  DestroyCommand();
+  DestroyCommand(super.controller);
 
   @override
   Future<int> run() async {
-    if (ctx.loggerService.confirm(
+    if (logger.confirm(
       'Are you sure you want to destroy the FVM cache directory and references?\n'
       'This action cannot be undone. Do you want to proceed?',
       defaultValue: false,
     )) {
-      if (ctx.versionsCachePath.dir.existsSync()) {
-        ctx.versionsCachePath.dir.deleteSync(recursive: true);
-        ctx.loggerService.success(
-          'FVM Directory ${ctx.versionsCachePath}\n has been deleted',
+      if (controller.context.versionsCachePath.dir.existsSync()) {
+        controller.context.versionsCachePath.dir.deleteSync(recursive: true);
+        logger.success(
+          'FVM Directory ${controller.context.versionsCachePath}\n has been deleted',
         );
       }
     }

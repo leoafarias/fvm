@@ -37,7 +37,7 @@ Map<String, String> updateEnvironmentVariables(
 
 /// Assigns weight to [version] to channels for comparison
 /// Returns a weight for all versions and channels
-String assignVersionWeight(String version, Logger logger) {
+String assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
   if (isGitCommit(version)) {
     version = '500.0.0';
@@ -77,8 +77,6 @@ String assignVersionWeight(String version, Logger logger) {
     if (isCustom) {
       return '400.0.0';
     }
-
-    logger.detail('Cache version $version is not a valid semver');
 
     return '0.0.0';
   }

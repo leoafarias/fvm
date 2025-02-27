@@ -3,7 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/ansi.dart';
+import 'package:io/io.dart' as io;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
@@ -17,7 +18,7 @@ import 'global_version_service.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
-class FlutterService extends ContextService {
+class FlutterService extends Contextual {
   final CacheService _cacheService;
   final GlobalVersionService _globalVersionService;
   final FlutterReleasesService _flutterReleasesServices;
@@ -25,7 +26,7 @@ class FlutterService extends ContextService {
 
   final _flutterCmd = 'flutter';
 
-  const FlutterService(
+  FlutterService(
     super.context, {
     required CacheService cacheService,
     required GlobalVersionService globalVersionService,
@@ -90,7 +91,17 @@ class FlutterService extends ContextService {
       throwOnError: throwOnError,
       echoOutput: echoOutput,
       context: context,
+      logger: logger,
     );
+  }
+
+  List<String> _getArgs(String command) {
+    var args = command;
+    while (args.contains('  ')) {
+      args = args.replaceAll('  ', ' ');
+    }
+
+    return args.split(' ');
   }
 
   /// Runs Flutter cmd
@@ -234,7 +245,7 @@ class FlutterService extends ContextService {
         await gitDir.runCommand(['reset', '--hard', version.version]);
       }
 
-      if (result.exitCode != ExitCode.success.code) {
+      if (result.exitCode != io.ExitCode.success.code) {
         throw AppException(
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );

@@ -24,7 +24,7 @@ void main() {
 
       final projectService = ProjectService(
         FVMContext.create(
-          workingDirectory: tempDir.path,
+          workingDirectoryOverride: tempDir.path,
         ),
       );
 
@@ -41,7 +41,7 @@ void main() {
       createFvmConfig(config, parentDir);
 
       final projectService = ProjectService(FVMContext.create(
-        workingDirectory: childDir.path,
+        workingDirectoryOverride: childDir.path,
       ));
 
       final project = projectService.findAncestor(directory: childDir);
@@ -54,7 +54,7 @@ void main() {
       final tempDir = createTempDir();
       final projectService = ProjectService(
         FVMContext.create(
-          workingDirectory: tempDir.path,
+          workingDirectoryOverride: tempDir.path,
         ),
       );
 
@@ -71,7 +71,7 @@ void main() {
     test('update writes new configuration correctly', () {
       final tempDir = createTempDir();
       final projectService = ProjectService(FVMContext.create(
-        workingDirectory: tempDir.path,
+        workingDirectoryOverride: tempDir.path,
       ));
 
       final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
@@ -118,7 +118,7 @@ void main() {
     test('returns working directory if no config is found', () {
       final tempDir = createTempDir();
       final projectService = ProjectService(FVMContext.create(
-        workingDirectory: tempDir.path,
+        workingDirectoryOverride: tempDir.path,
       ));
 
       final project = projectService.findAncestor();

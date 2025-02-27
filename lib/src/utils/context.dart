@@ -26,9 +26,9 @@ final contextKey = ScopeKey<FVMContext>();
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
 
-typedef Generator<T extends ContextService> = T Function(FVMContext context);
+typedef Generator<T extends Contextual> = T Function(FVMContext context);
 
-FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
+// FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
 class FVMContext with FVMContextMappable {
@@ -43,9 +43,6 @@ class FVMContext with FVMContextMappable {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
-  /// Generators for dependencies
-  final Map<Type, Generator> generators;
-
   /// App config
   final AppConfig config;
 
@@ -57,52 +54,35 @@ class FVMContext with FVMContextMappable {
   /// Log level
   final Level logLevel;
 
-  late final Logger logger;
-
-  final bool isCI;
-
   /// True if the `--fvm-skip-input` flag was passed to the command
-  final bool skipInput;
+  final bool _skipInput;
 
   /// Generated values
-  final Map<Type, dynamic> _dependencies = {};
 
   /// Constructor
   /// If nothing is provided set default
   @MappableConstructor()
-  FVMContext.base({
+  const FVMContext.raw({
     required this.id,
     required this.workingDirectory,
     required this.config,
     required this.environment,
     required this.args,
-    required this.isTest,
-    required this.isCI,
-    required this.skipInput,
-    required this.generators,
+    required bool skipInput,
+    this.isTest = false,
     this.logLevel = Level.info,
-  }) : logger = Logger(
-          logLevel: logLevel,
-          isTest: isTest,
-          isCI: isCI,
-          skipInput: skipInput,
-        );
+  }) : _skipInput = skipInput;
 
   static FVMContext create({
     String? id,
     List<String>? args,
     AppConfig? configOverrides,
-    String? workingDirectory,
-    ContextGenerators? generatorOverrides,
+    String? workingDirectoryOverride,
     Map<String, String>? environmentOverrides,
     bool isTest = false,
   }) {
-    workingDirectory ??= Directory.current.path;
-
     // Load all configs
     final config = ConfigRepository.load(overrides: configOverrides);
-
-    final environment = {...Platform.environment, ...?environmentOverrides};
 
     // Skips input if running in CI
 
@@ -110,26 +90,15 @@ class FVMContext with FVMContextMappable {
 
     final skipInput = updatedArgs.remove('--fvm-skip-input');
 
-    final generators = generatorOverrides ?? ContextGenerators();
-
-    return FVMContext.base(
+    return FVMContext.raw(
       id: id ?? 'MAIN',
-      workingDirectory: workingDirectory,
+      workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: config,
-      environment: environment,
+      environment: {...Platform.environment, ...?environmentOverrides},
       args: updatedArgs,
       logLevel: isTest ? Level.error : Level.info,
-      isCI: kCiEnvironmentVariables.any(Platform.environment.containsKey),
-      isTest: isTest,
       skipInput: skipInput,
-      generators: {
-        ProjectService: generators.projectService,
-        CacheService: generators.cacheService,
-        FlutterService: generators.flutterService,
-        GlobalVersionService: generators.globalVersionService,
-        APIService: generators.apiService,
-        FlutterReleasesService: generators.flutterReleasesServices,
-      },
+      isTest: isTest,
     );
   }
 
@@ -203,18 +172,15 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   String get configPath => kAppConfigFile;
 
-  T get<T>() {
-    if (_dependencies.containsKey(T)) {
-      return _dependencies[T] as T;
-    }
-    if (generators.containsKey(T)) {
-      final generator = generators[T] as Generator;
-      _dependencies[T] = generator(this);
-
-      return _dependencies[T];
-    }
-    throw Exception('Generator for $T not found');
+  /// Checks if the current environment is a Continuous Integration (CI) environment.
+  /// This is done by checking for common CI environment variables.
+  @MappableField()
+  bool get isCI {
+    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
   }
+
+  @MappableField()
+  bool get skipInput => isCI || _skipInput;
 
   @override
   String toString() => id;
@@ -234,24 +200,53 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   dynamic encode(Map<Type, Generator> self) => null;
 }
 
-class ContextGenerators {
-  final Generator<ProjectService> projectService;
-  final Generator<CacheService> cacheService;
-  final Generator<FlutterService> flutterService;
-  final Generator<GlobalVersionService> globalVersionService;
-  final Generator<APIService> apiService;
+class FvmController {
+  final FVMContext context;
+  late final Logger logger;
+  final Map<Type, Generator> _generators;
+  final Map<Type, dynamic> _dependencies = {};
 
-  final Generator<FlutterReleasesService> flutterReleasesServices;
+  FvmController._(this.context, {required Map<Type, Generator> generators})
+      : _generators = generators,
+        logger = Logger.fromContext(context);
 
-  const ContextGenerators({
-    this.projectService = _buildProjectService,
-    this.cacheService = _buildCacheService,
-    this.flutterService = _buildFlutterService,
-    this.globalVersionService = _buildGlobalVersionService,
-    this.apiService = _buildAPIService,
-    this.flutterReleasesServices = _buildFlutterReleasesService,
-  });
+  FvmController(this.context) : _generators = _defaultGenerators;
+
+  FvmController.overrides(
+    this.context, {
+    required Map<Type, Generator> generators,
+  }) : _generators = {..._defaultGenerators, ...generators};
+
+  ProjectService get projectService => get();
+
+  CacheService get cacheService => get();
+  FlutterService get flutterService => get();
+  GlobalVersionService get globalVersionService => get();
+  APIService get apiService => get();
+  FlutterReleasesService get flutterReleasesServices => get();
+
+  T get<T>() {
+    if (_dependencies.containsKey(T)) {
+      return _dependencies[T] as T;
+    }
+    if (_generators.containsKey(T)) {
+      final generator = _generators[T] as Generator;
+      _dependencies[T] = generator(context);
+
+      return _dependencies[T];
+    }
+    throw Exception('Generator for $T not found');
+  }
 }
+
+const _defaultGenerators = {
+  ProjectService: _buildProjectService,
+  CacheService: _buildCacheService,
+  FlutterReleasesService: _buildFlutterReleasesService,
+  FlutterService: _buildFlutterService,
+  GlobalVersionService: _buildGlobalVersionService,
+  APIService: _buildAPIService,
+};
 
 APIService _buildAPIService(FVMContext context) {
   return APIService(

@@ -26,9 +26,9 @@ String _getGithubCacheUrl(String platform) {
       'https://raw.githubusercontent.com/leoafarias/fvm/main/releases_$platform.json';
 }
 
-class FlutterReleasesService extends ContextService {
+class FlutterReleasesService extends Contextual {
   static FlutterReleasesResponse? _cacheReleasesRes;
-  const FlutterReleasesService(super.context);
+  FlutterReleasesService(super.context);
 
   /// Gets Flutter SDK Releases
   /// Can use memory [cache] if it exists.

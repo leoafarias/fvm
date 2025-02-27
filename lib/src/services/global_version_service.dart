@@ -8,12 +8,10 @@ import '../utils/extensions.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 
-class GlobalVersionService extends ContextService {
+class GlobalVersionService extends Contextual {
   final CacheService _cacheService;
-  const GlobalVersionService(
-    super.context, {
-    required CacheService cacheService,
-  }) : _cacheService = cacheService;
+  GlobalVersionService(super.context, {required CacheService cacheService})
+      : _cacheService = cacheService;
 
   Link get _globalCacheLink => Link(context.globalCacheLink);
 

@@ -4,13 +4,12 @@ import 'dart:io';
 
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/utils/context.dart';
-import 'package:scope/scope.dart';
 
 Future<void> main(List<String> args) async {
-  final scope = Scope()..value(contextKey, FVMContext.create(args: args));
+  final controller = FvmController(FVMContext.create(args: args));
 
   await _flushThenExit(
-    await scope.run(() async => FvmCommandRunner().run((ctx.args))),
+    await FvmCommandRunner(controller).run((controller.context.args)),
   );
 }
 

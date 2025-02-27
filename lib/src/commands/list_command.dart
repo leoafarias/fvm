@@ -3,7 +3,6 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/logger_service.dart';
 import '../services/releases_service/models/version_model.dart';
-import '../utils/context.dart';
 import '../utils/get_directory_size.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
@@ -17,22 +16,24 @@ class ListCommand extends BaseCommand {
   final description = 'Lists installed Flutter SDK Versions';
 
   /// Constructor
-  ListCommand();
+  ListCommand(super.controller);
 
   @override
   Future<int> run() async {
-    final cacheVersions = await ctx.cacheService.getAllVersions();
+    final cacheVersions = await controller.cacheService.getAllVersions();
 
     final directorySize = await getFullDirectorySize(cacheVersions);
 
     // Print where versions are stored
-    ctx.loggerService
-      ..info('Cache directory:  ${cyan.wrap(ctx.versionsCachePath)}')
+    logger
+      ..info(
+        'Cache directory:  ${cyan.wrap(controller.context.versionsCachePath)}',
+      )
       ..info('Directory Size: ${formatBytes(directorySize)}')
       ..spacer;
 
     if (cacheVersions.any((e) => e.isNotSetup)) {
-      ctx.loggerService
+      logger
         ..warn(
           'Some versions might still require finishing setup - SDKs have been cloned, but they have not downloaded their dependencies.',
         )
@@ -42,16 +43,16 @@ class ListCommand extends BaseCommand {
         ..spacer;
     }
     if (cacheVersions.isEmpty) {
-      ctx.loggerService
+      logger
         ..info('No SDKs have been installed yet. Flutter. SDKs')
         ..info('installed outside of fvm will not be displayed.');
 
       return ExitCode.success.code;
     }
 
-    final releases = await ctx.flutterReleasesServices.getReleases();
-    final globalVersion = ctx.globalVersionService.getGlobal();
-    final localVersion = ctx.projectService.findVersion();
+    final releases = await controller.flutterReleasesServices.getReleases();
+    final globalVersion = controller.globalVersionService.getGlobal();
+    final localVersion = controller.projectService.findVersion();
 
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
@@ -118,7 +119,7 @@ class ListCommand extends BaseCommand {
         ..borderType = BorderType.grid
         ..headerStyle = FontStyle.bold;
     }
-    ctx.loggerService.info(table.toString());
+    logger.info(table.toString());
 
     return ExitCode.success.code;
   }

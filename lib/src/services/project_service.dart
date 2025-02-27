@@ -12,8 +12,8 @@ import 'base_service.dart';
 /// APIs for interacting with local Flutter projects
 ///
 /// This class provides methods for interacting with local Flutter projects.
-class ProjectService extends ContextService {
-  const ProjectService(super.context);
+class ProjectService extends Contextual {
+  ProjectService(super.context);
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided

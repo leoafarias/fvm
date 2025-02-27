@@ -4,12 +4,11 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../api/models/json_response.dart';
-import '../utils/context.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
 abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
-  APISubCommand() {
+  APISubCommand(super.controller) {
     argParser.addFlag(
       'compress',
       abbr: 'c',
@@ -49,11 +48,11 @@ class APICommand extends BaseCommand {
   String description = 'JSON API for FVM data';
 
   /// Constructor
-  APICommand(super.context) {
-    addSubcommand(APIListCommand());
-    addSubcommand(APIReleasesCommand());
-    addSubcommand(APIContextCommand());
-    addSubcommand(APIProjectCommand());
+  APICommand(super.controller) {
+    addSubcommand(APIListCommand(controller));
+    addSubcommand(APIReleasesCommand(controller));
+    addSubcommand(APIContextCommand(controller));
+    addSubcommand(APIProjectCommand(controller));
   }
 
   @override
@@ -68,11 +67,11 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
   final description = 'Gets context data for FVM';
 
   /// Constructor
-  APIContextCommand();
+  APIContextCommand(super.controller);
 
   @override
   FutureOr<GetContextResponse> runSubCommand() async {
-    return ctx.apiService.getContext();
+    return controller.apiService.getContext();
   }
 }
 
@@ -84,7 +83,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
   final description = 'Gets project data for FVM';
 
   /// Constructor
-  APIProjectCommand() {
+  APIProjectCommand(super.controller) {
     argParser.addOption(
       'path',
       abbr: 'p',
@@ -102,7 +101,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return ctx.apiService.getProject(projectDir);
+    return controller.apiService.getProject(projectDir);
   }
 }
 
@@ -114,7 +113,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   final description = 'Lists installed Flutter SDK Versions';
 
   /// Constructor
-  APIListCommand() {
+  APIListCommand(super.controller) {
     argParser.addFlag(
       'skip-size-calculation',
       abbr: 's',
@@ -128,7 +127,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   Future<GetCacheVersionsResponse> runSubCommand() async {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return await ctx.apiService
+    return await controller.apiService
         .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
   }
 }
@@ -141,7 +140,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   final description = 'Lists Flutter SDK Releases';
 
   /// Constructor
-  APIReleasesCommand() {
+  APIReleasesCommand(super.controller) {
     argParser
       ..addOption(
         'limit',
@@ -160,7 +159,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return await ctx.apiService
+    return await controller.apiService
         .getReleases(limit: limitArg, channelName: channelArg);
   }
 }

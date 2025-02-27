@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/ansi.dart';
 
-import '../context.dart';
+import '../../services/logger_service.dart';
 import '../extensions.dart';
 
 final regexes = {
@@ -22,9 +22,9 @@ final maxLabelLength =
 
 var _hasFailedPrint = false;
 
-void updateProgress(String line) {
+void updateProgress(String line, Logger logger) {
   if (_hasFailedPrint) {
-    ctx.loggerService.info('\n');
+    logger.info('\n');
 
     return;
   }
@@ -43,23 +43,23 @@ void updateProgress(String line) {
         if (percentage == null) return;
 
         if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
-          printProgressBar(lastMatchedEntry, 100);
-          ctx.loggerService.write('\n');
+          printProgressBar(lastMatchedEntry, 100, logger);
+          logger.write('\n');
         }
 
-        printProgressBar(label, percentage);
+        printProgressBar(label, percentage, logger);
 
         lastPercentage = percentage;
         lastMatchedEntry = label;
       }
     }
   } catch (e) {
-    ctx.loggerService.detail('Failed to update progress bar $e');
+    logger.detail('Failed to update progress bar $e');
     _hasFailedPrint = true;
   }
 }
 
-void printProgressBar(String label, int percentage) {
+void printProgressBar(String label, int percentage, Logger logger) {
   final progressBarWidth = 50;
   final progressInBlocks = (percentage / 100 * progressBarWidth).round();
   final progressBlocks = '${green.wrap('█')}' * progressInBlocks;
@@ -67,11 +67,11 @@ void printProgressBar(String label, int percentage) {
 
   final output = '\r $label [$progressBlocks$remainingBlocks] $percentage%';
 
-  ctx.loggerService.write(output);
+  logger.write(output);
 }
 
 // Create a custom Process.start, that prints using the progress bar
-Future<void> runGitCloneUpdate(List<String> args) async {
+Future<void> runGitCloneUpdate(List<String> args, Logger logger) async {
   final process = await Process.start('git', args, runInShell: true);
 
   final processLogs = <String>[];
@@ -79,25 +79,25 @@ Future<void> runGitCloneUpdate(List<String> args) async {
   try {
     // ignore: avoid-unassigned-stream-subscriptions
     process.stderr.transform(utf8.decoder).listen((line) {
-      updateProgress(line);
+      updateProgress(line, logger);
       processLogs.add(line);
     });
 
     // ignore: avoid-unassigned-stream-subscriptions
     process.stdout.transform(utf8.decoder).listen((line) {
-      ctx.loggerService.info(line);
+      logger.info(line);
     });
   } catch (e) {
-    ctx.loggerService.detail('Formatting error due to invalid return $e');
-    ctx.loggerService.info('Updating....');
+    logger.detail('Formatting error due to invalid return $e');
+    logger.info('Updating....');
   }
 
   final exitCode = await process.exitCode;
   if (exitCode != 0) {
-    ctx.loggerService.err(processLogs.join('\n'));
+    logger.err(processLogs.join('\n'));
     throw Exception('Git clone failed');
   }
-  ctx.loggerService
-    ..spacer
+  logger
+    ..info('')
     ..success('Clone complete');
 }

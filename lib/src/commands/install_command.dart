@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:io/io.dart';
 
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
@@ -18,7 +17,7 @@ class InstallCommand extends BaseCommand {
   final description = 'Installs Flutter SDK Version';
 
   /// Constructor
-  InstallCommand() {
+  InstallCommand(super.controller) {
     argParser
       ..addFlag(
         'setup',
@@ -43,7 +42,7 @@ class InstallCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      final project = ctx.projectService.findAncestor();
+      final project = controller.projectService.findAncestor();
 
       final version = project.pinnedVersion;
 
@@ -58,6 +57,7 @@ class InstallCommand extends BaseCommand {
       final cacheVersion = await ensureCacheWorkflow(
         version.name,
         shouldInstall: true,
+        controller: controller,
       );
 
       await useVersionWorkflow(
@@ -66,6 +66,7 @@ class InstallCommand extends BaseCommand {
         force: true,
         skipSetup: !setup,
         runPubGetOnSdkChange: !skipPubGet,
+        controller: controller,
       );
 
       return ExitCode.success.code;
@@ -75,10 +76,11 @@ class InstallCommand extends BaseCommand {
     final cacheVersion = await ensureCacheWorkflow(
       version,
       shouldInstall: true,
+      controller: controller,
     );
 
     if (setup) {
-      await setupFlutterWorkflow(cacheVersion);
+      await setupFlutterWorkflow(cacheVersion, controller: controller);
     }
 
     return ExitCode.success.code;

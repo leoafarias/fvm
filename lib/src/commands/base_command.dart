@@ -5,10 +5,10 @@ import '../utils/context.dart';
 
 /// Base Command
 abstract class BaseCommand extends Command<int> {
-  final FVMContext context;
-  BaseCommand(this.context);
+  final FvmController controller;
+  BaseCommand(this.controller);
 
-  Logger get logger => context.logger;
+  Logger get logger => controller.logger;
 
   @override
   String get invocation => 'fvm $name';

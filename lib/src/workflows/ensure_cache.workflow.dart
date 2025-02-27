@@ -17,41 +17,50 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
   String version, {
   bool shouldInstall = false,
   bool force = false,
+  required FvmController controller,
 }) async {
-  _validateContext();
+  _validateContext(controller);
   _validateGit();
   // Get valid flutter version
-  final validVersion = await validateFlutterVersion(version, force: force);
+  final validVersion = await validateFlutterVersion(
+    version,
+    force: force,
+    controller: controller,
+  );
   try {
-    final cacheVersion = ctx.cacheService.getVersion(validVersion);
+    final cacheVersion = controller.cacheService.getVersion(validVersion);
 
     if (cacheVersion != null) {
       final integrity =
-          await ctx.cacheService.verifyCacheIntegrity(cacheVersion);
+          await controller.cacheService.verifyCacheIntegrity(cacheVersion);
 
       if (integrity == CacheIntegrity.invalid) {
         return await _handleNonExecutable(
           cacheVersion,
           shouldInstall: shouldInstall,
+          controller: controller,
         );
       }
 
       if (integrity == CacheIntegrity.versionMismatch &&
           !force &&
           !validVersion.isCustom) {
-        return await _handleVersionMismatch(cacheVersion);
+        return await _handleVersionMismatch(
+          cacheVersion,
+          controller: controller,
+        );
       } else if (force) {
-        ctx.loggerService
+        controller.logger
             .warn('Not checking for version mismatch as --force flag is set.');
       } else if (validVersion.isCustom) {
-        ctx.loggerService.warn(
+        controller.logger.warn(
           'Not checking for version mismatch as custom version is being used.',
         );
       }
 
       // If should install notify the user that is already installed
       if (shouldInstall) {
-        ctx.loggerService.success(
+        controller.logger.success(
           'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is already installed.',
         );
       }
@@ -64,12 +73,12 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     }
 
     if (!shouldInstall) {
-      ctx.loggerService.info(
+      controller.logger.info(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
       );
 
       if (!force) {
-        final shouldInstallConfirmed = ctx.loggerService.confirm(
+        final shouldInstallConfirmed = controller.logger.confirm(
           'Would you like to install it now?',
           defaultValue: true,
         );
@@ -80,33 +89,33 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       }
     }
 
-    bool useGitCache = ctx.gitCache;
+    bool useGitCache = controller.context.gitCache;
 
     if (useGitCache) {
       try {
-        await ctx.flutterService.updateLocalMirror();
+        await controller.flutterService.updateLocalMirror();
       } on Exception {
         useGitCache = false;
-        ctx.loggerService.warn(
+        controller.logger.warn(
           'Failed to setup local cache. Falling back to git clone.',
         );
-        ctx.loggerService.info('Git cache will be disabled.');
+        controller.logger.info('Git cache will be disabled.');
         try {
           final config = ConfigRepository.loadAppConfig();
           final updatedConfig = config.copyWith(useGitCache: false);
           ConfigRepository.save(updatedConfig);
-          ctx.loggerService.success('Git cache has been disabled.');
+          controller.logger.success('Git cache has been disabled.');
         } on Exception {
-          ctx.loggerService.warn('Failed to update config file');
+          controller.logger.warn('Failed to update config file');
         }
       }
     }
 
-    final progress = ctx.loggerService.progress(
+    final progress = controller.logger.progress(
       'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
     );
     try {
-      await ctx.flutterService.install(
+      await controller.flutterService.install(
         validVersion,
         useGitCache: useGitCache,
       );
@@ -119,14 +128,14 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       rethrow;
     }
 
-    final newCacheVersion = ctx.cacheService.getVersion(validVersion);
+    final newCacheVersion = controller.cacheService.getVersion(validVersion);
     if (newCacheVersion == null) {
       throw AppException('Could not verify cache version $validVersion');
     }
 
     return newCacheVersion;
   } on Exception {
-    ctx.loggerService.fail('Failed to ensure $validVersion is cached.');
+    controller.logger.fail('Failed to ensure $validVersion is cached.');
     rethrow;
   }
 }
@@ -135,25 +144,30 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
 Future<CacheFlutterVersion> _handleNonExecutable(
   CacheFlutterVersion version, {
   required bool shouldInstall,
+  required FvmController controller,
 }) async {
-  ctx.loggerService
+  controller.logger
     ..notice(
       'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
     )
     ..spacer;
 
-  final shouldReinstall = ctx.loggerService.confirm(
+  final shouldReinstall = controller.logger.confirm(
     'Would you like to reinstall this version to resolve the issue?',
     defaultValue: true,
   );
 
   if (shouldReinstall) {
-    ctx.cacheService.remove(version);
-    ctx.loggerService.info(
+    controller.cacheService.remove(version);
+    controller.logger.info(
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
 
-    return ensureCacheWorkflow(version.name, shouldInstall: shouldInstall);
+    return ensureCacheWorkflow(
+      version.name,
+      shouldInstall: shouldInstall,
+      controller: controller,
+    );
   }
 
   throw AppException('Flutter SDK: ${version.name} is not executable.');
@@ -161,9 +175,10 @@ Future<CacheFlutterVersion> _handleNonExecutable(
 
 // Clarity on why the version mismatch happened and how it can be fixed
 Future<CacheFlutterVersion> _handleVersionMismatch(
-  CacheFlutterVersion version,
-) {
-  ctx.loggerService
+  CacheFlutterVersion version, {
+  required FvmController controller,
+}) {
+  controller.logger
     ..notice(
       'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
     )
@@ -177,25 +192,30 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 
   final secondOption = 'Remove incorrect version and reinstall ${version.name}';
 
-  final selectedOption = ctx.loggerService.select(
+  final selectedOption = controller.logger.select(
     'How would you like to resolve this?',
     options: [firstOption, secondOption],
   );
 
   if (selectedOption == firstOption) {
-    ctx.loggerService.info('Moving SDK to the correct cache directory...');
-    ctx.cacheService.moveToSdkVersionDirectory(version);
+    controller.logger.info('Moving SDK to the correct cache directory...');
+    controller.cacheService.moveToSdkVersionDirectory(version);
   }
 
-  ctx.loggerService.info('Removing incorrect SDK version...');
-  ctx.cacheService.remove(version);
+  controller.logger.info('Removing incorrect SDK version...');
+  controller.cacheService.remove(version);
 
-  return ensureCacheWorkflow(version.name, shouldInstall: true);
+  return ensureCacheWorkflow(
+    version.name,
+    shouldInstall: true,
+    controller: controller,
+  );
 }
 
 Future<FlutterVersion> validateFlutterVersion(
   String version, {
   bool force = false,
+  required FvmController controller,
 }) async {
   final flutterVersion = FlutterVersion.parse(version);
 
@@ -210,12 +230,12 @@ Future<FlutterVersion> validateFlutterVersion(
 
   if (flutterVersion.isRelease) {
     // Check version incase it as a releaseChannel i.e. 2.2.2@beta
-    final isTag = await ctx.flutterService.isTag(flutterVersion.version);
+    final isTag = await controller.flutterService.isTag(flutterVersion.version);
     if (isTag) {
       return flutterVersion;
     }
 
-    final isVersion = await ctx.flutterReleasesServices
+    final isVersion = await controller.flutterReleasesServices
         .isVersionValid(flutterVersion.version);
 
     if (isVersion) {
@@ -224,7 +244,7 @@ Future<FlutterVersion> validateFlutterVersion(
   }
 
   if (flutterVersion.isCommit) {
-    final commitSha = await ctx.flutterService.getReference(version);
+    final commitSha = await controller.flutterService.getReference(version);
     if (commitSha != null) {
       if (commitSha != flutterVersion.name) {
         return FlutterVersion.commit(commitSha);
@@ -234,16 +254,16 @@ Future<FlutterVersion> validateFlutterVersion(
     }
   }
 
-  ctx.loggerService
+  controller.logger
       .notice('Flutter SDK: ($version) is not valid Flutter version');
 
-  final askConfirmation = ctx.loggerService.confirm(
+  final askConfirmation = controller.logger.confirm(
     'Do you want to continue?',
     defaultValue: false,
   );
   if (askConfirmation) {
     // Jump a line after confirmation
-    ctx.loggerService.spacer;
+    controller.logger.spacer;
 
     return flutterVersion;
   }
@@ -251,11 +271,11 @@ Future<FlutterVersion> validateFlutterVersion(
   throw AppException('$version is not a valid Flutter version');
 }
 
-void _validateContext() {
-  final isValid = isValidGitUrl(ctx.flutterUrl);
+void _validateContext(FvmController controller) {
+  final isValid = isValidGitUrl(controller.context.flutterUrl);
   if (!isValid) {
     throw AppException(
-      'Invalid Flutter URL: "${ctx.flutterUrl}". Please change config to a valid git url',
+      'Invalid Flutter URL: "${controller.context.flutterUrl}". Please change config to a valid git url',
     );
   }
 }
