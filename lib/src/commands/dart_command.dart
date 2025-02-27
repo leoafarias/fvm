@@ -18,7 +18,7 @@ class DartCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = controller.projectService.findVersion();
+    final version = controller.project.findVersion();
     final args = argResults!.arguments;
 
     CacheFlutterVersion? cacheVersion;
@@ -39,7 +39,7 @@ class DartCommand extends BaseCommand {
         ..detail('');
     }
     // Running null will default to dart version on path
-    final results = await controller.flutterService.runDart(
+    final results = await controller.flutter.runDart(
       args,
       version: cacheVersion,
     );

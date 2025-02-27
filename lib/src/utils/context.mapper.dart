@@ -33,8 +33,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static Map<String, String> _$environment(FVMContext v) => v.environment;
   static const Field<FVMContext, Map<String, String>> _f$environment =
       Field('environment', _$environment);
-  static List<String> _$args(FVMContext v) => v.args;
-  static const Field<FVMContext, List<String>> _f$args = Field('args', _$args);
   static bool _$_skipInput(FVMContext v) => v._skipInput;
   static const Field<FVMContext, bool> _f$_skipInput =
       Field('_skipInput', _$_skipInput, key: r'skipInput');
@@ -94,7 +92,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #workingDirectory: _f$workingDirectory,
     #config: _f$config,
     #environment: _f$environment,
-    #args: _f$args,
     #_skipInput: _f$_skipInput,
     #isTest: _f$isTest,
     #logLevel: _f$logLevel,
@@ -121,7 +118,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
         environment: data.dec(_f$environment),
-        args: data.dec(_f$args),
         skipInput: data.dec(_f$_skipInput),
         isTest: data.dec(_f$isTest),
         logLevel: data.dec(_f$logLevel));
@@ -181,13 +177,11 @@ abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
       get environment;
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args;
   $R call(
       {String? id,
       String? workingDirectory,
       AppConfig? config,
       Map<String, String>? environment,
-      List<String>? args,
       bool? skipInput,
       bool? isTest,
       Level? logLevel});
@@ -212,16 +206,11 @@ class _FVMContextCopyWithImpl<$R, $Out>
           (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(environment: v));
   @override
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args =>
-      ListCopyWith($value.args, (v, t) => ObjectCopyWith(v, $identity, t),
-          (v) => call(args: v));
-  @override
   $R call(
           {String? id,
           String? workingDirectory,
           AppConfig? config,
           Map<String, String>? environment,
-          List<String>? args,
           bool? skipInput,
           bool? isTest,
           Level? logLevel}) =>
@@ -230,7 +219,6 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (workingDirectory != null) #workingDirectory: workingDirectory,
         if (config != null) #config: config,
         if (environment != null) #environment: environment,
-        if (args != null) #args: args,
         if (skipInput != null) #skipInput: skipInput,
         if (isTest != null) #isTest: isTest,
         if (logLevel != null) #logLevel: logLevel
@@ -242,7 +230,6 @@ class _FVMContextCopyWithImpl<$R, $Out>
           data.get(#workingDirectory, or: $value.workingDirectory),
       config: data.get(#config, or: $value.config),
       environment: data.get(#environment, or: $value.environment),
-      args: data.get(#args, or: $value.args),
       skipInput: data.get(#skipInput, or: $value._skipInput),
       isTest: data.get(#isTest, or: $value.isTest),
       logLevel: data.get(#logLevel, or: $value.logLevel));

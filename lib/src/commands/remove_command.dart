@@ -51,13 +51,13 @@ class RemoveCommand extends BaseCommand {
     String? version;
 
     if (argResults!.rest.isEmpty) {
-      final versions = await controller.cacheService.getAllVersions();
+      final versions = await controller.cache.getAllVersions();
       version = controller.logger.cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
     final validVersion = FlutterVersion.parse(version);
-    final cacheVersion = controller.cacheService.getVersion(validVersion);
+    final cacheVersion = controller.cache.getVersion(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {
@@ -70,7 +70,7 @@ class RemoveCommand extends BaseCommand {
     try {
       /// Remove if version is cached
 
-      controller.cacheService.remove(cacheVersion);
+      controller.cache.remove(cacheVersion);
 
       progress.complete('${validVersion.name} removed.');
     } on Exception {

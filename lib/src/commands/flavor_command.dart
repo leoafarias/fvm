@@ -26,7 +26,7 @@ class FlavorCommand extends BaseCommand {
       );
     }
 
-    final project = controller.projectService.findAncestor();
+    final project = controller.project.findAncestor();
 
     final flavor = argResults!.rest[0];
 
@@ -51,7 +51,7 @@ class FlavorCommand extends BaseCommand {
       logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');
 
-      final results = await controller.flutterService.runFlutter(
+      final results = await controller.flutter.runFlutter(
         flutterArgs,
         version: cacheVersion,
       );

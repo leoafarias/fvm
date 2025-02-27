@@ -41,14 +41,14 @@ class GlobalCommand extends BaseCommand {
     final forceArg = boolArg('force');
 
     if (unlinkArg) {
-      final globalVersion = controller.globalVersionService.getGlobal();
+      final globalVersion = controller.global.getGlobal();
 
       if (globalVersion == null) {
         logger
           ..info('No global version is set')
           ..spacer;
       } else {
-        controller.globalVersionService.unlinkGlobal();
+        controller.global.unlinkGlobal();
         logger
           ..success('Global version unlinked')
           ..spacer;
@@ -61,7 +61,7 @@ class GlobalCommand extends BaseCommand {
 
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
-      final versions = await controller.cacheService.getAllVersions();
+      final versions = await controller.cache.getAllVersions();
       version = controller.logger.cacheVersionSelector(versions);
     }
 
@@ -76,12 +76,12 @@ class GlobalCommand extends BaseCommand {
     );
 
     // Sets version as the global
-    controller.globalVersionService.setGlobal(cacheVersion);
+    controller.global.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter', binDir: true);
 
     // Get pinned version, for comparison on terminal
-    final project = controller.projectService.findAncestor();
+    final project = controller.project.findAncestor();
 
     final pinnedVersion = project.pinnedVersion;
 
@@ -89,7 +89,7 @@ class GlobalCommand extends BaseCommand {
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      pinnedCacheVersion = controller.cacheService.getVersion(pinnedVersion);
+      pinnedCacheVersion = controller.cache.getVersion(pinnedVersion);
     }
 
     final isDefaultInPath =

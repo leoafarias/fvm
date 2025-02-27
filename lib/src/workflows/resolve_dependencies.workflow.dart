@@ -38,7 +38,7 @@ Future<void> resolveDependenciesWorkflow(
   final progress = controller.logger.progress('Resolving dependencies...');
 
   // Try to resolve offline
-  ProcessResult pubGetResults = await controller.flutterService.runFlutter(
+  ProcessResult pubGetResults = await controller.flutter.runFlutter(
     ['pub', 'get', '--offline'],
     version: version,
   );
@@ -49,7 +49,7 @@ Future<void> resolveDependenciesWorkflow(
 
     progress.update('Trying to resolve dependencies...');
 
-    pubGetResults = await controller.flutterService.runFlutter(
+    pubGetResults = await controller.flutter.runFlutter(
       ['pub', 'get'],
       version: version,
     );

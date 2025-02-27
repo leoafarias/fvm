@@ -77,7 +77,7 @@ Future<void> useVersionWorkflow({
     logger: controller.logger,
   );
 
-  final updatedProject = controller.projectService.update(
+  final updatedProject = controller.project.update(
     project,
     flavors: {if (flavor != null) flavor: version.name},
     flutterSdkVersion: version.name,

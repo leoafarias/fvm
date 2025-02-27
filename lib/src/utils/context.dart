@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
-import 'package:scope/scope.dart';
 
 import '../api/api_service.dart';
 import '../models/config_model.dart';
@@ -18,8 +17,6 @@ import '../version.dart';
 import 'constants.dart';
 
 part 'context.mapper.dart';
-
-final contextKey = ScopeKey<FVMContext>();
 
 /// Generates an [FVMContext] value.
 ///
@@ -49,8 +46,6 @@ class FVMContext with FVMContextMappable {
   /// Environment variables
   final Map<String, String> environment;
 
-  final List<String> args;
-
   /// Log level
   final Level logLevel;
 
@@ -67,7 +62,6 @@ class FVMContext with FVMContextMappable {
     required this.workingDirectory,
     required this.config,
     required this.environment,
-    required this.args,
     required bool skipInput,
     this.isTest = false,
     this.logLevel = Level.info,
@@ -75,10 +69,10 @@ class FVMContext with FVMContextMappable {
 
   static FVMContext create({
     String? id,
-    List<String>? args,
     AppConfig? configOverrides,
     String? workingDirectoryOverride,
     Map<String, String>? environmentOverrides,
+    bool skipInput = false,
     bool isTest = false,
   }) {
     // Load all configs
@@ -86,16 +80,11 @@ class FVMContext with FVMContextMappable {
 
     // Skips input if running in CI
 
-    final updatedArgs = [...?args];
-
-    final skipInput = updatedArgs.remove('--fvm-skip-input');
-
     return FVMContext.raw(
       id: id ?? 'MAIN',
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: config,
       environment: {...Platform.environment, ...?environmentOverrides},
-      args: updatedArgs,
       logLevel: isTest ? Level.error : Level.info,
       skipInput: skipInput,
       isTest: isTest,
@@ -210,20 +199,27 @@ class FvmController {
       : _generators = generators,
         logger = Logger.fromContext(context);
 
-  FvmController(this.context) : _generators = _defaultGenerators;
+  factory FvmController(FVMContext context) {
+    return FvmController._(context, generators: _defaultGenerators);
+  }
 
-  FvmController.overrides(
-    this.context, {
+  factory FvmController.overrides(
+    FVMContext context, {
     required Map<Type, Generator> generators,
-  }) : _generators = {..._defaultGenerators, ...generators};
+  }) {
+    return FvmController._(
+      context,
+      generators: {..._defaultGenerators, ...generators},
+    );
+  }
 
-  ProjectService get projectService => get();
+  ProjectService get project => get();
 
-  CacheService get cacheService => get();
-  FlutterService get flutterService => get();
-  GlobalVersionService get globalVersionService => get();
-  APIService get apiService => get();
-  FlutterReleasesService get flutterReleasesServices => get();
+  CacheService get cache => get();
+  FlutterService get flutter => get();
+  GlobalVersionService get global => get();
+  APIService get api => get();
+  FlutterReleasesService get releases => get();
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {

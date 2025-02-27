@@ -6,10 +6,12 @@ import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/utils/context.dart';
 
 Future<void> main(List<String> args) async {
-  final controller = FvmController(FVMContext.create(args: args));
+  final updatableArgs = [...args];
+  final skipInput = updatableArgs.remove('--fvm-skip-input');
+  final controller = FvmController(FVMContext.create(skipInput: skipInput));
 
   await _flushThenExit(
-    await FvmCommandRunner(controller).run((controller.context.args)),
+    await FvmCommandRunner(controller).run(updatableArgs),
   );
 }
 

@@ -9,7 +9,7 @@ Future<void> setupFlutterWorkflow(
     ..info('Setting up Flutter SDK: ${version.name}')
     ..spacer;
 
-  await controller.flutterService.runFlutter(
+  await controller.flutter.runFlutter(
     ['--version'],
     version: version,
     echoOutput: true,

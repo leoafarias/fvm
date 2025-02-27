@@ -62,12 +62,12 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = controller.projectService.findAncestor();
+    final project = controller.project.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await controller.cacheService.getAllVersions();
+      final versions = await controller.cache.getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     }
@@ -87,8 +87,8 @@ class UseCommand extends BaseCommand {
       /// Pin release to channel
       final channel = FlutterChannel.fromName(version);
 
-      final release = await controller.flutterReleasesServices
-          .getLatestReleaseOfChannel(channel);
+      final release =
+          await controller.releases.getLatestReleaseOfChannel(channel);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',

@@ -71,7 +71,7 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
 
   @override
   FutureOr<GetContextResponse> runSubCommand() async {
-    return controller.apiService.getContext();
+    return controller.api.getContext();
   }
 }
 
@@ -101,7 +101,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return controller.apiService.getProject(projectDir);
+    return controller.api.getProject(projectDir);
   }
 }
 
@@ -127,7 +127,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   Future<GetCacheVersionsResponse> runSubCommand() async {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return await controller.apiService
+    return await controller.api
         .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
   }
 }
@@ -159,7 +159,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return await controller.apiService
+    return await controller.api
         .getReleases(limit: limitArg, channelName: channelArg);
   }
 }

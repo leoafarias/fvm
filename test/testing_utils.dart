@@ -18,14 +18,29 @@ import 'testing_helpers/prepare_test_environment.dart';
 // git remote update
 
 class TestCommandRunner {
-  TestCommandRunner();
+  TestCommandRunner([FvmController? controller])
+      : _controller = controller ?? _buildTestController();
+
+  final FvmController _controller;
+
+  FvmController get controller => _controller;
+
+  static FvmController _buildTestController() {
+    return FvmController(FVMContext.create(
+      isTest: true,
+      workingDirectoryOverride: createTempDir().path,
+    ));
+  }
 
   Future<int> run(String command) async {
     final args = command.split(' ');
     final firstArg = args.removeAt(0);
     if (firstArg != 'fvm') throw Exception('Include fvm in command');
-    final scope = Scope()..value(contextKey, ctx);
-    return scope.run(() => FvmCommandRunner().run(args));
+
+    assert(_controller.context.isTest == true,
+        'Controller must be created with isTest: true');
+
+    return FvmCommandRunner(_controller).run(args);
   }
 }
 
@@ -61,7 +76,7 @@ void testWithContext(
 }) {
   // Create random key if it does not exist
 
-  final scope = Scope()..value(contextKey, ctx);
+  final scope = Scope();
 
   return test(
     description,
@@ -114,16 +129,17 @@ void groupWithContext(
         isTest: true,
       );
 
-      Scope()
-        ..value(contextKey, testContext)
-        ..runSync(() {
-          setUpAll(() => setUpContext(testContext));
-          tearDownAll(() => tearDownContext(testContext));
-          body();
-        });
+      Scope().runSync(() {
+        setUpAll(() => setUpContext(testContext));
+        tearDownAll(() => tearDownContext(testContext));
+        body();
+      });
     },
   );
 }
+
+final ctx = FVMContext.create(isTest: true);
+final controller = FvmController(ctx);
 
 /// Returns the [name] of a branch or tag for a [version]
 Future<String?> getBranch(String version) async {
@@ -174,7 +190,7 @@ Future<void> getCommitCount() async {
     echoOutput: true,
   );
   final commitCount = result.stdout.trim();
-  ctx.loggerService.info(commitCount);
+  controller.logger.info(commitCount);
 }
 
 Future<DateTime> getDateOfLastCommit() async {
@@ -327,7 +343,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   }
 }
 
-FVMContext createTestContext({String? name, AppConfig? appConfig}) {
+FVMContext createTestContext(
+    {String? name, AppConfig? appConfig, List<String>? args}) {
   name ??= _generateUuid();
 
   // Create a configuration for the test context using a temporary directory for cache

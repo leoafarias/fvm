@@ -201,7 +201,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = controller.projectService.findAncestor();
+    final project = controller.project.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

@@ -28,11 +28,11 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
     controller: controller,
   );
   try {
-    final cacheVersion = controller.cacheService.getVersion(validVersion);
+    final cacheVersion = controller.cache.getVersion(validVersion);
 
     if (cacheVersion != null) {
       final integrity =
-          await controller.cacheService.verifyCacheIntegrity(cacheVersion);
+          await controller.cache.verifyCacheIntegrity(cacheVersion);
 
       if (integrity == CacheIntegrity.invalid) {
         return await _handleNonExecutable(
@@ -93,7 +93,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
 
     if (useGitCache) {
       try {
-        await controller.flutterService.updateLocalMirror();
+        await controller.flutter.updateLocalMirror();
       } on Exception {
         useGitCache = false;
         controller.logger.warn(
@@ -115,7 +115,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
     );
     try {
-      await controller.flutterService.install(
+      await controller.flutter.install(
         validVersion,
         useGitCache: useGitCache,
       );
@@ -128,7 +128,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       rethrow;
     }
 
-    final newCacheVersion = controller.cacheService.getVersion(validVersion);
+    final newCacheVersion = controller.cache.getVersion(validVersion);
     if (newCacheVersion == null) {
       throw AppException('Could not verify cache version $validVersion');
     }
@@ -158,7 +158,7 @@ Future<CacheFlutterVersion> _handleNonExecutable(
   );
 
   if (shouldReinstall) {
-    controller.cacheService.remove(version);
+    controller.cache.remove(version);
     controller.logger.info(
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
@@ -199,11 +199,11 @@ Future<CacheFlutterVersion> _handleVersionMismatch(
 
   if (selectedOption == firstOption) {
     controller.logger.info('Moving SDK to the correct cache directory...');
-    controller.cacheService.moveToSdkVersionDirectory(version);
+    controller.cache.moveToSdkVersionDirectory(version);
   }
 
   controller.logger.info('Removing incorrect SDK version...');
-  controller.cacheService.remove(version);
+  controller.cache.remove(version);
 
   return ensureCacheWorkflow(
     version.name,
@@ -230,13 +230,13 @@ Future<FlutterVersion> validateFlutterVersion(
 
   if (flutterVersion.isRelease) {
     // Check version incase it as a releaseChannel i.e. 2.2.2@beta
-    final isTag = await controller.flutterService.isTag(flutterVersion.version);
+    final isTag = await controller.flutter.isTag(flutterVersion.version);
     if (isTag) {
       return flutterVersion;
     }
 
-    final isVersion = await controller.flutterReleasesServices
-        .isVersionValid(flutterVersion.version);
+    final isVersion =
+        await controller.releases.isVersionValid(flutterVersion.version);
 
     if (isVersion) {
       return flutterVersion;
@@ -244,7 +244,7 @@ Future<FlutterVersion> validateFlutterVersion(
   }
 
   if (flutterVersion.isCommit) {
-    final commitSha = await controller.flutterService.getReference(version);
+    final commitSha = await controller.flutter.getReference(version);
     if (commitSha != null) {
       if (commitSha != flutterVersion.name) {
         return FlutterVersion.commit(commitSha);

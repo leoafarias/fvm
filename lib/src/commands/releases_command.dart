@@ -49,7 +49,7 @@ class ReleasesCommand extends BaseCommand {
 
     controller.logger.detail('Filtering by channel: $channelName');
 
-    final releases = await controller.flutterReleasesServices.getReleases();
+    final releases = await controller.releases.getReleases();
 
     final versions = releases.versions.reversed;
 

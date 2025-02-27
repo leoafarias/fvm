@@ -42,7 +42,7 @@ class InstallCommand extends BaseCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      final project = controller.projectService.findAncestor();
+      final project = controller.project.findAncestor();
 
       final version = project.pinnedVersion;
 

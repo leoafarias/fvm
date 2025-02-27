@@ -20,7 +20,7 @@ class ExecCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final version = controller.projectService.findVersion();
+    final version = controller.project.findVersion();
 
     if (argResults!.rest.isEmpty) {
       throw UsageException('No command was provided to be executed', usage);
@@ -47,7 +47,7 @@ class ExecCommand extends BaseCommand {
 
     // Runs exec command with pinned version
     final results =
-        await controller.flutterService.execCmd(cmd, execArgs, cacheVersion);
+        await controller.flutter.execCmd(cmd, execArgs, cacheVersion);
 
     return results.exitCode;
   }

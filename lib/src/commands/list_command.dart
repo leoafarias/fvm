@@ -20,7 +20,7 @@ class ListCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final cacheVersions = await controller.cacheService.getAllVersions();
+    final cacheVersions = await controller.cache.getAllVersions();
 
     final directorySize = await getFullDirectorySize(cacheVersions);
 
@@ -50,9 +50,9 @@ class ListCommand extends BaseCommand {
       return ExitCode.success.code;
     }
 
-    final releases = await controller.flutterReleasesServices.getReleases();
-    final globalVersion = controller.globalVersionService.getGlobal();
-    final localVersion = controller.projectService.findVersion();
+    final releases = await controller.releases.getReleases();
+    final globalVersion = controller.global.getGlobal();
+    final localVersion = controller.project.findVersion();
 
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)

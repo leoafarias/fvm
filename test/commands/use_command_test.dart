@@ -7,35 +7,46 @@ import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
+// Assuming this is defined in your testing_utils.dart
+const kVersionList = [
+  'stable',
+  'beta',
+  'dev',
+  '2.0.0',
+];
+
 void main() {
-  groupWithContext(
-    'Use workflow:',
-    () {
-      final runner = TestCommandRunner();
+  late TestCommandRunner runner;
+  late FvmController controller;
 
-      for (var version in kVersionList) {
-        testWithContext(
-          'Use $version',
-          () async {
-            final exitCode = await runner.run(
-              'fvm use $version --force --skip-setup',
-            );
+  setUp(() {
+    runner = TestCommandRunner();
+    controller = runner.controller;
+  });
 
-            final project = ctx.projectService.findAncestor();
-            final link = project.localVersionSymlinkPath.link;
-            final linkExists = link.existsSync();
-
-            final targetPath = link.targetSync();
-            final valid = FlutterVersion.parse(version);
-            final versionDir = ctx.cacheService.getVersionCacheDir(valid.name);
-
-            expect(targetPath == versionDir.path, true);
-            expect(linkExists, true);
-            expect(project.pinnedVersion?.name, version);
-            expect(exitCode, ExitCode.success.code);
-          },
+  group('Use workflow:', () {
+    for (var version in kVersionList) {
+      test('Use $version', () async {
+        final exitCode = await runner.run(
+          'fvm use $version --force --skip-setup',
         );
-      }
-    },
-  );
+
+        // Get the project and verify its configuration
+        final project = controller.project.findAncestor();
+        final link = project.localVersionSymlinkPath.link;
+        final linkExists = link.existsSync();
+
+        // Check the symlink target
+        final targetPath = link.targetSync();
+        final valid = FlutterVersion.parse(version);
+        final versionDir = controller.cache.getVersionCacheDir(valid.name);
+
+        // Perform assertions
+        expect(targetPath == versionDir.path, true);
+        expect(linkExists, true);
+        expect(project.pinnedVersion?.name, version);
+        expect(exitCode, ExitCode.success.code);
+      });
+    }
+  });
 }
