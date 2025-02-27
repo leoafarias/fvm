@@ -49,7 +49,7 @@ class APICommand extends BaseCommand {
   String description = 'JSON API for FVM data';
 
   /// Constructor
-  APICommand() {
+  APICommand(super.context) {
     addSubcommand(APIListCommand());
     addSubcommand(APIReleasesCommand());
     addSubcommand(APIContextCommand());

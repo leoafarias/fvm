@@ -29,33 +29,6 @@ class TestCommandRunner {
   }
 }
 
-Future<String> getStdout(String command) async {
-  final executable = command.split(' ').first;
-  // Executable is on something like ./bin/main.dart
-
-  // Which is the relactive to the Directory.current
-  // However the script will be executed from a test directory on ctx.workingDirectory
-  // This directory is most likely in the user home folder but could be anywhere
-  // So we need to get the relative path from the script to the current directory
-  // and then join it to the ctx.workingDirectory
-  final scriptPath = p.join(Directory.current.path, executable);
-  final relativePath = p.relative(scriptPath, from: ctx.workingDirectory);
-  final executablePath = p.join(ctx.workingDirectory, relativePath);
-
-  final arguments = command.split(' ').sublist(1);
-  final result = await Process.run(
-    executablePath,
-    arguments,
-    workingDirectory: ctx.workingDirectory,
-  );
-
-  if (result.exitCode != 0) {
-    throw Exception('Error executing command: ${result.stderr}');
-  }
-
-  return result.stdout.toString().trim();
-}
-
 const kVersionList = [
   channel,
   'stable',

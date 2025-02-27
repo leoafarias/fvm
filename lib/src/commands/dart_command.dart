@@ -16,11 +16,11 @@ class DartCommand extends BaseCommand {
   @override
   final argParser = ArgParser.allowAnything();
 
-  DartCommand();
+  DartCommand(super.context);
 
   @override
   Future<int> run() async {
-    final version = ctx.projectService.findVersion();
+    final version = context.projectService.findVersion();
     final args = argResults!.arguments;
 
     CacheFlutterVersion? cacheVersion;
@@ -29,16 +29,17 @@ class DartCommand extends BaseCommand {
       // Will install version if not already installed
       cacheVersion = await ensureCacheWorkflow(version);
 
-      ctx.loggerService
+      logger
         ..detail('$kPackageName: running Dart from Flutter SDK "$version"')
         ..detail('');
     } else {
-      ctx.loggerService
+      logger
         ..detail('$kPackageName: Running Dart version configured in PATH.')
         ..detail('');
     }
     // Running null will default to dart version on path
-    final results = await runDart(args, version: cacheVersion);
+    final results =
+        await context.flutterService.runDart(args, version: cacheVersion);
 
     return results.exitCode;
   }

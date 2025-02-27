@@ -6,7 +6,6 @@ import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import 'commands/api_command.dart';
 import 'commands/config_command.dart';
@@ -32,10 +31,11 @@ import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CompletionCommandRunner<int> {
+  final FVMContext context;
   final PubUpdater _pubUpdater;
 
   /// Constructor
-  FvmCommandRunner({PubUpdater? pubUpdater})
+  FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater(),
         super(kPackageName, kDescription) {
     argParser
@@ -68,8 +68,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      final lastUpdateCheck = ctx.lastUpdateCheck ?? DateTime.now();
-      if (ctx.updateCheckDisabled) return null;
+      final lastUpdateCheck = context.lastUpdateCheck ?? DateTime.now();
+      if (context.updateCheckDisabled) return null;
       final oneDay = lastUpdateCheck.add(const Duration(days: 1));
 
       if (DateTime.now().isBefore(oneDay)) {
@@ -92,7 +92,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final currentVersionLabel = lightCyan.wrap(packageVersion);
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
-        ctx.loggerService
+        context.logger
           ..spacer
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
@@ -101,45 +101,44 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       };
     } catch (_) {
       return () {
-        ctx.loggerService.detail("Failed to check for updates.");
+        context.logger.detail("Failed to check for updates.");
       };
     }
   }
 
   @override
-  void printUsage() => ctx.loggerService.info(usage);
+  void printUsage() => context.logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      deprecationWorkflow();
+      deprecationWorkflow(context.logger);
 
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
-        ctx.loggerService.level = Level.verbose;
+        context.logger.level = Level.verbose;
       }
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
     } on AppDetailedException catch (err, stackTrace) {
-      ctx.loggerService
+      context.logger
         ..fail(err.message)
         ..spacer
         ..err(err.info);
-
-      _printTrace(stackTrace);
+      context.loggerTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
-        ctx.loggerService
+        context.logger
           ..spacer
           ..fail('Requires administrator privileges to run this command.')
           ..spacer;
 
-        ctx.loggerService.notice(
+        context.logger.notice(
           "You don't have the required privileges to run this command.\n"
           "Try running with sudo or administrator privileges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
@@ -148,20 +147,19 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return ExitCode.noPerm.code;
       }
 
-      ctx.loggerService
+      context.logger
         ..err(err.message)
         ..spacer
         ..err('Path: ${err.path}');
-
-      _printTrace(stackTrace);
+      context.loggerTrace(stackTrace);
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {
-      ctx.loggerService.fail(err.message);
+      context.logger.fail(err.message);
 
       return ExitCode.data.code;
     } on ProcessException catch (e) {
-      ctx.loggerService
+      context.logger
         ..spacer
         ..err(e.toString())
         ..spacer;
@@ -170,18 +168,18 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     } on UsageException catch (err) {
       // On usage errors, show the commands usage message and
       // exit with an error code
-      ctx.loggerService
+      context.logger
         ..err(err.message)
         ..spacer
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
-      ctx.loggerService
+      context.logger
         ..spacer
         ..err(err.toString());
 
-      _printTrace(stackTrace);
+      context.logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     }
@@ -190,7 +188,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
-    ctx.loggerService
+    context.logger
       ..detail('')
       ..detail('Argument information:');
 
@@ -204,33 +202,33 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      ctx.loggerService.detail('  Top level options:');
+      context.logger.detail('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          ctx.loggerService.detail('  - $option: ${topLevelResults[option]}');
+          context.logger.detail('  - $option: ${topLevelResults[option]}');
         }
       }
-      ctx.loggerService.detail('');
+      context.logger.detail('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      ctx.loggerService.detail('Command: ${commandResult.name}');
+      context.logger.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        ctx.loggerService.detail('  Command options:');
+        context.logger.detail('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            ctx.loggerService.detail('    - $option: ${commandResult[option]}');
+            context.logger.detail('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      ctx.loggerService.detail('');
+      context.logger.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates();
@@ -238,7 +236,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
-      ctx.loggerService.info(packageVersion);
+      context.logger.info(packageVersion);
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);
@@ -248,20 +246,5 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     logOutput?.call();
 
     return exitCode;
-  }
-}
-
-void _printTrace(StackTrace stackTrace) {
-  final trace = Trace.from(stackTrace).toString();
-  ctx.loggerService
-    ..detail('')
-    ..detail(trace);
-
-  if (ctx.loggerService.level != Level.verbose) {
-    ctx.loggerService
-      ..spacer
-      ..info(
-        'Please run command with  --verbose if you want more information',
-      );
   }
 }

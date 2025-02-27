@@ -11,13 +11,14 @@ Future<ProcessResult> runCommand(
   Map<String, String>? environment,
   bool throwOnError = true,
   bool echoOutput = false,
+  required FVMContext context,
 }) async {
-  ctx.loggerService
+  context.logger
     ..detail('')
     ..detail('Running: $command')
     ..detail('');
   ProcessResult processResult;
-  if (!echoOutput || ctx.isTest) {
+  if (!echoOutput || context.isTest) {
     processResult = await Process.run(
       command,
       args,

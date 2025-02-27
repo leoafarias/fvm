@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import '../../utils/context.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
 import '../base_service.dart';
@@ -49,7 +48,7 @@ class FlutterReleasesService extends ContextService {
 
       return _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
     } catch (err) {
-      context.loggerService.detail(err.toString());
+      logger.detail(err.toString());
       try {
         return _cacheReleasesRes = await getReleasesFromGoogle(platform);
       } catch (_, stackTrace) {

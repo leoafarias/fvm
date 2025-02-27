@@ -5,7 +5,6 @@ import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 import 'base_service.dart';
@@ -49,7 +48,7 @@ class CacheService extends ContextService {
 
   /// Lists Installed Flutter SDK Version
   Future<List<CacheFlutterVersion>> getAllVersions() async {
-    final versionsDir = Directory(ctx.versionsCachePath);
+    final versionsDir = Directory(context.versionsCachePath);
     // Returns empty array if directory does not exist
     if (!await versionsDir.exists()) return [];
 
@@ -80,7 +79,7 @@ class CacheService extends ContextService {
   }
 
   Directory getVersionCacheDir(String version) {
-    return Directory(path.join(ctx.versionsCachePath, version));
+    return Directory(path.join(context.versionsCachePath, version));
   }
 
   // Verifies that cache can be executed and matches version

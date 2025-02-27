@@ -1,9 +1,6 @@
-import 'dart:io';
-
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
 
-import '../utils/commands.dart';
 import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';

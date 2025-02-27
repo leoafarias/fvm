@@ -1,18 +1,31 @@
 import 'dart:io';
 
 import '../services/base_service.dart';
-import '../utils/context.dart';
+import '../services/cache_service.dart';
+import '../services/project_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/extensions.dart';
 import '../utils/get_directory_size.dart';
 import 'models/json_response.dart';
 
 class APIService extends ContextService {
-  const APIService(super.context);
+  final ProjectService _projectService;
+  final CacheService _cacheService;
+  final FlutterReleasesService _flutterReleasesServices;
 
-  GetContextResponse getContext() => GetContextResponse(context: ctx);
+  const APIService(
+    super.context, {
+    required ProjectService projectService,
+    required CacheService cacheService,
+    required FlutterReleasesService flutterReleasesServices,
+  })  : _projectService = projectService,
+        _cacheService = cacheService,
+        _flutterReleasesServices = flutterReleasesServices;
+
+  GetContextResponse getContext() => GetContextResponse(context: context);
 
   GetProjectResponse getProject([Directory? projectDir]) {
-    final project = ctx.projectService.findAncestor(directory: projectDir);
+    final project = _projectService.findAncestor(directory: projectDir);
 
     return GetProjectResponse(project: project);
   }
@@ -20,7 +33,7 @@ class APIService extends ContextService {
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,
   }) async {
-    final versions = await ctx.cacheService.getAllVersions();
+    final versions = await _cacheService.getAllVersions();
 
     var versionSizes = List.filled(versions.length, 0);
 
@@ -40,7 +53,7 @@ class APIService extends ContextService {
     int? limit,
     String? channelName,
   }) async {
-    final payload = await ctx.flutterReleasesServices.getReleases();
+    final payload = await _flutterReleasesServices.getReleases();
 
     var filteredVersions = payload.versions.where((version) {
       if (channelName == null) return true;

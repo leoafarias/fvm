@@ -1,8 +1,14 @@
 import 'package:args/command_runner.dart';
 
+import '../services/logger_service.dart';
+import '../utils/context.dart';
+
 /// Base Command
 abstract class BaseCommand extends Command<int> {
-  BaseCommand();
+  final FVMContext context;
+  BaseCommand(this.context);
+
+  Logger get logger => context.logger;
 
   @override
   String get invocation => 'fvm $name';

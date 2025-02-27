@@ -1,3 +1,5 @@
+import 'package:meta/meta.dart';
+
 import '../utils/context.dart';
 import 'logger_service.dart';
 
@@ -7,7 +9,8 @@ abstract class ContextService {
   const ContextService(FVMContext context) : _context = context;
 
   /// Gets context, if no context is passed will get from scope
+  @protected
   FVMContext get context => _context;
 
-  LoggerService get logger => context.loggerService;
+  Logger get logger => context.logger;
 }

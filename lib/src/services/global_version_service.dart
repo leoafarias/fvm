@@ -4,19 +4,22 @@ import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
-import '../utils/context.dart';
 import '../utils/extensions.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 
 class GlobalVersionService extends ContextService {
-  const GlobalVersionService(super.context);
+  final CacheService _cacheService;
+  const GlobalVersionService(
+    super.context, {
+    required CacheService cacheService,
+  }) : _cacheService = cacheService;
 
-  Link get _globalCacheLink => Link(ctx.globalCacheLink);
+  Link get _globalCacheLink => Link(context.globalCacheLink);
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
-    ctx.globalCacheLink.link.createLink(version.directory);
+    context.globalCacheLink.link.createLink(version.directory);
   }
 
   /// Unlinks global version
@@ -35,7 +38,7 @@ class GlobalVersionService extends ContextService {
     final validVersion = FlutterVersion.parse(version);
 
     // Verify version is cached
-    return CacheService(ctx).getVersion(validVersion);
+    return _cacheService.getVersion(validVersion);
   }
 
   /// Checks if a cached [version] is configured as global

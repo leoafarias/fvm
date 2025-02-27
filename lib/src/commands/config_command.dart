@@ -4,7 +4,6 @@ import 'package:io/io.dart';
 import '../models/config_model.dart';
 import '../services/config_repository.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import 'base_command.dart';
 
 /// Fvm Config
@@ -16,7 +15,7 @@ class ConfigCommand extends BaseCommand {
   final description = 'Set global configuration settings for FVM';
 
   /// Constructor
-  ConfigCommand() {
+  ConfigCommand(super.context) {
     ConfigKeys.injectArgParser(argParser);
     argParser.addFlag(
       'update-check',
@@ -35,11 +34,11 @@ class ConfigCommand extends BaseCommand {
     void updateConfigKey<T>(ConfigKeys key, T value) {
       if (wasParsed(key.paramKey)) {
         final updatedMap = AppConfig.fromMap({key.name: value});
-        ctx.loggerService.info(
+        logger.info(
           'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
         );
 
-        ctx.loggerService.info(updatedMap.toString());
+        logger.info(updatedMap.toString());
         updatedConfig = updatedConfig.merge(updatedMap);
       }
     }
@@ -50,8 +49,8 @@ class ConfigCommand extends BaseCommand {
 
     // Save
     if (updatedConfig != currentConfig) {
-      ctx.loggerService.info('');
-      final updateProgress = ctx.loggerService.progress('Saving settings');
+      logger.info('');
+      final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
         ConfigRepository.save(updatedConfig);
@@ -61,22 +60,22 @@ class ConfigCommand extends BaseCommand {
       }
       updateProgress.complete('Settings saved.');
     } else {
-      ctx.loggerService
+      logger
         ..info('FVM Configuration:')
-        ..info('Located at ${ctx.configPath}')
+        ..info('Located at ${context.configPath}')
         ..info('');
 
       final options = currentConfig.toMap();
 
       if (options.keys.isEmpty) {
-        ctx.loggerService.info('No settings have been configured.');
+        logger.info('No settings have been configured.');
       } else {
         // Print options and it's values
         for (var key in options.keys) {
           final value = options[key];
           if (value != null) {
             final valuePrint = yellow.wrap(value.toString());
-            ctx.loggerService.info('$key: $valuePrint');
+            logger.info('$key: $valuePrint');
           }
         }
       }
