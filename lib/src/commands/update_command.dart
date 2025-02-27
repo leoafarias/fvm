@@ -1,31 +1,29 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import '../version.dart';
+import 'base_command.dart';
 
-class UpdateCommand extends Command<int> {
+class UpdateCommand extends BaseCommand {
   static const String commandName = 'update';
 
   final PubUpdater _pubUpdater;
 
-  UpdateCommand({PubUpdater? pubUpdater})
+  UpdateCommand(super.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater();
 
   @override
   Future<int> run() async {
-    final updateCheckProgress =
-        ctx.loggerService.progress('Checking for updates');
+    final updateCheckProgress = logger.progress('Checking for updates');
     final String latestVersion;
     try {
       latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
     } catch (error) {
       updateCheckProgress.fail();
-      ctx.loggerService.err('$error');
+      logger.err('$error');
 
       return ExitCode.software.code;
     }
@@ -33,13 +31,12 @@ class UpdateCommand extends Command<int> {
 
     final isUpToDate = packageVersion == latestVersion;
     if (isUpToDate) {
-      ctx.loggerService.success('You are already using the latest version.');
+      logger.success('You are already using the latest version.');
 
       return ExitCode.success.code;
     }
 
-    final updateProgress =
-        ctx.loggerService.progress('Updating to $latestVersion');
+    final updateProgress = logger.progress('Updating to $latestVersion');
 
     late final ProcessResult result;
     try {
@@ -49,14 +46,14 @@ class UpdateCommand extends Command<int> {
       );
     } catch (error) {
       updateProgress.fail();
-      ctx.loggerService.err('$error');
+      logger.err('$error');
 
       return ExitCode.software.code;
     }
 
     if (result.exitCode != ExitCode.success.code) {
       updateProgress.fail();
-      ctx.loggerService.err('Error updating CLI: ${result.stderr}');
+      logger.err('Error updating CLI: ${result.stderr}');
 
       return ExitCode.software.code;
     }

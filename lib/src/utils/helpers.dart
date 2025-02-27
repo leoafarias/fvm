@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:date_format/date_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../services/logger_service.dart';
 import 'constants.dart';
-import 'context.dart';
 import 'git_utils.dart';
 
 /// Checks if [name] is a channel
@@ -16,12 +16,13 @@ bool isFlutterChannel(String name) {
 Map<String, String> updateEnvironmentVariables(
   List<String> paths,
   Map<String, String> env,
+  Logger logger,
 ) {
   // Remove any values that are similar
   // within the list of paths.
   paths = paths.toSet().toList();
 
-  ctx.loggerService.detail('Starting to update environment variables...');
+  logger.detail('Starting to update environment variables...');
 
   final updatedEnvironment = Map<String, String>.from(env);
 
@@ -36,7 +37,7 @@ Map<String, String> updateEnvironmentVariables(
 
 /// Assigns weight to [version] to channels for comparison
 /// Returns a weight for all versions and channels
-String assignVersionWeight(String version) {
+String assignVersionWeight(String version, Logger logger) {
   /// Assign version number to continue to work with semver
   if (isGitCommit(version)) {
     version = '500.0.0';
@@ -77,7 +78,7 @@ String assignVersionWeight(String version) {
       return '400.0.0';
     }
 
-    ctx.loggerService.detail('Cache version $version is not a valid semver');
+    logger.detail('Cache version $version is not a valid semver');
 
     return '0.0.0';
   }

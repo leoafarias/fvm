@@ -92,7 +92,6 @@ class CacheFlutterVersion extends FlutterVersion
   /// Returns bool if version is setup
   @MappableField()
   bool get isSetup => flutterSdkVersion != null;
-
   Future<ProcessResult> run(
     String command, {
     bool echoOutput = false,

@@ -17,7 +17,7 @@ class RemoveCommand extends BaseCommand {
   @override
   final description = 'Removes Flutter SDK Version';
 
-  RemoveCommand() {
+  RemoveCommand(super.context) {
     argParser.addFlag(
       'all',
       abbr: 'a',
@@ -33,16 +33,16 @@ class RemoveCommand extends BaseCommand {
     final all = boolArg('all');
 
     if (all) {
-      final confirmRemoval = ctx.loggerService.confirm(
+      final confirmRemoval = logger.confirm(
         'Are you sure you want to remove all versions in your $kPackageName cache ?',
         defaultValue: false,
       );
       if (confirmRemoval) {
-        final versionsCache = Directory(ctx.versionsCachePath);
+        final versionsCache = Directory(context.versionsCachePath);
         if (versionsCache.existsSync()) {
           versionsCache.deleteSync(recursive: true);
 
-          ctx.loggerService.success(
+          logger.success(
             '$kPackageName Directory ${versionsCache.path} has been deleted',
           );
         }
@@ -64,14 +64,12 @@ class RemoveCommand extends BaseCommand {
 
     // Check if version is installed
     if (cacheVersion == null) {
-      ctx.loggerService
-          .info('Flutter SDK: ${validVersion.name} is not installed');
+      logger.info('Flutter SDK: ${validVersion.name} is not installed');
 
       return ExitCode.success.code;
     }
 
-    final progress =
-        ctx.loggerService.progress('Removing ${validVersion.name}...');
+    final progress = logger.progress('Removing ${validVersion.name}...');
     try {
       /// Remove if version is cached
 

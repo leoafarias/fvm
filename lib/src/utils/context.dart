@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
 import 'package:scope/scope.dart';
 
@@ -58,8 +57,12 @@ class FVMContext with FVMContextMappable {
   /// Log level
   final Level logLevel;
 
+  late final Logger logger;
+
+  final bool isCI;
+
   /// True if the `--fvm-skip-input` flag was passed to the command
-  final bool _skipInput;
+  final bool skipInput;
 
   /// Generated values
   final Map<Type, dynamic> _dependencies = {};
@@ -73,11 +76,17 @@ class FVMContext with FVMContextMappable {
     required this.config,
     required this.environment,
     required this.args,
-    required bool skipInput,
+    required this.isTest,
+    required this.isCI,
+    required this.skipInput,
     required this.generators,
-    this.isTest = false,
     this.logLevel = Level.info,
-  }) : _skipInput = skipInput;
+  }) : logger = Logger(
+          logLevel: logLevel,
+          isTest: isTest,
+          isCI: isCI,
+          skipInput: skipInput,
+        );
 
   static FVMContext create({
     String? id,
@@ -110,6 +119,8 @@ class FVMContext with FVMContextMappable {
       environment: environment,
       args: updatedArgs,
       logLevel: isTest ? Level.error : Level.info,
+      isCI: kCiEnvironmentVariables.any(Platform.environment.containsKey),
+      isTest: isTest,
       skipInput: skipInput,
       generators: {
         ProjectService: generators.projectService,
@@ -117,10 +128,8 @@ class FVMContext with FVMContextMappable {
         FlutterService: generators.flutterService,
         GlobalVersionService: generators.globalVersionService,
         APIService: generators.apiService,
-        LoggerService: generators.loggerService,
         FlutterReleasesService: generators.flutterReleasesServices,
       },
-      isTest: isTest,
     );
   }
 
@@ -194,16 +203,6 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   String get configPath => kAppConfigFile;
 
-  /// Checks if the current environment is a Continuous Integration (CI) environment.
-  /// This is done by checking for common CI environment variables.
-  @MappableField()
-  bool get isCI {
-    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
-  }
-
-  @MappableField()
-  bool get skipInput => isCI || _skipInput;
-
   T get<T>() {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
@@ -241,26 +240,52 @@ class ContextGenerators {
   final Generator<FlutterService> flutterService;
   final Generator<GlobalVersionService> globalVersionService;
   final Generator<APIService> apiService;
-  final Generator<LoggerService> loggerService;
+
   final Generator<FlutterReleasesService> flutterReleasesServices;
 
   const ContextGenerators({
-    this.projectService = ProjectService.new,
-    this.cacheService = CacheService.new,
-    this.flutterService = FlutterService.new,
-    this.globalVersionService = GlobalVersionService.new,
-    this.apiService = APIService.new,
-    this.loggerService = LoggerService.new,
-    this.flutterReleasesServices = FlutterReleasesService.new,
+    this.projectService = _buildProjectService,
+    this.cacheService = _buildCacheService,
+    this.flutterService = _buildFlutterService,
+    this.globalVersionService = _buildGlobalVersionService,
+    this.apiService = _buildAPIService,
+    this.flutterReleasesServices = _buildFlutterReleasesService,
   });
 }
 
-extension FvmContextX on FVMContext {
-  FlutterService get flutterService => get();
-  CacheService get cacheService => get();
-  ProjectService get projectService => get();
-  GlobalVersionService get globalVersionService => get();
-  APIService get apiService => get();
-  LoggerService get loggerService => get();
-  FlutterReleasesService get flutterReleasesServices => get();
+APIService _buildAPIService(FVMContext context) {
+  return APIService(
+    context,
+    projectService: _buildProjectService(context),
+    cacheService: _buildCacheService(context),
+    flutterReleasesServices: _buildFlutterReleasesService(context),
+  );
+}
+
+ProjectService _buildProjectService(FVMContext context) {
+  return ProjectService(context);
+}
+
+FlutterService _buildFlutterService(FVMContext context) {
+  return FlutterService(
+    context,
+    cacheService: _buildCacheService(context),
+    flutterReleasesServices: _buildFlutterReleasesService(context),
+    globalVersionService: _buildGlobalVersionService(context),
+  );
+}
+
+CacheService _buildCacheService(FVMContext context) {
+  return CacheService(context);
+}
+
+FlutterReleasesService _buildFlutterReleasesService(FVMContext context) {
+  return FlutterReleasesService(context);
+}
+
+GlobalVersionService _buildGlobalVersionService(FVMContext context) {
+  return GlobalVersionService(
+    context,
+    cacheService: _buildCacheService(context),
+  );
 }
