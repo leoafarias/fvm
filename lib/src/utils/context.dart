@@ -5,11 +5,11 @@ import 'package:path/path.dart';
 
 import '../api/api_service.dart';
 import '../models/config_model.dart';
+import '../models/log_level_model.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
-import '../services/global_version_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
@@ -52,27 +52,32 @@ class FVMContext with FVMContextMappable {
   /// True if the `--fvm-skip-input` flag was passed to the command
   final bool _skipInput;
 
-  /// Generated values
+  final Map<Type, Generator> _generators;
+  final Map<Type, dynamic> _dependencies = {};
 
   /// Constructor
   /// If nothing is provided set default
   @MappableConstructor()
-  const FVMContext.raw({
+  FVMContext.raw({
     required this.id,
     required this.workingDirectory,
     required this.config,
+    required Map<Type, Generator> generators,
     required this.environment,
     required bool skipInput,
     this.isTest = false,
     this.logLevel = Level.info,
-  }) : _skipInput = skipInput;
+  })  : _skipInput = skipInput,
+        _generators = generators;
 
   static FVMContext create({
     String? id,
     AppConfig? configOverrides,
     String? workingDirectoryOverride,
+    Map<Type, Generator>? generatorsOverride,
     Map<String, String>? environmentOverrides,
     bool skipInput = false,
+    Level? logLevel,
     bool isTest = false,
   }) {
     // Load all configs
@@ -85,9 +90,10 @@ class FVMContext with FVMContextMappable {
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: config,
       environment: {...Platform.environment, ...?environmentOverrides},
-      logLevel: isTest ? Level.error : Level.info,
+      logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
       isTest: isTest,
+      generators: {..._defaultGenerators, ...?generatorsOverride},
     );
   }
 
@@ -171,6 +177,19 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
+  T get<T>() {
+    if (_dependencies.containsKey(T)) {
+      return _dependencies[T] as T;
+    }
+    if (_generators.containsKey(T)) {
+      final generator = _generators[T] as Generator;
+      _dependencies[T] = generator(this);
+
+      return _dependencies[T];
+    }
+    throw Exception('Generator for $T not found');
+  }
+
   @override
   String toString() => id;
 }
@@ -192,47 +211,15 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 class FvmController {
   final FVMContext context;
   late final Logger logger;
-  final Map<Type, Generator> _generators;
-  final Map<Type, dynamic> _dependencies = {};
 
-  FvmController._(this.context, {required Map<Type, Generator> generators})
-      : _generators = generators,
-        logger = Logger.fromContext(context);
+  FvmController(this.context) : logger = Logger.fromContext(context);
 
-  factory FvmController(FVMContext context) {
-    return FvmController._(context, generators: _defaultGenerators);
-  }
+  ProjectService get project => context.get();
 
-  factory FvmController.overrides(
-    FVMContext context, {
-    required Map<Type, Generator> generators,
-  }) {
-    return FvmController._(
-      context,
-      generators: {..._defaultGenerators, ...generators},
-    );
-  }
-
-  ProjectService get project => get();
-
-  CacheService get cache => get();
-  FlutterService get flutter => get();
-  GlobalVersionService get global => get();
-  APIService get api => get();
-  FlutterReleasesService get releases => get();
-
-  T get<T>() {
-    if (_dependencies.containsKey(T)) {
-      return _dependencies[T] as T;
-    }
-    if (_generators.containsKey(T)) {
-      final generator = _generators[T] as Generator;
-      _dependencies[T] = generator(context);
-
-      return _dependencies[T];
-    }
-    throw Exception('Generator for $T not found');
-  }
+  CacheService get cache => context.get();
+  FlutterService get flutter => context.get();
+  APIService get api => context.get();
+  FlutterReleasesService get releases => context.get();
 }
 
 const _defaultGenerators = {
@@ -240,7 +227,6 @@ const _defaultGenerators = {
   CacheService: _buildCacheService,
   FlutterReleasesService: _buildFlutterReleasesService,
   FlutterService: _buildFlutterService,
-  GlobalVersionService: _buildGlobalVersionService,
   APIService: _buildAPIService,
 };
 
@@ -262,7 +248,6 @@ FlutterService _buildFlutterService(FVMContext context) {
     context,
     cacheService: _buildCacheService(context),
     flutterReleasesServices: _buildFlutterReleasesService(context),
-    globalVersionService: _buildGlobalVersionService(context),
   );
 }
 
@@ -272,11 +257,4 @@ CacheService _buildCacheService(FVMContext context) {
 
 FlutterReleasesService _buildFlutterReleasesService(FVMContext context) {
   return FlutterReleasesService(context);
-}
-
-GlobalVersionService _buildGlobalVersionService(FVMContext context) {
-  return GlobalVersionService(
-    context,
-    cacheService: _buildCacheService(context),
-  );
 }

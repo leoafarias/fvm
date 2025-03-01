@@ -4,8 +4,7 @@ import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
-import '../utils/extensions.dart';
-import '../utils/get_directory_size.dart';
+import '../utils/helpers.dart';
 import 'models/json_response.dart';
 
 class APIService extends Contextual {
@@ -35,16 +34,19 @@ class APIService extends Contextual {
   }) async {
     final versions = await _cacheService.getAllVersions();
 
-    var versionSizes = List.filled(versions.length, 0);
-
-    if (!skipCacheSizeCalculation) {
-      versionSizes = await Future.wait(versions.map((version) async {
-        return await getDirectorySize(version.directory.dir);
-      }));
+    if (skipCacheSizeCalculation) {
+      return GetCacheVersionsResponse(
+        size: formatFriendlyBytes(0),
+        versions: versions,
+      );
     }
 
+    final versionSizes = await Future.wait(versions.map((version) async {
+      return getDirectorySize(Directory(version.directory));
+    }));
+
     return GetCacheVersionsResponse(
-      size: formatBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
+      size: formatFriendlyBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
       versions: versions,
     );
   }

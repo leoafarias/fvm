@@ -7,6 +7,14 @@ import '../api/models/json_response.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
+class ApiCommandException implements Exception {
+  final String message;
+
+  final Object error;
+
+  const ApiCommandException(this.message, {required this.error});
+}
+
 abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
   APISubCommand(super.controller) {
     argParser.addFlag(
@@ -21,9 +29,9 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
 
   @override
   Future<int> run() async {
-    try {
-      final shouldCompress = boolArg('compress');
+    final shouldCompress = boolArg('compress');
 
+    try {
       final response = await runSubCommand();
 
       if (shouldCompress) {
@@ -32,9 +40,12 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
         print(prettyJson(response.toMap()));
       }
 
-      exit(ExitCode.success.code);
-    } on Exception catch (_) {
-      rethrow;
+      return ExitCode.success.code;
+    } on Exception catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        ApiCommandException('Exception running API command $name', error: e),
+        stackTrace,
+      );
     }
   }
 }
@@ -70,7 +81,7 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
   APIContextCommand(super.controller);
 
   @override
-  FutureOr<GetContextResponse> runSubCommand() async {
+  FutureOr<GetContextResponse> runSubCommand() {
     return controller.api.getContext();
   }
 }
@@ -124,10 +135,10 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   }
 
   @override
-  Future<GetCacheVersionsResponse> runSubCommand() async {
+  Future<GetCacheVersionsResponse> runSubCommand() {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return await controller.api
+    return controller.api
         .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
   }
 }
@@ -155,11 +166,10 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   }
 
   @override
-  Future<GetReleasesResponse> runSubCommand() async {
+  Future<GetReleasesResponse> runSubCommand() {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return await controller.api
-        .getReleases(limit: limitArg, channelName: channelArg);
+    return controller.api.getReleases(limit: limitArg, channelName: channelArg);
   }
 }

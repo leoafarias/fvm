@@ -27,7 +27,7 @@ void main() {
     // Test 1: On cache version
     test('On cache version', () async {
       // Run the command to use a specific channel
-      await testRunner.run('fvm use $channel');
+      await testRunner.run(['fvm', 'use', channel]);
 
       // Get project and cache version
       final project = controller.project.findAncestor();
@@ -49,9 +49,10 @@ void main() {
           reason: 'Version should have dart sdk version');
 
       // Run FVM commands and check exit codes
-      final dartVersionExitCode = await testRunner.run('fvm dart --version');
+      final dartVersionExitCode =
+          await testRunner.run(['fvm', 'dart', '--version']);
       final flutterVersionExitCode =
-          await testRunner.run('fvm flutter --version');
+          await testRunner.run(['fvm', 'flutter', '--version']);
 
       expect(dartVersionExitCode, ExitCode.success.code);
       expect(flutterVersionExitCode, ExitCode.success.code);
@@ -79,7 +80,7 @@ void main() {
       final versionNumber = "2.2.0";
 
       // Install specific version
-      await testRunner.run('fvm install $versionNumber --setup');
+      await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
       final cacheVersion = controller.cache.getVersion(
         FlutterVersion.parse(versionNumber),
       );
@@ -132,7 +133,7 @@ void main() {
       final versionNumber = "3.10.5";
 
       // Install specific version
-      await testRunner.run('fvm install $versionNumber --setup');
+      await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
       final cacheVersion = controller.cache.getVersion(
         FlutterVersion.parse(versionNumber),
       );
@@ -140,11 +141,16 @@ void main() {
       expect(cacheVersion, isNotNull);
 
       // Run exec command and check exit code
-      final exitCode = await testRunner.run('fvm exec flutter --version');
+      final exitCode = await testRunner.run([
+        'fvm',
+        'exec',
+        'flutter',
+        '--version',
+      ]);
       expect(exitCode, ExitCode.success.code);
 
       // Test usage error
-      final usageExitCode = await testRunner.run('fvm exec');
+      final usageExitCode = await testRunner.run(['fvm', 'exec']);
       expect(usageExitCode, ExitCode.usage.code);
 
       // Run commands with exec

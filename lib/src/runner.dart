@@ -124,6 +124,14 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
+    } on ApiCommandException catch (err, stackTrace) {
+      controller.logger
+        ..fail(err.message)
+        ..spacer
+        ..err(err.error.toString());
+      controller.logger.logTrace(stackTrace);
+
+      return ExitCode.unavailable.code;
     } on AppDetailedException catch (err, stackTrace) {
       controller.logger
         ..fail(err.message)
@@ -195,6 +203,12 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     if (topLevelResults.command?.name == 'completion') {
       super.runCommand(topLevelResults);
+
+      return ExitCode.success.code;
+    }
+
+    if (topLevelResults.command?.name == 'api') {
+      await super.runCommand(topLevelResults);
 
       return ExitCode.success.code;
     }

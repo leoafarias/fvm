@@ -8,34 +8,10 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
+import '../models/log_level_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
-
-// LoggerService get logger => ctx.loggerService;
-
-enum Level {
-  /// The most verbose log level -- everything is logged.
-  verbose,
-
-  /// Used for debug info.
-  debug,
-
-  /// Default log level used for standard logs.
-  info,
-
-  /// Used to indicate a potential problem.
-  warning,
-
-  /// Used to indicate a problem.
-  error,
-
-  /// Used to indicate an urgent/severe problem.
-  critical,
-
-  /// The least verbose level -- nothing is logged.
-  quiet;
-}
 
 mason.Level _toMasonLevel(Level level) {
   return mason.Level.values.firstWhere((e) => e.name == level.name);
@@ -62,7 +38,7 @@ class Logger {
     required bool isTest,
     required bool isCI,
     required bool skipInput,
-  })  : _logger = mason.Logger(level: _toMasonLevel(logLevel)),
+  })  : _logger = mason.Logger(level: mason.Level.verbose),
         _isTest = isTest,
         _isCI = isCI,
         _skipInput = skipInput;

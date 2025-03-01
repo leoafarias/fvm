@@ -1,39 +1,34 @@
-@Timeout(Duration(minutes: 5))
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/utils/context.dart';
-import 'package:fvm/src/utils/helpers.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
+const versionList = [
+  'f4c74a6ec3',
+  '2.2.2@beta',
+  '2.2.2@dev',
+  'master',
+  'stable',
+  'beta',
+  'dev',
+  '2.0.0',
+];
 void main() {
   late TestCommandRunner runner;
   late FvmController controller;
 
   setUp(() {
-    runner = TestCommandRunner();
+    runner = TestFactory.commandRunner();
     controller = runner.controller;
   });
 
   group('Install workflow:', () {
-    const versionList = [
-      'f4c74a6ec3',
-      '2.2.2@beta',
-      '2.2.2@dev',
-      'master',
-      'stable',
-      'beta',
-      'dev',
-      '2.0.0',
-    ];
-
     for (var version in versionList) {
       test('Install $version', () async {
         // Run the install command
-        final exitCode = await runner.run('fvm install $version');
+        final exitCode = await runner.run(['fvm', 'install', version]);
 
         // Get the installed version from cache
         final cacheVersion = controller.cache.getVersion(

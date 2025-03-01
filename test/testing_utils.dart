@@ -1,149 +1,49 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
-import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/utils/file_lock.dart';
 import 'package:git/git.dart';
-import 'package:meta/meta.dart';
+import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
-import 'package:scope/scope.dart';
 import 'package:test/test.dart';
-
-import 'testing_helpers/prepare_test_environment.dart';
 
 // git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
 // git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
 // git remote update
 
-class TestCommandRunner {
-  TestCommandRunner([FvmController? controller])
-      : _controller = controller ?? _buildTestController();
+class TestCommandRunner extends FvmCommandRunner {
+  TestCommandRunner(FvmController controller) : super(controller);
 
-  final FvmController _controller;
-
-  FvmController get controller => _controller;
-
-  static FvmController _buildTestController() {
-    return FvmController(FVMContext.create(
-      isTest: true,
-      workingDirectoryOverride: createTempDir().path,
-    ));
-  }
-
-  Future<int> run(String command) async {
-    final args = command.split(' ');
-    final firstArg = args.removeAt(0);
+  @override
+  Future<int> run(Iterable<String> args) async {
+    final firstArg = args.first;
     if (firstArg != 'fvm') throw Exception('Include fvm in command');
 
-    assert(_controller.context.isTest == true,
-        'Controller must be created with isTest: true');
+    final updatedArgs = args.skip(1).toList();
 
-    return FvmCommandRunner(_controller).run(args);
+    assert(
+      controller.context.isTest == true,
+      'Controller must be created with isTest: true',
+    );
+
+    try {
+      await runCommand(parse(updatedArgs));
+      return ExitCode.success.code;
+    } catch (e) {
+      print('Error: $e');
+      rethrow;
+    }
   }
 }
 
-const kVersionList = [
-  channel,
-  'stable',
-  'master',
-  '3.10.2',
-  '2.2.2@beta',
-  '2.11.0-0.1.pre',
-  '2.0.3',
-  release,
-  forceRelease,
-  gitCommit
-];
-
-const release = '2.2.1';
-const channel = 'beta';
-const gitCommit = 'f4c74a6ec3';
-const forceRelease = '2.2.2@beta';
-
-@isTest
-void testWithContext(
-  String description,
-  Future<void> Function() body, {
-  String? id,
-  String? testOn,
-  Timeout? timeout,
-  dynamic skip,
-  List<String>? tags,
-  Map<String, dynamic>? onPlatform,
-  int? retry,
-}) {
-  // Create random key if it does not exist
-
-  final scope = Scope();
-
-  return test(
-    description,
-    () => scope.run(body),
-    timeout: timeout,
-    skip: skip,
-    tags: tags,
-    onPlatform: onPlatform,
-    retry: retry,
-    testOn: testOn,
-  );
-}
-
-@isTestGroup
-void groupWithContext(
-  String description,
-  dynamic Function() body, {
-  String? id,
-  Timeout? timeout,
-  dynamic skip,
-  List<String>? tags,
-  Map<String, dynamic>? onPlatform,
-  // Caches fvm install for faster testing
-  bool? cacheFvmInstall,
-  int? retry,
-}) {
-  // lowecase description, and replace spaces with underscores
-  final contextId = description
-      .toLowerCase()
-      .replaceAll(RegExp(r'[^a-zA-Z0-9_ ]'), '')
-      .replaceAll(' ', '_');
-
-  return group(
-    description,
-    timeout: timeout,
-    skip: skip,
-    tags: tags,
-    onPlatform: onPlatform,
-    retry: retry,
-    () {
-      final config = AppConfig.empty().copyWith(
-        cachePath: getTempTestDir(contextId, 'fvm'),
-        gitCachePath: FVMContext.main.gitCachePath,
-      );
-      final testContext = FVMContext.create(
-        id: contextId,
-        configOverrides: config,
-        workingDirectoryOverride:
-            getTempTestProjectDir(contextId, 'flutter_app'),
-        isTest: true,
-      );
-
-      Scope().runSync(() {
-        setUpAll(() => setUpContext(testContext));
-        tearDownAll(() => tearDownContext(testContext));
-        body();
-      });
-    },
-  );
-}
-
-final ctx = FVMContext.create(isTest: true);
-final controller = FvmController(ctx);
-
 /// Returns the [name] of a branch or tag for a [version]
-Future<String?> getBranch(String version) async {
-  final versionDir = Directory(p.join(ctx.versionsCachePath, version));
+Future<String?> getBranch(String version, FVMContext context) async {
+  final versionDir = Directory(p.join(context.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -157,8 +57,8 @@ Future<String?> getBranch(String version) async {
 }
 
 /// Returns the [name] of a tag [version]
-Future<String?> getTag(String version) async {
-  final versionDir = Directory(p.join(ctx.versionsCachePath, version));
+Future<String?> getTag(String version, FVMContext context) async {
+  final versionDir = Directory(p.join(context.versionsCachePath, version));
 
   final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -183,18 +83,18 @@ void forceUpdateFlutterSdkVersionFile(
   sdkVersionFile.writeAsStringSync(sdkVersion);
 }
 
-Future<void> getCommitCount() async {
-  final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+Future<void> getCommitCount(FVMContext context) async {
+  final gitDir = await GitDir.fromExisting(context.gitCachePath);
   final result = await gitDir.runCommand(
     ['rev-list', '--count', 'HEAD..origin/master'],
     echoOutput: true,
   );
   final commitCount = result.stdout.trim();
-  controller.logger.info(commitCount);
+  print('Commit count: $commitCount');
 }
 
-Future<DateTime> getDateOfLastCommit() async {
-  final gitDir = await GitDir.fromExisting(ctx.gitCachePath);
+Future<DateTime> getDateOfLastCommit(FVMContext context) async {
+  final gitDir = await GitDir.fromExisting(context.gitCachePath);
   final result = await gitDir.runCommand(
     ['log', '-1', '--format=%cd', '--date=short'],
   );
@@ -207,6 +107,7 @@ const _kTempTestDirPrefix = 'FVM_TEST_DIR';
 
 Directory createTempDir([String prefix = '']) {
   prefix = prefix.isEmpty ? '' : '_$prefix';
+
   return Directory.systemTemp.createTempSync('$_kTempTestDirPrefix$prefix');
 }
 
@@ -343,28 +244,220 @@ class _ProjectHasConfigMatcher extends Matcher {
   }
 }
 
-FVMContext createTestContext(
-    {String? name, AppConfig? appConfig, List<String>? args}) {
-  name ??= _generateUuid();
+class TestFactory {
+  const TestFactory._();
 
-  // Create a configuration for the test context using a temporary directory for cache
-  // and the main git cache path from the existing FVMContext.
-  final config = AppConfig.empty().copyWith(
-    cachePath: createTempDir().path,
-    gitCachePath: FVMContext.main.gitCachePath,
-  );
+  static TestCommandRunner commandRunner({FvmController? controller}) {
+    return TestCommandRunner(controller ?? TestFactory.controller());
+  }
 
-  // Create the test context using the computed contextId, the config overrides,
-  // and a temporary directory for the working directory.
-  final testContext = FVMContext.create(
-    id: name,
-    configOverrides: config,
-    workingDirectoryOverride: createTempDir(name).path,
-    isTest: true,
-  );
+  static FVMContext context({
+    String? name,
+    // AppConfig? appConfig,
+    Map<Type, Generator>? generators,
+  }) {
+    name ??= _generateUuid();
 
-  // Optionally, you can also add the context to a scope if needed:
-  // Scope().value(contextKey, testContext);
+    // Create a configuration for the test context using a temporary directory for cache
+    // and the main git cache path from the existing FVMContext.
+    final config = AppConfig.empty().copyWith(
+      cachePath: createTempDir().path,
+      gitCachePath: _kGitCacheDir.path,
+    );
 
-  return testContext;
+    // Create the test context using the computed contextId, the config overrides,
+    // and a temporary directory for the working directory.
+    final testContext = FVMContext.create(
+      id: name,
+      configOverrides: config,
+      logLevel: Level.verbose,
+      workingDirectoryOverride: createTempDir(name).path,
+      isTest: true,
+      generatorsOverride: {
+        FlutterService: _mockFlutterService,
+        ...?generators,
+      },
+    );
+
+    return testContext;
+  }
+
+  static MockFlutterService _mockFlutterService(FVMContext context) {
+    return MockFlutterService(
+      context,
+      cacheService: context.get<CacheService>(),
+      flutterReleasesServices: context.get<FlutterReleasesService>(),
+    );
+  }
+
+  static FvmController controller([FVMContext? contextOverride]) {
+    return FvmController(
+      contextOverride ?? context(),
+    );
+  }
 }
+
+Future<List<String>> runnerZoned(
+    FvmCommandRunner runner, List<String> args) async {
+  final printed = <String>[];
+  await runZoned(
+    () async {
+      await runner.run(args);
+    },
+    zoneSpecification: ZoneSpecification(
+      print: (_, __, ___, String message) {
+        printed.add(message);
+      },
+    ),
+  );
+  return printed;
+}
+
+/// Create a matcher to check if list of strings is a valid json
+
+class _IsExpectedJson extends Matcher {
+  final String expected;
+
+  _IsExpectedJson(this.expected);
+
+  @override
+  bool matches(item, Map matchState) {
+    try {
+      String jsonString;
+      if (item is List<String>) {
+        jsonString = item.join();
+      } else {
+        jsonString = item;
+      }
+      final decoded = jsonDecode(jsonString);
+
+      final expectedDecoded = jsonDecode(expected);
+      expect(decoded, equals(expectedDecoded));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Description describe(Description description) {
+    return description.add(expected);
+  }
+}
+
+Matcher isExpectedJson(String expected) {
+  return _IsExpectedJson(expected);
+}
+
+/// A mock implementation of a Flutter service that installs the SDK
+/// by using a local fixture repository instead of performing a real git clone.
+class MockFlutterService extends FlutterService {
+  MockFlutterService(
+    super.context, {
+    required super.cacheService,
+    required super.flutterReleasesServices,
+  }) {
+    if (!_testCacheDir.existsSync()) {
+      _testCacheDir.createSync(recursive: true);
+    }
+  }
+
+  late final _overrideContext = context.copyWith(
+    config: context.config.copyWith(
+      cachePath: _testCacheDir.path,
+      useGitCache: true,
+    ),
+  );
+
+  late final _overrideCacheService = _overrideContext.get<CacheService>();
+
+  late final _overrideFlutterService = FlutterService(
+    _overrideContext,
+    cacheService: _overrideCacheService,
+    flutterReleasesServices: flutterReleasesServices,
+  );
+
+  final _preparing = FixtureFileLocker('preparing');
+  final _ready = FixtureFileLocker('ready');
+
+  /// Installs the Flutter SDK for the given [version].
+  ///
+  /// This method checks if a fixture repository already exists in the local
+  /// project cache (at `.fixtures/flutter`). If it does not exist, it “clones”
+  /// the fixture by creating the directory and a marker file. Finally, it copies
+  /// the fixture repository into the version directory (configured via CacheService).
+  @override
+  Future<void> install(
+    FlutterVersion version, {
+    required bool useGitCache,
+  }) async {
+    final tracker = _InstallationTracker(version);
+    try {
+      await _preparing.getLock();
+
+      if (!_ready.isLocked) {
+        try {
+          _preparing.lock();
+          print('Preparing ...');
+          await _overrideFlutterService.install(
+            FlutterVersion.channel('stable'),
+            useGitCache: true,
+          );
+          _ready.lock();
+          print('Ready ...');
+        } catch (e) {
+          rethrow;
+        } finally {
+          _preparing.unlock();
+          print('Done Preparing ...');
+        }
+      }
+
+      await tracker.isInstalling();
+
+      print('Installing ${version.name} ...');
+
+      tracker.markInstalling();
+      return super.install(version, useGitCache: true);
+    } finally {
+      tracker.unmarkInstalling();
+    }
+  }
+}
+
+/// A class that encapsulates installation tracking logic using marker files.
+class _InstallationTracker {
+  /// Base directory for the fixture cache.
+
+  final FlutterVersion _version;
+
+  _InstallationTracker(
+    this._version,
+  );
+
+  late final _versionReady = FixtureFileLocker(_version.name);
+
+  Future<void> isInstalling() => _versionReady.getLock();
+
+  void markInstalling() {
+    print('Marking ${_version.name} as installing');
+    _versionReady.lock();
+  }
+
+  void unmarkInstalling() {
+    print('Unmarking ${_version.name} as installing');
+    _versionReady.unlock();
+  }
+}
+
+class FixtureFileLocker extends FileLocker {
+  FixtureFileLocker(String fileName, {Duration? lockExpiration})
+      : super(
+          p.join(_testCacheDir.path, fileName),
+          lockExpiration: lockExpiration ?? Duration(seconds: 5),
+          pollingInterval: Duration(milliseconds: 50),
+        );
+}
+
+final _testCacheDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
+final _kGitCacheDir = Directory(p.join(_testCacheDir.path, 'gitcache'));

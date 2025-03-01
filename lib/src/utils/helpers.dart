@@ -1,10 +1,13 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:date_format/date_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+import '../models/cache_flutter_version_model.dart';
 import '../services/logger_service.dart';
 import 'constants.dart';
+import 'extensions.dart';
 import 'git_utils.dart';
 
 /// Checks if [name] is a channel
@@ -95,17 +98,21 @@ class FlutterVersionOutput {
   final String? channel;
   final String? dartVersion;
   final String? dartBuildVersion;
+  final String? frameworkRevision;
+  final String? engineRevision;
 
   const FlutterVersionOutput({
     this.flutterVersion,
     this.channel,
     this.dartVersion,
     this.dartBuildVersion,
+    this.frameworkRevision,
+    this.engineRevision,
   });
 
   @override
   String toString() {
-    return 'FlutterVersionOutput(flutterVersion: $flutterVersion, channel: $channel, dartVersion: $dartVersion, dartBuildVersion: $dartBuildVersion)';
+    return 'FlutterVersionOutput(flutterVersion: $flutterVersion, channel: $channel, dartVersion: $dartVersion, dartBuildVersion: $dartBuildVersion, frameworkRevision: $frameworkRevision, engineRevision: $engineRevision)';
   }
 }
 
@@ -127,37 +134,39 @@ class FlutterVersionOutput {
 // Tools • Dart 2.13.0
 FlutterVersionOutput extractFlutterVersionOutput(String content) {
   final filteredContent = _extractFlutterInfoBlock(content);
+
   final flutterRegex = RegExp(r'Flutter (\S+)');
-  final channelRegex = RegExp(r' channel (\w+)');
-  final dartRegex = RegExp(r'Dart (\S+)');
-  final dartBuildRegex = RegExp(r'Dart (\S+) \(build (\S+)\)');
+  final channelRegex = RegExp(r' channel ([^\s•]+)');
+  final dartRegex = RegExp(r'Dart (\S+)(?: \(build (\S+)\))?');
+  final frameworkRegex = RegExp(r'Framework • revision (\w+)');
+  final engineRegex = RegExp(r'Engine • revision (\w+)');
 
   final flutterMatch = flutterRegex.firstMatch(filteredContent);
   final channelMatch = channelRegex.firstMatch(filteredContent);
   final dartMatch = dartRegex.firstMatch(filteredContent);
-  final dartBuildMatch = dartBuildRegex.firstMatch(filteredContent);
+  final frameworkMatch = frameworkRegex.firstMatch(filteredContent);
+  final engineMatch = engineRegex.firstMatch(filteredContent);
 
-  if (flutterMatch == null || dartMatch == null) {
-    throw FormatException(
-      'Unable to parse Flutter or Dart version from the provided content.',
-    );
+  if (flutterMatch == null) {
+    throw FormatException('Unable to parse Flutter version.');
   }
 
-  final dartVersion = dartMatch.group(1);
+  if (dartMatch == null) {
+    throw FormatException('Unable to parse Dart version.');
+  }
 
   final channel = channelMatch?.group(1);
-
   if (channel == null || !isFlutterChannel(channel)) {
-    throw FormatException(
-      'Unable to parse Flutter channel from the provided content.',
-    );
+    throw FormatException('Unable to parse Flutter channel.');
   }
 
   return FlutterVersionOutput(
-    flutterVersion: flutterMatch.group(1),
+    flutterVersion: flutterMatch.group(1)!,
     channel: channel,
-    dartVersion: dartVersion,
-    dartBuildVersion: dartBuildMatch?.group(2) ?? dartVersion,
+    dartVersion: dartMatch.group(1)!,
+    dartBuildVersion: dartMatch.group(2) ?? dartMatch.group(1)!,
+    frameworkRevision: frameworkMatch?.group(1),
+    engineRevision: engineMatch?.group(1),
   );
 }
 
@@ -208,4 +217,60 @@ bool? stringToBool(String value) {
   }
 
   return null;
+}
+
+String formatFriendlyBytes(int bytes, [int decimals = 2]) {
+  if (bytes <= 0) return '0 B';
+
+  const suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'];
+  final int suffixIndex = math.min(
+    (math.log(bytes) / math.log(1024)).floor(),
+    suffixes.length - 1,
+  );
+
+  final num scaledValue = bytes / math.pow(1024, suffixIndex);
+
+  return '${scaledValue.toStringAsFixed(decimals)} ${suffixes[suffixIndex]}';
+}
+
+Future<int> getDirectorySize(Directory dir) async {
+  int total = 0;
+
+  // Using async/await to asynchronously handle the file system's directories and files
+  await for (FileSystemEntity entity in dir.list(recursive: true)) {
+    if (entity is File) {
+      // Accumulate file size
+      total += await entity.length();
+    }
+  }
+
+  return total;
+}
+
+Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
+  if (versions.isEmpty) return 0;
+
+  try {
+    // Process all directories in parallel with error handling for each
+    final sizes = await Future.wait(
+      versions.map((version) async {
+        try {
+          return await getDirectorySize(version.directory.dir);
+        } catch (e) {
+          // Log error but continue with zero for this directory
+          print('Error calculating size for ${version.name}: $e');
+
+          return 0;
+        }
+      }),
+    );
+
+    // Sum all sizes in one operation
+    return sizes.fold<int>(0, (sum, size) => sum + size);
+  } catch (e) {
+    // Fallback if parallel execution fails
+    print('Error calculating full directory size: $e');
+
+    return 0;
+  }
 }

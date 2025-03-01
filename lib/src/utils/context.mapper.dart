@@ -15,6 +15,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
       MapperContainer.globals.use(_instance = FVMContextMapper._());
       MapperContainer.globals.useAll([GeneratorsMapper()]);
       AppConfigMapper.ensureInitialized();
+      LevelMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -30,6 +31,11 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static AppConfig _$config(FVMContext v) => v.config;
   static const Field<FVMContext, AppConfig> _f$config =
       Field('config', _$config);
+  static Map<Type, Contextual Function(FVMContext)> _$_generators(
+          FVMContext v) =>
+      v._generators;
+  static const Field<FVMContext, Map<Type, Contextual Function(FVMContext)>>
+      _f$_generators = Field('_generators', _$_generators, key: r'generators');
   static Map<String, String> _$environment(FVMContext v) => v.environment;
   static const Field<FVMContext, Map<String, String>> _f$environment =
       Field('environment', _$environment);
@@ -91,6 +97,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #id: _f$id,
     #workingDirectory: _f$workingDirectory,
     #config: _f$config,
+    #_generators: _f$_generators,
     #environment: _f$environment,
     #_skipInput: _f$_skipInput,
     #isTest: _f$isTest,
@@ -117,6 +124,7 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
         id: data.dec(_f$id),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
+        generators: data.dec(_f$_generators),
         environment: data.dec(_f$environment),
         skipInput: data.dec(_f$_skipInput),
         isTest: data.dec(_f$isTest),
@@ -175,12 +183,19 @@ extension FVMContextValueCopy<$R, $Out>
 abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config;
+  MapCopyWith<
+      $R,
+      Type,
+      Contextual Function(FVMContext),
+      ObjectCopyWith<$R, Contextual Function(FVMContext),
+          Contextual Function(FVMContext)>> get _generators;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
       get environment;
   $R call(
       {String? id,
       String? workingDirectory,
       AppConfig? config,
+      Map<Type, Contextual Function(FVMContext)>? generators,
       Map<String, String>? environment,
       bool? skipInput,
       bool? isTest,
@@ -200,6 +215,16 @@ class _FVMContextCopyWithImpl<$R, $Out>
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config =>
       $value.config.copyWith.$chain((v) => call(config: v));
   @override
+  MapCopyWith<
+      $R,
+      Type,
+      Contextual Function(FVMContext),
+      ObjectCopyWith<$R, Contextual Function(FVMContext),
+          Contextual Function(FVMContext)>> get _generators => MapCopyWith(
+      $value._generators,
+      (v, t) => ObjectCopyWith(v, $identity, t),
+      (v) => call(generators: v));
+  @override
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
       get environment => MapCopyWith(
           $value.environment,
@@ -210,6 +235,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
           {String? id,
           String? workingDirectory,
           AppConfig? config,
+          Map<Type, Contextual Function(FVMContext)>? generators,
           Map<String, String>? environment,
           bool? skipInput,
           bool? isTest,
@@ -218,6 +244,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
         if (id != null) #id: id,
         if (workingDirectory != null) #workingDirectory: workingDirectory,
         if (config != null) #config: config,
+        if (generators != null) #generators: generators,
         if (environment != null) #environment: environment,
         if (skipInput != null) #skipInput: skipInput,
         if (isTest != null) #isTest: isTest,
@@ -229,6 +256,7 @@ class _FVMContextCopyWithImpl<$R, $Out>
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
       config: data.get(#config, or: $value.config),
+      generators: data.get(#generators, or: $value._generators),
       environment: data.get(#environment, or: $value.environment),
       skipInput: data.get(#skipInput, or: $value._skipInput),
       isTest: data.get(#isTest, or: $value.isTest),

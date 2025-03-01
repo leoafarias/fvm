@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:test/test.dart';
 
 void main() {

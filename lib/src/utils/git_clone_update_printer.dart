@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:io/ansi.dart';
 
-import '../../services/logger_service.dart';
-import '../extensions.dart';
+import '../services/logger_service.dart';
+import 'extensions.dart';
 
 final regexes = {
   'Enumerating objects:': RegExp(r'Enumerating objects: +(\d+)%'),

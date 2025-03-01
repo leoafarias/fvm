@@ -6,7 +6,15 @@ import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import '../testing_utils.dart';
+
 void main() {
+  late TestCommandRunner runner;
+
+  setUp(() {
+    runner = TestFactory.commandRunner();
+  });
+
   test('Does CLI version match', () async {
     final yaml = File(
       join(Directory.current.path, 'pubspec.yaml'),
@@ -21,8 +29,11 @@ void main() {
     final envName = 'PATH';
     final fakePath = 'FAKE_PATH';
 
-    final newEnvVar =
-        updateEnvironmentVariables(['FAKE_PATH', 'ANOTHER_FAKE_PATH'], envVars);
+    final newEnvVar = updateEnvironmentVariables(
+      ['FAKE_PATH', 'ANOTHER_FAKE_PATH'],
+      envVars,
+      runner.controller.logger,
+    );
 
     // expect(newEnvVar[envName], envVars[envName]);
     expect(newEnvVar[envName]!.contains(fakePath), true);
@@ -213,5 +224,15 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(result.channel, 'beta');
     expect(result.dartVersion, '3.2.0');
     expect(result.dartBuildVersion, '3.2.0-134.1.beta');
+  });
+
+  test('formatFriendlyBytes', () {
+    expect(formatFriendlyBytes(1024), '1.00 KB');
+    expect(formatFriendlyBytes(1024 * 1024), '1.00 MB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024), '1.00 GB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024), '1.00 TB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024), '1.00 PB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
+        '1.00 EB');
   });
 }

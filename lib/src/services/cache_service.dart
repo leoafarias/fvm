@@ -12,7 +12,11 @@ import 'base_service.dart';
 enum CacheIntegrity {
   valid,
   invalid,
-  versionMismatch,
+  versionMismatch;
+
+  bool get notValid => !isValid;
+
+  bool get isValid => this == valid;
 }
 
 /// Service to interact with FVM Cache
@@ -36,6 +40,8 @@ class CacheService extends Contextual {
 
     return version.flutterSdkVersion == version.version;
   }
+
+  Link get _globalCacheLink => Link(context.globalCacheLink);
 
   /// Returns a [CacheFlutterVersion] from a [version]
   CacheFlutterVersion? getVersion(FlutterVersion version) {
@@ -93,6 +99,45 @@ class CacheService extends Contextual {
     if (!versionsMatch) return CacheIntegrity.versionMismatch;
 
     return CacheIntegrity.valid;
+  }
+
+  /// Sets a [CacheFlutterVersion] as global
+  void setGlobal(CacheFlutterVersion version) {
+    context.globalCacheLink.link.createLink(version.directory);
+  }
+
+  /// Unlinks global version
+  void unlinkGlobal() {
+    if (_globalCacheLink.existsSync()) {
+      _globalCacheLink.deleteSync();
+    }
+  }
+
+  /// Returns a global [CacheFlutterVersion] if exists
+  CacheFlutterVersion? getGlobal() {
+    if (!_globalCacheLink.existsSync()) return null;
+    // Get directory name
+    final version = path.basename(_globalCacheLink.targetSync());
+    // Make sure its a valid version
+    final validVersion = FlutterVersion.parse(version);
+
+    // Verify version is cached
+    return getVersion(validVersion);
+  }
+
+  /// Checks if a cached [version] is configured as global
+  bool isGlobal(CacheFlutterVersion version) {
+    if (!_globalCacheLink.existsSync()) return false;
+
+    return _globalCacheLink.targetSync() == version.directory;
+  }
+
+  /// Returns a global version name if exists
+  String? getGlobalVersion() {
+    if (!_globalCacheLink.existsSync()) return null;
+
+    // Get directory name
+    return path.basename(_globalCacheLink.targetSync());
   }
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]

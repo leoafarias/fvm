@@ -1,12 +1,19 @@
 import 'package:fvm/src/services/releases_service/releases_client.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
 void main() {
+  late FVMContext context;
+
+  setUp(() {
+    context = TestFactory.context();
+  });
+
   group('Flutter Releases API', () {
     test('Has Flutter Releases', () async {
-      final flutterReleases = FlutterReleasesService(createTestContext());
+      final flutterReleases = FlutterReleasesService(context);
       final releases = await flutterReleases.getReleases();
       final versionsExists = releases.containsVersion('v1.8.1') &&
           releases.containsVersion('v1.9.6') &&

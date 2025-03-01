@@ -3,7 +3,6 @@ import 'package:mason_logger/mason_logger.dart';
 
 import '../services/logger_service.dart';
 import '../services/releases_service/models/version_model.dart';
-import '../utils/get_directory_size.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
 
@@ -24,12 +23,11 @@ class ListCommand extends BaseCommand {
 
     final directorySize = await getFullDirectorySize(cacheVersions);
 
-    // Print where versions are stored
     logger
       ..info(
         'Cache directory:  ${cyan.wrap(controller.context.versionsCachePath)}',
       )
-      ..info('Directory Size: ${formatBytes(directorySize)}')
+      ..info('Directory Size: ${formatFriendlyBytes(directorySize)}')
       ..spacer;
 
     if (cacheVersions.any((e) => e.isNotSetup)) {
@@ -51,7 +49,7 @@ class ListCommand extends BaseCommand {
     }
 
     final releases = await controller.releases.getReleases();
-    final globalVersion = controller.global.getGlobal();
+    final globalVersion = controller.cache.getGlobal();
     final localVersion = controller.project.findVersion();
 
     final table = Table()

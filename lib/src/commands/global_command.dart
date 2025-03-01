@@ -41,14 +41,14 @@ class GlobalCommand extends BaseCommand {
     final forceArg = boolArg('force');
 
     if (unlinkArg) {
-      final globalVersion = controller.global.getGlobal();
+      final globalVersion = controller.cache.getGlobal();
 
       if (globalVersion == null) {
         logger
           ..info('No global version is set')
           ..spacer;
       } else {
-        controller.global.unlinkGlobal();
+        controller.cache.unlinkGlobal();
         logger
           ..success('Global version unlinked')
           ..spacer;
@@ -76,7 +76,7 @@ class GlobalCommand extends BaseCommand {
     );
 
     // Sets version as the global
-    controller.global.setGlobal(cacheVersion);
+    controller.cache.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter', binDir: true);
 

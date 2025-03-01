@@ -1,4 +1,3 @@
-@Timeout(Duration(minutes: 5))
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/extensions.dart';
@@ -20,16 +19,20 @@ void main() {
   late FvmController controller;
 
   setUp(() {
-    runner = TestCommandRunner();
+    runner = TestFactory.commandRunner();
     controller = runner.controller;
   });
 
   group('Use workflow:', () {
     for (var version in kVersionList) {
       test('Use $version', () async {
-        final exitCode = await runner.run(
-          'fvm use $version --force --skip-setup',
-        );
+        final exitCode = await runner.run([
+          'fvm',
+          'use',
+          version,
+          '--force',
+          '--skip-setup',
+        ]);
 
         // Get the project and verify its configuration
         final project = controller.project.findAncestor();
