@@ -6,18 +6,15 @@ import 'dart:math';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/utils/file_lock.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-// git clone --mirror https://github.com/flutter/flutter.git ~/gitcaches/flutter.git
-// git clone --reference ~/gitcaches/flutter.git https://github.com/flutter/flutter.git
-// git remote update
-
 class TestCommandRunner extends FvmCommandRunner {
-  TestCommandRunner(FvmController controller) : super(controller);
+  TestCommandRunner(
+    FvmController controller,
+  ) : super(controller);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -31,13 +28,13 @@ class TestCommandRunner extends FvmCommandRunner {
       'Controller must be created with isTest: true',
     );
 
-    try {
-      await runCommand(parse(updatedArgs));
-      return ExitCode.success.code;
-    } catch (e) {
-      print('Error: $e');
-      rethrow;
-    }
+    return super.run(updatedArgs);
+  }
+
+  Future<int> runOrThrow(Iterable<String> args) async {
+    final updatedArgs = args.skip(1).toList();
+    await runCommand(parse(updatedArgs));
+    return ExitCode.success.code;
   }
 }
 
@@ -263,6 +260,7 @@ class TestFactory {
     final config = AppConfig.empty().copyWith(
       cachePath: createTempDir().path,
       gitCachePath: _kGitCacheDir.path,
+      useGitCache: true,
     );
 
     // Create the test context using the computed contextId, the config overrides,
@@ -377,9 +375,6 @@ class MockFlutterService extends FlutterService {
     flutterReleasesServices: flutterReleasesServices,
   );
 
-  final _preparing = FixtureFileLocker('preparing');
-  final _ready = FixtureFileLocker('ready');
-
   /// Installs the Flutter SDK for the given [version].
   ///
   /// This method checks if a fixture repository already exists in the local
@@ -388,75 +383,12 @@ class MockFlutterService extends FlutterService {
   /// the fixture repository into the version directory (configured via CacheService).
   @override
   Future<void> install(
-    FlutterVersion version, {
-    required bool useGitCache,
-  }) async {
-    final tracker = _InstallationTracker(version);
+    FlutterVersion version,
+  ) async {
     try {
-      await _preparing.getLock();
-
-      if (!_ready.isLocked) {
-        try {
-          _preparing.lock();
-          print('Preparing ...');
-          await _overrideFlutterService.install(
-            FlutterVersion.channel('stable'),
-            useGitCache: true,
-          );
-          _ready.lock();
-          print('Ready ...');
-        } catch (e) {
-          rethrow;
-        } finally {
-          _preparing.unlock();
-          print('Done Preparing ...');
-        }
-      }
-
-      await tracker.isInstalling();
-
-      print('Installing ${version.name} ...');
-
-      tracker.markInstalling();
-      return super.install(version, useGitCache: true);
-    } finally {
-      tracker.unmarkInstalling();
-    }
+      return super.install(version);
+    } finally {}
   }
-}
-
-/// A class that encapsulates installation tracking logic using marker files.
-class _InstallationTracker {
-  /// Base directory for the fixture cache.
-
-  final FlutterVersion _version;
-
-  _InstallationTracker(
-    this._version,
-  );
-
-  late final _versionReady = FixtureFileLocker(_version.name);
-
-  Future<void> isInstalling() => _versionReady.getLock();
-
-  void markInstalling() {
-    print('Marking ${_version.name} as installing');
-    _versionReady.lock();
-  }
-
-  void unmarkInstalling() {
-    print('Unmarking ${_version.name} as installing');
-    _versionReady.unlock();
-  }
-}
-
-class FixtureFileLocker extends FileLocker {
-  FixtureFileLocker(String fileName, {Duration? lockExpiration})
-      : super(
-          p.join(_testCacheDir.path, fileName),
-          lockExpiration: lockExpiration ?? Duration(seconds: 5),
-          pollingInterval: Duration(milliseconds: 50),
-        );
 }
 
 final _testCacheDir = Directory(p.join(kUserHome, 'fvm_test_cache'));

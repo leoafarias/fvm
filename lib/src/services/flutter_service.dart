@@ -29,7 +29,7 @@ class FlutterService extends Contextual {
   final _flutterCmd = 'flutter';
 
   late final _isUpdatingCache = FileLocker(
-    context.fvmDir,
+    '${context.fvmDir}/cache.lock',
     lockExpiration: const Duration(seconds: 10),
     pollingInterval: const Duration(milliseconds: 100),
   );
@@ -41,7 +41,7 @@ class FlutterService extends Contextual {
   });
 
   /// Runs dart cmd
-  Future<ProcessResult> _runOnVersion(
+  Future<ProcessResult> _runVersion(
     String cmd,
     CacheFlutterVersion version,
     List<String> args, {
@@ -136,7 +136,7 @@ class FlutterService extends Contextual {
       return _runCmd(_flutterCmd, args: args);
     }
 
-    return _runOnVersion(
+    return _runVersion(
       _flutterCmd,
       version,
       args,
@@ -158,7 +158,7 @@ class FlutterService extends Contextual {
       return _runCmd(_dartCmd, args: args);
     }
 
-    return _runOnVersion(
+    return _runVersion(
       _dartCmd,
       version,
       args,
@@ -168,7 +168,7 @@ class FlutterService extends Contextual {
   }
 
   /// Exec commands with the Flutter env
-  Future<ProcessResult> execCmd(
+  Future<ProcessResult> exec(
     String execPath,
     List<String> args,
     CacheFlutterVersion? version,
@@ -189,10 +189,7 @@ class FlutterService extends Contextual {
   }
 
   /// Clones Flutter SDK from Version Number or Channel
-  Future<void> install(
-    FlutterVersion version, {
-    required bool useGitCache,
-  }) async {
+  Future<void> install(FlutterVersion version) async {
     final versionDir = cacheService.getVersionCacheDir(version.name);
 
     // Check if its git commit
@@ -220,6 +217,8 @@ class FlutterService extends Contextual {
     ];
 
     final useMirrorParams = ['--reference', context.gitCachePath];
+
+    final useGitCache = context.gitCache;
 
     final cloneArgs = [
       //if its a git hash
@@ -284,6 +283,18 @@ class FlutterService extends Contextual {
           // Then fetch all refs including tags
           logger.detail('Fetching all refs...');
           await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+
+          // Check if there are any uncommitted changes
+          logger.detail('Checking for uncommitted changes...');
+          final statusResult =
+              await gitDir.runCommand(['status', '--porcelain']);
+
+          final output = (statusResult.stdout as String).trim();
+          if (output.isEmpty) {
+            print('No uncommitted changes. Working directory is clean.');
+          } else {
+            await _recreateLocalMirror(gitCacheDir);
+          }
 
           logger.detail('Local mirror updated successfully');
         } catch (e) {

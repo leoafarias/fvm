@@ -28,7 +28,7 @@ void main() {
     for (var version in versionList) {
       test('Install $version', () async {
         // Run the install command
-        final exitCode = await runner.run(['fvm', 'install', version]);
+        final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
 
         // Get the installed version from cache
         final cacheVersion = controller.cache.getVersion(

@@ -25,7 +25,6 @@ import 'commands/use_command.dart';
 import 'services/config_repository.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
-import 'utils/deprecation_util.dart';
 import 'utils/exceptions.dart';
 import 'version.dart';
 
@@ -113,8 +112,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      deprecationWorkflow(controller.logger);
-
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {

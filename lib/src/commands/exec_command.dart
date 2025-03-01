@@ -46,8 +46,7 @@ class ExecCommand extends BaseCommand {
     }
 
     // Runs exec command with pinned version
-    final results =
-        await controller.flutter.execCmd(cmd, execArgs, cacheVersion);
+    final results = await controller.flutter.exec(cmd, execArgs, cacheVersion);
 
     return results.exitCode;
   }

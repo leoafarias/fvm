@@ -141,7 +141,7 @@ void main() {
       expect(cacheVersion, isNotNull);
 
       // Run exec command and check exit code
-      final exitCode = await testRunner.run([
+      final exitCode = await testRunner.runOrThrow([
         'fvm',
         'exec',
         'flutter',
@@ -154,13 +154,13 @@ void main() {
       expect(usageExitCode, ExitCode.usage.code);
 
       // Run commands with exec
-      final flutterVersionResult = await controller.flutter.execCmd(
+      final flutterVersionResult = await controller.flutter.exec(
         'flutter',
         ['--version'],
         cacheVersion,
       );
 
-      final dartVersionResult = await controller.flutter.execCmd(
+      final dartVersionResult = await controller.flutter.exec(
         'dart',
         ['--version'],
         cacheVersion,

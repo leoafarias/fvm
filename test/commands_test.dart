@@ -19,7 +19,7 @@ void main() {
 
   group('Channel Workflow:', () {
     test('Install Channel', () async {
-      await runner.run(['fvm', 'install', channel]);
+      await runner.runOrThrow(['fvm', 'install', channel]);
 
       final cacheVersion = runner.controller.cache.getVersion(
         FlutterVersion.parse(channel),
@@ -33,7 +33,7 @@ void main() {
     });
 
     test('List Channel', () async {
-      final exitCode = await runner.run(['fvm', 'list']);
+      final exitCode = await runner.runOrThrow(['fvm', 'list']);
 
       expect(exitCode, ExitCode.success.code);
     });

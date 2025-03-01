@@ -20,7 +20,7 @@ void main() {
   group('Complete flow', () {
     test('Full project workflow', () async {
       // Install the Flutter channel
-      await runner.run(['fvm', 'install', channel]);
+      await runner.runOrThrow(['fvm', 'install', channel]);
 
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {

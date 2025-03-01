@@ -5,7 +5,6 @@ import 'package:mason_logger/mason_logger.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/config_repository.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
@@ -95,19 +94,10 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       try {
         await controller.flutter.updateLocalMirror();
       } on Exception {
-        useGitCache = false;
         controller.logger.warn(
           'Failed to setup local cache. Falling back to git clone.',
         );
-        controller.logger.info('Git cache will be disabled.');
-        try {
-          final config = ConfigRepository.loadAppConfig();
-          final updatedConfig = config.copyWith(useGitCache: false);
-          ConfigRepository.save(updatedConfig);
-          controller.logger.success('Git cache has been disabled.');
-        } on Exception {
-          controller.logger.warn('Failed to update config file');
-        }
+        rethrow;
       }
     }
 
@@ -115,10 +105,7 @@ Future<CacheFlutterVersion> ensureCacheWorkflow(
       'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
     );
     try {
-      await controller.flutter.install(
-        validVersion,
-        useGitCache: useGitCache,
-      );
+      await controller.flutter.install(validVersion);
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',

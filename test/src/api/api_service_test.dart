@@ -100,12 +100,10 @@ void main() {
     test('returns versions with size calculation', () async {
       await controller.flutter.install(
         FlutterVersion.parse('beta'),
-        useGitCache: true,
       );
 
       await controller.flutter.install(
         FlutterVersion.channel('stable'),
-        useGitCache: true,
       );
 
       final stableDir = controller.cache.getVersionCacheDir('stable');
@@ -134,12 +132,10 @@ void main() {
         () async {
       await controller.flutter.install(
         FlutterVersion.parse('3.0.0'),
-        useGitCache: true,
       );
 
       await controller.flutter.install(
         FlutterVersion.channel('stable'),
-        useGitCache: true,
       );
 
       final cachedVersionsResponse = await controller.cache.getAllVersions();
