@@ -41,7 +41,8 @@ void main() {
     test('Use Channel', () async {
       try {
         // Run force to test within fvm
-        await runner.run(['fvm', 'use', channel, '--force', '--skip-setup']);
+        await runner
+            .runOrThrow(['fvm', 'use', channel, '--force', '--skip-setup']);
 
         final project = runner.controller.project.findAncestor();
 
@@ -62,7 +63,7 @@ void main() {
 
     test('Use Flutter SDK globally', () async {
       try {
-        await runner.run(['fvm', 'global', channel]);
+        await runner.runOrThrow(['fvm', 'global', channel]);
         final globalLink = Link(runner.controller.context.globalCacheLink);
         final linkExists = globalLink.existsSync();
 
@@ -77,14 +78,14 @@ void main() {
 
     test('Remove Channel Command', () async {
       try {
-        await runner.run(['fvm', 'remove', channel]);
+        await runner.runOrThrow(['fvm', 'remove', channel]);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
     });
 
     test('Install Release', () async {
-      await runner.run(['fvm', 'install', release]);
+      await runner.runOrThrow(['fvm', 'install', release]);
       final valid = FlutterVersion.parse(release);
       final existingRelease =
           await getTag(valid.name, runner.controller.context);
@@ -99,7 +100,7 @@ void main() {
     test('Install commit', () async {
       final shortGitHash = 'fb57da5f94';
 
-      await runner.run(['fvm', 'install', shortGitHash]);
+      await runner.runOrThrow(['fvm', 'install', shortGitHash]);
       final validShort = FlutterVersion.parse(shortGitHash);
 
       final cacheVersionShort = runner.controller.cache.getVersion(validShort);
@@ -112,7 +113,7 @@ void main() {
     });
 
     test('Use Release', () async {
-      final exitCode = await runner.run([
+      final exitCode = await runner.runOrThrow([
         'fvm',
         'use',
         release,
@@ -134,40 +135,42 @@ void main() {
     });
 
     test('List Command', () async {
-      expect(await runner.run(['fvm', 'list']), ExitCode.success.code);
+      expect(await runner.runOrThrow(['fvm', 'list']), ExitCode.success.code);
     });
 
     test('Remove Release', () async {
       expect(
-          await runner.run(['fvm', 'remove', release]), ExitCode.success.code);
+        await runner.runOrThrow(['fvm', 'remove', release]),
+        ExitCode.success.code,
+      );
     });
   });
 
   group('Commands', () {
     test('Get Version', () async {
       expect(
-        await runner.run(['fvm', '--version']),
+        await runner.runOrThrow(['fvm', '--version']),
         ExitCode.success.code,
       );
 
       expect(
-        await runner.run(['fvm', '-v']),
+        await runner.runOrThrow(['fvm', '-v']),
         ExitCode.success.code,
       );
     });
 
     test('Doctor Command', () async {
       expect(
-        await runner.run(['fvm', 'doctor']),
+        await runner.runOrThrow(['fvm', 'doctor']),
         ExitCode.success.code,
       );
     });
 
     test('Flavor Command', () async {
-      await runner.run(['fvm', 'install', channel]);
+      await runner.runOrThrow(['fvm', 'install', channel]);
 
       expect(
-        await runner.run([
+        await runner.runOrThrow([
           'fvm',
           'use',
           channel,
@@ -179,7 +182,7 @@ void main() {
       );
 
       expect(
-        await runner.run(['fvm', 'use', 'production']),
+        await runner.runOrThrow(['fvm', 'use', 'production']),
         ExitCode.success.code,
       );
     });

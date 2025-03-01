@@ -16,21 +16,46 @@ class FileLocker {
 
   bool get isLocked => _file.existsSync();
 
-  DateTime? get lastModified => isLocked ? _file.lastModifiedSync() : null;
+  /// Get the timestamp from inside the file contents
+  DateTime? get lastModified {
+    if (!isLocked) return null;
 
-  /// Create or update the lock by setting its last modified time.
-  void lock() => isLocked
-      ? _file.setLastModifiedSync(DateTime.now())
-      : _file.createSync(recursive: true);
+    try {
+      final content = _file.readAsStringSync();
+      final timestamp = int.parse(content.trim());
+
+      return DateTime.fromMicrosecondsSinceEpoch(timestamp);
+    } catch (e) {
+      // If there's an error reading/parsing the timestamp,
+      // return the file system timestamp as a fallback
+      return _file.lastModifiedSync();
+    }
+  }
+
+  /// Create or update the lock by writing the current timestamp to the file.
+  void lock() {
+    final timestamp = DateTime.now().microsecondsSinceEpoch.toString();
+
+    if (isLocked) {
+      _file.writeAsStringSync(timestamp);
+    } else {
+      // Ensure parent directory exists
+      final parent = _file.parent;
+      if (!parent.existsSync()) {
+        parent.createSync(recursive: true);
+      }
+      _file.writeAsStringSync(timestamp);
+    }
+  }
 
   /// Remove the lock.
   void unlock() => isLocked ? _file.deleteSync() : null;
 
-  /// Returns true if the file exists and its modification time is within [threshold] from now.
+  /// Returns true if the file exists and its stored timestamp is within [threshold] from now.
   bool isLockedWithin(Duration threshold) =>
       isLocked && (lastModified!.isAfter(DateTime.now().subtract(threshold)));
 
-  /// Polls until the file’s last modification is older than [lockExpiration].
+  /// Polls until the file's timestamp is older than [lockExpiration].
   Future<Unlock> getLock() async {
     while (isLockedWithin(lockExpiration)) {
       print('Waiting for $path to be unlocked');

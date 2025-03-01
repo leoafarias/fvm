@@ -24,6 +24,8 @@ class FlutterService extends Contextual {
 
   @protected
   final FlutterReleasesService flutterReleasesServices;
+
+  bool _hasCheckedcache = false;
   final _dartCmd = 'dart';
 
   final _flutterCmd = 'flutter';
@@ -265,6 +267,12 @@ class FlutterService extends Contextual {
   }
 
   Future<void> updateLocalMirror() async {
+    if (_hasCheckedcache) {
+      return;
+    }
+
+    _hasCheckedcache = true;
+
     final unlock = await _isUpdatingCache.getLock();
 
     final gitCacheDir = Directory(context.gitCachePath);
@@ -314,6 +322,9 @@ class FlutterService extends Contextual {
       } else {
         await _recreateLocalMirror(gitCacheDir);
       }
+    } catch (e) {
+      _hasCheckedcache = false;
+      rethrow;
     } finally {
       unlock();
     }

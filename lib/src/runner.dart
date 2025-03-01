@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/ansi.dart';
+import 'package:io/io.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 import 'commands/api_command.dart';
@@ -22,6 +23,7 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
+import 'models/log_level_model.dart';
 import 'services/config_repository.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';

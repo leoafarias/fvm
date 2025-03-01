@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
@@ -11,17 +10,23 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/log_level_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
-import '../utils/extensions.dart';
 
 mason.Level _toMasonLevel(Level level) {
   return mason.Level.values.firstWhere((e) => e.name == level.name);
 }
+
+Level _toLogLevel(mason.Level level) {
+  return Level.values.firstWhere((e) => e.name == level.name);
+}
+
+final _console = Console();
 
 class Logger {
   final mason.Logger _logger;
   final bool _isTest;
   final bool _isCI;
   final bool _skipInput;
+  final List<String> _outputs = [];
 
   factory Logger.fromContext(FVMContext context) {
     return Logger(
@@ -38,65 +43,70 @@ class Logger {
     required bool isTest,
     required bool isCI,
     required bool skipInput,
-  })  : _logger = mason.Logger(level: mason.Level.verbose),
+  })  : _logger = mason.Logger(level: _toMasonLevel(logLevel)),
         _isTest = isTest,
         _isCI = isCI,
         _skipInput = skipInput;
 
-  void _printProgressBar(String label, int percentage) {
-    final progressBarWidth = 50;
-    final progressInBlocks = (percentage / 100 * progressBarWidth).round();
-    final progressBlocks = '${mason.green.wrap('█')}' * progressInBlocks;
-    final remainingBlocks = '.' * (progressBarWidth - progressInBlocks);
+  void get spacer => info('');
 
-    final output = '\r $label [$progressBlocks$remainingBlocks] $percentage%';
+  bool get isVerbose => level == Level.verbose;
 
-    write(output);
-  }
-
-  void get spacer => _logger.info('');
-
-  bool get isVerbose => _logger.level == mason.Level.verbose;
-
-  mason.Level get level => _logger.level;
+  Level get level => _toLogLevel(_logger.level);
 
   void get divider {
-    _logger.info(
-      '------------------------------------------------------------',
-    );
+    info('_' * _console.windowWidth);
   }
 
-  set level(mason.Level level) => _logger.level = level;
+  List<String> get outputs => _outputs;
+
+  set level(Level level) => _logger.level = _toMasonLevel(level);
 
   void logTrace(StackTrace stackTrace) {
     final trace = Trace.from(stackTrace).toString();
-    _logger
-      ..detail('')
-      ..detail(trace);
+    detail('');
+    detail(trace);
 
-    if (level != mason.Level.verbose) {
-      _logger
-        ..detail('')
-        ..detail(
-          'Please run command with  --verbose if you want more information',
-        );
+    if (level != Level.verbose) {
+      detail('');
+      detail(
+        'Please run command with  --verbose if you want more information',
+      );
     }
   }
 
+  void info(String message) {
+    _logger.info(message);
+    _outputs.add(message);
+  }
+
   void success(String message) {
-    _logger.info('${Icons.success.green()} $message');
+    info('${Icons.success.green()} $message');
   }
 
   void fail(String message) {
-    _logger.info('${Icons.failure.red()} $message');
+    info('${Icons.failure.red()} $message');
   }
 
-  void warn(String message) => _logger.warn(message);
-  void info(String message) => _logger.info(message);
-  void err(String message) => _logger.err(message);
+  void warn(String message) {
+    _logger.warn(message);
+    _outputs.add(message);
+  }
 
-  void detail(String message) => _logger.detail(message);
-  void write(String message) => _logger.write(message);
+  void err(String message) {
+    _logger.err(message);
+    _outputs.add(message);
+  }
+
+  void detail(String message) {
+    _logger.detail(message);
+    _outputs.add(message);
+  }
+
+  void write(String message) {
+    _logger.write(message);
+    _outputs.add(message);
+  }
 
   mason.Progress progress(String message) {
     final progress = _logger.progress(message);
@@ -177,45 +187,7 @@ class Logger {
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
 
-    _logger.write(table.toString());
-  }
-
-  void updateCloneProgress(String line) {
-    if (_hasFailedPrint) {
-      info('\n');
-
-      return;
-    }
-    try {
-      final matchedEntry = regexes.entries.firstWhereOrNull(
-        (entry) => line.contains(entry.key),
-      );
-
-      if (matchedEntry != null) {
-        final label = matchedEntry.key.padRight(_maxLabelLength);
-        final match = matchedEntry.value.firstMatch(line);
-        final percentValue = match?.group(1);
-        int? percentage = int.tryParse(percentValue ?? '');
-
-        if (percentage != _lastPercentage) {
-          if (percentage == null) return;
-
-          if (_lastMatchedEntry.isNotEmpty && _lastMatchedEntry != label) {
-            _printProgressBar(_lastMatchedEntry, 100);
-            write('\n');
-          }
-
-          _printProgressBar(label, percentage);
-
-          _lastPercentage = percentage;
-          _lastMatchedEntry = label;
-        }
-      }
-    } catch (e) {
-      detail('Failed to update progress bar $e');
-      _hasFailedPrint = true;
-      _lastMatchedEntry = '';
-    }
+    write(table.toString());
   }
 
   void important(String message) {
@@ -235,29 +207,6 @@ class Logger {
 
 final dot = '\u{25CF}'; // ●
 final rightArrow = '\u{2192}'; // →
-
-final consoleController = ConsoleController();
-
-/// Console Controller
-class ConsoleController {
-  /// stdout stream
-  final stdout = StreamController<List<int>>();
-
-  /// stderr stream
-  final stderr = StreamController<List<int>>();
-
-  /// warning stream
-  final warning = StreamController<List<int>>();
-
-  /// fine stream
-  final fine = StreamController<List<int>>();
-
-  /// info stream
-  final info = StreamController<List<int>>();
-
-  /// error stream
-  final error = StreamController<List<int>>();
-}
 
 class Icons {
   const Icons._();
@@ -291,19 +240,3 @@ class Icons {
   // Square: ■
   static String get square => '■';
 }
-
-final regexes = {
-  'Enumerating objects:': RegExp(r'Enumerating objects: +(\d+)%'),
-  'Counting objects:': RegExp(r'Counting objects: +(\d+)%'),
-  'Compressing objects:': RegExp(r'Compressing objects: +(\d+)%'),
-  'Receiving objects:': RegExp(r'Receiving objects: +(\d+)%'),
-  'Resolving deltas:': RegExp(r'Resolving deltas: +(\d+)%'),
-};
-
-int _lastPercentage = 0;
-String _lastMatchedEntry = '';
-
-final _maxLabelLength =
-    regexes.keys.map((e) => e.length).reduce((a, b) => a > b ? a : b);
-
-var _hasFailedPrint = false;
