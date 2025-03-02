@@ -11,66 +11,68 @@ Future<void> resolveDependenciesWorkflow(
   Project project,
   CacheFlutterVersion version, {
   required bool force,
-  required FvmController controller,
+  required FVMContext context,
 }) async {
   if (version.isNotSetup) return;
+
+  final services = context.services;
+  final logger = context.logger;
 
   if (project.dartToolVersion == version.flutterSdkVersion) {
     return;
   }
 
-  if (!controller.context.runPubGetOnSdkChanges) {
-    controller.logger
+  if (!context.runPubGetOnSdkChanges) {
+    logger
       ..info('Skipping "pub get" because of config setting.')
-      ..spacer;
+      ..lineBreak();
 
     return;
   }
 
   if (!project.hasPubspec) {
-    controller.logger
+    logger
       ..info('Skipping "pub get" because no pubspec.yaml found.')
-      ..spacer;
+      ..lineBreak();
 
     return;
   }
 
-  final progress = controller.logger.progress('Resolving dependencies...');
+  final progress = logger.progress('Resolving dependencies...');
 
   // Try to resolve offline
-  ProcessResult pubGetResults = await controller.flutter.runFlutter(
+  ProcessResult pubGetResults = await services.flutter.runFlutter(
+    version,
     ['pub', 'get', '--offline'],
-    version: version,
   );
 
   if (pubGetResults.exitCode != ExitCode.success.code) {
-    controller.logger
-        .detail('Could not resolve dependencies using offline mode.');
+    logger.detail('Could not resolve dependencies using offline mode.');
 
     progress.update('Trying to resolve dependencies...');
 
-    pubGetResults = await controller.flutter.runFlutter(
+    pubGetResults = await services.flutter.runFlutter(
+      version,
       ['pub', 'get'],
-      version: version,
     );
 
     if (pubGetResults.exitCode != ExitCode.success.code) {
       progress.fail('Could not resolve dependencies.');
-      controller.logger
-        ..spacer
+      logger
+        ..lineBreak()
         ..err(pubGetResults.stderr.toString());
 
-      controller.logger.info(
+      logger.info(
         'The error could indicate incompatible dependencies to the SDK.',
       );
 
       if (force) {
-        controller.logger.warn('Force pinning due to --force flag.');
+        logger.warn('Force pinning due to --force flag.');
 
         return;
       }
 
-      final confirmation = controller.logger.confirm(
+      final confirmation = logger.confirm(
         'Would you like to continue pinning this version anyway?',
         defaultValue: false,
       );
@@ -86,16 +88,16 @@ Future<void> resolveDependenciesWorkflow(
   progress.complete('Dependencies resolved.');
 
   if (pubGetResults.stdout != null) {
-    controller.logger.detail(pubGetResults.stdout);
+    logger.detail(pubGetResults.stdout);
   }
 }
 
 void logDetails(
   CacheFlutterVersion version,
   Project project, {
-  required FvmController controller,
+  required FVMContext context,
 }) {
-  final logger = controller.logger;
+  final logger = context.logger;
   final dartGeneratorVersion = project.dartToolGeneratorVersion;
   final dartToolVersion = project.dartToolVersion;
   final dartSdkVersion = version.dartSdkVersion;
@@ -122,8 +124,7 @@ void logDetails(
   logger.detail('----------------------------------------');
 
   if (dartToolVersion == flutterSdkVersion) {
-    controller.logger
-        .detail('✅ Dart tool version matches SDK version, skipping resolve.');
+    logger.detail('✅ Dart tool version matches SDK version, skipping resolve.');
 
     return;
   }

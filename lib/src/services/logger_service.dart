@@ -48,19 +48,20 @@ class Logger {
         _isCI = isCI,
         _skipInput = skipInput;
 
+  @Deprecated('Use info instead')
   void get spacer => info('');
 
   bool get isVerbose => level == Level.verbose;
 
   Level get level => _toLogLevel(_logger.level);
 
-  void get divider {
-    info('_' * _console.windowWidth);
-  }
+  void get divider => info('_' * _console.windowWidth);
 
   List<String> get outputs => _outputs;
 
   set level(Level level) => _logger.level = _toMasonLevel(level);
+
+  void lineBreak() => info('');
 
   void logTrace(StackTrace stackTrace) {
     final trace = Trace.from(stackTrace).toString();

@@ -5,7 +5,7 @@ import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
 /// Spawn Flutter Commands in other versions
-class SpawnCommand extends BaseCommand {
+class SpawnCommand extends BaseFvmCommand {
   @override
   final name = 'spawn';
   @override
@@ -14,7 +14,7 @@ class SpawnCommand extends BaseCommand {
   final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  SpawnCommand(super.controller);
+  SpawnCommand(super.context);
 
   @override
   Future<int> run() async {
@@ -33,14 +33,14 @@ class SpawnCommand extends BaseCommand {
     // Will install version if not already installed
     final cacheVersion = await ensureCacheWorkflow(
       version,
-      controller: controller,
+      context: context,
     );
     // Runs flutter command with pinned version
-    controller.logger.info('Spawning version "$version"...');
+    logger.info('Spawning version "$version"...');
 
-    final results = await controller.flutter.runFlutter(
+    final results = await services.flutter.runFlutter(
+      cacheVersion,
       flutterArgs,
-      version: cacheVersion,
     );
 
     return results.exitCode;

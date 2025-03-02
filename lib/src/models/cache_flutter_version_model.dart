@@ -4,41 +4,23 @@ import 'package:path/path.dart';
 import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
-import '../utils/helpers.dart';
 import 'flutter_version_model.dart';
 
 part 'cache_flutter_version_model.mapper.dart';
 
 /// Cache Version model
 @MappableClass()
-class CacheFlutterVersion extends FlutterVersion
-    with CacheFlutterVersionMappable {
+class CacheFlutterVersion
+    with CacheFlutterVersionMappable
+    implements FlutterVersion {
   /// Directory of the cache version
   final String directory;
+  final FlutterVersion version;
 
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
-  // static final fromJson = CacheFlutterVersion.fromJson;
 
-  const CacheFlutterVersion.raw(
-    super.name, {
-    required this.directory,
-    required super.releaseFromChannel,
-    required super.type,
-  });
-
-  /// Constructor
-  factory CacheFlutterVersion(
-    FlutterVersion version, {
-    required String directory,
-  }) {
-    return CacheFlutterVersion.raw(
-      version.name,
-      directory: directory,
-      releaseFromChannel: version.releaseFromChannel,
-      type: version.type,
-    );
-  }
+  const CacheFlutterVersion(this.version, {required this.directory});
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
@@ -50,7 +32,7 @@ class CacheFlutterVersion extends FlutterVersion
   // Last version with the old dart path structure
   @MappableField()
   bool get hasOldBinPath {
-    return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
+    return compareSemver(versionWeight, '1.17.5') <= 0;
   }
 
   /// Returns dart exec file for cache version
@@ -92,4 +74,44 @@ class CacheFlutterVersion extends FlutterVersion
   /// Returns bool if version is setup
   @MappableField()
   bool get isSetup => flutterSdkVersion != null;
+
+  @override
+  int compareTo(FlutterVersion other) {
+    return version.compareTo(other);
+  }
+
+  @override
+  String get branch => version.branch;
+
+  /// Get version bin path
+  @override
+  @MappableField()
+  VersionType get type => version.type;
+
+  @override
+  @MappableField()
+  String get name => version.name;
+
+  @override
+  @MappableField()
+  String get friendlyName => version.friendlyName;
+
+  @override
+  @MappableField()
+  String get versionWeight => version.versionWeight;
+
+  @override
+  bool get isChannel => version.isChannel;
+
+  @override
+  bool get isCommit => version.isCommit;
+
+  @override
+  bool get isCustom => version.isCustom;
+
+  @override
+  bool get isMaster => version.isMaster;
+
+  @override
+  bool get isRelease => version.isRelease;
 }

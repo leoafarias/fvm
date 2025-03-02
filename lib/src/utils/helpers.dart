@@ -5,7 +5,6 @@ import 'package:date_format/date_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
 import 'constants.dart';
 import 'extensions.dart';
 import 'git_utils.dart';
@@ -14,28 +13,6 @@ import 'git_utils.dart';
 
 bool isFlutterChannel(String name) {
   return kFlutterChannels.contains(name);
-}
-
-Map<String, String> updateEnvironmentVariables(
-  List<String> paths,
-  Map<String, String> env,
-  Logger logger,
-) {
-  // Remove any values that are similar
-  // within the list of paths.
-  paths = paths.toSet().toList();
-
-  logger.detail('Starting to update environment variables...');
-
-  final updatedEnvironment = Map<String, String>.from(env);
-
-  final envPath = env['PATH'] ?? '';
-
-  final separator = Platform.isWindows ? ';' : ':';
-
-  updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
-
-  return updatedEnvironment;
 }
 
 /// Assigns weight to [version] to channels for comparison
@@ -273,4 +250,23 @@ Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
 
     return 0;
   }
+}
+
+Map<String, String> updateEnvironmentVariables(
+  List<String> paths,
+  Map<String, String> env,
+) {
+  // Remove any values that are similar
+  // within the list of paths.
+  paths = paths.toSet().toList();
+
+  final updatedEnvironment = Map<String, String>.from(env);
+
+  final envPath = env['PATH'] ?? '';
+
+  final separator = Platform.isWindows ? ';' : ':';
+
+  updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
+
+  return updatedEnvironment;
 }

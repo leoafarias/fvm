@@ -1,6 +1,2 @@
 concurrency: 4
 timeout: 5m
-tags:
-  concurrent:
-    timeout: 5m
-    test_on: vm

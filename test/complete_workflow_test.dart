@@ -14,7 +14,7 @@ void main() {
   setUp(() {
     // Initialize the test command runner
     runner = TestFactory.commandRunner();
-    controller = runner.controller;
+    controller = runner.context;
   });
 
   group('Complete flow', () {
@@ -33,7 +33,7 @@ void main() {
       var cacheVersion = await getCacheVersion();
 
       // Get the branch from Git
-      final existingChannel = await getBranch(channel, controller.context);
+      final existingChannel = await runner.context.git.getBranch(channel);
 
       // Verify installation succeeded
       expect(cacheVersion != null, true, reason: 'Install does not exist');

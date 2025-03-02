@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:fvm/src/version.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -17,7 +18,7 @@ void main() {
 
   test('Does CLI version match', () async {
     final yaml = File(
-      join(Directory.current.path, 'pubspec.yaml'),
+      p.join(Directory.current.path, 'pubspec.yaml'),
     ).readAsStringSync();
     final pubspec = loadYamlNode(yaml);
     expect(pubspec.value['version'], packageVersion);
@@ -32,7 +33,7 @@ void main() {
     final newEnvVar = updateEnvironmentVariables(
       ['FAKE_PATH', 'ANOTHER_FAKE_PATH'],
       envVars,
-      runner.controller.logger,
+      runner.context.logger,
     );
 
     // expect(newEnvVar[envName], envVars[envName]);
@@ -234,5 +235,179 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024), '1.00 PB');
     expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
         '1.00 EB');
+  });
+
+  group('Version Weight Tests', () {
+    // Define both weight functions for testing
+    int bitwiseVersionWeight(Version version) {
+      final major = version.major.clamp(0, 1023);
+      final minor = version.minor.clamp(0, 1023);
+      final patch = version.patch.clamp(0, 1023);
+      final isRelease = version.isPreRelease ? 0 : 1;
+
+      return (major << 21) | (minor << 11) | (patch << 1) | isRelease;
+    }
+
+    int simpleVersionWeight(Version version) {
+      const int majorWeight = 1000000;
+      const int minorWeight = 1000;
+
+      int weight = version.major * majorWeight +
+          version.minor * minorWeight +
+          version.patch;
+
+      if (version.isPreRelease) {
+        weight -= 999;
+
+        if (version.preRelease.isNotEmpty && version.preRelease[0] is int) {
+          weight += (version.preRelease[0] as int).clamp(0, 99);
+        }
+      }
+
+      return weight;
+    }
+
+    // Helper function to test if weights correctly order versions
+    void testVersionOrdering(
+        List<String> versionStrings, int Function(Version) weightFn) {
+      final versions = versionStrings.map(Version.parse).toList();
+      final weights = versions.map(weightFn).toList();
+
+      for (int i = 0; i < versions.length - 1; i++) {
+        expect(weights[i] < weights[i + 1], isTrue,
+            reason: "${versions[i]} (weight=${weights[i]}) should be less than "
+                "${versions[i + 1]} (weight=${weights[i + 1]})");
+      }
+    }
+
+    test('Basic version ordering - bitwise', () {
+      testVersionOrdering(
+          ['1.0.0', '1.0.1', '1.1.0', '1.2.0', '2.0.0'], bitwiseVersionWeight);
+    });
+
+    test('Basic version ordering - simple', () {
+      testVersionOrdering(
+          ['1.0.0', '1.0.1', '1.1.0', '1.2.0', '2.0.0'], simpleVersionWeight);
+    });
+
+    test('Pre-release vs release versions - bitwise', () {
+      testVersionOrdering(['1.0.0-alpha', '1.0.0-beta', '1.0.0-rc.1', '1.0.0'],
+          bitwiseVersionWeight);
+    });
+
+    test('Pre-release vs release versions - simple', () {
+      testVersionOrdering(['1.0.0-alpha', '1.0.0-beta', '1.0.0-rc.1', '1.0.0'],
+          simpleVersionWeight);
+    });
+
+    test('Complex version ordering - bitwise', () {
+      testVersionOrdering([
+        '0.9.9-beta',
+        '0.9.9',
+        '1.0.0-alpha',
+        '1.0.0-alpha.1',
+        '1.0.0-beta',
+        '1.0.0-rc.1',
+        '1.0.0',
+        '1.0.1',
+        '1.1.0-alpha',
+        '1.1.0'
+      ], bitwiseVersionWeight);
+    });
+
+    test('Build metadata is ignored - bitwise', () {
+      final v1 = Version.parse('1.0.0+build.1');
+      final v2 = Version.parse('1.0.0+build.2');
+
+      expect(bitwiseVersionWeight(v1), equals(bitwiseVersionWeight(v2)));
+    });
+
+    test('Edge cases - bitwise', () {
+      // Test version 0.0.0
+      final zero = Version.parse('0.0.0');
+      expect(bitwiseVersionWeight(zero),
+          equals(1)); // Should be 1 (non-prerelease)
+
+      // Test max versions (within our 10-bit limit)
+      final max = Version.parse('1023.1023.1023');
+      expect(bitwiseVersionWeight(max), isPositive);
+
+      // Test overflow clamping
+      final overflow = Version.parse('1024.1024.1024');
+      expect(bitwiseVersionWeight(overflow), equals(bitwiseVersionWeight(max)));
+    });
+
+    test('Consistent with Version.prioritize - sample cases', () {
+      final versions = [
+        '2.0.0-alpha',
+        '1.9.0',
+        '2.0.0-beta',
+        '1.9.1',
+        '2.0.0',
+        '1.8.0'
+      ].map(Version.parse).toList();
+
+      // Sort by our weight function
+      versions.sort(
+          (a, b) => bitwiseVersionWeight(a).compareTo(bitwiseVersionWeight(b)));
+
+      // Create a copy and sort by Version.prioritize
+      final versionsByPrioritize = List<Version>.from(versions);
+      versionsByPrioritize.sort(Version.prioritize);
+
+      // The ordering should be the same
+      for (int i = 0; i < versions.length; i++) {
+        expect(versions[i], equals(versionsByPrioritize[i]),
+            reason: "Weight-based sorting should match Version.prioritize");
+      }
+    });
+
+    test('Numeric pre-release identifiers are handled correctly', () {
+      testVersionOrdering([
+        '1.0.0-alpha.1',
+        '1.0.0-alpha.2',
+        '1.0.0-alpha.10',
+      ], bitwiseVersionWeight);
+
+      // This is a more complex case to ensure numeric ordering is correct
+      final v1 = Version.parse('1.0.0-alpha.1');
+      final v2 = Version.parse('1.0.0-alpha.2');
+      final v3 = Version.parse('1.0.0-alpha.10');
+
+      // Test raw prioritize function
+      expect(Version.prioritize(v1, v2) < 0, isTrue);
+      expect(Version.prioritize(v2, v3) < 0, isTrue);
+
+      // Check our weight function gives same results
+      expect(bitwiseVersionWeight(v1) < bitwiseVersionWeight(v2), isTrue);
+      expect(bitwiseVersionWeight(v2) < bitwiseVersionWeight(v3), isTrue);
+    });
+
+    test('Large version component tests', () {
+      // Testing with large but valid version components
+      testVersionOrdering(
+          ['100.200.300', '100.200.301', '100.201.0', '101.0.0'],
+          bitwiseVersionWeight);
+    });
+
+    test('Bit position verification', () {
+      // Verify bit positions are correct
+      final v1 = Version(1, 0, 0); // 1.0.0
+      final v2 = Version(0, 1, 0); // 0.1.0
+      final v3 = Version(0, 0, 1); // 0.0.1
+
+      final w1 = bitwiseVersionWeight(v1);
+      final w2 = bitwiseVersionWeight(v2);
+      final w3 = bitwiseVersionWeight(v3);
+
+      // Major is in bits 21-30, so 1 << 21
+      expect(w1 & (1023 << 21), equals(1 << 21));
+
+      // Minor is in bits 11-20, so 1 << 11
+      expect(w2 & (1023 << 11), equals(1 << 11));
+
+      // Patch is in bits 1-10, so 1 << 1
+      expect(w3 & (1023 << 1), equals(1 << 1));
+    });
   });
 }

@@ -3,19 +3,18 @@ import '../utils/context.dart';
 
 Future<void> setupFlutterWorkflow(
   CacheFlutterVersion version, {
-  required FvmController controller,
+  required FVMContext context,
 }) async {
-  controller.logger
+  final services = context.services;
+  final logger = context.logger;
+
+  logger
     ..info('Setting up Flutter SDK: ${version.name}')
-    ..spacer;
+    ..lineBreak();
 
-  await controller.flutter.runFlutter(
-    ['--version'],
-    version: version,
-    echoOutput: true,
-  );
+  await services.flutter.runFlutter(version, ['--version']);
 
-  controller.logger
-    ..spacer
-    ..success('Flutter SDK: ${version.printFriendlyName} is setup');
+  logger
+    ..lineBreak()
+    ..success('Flutter SDK: ${version.friendlyName} is setup');
 }

@@ -14,7 +14,7 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = CacheFlutterVersionMapper._());
       FlutterVersionMapper.ensureInitialized();
-      VersionTypeMapper.ensureInitialized();
+      FlutterVersionMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -22,19 +22,12 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   @override
   final String id = 'CacheFlutterVersion';
 
-  static String _$name(CacheFlutterVersion v) => v.name;
-  static const Field<CacheFlutterVersion, String> _f$name =
-      Field('name', _$name);
+  static FlutterVersion _$version(CacheFlutterVersion v) => v.version;
+  static const Field<CacheFlutterVersion, FlutterVersion> _f$version =
+      Field('version', _$version);
   static String _$directory(CacheFlutterVersion v) => v.directory;
   static const Field<CacheFlutterVersion, String> _f$directory =
       Field('directory', _$directory);
-  static String? _$releaseFromChannel(CacheFlutterVersion v) =>
-      v.releaseFromChannel;
-  static const Field<CacheFlutterVersion, String> _f$releaseFromChannel =
-      Field('releaseFromChannel', _$releaseFromChannel);
-  static VersionType _$type(CacheFlutterVersion v) => v.type;
-  static const Field<CacheFlutterVersion, VersionType> _f$type =
-      Field('type', _$type);
   static String _$binPath(CacheFlutterVersion v) => v.binPath;
   static const Field<CacheFlutterVersion, String> _f$binPath =
       Field('binPath', _$binPath);
@@ -60,13 +53,23 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   static bool _$isSetup(CacheFlutterVersion v) => v.isSetup;
   static const Field<CacheFlutterVersion, bool> _f$isSetup =
       Field('isSetup', _$isSetup);
+  static VersionType _$type(CacheFlutterVersion v) => v.type;
+  static const Field<CacheFlutterVersion, VersionType> _f$type =
+      Field('type', _$type);
+  static String _$name(CacheFlutterVersion v) => v.name;
+  static const Field<CacheFlutterVersion, String> _f$name =
+      Field('name', _$name);
+  static String _$friendlyName(CacheFlutterVersion v) => v.friendlyName;
+  static const Field<CacheFlutterVersion, String> _f$friendlyName =
+      Field('friendlyName', _$friendlyName);
+  static String _$versionWeight(CacheFlutterVersion v) => v.versionWeight;
+  static const Field<CacheFlutterVersion, String> _f$versionWeight =
+      Field('versionWeight', _$versionWeight);
 
   @override
   final MappableFields<CacheFlutterVersion> fields = const {
-    #name: _f$name,
+    #version: _f$version,
     #directory: _f$directory,
-    #releaseFromChannel: _f$releaseFromChannel,
-    #type: _f$type,
     #binPath: _f$binPath,
     #hasOldBinPath: _f$hasOldBinPath,
     #dartBinPath: _f$dartBinPath,
@@ -75,13 +78,15 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
     #flutterSdkVersion: _f$flutterSdkVersion,
     #dartSdkVersion: _f$dartSdkVersion,
     #isSetup: _f$isSetup,
+    #type: _f$type,
+    #name: _f$name,
+    #friendlyName: _f$friendlyName,
+    #versionWeight: _f$versionWeight,
   };
 
   static CacheFlutterVersion _instantiate(DecodingData data) {
-    return CacheFlutterVersion.raw(data.dec(_f$name),
-        directory: data.dec(_f$directory),
-        releaseFromChannel: data.dec(_f$releaseFromChannel),
-        type: data.dec(_f$type));
+    return CacheFlutterVersion(data.dec(_f$version),
+        directory: data.dec(_f$directory));
   }
 
   @override
@@ -139,12 +144,9 @@ extension CacheFlutterVersionValueCopy<$R, $Out>
 
 abstract class CacheFlutterVersionCopyWith<$R, $In extends CacheFlutterVersion,
     $Out> implements FlutterVersionCopyWith<$R, $In, $Out> {
+  FlutterVersionCopyWith<$R, FlutterVersion, FlutterVersion> get version;
   @override
-  $R call(
-      {String? name,
-      String? directory,
-      String? releaseFromChannel,
-      VersionType? type});
+  $R call({FlutterVersion? version, String? directory});
   CacheFlutterVersionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -158,25 +160,18 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
   late final ClassMapperBase<CacheFlutterVersion> $mapper =
       CacheFlutterVersionMapper.ensureInitialized();
   @override
-  $R call(
-          {String? name,
-          String? directory,
-          Object? releaseFromChannel = $none,
-          VersionType? type}) =>
+  FlutterVersionCopyWith<$R, FlutterVersion, FlutterVersion> get version =>
+      $value.version.copyWith.$chain((v) => call(version: v));
+  @override
+  $R call({FlutterVersion? version, String? directory}) =>
       $apply(FieldCopyWithData({
-        if (name != null) #name: name,
-        if (directory != null) #directory: directory,
-        if (releaseFromChannel != $none)
-          #releaseFromChannel: releaseFromChannel,
-        if (type != null) #type: type
+        if (version != null) #version: version,
+        if (directory != null) #directory: directory
       }));
   @override
   CacheFlutterVersion $make(CopyWithData data) =>
-      CacheFlutterVersion.raw(data.get(#name, or: $value.name),
-          directory: data.get(#directory, or: $value.directory),
-          releaseFromChannel:
-              data.get(#releaseFromChannel, or: $value.releaseFromChannel),
-          type: data.get(#type, or: $value.type));
+      CacheFlutterVersion(data.get(#version, or: $value.version),
+          directory: data.get(#directory, or: $value.directory));
 
   @override
   CacheFlutterVersionCopyWith<$R2, CacheFlutterVersion, $Out2>

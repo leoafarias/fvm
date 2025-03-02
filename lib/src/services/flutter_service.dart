@@ -8,11 +8,8 @@ import 'package:meta/meta.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
+import '../utils/context.dart';
 import '../utils/exceptions.dart';
-import '../utils/file_lock.dart';
-import '../utils/git_clone_update_printer.dart';
-import '../utils/helpers.dart';
-import '../utils/run_command.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'releases_service/releases_client.dart';
@@ -20,202 +17,50 @@ import 'releases_service/releases_client.dart';
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends Contextual {
   @protected
-  final CacheService cacheService;
+  final CacheService cache;
 
   @protected
   final FlutterReleasesService flutterReleasesServices;
 
-  bool _hasCheckedcache = false;
-  final _dartCmd = 'dart';
-
-  final _flutterCmd = 'flutter';
-
-  late final _isUpdatingCache = FileLocker(
-    '${context.fvmDir}/cache.lock',
-    lockExpiration: const Duration(seconds: 10),
-    pollingInterval: const Duration(milliseconds: 100),
-  );
-
   FlutterService(
     super.context, {
-    required this.cacheService,
+    required this.cache,
     required this.flutterReleasesServices,
   });
 
-  /// Runs dart cmd
-  Future<ProcessResult> _runVersion(
-    String cmd,
-    CacheFlutterVersion version,
-    List<String> args, {
-    bool? echoOutput,
-    bool? throwOnError,
-  }) async {
-    final isFlutter = cmd == _flutterCmd;
-    // Get exec path for dart
-    final execPath = isFlutter ? version.flutterExec : version.dartExec;
-
-    // Update environment
-    final environment = updateEnvironmentVariables(
-      [version.binPath, version.dartBinPath],
-      context.environment,
-      logger,
-    );
-
-    // Run command
-    return await _runCmd(
-      execPath,
-      args: args,
-      environment: environment,
-      echoOutput: echoOutput,
-      throwOnError: throwOnError,
-    );
-  }
-
-  Future<ProcessResult> _runCmd(
-    String execPath, {
-    List<String> args = const [],
-    Map<String, String>? environment,
-    bool? echoOutput,
-    bool? throwOnError,
-  }) async {
-    echoOutput ??= true;
-    throwOnError ??= false;
-
-    return await runCommand(
-      execPath,
-      args: args,
-      environment: environment,
-      throwOnError: throwOnError,
-      echoOutput: echoOutput,
-      context: context,
-      logger: logger,
-    );
-  }
-
-  /// Helper method to get a GitDir instance, handling common setup
-  Future<GitDir> _getGitDir() async {
-    await updateLocalMirror();
-
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-    if (!isGitDir) {
-      throw Exception('Git cache directory does not exist');
-    }
-
-    return GitDir.fromExisting(context.gitCachePath);
-  }
-
-  Future<void> _recreateLocalMirror(Directory gitCacheDir) async {
-    if (gitCacheDir.existsSync()) {
-      gitCacheDir.deleteSync(recursive: true);
-    }
-
-    gitCacheDir.createSync(recursive: true);
-    logger.info('Creating local mirror...');
-
-    try {
-      await runGitCloneUpdate(
-        ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
-        logger,
-      );
-      logger.info('Local mirror created successfully');
-    } catch (e) {
-      logger.err('Failed to create local mirror: $e');
-      gitCacheDir.deleteSync(recursive: true);
-      rethrow;
-    }
-  }
-
-  /// Runs Flutter cmd
   Future<ProcessResult> runFlutter(
-    List<String> args, {
-    CacheFlutterVersion? version,
-    bool? echoOutput,
-    bool? throwOnError,
-  }) {
-    version ??= cacheService.getGlobal();
-
-    if (version == null) {
-      return _runCmd(_flutterCmd, args: args);
-    }
-
-    return _runVersion(
-      _flutterCmd,
-      version,
-      args,
-      echoOutput: echoOutput,
-      throwOnError: throwOnError,
-    );
-  }
-
-  /// Runs dart cmd
-  Future<ProcessResult> runDart(
-    List<String> args, {
-    CacheFlutterVersion? version,
-    bool? echoOutput,
-    bool? throwOnError,
-  }) {
-    version ??= cacheService.getGlobal();
-
-    if (version == null) {
-      return _runCmd(_dartCmd, args: args);
-    }
-
-    return _runVersion(
-      _dartCmd,
-      version,
-      args,
-      echoOutput: echoOutput,
-      throwOnError: throwOnError,
-    );
-  }
-
-  /// Exec commands with the Flutter env
-  Future<ProcessResult> exec(
-    String execPath,
+    CacheFlutterVersion version,
     List<String> args,
-    CacheFlutterVersion? version,
-  ) async {
-    // Update environment variables
-    // If execPath is not provided will get the path configured version
-    var environment = context.environment;
-    if (version != null) {
-      environment = updateEnvironmentVariables(
-        [version.binPath, version.dartBinPath],
-        context.environment,
-        logger,
-      );
-    }
+  ) {
+    return run(version, 'flutter', args);
+  }
 
-    // Run command
-    return await _runCmd(execPath, args: args, environment: environment);
+  Future<ProcessResult> runDart(
+    CacheFlutterVersion version,
+    List<String> args,
+  ) {
+    return run(version, 'dart', args);
+  }
+
+  Future<ProcessResult> run(
+    CacheFlutterVersion version,
+    String cmd,
+    List<String> args,
+  ) {
+    final versionRunner = VersionRunner(context: context, version: version);
+
+    return versionRunner.run(cmd, args);
   }
 
   /// Clones Flutter SDK from Version Number or Channel
   Future<void> install(FlutterVersion version) async {
-    final versionDir = cacheService.getVersionCacheDir(version.name);
-
-    // Check if its git commit
-    String? channel;
-
-    if (version.isChannel) {
-      channel = version.name;
-      // If its not a commit hash
-    } else if (version.isRelease) {
-      if (version.releaseFromChannel != null) {
-        // Version name forces channel version
-        channel = version.releaseFromChannel;
-      } else {
-        final release =
-            await flutterReleasesServices.getReleaseFromVersion(version.name);
-        channel = release?.channel.name;
-      }
-    }
+    final versionDir = cache.getVersionCacheDir(version.name);
 
     final versionCloneParams = [
       '-c',
       'advice.detachedHead=false',
       '-b',
-      channel ?? version.name,
+      version.branch,
     ];
 
     final useMirrorParams = ['--reference', context.gitCachePath];
@@ -248,142 +93,73 @@ class FlutterService extends Contextual {
         );
       }
 
-      /// If version is not a channel reset to version
-      if (!version.isChannel) {
-        final gitDir = await GitDir.fromExisting(versionDir.path);
-        // reset --hard $version
-        await gitDir.runCommand(['reset', '--hard', version.version]);
+      if (version is ReleaseVersion) {
+        await services.git.resetToReference(versionDir.path, version.release);
+      } else if (version is CommitVersion) {
+        await services.git.resetToReference(versionDir.path, version.name);
       }
 
       if (result.exitCode != io.ExitCode.success.code) {
         throw AppException(
-          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+          'Could not clone Flutter SDK: ${cyan.wrap(version.friendlyName)}',
         );
       }
     } on Exception {
-      cacheService.remove(version);
+      cache.remove(version);
       rethrow;
     }
   }
+}
 
-  Future<void> updateLocalMirror() async {
-    if (_hasCheckedcache) {
-      return;
-    }
+class VersionRunner {
+  final FVMContext _context;
+  final CacheFlutterVersion _version;
 
-    _hasCheckedcache = true;
+  const VersionRunner({
+    required FVMContext context,
+    required CacheFlutterVersion version,
+  })  : _context = context,
+        _version = version;
 
-    final unlock = await _isUpdatingCache.getLock();
+  Map<String, String> _updateEnvironmentVariables(List<String> paths) {
+    // Remove any values that are similar
+    // within the list of paths.
+    paths = paths.toSet().toList();
 
-    final gitCacheDir = Directory(context.gitCachePath);
-    final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
+    final env = _context.environment;
 
-    try {
-      if (isGitDir) {
-        try {
-          logger.detail('Updating local mirror...');
-          final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+    _context.logger.detail('Starting to update environment variables...');
 
-          // First, prune any stale references
-          logger.detail('Pruning stale references...');
-          await gitDir.runCommand(['remote', 'prune', 'origin']);
+    final updatedEnvironment = Map<String, String>.from(env);
 
-          // Then fetch all refs including tags
-          logger.detail('Fetching all refs...');
-          await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+    final envPath = env['PATH'] ?? '';
 
-          // Check if there are any uncommitted changes
-          logger.detail('Checking for uncommitted changes...');
-          final statusResult =
-              await gitDir.runCommand(['status', '--porcelain']);
+    final separator = Platform.isWindows ? ';' : ':';
 
-          final output = (statusResult.stdout as String).trim();
-          if (output.isEmpty) {
-            print('No uncommitted changes. Working directory is clean.');
-          } else {
-            await _recreateLocalMirror(gitCacheDir);
-          }
+    updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
 
-          logger.detail('Local mirror updated successfully');
-        } catch (e) {
-          logger.err('Error updating local mirror: $e');
-
-          // Only recreate the mirror if it's a critical git error
-          if (e is ProcessException &&
-              (e.message.contains('not a git repository') ||
-                  e.message.contains('corrupt') ||
-                  e.message.contains('damaged'))) {
-            logger.warn('Local mirror appears to be corrupted, recreating...');
-            await _recreateLocalMirror(gitCacheDir);
-          } else {
-            rethrow;
-          }
-        }
-      } else {
-        await _recreateLocalMirror(gitCacheDir);
-      }
-    } catch (e) {
-      _hasCheckedcache = false;
-      rethrow;
-    } finally {
-      unlock();
-    }
+    return updatedEnvironment;
   }
 
-  /// Gets a list of all tags in the repository
-  Future<List<String>> getTags() async {
-    try {
-      final gitDir = await _getGitDir();
-      final tags = await gitDir.tags().toList();
+  /// Runs dart cmd
+  Future<ProcessResult> run(
+    String cmd,
+    List<String> args, {
+    bool? echoOutput,
+    bool? throwOnError,
+  }) async {
+    // Update environment
+    final environment = _updateEnvironmentVariables(
+      [_version.binPath, _version.dartBinPath],
+    );
 
-      return tags.map((tag) => tag.tag).toList();
-    } on Exception {
-      return [];
-    }
-  }
-
-  /// Resolves any git reference (branch, tag, commit) to its SHA
-  /// Returns null if reference doesn't exist
-  Future<String?> getReference(String ref) async {
-    try {
-      final gitDir = await _getGitDir();
-      final result = await gitDir.runCommand(
-        ['rev-parse', '--short', '--verify', ref],
-        throwOnError: false,
-      );
-
-      if (result.exitCode == 0) {
-        return result.stdout.toString().trim();
-      }
-
-      return null;
-    } on Exception {
-      return null;
-    }
-  }
-
-  /// Checks if a string is a valid commit
-  Future<bool> isCommit(String commit) async {
-    try {
-      final gitDir = await _getGitDir();
-
-      // Try to get the commit object
-      await gitDir.commitFromRevision(commit);
-
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Checks if a string is a valid tag
-  Future<bool> isTag(String tag) async {
-    try {
-      final tags = await getTags();
-
-      return tags.contains(tag);
-    } catch (e) {
-      return false;
-    }
+    // Run command
+    return await _context.services.process.run(
+      cmd,
+      args: args,
+      environment: environment,
+      throwOnError: throwOnError ?? false,
+      echoOutput: echoOutput ?? true,
+    );
   }
 }

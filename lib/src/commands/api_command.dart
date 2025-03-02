@@ -15,8 +15,8 @@ class ApiCommandException implements Exception {
   const ApiCommandException(this.message, {required this.error});
 }
 
-abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
-  APISubCommand(super.controller) {
+abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
+  APISubCommand(super.context) {
     argParser.addFlag(
       'compress',
       abbr: 'c',
@@ -51,7 +51,7 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
 }
 
 /// Friendly JSON API for implementations with FVM
-class APICommand extends BaseCommand {
+class APICommand extends BaseFvmCommand {
   @override
   final name = 'api';
 
@@ -59,11 +59,11 @@ class APICommand extends BaseCommand {
   String description = 'JSON API for FVM data';
 
   /// Constructor
-  APICommand(super.controller) {
-    addSubcommand(APIListCommand(controller));
-    addSubcommand(APIReleasesCommand(controller));
-    addSubcommand(APIContextCommand(controller));
-    addSubcommand(APIProjectCommand(controller));
+  APICommand(super.context) {
+    addSubcommand(APIListCommand(context));
+    addSubcommand(APIReleasesCommand(context));
+    addSubcommand(APIContextCommand(context));
+    addSubcommand(APIProjectCommand(context));
   }
 
   @override
@@ -82,7 +82,7 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
 
   @override
   FutureOr<GetContextResponse> runSubCommand() {
-    return controller.api.getContext();
+    return services.api.getContext();
   }
 }
 
@@ -94,7 +94,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
   final description = 'Gets project data for FVM';
 
   /// Constructor
-  APIProjectCommand(super.controller) {
+  APIProjectCommand(super.context) {
     argParser.addOption(
       'path',
       abbr: 'p',
@@ -112,7 +112,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return controller.api.getProject(projectDir);
+    return services.api.getProject(projectDir);
   }
 }
 
@@ -138,8 +138,9 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   Future<GetCacheVersionsResponse> runSubCommand() {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return controller.api
-        .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
+    return services.api.getCachedVersions(
+      skipCacheSizeCalculation: shouldSkipSizing,
+    );
   }
 }
 
@@ -170,6 +171,9 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return controller.api.getReleases(limit: limitArg, channelName: channelArg);
+    return services.api.getReleases(
+      limit: limitArg,
+      channelName: channelArg,
+    );
   }
 }

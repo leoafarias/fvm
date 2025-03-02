@@ -24,7 +24,7 @@ class TestCommandRunner extends FvmCommandRunner {
     final updatedArgs = args.skip(1).toList();
 
     assert(
-      controller.context.isTest == true,
+      context.isTest == true,
       'Controller must be created with isTest: true',
     );
 
@@ -35,39 +35,6 @@ class TestCommandRunner extends FvmCommandRunner {
     final updatedArgs = args.skip(1).toList();
     await runCommand(parse(updatedArgs));
     return ExitCode.success.code;
-  }
-}
-
-/// Returns the [name] of a branch or tag for a [version]
-Future<String?> getBranch(String version, FVMContext context) async {
-  final versionDir = Directory(p.join(context.versionsCachePath, version));
-
-  final isGitDir = await GitDir.isGitDir(versionDir.path);
-
-  if (!isGitDir) throw Exception('Not a git directory');
-
-  final gitDir = await GitDir.fromExisting(versionDir.path);
-
-  final result = await gitDir.currentBranch();
-
-  return result.branchName;
-}
-
-/// Returns the [name] of a tag [version]
-Future<String?> getTag(String version, FVMContext context) async {
-  final versionDir = Directory(p.join(context.versionsCachePath, version));
-
-  final isGitDir = await GitDir.isGitDir(versionDir.path);
-
-  if (!isGitDir) throw Exception('Not a git directory');
-
-  final gitDir = await GitDir.fromExisting(versionDir.path);
-
-  try {
-    final pr = await gitDir.runCommand(['describe', '--tags', '--exact-match']);
-    return (pr.stdout as String).trim();
-  } catch (e) {
-    return null;
   }
 }
 
@@ -352,7 +319,7 @@ Matcher isExpectedJson(String expected) {
 class MockFlutterService extends FlutterService {
   MockFlutterService(
     super.context, {
-    required super.cacheService,
+    required super.cache,
     required super.flutterReleasesServices,
   }) {
     if (!_testCacheDir.existsSync()) {
@@ -371,7 +338,7 @@ class MockFlutterService extends FlutterService {
 
   late final _overrideFlutterService = FlutterService(
     _overrideContext,
-    cacheService: _overrideCacheService,
+    cache: _overrideCacheService,
     flutterReleasesServices: flutterReleasesServices,
   );
 

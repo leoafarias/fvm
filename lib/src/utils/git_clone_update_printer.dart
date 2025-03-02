@@ -1,6 +1,3 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:io/ansi.dart';
 
 import '../services/logger_service.dart';
@@ -22,7 +19,7 @@ final maxLabelLength =
 
 var _hasFailedPrint = false;
 
-void updateProgress(String line, Logger logger) {
+void printProgressBar(String line, Logger logger) {
   if (_hasFailedPrint) {
     logger.info('\n');
 
@@ -43,11 +40,11 @@ void updateProgress(String line, Logger logger) {
         if (percentage == null) return;
 
         if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
-          printProgressBar(lastMatchedEntry, 100, logger);
+          _printProgressBar(lastMatchedEntry, 100, logger);
           logger.write('\n');
         }
 
-        printProgressBar(label, percentage, logger);
+        _printProgressBar(label, percentage, logger);
 
         lastPercentage = percentage;
         lastMatchedEntry = label;
@@ -59,7 +56,7 @@ void updateProgress(String line, Logger logger) {
   }
 }
 
-void printProgressBar(String label, int percentage, Logger logger) {
+void _printProgressBar(String label, int percentage, Logger logger) {
   final progressBarWidth = 50;
   final progressInBlocks = (percentage / 100 * progressBarWidth).round();
   final progressBlocks = '${green.wrap('█')}' * progressInBlocks;
@@ -68,36 +65,4 @@ void printProgressBar(String label, int percentage, Logger logger) {
   final output = '\r $label [$progressBlocks$remainingBlocks] $percentage%';
 
   logger.write(output);
-}
-
-// Create a custom Process.start, that prints using the progress bar
-Future<void> runGitCloneUpdate(List<String> args, Logger logger) async {
-  final process = await Process.start('git', args, runInShell: true);
-
-  final processLogs = <String>[];
-
-  try {
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stderr.transform(utf8.decoder).listen((line) {
-      updateProgress(line, logger);
-      processLogs.add(line);
-    });
-
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stdout.transform(utf8.decoder).listen((line) {
-      logger.info(line);
-    });
-  } catch (e) {
-    logger.detail('Formatting error due to invalid return $e');
-    logger.info('Updating....');
-  }
-
-  final exitCode = await process.exitCode;
-  if (exitCode != 0) {
-    logger.err(processLogs.join('\n'));
-    throw Exception('Git clone failed');
-  }
-  logger
-    ..info('')
-    ..success('Clone complete');
 }

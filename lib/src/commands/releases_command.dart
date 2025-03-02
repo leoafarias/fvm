@@ -8,7 +8,7 @@ import '../utils/helpers.dart';
 import 'base_command.dart';
 
 /// List installed SDK Versions
-class ReleasesCommand extends BaseCommand {
+class ReleasesCommand extends BaseFvmCommand {
   @override
   final name = 'releases';
 
@@ -17,7 +17,7 @@ class ReleasesCommand extends BaseCommand {
 
   /// Constructor
   // Add option to pass channel name
-  ReleasesCommand(super.controller) {
+  ReleasesCommand(super.context) {
     argParser.addOption(
       'channel',
       abbr: 'c',
@@ -47,9 +47,9 @@ class ReleasesCommand extends BaseCommand {
       return release.channel.name != channelName;
     }
 
-    controller.logger.detail('Filtering by channel: $channelName');
+    context.logger.detail('Filtering by channel: $channelName');
 
-    final releases = await controller.releases.getReleases();
+    final releases = await services.releases.getReleases();
 
     final versions = releases.versions.reversed;
 

@@ -32,11 +32,11 @@ import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CompletionCommandRunner<int> {
-  final FvmController controller;
+  final FVMContext context;
   final PubUpdater _pubUpdater;
 
   /// Constructor
-  FvmCommandRunner(this.controller, {PubUpdater? pubUpdater})
+  FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater(),
         super(kPackageName, kDescription) {
     argParser
@@ -47,21 +47,21 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         help: 'Print the current version.',
         negatable: false,
       );
-    addCommand(InstallCommand(controller));
-    addCommand(UseCommand(controller));
-    addCommand(ListCommand(controller));
-    addCommand(RemoveCommand(controller));
-    addCommand(ReleasesCommand(controller));
-    addCommand(FlutterCommand(controller));
-    addCommand(DartCommand(controller));
-    addCommand(DoctorCommand(controller));
-    addCommand(SpawnCommand(controller));
-    addCommand(ConfigCommand(controller));
-    addCommand(ExecCommand(controller));
-    addCommand(DestroyCommand(controller));
-    addCommand(APICommand(controller));
-    addCommand(GlobalCommand(controller));
-    addCommand(FlavorCommand(controller));
+    addCommand(InstallCommand(context));
+    addCommand(UseCommand(context));
+    addCommand(ListCommand(context));
+    addCommand(RemoveCommand(context));
+    addCommand(ReleasesCommand(context));
+    addCommand(FlutterCommand(context));
+    addCommand(DartCommand(context));
+    addCommand(DoctorCommand(context));
+    addCommand(SpawnCommand(context));
+    addCommand(ConfigCommand(context));
+    addCommand(ExecCommand(context));
+    addCommand(DestroyCommand(context));
+    addCommand(APICommand(context));
+    addCommand(GlobalCommand(context));
+    addCommand(FlavorCommand(context));
   }
 
   /// Checks if the current version (set by the build runner on the
@@ -69,9 +69,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      final lastUpdateCheck =
-          controller.context.lastUpdateCheck ?? DateTime.now();
-      if (controller.context.updateCheckDisabled) return null;
+      final lastUpdateCheck = context.lastUpdateCheck ?? DateTime.now();
+      if (context.updateCheckDisabled) return null;
       final oneDay = lastUpdateCheck.add(const Duration(days: 1));
 
       if (DateTime.now().isBefore(oneDay)) {
@@ -94,22 +93,22 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final currentVersionLabel = lightCyan.wrap(packageVersion);
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
-        controller.logger
-          ..spacer
+        context.logger
+          ..lineBreak()
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
           )
-          ..spacer;
+          ..lineBreak();
       };
     } catch (_) {
       return () {
-        controller.logger.detail("Failed to check for updates.");
+        context.logger.detail("Failed to check for updates.");
       };
     }
   }
 
   @override
-  void printUsage() => controller.logger.info(usage);
+  void printUsage() => context.logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -117,36 +116,36 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
-        controller.logger.level = Level.verbose;
+        context.logger.level = Level.verbose;
       }
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
     } on ApiCommandException catch (err, stackTrace) {
-      controller.logger
+      context.logger
         ..fail(err.message)
-        ..spacer
+        ..lineBreak()
         ..err(err.error.toString());
-      controller.logger.logTrace(stackTrace);
+      context.logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on AppDetailedException catch (err, stackTrace) {
-      controller.logger
+      context.logger
         ..fail(err.message)
-        ..spacer
+        ..lineBreak()
         ..err(err.info);
-      controller.logger.logTrace(stackTrace);
+      context.logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
-        controller.logger
-          ..spacer
+        context.logger
+          ..lineBreak()
           ..fail('Requires administrator privileges to run this command.')
-          ..spacer;
+          ..lineBreak();
 
-        controller.logger.notice(
+        context.logger.notice(
           "You don't have the required privileges to run this command.\n"
           "Try running with sudo or administrator privileges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
@@ -155,39 +154,39 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return ExitCode.noPerm.code;
       }
 
-      controller.logger
+      context.logger
         ..err(err.message)
-        ..spacer
+        ..lineBreak()
         ..err('Path: ${err.path}');
-      controller.logger.logTrace(stackTrace);
+      context.logger.logTrace(stackTrace);
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {
-      controller.logger.fail(err.message);
+      context.logger.fail(err.message);
 
       return ExitCode.data.code;
     } on ProcessException catch (e) {
-      controller.logger
-        ..spacer
+      context.logger
+        ..lineBreak()
         ..err(e.toString())
-        ..spacer;
+        ..lineBreak();
 
       return e.errorCode;
     } on UsageException catch (err) {
       // On usage errors, show the commands usage message and
       // exit with an error code
-      controller.logger
+      context.logger
         ..err(err.message)
-        ..spacer
+        ..lineBreak()
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
-      controller.logger
-        ..spacer
+      context.logger
+        ..lineBreak()
         ..err(err.toString());
 
-      controller.logger.logTrace(stackTrace);
+      context.logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     }
@@ -196,7 +195,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
-    controller.logger
+    context.logger
       ..detail('')
       ..detail('Argument information:');
 
@@ -216,33 +215,33 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      controller.logger.detail('  Top level options:');
+      context.logger.detail('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          controller.logger.detail('  - $option: ${topLevelResults[option]}');
+          context.logger.detail('  - $option: ${topLevelResults[option]}');
         }
       }
-      controller.logger.detail('');
+      context.logger.detail('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      controller.logger.detail('Command: ${commandResult.name}');
+      context.logger.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        controller.logger.detail('  Command options:');
+        context.logger.detail('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            controller.logger.detail('    - $option: ${commandResult[option]}');
+            context.logger.detail('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      controller.logger.detail('');
+      context.logger.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates();
@@ -250,7 +249,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
-      controller.logger.info(packageVersion);
+      context.logger.info(packageVersion);
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);

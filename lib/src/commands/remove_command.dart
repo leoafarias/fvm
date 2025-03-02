@@ -7,14 +7,14 @@ import '../utils/constants.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
-class RemoveCommand extends BaseCommand {
+class RemoveCommand extends BaseFvmCommand {
   @override
   final name = 'remove';
 
   @override
   final description = 'Removes Flutter SDK Version';
 
-  RemoveCommand(super.controller) {
+  RemoveCommand(super.context) {
     argParser.addFlag(
       'all',
       abbr: 'a',
@@ -35,7 +35,7 @@ class RemoveCommand extends BaseCommand {
         defaultValue: false,
       );
       if (confirmRemoval) {
-        final versionsCache = Directory(controller.context.versionsCachePath);
+        final versionsCache = Directory(context.versionsCachePath);
         if (versionsCache.existsSync()) {
           versionsCache.deleteSync(recursive: true);
 
@@ -51,13 +51,13 @@ class RemoveCommand extends BaseCommand {
     String? version;
 
     if (argResults!.rest.isEmpty) {
-      final versions = await controller.cache.getAllVersions();
-      version = controller.logger.cacheVersionSelector(versions);
+      final versions = await services.cache.getAllVersions();
+      version = logger.cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
     final validVersion = FlutterVersion.parse(version);
-    final cacheVersion = controller.cache.getVersion(validVersion);
+    final cacheVersion = services.cache.getVersion(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {
@@ -70,7 +70,7 @@ class RemoveCommand extends BaseCommand {
     try {
       /// Remove if version is cached
 
-      controller.cache.remove(cacheVersion);
+      context.services.cache.remove(cacheVersion);
 
       progress.complete('${validVersion.name} removed.');
     } on Exception {

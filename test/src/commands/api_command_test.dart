@@ -83,7 +83,7 @@ void main() {
 
   group('APIProjectCommand', () {
     test('returns project data for current directory', () async {
-      final project = runner.controller.project.findAncestor();
+      final project = runner.context.project.findAncestor();
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(null)).thenReturn(response);
@@ -96,8 +96,7 @@ void main() {
 
     test('returns project data for specified path', () async {
       final directory = Directory('/test/path');
-      final project =
-          runner.controller.project.findAncestor(directory: directory);
+      final project = runner.context.project.findAncestor(directory: directory);
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(any())).thenReturn(response);
@@ -131,8 +130,8 @@ void main() {
     setUp(() {
       versions = [
         CacheFlutterVersion(
-          FlutterVersion.channel('stable'),
-          directory: runner.controller.context.versionsCachePath,
+          ChannelVersion('stable'),
+          directory: runner.context.versionsCachePath,
         )
       ];
       // Setup mock list response
@@ -197,7 +196,7 @@ void main() {
 
     setUp(() async {
       // Setup mock releases response
-      final releases = await runner.controller.releases.getReleases();
+      final releases = await runner.context.releases.getReleases();
       response = GetReleasesResponse(
         versions: releases.versions,
         channels: releases.channels,

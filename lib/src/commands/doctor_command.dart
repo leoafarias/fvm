@@ -14,7 +14,7 @@ import '../utils/which.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
-class DoctorCommand extends BaseCommand {
+class DoctorCommand extends BaseFvmCommand {
   @override
   final name = 'doctor';
 
@@ -25,7 +25,7 @@ class DoctorCommand extends BaseCommand {
   final console = Console();
 
   /// Constructor
-  DoctorCommand(super.controller);
+  DoctorCommand(super.context);
 
   void _printProject(Project project) {
     logger.info('Project:');
@@ -55,12 +55,12 @@ class DoctorCommand extends BaseCommand {
     ]);
 
     logger.write(table.toString());
-    logger.spacer;
+    logger.lineBreak();
   }
 
   void _printIdeLinks(Project project) {
     logger
-      ..spacer
+      ..lineBreak()
       ..info('IDEs:');
     final table = createTable(['IDEs', 'Value']);
 
@@ -165,7 +165,7 @@ class DoctorCommand extends BaseCommand {
 
   void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
     logger
-      ..spacer
+      ..lineBreak()
       ..info('Environment:');
 
     var table = createTable(['Environment Variables', 'Value']);
@@ -177,7 +177,7 @@ class DoctorCommand extends BaseCommand {
 
     for (var key in ConfigKeys.values) {
       table.insertRow(
-        [key.envKey, controller.context.environment[key.envKey] ?? 'N/A'],
+        [key.envKey, context.environment[key.envKey] ?? 'N/A'],
       );
     }
 
@@ -201,7 +201,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = controller.project.findAncestor();
+    final project = services.project.findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

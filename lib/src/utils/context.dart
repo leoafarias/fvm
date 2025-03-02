@@ -10,11 +10,14 @@ import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
+import '../services/git_service.dart';
 import '../services/logger_service.dart';
+import '../services/process_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../version.dart';
 import 'constants.dart';
+import 'file_lock.dart';
 
 part 'context.mapper.dart';
 
@@ -29,10 +32,11 @@ typedef Generator<T extends Contextual> = T Function(FVMContext context);
 
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
 class FVMContext with FVMContextMappable {
-  static FVMContext main = FVMContext.create();
-
   /// Name of the context
   final String id;
+
+  /// Logger from context
+  late final Logger logger;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -68,7 +72,9 @@ class FVMContext with FVMContextMappable {
     this.isTest = false,
     this.logLevel = Level.info,
   })  : _skipInput = skipInput,
-        _generators = generators;
+        _generators = generators {
+    logger = Logger.fromContext(this);
+  }
 
   static FVMContext create({
     String? id,
@@ -96,6 +102,8 @@ class FVMContext with FVMContextMappable {
       generators: {..._defaultGenerators, ...?generatorsOverride},
     );
   }
+
+  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
 
   /// Directory where FVM is stored
   @MappableField()
@@ -145,6 +153,8 @@ class FVMContext with FVMContextMappable {
         : false;
   }
 
+  ServicesProvider get services => ServicesProvider(this);
+
   /// Privileged access
   @MappableField()
   bool get privilegedAccess {
@@ -177,6 +187,18 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
+  FileLocker createLock(String name) {
+    if (!_lockDir.existsSync()) {
+      _lockDir.createSync(recursive: true);
+    }
+
+    return FileLocker(
+      join(_lockDir.path, '$name.lock'),
+      lockExpiration: const Duration(seconds: 10),
+      pollingInterval: const Duration(milliseconds: 100),
+    );
+  }
+
   T get<T>() {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
@@ -194,6 +216,20 @@ class FVMContext with FVMContextMappable {
   String toString() => id;
 }
 
+class ServicesProvider {
+  final FVMContext _context;
+
+  const ServicesProvider(this._context);
+
+  ProjectService get project => _context.get();
+  CacheService get cache => _context.get();
+  FlutterService get flutter => _context.get();
+  FlutterReleasesService get releases => _context.get();
+  APIService get api => _context.get();
+  GitService get git => _context.get();
+  ProcessService get process => _context.get();
+}
+
 class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   const GeneratorsMapper();
 
@@ -206,20 +242,6 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   @override
   // ignore: avoid-dynamic
   dynamic encode(Map<Type, Generator> self) => null;
-}
-
-class FvmController {
-  final FVMContext context;
-  late final Logger logger;
-
-  FvmController(this.context) : logger = Logger.fromContext(context);
-
-  ProjectService get project => context.get();
-
-  CacheService get cache => context.get();
-  FlutterService get flutter => context.get();
-  APIService get api => context.get();
-  FlutterReleasesService get releases => context.get();
 }
 
 const _defaultGenerators = {
@@ -243,12 +265,20 @@ ProjectService _buildProjectService(FVMContext context) {
   return ProjectService(context);
 }
 
+GitService _buildGitService(FVMContext context) {
+  return GitService(context);
+}
+
 FlutterService _buildFlutterService(FVMContext context) {
   return FlutterService(
     context,
-    cacheService: _buildCacheService(context),
+    cache: _buildCacheService(context),
     flutterReleasesServices: _buildFlutterReleasesService(context),
   );
+}
+
+ProcessService _buildProcessService(FVMContext context) {
+  return ProcessService(context);
 }
 
 CacheService _buildCacheService(FVMContext context) {

@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 import 'base_command.dart';
 
 /// Fvm Config
-class ConfigCommand extends BaseCommand {
+class ConfigCommand extends BaseFvmCommand {
   @override
   final name = 'config';
 
@@ -15,7 +15,7 @@ class ConfigCommand extends BaseCommand {
   final description = 'Set global configuration settings for FVM';
 
   /// Constructor
-  ConfigCommand(super.controller) {
+  ConfigCommand(super.context) {
     ConfigKeys.injectArgParser(argParser);
     argParser.addFlag(
       'update-check',
@@ -62,7 +62,7 @@ class ConfigCommand extends BaseCommand {
     } else {
       logger
         ..info('FVM Configuration:')
-        ..info('Located at ${controller.context.configPath}')
+        ..info('Located at ${context.configPath}')
         ..info('');
 
       final options = currentConfig.toMap();

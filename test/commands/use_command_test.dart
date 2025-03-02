@@ -20,7 +20,7 @@ void main() {
 
   setUp(() {
     runner = TestFactory.commandRunner();
-    controller = runner.controller;
+    controller = runner.context;
   });
 
   group('Use workflow:', () {

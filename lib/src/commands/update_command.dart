@@ -7,7 +7,7 @@ import '../utils/constants.dart';
 import '../version.dart';
 import 'base_command.dart';
 
-class UpdateCommand extends BaseCommand {
+class UpdateCommand extends BaseFvmCommand {
   static const String commandName = 'update';
 
   final PubUpdater _pubUpdater;

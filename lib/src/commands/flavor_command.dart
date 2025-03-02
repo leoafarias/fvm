@@ -5,7 +5,7 @@ import '../workflows/ensure_cache.workflow.dart';
 import 'base_command.dart';
 
 /// Executes a Flutter command using a specified version defined by the project flavor
-class FlavorCommand extends BaseCommand {
+class FlavorCommand extends BaseFvmCommand {
   @override
   final name = 'flavor';
   @override
@@ -26,7 +26,7 @@ class FlavorCommand extends BaseCommand {
       );
     }
 
-    final project = controller.project.findAncestor();
+    final project = services.project.findAncestor();
 
     final flavor = argResults!.rest[0];
 
@@ -45,15 +45,15 @@ class FlavorCommand extends BaseCommand {
       // Will install version if not already installed
       final cacheVersion = await ensureCacheWorkflow(
         version,
-        controller: controller,
+        context: context,
       );
       // Runs flutter command with pinned version
       logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');
 
-      final results = await controller.flutter.runFlutter(
+      final results = await services.flutter.runFlutter(
+        cacheVersion,
         flutterArgs,
-        version: cacheVersion,
       );
 
       return results.exitCode;

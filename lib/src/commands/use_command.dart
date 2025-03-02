@@ -9,7 +9,7 @@ import '../workflows/use_version.workflow.dart';
 import 'base_command.dart';
 
 /// Use an installed SDK version
-class UseCommand extends BaseCommand {
+class UseCommand extends BaseFvmCommand {
   @override
   final name = 'use';
 
@@ -18,7 +18,7 @@ class UseCommand extends BaseCommand {
       'Sets Flutter SDK Version you would like to use in a project';
 
   /// Constructor
-  UseCommand(super.controller) {
+  UseCommand(super.context) {
     argParser
       ..addFlag(
         'force',
@@ -62,12 +62,12 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = controller.project.findAncestor();
+    final project = context.project.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await controller.cache.getAllVersions();
+      final versions = await context.cache.getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     }
@@ -87,8 +87,7 @@ class UseCommand extends BaseCommand {
       /// Pin release to channel
       final channel = FlutterChannel.fromName(version);
 
-      final release =
-          await controller.releases.getLatestReleaseOfChannel(channel);
+      final release = await context.releases.getLatestReleaseOfChannel(channel);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',
@@ -127,7 +126,7 @@ class UseCommand extends BaseCommand {
     final cacheVersion = await ensureCacheWorkflow(
       version,
       force: forceOption,
-      controller: controller,
+      context: context,
     );
 
     /// Run use workflow
@@ -138,7 +137,7 @@ class UseCommand extends BaseCommand {
       skipSetup: skipSetup,
       runPubGetOnSdkChange: !skipPubGet,
       flavor: flavorOption,
-      controller: controller,
+      controller: context,
     );
 
     return ExitCode.success.code;

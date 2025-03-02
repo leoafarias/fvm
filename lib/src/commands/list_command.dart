@@ -7,7 +7,7 @@ import '../utils/helpers.dart';
 import 'base_command.dart';
 
 /// List installed SDK Versions
-class ListCommand extends BaseCommand {
+class ListCommand extends BaseFvmCommand {
   @override
   final name = 'list';
 
@@ -15,20 +15,18 @@ class ListCommand extends BaseCommand {
   final description = 'Lists installed Flutter SDK Versions';
 
   /// Constructor
-  ListCommand(super.controller);
+  ListCommand(super.context);
 
   @override
   Future<int> run() async {
-    final cacheVersions = await controller.cache.getAllVersions();
+    final cacheVersions = await services.cache.getAllVersions();
 
     final directorySize = await getFullDirectorySize(cacheVersions);
 
     logger
-      ..info(
-        'Cache directory:  ${cyan.wrap(controller.context.versionsCachePath)}',
-      )
+      ..info('Cache directory:  ${cyan.wrap(context.versionsCachePath)}')
       ..info('Directory Size: ${formatFriendlyBytes(directorySize)}')
-      ..spacer;
+      ..lineBreak();
 
     if (cacheVersions.any((e) => e.isNotSetup)) {
       logger
@@ -38,7 +36,7 @@ class ListCommand extends BaseCommand {
         ..info(
           'This will complete the first time you run any command with the SDK.',
         )
-        ..spacer;
+        ..lineBreak();
     }
     if (cacheVersions.isEmpty) {
       logger
@@ -48,9 +46,9 @@ class ListCommand extends BaseCommand {
       return ExitCode.success.code;
     }
 
-    final releases = await controller.releases.getReleases();
-    final globalVersion = controller.cache.getGlobal();
-    final localVersion = controller.project.findVersion();
+    final releases = await services.releases.getReleases();
+    final globalVersion = services.cache.getGlobal();
+    final localVersion = services.project.findVersion();
 
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)

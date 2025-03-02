@@ -89,7 +89,6 @@ void main() {
       final updatedEnvironments = updateEnvironmentVariables(
         [cacheVersion!.binPath, cacheVersion.dartBinPath],
         Platform.environment,
-        controller.logger,
       );
 
       // Run commands directly with updated environment
