@@ -1,14 +1,11 @@
-import 'dart:io';
-
-import 'package:mason_logger/mason_logger.dart';
-
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
+import '../services/process_service.dart';
 import '../utils/exceptions.dart';
 import 'workflow.dart';
 
-class ResolveDependenciesWorkflow extends Workflow {
-  ResolveDependenciesWorkflow(super.context);
+class ResolveProjectDependenciesWorkflow extends Workflow {
+  ResolveProjectDependenciesWorkflow(super.context);
 
   void _logDetails(CacheFlutterVersion version, Project project) {
     final dartGeneratorVersion = project.dartToolGeneratorVersion;
@@ -54,84 +51,96 @@ class ResolveDependenciesWorkflow extends Workflow {
     logger.detail('----------------------------------------');
   }
 
-  Future<void> call(
+  Future<bool> call(
     Project project,
     CacheFlutterVersion version, {
     required bool force,
   }) async {
-    if (version.isNotSetup) return;
+    if (version.isNotSetup) {
+      logger.warn('Flutter SDK is not setup, skipping resolve dependencies.');
+
+      return false;
+    }
 
     if (project.dartToolVersion == version.flutterSdkVersion) {
-      return;
+      logger
+        ..info('Dart tool version matches SDK version, skipping resolve.')
+        ..lineBreak();
+
+      return true;
     }
 
     if (!context.runPubGetOnSdkChanges) {
       logger
-        ..info('Skipping "pub get" because of config setting.')
+        ..warn('Skipping "pub get" because of config setting')
         ..lineBreak();
 
-      return;
+      return false;
     }
 
     if (!project.hasPubspec) {
       logger
-        ..info('Skipping "pub get" because no pubspec.yaml found.')
+        ..warn('Skipping "pub get" because no pubspec.yaml found.')
         ..lineBreak();
 
-      return;
+      return true;
     }
 
     final progress = logger.progress('Resolving dependencies...');
 
     // Try to resolve offline
-    ProcessResult pubGetResults = await services.flutter.runFlutter(
+    final pubGetOfflineResults = await services.flutter.runFlutter(
       version,
       ['pub', 'get', '--offline'],
     );
 
-    if (pubGetResults.exitCode != ExitCode.success.code) {
-      logger.detail('Could not resolve dependencies using offline mode.');
+    if (pubGetOfflineResults.isSuccess) {
+      progress.complete('Dependencies resolved offline.');
 
-      progress.update('Trying to resolve dependencies...');
-
-      pubGetResults = await services.flutter.runFlutter(
-        version,
-        ['pub', 'get'],
-      );
-
-      if (pubGetResults.exitCode != ExitCode.success.code) {
-        progress.fail('Could not resolve dependencies.');
-        logger
-          ..lineBreak()
-          ..err(pubGetResults.stderr.toString());
-
-        logger.info(
-          'The error could indicate incompatible dependencies to the SDK.',
-        );
-
-        if (force) {
-          logger.warn('Force pinning due to --force flag.');
-
-          return;
-        }
-
-        final confirmation = logger.confirm(
-          'Would you like to continue pinning this version anyway?',
-          defaultValue: false,
-        );
-
-        if (!confirmation) {
-          throw AppException('Dependencies not resolved.');
-        }
-
-        return;
-      }
+      return true;
     }
 
-    progress.complete('Dependencies resolved.');
+    progress.update('Trying to resolve dependencies...');
+
+    final pubGetResults = await services.flutter.runFlutter(
+      version,
+      ['pub', 'get'],
+    );
+
+    if (pubGetResults.isSuccess) {
+      progress.complete('Dependencies resolved.');
+
+      return true;
+    }
+
+    progress.fail('Could not resolve dependencies.');
+    logger
+      ..lineBreak()
+      ..err(pubGetResults.stderr.toString());
+
+    logger.info(
+      'The error could indicate incompatible dependencies to the SDK.',
+    );
+
+    if (force) {
+      logger.warn('Force pinning due to --force flag.');
+
+      return false;
+    }
+
+    final confirmation = logger.confirm(
+      'Would you like to continue pinning this version anyway?',
+      defaultValue: false,
+    );
+
+    if (!confirmation) {
+      throw AppException('Dependencies not resolved.');
+    }
 
     if (pubGetResults.stdout != null) {
       logger.detail(pubGetResults.stdout);
     }
+
+    return true;
   }
 }

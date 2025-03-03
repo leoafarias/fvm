@@ -8,7 +8,6 @@ void main() {
   // Reusable test function for all version installations
   Future<void> testInstallVersion(String version) async {
     final runner = TestFactory.commandRunner();
-
     final services = runner.services;
 
     // Run the install command
@@ -51,6 +50,7 @@ void main() {
     expect(exitCode, ExitCode.success.code);
   }
 
+  // Group 1: Flutter channels
   group('Install Flutter channels:', () {
     final channelVersions = ['master', 'stable', 'beta', 'dev'];
 
@@ -61,6 +61,7 @@ void main() {
     }
   });
 
+  // Group 2: Specific versions
   group('Install specific Flutter versions:', () {
     final specificVersions = ['2.0.0'];
 
@@ -71,6 +72,7 @@ void main() {
     }
   });
 
+  // Group 3: Versions with specific channels
   group('Install versions with specific channels:', () {
     final versionWithChannels = ['2.2.2@beta', '2.2.2@dev'];
 
@@ -81,6 +83,7 @@ void main() {
     }
   });
 
+  // Group 4: Git commit hashes
   group('Install from Git commit hash:', () {
     final commitHashes = ['f4c74a6ec3'];
 

@@ -19,13 +19,13 @@ void main() {
 
   // Setup function that runs before each test
   setUp(() {
-    // Initialize test runner first
-    runner = TestFactory.commandRunner();
-
-    // Initialize mocks with test runner's context
     context = TestFactory.context(generators: {
       APIService: (_) => _MockAPIService(),
     });
+    // Initialize test runner first
+    runner = TestFactory.commandRunner(context: context);
+
+    // Initialize mocks with test runner's context
     apiService = context.get<APIService>();
   });
 

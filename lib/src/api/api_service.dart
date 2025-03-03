@@ -1,30 +1,16 @@
 import 'dart:io';
 
 import '../services/base_service.dart';
-import '../services/cache_service.dart';
-import '../services/project_service.dart';
-import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import 'models/json_response.dart';
 
 class APIService extends ContextualService {
-  final ProjectService _projectService;
-  final CacheService _cacheService;
-  final FlutterReleasesService _flutterReleasesServices;
-
-  APIService(
-    super.context, {
-    required ProjectService projectService,
-    required CacheService cacheService,
-    required FlutterReleasesService flutterReleasesServices,
-  })  : _projectService = projectService,
-        _cacheService = cacheService,
-        _flutterReleasesServices = flutterReleasesServices;
+  APIService(super.context);
 
   GetContextResponse getContext() => GetContextResponse(context: context);
 
   GetProjectResponse getProject([Directory? projectDir]) {
-    final project = _projectService.findAncestor(directory: projectDir);
+    final project = services.project.findAncestor(directory: projectDir);
 
     return GetProjectResponse(project: project);
   }
@@ -32,7 +18,7 @@ class APIService extends ContextualService {
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,
   }) async {
-    final versions = await _cacheService.getAllVersions();
+    final versions = await services.cache.getAllVersions();
 
     if (skipCacheSizeCalculation) {
       return GetCacheVersionsResponse(
@@ -41,7 +27,7 @@ class APIService extends ContextualService {
       );
     }
 
-    final versionSizes = await Future.wait(versions.map((version) async {
+    final versionSizes = await Future.wait(versions.map((version) {
       return getDirectorySize(Directory(version.directory));
     }));
 
@@ -55,7 +41,7 @@ class APIService extends ContextualService {
     int? limit,
     String? channelName,
   }) async {
-    final payload = await _flutterReleasesServices.getReleases();
+    final payload = await services.releases.getReleases();
 
     var filteredVersions = payload.versions.where((version) {
       if (channelName == null) return true;

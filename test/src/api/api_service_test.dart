@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/api/api_service.dart';
 import 'package:fvm/src/api/models/json_response.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
@@ -22,20 +21,10 @@ void main() {
   setUp(() {
     // Initialize all mocks
 
-    APIService createMockApiService(FVMContext context) {
-      return APIService(
-        context,
-        projectService: context.get<ProjectService>(),
-        cacheService: context.get<CacheService>(),
-        flutterReleasesServices: context.get<FlutterReleasesService>(),
-      );
-    }
-
     context = TestFactory.context(
       generators: {
-        APIService: createMockApiService,
         ProjectService: (_) => MockProjectService(),
-        FlutterReleasesService: (_) => MockFlutterReleasesService(),
+        // FlutterReleasesService: (_) => MockFlutterReleasesService(),
       },
     );
 

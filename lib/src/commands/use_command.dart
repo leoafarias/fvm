@@ -138,7 +138,7 @@ class UseCommand extends BaseFvmCommand {
       project: project,
       force: forceOption,
       skipSetup: skipSetup,
-      runPubGetOnSdkChange: !skipPubGet,
+      skipPubGet: skipPubGet,
       flavor: flavorOption,
     );
 

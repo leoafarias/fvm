@@ -16,6 +16,13 @@ import '../services/process_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../version.dart';
+import '../workflows/check_project_constraints.workflow.dart';
+import '../workflows/resolve_project_deps.workflow.dart';
+import '../workflows/setup_flutter.workflow.dart';
+import '../workflows/setup_gitignore.workflow.dart';
+import '../workflows/update_project_references.workflow.dart';
+import '../workflows/update_vscode_settings.workflow.dart';
+import '../workflows/use_version.workflow.dart';
 import 'constants.dart';
 import 'file_lock.dart';
 
@@ -241,27 +248,17 @@ const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
   FlutterReleasesService: FlutterReleasesService.new,
-  FlutterService: _buildFlutterService,
-  APIService: _buildAPIService,
+  FlutterService: FlutterService.new,
+  APIService: APIService.new,
   GitService: GitService.new,
   ProcessService: ProcessService.new,
   ServicesProvider: ServicesProvider.new,
   Logger: Logger.new,
+  UseVersionWorkflow: UseVersionWorkflow.new,
+  CheckProjectConstraintsWorkflow: CheckProjectConstraintsWorkflow.new,
+  ResolveProjectDependenciesWorkflow: ResolveProjectDependenciesWorkflow.new,
+  SetupFlutterWorkflow: SetupFlutterWorkflow.new,
+  SetupGitIgnoreWorkflow: SetupGitIgnoreWorkflow.new,
+  UpdateProjectReferencesWorkflow: UpdateProjectReferencesWorkflow.new,
+  UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
 };
-
-APIService _buildAPIService(FVMContext context) {
-  return APIService(
-    context,
-    projectService: ProjectService(context),
-    cacheService: CacheService(context),
-    flutterReleasesServices: FlutterReleasesService(context),
-  );
-}
-
-FlutterService _buildFlutterService(FVMContext context) {
-  return FlutterService(
-    context,
-    cache: CacheService(context),
-    flutterReleasesServices: FlutterReleasesService(context),
-  );
-}

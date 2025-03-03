@@ -3,76 +3,80 @@ import 'dart:io';
 
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
-import 'package:io/io.dart' as io;
-import 'package:meta/meta.dart';
+import 'package:io/io.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import 'base_service.dart';
-import 'cache_service.dart';
 import 'logger_service.dart';
 import 'process_service.dart';
-import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
-  @protected
-  final CacheService cache;
-
-  @protected
-  final FlutterReleasesService flutterReleasesServices;
-
-  FlutterService(
-    super.context, {
-    required this.cache,
-    required this.flutterReleasesServices,
-  });
+  FlutterService(super.context);
 
   Future<ProcessResult> runFlutter(
     CacheFlutterVersion version,
-    List<String> args,
-  ) {
-    return run(version, 'flutter', args);
+    List<String> args, {
+    bool throwOnError = false,
+  }) {
+    return run(version, 'flutter', args, throwOnError: throwOnError);
   }
 
   Future<ProcessResult> runDart(
     CacheFlutterVersion version,
-    List<String> args,
-  ) {
-    return run(version, 'dart', args);
+    List<String> args, {
+    bool throwOnError = false,
+  }) {
+    return run(version, 'dart', args, throwOnError: throwOnError);
   }
 
   Future<ProcessResult> run(
     CacheFlutterVersion version,
     String cmd,
-    List<String> args,
-  ) {
+    List<String> args, {
+    bool throwOnError = false,
+  }) {
     final versionRunner = VersionRunner(context: context, version: version);
 
-    return versionRunner.run(cmd, args);
+    return versionRunner.run(cmd, args, throwOnError: throwOnError);
   }
 
-  /// Clones Flutter SDK from Version Number or Channel
   Future<void> install(FlutterVersion version) async {
-    final versionDir = cache.getVersionCacheDir(version.name);
+    final versionDir = services.cache.getVersionCacheDir(version.name);
+
+    // Check if its git commit
+    String? channel;
+
+    if (version.isChannel) {
+      channel = version.name;
+      // If its not a commit hash
+    } else if (version.isRelease) {
+      if (version.releaseFromChannel != null) {
+        // Version name forces channel version
+        channel = version.releaseFromChannel;
+      } else {
+        final release =
+            await services.releases.getReleaseFromVersion(version.name);
+        channel = release?.channel.name;
+      }
+    }
 
     final versionCloneParams = [
       '-c',
       'advice.detachedHead=false',
       '-b',
-      version.releaseFromChannel ?? version.version,
+      channel ?? version.name,
     ];
 
     final useMirrorParams = ['--reference', context.gitCachePath];
 
-    final useGitCache = context.gitCache;
-
     final cloneArgs = [
       //if its a git hash
       if (!version.isCommit) ...versionCloneParams,
-      if (useGitCache) ...useMirrorParams,
+      if (context.gitCache) ...useMirrorParams,
     ];
 
     try {
@@ -87,7 +91,8 @@ class FlutterService extends ContextualService {
         echoOutput: !(context.isTest || !logger.isVerbose),
       );
 
-      final isGit = await GitDir.isGitDir(versionDir.path);
+      final gitVersionDir = services.cache.getVersionCacheDir(version.name);
+      final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
         throw AppException(
@@ -95,17 +100,19 @@ class FlutterService extends ContextualService {
         );
       }
 
-      if (version.isRelease || version.isCommit) {
-        await services.git.resetToReference(versionDir.path, version.version);
+      /// If version is not a channel reset to version
+      if (!version.isChannel) {
+        await services.git
+            .resetToReference(gitVersionDir.path, version.version);
       }
 
-      if (result.exitCode != io.ExitCode.success.code) {
+      if (result.exitCode != ExitCode.success.code) {
         throw AppException(
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }
     } on Exception {
-      cache.remove(version);
+      services.cache.remove(version);
       rethrow;
     }
   }

@@ -68,7 +68,7 @@ class InstallCommand extends BaseFvmCommand {
         project: project,
         force: true,
         skipSetup: !setup,
-        runPubGetOnSdkChange: !skipPubGet,
+        skipPubGet: skipPubGet,
       );
 
       return ExitCode.success.code;

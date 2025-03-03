@@ -77,14 +77,29 @@ Directory createTempDir([String prefix = '']) {
   return Directory.systemTemp.createTempSync('$_kTempTestDirPrefix$prefix');
 }
 
-File createPubspecYaml(Directory directory, {String? projectName}) {
-  projectName ??= _generateUuid();
+File createPubspecYaml(Directory directory,
+    {String? name, String? sdkConstraint}) {
+  name ??= _generateUuid();
+
+  // environment:
+  //  sdk: ">=2.17.0 <4.0.0"
+
   final file = File(p.join(directory.path, 'pubspec.yaml'));
-  file.writeAsStringSync('name: $projectName');
+
+  final content = StringBuffer();
+  content.writeln('name: $name');
+  content.writeln('');
+
+  if (sdkConstraint != null) {
+    content.writeln('environment:');
+    content.writeln(' sdk: "$sdkConstraint"');
+  }
+
+  file.writeAsStringSync(content.toString());
   return file;
 }
 
-File createFvmConfig(ProjectConfig config, Directory directory) {
+File createProjectConfig(ProjectConfig config, Directory directory) {
   final file = File(p.join(directory.path, '.fvmrc'));
   file.writeAsStringSync(config.toJson());
   return file;
@@ -219,7 +234,7 @@ class TestFactory {
 
   static FVMContext context({
     String? name,
-    // AppConfig? appConfig,
+    bool? privilegedAccess,
     Map<Type, Generator>? generators,
   }) {
     name ??= _generateUuid();
@@ -229,6 +244,7 @@ class TestFactory {
     final config = AppConfig.empty().copyWith(
       cachePath: createTempDir().path,
       gitCachePath: _kGitCacheDir.path,
+      privilegedAccess: privilegedAccess,
       useGitCache: true,
     );
 
@@ -252,8 +268,6 @@ class TestFactory {
   static MockFlutterService _mockFlutterService(FVMContext context) {
     return MockFlutterService(
       context,
-      cache: context.get<CacheService>(),
-      flutterReleasesServices: context.get<FlutterReleasesService>(),
     );
   }
 }
@@ -314,10 +328,8 @@ Matcher isExpectedJson(String expected) {
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
   MockFlutterService(
-    super.context, {
-    required super.cache,
-    required super.flutterReleasesServices,
-  }) {
+    super.context,
+  ) {
     if (!_testCacheDir.existsSync()) {
       _testCacheDir.createSync(recursive: true);
     }

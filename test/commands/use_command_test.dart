@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../testing_utils.dart';
 
 // Assuming this is defined in your testing_utils.dart
-const kVersionList = [
+const _versionList = [
   'stable',
   'beta',
   'dev',
@@ -24,7 +24,7 @@ void main() {
   });
 
   group('Use workflow:', () {
-    for (var version in kVersionList) {
+    for (var version in _versionList) {
       test('Use $version', () async {
         final exitCode = await runner.run([
           'fvm',

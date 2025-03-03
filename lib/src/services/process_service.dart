@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:io/io.dart';
+
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
@@ -84,4 +86,10 @@ class ProcessService extends ContextualService {
 
     return processResult;
   }
+}
+
+extension ProcessResultX on ProcessResult {
+  bool get isSuccess => exitCode == ExitCode.success.code;
+
+  bool get isFailure => exitCode != ExitCode.success.code;
 }

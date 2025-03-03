@@ -17,7 +17,7 @@ void main() {
         () {
       final tempDir = createTempDir();
 
-      createFvmConfig(
+      createProjectConfig(
         ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'}),
         tempDir,
       );
@@ -38,7 +38,7 @@ void main() {
       final childDir = Directory(p.join(parentDir.path, 'child'))..createSync();
 
       final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
-      createFvmConfig(config, parentDir);
+      createProjectConfig(config, parentDir);
 
       final projectService = ProjectService(FVMContext.create(
         workingDirectoryOverride: childDir.path,
@@ -59,7 +59,7 @@ void main() {
       );
 
       final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
-      createFvmConfig(config, tempDir);
+      createProjectConfig(config, tempDir);
 
       final pubspecFile = File(p.join(tempDir.path, 'pubspec.yaml'));
       pubspecFile.writeAsStringSync('name: test_project');
@@ -75,7 +75,7 @@ void main() {
       ));
 
       final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
-      createFvmConfig(config, tempDir);
+      createProjectConfig(config, tempDir);
 
       // Write an initial config file.
       final pubspecFile = File(p.join(tempDir.path, 'pubspec.yaml'));

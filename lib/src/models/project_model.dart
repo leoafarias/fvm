@@ -55,7 +55,7 @@ class Project with ProjectMappable {
 
   /// Retrieves the name of the project.
   @MappableField()
-  String get name => basename(path);
+  String get name => pubspec?.name ?? basename(path);
 
   /// Retrieves the pinned Flutter SDK version within the project.
   ///

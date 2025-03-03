@@ -106,7 +106,8 @@ class GitService extends ContextualService {
 
           final output = (statusResult.stdout as String).trim();
           if (output.isEmpty) {
-            print('No uncommitted changes. Working directory is clean.');
+            logger
+                .detail('No uncommitted changes. Working directory is clean.');
           } else {
             await _createLocalMirror();
           }
