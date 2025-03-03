@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/helpers.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/version.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
@@ -11,9 +11,13 @@ import '../testing_utils.dart';
 
 void main() {
   late TestCommandRunner runner;
+  late ServicesProvider services;
+  late FVMContext context;
 
   setUp(() {
     runner = TestFactory.commandRunner();
+    context = runner.context;
+    services = runner.services;
   });
 
   test('Does CLI version match', () async {
@@ -33,7 +37,6 @@ void main() {
     final newEnvVar = updateEnvironmentVariables(
       ['FAKE_PATH', 'ANOTHER_FAKE_PATH'],
       envVars,
-      runner.context.logger,
     );
 
     // expect(newEnvVar[envName], envVars[envName]);

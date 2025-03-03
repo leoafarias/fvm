@@ -13,22 +13,20 @@ class _MockAPIService extends Mock implements APIService {}
 
 void main() {
   // Set up common test variables
-  late FvmController controller;
+  late FVMContext context;
   late APIService apiService;
   late TestCommandRunner runner;
 
   // Setup function that runs before each test
   setUp(() {
-    // Initialize mocks
-    controller = TestFactory.controller(
-      TestFactory.context(generators: {
-        APIService: (_) => _MockAPIService(),
-      }),
-    );
-    apiService = controller.api;
+    // Initialize test runner first
+    runner = TestFactory.commandRunner();
 
-    // Create a command runner for testing
-    runner = TestFactory.commandRunner(controller: controller);
+    // Initialize mocks with test runner's context
+    context = TestFactory.context(generators: {
+      APIService: (_) => _MockAPIService(),
+    });
+    apiService = context.get<APIService>();
   });
 
   group('APICommand', () {
@@ -51,7 +49,7 @@ void main() {
     late GetContextResponse response;
 
     setUp(() {
-      response = GetContextResponse(context: controller.context);
+      response = GetContextResponse(context: context);
 
       when(() => apiService.getContext()).thenAnswer(
         (_) => response,
@@ -83,7 +81,7 @@ void main() {
 
   group('APIProjectCommand', () {
     test('returns project data for current directory', () async {
-      final project = runner.context.project.findAncestor();
+      final project = runner.context.get<ProjectService>().findAncestor();
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(null)).thenReturn(response);
@@ -96,7 +94,9 @@ void main() {
 
     test('returns project data for specified path', () async {
       final directory = Directory('/test/path');
-      final project = runner.context.project.findAncestor(directory: directory);
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: directory,
+          );
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(any())).thenReturn(response);
@@ -130,7 +130,7 @@ void main() {
     setUp(() {
       versions = [
         CacheFlutterVersion(
-          ChannelVersion('stable'),
+          FlutterVersion.parse('stable'),
           directory: runner.context.versionsCachePath,
         )
       ];
@@ -196,7 +196,8 @@ void main() {
 
     setUp(() async {
       // Setup mock releases response
-      final releases = await runner.context.releases.getReleases();
+      final releases =
+          await runner.context.get<FlutterReleasesService>().getReleases();
       response = GetReleasesResponse(
         versions: releases.versions,
         channels: releases.channels,

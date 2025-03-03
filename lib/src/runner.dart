@@ -25,6 +25,7 @@ import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
 import 'models/log_level_model.dart';
 import 'services/config_repository.dart';
+import 'services/logger_service.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
 import 'utils/exceptions.dart';
@@ -93,7 +94,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final currentVersionLabel = lightCyan.wrap(packageVersion);
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
-        context.logger
+        logger
           ..lineBreak()
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
@@ -102,13 +103,15 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       };
     } catch (_) {
       return () {
-        context.logger.detail("Failed to check for updates.");
+        logger.detail("Failed to check for updates.");
       };
     }
   }
 
+  Logger get logger => context.get();
+
   @override
-  void printUsage() => context.logger.info(usage);
+  void printUsage() => logger.info(usage);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -116,36 +119,36 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
-        context.logger.level = Level.verbose;
+        logger.level = Level.verbose;
       }
 
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
     } on ApiCommandException catch (err, stackTrace) {
-      context.logger
+      logger
         ..fail(err.message)
         ..lineBreak()
         ..err(err.error.toString());
-      context.logger.logTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on AppDetailedException catch (err, stackTrace) {
-      context.logger
+      logger
         ..fail(err.message)
         ..lineBreak()
         ..err(err.info);
-      context.logger.logTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
-        context.logger
+        logger
           ..lineBreak()
           ..fail('Requires administrator privileges to run this command.')
           ..lineBreak();
 
-        context.logger.notice(
+        logger.notice(
           "You don't have the required privileges to run this command.\n"
           "Try running with sudo or administrator privileges.\n"
           "If you are on Windows, you can turn on developer mode: https://bit.ly/3vxRr2M",
@@ -154,19 +157,19 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return ExitCode.noPerm.code;
       }
 
-      context.logger
+      logger
         ..err(err.message)
         ..lineBreak()
         ..err('Path: ${err.path}');
-      context.logger.logTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {
-      context.logger.fail(err.message);
+      logger.fail(err.message);
 
       return ExitCode.data.code;
     } on ProcessException catch (e) {
-      context.logger
+      logger
         ..lineBreak()
         ..err(e.toString())
         ..lineBreak();
@@ -175,18 +178,18 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     } on UsageException catch (err) {
       // On usage errors, show the commands usage message and
       // exit with an error code
-      context.logger
+      logger
         ..err(err.message)
         ..lineBreak()
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
-      context.logger
+      logger
         ..lineBreak()
         ..err(err.toString());
 
-      context.logger.logTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     }
@@ -195,7 +198,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
-    context.logger
+    logger
       ..detail('')
       ..detail('Argument information:');
 
@@ -215,33 +218,33 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      context.logger.detail('  Top level options:');
+      logger.detail('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          context.logger.detail('  - $option: ${topLevelResults[option]}');
+          logger.detail('  - $option: ${topLevelResults[option]}');
         }
       }
-      context.logger.detail('');
+      logger.detail('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      context.logger.detail('Command: ${commandResult.name}');
+      logger.detail('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        context.logger.detail('  Command options:');
+        logger.detail('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            context.logger.detail('    - $option: ${commandResult[option]}');
+            logger.detail('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      context.logger.detail('');
+      logger.detail('');
     }
 
     final checkingForUpdate = _checkForUpdates();
@@ -249,7 +252,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Run the command or show version
     final int? exitCode;
     if (topLevelResults['version'] == true) {
-      context.logger.info(packageVersion);
+      logger.info(packageVersion);
       exitCode = ExitCode.success.code;
     } else {
       exitCode = await super.runCommand(topLevelResults);

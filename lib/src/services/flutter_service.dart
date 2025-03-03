@@ -12,10 +12,12 @@ import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
+import 'logger_service.dart';
+import 'process_service.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
-class FlutterService extends Contextual {
+class FlutterService extends ContextualService {
   @protected
   final CacheService cache;
 
@@ -60,7 +62,7 @@ class FlutterService extends Contextual {
       '-c',
       'advice.detachedHead=false',
       '-b',
-      version.branch,
+      version.releaseFromChannel ?? version.version,
     ];
 
     final useMirrorParams = ['--reference', context.gitCachePath];
@@ -93,15 +95,13 @@ class FlutterService extends Contextual {
         );
       }
 
-      if (version is ReleaseVersion) {
-        await services.git.resetToReference(versionDir.path, version.release);
-      } else if (version is CommitVersion) {
-        await services.git.resetToReference(versionDir.path, version.name);
+      if (version.isRelease || version.isCommit) {
+        await services.git.resetToReference(versionDir.path, version.version);
       }
 
       if (result.exitCode != io.ExitCode.success.code) {
         throw AppException(
-          'Could not clone Flutter SDK: ${cyan.wrap(version.friendlyName)}',
+          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }
     } on Exception {
@@ -128,7 +128,9 @@ class VersionRunner {
 
     final env = _context.environment;
 
-    _context.logger.detail('Starting to update environment variables...');
+    final logger = _context.get<Logger>();
+
+    logger.detail('Starting to update environment variables...');
 
     final updatedEnvironment = Map<String, String>.from(env);
 
@@ -154,12 +156,12 @@ class VersionRunner {
     );
 
     // Run command
-    return await _context.services.process.run(
-      cmd,
-      args: args,
-      environment: environment,
-      throwOnError: throwOnError ?? false,
-      echoOutput: echoOutput ?? true,
-    );
+    return await _context.get<ProcessService>().run(
+          cmd,
+          args: args,
+          environment: environment,
+          throwOnError: throwOnError ?? false,
+          echoOutput: echoOutput ?? true,
+        );
   }
 }

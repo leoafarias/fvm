@@ -18,11 +18,9 @@ class DartCommand extends BaseFvmCommand {
   Future<int> run() async {
     final args = argResults!.arguments;
 
-    final result = await runConfiguredFlutterWorkflow(
-      'dart',
-      args: args,
-      context: context,
-    );
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
+
+    final result = await runConfiguredFlutterWorkflow('dart', args: args);
 
     return result.exitCode;
   }

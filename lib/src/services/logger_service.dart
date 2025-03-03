@@ -8,8 +8,8 @@ import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/log_level_model.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
+import 'base_service.dart';
 
 mason.Level _toMasonLevel(Level level) {
   return mason.Level.values.firstWhere((e) => e.name == level.name);
@@ -21,32 +21,29 @@ Level _toLogLevel(mason.Level level) {
 
 final _console = Console();
 
-class Logger {
+class Logger extends ContextualService {
   final mason.Logger _logger;
   final bool _isTest;
   final bool _isCI;
   final bool _skipInput;
   final List<String> _outputs = [];
 
-  factory Logger.fromContext(FVMContext context) {
-    return Logger(
-      logLevel: context.logLevel,
-      isTest: context.isTest,
-      isCI: context.isCI,
-      skipInput: context.skipInput,
-    );
-  }
+  Logger(super.context)
+      : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
+        _isTest = context.isTest,
+        _isCI = context.isCI,
+        _skipInput = context.skipInput;
 
-  /// Constructor
-  Logger({
-    required Level logLevel,
-    required bool isTest,
-    required bool isCI,
-    required bool skipInput,
-  })  : _logger = mason.Logger(level: _toMasonLevel(logLevel)),
-        _isTest = isTest,
-        _isCI = isCI,
-        _skipInput = skipInput;
+  // /// Constructor
+  // Logger({
+  //   required Level logLevel,
+  //   required bool isTest,
+  //   required bool isCI,
+  //   required bool skipInput,
+  // })  : _logger = mason.Logger(level: _toMasonLevel(logLevel)),
+  //       _isTest = isTest,
+  //       _isCI = isCI,
+  //       _skipInput = skipInput;
 
   @Deprecated('Use info instead')
   void get spacer => info('');

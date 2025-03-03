@@ -9,7 +9,7 @@ import '../utils/git_clone_update_printer.dart';
 import 'base_service.dart';
 
 /// Service for Git operations
-class GitService extends Contextual {
+class GitService extends ContextualService {
   bool _hasCheckedCache = false;
   late final FileLocker _updatingCacheLock;
 

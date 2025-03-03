@@ -46,13 +46,6 @@ class APIResponseMapper extends ClassMapperBase<APIResponse> {
 mixin APIResponseMappable {
   String toJson();
   Map<String, dynamic> toMap();
-  APIResponseCopyWith<APIResponse, APIResponse, APIResponse> get copyWith;
-}
-
-abstract class APIResponseCopyWith<$R, $In extends APIResponse, $Out>
-    implements ClassCopyWith<$R, $In, $Out> {
-  $R call();
-  APIResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
 class GetCacheVersionsResponseMapper
@@ -148,13 +141,10 @@ extension GetCacheVersionsResponseValueCopy<$R, $Out>
 abstract class GetCacheVersionsResponseCopyWith<
     $R,
     $In extends GetCacheVersionsResponse,
-    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
-  ListCopyWith<
-      $R,
-      CacheFlutterVersion,
-      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
-          CacheFlutterVersion>> get versions;
-  @override
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, CacheFlutterVersion,
+          ObjectCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>>
+      get versions;
   $R call({String? size, List<CacheFlutterVersion>? versions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
@@ -170,12 +160,10 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetCacheVersionsResponse> $mapper =
       GetCacheVersionsResponseMapper.ensureInitialized();
   @override
-  ListCopyWith<
-      $R,
-      CacheFlutterVersion,
-      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
-          CacheFlutterVersion>> get versions => ListCopyWith($value.versions,
-      (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
+  ListCopyWith<$R, CacheFlutterVersion,
+          ObjectCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>>
+      get versions => ListCopyWith($value.versions,
+          (v, t) => ObjectCopyWith(v, $identity, t), (v) => call(versions: v));
   @override
   $R call({String? size, List<CacheFlutterVersion>? versions}) =>
       $apply(FieldCopyWithData({
@@ -283,12 +271,11 @@ extension GetReleasesResponseValueCopy<$R, $Out>
 }
 
 abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
-    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   ListCopyWith<$R, FlutterSdkRelease,
           FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
       get versions;
   ChannelsCopyWith<$R, Channels, Channels> get channels;
-  @override
   $R call({List<FlutterSdkRelease>? versions, Channels? channels});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
@@ -410,9 +397,8 @@ extension GetProjectResponseValueCopy<$R, $Out>
 }
 
 abstract class GetProjectResponseCopyWith<$R, $In extends GetProjectResponse,
-    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   ProjectCopyWith<$R, Project, Project> get project;
-  @override
   $R call({Project? project});
   GetProjectResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
@@ -525,9 +511,8 @@ extension GetContextResponseValueCopy<$R, $Out>
 }
 
 abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
-    $Out> implements APIResponseCopyWith<$R, $In, $Out> {
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   FVMContextCopyWith<$R, FVMContext, FVMContext> get context;
-  @override
   $R call({FVMContext? context});
   GetContextResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);

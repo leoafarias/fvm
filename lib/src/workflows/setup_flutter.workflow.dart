@@ -1,20 +1,18 @@
 import '../models/cache_flutter_version_model.dart';
-import '../utils/context.dart';
+import 'workflow.dart';
 
-Future<void> setupFlutterWorkflow(
-  CacheFlutterVersion version, {
-  required FVMContext context,
-}) async {
-  final services = context.services;
-  final logger = context.logger;
+class SetupFlutterWorkflow extends Workflow {
+  SetupFlutterWorkflow(super.context);
 
-  logger
-    ..info('Setting up Flutter SDK: ${version.name}')
-    ..lineBreak();
+  Future<void> call(CacheFlutterVersion version) async {
+    logger
+      ..info('Setting up Flutter SDK: ${version.name}')
+      ..lineBreak();
 
-  await services.flutter.runFlutter(version, ['--version']);
+    await services.flutter.runFlutter(version, ['--version']);
 
-  logger
-    ..lineBreak()
-    ..success('Flutter SDK: ${version.friendlyName} is setup');
+    logger
+      ..lineBreak()
+      ..success('Flutter SDK: ${version.printFriendlyName} is setup');
+  }
 }

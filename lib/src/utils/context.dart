@@ -35,9 +35,6 @@ class FVMContext with FVMContextMappable {
   /// Name of the context
   final String id;
 
-  /// Logger from context
-  late final Logger logger;
-
   /// Working Directory for FVM
   final String workingDirectory;
 
@@ -72,9 +69,7 @@ class FVMContext with FVMContextMappable {
     this.isTest = false,
     this.logLevel = Level.info,
   })  : _skipInput = skipInput,
-        _generators = generators {
-    logger = Logger.fromContext(this);
-  }
+        _generators = generators;
 
   static FVMContext create({
     String? id,
@@ -153,8 +148,6 @@ class FVMContext with FVMContextMappable {
         : false;
   }
 
-  ServicesProvider get services => ServicesProvider(this);
-
   /// Privileged access
   @MappableField()
   bool get privilegedAccess {
@@ -216,18 +209,18 @@ class FVMContext with FVMContextMappable {
   String toString() => id;
 }
 
-class ServicesProvider {
-  final FVMContext _context;
+class ServicesProvider extends Contextual {
+  ServicesProvider(super.context);
 
-  const ServicesProvider(this._context);
-
-  ProjectService get project => _context.get();
-  CacheService get cache => _context.get();
-  FlutterService get flutter => _context.get();
-  FlutterReleasesService get releases => _context.get();
-  APIService get api => _context.get();
-  GitService get git => _context.get();
-  ProcessService get process => _context.get();
+  ProjectService get project => super.context.get();
+  CacheService get cache => super.context.get();
+  FlutterService get flutter => super.context.get();
+  FlutterReleasesService get releases => super.context.get();
+  APIService get api => super.context.get();
+  GitService get git => super.context.get();
+  ProcessService get process => super.context.get();
+  @override
+  Logger get logger => super.context.get();
 }
 
 class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
@@ -244,47 +237,31 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   dynamic encode(Map<Type, Generator> self) => null;
 }
 
-const _defaultGenerators = {
-  ProjectService: _buildProjectService,
-  CacheService: _buildCacheService,
-  FlutterReleasesService: _buildFlutterReleasesService,
+const _defaultGenerators = <Type, Generator>{
+  ProjectService: ProjectService.new,
+  CacheService: CacheService.new,
+  FlutterReleasesService: FlutterReleasesService.new,
   FlutterService: _buildFlutterService,
   APIService: _buildAPIService,
+  GitService: GitService.new,
+  ProcessService: ProcessService.new,
+  ServicesProvider: ServicesProvider.new,
+  Logger: Logger.new,
 };
 
 APIService _buildAPIService(FVMContext context) {
   return APIService(
     context,
-    projectService: _buildProjectService(context),
-    cacheService: _buildCacheService(context),
-    flutterReleasesServices: _buildFlutterReleasesService(context),
+    projectService: ProjectService(context),
+    cacheService: CacheService(context),
+    flutterReleasesServices: FlutterReleasesService(context),
   );
-}
-
-ProjectService _buildProjectService(FVMContext context) {
-  return ProjectService(context);
-}
-
-GitService _buildGitService(FVMContext context) {
-  return GitService(context);
 }
 
 FlutterService _buildFlutterService(FVMContext context) {
   return FlutterService(
     context,
-    cache: _buildCacheService(context),
-    flutterReleasesServices: _buildFlutterReleasesService(context),
+    cache: CacheService(context),
+    flutterReleasesServices: FlutterReleasesService(context),
   );
-}
-
-ProcessService _buildProcessService(FVMContext context) {
-  return ProcessService(context);
-}
-
-CacheService _buildCacheService(FVMContext context) {
-  return CacheService(context);
-}
-
-FlutterReleasesService _buildFlutterReleasesService(FVMContext context) {
-  return FlutterReleasesService(context);
 }

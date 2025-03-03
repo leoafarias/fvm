@@ -16,11 +16,11 @@ const kVersionList = [
 
 void main() {
   late TestCommandRunner runner;
-  late FvmController controller;
+  late ServicesProvider services;
 
   setUp(() {
     runner = TestFactory.commandRunner();
-    controller = runner.context;
+    services = runner.services;
   });
 
   group('Use workflow:', () {
@@ -35,14 +35,14 @@ void main() {
         ]);
 
         // Get the project and verify its configuration
-        final project = controller.project.findAncestor();
+        final project = services.project.findAncestor();
         final link = project.localVersionSymlinkPath.link;
         final linkExists = link.existsSync();
 
         // Check the symlink target
         final targetPath = link.targetSync();
         final valid = FlutterVersion.parse(version);
-        final versionDir = controller.cache.getVersionCacheDir(valid.name);
+        final versionDir = services.cache.getVersionCacheDir(valid.name);
 
         // Perform assertions
         expect(targetPath == versionDir.path, true);

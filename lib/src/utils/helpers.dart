@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:date_format/date_format.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -270,3 +271,8 @@ Map<String, String> updateEnvironmentVariables(
 
   return updatedEnvironment;
 }
+
+const skipCopyWith = GenerateMethods.decode |
+    GenerateMethods.encode |
+    GenerateMethods.stringify |
+    GenerateMethods.equals;

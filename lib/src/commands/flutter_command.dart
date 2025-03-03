@@ -19,11 +19,9 @@ class FlutterCommand extends BaseFvmCommand {
   Future<int> run() async {
     final args = argResults!.arguments;
     checkIfUpgradeCommand(args);
-    final result = await runConfiguredFlutterWorkflow(
-      'flutter',
-      args: args,
-      context: context,
-    );
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
+
+    final result = await runConfiguredFlutterWorkflow('flutter', args: args);
 
     return result.exitCode;
   }

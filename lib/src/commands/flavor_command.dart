@@ -41,12 +41,9 @@ class FlavorCommand extends BaseFvmCommand {
     if (version != null) {
       // Removes flavor from first arg
       final flutterArgs = [...?argResults?.rest]..removeAt(0);
-
+      final ensureCacheWorkflow = EnsureCacheWorkflow(context);
       // Will install version if not already installed
-      final cacheVersion = await ensureCacheWorkflow(
-        version,
-        context: context,
-      );
+      final cacheVersion = await ensureCacheWorkflow(version);
       // Runs flutter command with pinned version
       logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');

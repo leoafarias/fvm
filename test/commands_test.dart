@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -9,24 +10,29 @@ import 'testing_utils.dart';
 
 void main() {
   late TestCommandRunner runner;
+  late ServicesProvider services;
+  late FVMContext context;
 
   const channel = 'stable'; // Define channel explicitly
   const release = '2.0.0'; // Define release explicitly
 
   setUp(() {
     runner = TestFactory.commandRunner();
+    context = runner.context;
+    services = runner.services;
   });
 
   group('Channel Workflow:', () {
     test('Install Channel', () async {
       await runner.runOrThrow(['fvm', 'install', channel]);
 
-      final cacheVersion = runner.context.cache.getVersion(
+      final cacheVersion = services.cache.getVersion(
         FlutterVersion.parse(channel),
       );
 
-      final existingChannel = await runner.context.flutter
-          .getBranch(channel, runner.context.context);
+      final existingChannel = await services.git.getBranch(
+        channel,
+      );
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
@@ -44,7 +50,7 @@ void main() {
         await runner
             .runOrThrow(['fvm', 'use', channel, '--force', '--skip-setup']);
 
-        final project = runner.context.project.findAncestor();
+        final project = services.project.findAncestor();
 
         final link = Link(project.localVersionSymlinkPath);
 
@@ -52,7 +58,7 @@ void main() {
 
         final targetBin = link.targetSync();
 
-        final channelBin = runner.context.cache.getVersionCacheDir(channel);
+        final channelBin = services.cache.getVersionCacheDir(channel);
 
         expect(targetBin == channelBin.path, true);
         expect(linkExists, true);
@@ -64,7 +70,7 @@ void main() {
     test('Use Flutter SDK globally', () async {
       try {
         await runner.runOrThrow(['fvm', 'global', channel]);
-        final globalLink = Link(runner.context.globalCacheLink);
+        final globalLink = Link(context.globalCacheLink);
         final linkExists = globalLink.existsSync();
 
         final targetVersion = basename(await globalLink.target());
@@ -87,10 +93,11 @@ void main() {
     test('Install Release', () async {
       await runner.runOrThrow(['fvm', 'install', release]);
       final valid = FlutterVersion.parse(release);
-      final existingRelease = await runner.context.flutter
-          .getTag(valid.name, runner.context.context);
+      final existingRelease = await services.git.getTag(
+        valid.name,
+      );
 
-      final cacheVersion = runner.context.cache.getVersion(valid);
+      final cacheVersion = services.cache.getVersion(valid);
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
@@ -103,7 +110,7 @@ void main() {
       await runner.runOrThrow(['fvm', 'install', shortGitHash]);
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersionShort = runner.context.cache.getVersion(validShort);
+      final cacheVersionShort = services.cache.getVersion(validShort);
 
       expect(
         cacheVersionShort != null,
@@ -121,13 +128,13 @@ void main() {
         '--skip-setup',
       ]);
 
-      final project = runner.context.project.findAncestor();
+      final project = services.project.findAncestor();
       final link = Link(project.localVersionSymlinkPath);
       final linkExists = link.existsSync();
 
       final targetPath = link.targetSync();
       final valid = FlutterVersion.parse(release);
-      final versionDir = runner.context.cache.getVersionCacheDir(valid.name);
+      final versionDir = services.cache.getVersionCacheDir(valid.name);
 
       expect(targetPath == versionDir.path, true);
       expect(linkExists, true);

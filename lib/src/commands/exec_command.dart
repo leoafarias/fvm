@@ -27,11 +27,9 @@ class ExecCommand extends BaseFvmCommand {
     // Removes version from first arg
     final execArgs = [...?argResults?.rest]..removeAt(0);
 
-    final result = await runConfiguredFlutterWorkflow(
-      cmd,
-      args: execArgs,
-      context: context,
-    );
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
+
+    final result = await runConfiguredFlutterWorkflow(cmd, args: execArgs);
 
     return result.exitCode;
   }

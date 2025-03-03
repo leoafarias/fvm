@@ -4,13 +4,14 @@ import '../../models/cache_flutter_version_model.dart';
 import '../../models/project_model.dart';
 import '../../services/releases_service/models/version_model.dart';
 import '../../utils/context.dart';
+import '../../utils/helpers.dart';
 import '../../utils/pretty_json.dart';
 
 part 'json_response.mapper.dart';
 
 typedef JSONMap = Map<String, dynamic>;
 
-@MappableClass()
+@MappableClass(generateMethods: skipCopyWith)
 abstract class APIResponse with APIResponseMappable {
   const APIResponse();
 

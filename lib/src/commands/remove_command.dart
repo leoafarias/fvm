@@ -70,7 +70,7 @@ class RemoveCommand extends BaseFvmCommand {
     try {
       /// Remove if version is cached
 
-      context.services.cache.remove(cacheVersion);
+      services.cache.remove(cacheVersion);
 
       progress.complete('${validVersion.name} removed.');
     } on Exception {

@@ -62,12 +62,15 @@ class UseCommand extends BaseFvmCommand {
 
     String? version;
 
-    final project = context.project.findAncestor();
+    final useVersionWorkflow = UseVersionWorkflow(context);
+    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
+
+    final project = services.project.findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await context.cache.getAllVersions();
+      final versions = await services.cache.getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     }
@@ -87,7 +90,8 @@ class UseCommand extends BaseFvmCommand {
       /// Pin release to channel
       final channel = FlutterChannel.fromName(version);
 
-      final release = await context.releases.getLatestReleaseOfChannel(channel);
+      final release =
+          await services.releases.getLatestReleaseOfChannel(channel);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',
@@ -126,7 +130,6 @@ class UseCommand extends BaseFvmCommand {
     final cacheVersion = await ensureCacheWorkflow(
       version,
       force: forceOption,
-      context: context,
     );
 
     /// Run use workflow
@@ -137,7 +140,6 @@ class UseCommand extends BaseFvmCommand {
       skipSetup: skipSetup,
       runPubGetOnSdkChange: !skipPubGet,
       flavor: flavorOption,
-      controller: context,
     );
 
     return ExitCode.success.code;

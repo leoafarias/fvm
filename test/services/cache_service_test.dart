@@ -13,12 +13,8 @@ void main() {
   late Directory tempDir;
 
   // Helper function to create test Flutter version
-  FlutterVersion createTestVersion(String name, {VersionType? type}) {
-    return FlutterVersion(
-      name,
-      releaseFromChannel: null,
-      type: type ?? VersionType.release,
-    );
+  FlutterVersion createTestVersion(String name) {
+    return FlutterVersion.parse(name);
   }
 
   setUp(() {

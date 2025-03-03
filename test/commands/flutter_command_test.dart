@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
-// Import your controller and testing utils
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/helpers.dart';
 import 'package:io/io.dart';
@@ -11,15 +10,18 @@ import '../testing_utils.dart';
 
 void main() {
   // Define variables we'll use across tests
-  late FvmController controller;
+  late FVMContext context;
   late TestCommandRunner testRunner;
+  late ServicesProvider services;
   const channel = 'stable'; // Set your desired channel
 
   // Setup that runs before the entire test suite
   setUpAll(() async {
-    // Initialize the controller with test context
-    controller = FvmController(FVMContext.create(isTest: true));
-    testRunner = TestCommandRunner(controller);
+    // Initialize the context for testing
+
+    testRunner = TestFactory.commandRunner();
+    context = testRunner.context;
+    services = testRunner.services;
   });
 
   // Tests for Flutter commands
@@ -30,8 +32,8 @@ void main() {
       await testRunner.run(['fvm', 'use', channel]);
 
       // Get project and cache version
-      final project = controller.project.findAncestor();
-      final cacheVersion = controller.cache.getVersion(
+      final project = services.project.findAncestor();
+      final cacheVersion = services.cache.getVersion(
         FlutterVersion.parse(channel),
       );
 
@@ -58,18 +60,24 @@ void main() {
       expect(flutterVersionExitCode, ExitCode.success.code);
 
       // Run commands with the specific version and check outputs
-      final dartVersionResult = await controller.flutter
-          .runDart(['--version'], version: cacheVersion);
+      final dartVersionResult = await services.flutter.run(
+        cacheVersion!,
+        'dart',
+        ['--version'],
+      );
 
-      final flutterVersionResult = await controller.flutter
-          .runFlutter(['--version'], version: cacheVersion);
+      final flutterVersionResult = await services.flutter.run(
+        cacheVersion,
+        'flutter',
+        ['--version'],
+      );
 
       // Extract and verify version information
       final flutterVersion =
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      expect(dartVersion, cacheVersion!.dartSdkVersion);
+      expect(dartVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.channel, channel);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
@@ -81,7 +89,7 @@ void main() {
 
       // Install specific version
       await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
-      final cacheVersion = controller.cache.getVersion(
+      final cacheVersion = services.cache.getVersion(
         FlutterVersion.parse(versionNumber),
       );
 
@@ -107,7 +115,7 @@ void main() {
       );
 
       // Get release information
-      final release = await controller.releases.getReleaseFromVersion(
+      final release = await services.releases.getReleaseFromVersion(
         versionNumber,
       );
 
@@ -133,7 +141,7 @@ void main() {
 
       // Install specific version
       await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
-      final cacheVersion = controller.cache.getVersion(
+      final cacheVersion = services.cache.getVersion(
         FlutterVersion.parse(versionNumber),
       );
 
@@ -152,17 +160,17 @@ void main() {
       final usageExitCode = await testRunner.run(['fvm', 'exec']);
       expect(usageExitCode, ExitCode.usage.code);
 
-      // Run commands with exec
-      final flutterVersionResult = await controller.flutter.exec(
+      // Run commands with the version
+      final flutterVersionResult = await services.flutter.run(
+        cacheVersion!,
         'flutter',
         ['--version'],
-        cacheVersion,
       );
 
-      final dartVersionResult = await controller.flutter.exec(
+      final dartVersionResult = await services.flutter.run(
+        cacheVersion,
         'dart',
         ['--version'],
-        cacheVersion,
       );
 
       // Extract and verify version information
@@ -170,11 +178,11 @@ void main() {
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      final release = await controller.releases.getReleaseFromVersion(
+      final release = await services.releases.getReleaseFromVersion(
         versionNumber,
       );
 
-      expect(dartVersion, cacheVersion!.dartSdkVersion);
+      expect(dartVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.channel, release!.channel.name);
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);

@@ -6,25 +6,24 @@ import 'package:test/test.dart';
 import 'testing_utils.dart';
 
 void main() {
-  late TestCommandRunner runner;
-  late FvmController controller;
-
-  const channel = 'stable'; // Define the channel explicitly
+  late TestCommandRunner testRunner;
+  late ServicesProvider services;
 
   setUp(() {
-    // Initialize the test command runner
-    runner = TestFactory.commandRunner();
-    controller = runner.context;
+    testRunner = TestFactory.commandRunner();
+
+    services = testRunner.services;
   });
 
   group('Complete flow', () {
     test('Full project workflow', () async {
+      final channel = 'stable';
       // Install the Flutter channel
-      await runner.runOrThrow(['fvm', 'install', channel]);
+      await testRunner.runOrThrow(['fvm', 'install', channel]);
 
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {
-        return controller.cache.getVersion(
+        return services.cache.getVersion(
           FlutterVersion.parse(channel),
         );
       }
@@ -33,7 +32,7 @@ void main() {
       var cacheVersion = await getCacheVersion();
 
       // Get the branch from Git
-      final existingChannel = await runner.context.git.getBranch(channel);
+      final existingChannel = await services.git.getBranch(channel);
 
       // Verify installation succeeded
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -62,14 +61,14 @@ void main() {
       );
 
       // Verify project has no pinned version yet
-      var project = controller.project.findAncestor();
+      var project = services.project.findAncestor();
       expect(project.pinnedVersion, isNull);
 
       // Use the channel in the project, but skip setup
-      await runner.run(['fvm', 'use', channel, '--skip-setup']);
+      await testRunner.runOrThrow(['fvm', 'use', channel, '--skip-setup']);
 
       // Reload project and version information
-      project = controller.project.findAncestor();
+      project = services.project.findAncestor();
       cacheVersion = await getCacheVersion();
 
       // Verify project now has pinned version

@@ -13,7 +13,12 @@ abstract class Contextual {
   FVMContext get context => _context;
 
   @protected
-  ServicesProvider get services => _context.services;
+  Logger get logger => _context.get();
+}
+
+abstract class ContextualService extends Contextual {
+  ContextualService(super.context);
+
   @protected
-  Logger get logger => _context.logger;
+  ServicesProvider get services => _context.get();
 }

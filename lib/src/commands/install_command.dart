@@ -40,6 +40,10 @@ class InstallCommand extends BaseFvmCommand {
     final skipPubGet = boolArg('skip-pub-get');
     String? version;
 
+    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
+    final useVersionWorkflow = UseVersionWorkflow(context);
+    final setupFlutterWorkflow = SetupFlutterWorkflow(context);
+
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       final project = services.project.findAncestor();
@@ -57,7 +61,6 @@ class InstallCommand extends BaseFvmCommand {
       final cacheVersion = await ensureCacheWorkflow(
         version.name,
         shouldInstall: true,
-        context: context,
       );
 
       await useVersionWorkflow(
@@ -66,7 +69,6 @@ class InstallCommand extends BaseFvmCommand {
         force: true,
         skipSetup: !setup,
         runPubGetOnSdkChange: !skipPubGet,
-        controller: context,
       );
 
       return ExitCode.success.code;
@@ -76,11 +78,10 @@ class InstallCommand extends BaseFvmCommand {
     final cacheVersion = await ensureCacheWorkflow(
       version,
       shouldInstall: true,
-      context: context,
     );
 
     if (setup) {
-      await setupFlutterWorkflow(cacheVersion, controller: context);
+      await setupFlutterWorkflow(cacheVersion);
     }
 
     return ExitCode.success.code;

@@ -8,13 +8,14 @@ void main() {
   // Reusable test function for all version installations
   Future<void> testInstallVersion(String version) async {
     final runner = TestFactory.commandRunner();
-    final controller = runner.context;
+
+    final services = runner.services;
 
     // Run the install command
     final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
 
     // Get the installed version from cache
-    final cacheVersion = controller.cache.getVersion(
+    final cacheVersion = services.cache.getVersion(
       FlutterVersion.parse(version),
     );
 
@@ -27,7 +28,7 @@ void main() {
       if (cacheVersion!.releaseFromChannel != null) {
         releaseChannel = cacheVersion.releaseFromChannel;
       } else {
-        final release = await controller.releases.getReleaseFromVersion(
+        final release = await services.releases.getReleaseFromVersion(
           cacheVersion.version,
         );
 
@@ -40,7 +41,9 @@ void main() {
     }
 
     // Get the actual branch from the installed version
-    final existingChannel = await getBranch(version, controller.context);
+    final existingChannel = await services.git.getBranch(
+      version,
+    );
 
     // Assertions
     expect(cacheVersion != null, true, reason: 'Install does not exist');

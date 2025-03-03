@@ -48,9 +48,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
   static Level _$logLevel(FVMContext v) => v.logLevel;
   static const Field<FVMContext, Level> _f$logLevel =
       Field('logLevel', _$logLevel, opt: true, def: Level.info);
-  static Logger _$logger(FVMContext v) => v.logger;
-  static const Field<FVMContext, Logger> _f$logger =
-      Field('logger', _$logger, mode: FieldMode.member);
   static String _$fvmDir(FVMContext v) => v.fvmDir;
   static const Field<FVMContext, String> _f$fvmDir = Field('fvmDir', _$fvmDir);
   static bool _$gitCache(FVMContext v) => v.gitCache;
@@ -105,7 +102,6 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #_skipInput: _f$_skipInput,
     #isTest: _f$isTest,
     #logLevel: _f$logLevel,
-    #logger: _f$logger,
     #fvmDir: _f$fvmDir,
     #gitCache: _f$gitCache,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,

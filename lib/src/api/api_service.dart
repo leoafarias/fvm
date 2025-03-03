@@ -7,7 +7,7 @@ import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import 'models/json_response.dart';
 
-class APIService extends Contextual {
+class APIService extends ContextualService {
   final ProjectService _projectService;
   final CacheService _cacheService;
   final FlutterReleasesService _flutterReleasesServices;

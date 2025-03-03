@@ -13,8 +13,10 @@ import 'package:test/test.dart';
 
 class TestCommandRunner extends FvmCommandRunner {
   TestCommandRunner(
-    FvmController controller,
-  ) : super(controller);
+    super.context,
+  );
+
+  ServicesProvider get services => context.get();
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -211,8 +213,8 @@ class _ProjectHasConfigMatcher extends Matcher {
 class TestFactory {
   const TestFactory._();
 
-  static TestCommandRunner commandRunner({FvmController? controller}) {
-    return TestCommandRunner(controller ?? TestFactory.controller());
+  static TestCommandRunner commandRunner({FVMContext? context}) {
+    return TestCommandRunner(context ?? TestFactory.context());
   }
 
   static FVMContext context({
@@ -250,14 +252,8 @@ class TestFactory {
   static MockFlutterService _mockFlutterService(FVMContext context) {
     return MockFlutterService(
       context,
-      cacheService: context.get<CacheService>(),
+      cache: context.get<CacheService>(),
       flutterReleasesServices: context.get<FlutterReleasesService>(),
-    );
-  }
-
-  static FvmController controller([FVMContext? contextOverride]) {
-    return FvmController(
-      contextOverride ?? context(),
     );
   }
 }
@@ -326,21 +322,6 @@ class MockFlutterService extends FlutterService {
       _testCacheDir.createSync(recursive: true);
     }
   }
-
-  late final _overrideContext = context.copyWith(
-    config: context.config.copyWith(
-      cachePath: _testCacheDir.path,
-      useGitCache: true,
-    ),
-  );
-
-  late final _overrideCacheService = _overrideContext.get<CacheService>();
-
-  late final _overrideFlutterService = FlutterService(
-    _overrideContext,
-    cache: _overrideCacheService,
-    flutterReleasesServices: flutterReleasesServices,
-  );
 
   /// Installs the Flutter SDK for the given [version].
   ///

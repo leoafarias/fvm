@@ -20,7 +20,7 @@ enum CacheIntegrity {
 }
 
 /// Service to interact with FVM Cache
-class CacheService extends Contextual {
+class CacheService extends ContextualService {
   CacheService(super.context);
 
   /// Verifies that cache is correct

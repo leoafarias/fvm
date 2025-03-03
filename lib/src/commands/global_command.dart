@@ -68,12 +68,10 @@ class GlobalCommand extends BaseFvmCommand {
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
+    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
+
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(
-      version,
-      force: forceArg,
-      context: context,
-    );
+    final cacheVersion = await ensureCacheWorkflow(version, force: forceArg);
 
     // Sets version as the global
     services.cache.setGlobal(cacheVersion);
@@ -109,7 +107,7 @@ class GlobalCommand extends BaseFvmCommand {
       ..detail('');
 
     logger.info(
-      'Flutter SDK: ${cyan.wrap(cacheVersion.friendlyName)} is now global',
+      'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
     );
 
     if (!isDefaultInPath && !isCachedVersionInPath && !isPinnedVersionInPath) {
