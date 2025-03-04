@@ -4,13 +4,13 @@ import '../utils/context.dart';
 import 'logger_service.dart';
 
 abstract class Contextual {
-  final FVMContext _context;
+  final FvmContext _context;
 
   Contextual(this._context);
 
   /// Gets context, if no context is passed will get from scope
   @protected
-  FVMContext get context => _context;
+  FvmContext get context => _context;
 
   @protected
   Logger get logger => _context.get();

@@ -2,6 +2,7 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Executes a Flutter command using a specified version defined by the project flavor
@@ -19,6 +20,9 @@ class FlavorCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    final ensureCache = EnsureCacheWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
+
     if (argResults!.rest.isEmpty) {
       throw UsageException(
         'A flavor must be specified to execute the Flutter command',
@@ -41,9 +45,10 @@ class FlavorCommand extends BaseFvmCommand {
     if (version != null) {
       // Removes flavor from first arg
       final flutterArgs = [...?argResults?.rest]..removeAt(0);
-      final ensureCacheWorkflow = EnsureCacheWorkflow(context);
+
       // Will install version if not already installed
-      final cacheVersion = await ensureCacheWorkflow(version);
+      final flutterVersion = await validateFlutterVersion(version);
+      final cacheVersion = await ensureCache(flutterVersion);
       // Runs flutter command with pinned version
       logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');

@@ -23,7 +23,7 @@ class CheckProjectConstraintsWorkflow extends Workflow {
         constraints == null ||
         constraints.isEmpty ||
         sdkVersion.isEmpty) {
-      logger.detail(
+      logger.debug(
         'No SDK constraints to check or missing SDK version information',
       );
 
@@ -42,7 +42,7 @@ class CheckProjectConstraintsWorkflow extends Workflow {
       }
       logger
         ..warn('Could not parse Flutter SDK version $sdkVersion: $e')
-        ..lineBreak()
+        ..info()
         ..info('Continuing without checking version constraints');
 
       return false;

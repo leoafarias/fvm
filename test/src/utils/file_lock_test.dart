@@ -552,13 +552,10 @@ void main() {
       File(fileLocker.path).writeAsStringSync(timestamp2.toString());
       final readTime2 = fileLocker.lastModified;
 
-      print('readTime1: $readTime1');
-      print('readTime2: $readTime2');
-      print('difference: ${readTime2!.difference(readTime1!).inMicroseconds}');
       // Verify the timestamps are correctly distinguished
       expect(readTime1, isNotNull);
       expect(readTime2, isNotNull);
-      expect(readTime2.isAfter(readTime1), isTrue);
+      expect(readTime2!.isAfter(readTime1!), isTrue);
       expect(readTime2.difference(readTime1).inMicroseconds, equals(1));
     });
   });

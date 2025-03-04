@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:date_format/date_format.dart';
+import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../models/cache_flutter_version_model.dart';
@@ -20,7 +21,7 @@ bool isFlutterChannel(String name) {
 /// Returns a weight for all versions and channels
 String assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
-  if (isGitCommit(version)) {
+  if (isPossibleGitCommit(version)) {
     version = '500.0.0';
   } else {
     switch (version) {
@@ -276,3 +277,42 @@ const skipCopyWith = GenerateMethods.decode |
     GenerateMethods.encode |
     GenerateMethods.stringify |
     GenerateMethods.equals;
+
+/// Recursively searches for a directory and returns the first valid candidate.
+///
+/// This function will traverse up the directory hierarchy until it finds a valid
+/// candidate or reaches the root directory.
+///
+/// If no valid candidate is found, it will return the result of calling the
+T? lookUpDirectoryAncestor<T>({
+  required Directory directory,
+  required T? Function(Directory) validate,
+  void Function(String)? debugPrinter,
+}) {
+  // ignore: no-empty-block
+  debugPrinter ??= (String message) {};
+  debugPrinter('Looking up directory: ${directory.path}');
+  // Check if the current directory is the root
+  final isRootDir = p.rootPrefix(directory.path) == directory.path;
+
+  final result = validate(directory);
+
+  if (result != null) {
+    debugPrinter('Found valid candidate: ${directory.path}');
+
+    return result;
+  }
+
+  // If we reached the root directory, return the fallback
+  if (isRootDir) {
+    debugPrinter('No valid directory found');
+
+    return null;
+  }
+
+  // Otherwise, recursively search the parent directory
+  return lookUpDirectoryAncestor(
+    directory: directory.parent,
+    validate: validate,
+  );
+}

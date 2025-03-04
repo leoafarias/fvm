@@ -26,7 +26,7 @@ class ListCommand extends BaseFvmCommand {
     logger
       ..info('Cache directory:  ${cyan.wrap(context.versionsCachePath)}')
       ..info('Directory Size: ${formatFriendlyBytes(directorySize)}')
-      ..lineBreak();
+      ..info();
 
     if (cacheVersions.any((e) => e.isNotSetup)) {
       logger
@@ -36,7 +36,7 @@ class ListCommand extends BaseFvmCommand {
         ..info(
           'This will complete the first time you run any command with the SDK.',
         )
-        ..lineBreak();
+        ..info();
     }
     if (cacheVersions.isEmpty) {
       logger
@@ -63,7 +63,7 @@ class ListCommand extends BaseFvmCommand {
       var printVersion = version.name;
       FlutterSdkRelease? latestRelease;
 
-      if (version.isChannel && !version.isMaster) {
+      if (version.isChannel && !version.isMain) {
         latestRelease = releases.getLatestChannelRelease(version.name);
       }
 

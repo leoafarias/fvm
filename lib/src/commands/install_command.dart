@@ -6,6 +6,7 @@ import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
 import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Installs Flutter SDK
@@ -40,9 +41,10 @@ class InstallCommand extends BaseFvmCommand {
     final skipPubGet = boolArg('skip-pub-get');
     String? version;
 
-    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
-    final useVersionWorkflow = UseVersionWorkflow(context);
-    final setupFlutterWorkflow = SetupFlutterWorkflow(context);
+    final ensureCache = EnsureCacheWorkflow(context);
+    final useVersion = UseVersionWorkflow(context);
+    final setupFlutter = SetupFlutterWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
@@ -58,12 +60,9 @@ class InstallCommand extends BaseFvmCommand {
         );
       }
 
-      final cacheVersion = await ensureCacheWorkflow(
-        version.name,
-        shouldInstall: true,
-      );
+      final cacheVersion = await ensureCache(version, shouldInstall: true);
 
-      await useVersionWorkflow(
+      await useVersion(
         version: cacheVersion,
         project: project,
         force: true,
@@ -75,13 +74,12 @@ class InstallCommand extends BaseFvmCommand {
     }
     version ??= argResults!.rest[0];
 
-    final cacheVersion = await ensureCacheWorkflow(
-      version,
-      shouldInstall: true,
-    );
+    final flutterVersion = await validateFlutterVersion(version);
+
+    final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
 
     if (setup) {
-      await setupFlutterWorkflow(cacheVersion);
+      await setupFlutter(cacheVersion);
     }
 
     return ExitCode.success.code;

@@ -55,12 +55,12 @@ class DoctorCommand extends BaseFvmCommand {
     ]);
 
     logger.write(table.toString());
-    logger.lineBreak();
+    logger.info();
   }
 
   void _printIdeLinks(Project project) {
     logger
-      ..lineBreak()
+      ..info()
       ..info('IDEs:');
     final table = createTable(['IDEs', 'Value']);
 
@@ -165,7 +165,7 @@ class DoctorCommand extends BaseFvmCommand {
 
   void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
     logger
-      ..lineBreak()
+      ..info()
       ..info('Environment:');
 
     var table = createTable(['Environment Variables', 'Value']);
@@ -175,7 +175,7 @@ class DoctorCommand extends BaseFvmCommand {
       ['Dart PATH', dartWhich ?? 'Not found'],
     ]);
 
-    for (var key in ConfigKeys.values) {
+    for (var key in ConfigOptions.values) {
       table.insertRow(
         [key.envKey, context.environment[key.envKey] ?? 'N/A'],
       );

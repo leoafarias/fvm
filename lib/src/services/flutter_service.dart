@@ -54,9 +54,10 @@ class FlutterService extends ContextualService {
       channel = version.name;
       // If its not a commit hash
     } else if (version.isRelease) {
-      if (version.releaseFromChannel != null) {
+      final releaseChannel = version.releaseChannel;
+      if (releaseChannel != null) {
         // Version name forces channel version
-        channel = version.releaseFromChannel;
+        channel = releaseChannel.name;
       } else {
         final release =
             await services.releases.getReleaseFromVersion(version.name);
@@ -75,7 +76,7 @@ class FlutterService extends ContextualService {
 
     final cloneArgs = [
       //if its a git hash
-      if (!version.isCommit) ...versionCloneParams,
+      if (!version.isGitReference) ...versionCloneParams,
       if (context.gitCache) ...useMirrorParams,
     ];
 
@@ -119,11 +120,11 @@ class FlutterService extends ContextualService {
 }
 
 class VersionRunner {
-  final FVMContext _context;
+  final FvmContext _context;
   final CacheFlutterVersion _version;
 
   const VersionRunner({
-    required FVMContext context,
+    required FvmContext context,
     required CacheFlutterVersion version,
   })  : _context = context,
         _version = version;
@@ -137,7 +138,7 @@ class VersionRunner {
 
     final logger = _context.get<Logger>();
 
-    logger.detail('Starting to update environment variables...');
+    logger.debug('Starting to update environment variables...');
 
     final updatedEnvironment = Map<String, String>.from(env);
 

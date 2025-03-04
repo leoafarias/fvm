@@ -11,7 +11,7 @@ class MockCacheService extends Mock implements CacheService {}
 class MockFlutterReleasesService extends Mock
     implements FlutterReleasesService {}
 
-class MockFvmContext extends Mock implements FVMContext {}
+class MockFvmContext extends Mock implements FvmContext {}
 
 class MockProject extends Mock implements Project {}
 

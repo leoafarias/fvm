@@ -6,6 +6,7 @@ import '../utils/constants.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
@@ -40,18 +41,21 @@ class GlobalCommand extends BaseFvmCommand {
     final unlinkArg = boolArg('unlink');
     final forceArg = boolArg('force');
 
+    final ensureCache = EnsureCacheWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
+
     if (unlinkArg) {
       final globalVersion = services.cache.getGlobal();
 
       if (globalVersion == null) {
         logger
           ..info('No global version is set')
-          ..lineBreak();
+          ..info();
       } else {
         services.cache.unlinkGlobal();
         logger
           ..success('Global version unlinked')
-          ..lineBreak();
+          ..info();
       }
 
       return ExitCode.success.code;
@@ -68,10 +72,11 @@ class GlobalCommand extends BaseFvmCommand {
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
-    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
+    final flutterVersion =
+        await validateFlutterVersion(version, force: forceArg);
 
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(version, force: forceArg);
+    final cacheVersion = await ensureCache(flutterVersion, force: forceArg);
 
     // Sets version as the global
     services.cache.setGlobal(cacheVersion);
@@ -95,16 +100,16 @@ class GlobalCommand extends BaseFvmCommand {
     final isPinnedVersionInPath = flutterInPath == pinnedCacheVersion?.binPath;
 
     logger
-      ..detail('')
-      ..detail('Default in path: $isDefaultInPath')
-      ..detail('Cached version in path: $isCachedVersionInPath')
-      ..detail('Pinned version in path: $isPinnedVersionInPath')
-      ..detail('')
-      ..detail('flutterInPath: $flutterInPath')
-      ..detail('context.globalCacheBinPath: ${context.globalCacheBinPath}')
-      ..detail('cacheVersion.binPath: ${cacheVersion.binPath}')
-      ..detail('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
-      ..detail('');
+      ..debug('')
+      ..debug('Default in path: $isDefaultInPath')
+      ..debug('Cached version in path: $isCachedVersionInPath')
+      ..debug('Pinned version in path: $isPinnedVersionInPath')
+      ..debug('')
+      ..debug('flutterInPath: $flutterInPath')
+      ..debug('context.globalCacheBinPath: ${context.globalCacheBinPath}')
+      ..debug('cacheVersion.binPath: ${cacheVersion.binPath}')
+      ..debug('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
+      ..debug('');
 
     logger.info(
       'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
@@ -119,7 +124,7 @@ class GlobalCommand extends BaseFvmCommand {
               .brightRed(),
         )
         ..info('CHANGE TO: ${context.globalCacheBinPath}'.green())
-        ..lineBreak();
+        ..info();
     }
 
     if (isVsCode()) {

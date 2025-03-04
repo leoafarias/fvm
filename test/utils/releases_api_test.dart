@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import '../testing_utils.dart';
 
 void main() {
-  late FVMContext context;
+  late FvmContext context;
 
   setUp(() {
     context = TestFactory.context();

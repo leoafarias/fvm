@@ -24,14 +24,14 @@ void main() {
     if (isFlutterChannel(version)) {
       releaseChannel = version;
     } else {
-      if (cacheVersion!.releaseFromChannel != null) {
-        releaseChannel = cacheVersion.releaseFromChannel;
+      if (cacheVersion!.releaseChannel != null) {
+        releaseChannel = cacheVersion.releaseChannel!.name;
       } else {
         final release = await services.releases.getReleaseFromVersion(
           cacheVersion.version,
         );
 
-        if (cacheVersion.isCommit) {
+        if (cacheVersion.isGitReference) {
           releaseChannel = FlutterChannel.master.name;
         } else {
           releaseChannel = release!.channel.name;

@@ -1,10 +1,10 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
-import '../utils/git_utils.dart';
 import '../utils/helpers.dart';
 
 part 'flutter_version_model.mapper.dart';
@@ -13,8 +13,22 @@ part 'flutter_version_model.mapper.dart';
 enum VersionType {
   release,
   channel,
-  commit,
-  custom,
+  gitReference,
+  local,
+  unknown;
+}
+
+/// Enum of a channel
+@MappableEnum()
+enum FlutterChannel {
+  stable,
+  dev,
+  beta,
+  master;
+
+  const FlutterChannel();
+
+  static final fromValue = FlutterChannelMapper.fromValue;
 }
 
 /// Provides a structured way to handle Flutter SDK versions.
@@ -23,15 +37,17 @@ enum VersionType {
 /// versions such as distinguishing if a version is a release, a channel, a git
 /// commit or a custom version. Moreover, it allows for fetching a print-friendly
 /// name to be used in user interfaces.
-@MappableClass(generateMethods: skipCopyWith)
+@MappableClass(ignoreNull: true)
 class FlutterVersion with FlutterVersionMappable {
   /// Represents the underlying string value of the Flutter version.
   final String name;
 
   /// Has a channel which the version is part of
-  final String? releaseFromChannel;
+  final FlutterChannel? releaseChannel;
 
   final VersionType type;
+
+  final String? fork;
 
   static final fromMap = FlutterVersionMapper.fromMap;
   static final fromJson = FlutterVersionMapper.fromJson;
@@ -40,23 +56,25 @@ class FlutterVersion with FlutterVersionMappable {
   @protected
   const FlutterVersion(
     this.name, {
-    this.releaseFromChannel,
+    this.releaseChannel,
     required this.type,
+    this.fork,
   });
 
-  const FlutterVersion.commit(this.name)
-      : releaseFromChannel = null,
-        type = VersionType.commit;
+  FlutterVersion.gitReference(this.name, {this.fork})
+      : releaseChannel = null,
+        type = VersionType.gitReference;
 
-  const FlutterVersion.channel(this.name)
-      : releaseFromChannel = null,
+  const FlutterVersion.channel(this.name, {this.fork})
+      : releaseChannel = null,
         type = VersionType.channel;
 
-  const FlutterVersion.custom(this.name)
-      : type = VersionType.custom,
-        releaseFromChannel = null;
+  const FlutterVersion.local(this.name)
+      : type = VersionType.local,
+        releaseChannel = null,
+        fork = null;
 
-  const FlutterVersion.release(this.name, {this.releaseFromChannel})
+  const FlutterVersion.release(this.name, {this.releaseChannel, this.fork})
       : type = VersionType.release;
 
   factory FlutterVersion.parse(String version) {
@@ -65,41 +83,61 @@ class FlutterVersion with FlutterVersionMappable {
     if (parts.length == 2) {
       final channel = parts.last;
       if (kFlutterChannels.contains(channel)) {
-        return FlutterVersion.release(version, releaseFromChannel: channel);
+        return FlutterVersion.release(
+          version,
+          releaseChannel: FlutterChannel.fromValue(channel),
+        );
       }
 
       throw FormatException('Invalid version format');
     }
-    // Check if its custom.
-    if (version.startsWith('custom_')) {
-      return FlutterVersion.custom(version);
+
+    final forkParts = version.split('/');
+
+    if (forkParts.length == 2) {
+      final alias = forkParts.first;
+      final version = forkParts.last;
+
+      final forkedVersion = FlutterVersion.parse(version);
+
+      return forkedVersion.copyWith(fork: alias);
     }
 
     // Check if its commit
-    if (isGitCommit(version)) {
-      return FlutterVersion.commit(version);
-    }
-
     // Check if its channel
-    if (kFlutterChannels.contains(version)) {
+    if (isFlutterChannel(version)) {
       return FlutterVersion.channel(version);
     }
 
-    // The it must be a release
-    return FlutterVersion.release(version);
+    try {
+      if (version.contains('v')) {
+        version = version.replaceFirst('v', '');
+      }
+
+      // ignore: avoid-unused-instances
+      Version.parse(version);
+
+      return FlutterVersion.release(version);
+    } catch (e) {
+      return FlutterVersion.gitReference(version);
+    }
   }
 
   String get version => name.split('@').first;
 
-  bool get isMaster => name == 'master';
+  bool get isMain => name == 'master' || name == 'main';
 
   bool get isChannel => type == VersionType.channel;
 
   bool get isRelease => type == VersionType.release;
 
-  bool get isCommit => type == VersionType.commit;
+  bool get isGitReference => type == VersionType.gitReference;
 
-  bool get isCustom => type == VersionType.custom;
+  bool get isLocal => type == VersionType.local;
+
+  bool get isInvalid => type == VersionType.unknown;
+
+  bool get fromFork => fork != null;
 
   /// Provides a human readable version identifier for UI presentation.
   ///
@@ -112,7 +150,7 @@ class FlutterVersion with FlutterVersionMappable {
 
     if (isChannel) return 'Channel: ${name.capitalize}';
 
-    if (isCommit) return 'Commit : $name';
+    if (isGitReference) return 'Commit : $name';
 
     return 'SDK Version : $name';
   }
@@ -127,4 +165,13 @@ class FlutterVersion with FlutterVersionMappable {
 
   @override
   String toString() => name;
+}
+
+// A small class for each fork's definition:
+@MappableClass(ignoreNull: true)
+class FlutterFork with FlutterForkMappable {
+  final String alias;
+  final String repositoryUrl;
+
+  const FlutterFork({required this.alias, required this.repositoryUrl});
 }

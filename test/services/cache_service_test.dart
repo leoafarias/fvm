@@ -5,7 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-class _MockFVMContext extends Mock implements FVMContext {}
+class _MockFVMContext extends Mock implements FvmContext {}
 
 void main() {
   late CacheService cacheService;

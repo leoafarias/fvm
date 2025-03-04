@@ -2,10 +2,11 @@ import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-import '../services/releases_service/models/channels_model.dart';
+import '../models/flutter_version_model.dart';
 import '../utils/helpers.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Use an installed SDK version
@@ -62,9 +63,9 @@ class UseCommand extends BaseFvmCommand {
 
     String? version;
 
-    final useVersionWorkflow = UseVersionWorkflow(context);
-    final ensureCacheWorkflow = EnsureCacheWorkflow(context);
-
+    final useVersion = UseVersionWorkflow(context);
+    final ensureCache = EnsureCacheWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
     final project = services.project.findAncestor();
 
     // If no version was passed as argument check project config.
@@ -88,7 +89,7 @@ class UseCommand extends BaseFvmCommand {
       }
 
       /// Pin release to channel
-      final channel = FlutterChannel.fromName(version);
+      final channel = FlutterChannel.fromValue(version);
 
       final release =
           await services.releases.getLatestReleaseOfChannel(channel);
@@ -127,13 +128,13 @@ class UseCommand extends BaseFvmCommand {
       }
     }
 
-    final cacheVersion = await ensureCacheWorkflow(
-      version,
-      force: forceOption,
-    );
+    final flutterVersion =
+        await validateFlutterVersion(version, force: forceOption);
+
+    final cacheVersion = await ensureCache(flutterVersion, force: forceOption);
 
     /// Run use workflow
-    await useVersionWorkflow(
+    await useVersion(
       version: cacheVersion,
       project: project,
       force: forceOption,

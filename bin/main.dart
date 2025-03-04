@@ -8,7 +8,7 @@ import 'package:fvm/src/utils/context.dart';
 Future<void> main(List<String> args) async {
   final updatableArgs = [...args];
   final skipInput = updatableArgs.remove('--fvm-skip-input');
-  final controller = FVMContext.create(skipInput: skipInput);
+  final controller = FvmContext.create(skipInput: skipInput);
 
   await _flushThenExit(
     await FvmCommandRunner(controller).run(updatableArgs),

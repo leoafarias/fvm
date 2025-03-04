@@ -10,7 +10,7 @@ import '../testing_utils.dart';
 
 void main() {
   // Define variables we'll use across tests
-  late FVMContext context;
+  late FvmContext context;
   late TestCommandRunner testRunner;
   late ServicesProvider services;
   const channel = 'stable'; // Set your desired channel

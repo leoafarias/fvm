@@ -51,7 +51,7 @@ void printProgressBar(String line, Logger logger) {
       }
     }
   } catch (e) {
-    logger.detail('Failed to update progress bar $e');
+    logger.debug('Failed to update progress bar $e');
     _hasFailedPrint = true;
   }
 }

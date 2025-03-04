@@ -6,9 +6,9 @@ import 'package:path/path.dart';
 import '../api/api_service.dart';
 import '../models/config_model.dart';
 import '../models/log_level_model.dart';
+import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
-import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
@@ -23,24 +23,26 @@ import '../workflows/setup_gitignore.workflow.dart';
 import '../workflows/update_project_references.workflow.dart';
 import '../workflows/update_vscode_settings.workflow.dart';
 import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
+import '../workflows/verify_project.workflow.dart';
 import 'constants.dart';
 import 'file_lock.dart';
 
 part 'context.mapper.dart';
 
-/// Generates an [FVMContext] value.
+/// Generates an [FvmContext] value.
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
 
-typedef Generator<T extends Contextual> = T Function(FVMContext context);
+typedef Generator<T extends Contextual> = T Function(FvmContext context);
 
 // FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
-class FVMContext with FVMContextMappable {
+class FvmContext with FvmContextMappable {
   /// Name of the context
-  final String id;
+  final String? debugLabel;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -66,8 +68,8 @@ class FVMContext with FVMContextMappable {
   /// Constructor
   /// If nothing is provided set default
   @MappableConstructor()
-  FVMContext.raw({
-    required this.id,
+  FvmContext.raw({
+    required this.debugLabel,
     required this.workingDirectory,
     required this.config,
     required Map<Type, Generator> generators,
@@ -78,8 +80,8 @@ class FVMContext with FVMContextMappable {
   })  : _skipInput = skipInput,
         _generators = generators;
 
-  static FVMContext create({
-    String? id,
+  static FvmContext create({
+    String? debugLabel,
     AppConfig? configOverrides,
     String? workingDirectoryOverride,
     Map<Type, Generator>? generatorsOverride,
@@ -89,14 +91,11 @@ class FVMContext with FVMContextMappable {
     bool isTest = false,
   }) {
     // Load all configs
-    final config = ConfigRepository.load(overrides: configOverrides);
 
-    // Skips input if running in CI
-
-    return FVMContext.raw(
-      id: id ?? 'MAIN',
+    return FvmContext.raw(
+      debugLabel: debugLabel,
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
-      config: config,
+      config: AppConfigService.buildConfig(overrides: configOverrides),
       environment: {...Platform.environment, ...?environmentOverrides},
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
@@ -173,10 +172,6 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   String get versionsCachePath => join(fvmDir, 'versions');
 
-  /// Config path
-  @MappableField()
-  String get configPath => kAppConfigFile;
-
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
   @MappableField()
@@ -210,9 +205,6 @@ class FVMContext with FVMContextMappable {
     }
     throw Exception('Generator for $T not found');
   }
-
-  @override
-  String toString() => id;
 }
 
 class ServicesProvider extends Contextual {
@@ -260,4 +252,6 @@ const _defaultGenerators = <Type, Generator>{
   SetupGitIgnoreWorkflow: SetupGitIgnoreWorkflow.new,
   UpdateProjectReferencesWorkflow: UpdateProjectReferencesWorkflow.new,
   UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
+  ValidateFlutterVersionWorkflow: ValidateFlutterVersionWorkflow.new,
+  VerifyProjectWorkflow: VerifyProjectWorkflow.new,
 };

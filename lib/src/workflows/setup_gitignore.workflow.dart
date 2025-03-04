@@ -41,14 +41,14 @@ class SetupGitIgnoreWorkflow extends Workflow {
   /// Returns `true` if the operation was successful or if no action was needed,
   /// and `false` if an error occurred during file operations.
   Future<bool> call(Project project, {required bool force}) async {
-    logger.detail('Checking .gitignore');
+    logger.debug('Checking .gitignore');
 
     // Check if gitignore management is enabled for this project
     final updateGitIgnore = project.config?.updateGitIgnore ?? true;
-    logger.detail('Update gitignore: $updateGitIgnore');
+    logger.debug('Update gitignore: $updateGitIgnore');
 
     if (!updateGitIgnore) {
-      logger.detail(
+      logger.debug(
         '$kPackageName does not manage .gitignore for this project.',
       );
 
@@ -96,7 +96,7 @@ class SetupGitIgnoreWorkflow extends Workflow {
 
     // Check if the entry already exists
     if (lines.any((line) => line.trim() == kFvmPathToAdd)) {
-      logger.detail('$kFvmPathToAdd already exists in .gitignore');
+      logger.debug('$kFvmPathToAdd already exists in .gitignore');
 
       return true;
     }

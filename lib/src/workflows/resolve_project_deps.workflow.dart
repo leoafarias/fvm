@@ -13,42 +13,42 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     final dartSdkVersion = version.dartSdkVersion;
     final flutterSdkVersion = version.flutterSdkVersion;
     // Print a separator line for easier reading
-    logger.detail('----------------------------------------');
+    logger.debug('----------------------------------------');
 
     // Print general information
-    logger.detail('🔍  Verbose Details');
-    logger.detail('');
+    logger.debug('🔍  Verbose Details');
+    logger.debug('');
 
     // Dart Information
-    logger.detail('🎯 Dart Info:');
-    logger.detail('   Dart Generator Version: $dartGeneratorVersion');
-    logger.detail('   Dart SDK Version:       $dartSdkVersion');
+    logger.debug('🎯 Dart Info:');
+    logger.debug('   Dart Generator Version: $dartGeneratorVersion');
+    logger.debug('   Dart SDK Version:       $dartSdkVersion');
 
     // Tool Information
-    logger.detail('');
-    logger.detail('🛠️ Tool Info:');
-    logger.detail('   Dart Tool Version:      $dartToolVersion');
-    logger.detail('   SDK Version:            $flutterSdkVersion');
+    logger.debug('');
+    logger.debug('🛠️ Tool Info:');
+    logger.debug('   Dart Tool Version:      $dartToolVersion');
+    logger.debug('   SDK Version:            $flutterSdkVersion');
 
     // Print another separator line for clarity
-    logger.detail('----------------------------------------');
+    logger.debug('----------------------------------------');
 
     if (dartToolVersion == flutterSdkVersion) {
       logger
-          .detail('✅ Dart tool version matches SDK version, skipping resolve.');
+          .debug('✅ Dart tool version matches SDK version, skipping resolve.');
 
       return;
     }
 
     // Print a warning for mismatch
-    logger.detail('');
-    logger.detail('⚠️ SDK version mismatch:');
-    logger.detail('   Dart Tool Version:      $dartToolVersion');
-    logger.detail('   Flutter SDK Version:    $flutterSdkVersion');
-    logger.detail('');
+    logger.debug('');
+    logger.debug('⚠️ SDK version mismatch:');
+    logger.debug('   Dart Tool Version:      $dartToolVersion');
+    logger.debug('   Flutter SDK Version:    $flutterSdkVersion');
+    logger.debug('');
 
     // Final separator line
-    logger.detail('----------------------------------------');
+    logger.debug('----------------------------------------');
   }
 
   Future<bool> call(
@@ -65,7 +65,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     if (project.dartToolVersion == version.flutterSdkVersion) {
       logger
         ..info('Dart tool version matches SDK version, skipping resolve.')
-        ..lineBreak();
+        ..info();
 
       return true;
     }
@@ -73,7 +73,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     if (!context.runPubGetOnSdkChanges) {
       logger
         ..warn('Skipping "pub get" because of config setting')
-        ..lineBreak();
+        ..info();
 
       return false;
     }
@@ -81,7 +81,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     if (!project.hasPubspec) {
       logger
         ..warn('Skipping "pub get" because no pubspec.yaml found.')
-        ..lineBreak();
+        ..info();
 
       return true;
     }
@@ -115,7 +115,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
 
     progress.fail('Could not resolve dependencies.');
     logger
-      ..lineBreak()
+      ..info()
       ..err(pubGetResults.stderr.toString());
 
     logger.info(
@@ -138,7 +138,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     }
 
     if (pubGetResults.stdout != null) {
-      logger.detail(pubGetResults.stdout);
+      logger.debug(pubGetResults.stdout);
     }
 
     return true;

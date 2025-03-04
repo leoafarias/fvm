@@ -23,7 +23,7 @@ void main() {
       );
 
       final projectService = ProjectService(
-        FVMContext.create(
+        FvmContext.create(
           workingDirectoryOverride: tempDir.path,
         ),
       );
@@ -40,7 +40,7 @@ void main() {
       final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
       createProjectConfig(config, parentDir);
 
-      final projectService = ProjectService(FVMContext.create(
+      final projectService = ProjectService(FvmContext.create(
         workingDirectoryOverride: childDir.path,
       ));
 
@@ -53,7 +53,7 @@ void main() {
       // Create a config file with a pinned flutter version.
       final tempDir = createTempDir();
       final projectService = ProjectService(
-        FVMContext.create(
+        FvmContext.create(
           workingDirectoryOverride: tempDir.path,
         ),
       );
@@ -70,7 +70,7 @@ void main() {
 
     test('update writes new configuration correctly', () {
       final tempDir = createTempDir();
-      final projectService = ProjectService(FVMContext.create(
+      final projectService = ProjectService(FvmContext.create(
         workingDirectoryOverride: tempDir.path,
       ));
 
@@ -82,7 +82,7 @@ void main() {
       pubspecFile.writeAsStringSync('name: test_project');
 
       // Load the project from the temporary directory.
-      final project = Project.loadFromPath(tempDir.path);
+      final project = Project.loadFromDirectory(tempDir);
 
       // Update the project with new configuration values.
       projectService.update(
@@ -117,7 +117,7 @@ void main() {
     /// Project returns the working directory if no config is found
     test('returns working directory if no config is found', () {
       final tempDir = createTempDir();
-      final projectService = ProjectService(FVMContext.create(
+      final projectService = ProjectService(FvmContext.create(
         workingDirectoryOverride: tempDir.path,
       ));
 

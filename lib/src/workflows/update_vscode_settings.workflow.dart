@@ -51,9 +51,9 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
       // Log all found workspace files
       if (workspaceFiles.length > 1) {
-        logger.detail('Found ${workspaceFiles.length} workspace files');
+        logger.debug('Found ${workspaceFiles.length} workspace files');
       } else {
-        logger.detail(
+        logger.debug(
           'Found workspace file: ${p.basename(workspaceFiles.first.path)}',
         );
       }
@@ -63,7 +63,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       for (final file in workspaceFiles) {
         final fileName = p.basenameWithoutExtension(file.path).toLowerCase();
         if (fileName.contains(projectName) || projectName.contains(fileName)) {
-          logger.detail('Selected workspace file: ${p.basename(file.path)}');
+          logger.debug('Selected workspace file: ${p.basename(file.path)}');
 
           return file;
         }
@@ -72,7 +72,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       // Fall back to the first workspace file
       return workspaceFiles.first;
     } catch (e) {
-      logger.detail('Error searching for workspace file: $e');
+      logger.debug('Error searching for workspace file: $e');
 
       return null;
     }
@@ -89,7 +89,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
     // If not using VS Code, no settings to update
     if (!isUsingVscode) {
-      logger.detail(
+      logger.debug(
         'Project is not using $kVsCode, skipping folder settings update.',
       );
 
@@ -98,7 +98,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
     // Create the settings file if it doesn't exist
     if (!vscodeSettingsFile.existsSync()) {
-      logger.detail('$kVsCode settings not found, creating new settings file.');
+      logger.debug('$kVsCode settings not found, creating new settings file.');
       try {
         vscodeSettingsFile.createSync(recursive: true);
       } catch (e) {
@@ -161,7 +161,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     final workspaceFile = _findWorkspaceFile(project);
 
     if (workspaceFile == null) {
-      logger.detail('No $kVsCode workspace files found.');
+      logger.debug('No $kVsCode workspace files found.');
 
       return;
     }
@@ -245,7 +245,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     }
 
     if (!updateVscodeSettings) {
-      logger.detail(
+      logger.debug(
         '$kPackageName does not manage $kVsCode settings for this project.',
       );
 

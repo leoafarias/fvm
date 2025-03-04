@@ -11,7 +11,7 @@ import 'testing_utils.dart';
 void main() {
   late TestCommandRunner runner;
   late ServicesProvider services;
-  late FVMContext context;
+  late FvmContext context;
 
   const channel = 'stable'; // Define channel explicitly
   const release = '2.0.0'; // Define release explicitly

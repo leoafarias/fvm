@@ -60,7 +60,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     }
 
     if (!context.privilegedAccess) {
-      logger.detail('Skipping symlink creation: no privileged access');
+      logger.debug('Skipping symlink creation: no privileged access');
 
       return;
     }
@@ -109,7 +109,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     }
 
     if (!context.privilegedAccess) {
-      logger.detail('Skipping symlink creation: no privileged access');
+      logger.debug('Skipping symlink creation: no privileged access');
 
       return;
     }
@@ -132,6 +132,14 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   }) async {
     try {
       await _checkProjectConstraints(project, version, force: force);
+
+      logger
+        ..debug()
+        ..debug('Updating project config')
+        ..debug('Project name: ${project.name}')
+        ..debug('Project path: ${project.path}')
+        ..debug('Flutter version: ${version.name}')
+        ..debug('');
 
       final updatedProject = services.project.update(
         project,

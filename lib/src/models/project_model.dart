@@ -42,15 +42,15 @@ class Project with ProjectMappable {
   /// Loads the Flutter project from the given [path].
   ///
   /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
-  static Project loadFromPath(String path) {
-    final config = ProjectConfig.loadFromPath(_fvmConfigPath(path));
+  static Project loadFromDirectory(Directory directory) {
+    final config = ProjectConfig.loadFromDirectory(directory);
 
-    final pubspecFile = File(join(path, 'pubspec.yaml'));
+    final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
         ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
         : null;
 
-    return Project(config: config, path: path, pubspec: pubspec);
+    return Project(config: config, path: directory.path, pubspec: pubspec);
   }
 
   /// Retrieves the name of the project.

@@ -7,7 +7,7 @@ import '../utils/context.dart';
 /// Base Command
 abstract class BaseFvmCommand extends Command<int> {
   @protected
-  final FVMContext context;
+  final FvmContext context;
 
   BaseFvmCommand(this.context);
 

@@ -3,10 +3,15 @@ import 'dart:io';
 import '../models/cache_flutter_version_model.dart';
 import '../utils/constants.dart';
 import 'ensure_cache.workflow.dart';
+import 'validate_flutter_version.workflow.dart';
 import 'workflow.dart';
 
 class RunConfiguredFlutterWorkflow extends Workflow {
-  RunConfiguredFlutterWorkflow(super.context);
+  final ValidateFlutterVersionWorkflow _validateFlutterVersion;
+  final EnsureCacheWorkflow _ensureCache;
+  RunConfiguredFlutterWorkflow(super.context)
+      : _validateFlutterVersion = context.get(),
+        _ensureCache = context.get();
 
   Future<ProcessResult> call(String cmd, {required List<String> args}) async {
     // Try to select a version: project version has priority, then global.
@@ -14,15 +19,16 @@ class RunConfiguredFlutterWorkflow extends Workflow {
     final projectVersion = services.project.findVersion();
 
     if (projectVersion != null) {
-      selectedVersion = await EnsureCacheWorkflow(context).call(projectVersion);
-      logger.detail(
+      final version = await _validateFlutterVersion(projectVersion);
+      selectedVersion = await _ensureCache(version);
+      logger.debug(
         '$kPackageName: Running Flutter from version "$projectVersion"',
       );
     } else {
       final globalVersion = services.cache.getGlobal();
       if (globalVersion != null) {
         selectedVersion = globalVersion;
-        logger.detail(
+        logger.debug(
           '$kPackageName: Running Flutter from global version "${globalVersion.flutterSdkVersion}"',
         );
       }
@@ -30,7 +36,7 @@ class RunConfiguredFlutterWorkflow extends Workflow {
 
     // Execute using the selected version if available.
     if (selectedVersion != null) {
-      logger.lineBreak();
+      logger.info();
 
       if (cmd == 'flutter') {
         return services.flutter.runFlutter(selectedVersion, args);
@@ -42,8 +48,8 @@ class RunConfiguredFlutterWorkflow extends Workflow {
     }
 
     // Fallback: run using the system's PATH.
-    logger.detail('$kPackageName: Running Flutter version configured in PATH.');
-    logger.detail('');
+    logger.debug('$kPackageName: Running Flutter version configured in PATH.');
+    logger.debug('');
 
     return services.process.run(cmd, args: args);
   }

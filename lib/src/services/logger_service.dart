@@ -40,24 +40,22 @@ class Logger extends ContextualService {
 
   set level(Level level) => _logger.level = _toMasonLevel(level);
 
-  void lineBreak() => info('');
-
   void logTrace(StackTrace stackTrace) {
     final trace = Trace.from(stackTrace).toString();
-    detail('');
-    detail(trace);
+    debug('');
+    debug(trace);
 
     if (level != Level.verbose) {
-      detail('');
-      detail(
+      debug('');
+      debug(
         'Please run command with  --verbose if you want more information',
       );
     }
   }
 
-  void info(String message) {
+  void info([String? message]) {
     _logger.info(message);
-    _outputs.add(message);
+    _outputs.add(message ?? '');
   }
 
   void success(String message) {
@@ -68,19 +66,19 @@ class Logger extends ContextualService {
     info('${Icons.failure.red()} $message');
   }
 
-  void warn(String message) {
+  void warn([String? message]) {
     _logger.warn(message);
-    _outputs.add(message);
+    _outputs.add(message ?? '');
   }
 
-  void err(String message) {
+  void err([String? message]) {
     _logger.err(message);
-    _outputs.add(message);
+    _outputs.add(message ?? '');
   }
 
-  void detail(String message) {
+  void debug([String? message]) {
     _logger.detail(message);
-    _outputs.add(message);
+    _outputs.add(message ?? '');
   }
 
   void write(String message) {

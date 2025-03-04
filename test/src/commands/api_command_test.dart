@@ -13,7 +13,7 @@ class _MockAPIService extends Mock implements APIService {}
 
 void main() {
   // Set up common test variables
-  late FVMContext context;
+  late FvmContext context;
   late APIService apiService;
   late TestCommandRunner runner;
 

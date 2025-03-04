@@ -2,6 +2,77 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('Validate version behave correclty', () {
+    const longCommit = 'de25def7784a2e63a9e7d5cc50dff84db8f69298';
+    const shortCommit = 'de25def';
+
+    test('Valid Version behaves correctly', () async {
+      final master = FlutterVersion.parse('master');
+      final beta = FlutterVersion.parse('beta');
+      final channelWithVersion = FlutterVersion.parse('2.2.2@beta');
+      final version = FlutterVersion.parse('2.2.0');
+      final gitCommit = FlutterVersion.parse(longCommit);
+      final shortGitCommit = FlutterVersion.parse(shortCommit);
+
+      // Check if its channel
+      expect(master.isChannel, true);
+      expect(beta.isChannel, true);
+      expect(channelWithVersion.isChannel, false);
+      expect(version.isChannel, false);
+      expect(gitCommit.isChannel, false);
+      expect(shortGitCommit.isChannel, false);
+
+      // Check for correct vertsion
+      expect(master.name, 'master');
+      expect(beta.name, 'beta');
+      expect(channelWithVersion.name, '2.2.2@beta');
+      expect(channelWithVersion.version, '2.2.2');
+      expect(channelWithVersion.releaseChannel, FlutterChannel.beta);
+      expect(version.name, '2.2.0');
+      expect(gitCommit.name, longCommit);
+      expect(shortGitCommit.name, shortCommit);
+
+      // Check if forces channel
+      expect(master.releaseChannel, null);
+      expect(beta.releaseChannel, null);
+      expect(channelWithVersion.releaseChannel, FlutterChannel.beta);
+      expect(version.releaseChannel, null);
+      expect(gitCommit.releaseChannel, null);
+      expect(shortGitCommit.releaseChannel, null);
+
+      // Check if its master
+      expect(master.isMain, true);
+      expect(beta.isMain, false);
+      expect(channelWithVersion.isMain, false);
+      expect(version.isMain, false);
+      expect(gitCommit.isMain, false);
+      expect(shortGitCommit.isMain, false);
+
+      // Check if its release
+      expect(master.isRelease, false);
+      expect(beta.isRelease, false);
+      expect(channelWithVersion.isRelease, true);
+      expect(version.isRelease, true);
+      expect(gitCommit.isRelease, false);
+      expect(shortGitCommit.isRelease, false);
+
+      // Check if its commit
+      expect(master.isGitReference, false);
+      expect(beta.isGitReference, false);
+      expect(channelWithVersion.isGitReference, false);
+      expect(version.isGitReference, false);
+      expect(gitCommit.isGitReference, true);
+      expect(shortGitCommit.isGitReference, true);
+
+      // Checks version
+      expect(master.name, 'master');
+      expect(beta.name, 'beta');
+      expect(channelWithVersion.version, '2.2.2');
+      expect(version.name, '2.2.0');
+      expect(gitCommit.name, longCommit);
+      expect(shortGitCommit.name, shortCommit);
+    });
+  });
   group('FlutterVersion model', () {
     test('compareTo', () async {
       const unsortedList = [
@@ -41,85 +112,86 @@ void main() {
     test('fromMap constructor', () {
       final map = {
         'name': 'test',
-        'releaseFromChannel': 'stable',
+        'releaseChannel': 'stable',
         'type': 'release',
       };
       final version = FlutterVersion.fromMap(map);
       expect(version.name, 'test');
-      expect(version.releaseFromChannel, 'stable');
+      expect(version.releaseChannel, FlutterChannel.stable);
       expect(version.type, VersionType.release);
     });
 
     test('fromJson constructor', () {
-      final json =
-          '{"name":"test","releaseFromChannel":"stable","type":"release"}';
+      final json = '{"name":"test","releaseChannel":"stable","type":"release"}';
       final version = FlutterVersion.fromJson(json);
       expect(version.name, 'test');
-      expect(version.releaseFromChannel, 'stable');
+      expect(version.releaseChannel, FlutterChannel.stable);
       expect(version.type, VersionType.release);
     });
 
     test('commit constructor', () {
-      final version = FlutterVersion.commit('abc123');
+      final version = FlutterVersion.gitReference('abc123');
       expect(version.name, 'abc123');
-      expect(version.releaseFromChannel, isNull);
-      expect(version.type, VersionType.commit);
+      expect(version.releaseChannel, isNull);
+      expect(version.type, VersionType.gitReference);
     });
 
     test('channel constructor', () {
       final version = FlutterVersion.channel('stable');
       expect(version.name, 'stable');
-      expect(version.releaseFromChannel, isNull);
+      expect(version.releaseChannel, isNull);
       expect(version.type, VersionType.channel);
     });
 
     test('custom constructor', () {
-      final version = FlutterVersion.custom('custom_123');
+      final version = FlutterVersion.local('custom_123');
       expect(version.name, 'custom_123');
-      expect(version.releaseFromChannel, isNull);
-      expect(version.type, VersionType.custom);
+      expect(version.releaseChannel, isNull);
+      expect(version.type, VersionType.local);
     });
 
     test('release constructor', () {
-      final version =
-          FlutterVersion.release('1.0.0', releaseFromChannel: 'stable');
+      final version = FlutterVersion.release(
+        '1.0.0',
+        releaseChannel: FlutterChannel.stable,
+      );
       expect(version.name, '1.0.0');
-      expect(version.releaseFromChannel, 'stable');
+      expect(version.releaseChannel, FlutterChannel.stable);
       expect(version.type, VersionType.release);
     });
 
     test('parse method - release version', () {
       final version = FlutterVersion.parse('1.0.0');
       expect(version.name, '1.0.0');
-      expect(version.releaseFromChannel, isNull);
+      expect(version.releaseChannel, isNull);
       expect(version.type, VersionType.release);
     });
 
     test('parse method - release version with channel', () {
       final version = FlutterVersion.parse('1.0.0@stable');
       expect(version.name, '1.0.0@stable');
-      expect(version.releaseFromChannel, 'stable');
+      expect(version.releaseChannel, FlutterChannel.stable);
       expect(version.type, VersionType.release);
     });
 
     test('parse method - custom version', () {
       final version = FlutterVersion.parse('custom_123');
       expect(version.name, 'custom_123');
-      expect(version.releaseFromChannel, isNull);
-      expect(version.type, VersionType.custom);
+      expect(version.releaseChannel, isNull);
+      expect(version.type, VersionType.local);
     });
 
     test('parse method - commit version', () {
       final version = FlutterVersion.parse('f4c74a6ec3');
       expect(version.name, 'f4c74a6ec3');
-      expect(version.releaseFromChannel, isNull);
-      expect(version.type, VersionType.commit);
+      expect(version.releaseChannel, isNull);
+      expect(version.type, VersionType.gitReference);
     });
 
     test('parse method - channel version', () {
       final version = FlutterVersion.parse('stable');
       expect(version.name, 'stable');
-      expect(version.releaseFromChannel, isNull);
+      expect(version.releaseChannel, isNull);
       expect(version.type, VersionType.channel);
     });
 
@@ -135,10 +207,10 @@ void main() {
 
     test('isMaster getter', () {
       final version1 = FlutterVersion.channel('master');
-      expect(version1.isMaster, isTrue);
+      expect(version1.isMain, isTrue);
 
       final version2 = FlutterVersion.channel('stable');
-      expect(version2.isMaster, isFalse);
+      expect(version2.isMain, isFalse);
     });
 
     test('isChannel getter', () {
@@ -152,13 +224,13 @@ void main() {
     });
 
     test('isCommit getter', () {
-      final version = FlutterVersion.commit('abc123');
-      expect(version.isCommit, isTrue);
+      final version = FlutterVersion.gitReference('abc123');
+      expect(version.isGitReference, isTrue);
     });
 
     test('isCustom getter', () {
-      final version = FlutterVersion.custom('custom_123');
-      expect(version.isCustom, isTrue);
+      final version = FlutterVersion.local('custom_123');
+      expect(version.isLocal, isTrue);
     });
 
     test('printFriendlyName getter - channel version', () {
@@ -167,7 +239,7 @@ void main() {
     });
 
     test('printFriendlyName getter - commit version', () {
-      final version = FlutterVersion.commit('abc123');
+      final version = FlutterVersion.gitReference('abc123');
       expect(version.printFriendlyName, 'Commit : abc123');
     });
 

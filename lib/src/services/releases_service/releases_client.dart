@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import '../../models/flutter_version_model.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
 import '../base_service.dart';
-import 'models/channels_model.dart';
 import 'models/flutter_releases_model.dart';
 import 'models/version_model.dart';
 
@@ -48,7 +48,7 @@ class FlutterReleasesService extends ContextualService {
 
       return _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
     } catch (err) {
-      logger.detail(err.toString());
+      logger.debug(err.toString());
       try {
         return _cacheReleasesRes = await getReleasesFromGoogle(platform);
       } catch (_, stackTrace) {

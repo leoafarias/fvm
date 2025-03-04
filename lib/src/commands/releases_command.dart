@@ -47,7 +47,7 @@ class ReleasesCommand extends BaseFvmCommand {
       return release.channel.name != channelName;
     }
 
-    logger.detail('Filtering by channel: $channelName');
+    logger.debug('Filtering by channel: $channelName');
 
     final releases = await services.releases.getReleases();
 

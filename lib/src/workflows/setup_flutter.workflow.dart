@@ -10,14 +10,14 @@ class SetupFlutterWorkflow extends Workflow {
 
     logger
       ..info('Setting up Flutter SDK: ${version.name}')
-      ..lineBreak();
+      ..info();
 
     try {
       await services.flutter
           .runFlutter(version, ['--version'], throwOnError: true);
 
       logger
-        ..lineBreak()
+        ..info()
         ..success('Flutter SDK: ${version.printFriendlyName} is setup');
     } on Exception catch (_) {
       logger.err('Failed to setup Flutter SDK');

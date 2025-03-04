@@ -49,7 +49,7 @@ void forceUpdateFlutterSdkVersionFile(
   sdkVersionFile.writeAsStringSync(sdkVersion);
 }
 
-Future<void> getCommitCount(FVMContext context) async {
+Future<void> getCommitCount(FvmContext context) async {
   final gitDir = await GitDir.fromExisting(context.gitCachePath);
   final result = await gitDir.runCommand(
     ['rev-list', '--count', 'HEAD..origin/master'],
@@ -59,7 +59,7 @@ Future<void> getCommitCount(FVMContext context) async {
   print('Commit count: $commitCount');
 }
 
-Future<DateTime> getDateOfLastCommit(FVMContext context) async {
+Future<DateTime> getDateOfLastCommit(FvmContext context) async {
   final gitDir = await GitDir.fromExisting(context.gitCachePath);
   final result = await gitDir.runCommand(
     ['log', '-1', '--format=%cd', '--date=short'],
@@ -228,20 +228,20 @@ class _ProjectHasConfigMatcher extends Matcher {
 class TestFactory {
   const TestFactory._();
 
-  static TestCommandRunner commandRunner({FVMContext? context}) {
+  static TestCommandRunner commandRunner({FvmContext? context}) {
     return TestCommandRunner(context ?? TestFactory.context());
   }
 
-  static FVMContext context({
-    String? name,
+  static FvmContext context({
+    String? debugLabel,
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
   }) {
-    name ??= _generateUuid();
+    debugLabel ??= _generateUuid();
 
     // Create a configuration for the test context using a temporary directory for cache
     // and the main git cache path from the existing FVMContext.
-    final config = AppConfig.empty().copyWith(
+    final config = AppConfig(
       cachePath: createTempDir().path,
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
@@ -250,11 +250,11 @@ class TestFactory {
 
     // Create the test context using the computed contextId, the config overrides,
     // and a temporary directory for the working directory.
-    final testContext = FVMContext.create(
-      id: name,
+    final testContext = FvmContext.create(
+      debugLabel: debugLabel,
       configOverrides: config,
       logLevel: Level.verbose,
-      workingDirectoryOverride: createTempDir(name).path,
+      workingDirectoryOverride: createTempDir(debugLabel).path,
       isTest: true,
       generatorsOverride: {
         FlutterService: _mockFlutterService,
@@ -265,7 +265,7 @@ class TestFactory {
     return testContext;
   }
 
-  static MockFlutterService _mockFlutterService(FVMContext context) {
+  static MockFlutterService _mockFlutterService(FvmContext context) {
     return MockFlutterService(
       context,
     );
@@ -289,7 +289,6 @@ Future<List<String>> runnerZoned(
 }
 
 /// Create a matcher to check if list of strings is a valid json
-
 class _IsExpectedJson extends Matcher {
   final String expected;
 

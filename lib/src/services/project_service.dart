@@ -1,11 +1,9 @@
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-
 import '../models/config_model.dart';
 import '../models/project_model.dart';
 import '../utils/extensions.dart';
-import '../utils/pretty_json.dart';
+import '../utils/helpers.dart';
 import 'base_service.dart';
 
 /// Flutter Project Services
@@ -28,29 +26,17 @@ class ProjectService extends ContextualService {
     // Get directory, defined root or current
     directory ??= Directory(context.workingDirectory);
 
-    logger.detail('Searching for project in ${directory.path}');
+    final project = lookUpDirectoryAncestor(
+      directory: directory,
+      validate: (directory) {
+        final project = Project.loadFromDirectory(directory);
 
-    // Checks if the directory is root
-    final isRootDir = path.rootPrefix(directory.path) == directory.path;
+        return project.hasConfig ? project : null;
+      },
+      debugPrinter: logger.debug,
+    );
 
-    // Gets project from directory
-    final project = Project.loadFromPath(directory.path);
-
-    // If project has a config return it
-    if (project.hasConfig) {
-      logger.detail('Found project config in ${project.path}');
-
-      return project;
-    }
-
-    // Return working directory if has reached root
-    if (isRootDir) {
-      logger.detail('No project found in ${context.workingDirectory}');
-
-      return Project.loadFromPath(context.workingDirectory);
-    }
-
-    return findAncestor(directory: directory.parent);
+    return project ?? Project.loadFromDirectory(context.workingDirectory.dir);
   }
 
   /// Search for version configured
@@ -79,32 +65,26 @@ class ProjectService extends ContextualService {
     String? flutterSdkVersion,
     bool? updateVscodeSettings,
   }) {
-    final currentConfig = project.config ?? ProjectConfig.empty();
+    final currentConfig = project.config ?? ProjectConfig();
 
-    final mergedFlavors = {...?currentConfig.flavors, ...?flavors};
-
-    final newConfig = ProjectConfig(
+    final config = currentConfig.copyWith(
       flutter: flutterSdkVersion,
-      flavors: mergedFlavors.isNotEmpty ? mergedFlavors : null,
+      flavors: flavors != null ? {...?currentConfig.flavors, ...flavors} : null,
       updateVscodeSettings: updateVscodeSettings,
     );
 
-    final config = currentConfig.copyWith.$merge(newConfig);
-
     // Update flavors
-    final configFile = project.configPath.file;
+    final projectConfig = project.configPath.file;
     final legacyConfigFile = project.legacyConfigPath.file;
 
     // If config file does not exists create it
-    if (!configFile.existsSync()) {
-      configFile.createSync(recursive: true);
+    if (!projectConfig.existsSync()) {
+      projectConfig.createSync(recursive: true);
     }
 
-    final jsonContents = prettyJson(config.toMap());
+    projectConfig.write(config.toJson());
+    legacyConfigFile.write(config.toLegacyJson());
 
-    configFile.write(jsonContents);
-    legacyConfigFile.write(prettyJson(config.toLegacyMap()));
-
-    return Project.loadFromPath(project.path);
+    return project.copyWith(config: config);
   }
 }

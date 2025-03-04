@@ -44,13 +44,13 @@ Future<void> prepareLocalProjects(String toPath) async {
 }
 
 Future<void> setUpContext(
-  FVMContext context, [
+  FvmContext context, [
   bool removeTempDir = true,
 ]) async {
-  final tempPath = getTempTestDir(context.id);
+  final tempPath = getTempTestDir(context.debugLabel);
 
   final tempDir = Directory(tempPath);
-  final projects = Directory(getTempTestProjectDir(context.id));
+  final projects = Directory(getTempTestProjectDir(context.debugLabel));
 
   if (projects.existsSync()) {
     projects.deleteSync(recursive: true);
@@ -66,7 +66,7 @@ Future<void> setUpContext(
   await prepareLocalProjects(projects.path);
 }
 
-void tearDownContext(FVMContext context) {
+void tearDownContext(FvmContext context) {
   // final tempPath = getTempTestDir(context.id);
 
   // final tempDir = Directory(tempPath);

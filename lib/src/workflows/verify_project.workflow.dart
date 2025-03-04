@@ -1,35 +1,31 @@
 import '../models/project_model.dart';
 import '../utils/constants.dart';
+import '../utils/exceptions.dart';
 import 'workflow.dart';
 
 class VerifyProjectWorkflow extends Workflow {
   VerifyProjectWorkflow(super.context);
 
-  /// Verifies if the project is valid or if force mode is enabled
-  bool call(Project project, {required bool force}) {
-    if (project.hasPubspec || force) {
-      return true;
+  void call(Project project, {required bool force}) {
+    if (project.hasPubspec || force) return;
+
+    if (project.hasConfig && project.path != context.workingDirectory) {
+      logger
+        ..info()
+        ..info('Using $kFvmConfigFileName in ${project.path}')
+        ..info()
+        ..info(
+          'If this is incorrect either use --force flag or remove $kFvmConfigFileName and $kFvmDirName directory.',
+        )
+        ..info();
+
+      return;
     }
 
-    if (project.hasConfig) {
-      if (project.path != context.workingDirectory) {
-        logger
-          ..lineBreak()
-          ..info('Using $kFvmConfigFileName in ${project.path}')
-          ..lineBreak()
-          ..info(
-            'If this is incorrect either use the --force flag or remove the $kFvmConfigFileName and the $kFvmDirName directory.',
-          )
-          ..lineBreak();
-      }
+    logger.info('No pubspec.yaml detected in this directory');
 
-      return true;
+    if (!logger.confirm('Would you like to continue?', defaultValue: true)) {
+      throw ForceExit.success('Project verification failed');
     }
-
-    logger
-      ..lineBreak()
-      ..info('No pubspec.yaml detected in this directory');
-
-    return logger.confirm('Would you like to continue?', defaultValue: true);
   }
 }

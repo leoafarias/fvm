@@ -1,4 +1,5 @@
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../utils/compare_semver.dart';
@@ -10,7 +11,7 @@ import 'flutter_version_model.dart';
 part 'cache_flutter_version_model.mapper.dart';
 
 /// Cache Version model
-@MappableClass(generateMethods: skipCopyWith)
+@MappableClass()
 class CacheFlutterVersion extends FlutterVersion
     with CacheFlutterVersionMappable {
   /// Directory of the cache version
@@ -19,11 +20,22 @@ class CacheFlutterVersion extends FlutterVersion
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
 
+  @protected
+  @MappableConstructor()
+  const CacheFlutterVersion.raw(
+    super.name, {
+    super.releaseChannel,
+    required super.type,
+    super.fork,
+    required this.directory,
+  });
+
   CacheFlutterVersion(FlutterVersion version, {required this.directory})
       : super(
           version.name,
-          releaseFromChannel: version.releaseFromChannel,
+          releaseChannel: version.releaseChannel,
           type: version.type,
+          fork: version.fork,
         );
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
@@ -81,7 +93,7 @@ class CacheFlutterVersion extends FlutterVersion
 
   FlutterVersion toFlutterVersion() => FlutterVersion(
         name,
-        releaseFromChannel: releaseFromChannel,
+        releaseChannel: releaseChannel,
         type: type,
       );
 }

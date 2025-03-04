@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:path/path.dart' as p;
 
+import '../models/git_reference_model.dart';
 import '../utils/file_lock.dart';
 import '../utils/git_clone_update_printer.dart';
 import 'base_service.dart';
@@ -11,24 +12,13 @@ import 'base_service.dart';
 /// Service for Git operations
 class GitService extends ContextualService {
   late final FileLocker _updatingCacheLock;
+  List<GitReference>? _referencesCache;
 
   GitService(super.context) {
     _updatingCacheLock = context.createLock(
       'updating-cache',
       expiresIn: const Duration(minutes: 10),
     );
-  }
-
-  /// Helper method to get a GitDir instance, handling common setup
-  Future<GitDir> _getGitMirror() async {
-    await updateLocalMirror();
-
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-    if (!isGitDir) {
-      throw Exception('Git cache directory does not exist');
-    }
-
-    return GitDir.fromExisting(context.gitCachePath);
   }
 
   // Create a custom Process.start, that prints using the progress bar
@@ -55,7 +45,7 @@ class GitService extends ContextualService {
         logger.info(line);
       });
     } catch (e) {
-      logger.detail('Formatting error due to invalid return $e');
+      logger.debug('Formatting error due to invalid return $e');
       // Ignore as its just a printer error
       logger.info('Updating....');
     }
@@ -67,6 +57,33 @@ class GitService extends ContextualService {
       throw Exception('Git clone failed');
     }
     logger.info('Local mirror created successfully!');
+  }
+
+  /// Helper method to run git ls-remote commands against the remote repository
+  Future<List<GitReference>> _fetchGitReferences() async {
+    if (_referencesCache != null) return _referencesCache!;
+
+    final List<String> command = ['ls-remote', '--tags', '--branches'];
+
+    command.add(context.flutterUrl);
+
+    final result = await services.process.run('git', args: command);
+
+    if (result.exitCode != 0) {
+      logger.warn('Fetching git references failed');
+      logger.debug(result.stderr);
+
+      return [];
+    }
+
+    return _referencesCache =
+        GitReference.parseGitReferences(result.stdout as String);
+  }
+
+  Future<bool> isGitReference(String version) async {
+    final references = await _fetchGitReferences();
+
+    return references.any((reference) => reference.name == version);
   }
 
   /// Resets to specific reference
@@ -86,31 +103,30 @@ class GitService extends ContextualService {
     try {
       if (isGitDir) {
         try {
-          logger.detail('Updating local mirror...');
+          logger.debug('Updating local mirror...');
           final gitDir = await GitDir.fromExisting(gitCacheDir.path);
 
           // First, prune any stale references
-          logger.detail('Pruning stale references...');
+          logger.debug('Pruning stale references...');
           await gitDir.runCommand(['remote', 'prune', 'origin']);
 
           // Then fetch all refs including tags
-          logger.detail('Fetching all refs...');
+          logger.debug('Fetching all refs...');
           await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
 
           // Check if there are any uncommitted changes
-          logger.detail('Checking for uncommitted changes...');
+          logger.debug('Checking for uncommitted changes...');
           final statusResult =
               await gitDir.runCommand(['status', '--porcelain']);
 
           final output = (statusResult.stdout as String).trim();
           if (output.isEmpty) {
-            logger
-                .detail('No uncommitted changes. Working directory is clean.');
+            logger.debug('No uncommitted changes. Working directory is clean.');
           } else {
             await _createLocalMirror();
           }
 
-          logger.detail('Local mirror updated successfully');
+          logger.debug('Local mirror updated successfully');
         } catch (e) {
           logger.err('Error updating local mirror: $e');
 
@@ -132,18 +148,6 @@ class GitService extends ContextualService {
       rethrow;
     } finally {
       _updatingCacheLock.unlock();
-    }
-  }
-
-  /// Gets a list of all tags in the repository
-  Future<List<String>> getTags() async {
-    try {
-      final gitDir = await _getGitMirror();
-      final tags = await gitDir.tags().toList();
-
-      return tags.map((tag) => tag.tag).toList();
-    } on Exception {
-      return [];
     }
   }
 
@@ -179,51 +183,6 @@ class GitService extends ContextualService {
       return (pr.stdout as String).trim();
     } catch (e) {
       return null;
-    }
-  }
-
-  /// Resolves any git reference (branch, tag, commit) to its SHA
-  /// Returns null if reference doesn't exist
-  Future<String?> getReference(String ref) async {
-    try {
-      final gitDir = await _getGitMirror();
-      final result = await gitDir.runCommand(
-        ['rev-parse', '--short', '--verify', ref],
-        throwOnError: false,
-      );
-
-      if (result.exitCode == 0) {
-        return result.stdout.toString().trim();
-      }
-
-      return null;
-    } on Exception {
-      return null;
-    }
-  }
-
-  /// Checks if a string is a valid commit
-  Future<bool> isCommit(String commit) async {
-    try {
-      final gitDir = await _getGitMirror();
-
-      // Try to get the commit object
-      await gitDir.commitFromRevision(commit);
-
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Checks if a string is a valid tag
-  Future<bool> isTag(String tag) async {
-    try {
-      final tags = await getTags();
-
-      return tags.contains(tag);
-    } catch (e) {
-      return false;
     }
   }
 }

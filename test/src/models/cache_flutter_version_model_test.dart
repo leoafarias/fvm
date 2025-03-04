@@ -31,7 +31,7 @@ void main() {
           CacheFlutterVersion(flutterVersion, directory: '/path/to/cache');
       expect(cacheVersion.name, '1.0.0');
       expect(cacheVersion.directory, '/path/to/cache');
-      expect(cacheVersion.releaseFromChannel, isNull);
+      expect(cacheVersion.releaseChannel, isNull);
       expect(cacheVersion.type, VersionType.release);
     });
 

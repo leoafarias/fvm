@@ -6,7 +6,7 @@ void main() {
   late Logger logger;
 
   setUp(() {
-    final context = FVMContext.create(
+    final context = FvmContext.create(
       logLevel: Level.info,
       isTest: true,
       skipInput: true,
@@ -44,7 +44,7 @@ void main() {
     });
 
     test('detail adds message to outputs', () {
-      logger.detail("Detail message");
+      logger.debug("Detail message");
       expect(logger.outputs.contains("Detail message"), isTrue);
     });
 
@@ -54,7 +54,7 @@ void main() {
     });
 
     test('confirm with skipInput true logs messages and returns default', () {
-      final context = FVMContext.create(
+      final context = FvmContext.create(
         logLevel: Level.info,
         isTest: false, // isTest is false so that the skipInput branch is used
         skipInput: true,
@@ -78,7 +78,7 @@ void main() {
 
     test('select with skipInput true returns default selection when provided',
         () {
-      final context = FVMContext.create(
+      final context = FvmContext.create(
         logLevel: Level.info,
         isTest: false,
         skipInput: true,
@@ -93,7 +93,7 @@ void main() {
 
   group('Logger progress tests', () {
     test('progress logs message when verbose', () {
-      final context = FVMContext.create(
+      final context = FvmContext.create(
         logLevel: Level.verbose,
         isTest: true,
         skipInput: true,

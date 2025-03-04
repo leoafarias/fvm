@@ -46,9 +46,9 @@ class ProcessService extends ContextualService {
     bool echoOutput = false,
   }) async {
     logger
-      ..detail('')
-      ..detail('Running: $command')
-      ..detail('');
+      ..debug('')
+      ..debug('Running: $command')
+      ..debug('');
     ProcessResult processResult;
     if (!echoOutput || context.isTest) {
       processResult = await Process.run(

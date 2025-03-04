@@ -16,6 +16,7 @@ import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
 import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
+import 'commands/fork_command.dart';
 import 'commands/global_command.dart';
 import 'commands/install_command.dart';
 import 'commands/list_command.dart';
@@ -23,8 +24,8 @@ import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
+import 'models/config_model.dart';
 import 'models/log_level_model.dart';
-import 'services/config_repository.dart';
 import 'services/logger_service.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
@@ -33,7 +34,7 @@ import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CompletionCommandRunner<int> {
-  final FVMContext context;
+  final FvmContext context;
   final PubUpdater _pubUpdater;
 
   /// Constructor
@@ -55,6 +56,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(ReleasesCommand(context));
     addCommand(FlutterCommand(context));
     addCommand(DartCommand(context));
+    addCommand(ForkCommand(context));
     addCommand(DoctorCommand(context));
     addCommand(SpawnCommand(context));
     addCommand(ConfigCommand(context));
@@ -78,7 +80,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return null;
       }
 
-      ConfigRepository.update(lastUpdateCheck: DateTime.now());
+      LocalAppConfig.read()
+        ..lastUpdateCheck = DateTime.now()
+        ..save();
 
       final isUpToDate = await _pubUpdater.isUpToDate(
         packageName: kPackageName,
@@ -95,15 +99,15 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
         logger
-          ..lineBreak()
+          ..info()
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
           )
-          ..lineBreak();
+          ..info();
       };
     } catch (_) {
       return () {
-        logger.detail("Failed to check for updates.");
+        logger.debug("Failed to check for updates.");
       };
     }
   }
@@ -125,18 +129,14 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
-    } on ApiCommandException catch (err, stackTrace) {
-      logger
-        ..fail(err.message)
-        ..lineBreak()
-        ..err(err.error.toString());
-      logger.logTrace(stackTrace);
+    } on ForceExit catch (e) {
+      logger.info(e.message);
 
-      return ExitCode.unavailable.code;
+      return e.exitCode;
     } on AppDetailedException catch (err, stackTrace) {
       logger
         ..fail(err.message)
-        ..lineBreak()
+        ..err()
         ..err(err.info);
       logger.logTrace(stackTrace);
 
@@ -144,9 +144,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
         logger
-          ..lineBreak()
+          ..info()
           ..fail('Requires administrator privileges to run this command.')
-          ..lineBreak();
+          ..info();
 
         logger.notice(
           "You don't have the required privileges to run this command.\n"
@@ -159,7 +159,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       logger
         ..err(err.message)
-        ..lineBreak()
+        ..info()
         ..err('Path: ${err.path}');
       logger.logTrace(stackTrace);
 
@@ -170,9 +170,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       return ExitCode.data.code;
     } on ProcessException catch (e) {
       logger
-        ..lineBreak()
+        ..info()
         ..err(e.toString())
-        ..lineBreak();
+        ..info();
 
       return e.errorCode;
     } on UsageException catch (err) {
@@ -180,13 +180,13 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       // exit with an error code
       logger
         ..err(err.message)
-        ..lineBreak()
+        ..info()
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
       logger
-        ..lineBreak()
+        ..info()
         ..err(err.toString());
 
       logger.logTrace(stackTrace);
@@ -199,8 +199,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
     logger
-      ..detail('')
-      ..detail('Argument information:');
+      ..debug('')
+      ..debug('Argument information:');
 
     if (topLevelResults.command?.name == 'completion') {
       super.runCommand(topLevelResults);
@@ -218,33 +218,33 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      logger.detail('  Top level options:');
+      logger.debug('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          logger.detail('  - $option: ${topLevelResults[option]}');
+          logger.debug('  - $option: ${topLevelResults[option]}');
         }
       }
-      logger.detail('');
+      logger.debug('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      logger.detail('Command: ${commandResult.name}');
+      logger.debug('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        logger.detail('  Command options:');
+        logger.debug('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            logger.detail('    - $option: ${commandResult[option]}');
+            logger.debug('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      logger.detail('');
+      logger.debug('');
     }
 
     final checkingForUpdate = _checkForUpdates();

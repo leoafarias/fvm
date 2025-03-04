@@ -11,7 +11,7 @@ import '../../testing_utils.dart';
 void main() {
   late ServicesProvider services;
 
-  late FVMContext context;
+  late FvmContext context;
 
   setUpAll(() {
     // Register any custom fallbacks for mocktail
@@ -132,7 +132,7 @@ void main() {
   });
 
   group('getReleases', () {
-    late FVMContext context;
+    late FvmContext context;
     late FlutterReleasesResponse releasesResponse;
 
     setUp(() async {

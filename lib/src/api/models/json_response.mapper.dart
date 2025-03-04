@@ -142,9 +142,11 @@ abstract class GetCacheVersionsResponseCopyWith<
     $R,
     $In extends GetCacheVersionsResponse,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<$R, CacheFlutterVersion,
-          ObjectCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>>
-      get versions;
+  ListCopyWith<
+      $R,
+      CacheFlutterVersion,
+      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
+          CacheFlutterVersion>> get versions;
   $R call({String? size, List<CacheFlutterVersion>? versions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
@@ -160,10 +162,12 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetCacheVersionsResponse> $mapper =
       GetCacheVersionsResponseMapper.ensureInitialized();
   @override
-  ListCopyWith<$R, CacheFlutterVersion,
-          ObjectCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>>
-      get versions => ListCopyWith($value.versions,
-          (v, t) => ObjectCopyWith(v, $identity, t), (v) => call(versions: v));
+  ListCopyWith<
+      $R,
+      CacheFlutterVersion,
+      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
+          CacheFlutterVersion>> get versions => ListCopyWith($value.versions,
+      (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
   $R call({String? size, List<CacheFlutterVersion>? versions}) =>
       $apply(FieldCopyWithData({
@@ -436,7 +440,7 @@ class GetContextResponseMapper extends ClassMapperBase<GetContextResponse> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = GetContextResponseMapper._());
       APIResponseMapper.ensureInitialized();
-      FVMContextMapper.ensureInitialized();
+      FvmContextMapper.ensureInitialized();
     }
     return _instance!;
   }
@@ -444,8 +448,8 @@ class GetContextResponseMapper extends ClassMapperBase<GetContextResponse> {
   @override
   final String id = 'GetContextResponse';
 
-  static FVMContext _$context(GetContextResponse v) => v.context;
-  static const Field<GetContextResponse, FVMContext> _f$context =
+  static FvmContext _$context(GetContextResponse v) => v.context;
+  static const Field<GetContextResponse, FvmContext> _f$context =
       Field('context', _$context);
 
   @override
@@ -512,8 +516,8 @@ extension GetContextResponseValueCopy<$R, $Out>
 
 abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
     $Out> implements ClassCopyWith<$R, $In, $Out> {
-  FVMContextCopyWith<$R, FVMContext, FVMContext> get context;
-  $R call({FVMContext? context});
+  FvmContextCopyWith<$R, FvmContext, FvmContext> get context;
+  $R call({FvmContext? context});
   GetContextResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -527,10 +531,10 @@ class _GetContextResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetContextResponse> $mapper =
       GetContextResponseMapper.ensureInitialized();
   @override
-  FVMContextCopyWith<$R, FVMContext, FVMContext> get context =>
+  FvmContextCopyWith<$R, FvmContext, FvmContext> get context =>
       $value.context.copyWith.$chain((v) => call(context: v));
   @override
-  $R call({FVMContext? context}) =>
+  $R call({FvmContext? context}) =>
       $apply(FieldCopyWithData({if (context != null) #context: context}));
   @override
   GetContextResponse $make(CopyWithData data) =>

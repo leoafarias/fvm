@@ -4,16 +4,9 @@ import 'dart:io';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../api/models/json_response.dart';
+import '../utils/exceptions.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
-
-class ApiCommandException implements Exception {
-  final String message;
-
-  final Object error;
-
-  const ApiCommandException(this.message, {required this.error});
-}
 
 abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
   APISubCommand(super.context) {
@@ -35,15 +28,18 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
       final response = await runSubCommand();
 
       if (shouldCompress) {
-        print(response.toJson());
+        logger.write(response.toJson());
       } else {
-        print(prettyJson(response.toMap()));
+        logger.write(prettyJson(response.toMap()));
       }
 
       return ExitCode.success.code;
     } on Exception catch (e, stackTrace) {
       Error.throwWithStackTrace(
-        ApiCommandException('Exception running API command $name', error: e),
+        AppDetailedException(
+          'Exception running API command $name',
+          e.toString(),
+        ),
         stackTrace,
       );
     }

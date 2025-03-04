@@ -21,7 +21,7 @@ class EnsureCacheWorkflow extends Workflow {
       ..notice(
         'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
       )
-      ..lineBreak();
+      ..info();
 
     final shouldReinstall = logger.confirm(
       'Would you like to reinstall this version to resolve the issue?',
@@ -34,7 +34,7 @@ class EnsureCacheWorkflow extends Workflow {
         'The corrupted SDK version is now being removed and a reinstallation will follow...',
       );
 
-      return call(version.name, shouldInstall: shouldInstall);
+      return call(version, shouldInstall: shouldInstall);
     }
 
     throw AppException('Flutter SDK: ${version.name} is not executable.');
@@ -51,7 +51,7 @@ class EnsureCacheWorkflow extends Workflow {
       ..info(
         'This can occur if you manually run "flutter upgrade" on a cached SDK.',
       )
-      ..lineBreak();
+      ..info();
 
     final firstOption =
         'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}';
@@ -72,7 +72,7 @@ class EnsureCacheWorkflow extends Workflow {
     logger.info('Removing incorrect SDK version...');
     services.cache.remove(version);
 
-    return call(version.name, shouldInstall: true);
+    return call(version, shouldInstall: true);
   }
 
   void _validateContext() {
@@ -95,16 +95,16 @@ class EnsureCacheWorkflow extends Workflow {
   ///
   /// Returns a [CacheFlutterVersion] which represents the locally cached version.
   Future<CacheFlutterVersion> call(
-    String version, {
+    FlutterVersion version, {
     bool shouldInstall = false,
     bool force = false,
   }) async {
     _validateContext();
     _validateGit();
     // Get valid flutter version
-    final validVersion = await validateFlutterVersion(version, force: force);
+
     try {
-      final cacheVersion = services.cache.getVersion(validVersion);
+      final cacheVersion = services.cache.getVersion(version);
 
       if (cacheVersion != null) {
         final integrity =
@@ -119,15 +119,15 @@ class EnsureCacheWorkflow extends Workflow {
 
         if (integrity == CacheIntegrity.versionMismatch &&
             !force &&
-            !validVersion.isCustom) {
+            !version.isLocal) {
           return await _handleVersionMismatch(cacheVersion);
         } else if (force) {
           logger.warn(
             'Not checking for version mismatch as --force flag is set.',
           );
-        } else if (validVersion.isCustom) {
+        } else if (version.isLocal) {
           logger.warn(
-            'Not checking for version mismatch as custom version is being used.',
+            'Not checking for version mismatch as local version is being used.',
           );
         }
 
@@ -141,13 +141,13 @@ class EnsureCacheWorkflow extends Workflow {
         return cacheVersion;
       }
 
-      if (validVersion.isCustom) {
-        throw AppException('Custom Flutter SDKs must be installed manually.');
+      if (version.isLocal) {
+        throw AppException('Local Flutter SDKs must be installed manually.');
       }
 
       if (!shouldInstall) {
         logger.info(
-          'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} is not installed.',
+          'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
         );
 
         if (!force) {
@@ -176,85 +176,28 @@ class EnsureCacheWorkflow extends Workflow {
       }
 
       final progress = logger.progress(
-        'Installing Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)}',
+        'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
       );
       try {
-        await services.flutter.install(validVersion);
+        await services.flutter.install(version);
 
         progress.complete(
-          'Flutter SDK: ${cyan.wrap(validVersion.printFriendlyName)} installed!',
+          'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
         );
       } on Exception {
-        progress.fail('Failed to install ${validVersion.name}');
+        progress.fail('Failed to install ${version.name}');
         rethrow;
       }
 
-      final newCacheVersion = services.cache.getVersion(validVersion);
+      final newCacheVersion = services.cache.getVersion(version);
       if (newCacheVersion == null) {
-        throw AppException('Could not verify cache version $validVersion');
+        throw AppException('Could not verify cache version $version');
       }
 
       return newCacheVersion;
     } on Exception {
-      logger.fail('Failed to ensure $validVersion is cached.');
+      logger.fail('Failed to ensure $version is cached.');
       rethrow;
     }
-  }
-
-  Future<FlutterVersion> validateFlutterVersion(
-    String version, {
-    bool force = false,
-  }) async {
-    final flutterVersion = FlutterVersion.parse(version);
-
-    if (force) {
-      return flutterVersion;
-    }
-
-    // If its channel or commit no need for further validation
-    if (flutterVersion.isChannel || flutterVersion.isCustom) {
-      return flutterVersion;
-    }
-
-    if (flutterVersion.isRelease) {
-      // Check version incase it as a releaseChannel i.e. 2.2.2@beta
-      final isTag = await services.git.isTag(flutterVersion.version);
-      if (isTag) {
-        return flutterVersion;
-      }
-
-      final isVersion =
-          await services.releases.isVersionValid(flutterVersion.version);
-
-      if (isVersion) {
-        return flutterVersion;
-      }
-    }
-
-    if (flutterVersion.isCommit) {
-      final commitSha = await services.git.getReference(version);
-      if (commitSha != null) {
-        if (commitSha != flutterVersion.name) {
-          return FlutterVersion.commit(commitSha);
-        }
-
-        return flutterVersion;
-      }
-    }
-
-    logger.notice('Flutter SDK: ($version) is not valid Flutter version');
-
-    final askConfirmation = logger.confirm(
-      'Do you want to continue?',
-      defaultValue: false,
-    );
-    if (askConfirmation) {
-      // Jump a line after confirmation
-      logger.lineBreak();
-
-      return flutterVersion;
-    }
-
-    throw AppException('$version is not a valid Flutter version');
   }
 }

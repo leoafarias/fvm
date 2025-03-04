@@ -29,10 +29,12 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
         return VersionType.release;
       case 'channel':
         return VersionType.channel;
-      case 'commit':
-        return VersionType.commit;
-      case 'custom':
-        return VersionType.custom;
+      case 'gitReference':
+        return VersionType.gitReference;
+      case 'local':
+        return VersionType.local;
+      case 'unknown':
+        return VersionType.unknown;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -45,10 +47,12 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
         return 'release';
       case VersionType.channel:
         return 'channel';
-      case VersionType.commit:
-        return 'commit';
-      case VersionType.custom:
-        return 'custom';
+      case VersionType.gitReference:
+        return 'gitReference';
+      case VersionType.local:
+        return 'local';
+      case VersionType.unknown:
+        return 'unknown';
     }
   }
 }
@@ -60,6 +64,60 @@ extension VersionTypeMapperExtension on VersionType {
   }
 }
 
+class FlutterChannelMapper extends EnumMapper<FlutterChannel> {
+  FlutterChannelMapper._();
+
+  static FlutterChannelMapper? _instance;
+  static FlutterChannelMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = FlutterChannelMapper._());
+    }
+    return _instance!;
+  }
+
+  static FlutterChannel fromValue(dynamic value) {
+    ensureInitialized();
+    return MapperContainer.globals.fromValue(value);
+  }
+
+  @override
+  FlutterChannel decode(dynamic value) {
+    switch (value) {
+      case 'stable':
+        return FlutterChannel.stable;
+      case 'dev':
+        return FlutterChannel.dev;
+      case 'beta':
+        return FlutterChannel.beta;
+      case 'master':
+        return FlutterChannel.master;
+      default:
+        throw MapperException.unknownEnumValue(value);
+    }
+  }
+
+  @override
+  dynamic encode(FlutterChannel self) {
+    switch (self) {
+      case FlutterChannel.stable:
+        return 'stable';
+      case FlutterChannel.dev:
+        return 'dev';
+      case FlutterChannel.beta:
+        return 'beta';
+      case FlutterChannel.master:
+        return 'master';
+    }
+  }
+}
+
+extension FlutterChannelMapperExtension on FlutterChannel {
+  String toValue() {
+    FlutterChannelMapper.ensureInitialized();
+    return MapperContainer.globals.toValue<FlutterChannel>(this) as String;
+  }
+}
+
 class FlutterVersionMapper extends ClassMapperBase<FlutterVersion> {
   FlutterVersionMapper._();
 
@@ -67,6 +125,7 @@ class FlutterVersionMapper extends ClassMapperBase<FlutterVersion> {
   static FlutterVersionMapper ensureInitialized() {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = FlutterVersionMapper._());
+      FlutterChannelMapper.ensureInitialized();
       VersionTypeMapper.ensureInitialized();
     }
     return _instance!;
@@ -77,24 +136,31 @@ class FlutterVersionMapper extends ClassMapperBase<FlutterVersion> {
 
   static String _$name(FlutterVersion v) => v.name;
   static const Field<FlutterVersion, String> _f$name = Field('name', _$name);
-  static String? _$releaseFromChannel(FlutterVersion v) => v.releaseFromChannel;
-  static const Field<FlutterVersion, String> _f$releaseFromChannel =
-      Field('releaseFromChannel', _$releaseFromChannel, opt: true);
+  static FlutterChannel? _$releaseChannel(FlutterVersion v) => v.releaseChannel;
+  static const Field<FlutterVersion, FlutterChannel> _f$releaseChannel =
+      Field('releaseChannel', _$releaseChannel, opt: true);
   static VersionType _$type(FlutterVersion v) => v.type;
   static const Field<FlutterVersion, VersionType> _f$type =
       Field('type', _$type);
+  static String? _$fork(FlutterVersion v) => v.fork;
+  static const Field<FlutterVersion, String> _f$fork =
+      Field('fork', _$fork, opt: true);
 
   @override
   final MappableFields<FlutterVersion> fields = const {
     #name: _f$name,
-    #releaseFromChannel: _f$releaseFromChannel,
+    #releaseChannel: _f$releaseChannel,
     #type: _f$type,
+    #fork: _f$fork,
   };
+  @override
+  final bool ignoreNull = true;
 
   static FlutterVersion _instantiate(DecodingData data) {
     return FlutterVersion(data.dec(_f$name),
-        releaseFromChannel: data.dec(_f$releaseFromChannel),
-        type: data.dec(_f$type));
+        releaseChannel: data.dec(_f$releaseChannel),
+        type: data.dec(_f$type),
+        fork: data.dec(_f$fork));
   }
 
   @override
@@ -120,6 +186,9 @@ mixin FlutterVersionMappable {
         .encodeMap<FlutterVersion>(this as FlutterVersion);
   }
 
+  FlutterVersionCopyWith<FlutterVersion, FlutterVersion, FlutterVersion>
+      get copyWith => _FlutterVersionCopyWithImpl(
+          this as FlutterVersion, $identity, $identity);
   @override
   String toString() {
     return FlutterVersionMapper.ensureInitialized()
@@ -137,4 +206,166 @@ mixin FlutterVersionMappable {
     return FlutterVersionMapper.ensureInitialized()
         .hashValue(this as FlutterVersion);
   }
+}
+
+extension FlutterVersionValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, FlutterVersion, $Out> {
+  FlutterVersionCopyWith<$R, FlutterVersion, $Out> get $asFlutterVersion =>
+      $base.as((v, t, t2) => _FlutterVersionCopyWithImpl(v, t, t2));
+}
+
+abstract class FlutterVersionCopyWith<$R, $In extends FlutterVersion, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call(
+      {String? name,
+      FlutterChannel? releaseChannel,
+      VersionType? type,
+      String? fork});
+  FlutterVersionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+      Then<$Out2, $R2> t);
+}
+
+class _FlutterVersionCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, FlutterVersion, $Out>
+    implements FlutterVersionCopyWith<$R, FlutterVersion, $Out> {
+  _FlutterVersionCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<FlutterVersion> $mapper =
+      FlutterVersionMapper.ensureInitialized();
+  @override
+  $R call(
+          {String? name,
+          Object? releaseChannel = $none,
+          VersionType? type,
+          Object? fork = $none}) =>
+      $apply(FieldCopyWithData({
+        if (name != null) #name: name,
+        if (releaseChannel != $none) #releaseChannel: releaseChannel,
+        if (type != null) #type: type,
+        if (fork != $none) #fork: fork
+      }));
+  @override
+  FlutterVersion $make(CopyWithData data) =>
+      FlutterVersion(data.get(#name, or: $value.name),
+          releaseChannel: data.get(#releaseChannel, or: $value.releaseChannel),
+          type: data.get(#type, or: $value.type),
+          fork: data.get(#fork, or: $value.fork));
+
+  @override
+  FlutterVersionCopyWith<$R2, FlutterVersion, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _FlutterVersionCopyWithImpl($value, $cast, t);
+}
+
+class FlutterForkMapper extends ClassMapperBase<FlutterFork> {
+  FlutterForkMapper._();
+
+  static FlutterForkMapper? _instance;
+  static FlutterForkMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = FlutterForkMapper._());
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'FlutterFork';
+
+  static String _$alias(FlutterFork v) => v.alias;
+  static const Field<FlutterFork, String> _f$alias = Field('alias', _$alias);
+  static String _$repositoryUrl(FlutterFork v) => v.repositoryUrl;
+  static const Field<FlutterFork, String> _f$repositoryUrl =
+      Field('repositoryUrl', _$repositoryUrl);
+
+  @override
+  final MappableFields<FlutterFork> fields = const {
+    #alias: _f$alias,
+    #repositoryUrl: _f$repositoryUrl,
+  };
+  @override
+  final bool ignoreNull = true;
+
+  static FlutterFork _instantiate(DecodingData data) {
+    return FlutterFork(
+        alias: data.dec(_f$alias), repositoryUrl: data.dec(_f$repositoryUrl));
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static FlutterFork fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<FlutterFork>(map);
+  }
+
+  static FlutterFork fromJson(String json) {
+    return ensureInitialized().decodeJson<FlutterFork>(json);
+  }
+}
+
+mixin FlutterForkMappable {
+  String toJson() {
+    return FlutterForkMapper.ensureInitialized()
+        .encodeJson<FlutterFork>(this as FlutterFork);
+  }
+
+  Map<String, dynamic> toMap() {
+    return FlutterForkMapper.ensureInitialized()
+        .encodeMap<FlutterFork>(this as FlutterFork);
+  }
+
+  FlutterForkCopyWith<FlutterFork, FlutterFork, FlutterFork> get copyWith =>
+      _FlutterForkCopyWithImpl(this as FlutterFork, $identity, $identity);
+  @override
+  String toString() {
+    return FlutterForkMapper.ensureInitialized()
+        .stringifyValue(this as FlutterFork);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return FlutterForkMapper.ensureInitialized()
+        .equalsValue(this as FlutterFork, other);
+  }
+
+  @override
+  int get hashCode {
+    return FlutterForkMapper.ensureInitialized().hashValue(this as FlutterFork);
+  }
+}
+
+extension FlutterForkValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, FlutterFork, $Out> {
+  FlutterForkCopyWith<$R, FlutterFork, $Out> get $asFlutterFork =>
+      $base.as((v, t, t2) => _FlutterForkCopyWithImpl(v, t, t2));
+}
+
+abstract class FlutterForkCopyWith<$R, $In extends FlutterFork, $Out>
+    implements ClassCopyWith<$R, $In, $Out> {
+  $R call({String? alias, String? repositoryUrl});
+  FlutterForkCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+}
+
+class _FlutterForkCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, FlutterFork, $Out>
+    implements FlutterForkCopyWith<$R, FlutterFork, $Out> {
+  _FlutterForkCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<FlutterFork> $mapper =
+      FlutterForkMapper.ensureInitialized();
+  @override
+  $R call({String? alias, String? repositoryUrl}) => $apply(FieldCopyWithData({
+        if (alias != null) #alias: alias,
+        if (repositoryUrl != null) #repositoryUrl: repositoryUrl
+      }));
+  @override
+  FlutterFork $make(CopyWithData data) => FlutterFork(
+      alias: data.get(#alias, or: $value.alias),
+      repositoryUrl: data.get(#repositoryUrl, or: $value.repositoryUrl));
+
+  @override
+  FlutterForkCopyWith<$R2, FlutterFork, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _FlutterForkCopyWithImpl($value, $cast, t);
 }

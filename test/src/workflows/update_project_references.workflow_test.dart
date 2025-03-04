@@ -256,13 +256,12 @@ void main() {
 
     test('should handle project constraints issues', () async {
       final testDir = createTempDir();
-      final pubspecFile = createPubspecYaml(
+      createPubspecYaml(
         testDir,
         name: 'test_project',
         sdkConstraint: '>=3.1.0 <4.0.0',
       );
 
-      print(pubspecFile.readAsStringSync());
       createProjectConfig(ProjectConfig(), testDir);
 
       final cacheVersion = MockCacheFlutterVersion();

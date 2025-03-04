@@ -1,7 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../../models/flutter_version_model.dart';
 import '../releases_client.dart';
-import 'channels_model.dart';
 
 part 'version_model.mapper.dart';
 
