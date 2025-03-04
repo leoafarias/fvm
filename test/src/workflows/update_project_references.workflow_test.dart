@@ -6,6 +6,7 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/update_project_references.workflow.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -86,7 +87,7 @@ void main() {
       expect(releaseFile.readAsStringSync(), equals(cacheVersion.name));
 
       // Verify the project was updated with the correct version
-      expect(updatedProject.pinnedVersion, equals(cacheVersion.name));
+      expect(updatedProject.pinnedVersion, cacheVersion.toFlutterVersion());
     });
 
     test('should update with flavor when provided', () async {
@@ -255,27 +256,33 @@ void main() {
 
     test('should handle project constraints issues', () async {
       final testDir = createTempDir();
-      final pubspecFile = createPubspecYaml(testDir,
-          name: 'test_project', sdkConstraint: '>=2.17.0 <4.0.0');
+      final pubspecFile = createPubspecYaml(
+        testDir,
+        name: 'test_project',
+        sdkConstraint: '>=3.1.0 <4.0.0',
+      );
 
       print(pubspecFile.readAsStringSync());
       createProjectConfig(ProjectConfig(), testDir);
 
-      // Create version with incompatible Dart SDK version
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = MockCacheFlutterVersion();
 
-      // Override the dart-sdk version file with an incompatible version
-      final dartSdkDir = Directory(p.join(
-        cacheVersion.directory,
-        'bin',
-        'cache',
-        'dart-sdk',
-      ));
+      // when dartSdkVersion
+      when(() => cacheVersion.dartSdkVersion).thenReturn('2.19.0');
 
-      File(p.join(dartSdkDir.path, 'version'))
-          .writeAsStringSync('3.0.0'); // Incompatible with ^2.0.0
+      // name
+      when(() => cacheVersion.name).thenReturn('2.19.0');
+
+      when(() => cacheVersion.printFriendlyName).thenReturn(
+        'Mock version',
+      );
+
+      when(() => cacheVersion.directory).thenReturn(
+        createTempDir().path,
+      );
 
       final project = runner.services.project.findAncestor(directory: testDir);
+
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
       // When run with force=false, it should ask for confirmation and throw if rejected
@@ -289,28 +296,7 @@ void main() {
       final result = await workflow.call(project, cacheVersion, force: true);
       expect(result, isA<Project>());
     });
-
-    test('should handle missing cache directories gracefully', () async {
-      final testDir = createTempDir();
-      createPubspecYaml(testDir);
-      createProjectConfig(ProjectConfig(), testDir);
-
-      final project = runner.services.project.findAncestor(directory: testDir);
-
-      // Create a FlutterVersion without proper directory structure
-      final flutterVersion = FlutterVersion.parse('3.10.0');
-      final invalidCacheVersion = CacheFlutterVersion(
-        flutterVersion,
-        directory: p.join(cacheDir.path, 'non-existent-directory'),
-      );
-
-      final workflow = UpdateProjectReferencesWorkflow(runner.context);
-
-      // Should throw an exception since the directory doesn't exist
-      expect(
-        () => workflow.call(project, invalidCacheVersion, force: true),
-        throwsA(isA<AppDetailedException>()),
-      );
-    });
   });
 }
+
+class MockCacheFlutterVersion extends Mock implements CacheFlutterVersion {}

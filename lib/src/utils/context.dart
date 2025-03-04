@@ -187,15 +187,14 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
-  FileLocker createLock(String name) {
+  FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
     }
 
     return FileLocker(
       join(_lockDir.path, '$name.lock'),
-      lockExpiration: const Duration(seconds: 10),
-      pollingInterval: const Duration(milliseconds: 100),
+      lockExpiration: expiresIn ?? const Duration(seconds: 10),
     );
   }
 

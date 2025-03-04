@@ -78,4 +78,10 @@ class CacheFlutterVersion extends FlutterVersion
   /// Returns bool if version is setup
   @MappableField()
   bool get isSetup => flutterSdkVersion != null;
+
+  FlutterVersion toFlutterVersion() => FlutterVersion(
+        name,
+        releaseFromChannel: releaseFromChannel,
+        type: type,
+      );
 }

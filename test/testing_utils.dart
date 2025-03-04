@@ -69,7 +69,7 @@ Future<DateTime> getDateOfLastCommit(FVMContext context) async {
   return DateTime.parse(lastCommitDate);
 }
 
-const _kTempTestDirPrefix = 'FVM_TEST_DIR';
+const _kTempTestDirPrefix = 'TEST_DIR_';
 
 Directory createTempDir([String prefix = '']) {
   prefix = prefix.isEmpty ? '' : '_$prefix';
@@ -243,7 +243,7 @@ class TestFactory {
     // and the main git cache path from the existing FVMContext.
     final config = AppConfig.empty().copyWith(
       cachePath: createTempDir().path,
-      gitCachePath: _kGitCacheDir.path,
+      gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
     );
@@ -330,8 +330,8 @@ class MockFlutterService extends FlutterService {
   MockFlutterService(
     super.context,
   ) {
-    if (!_testCacheDir.existsSync()) {
-      _testCacheDir.createSync(recursive: true);
+    if (!_sharedTestFvmDir.existsSync()) {
+      _sharedTestFvmDir.createSync(recursive: true);
     }
   }
 
@@ -351,5 +351,6 @@ class MockFlutterService extends FlutterService {
   }
 }
 
-final _testCacheDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
-final _kGitCacheDir = Directory(p.join(_testCacheDir.path, 'gitcache'));
+final _sharedTestFvmDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
+final _sharedGitCacheDir =
+    Directory(p.join(_sharedTestFvmDir.path, 'gitcache'));

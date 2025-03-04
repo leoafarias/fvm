@@ -20,7 +20,6 @@ void main() {
 
   // Common test parameters
   final lockExpiration = Duration(milliseconds: 100);
-  final pollingInterval = Duration(milliseconds: 10);
 
   setUp(() {
     // Create a temporary directory for our tests
@@ -46,7 +45,6 @@ void main() {
       fileLocker = FileLocker(
         p.join(tempDir.path, 'test${_generateUniqueId()}.lock'),
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
     });
 
@@ -118,7 +116,6 @@ void main() {
       fileLocker = FileLocker(
         p.join(tempDir.path, 'test${_generateUniqueId()}.lock'),
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
     });
 
@@ -164,7 +161,6 @@ void main() {
       fileLocker = FileLocker(
         p.join(tempDir.path, 'test${_generateUniqueId()}.lock'),
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
     });
 
@@ -281,7 +277,6 @@ void main() {
       fileLocker = FileLocker(
         p.join(tempDir.path, 'test${_generateUniqueId()}.lock'),
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
     });
 
@@ -354,7 +349,7 @@ void main() {
 
       // Start a lock request with a timeout
       var gotLock = false;
-      late Unlock unlock;
+      late void Function() unlock;
 
       try {
         // Try to get the lock with a timeout
@@ -392,7 +387,6 @@ void main() {
       final nestedLocker = FileLocker(
         nestedPath,
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
 
       // Should create parent directories
@@ -421,7 +415,6 @@ void main() {
         final readOnlyLocker = FileLocker(
           readOnlyPath,
           lockExpiration: lockExpiration,
-          pollingInterval: pollingInterval,
         );
 
         try {
@@ -447,21 +440,20 @@ void main() {
       fileLocker = FileLocker(
         p.join(tempDir.path, 'test${_generateUniqueId()}.lock'),
         lockExpiration: lockExpiration,
-        pollingInterval: pollingInterval,
       );
     });
     test('should handle very short expiration times', () async {
       final quickLocker = FileLocker(
         lockFilePath,
         lockExpiration: Duration(milliseconds: 2),
-        pollingInterval: Duration(milliseconds: 1),
       );
 
       quickLocker.lock();
 
       // Should get the lock almost immediately despite it being locked
       final stopwatch = Stopwatch()..start();
-      final unlock = await quickLocker.getLock();
+      final unlock =
+          await quickLocker.getLock(pollingInterval: Duration(milliseconds: 1));
       stopwatch.stop();
 
       expect(quickLocker.isLocked, isTrue);
@@ -472,7 +464,6 @@ void main() {
       final longLocker = FileLocker(
         lockFilePath,
         lockExpiration: Duration(days: 1),
-        pollingInterval: Duration(milliseconds: 10),
       );
 
       // Create lock file with a very old timestamp
@@ -498,7 +489,6 @@ void main() {
       final oddLocker = FileLocker(
         lockFilePath,
         lockExpiration: Duration(milliseconds: 20),
-        pollingInterval: Duration(milliseconds: 1),
       );
 
       // Start a stopwatch to measure time

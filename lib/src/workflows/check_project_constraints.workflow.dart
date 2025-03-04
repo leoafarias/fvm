@@ -68,7 +68,7 @@ class CheckProjectConstraintsWorkflow extends Workflow {
         return false;
       }
 
-      if (!logger.confirm('Would you like to proceed?', defaultValue: true)) {
+      if (!logger.confirm('Would you like to proceed?', defaultValue: false)) {
         throw AppException(
           'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
         );

@@ -19,8 +19,6 @@ Level _toLogLevel(mason.Level level) {
   return Level.values.firstWhere((e) => e.name == level.name);
 }
 
-final _console = Console();
-
 class Logger extends ContextualService {
   final mason.Logger _logger;
   final bool _isTest;
@@ -34,25 +32,9 @@ class Logger extends ContextualService {
         _isCI = context.isCI,
         _skipInput = context.skipInput;
 
-  // /// Constructor
-  // Logger({
-  //   required Level logLevel,
-  //   required bool isTest,
-  //   required bool isCI,
-  //   required bool skipInput,
-  // })  : _logger = mason.Logger(level: _toMasonLevel(logLevel)),
-  //       _isTest = isTest,
-  //       _isCI = isCI,
-  //       _skipInput = skipInput;
-
-  @Deprecated('Use info instead')
-  void get spacer => info('');
-
   bool get isVerbose => level == Level.verbose;
 
   Level get level => _toLogLevel(_logger.level);
-
-  void get divider => info('_' * _console.windowWidth);
 
   List<String> get outputs => _outputs;
 
@@ -139,7 +121,7 @@ class Logger extends ContextualService {
 
   bool confirm(String? message, {required bool defaultValue}) {
     // When running tests, always return true.
-    if (_isTest) return true;
+    if (_isTest) return defaultValue;
 
     if (_isCI || _skipInput) {
       info(message ?? '');

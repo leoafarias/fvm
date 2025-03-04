@@ -4,21 +4,18 @@ import 'dart:io';
 class FileLocker {
   final String path;
   final Duration lockExpiration;
-  final Duration pollingInterval;
 
-  const FileLocker(
-    this.path, {
-    required this.lockExpiration,
-    required this.pollingInterval,
-  });
+  const FileLocker(this.path, {required this.lockExpiration});
 
   File get _file => File(path);
 
-  bool get isLocked => _file.existsSync();
+  bool get _lockExists => _file.existsSync();
+
+  bool get isLocked => _lockExists && isLockedWithin(lockExpiration);
 
   /// Get the timestamp from inside the file contents
   DateTime? get lastModified {
-    if (!isLocked) return null;
+    if (!_lockExists) return null;
 
     try {
       final content = _file.readAsStringSync();
@@ -36,7 +33,7 @@ class FileLocker {
   void lock() {
     final timestamp = DateTime.now().microsecondsSinceEpoch.toString();
 
-    if (isLocked) {
+    if (_lockExists) {
       _file.writeAsStringSync(timestamp);
     } else {
       // Ensure parent directory exists
@@ -49,23 +46,23 @@ class FileLocker {
   }
 
   /// Remove the lock.
-  void unlock() => isLocked ? _file.deleteSync() : null;
+  void unlock() => _lockExists ? _file.deleteSync() : null;
 
   /// Returns true if the file exists and its stored timestamp is within [threshold] from now.
   bool isLockedWithin(Duration threshold) =>
-      isLocked && (lastModified!.isAfter(DateTime.now().subtract(threshold)));
+      _lockExists &&
+      (lastModified!.isAfter(DateTime.now().subtract(threshold)));
 
   /// Polls until the file's timestamp is older than [lockExpiration].
-  Future<Unlock> getLock() async {
-    while (isLockedWithin(lockExpiration)) {
-      print('Waiting for $path to be unlocked');
-      await Future.delayed(pollingInterval);
+  Future<void Function()> getLock({Duration? pollingInterval}) async {
+    while (isLocked) {
+      await Future.delayed(
+        pollingInterval ?? const Duration(milliseconds: 100),
+      );
     }
 
     lock();
 
-    return unlock;
+    return () => unlock();
   }
 }
-
-typedef Unlock = void Function();

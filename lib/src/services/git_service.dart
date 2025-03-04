@@ -10,11 +10,13 @@ import 'base_service.dart';
 
 /// Service for Git operations
 class GitService extends ContextualService {
-  bool _hasCheckedCache = false;
   late final FileLocker _updatingCacheLock;
 
   GitService(super.context) {
-    _updatingCacheLock = context.createLock('updating-cache');
+    _updatingCacheLock = context.createLock(
+      'updating-cache',
+      expiresIn: const Duration(minutes: 10),
+    );
   }
 
   /// Helper method to get a GitDir instance, handling common setup
@@ -74,13 +76,9 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
-    if (_hasCheckedCache) {
-      return;
+    while (_updatingCacheLock.isLocked) {
+      await Future.delayed(const Duration(milliseconds: 100));
     }
-
-    _hasCheckedCache = true;
-
-    final unlock = await _updatingCacheLock.getLock();
 
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
@@ -131,10 +129,9 @@ class GitService extends ContextualService {
         await _createLocalMirror();
       }
     } catch (e) {
-      _hasCheckedCache = false;
       rethrow;
     } finally {
-      unlock();
+      _updatingCacheLock.unlock();
     }
   }
 
