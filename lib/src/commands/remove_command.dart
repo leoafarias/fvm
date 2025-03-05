@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
+import '../services/cache_service.dart';
 import '../utils/constants.dart';
 import 'base_command.dart';
 
@@ -51,13 +52,13 @@ class RemoveCommand extends BaseFvmCommand {
     String? version;
 
     if (argResults!.rest.isEmpty) {
-      final versions = await services.cache.getAllVersions();
+      final versions = await get<CacheService>().getAllVersions();
       version = logger.cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
     final validVersion = FlutterVersion.parse(version);
-    final cacheVersion = services.cache.getVersion(validVersion);
+    final cacheVersion = get<CacheService>().getVersion(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {
@@ -70,7 +71,7 @@ class RemoveCommand extends BaseFvmCommand {
     try {
       /// Remove if version is cached
 
-      services.cache.remove(cacheVersion);
+      get<CacheService>().remove(cacheVersion);
 
       progress.complete('${validVersion.name} removed.');
     } on Exception {

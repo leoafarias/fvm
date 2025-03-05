@@ -8,6 +8,7 @@ import '../models/git_reference_model.dart';
 import '../utils/file_lock.dart';
 import '../utils/git_clone_update_printer.dart';
 import 'base_service.dart';
+import 'process_service.dart';
 
 /// Service for Git operations
 class GitService extends ContextualService {
@@ -67,7 +68,7 @@ class GitService extends ContextualService {
 
     command.add(context.flutterUrl);
 
-    final result = await services.process.run('git', args: command);
+    final result = await get<ProcessService>().run('git', args: command);
 
     if (result.exitCode != 0) {
       logger.warn('Fetching git references failed');
@@ -87,7 +88,7 @@ class GitService extends ContextualService {
   }
 
   /// Resets to specific reference
-  Future<void> resetToReference(String path, String reference) async {
+  Future<void> resetHard(String path, String reference) async {
     final gitDir = await GitDir.fromExisting(path);
     await gitDir.runCommand(['reset', '--hard', reference]);
   }

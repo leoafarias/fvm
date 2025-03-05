@@ -1,16 +1,19 @@
 import 'dart:io';
 
 import '../services/base_service.dart';
+import '../services/cache_service.dart';
+import '../services/project_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import 'models/json_response.dart';
 
-class APIService extends ContextualService {
-  APIService(super.context);
+class ApiService extends ContextualService {
+  ApiService(super.context);
 
   GetContextResponse getContext() => GetContextResponse(context: context);
 
   GetProjectResponse getProject([Directory? projectDir]) {
-    final project = services.project.findAncestor(directory: projectDir);
+    final project = get<ProjectService>().findAncestor(directory: projectDir);
 
     return GetProjectResponse(project: project);
   }
@@ -18,7 +21,7 @@ class APIService extends ContextualService {
   Future<GetCacheVersionsResponse> getCachedVersions({
     bool skipCacheSizeCalculation = false,
   }) async {
-    final versions = await services.cache.getAllVersions();
+    final versions = await get<CacheService>().getAllVersions();
 
     if (skipCacheSizeCalculation) {
       return GetCacheVersionsResponse(
@@ -41,7 +44,7 @@ class APIService extends ContextualService {
     int? limit,
     String? channelName,
   }) async {
-    final payload = await services.releases.getReleases();
+    final payload = await get<FlutterReleaseClient>().fetchReleases();
 
     var filteredVersions = payload.versions.where((version) {
       if (channelName == null) return true;

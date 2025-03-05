@@ -7,7 +7,9 @@ void main() {
   group('CacheFlutterVersion', () {
     test('fromMap constructor', () {
       final map = {
-        'version': {'name': 'test', 'channel': 'stable', 'type': 'release'},
+        'name': 'test',
+        'channel': 'stable',
+        'type': 'release',
         'directory': '/path/to/cache',
       };
       final version = CacheFlutterVersion.fromMap(map);
@@ -18,7 +20,7 @@ void main() {
 
     test('fromJson constructor', () {
       final json =
-          '{"version":{"name":"test","type":"release"},"directory":"/path/to/cache"}';
+          '{"name":"test","type":"release","directory":"/path/to/cache"}';
       final version = CacheFlutterVersion.fromJson(json);
       expect(version.name, 'test');
       expect(version.directory, '/path/to/cache');
@@ -27,8 +29,10 @@ void main() {
 
     test('constructor', () {
       final flutterVersion = FlutterVersion.release('1.0.0');
-      final cacheVersion =
-          CacheFlutterVersion(flutterVersion, directory: '/path/to/cache');
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        flutterVersion,
+        directory: '/path/to/cache',
+      );
       expect(cacheVersion.name, '1.0.0');
       expect(cacheVersion.directory, '/path/to/cache');
       expect(cacheVersion.releaseChannel, isNull);
@@ -36,7 +40,7 @@ void main() {
     });
 
     test('binPath getter', () {
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('test'),
         directory: '/path/to/cache',
       );
@@ -44,13 +48,13 @@ void main() {
     });
 
     test('hasOldBinPath getter', () {
-      final version1 = CacheFlutterVersion(
+      final version1 = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('1.17.5'),
         directory: '/path/to/cache',
       );
       expect(version1.hasOldBinPath, isTrue);
 
-      final version2 = CacheFlutterVersion(
+      final version2 = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('2.0.0'),
         directory: '/path/to/cache',
       );
@@ -58,13 +62,13 @@ void main() {
     });
 
     test('dartBinPath getter', () {
-      final version1 = CacheFlutterVersion(
+      final version1 = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('1.17.5'),
         directory: '/path/to/cache',
       );
       expect(version1.dartBinPath, '/path/to/cache/bin/cache/dart-sdk/bin');
 
-      final version2 = CacheFlutterVersion(
+      final version2 = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('2.0.0'),
         directory: '/path/to/cache',
       );
@@ -72,7 +76,7 @@ void main() {
     });
 
     test('dartExec getter', () {
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('2.0.0'),
         directory: '/path/to/cache',
       );
@@ -80,7 +84,7 @@ void main() {
     });
 
     test('flutterExec getter', () {
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: '/path/to/cache',
       );
@@ -93,7 +97,7 @@ void main() {
       final versionFile = File('${tempDir.path}/version');
       versionFile.writeAsStringSync('1.0.0');
 
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: tempDir.path,
       );
@@ -111,7 +115,7 @@ void main() {
       final versionFile = File('${dartSdkDir.path}/version');
       versionFile.writeAsStringSync('2.12.0');
 
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: tempDir.path,
       );
@@ -122,7 +126,7 @@ void main() {
     });
 
     test('isNotSetup getter', () {
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: '/path/to/cache',
       );
@@ -135,7 +139,7 @@ void main() {
       final versionFile = File('${tempDir.path}/version');
       versionFile.writeAsStringSync('1.0.0');
 
-      final version = CacheFlutterVersion(
+      final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: tempDir.path,
       );

@@ -59,7 +59,7 @@ void main() {
       final result = await workflow.call(version, force: true);
 
       // Assert
-      expect(result.isInvalid, isTrue);
+      expect(result.isUnknownRef, isTrue);
       expect(result.name, equals(version));
     });
   });

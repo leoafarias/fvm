@@ -3,6 +3,7 @@ import 'package:io/io.dart';
 
 import '../models/config_model.dart';
 import '../utils/constants.dart';
+import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
 /// Fvm Config
@@ -23,11 +24,14 @@ class ConfigCommand extends BaseFvmCommand {
       negatable: true,
     );
   }
+
   @override
   Future<int> run() async {
     // Flag if settings should be saved
     final globalConfig = LocalAppConfig.read().toMap();
     bool hasChanges = false;
+
+    print(globalConfig);
 
     void updateConfigKey<T>(ConfigOptions key, T value) {
       if (wasParsed(key.paramKey)) {
@@ -58,25 +62,24 @@ class ConfigCommand extends BaseFvmCommand {
         rethrow;
       }
       updateProgress.complete('Settings saved.');
-    } else {
-      logger
-        ..info('FVM Configuration:')
-        ..info('Located at ${context.config}')
-        ..info('');
 
-      if (globalConfig.keys.isEmpty) {
-        logger.info('No settings have been configured.');
-      } else {
-        // Print options and it's values
-        for (var key in globalConfig.keys) {
-          final value = globalConfig[key];
-          if (value != null) {
-            final valuePrint = yellow.wrap(value.toString());
-            logger.info('$key: $valuePrint');
-          }
-        }
-      }
+      return ExitCode.success.code;
     }
+
+    final config = LocalAppConfig.read();
+
+    logger
+      ..info('FVM Configuration:')
+      ..info('Located at ${config.location}')
+      ..info('');
+
+    if (config.isEmpty) {
+      logger.info('No settings have been configured.');
+
+      return ExitCode.success.code;
+    }
+
+    logger.info(prettyJson(config.toMap()));
 
     return ExitCode.success.code;
   }

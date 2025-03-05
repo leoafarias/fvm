@@ -61,7 +61,7 @@ class FlutterSdkRelease with FlutterSdkReleaseMappable {
   /// Returns archive url of the release
   @MappableField()
   String get archiveUrl {
-    return '$storageUrl/flutter_infra_release/releases/$archive';
+    return '${FlutterReleaseClient.storageUrl}/flutter_infra_release/releases/$archive';
   }
 }
 

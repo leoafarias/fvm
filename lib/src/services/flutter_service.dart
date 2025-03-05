@@ -10,33 +10,20 @@ import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import 'base_service.dart';
+import 'cache_service.dart';
+import 'git_service.dart';
 import 'logger_service.dart';
 import 'process_service.dart';
+import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
   FlutterService(super.context);
 
-  Future<ProcessResult> runFlutter(
-    CacheFlutterVersion version,
-    List<String> args, {
-    bool throwOnError = false,
-  }) {
-    return run(version, 'flutter', args, throwOnError: throwOnError);
-  }
-
-  Future<ProcessResult> runDart(
-    CacheFlutterVersion version,
-    List<String> args, {
-    bool throwOnError = false,
-  }) {
-    return run(version, 'dart', args, throwOnError: throwOnError);
-  }
-
   Future<ProcessResult> run(
-    CacheFlutterVersion version,
     String cmd,
-    List<String> args, {
+    List<String> args,
+    CacheFlutterVersion version, {
     bool throwOnError = false,
   }) {
     final versionRunner = VersionRunner(context: context, version: version);
@@ -44,55 +31,72 @@ class FlutterService extends ContextualService {
     return versionRunner.run(cmd, args, throwOnError: throwOnError);
   }
 
+  Future<ProcessResult> pubGet(
+    CacheFlutterVersion version, {
+    bool throwOnError = false,
+    bool offline = false,
+  }) {
+    final args = ['pub', 'get', if (offline) '--offline'];
+
+    return run('flutter', args, version, throwOnError: throwOnError);
+  }
+
+  Future<ProcessResult> setup(CacheFlutterVersion version) {
+    return run('flutter', ['--version'], version);
+  }
+
+  Future<ProcessResult> runFlutter(
+    List<String> args,
+    CacheFlutterVersion version,
+  ) {
+    return run('flutter', args, version);
+  }
+
   Future<void> install(FlutterVersion version) async {
-    final versionDir = services.cache.getVersionCacheDir(version.name);
+    final versionDir = get<CacheService>().getVersionCacheDir(version.name);
+
+    assert(!version.isCustom, 'Custom version is not supported');
 
     // Check if its git commit
-    String? channel;
+    String? channel = version.name;
 
     if (version.isChannel) {
       channel = version.name;
-      // If its not a commit hash
-    } else if (version.isRelease) {
-      final releaseChannel = version.releaseChannel;
-      if (releaseChannel != null) {
+    }
+    if (version.isRelease) {
+      if (version.releaseChannel != null) {
         // Version name forces channel version
-        channel = releaseChannel.name;
+        channel = version.releaseChannel!.name;
       } else {
         final release =
-            await services.releases.getReleaseFromVersion(version.name);
-        channel = release?.channel.name;
+            await get<FlutterReleaseClient>().getReleaseByVersion(version.name);
+
+        if (release != null) {
+          channel = release.channel.name;
+        }
       }
     }
-
-    final versionCloneParams = [
-      '-c',
-      'advice.detachedHead=false',
-      '-b',
-      channel ?? version.name,
-    ];
-
-    final useMirrorParams = ['--reference', context.gitCachePath];
-
-    final cloneArgs = [
-      //if its a git hash
-      if (!version.isGitReference) ...versionCloneParams,
-      if (context.gitCache) ...useMirrorParams,
-    ];
 
     try {
       final result = await runGit(
         [
           'clone',
           '--progress',
-          ...cloneArgs,
+          if (!version.isUnknownRef) ...[
+            '-c',
+            'advice.detachedHead=false',
+            '-b',
+            channel,
+          ],
+          if (context.gitCache) ...['--reference', context.gitCachePath],
           context.flutterUrl,
           versionDir.path,
         ],
         echoOutput: !(context.isTest || !logger.isVerbose),
       );
 
-      final gitVersionDir = services.cache.getVersionCacheDir(version.name);
+      final gitVersionDir =
+          get<CacheService>().getVersionCacheDir(version.name);
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
@@ -103,8 +107,10 @@ class FlutterService extends ContextualService {
 
       /// If version is not a channel reset to version
       if (!version.isChannel) {
-        await services.git
-            .resetToReference(gitVersionDir.path, version.version);
+        await get<GitService>().resetHard(
+          gitVersionDir.path,
+          version.version,
+        );
       }
 
       if (result.exitCode != ExitCode.success.code) {
@@ -113,7 +119,7 @@ class FlutterService extends ContextualService {
         );
       }
     } on Exception {
-      services.cache.remove(version);
+      get<CacheService>().remove(version);
       rethrow;
     }
   }

@@ -49,7 +49,7 @@ class CacheService extends ContextualService {
     // Return null if version does not exist
     if (!versionDir.existsSync()) return null;
 
-    return CacheFlutterVersion(version, directory: versionDir.path);
+    return CacheFlutterVersion.fromVersion(version, directory: versionDir.path);
   }
 
   /// Lists Installed Flutter SDK Version

@@ -1,4 +1,5 @@
 import '../models/cache_flutter_version_model.dart';
+import '../services/flutter_service.dart';
 import 'workflow.dart';
 
 class SetupFlutterWorkflow extends Workflow {
@@ -13,9 +14,7 @@ class SetupFlutterWorkflow extends Workflow {
       ..info();
 
     try {
-      await services.flutter
-          .runFlutter(version, ['--version'], throwOnError: true);
-
+      await get<FlutterService>().setup(version);
       logger
         ..info()
         ..success('Flutter SDK: ${version.printFriendlyName} is setup');

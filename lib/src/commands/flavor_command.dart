@@ -1,6 +1,8 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
+import '../services/flutter_service.dart';
+import '../services/project_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
@@ -30,7 +32,7 @@ class FlavorCommand extends BaseFvmCommand {
       );
     }
 
-    final project = services.project.findAncestor();
+    final project = get<ProjectService>().findAncestor();
 
     final flavor = argResults!.rest[0];
 
@@ -53,9 +55,9 @@ class FlavorCommand extends BaseFvmCommand {
       logger
           .info('Using Flutter version "$version" for the "$flavor" flavor...');
 
-      final results = await services.flutter.runFlutter(
-        cacheVersion,
+      final results = await get<FlutterService>().runFlutter(
         flutterArgs,
+        cacheVersion,
       );
 
       return results.exitCode;

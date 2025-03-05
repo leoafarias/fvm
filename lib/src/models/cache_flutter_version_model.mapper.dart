@@ -85,7 +85,7 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   final bool ignoreNull = true;
 
   static CacheFlutterVersion _instantiate(DecodingData data) {
-    return CacheFlutterVersion.raw(data.dec(_f$name),
+    return CacheFlutterVersion(data.dec(_f$name),
         releaseChannel: data.dec(_f$releaseChannel),
         type: data.dec(_f$type),
         fork: data.dec(_f$fork),
@@ -182,7 +182,7 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
       }));
   @override
   CacheFlutterVersion $make(CopyWithData data) =>
-      CacheFlutterVersion.raw(data.get(#name, or: $value.name),
+      CacheFlutterVersion(data.get(#name, or: $value.name),
           releaseChannel: data.get(#releaseChannel, or: $value.releaseChannel),
           type: data.get(#type, or: $value.type),
           fork: data.get(#fork, or: $value.fork),

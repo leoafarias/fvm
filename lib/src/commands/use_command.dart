@@ -2,7 +2,9 @@ import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-import '../models/flutter_version_model.dart';
+import '../services/cache_service.dart';
+import '../services/project_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
@@ -31,7 +33,7 @@ class UseCommand extends BaseFvmCommand {
         'pin',
         abbr: 'p',
         help:
-            '''If version provided is a channel. Will pin the latest release of the channel''',
+            'If version provided is a channel. Will pin the latest release of the channel',
         negatable: false,
       )
       ..addOption(
@@ -66,12 +68,12 @@ class UseCommand extends BaseFvmCommand {
     final useVersion = UseVersionWorkflow(context);
     final ensureCache = EnsureCacheWorkflow(context);
     final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
-    final project = services.project.findAncestor();
+    final project = get<ProjectService>().findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await services.cache.getAllVersions();
+      final versions = await get<CacheService>().getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     }
@@ -88,11 +90,9 @@ class UseCommand extends BaseFvmCommand {
         );
       }
 
-      /// Pin release to channel
-      final channel = FlutterChannel.fromValue(version);
+      final releaseClient = get<FlutterReleaseClient>();
 
-      final release =
-          await services.releases.getLatestReleaseOfChannel(channel);
+      final release = await releaseClient.getLatestChannelRelease(version);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',

@@ -61,15 +61,15 @@ void main() {
 
       // Run commands with the specific version and check outputs
       final dartVersionResult = await services.flutter.run(
-        cacheVersion!,
         'dart',
         ['--version'],
+        cacheVersion!,
       );
 
       final flutterVersionResult = await services.flutter.run(
-        cacheVersion,
         'flutter',
         ['--version'],
+        cacheVersion,
       );
 
       // Extract and verify version information
@@ -115,7 +115,7 @@ void main() {
       );
 
       // Get release information
-      final release = await services.releases.getReleaseFromVersion(
+      final release = await services.releaseClient.getReleaseByVersion(
         versionNumber,
       );
 
@@ -162,15 +162,15 @@ void main() {
 
       // Run commands with the version
       final flutterVersionResult = await services.flutter.run(
-        cacheVersion!,
         'flutter',
         ['--version'],
+        cacheVersion!,
       );
 
       final dartVersionResult = await services.flutter.run(
-        cacheVersion,
         'dart',
         ['--version'],
+        cacheVersion,
       );
 
       // Extract and verify version information
@@ -178,9 +178,8 @@ void main() {
           extractFlutterVersionOutput(flutterVersionResult.stdout);
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      final release = await services.releases.getReleaseFromVersion(
-        versionNumber,
-      );
+      final release =
+          await services.releaseClient.getReleaseByVersion(versionNumber);
 
       expect(dartVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.channel, release!.channel.name);

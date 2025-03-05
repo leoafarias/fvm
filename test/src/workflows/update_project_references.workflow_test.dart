@@ -43,7 +43,7 @@ void main() {
       final flutterVersion = FlutterVersion.parse(version);
 
       // Return a CacheFlutterVersion with proper structure
-      return CacheFlutterVersion(
+      return CacheFlutterVersion.fromVersion(
         flutterVersion,
         directory: versionDir.path,
       );

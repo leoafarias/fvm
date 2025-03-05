@@ -13,8 +13,8 @@ void main() {
   late ServicesProvider services;
   late FvmContext context;
 
-  const channel = 'stable'; // Define channel explicitly
-  const release = '2.0.0'; // Define release explicitly
+  const channel = 'stable';
+  const release = '2.0.0';
 
   setUp(() {
     runner = TestFactory.commandRunner();

@@ -3,7 +3,6 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../utils/compare_semver.dart';
-import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
 
@@ -13,9 +12,8 @@ part 'flutter_version_model.mapper.dart';
 enum VersionType {
   release,
   channel,
-  gitReference,
-  local,
-  unknown;
+  unknownRef,
+  custom,
 }
 
 /// Enum of a channel
@@ -63,26 +61,26 @@ class FlutterVersion with FlutterVersionMappable {
 
   FlutterVersion.gitReference(this.name, {this.fork})
       : releaseChannel = null,
-        type = VersionType.gitReference;
+        type = VersionType.unknownRef;
 
-  const FlutterVersion.channel(this.name, {this.fork})
+  FlutterVersion.channel(this.name, {this.fork})
       : releaseChannel = null,
         type = VersionType.channel;
 
-  const FlutterVersion.local(this.name)
-      : type = VersionType.local,
-        releaseChannel = null,
-        fork = null;
-
   const FlutterVersion.release(this.name, {this.releaseChannel, this.fork})
       : type = VersionType.release;
+
+  const FlutterVersion.custom(this.name)
+      : releaseChannel = null,
+        fork = null,
+        type = VersionType.custom;
 
   factory FlutterVersion.parse(String version) {
     final parts = version.split('@');
 
     if (parts.length == 2) {
       final channel = parts.last;
-      if (kFlutterChannels.contains(channel)) {
+      if (isFlutterChannel(channel)) {
         return FlutterVersion.release(
           version,
           releaseChannel: FlutterChannel.fromValue(channel),
@@ -103,6 +101,10 @@ class FlutterVersion with FlutterVersionMappable {
       return forkedVersion.copyWith(fork: alias);
     }
 
+    if (version.startsWith('custom_')) {
+      return FlutterVersion.custom(version);
+    }
+
     // Check if its commit
     // Check if its channel
     if (isFlutterChannel(version)) {
@@ -110,7 +112,7 @@ class FlutterVersion with FlutterVersionMappable {
     }
 
     try {
-      if (version.contains('v')) {
+      if (version.startsWith('v')) {
         version = version.replaceFirst('v', '');
       }
 
@@ -131,11 +133,9 @@ class FlutterVersion with FlutterVersionMappable {
 
   bool get isRelease => type == VersionType.release;
 
-  bool get isGitReference => type == VersionType.gitReference;
+  bool get isUnknownRef => type == VersionType.unknownRef;
 
-  bool get isLocal => type == VersionType.local;
-
-  bool get isInvalid => type == VersionType.unknown;
+  bool get isCustom => type == VersionType.custom;
 
   bool get fromFork => fork != null;
 
@@ -150,7 +150,7 @@ class FlutterVersion with FlutterVersionMappable {
 
     if (isChannel) return 'Channel: ${name.capitalize}';
 
-    if (isGitReference) return 'Commit : $name';
+    if (isUnknownRef) return 'Commit : $name';
 
     return 'SDK Version : $name';
   }

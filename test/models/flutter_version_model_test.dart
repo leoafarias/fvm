@@ -57,12 +57,12 @@ void main() {
       expect(shortGitCommit.isRelease, false);
 
       // Check if its commit
-      expect(master.isGitReference, false);
-      expect(beta.isGitReference, false);
-      expect(channelWithVersion.isGitReference, false);
-      expect(version.isGitReference, false);
-      expect(gitCommit.isGitReference, true);
-      expect(shortGitCommit.isGitReference, true);
+      expect(master.isUnknownRef, false);
+      expect(beta.isUnknownRef, false);
+      expect(channelWithVersion.isUnknownRef, false);
+      expect(version.isUnknownRef, false);
+      expect(gitCommit.isUnknownRef, true);
+      expect(shortGitCommit.isUnknownRef, true);
 
       // Checks version
       expect(master.name, 'master');
@@ -133,7 +133,7 @@ void main() {
       final version = FlutterVersion.gitReference('abc123');
       expect(version.name, 'abc123');
       expect(version.releaseChannel, isNull);
-      expect(version.type, VersionType.gitReference);
+      expect(version.type, VersionType.unknownRef);
     });
 
     test('channel constructor', () {
@@ -144,10 +144,10 @@ void main() {
     });
 
     test('custom constructor', () {
-      final version = FlutterVersion.local('custom_123');
+      final version = FlutterVersion.custom('custom_123');
       expect(version.name, 'custom_123');
       expect(version.releaseChannel, isNull);
-      expect(version.type, VersionType.local);
+      expect(version.type, VersionType.custom);
     });
 
     test('release constructor', () {
@@ -178,14 +178,14 @@ void main() {
       final version = FlutterVersion.parse('custom_123');
       expect(version.name, 'custom_123');
       expect(version.releaseChannel, isNull);
-      expect(version.type, VersionType.local);
+      expect(version.type, VersionType.custom);
     });
 
     test('parse method - commit version', () {
       final version = FlutterVersion.parse('f4c74a6ec3');
       expect(version.name, 'f4c74a6ec3');
       expect(version.releaseChannel, isNull);
-      expect(version.type, VersionType.gitReference);
+      expect(version.type, VersionType.unknownRef);
     });
 
     test('parse method - channel version', () {
@@ -225,12 +225,12 @@ void main() {
 
     test('isCommit getter', () {
       final version = FlutterVersion.gitReference('abc123');
-      expect(version.isGitReference, isTrue);
+      expect(version.isUnknownRef, isTrue);
     });
 
     test('isCustom getter', () {
-      final version = FlutterVersion.local('custom_123');
-      expect(version.isLocal, isTrue);
+      final version = FlutterVersion.custom('custom_123');
+      expect(version.isCustom, isTrue);
     });
 
     test('printFriendlyName getter - channel version', () {

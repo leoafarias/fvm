@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
+import '../services/project_service.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 import 'check_project_constraints.workflow.dart';
@@ -15,10 +16,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   static const String releaseFile = 'release';
   static const String flutterSdkLink = 'flutter_sdk';
 
-  late final CheckProjectConstraintsWorkflow _checkProjectConstraints;
-  UpdateProjectReferencesWorkflow(super.context) {
-    _checkProjectConstraints = get<CheckProjectConstraintsWorkflow>();
-  }
+  UpdateProjectReferencesWorkflow(super.context);
 
   /// Updates the link to make sure its always correct
   ///
@@ -131,7 +129,11 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     bool force = false,
   }) async {
     try {
-      await _checkProjectConstraints(project, version, force: force);
+      await get<CheckProjectConstraintsWorkflow>().call(
+        project,
+        version,
+        force: force,
+      );
 
       logger
         ..debug()
@@ -141,7 +143,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
         ..debug('Flutter version: ${version.name}')
         ..debug('');
 
-      final updatedProject = services.project.update(
+      final updatedProject = get<ProjectService>().update(
         project,
         flavors: {if (flavor != null) flavor: version.name},
         flutterSdkVersion: version.name,

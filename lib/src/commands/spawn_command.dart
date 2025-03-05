@@ -1,6 +1,7 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
+import '../services/flutter_service.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
@@ -38,9 +39,9 @@ class SpawnCommand extends BaseFvmCommand {
     // Runs flutter command with pinned version
     logger.info('Spawning version "$version"...');
 
-    final results = await services.flutter.runFlutter(
-      cacheVersion,
+    final results = await get<FlutterService>().runFlutter(
       flutterArgs,
+      cacheVersion,
     );
 
     return results.exitCode;

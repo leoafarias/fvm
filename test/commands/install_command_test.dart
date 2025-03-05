@@ -27,11 +27,11 @@ void main() {
       if (cacheVersion!.releaseChannel != null) {
         releaseChannel = cacheVersion.releaseChannel!.name;
       } else {
-        final release = await services.releases.getReleaseFromVersion(
+        final release = await services.releaseClient.getReleaseByVersion(
           cacheVersion.version,
         );
 
-        if (cacheVersion.isGitReference) {
+        if (cacheVersion.isUnknownRef) {
           releaseChannel = FlutterChannel.master.name;
         } else {
           releaseChannel = release!.channel.name;

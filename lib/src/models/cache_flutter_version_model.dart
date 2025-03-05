@@ -22,7 +22,7 @@ class CacheFlutterVersion extends FlutterVersion
 
   @protected
   @MappableConstructor()
-  const CacheFlutterVersion.raw(
+  const CacheFlutterVersion(
     super.name, {
     super.releaseChannel,
     required super.type,
@@ -30,8 +30,10 @@ class CacheFlutterVersion extends FlutterVersion
     required this.directory,
   });
 
-  CacheFlutterVersion(FlutterVersion version, {required this.directory})
-      : super(
+  CacheFlutterVersion.fromVersion(
+    FlutterVersion version, {
+    required this.directory,
+  }) : super(
           version.name,
           releaseChannel: version.releaseChannel,
           type: version.type,

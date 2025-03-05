@@ -1,4 +1,5 @@
 import '../models/flutter_version_model.dart';
+import '../services/git_service.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
 import '../utils/git_utils.dart';
@@ -26,12 +27,13 @@ class ValidateFlutterVersionWorkflow extends Workflow {
     }
 
     // If its channel or commit no need for further validation
-    if (flutterVersion.isChannel || flutterVersion.isLocal) {
+    if (flutterVersion.isChannel || flutterVersion.isCustom) {
       return flutterVersion;
     }
 
     if (flutterVersion.isRelease) {
-      final isTag = await services.git.isGitReference(flutterVersion.version);
+      final isTag =
+          await get<GitService>().isGitReference(flutterVersion.version);
 
       if (isTag) {
         return flutterVersion;
@@ -41,8 +43,9 @@ class ValidateFlutterVersionWorkflow extends Workflow {
       );
     }
 
-    if (flutterVersion.isGitReference) {
-      final isReference = await services.git.isGitReference(version);
+    if (flutterVersion.isUnknownRef) {
+      final isReference =
+          await get<GitService>().isGitReference(flutterVersion.version);
 
       if (isReference || isPossibleGitCommit(version)) {
         return flutterVersion;

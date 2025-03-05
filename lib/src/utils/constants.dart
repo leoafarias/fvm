@@ -69,7 +69,7 @@ final kAppDirHome = join(kUserHome, kPackageName);
 
 /// The list of supported Flutter release channels.
 /// These channels (e.g. 'stable', 'dev', etc.) are used when selecting the version of Flutter to install.
-const kFlutterChannels = ['master', 'stable', 'dev', 'beta'];
+const kFlutterChannels = ['main', 'master', 'stable', 'dev', 'beta'];
 
 /// The full path to the global FVM configuration file.
 /// It is located in the user's configuration home directory.

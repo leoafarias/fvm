@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:io/io.dart';
 
+import '../services/project_service.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
@@ -48,7 +49,7 @@ class InstallCommand extends BaseFvmCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      final project = services.project.findAncestor();
+      final project = get<ProjectService>().findAncestor();
 
       final version = project.pinnedVersion;
 

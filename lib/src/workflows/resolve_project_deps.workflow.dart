@@ -1,5 +1,7 @@
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
+import '../services/cache_service.dart';
+import '../services/flutter_service.dart';
 import '../services/process_service.dart';
 import '../utils/exceptions.dart';
 import 'workflow.dart';
@@ -56,6 +58,9 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     CacheFlutterVersion version, {
     required bool force,
   }) async {
+    final flutterService = get<FlutterService>();
+    final cacheService = get<CacheService>();
+
     if (version.isNotSetup) {
       logger.warn('Flutter SDK is not setup, skipping resolve dependencies.');
 
@@ -89,9 +94,9 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     final progress = logger.progress('Resolving dependencies...');
 
     // Try to resolve offline
-    final pubGetOfflineResults = await services.flutter.runFlutter(
+    final pubGetOfflineResults = await flutterService.pubGet(
       version,
-      ['pub', 'get', '--offline'],
+      offline: true,
     );
 
     if (pubGetOfflineResults.isSuccess) {
@@ -102,10 +107,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
 
     progress.update('Trying to resolve dependencies...');
 
-    final pubGetResults = await services.flutter.runFlutter(
-      version,
-      ['pub', 'get'],
-    );
+    final pubGetResults = await flutterService.pubGet(version);
 
     if (pubGetResults.isSuccess) {
       progress.complete('Dependencies resolved.');

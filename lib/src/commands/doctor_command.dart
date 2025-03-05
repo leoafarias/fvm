@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/config_model.dart';
 import '../models/project_model.dart';
+import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
 import '../utils/exceptions.dart';
@@ -201,7 +202,7 @@ class DoctorCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    final project = services.project.findAncestor();
+    final project = get<ProjectService>().findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

@@ -17,6 +17,7 @@ import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../version.dart';
 import '../workflows/check_project_constraints.workflow.dart';
+import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/resolve_project_deps.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
 import '../workflows/setup_gitignore.workflow.dart';
@@ -213,8 +214,8 @@ class ServicesProvider extends Contextual {
   ProjectService get project => super.context.get();
   CacheService get cache => super.context.get();
   FlutterService get flutter => super.context.get();
-  FlutterReleasesService get releases => super.context.get();
-  APIService get api => super.context.get();
+  FlutterReleaseClient get releaseClient => super.context.get();
+  ApiService get api => super.context.get();
   GitService get git => super.context.get();
   ProcessService get process => super.context.get();
   @override
@@ -232,15 +233,17 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 
   @override
   // ignore: avoid-dynamic
-  dynamic encode(Map<Type, Generator> self) => null;
+  dynamic encode(Map<Type, Generator> self) {
+    return null;
+  }
 }
 
 const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
-  FlutterReleasesService: FlutterReleasesService.new,
+  FlutterReleaseClient: FlutterReleaseClient.new,
   FlutterService: FlutterService.new,
-  APIService: APIService.new,
+  ApiService: ApiService.new,
   GitService: GitService.new,
   ProcessService: ProcessService.new,
   ServicesProvider: ServicesProvider.new,
@@ -254,4 +257,5 @@ const _defaultGenerators = <Type, Generator>{
   UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
   ValidateFlutterVersionWorkflow: ValidateFlutterVersionWorkflow.new,
   VerifyProjectWorkflow: VerifyProjectWorkflow.new,
+  EnsureCacheWorkflow: EnsureCacheWorkflow.new,
 };

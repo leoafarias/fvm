@@ -154,7 +154,7 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   @override
   DateTime? lastUpdateCheck;
   @override
-  Set<FlutterFork> forks;
+  late Set<FlutterFork> forks;
 
   @override
   String? cachePath;
@@ -189,8 +189,10 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
     this.runPubGetOnSdkChanges,
     this.updateVscodeSettings,
     this.updateGitIgnore,
-    this.forks = const {},
-  });
+    Set<FlutterFork>? forks,
+  }) {
+    this.forks = {...?forks};
+  }
 
   static LocalAppConfig read() {
     return _configFile.existsSync()
@@ -199,6 +201,8 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   }
 
   static File get _configFile => File(kAppConfigFile);
+
+  bool get isEmpty => LocalAppConfig() == this;
 
   String get location => _configFile.path;
 

@@ -167,8 +167,10 @@ void main() {
         final versionDir = Directory(path.join(tempDir.path, version.name))
           ..createSync(recursive: true);
 
-        final cacheVersion =
-            CacheFlutterVersion(version, directory: versionDir.path);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
 
         // Mock _verifyIsExecutable to return false
         // This is a simplified approach since we can't easily mock isExecutable
@@ -188,8 +190,10 @@ void main() {
         final versionDir = Directory(path.join(tempDir.path, version.name))
           ..createSync(recursive: true);
 
-        final cacheVersion =
-            CacheFlutterVersion(version, directory: versionDir.path);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
 
         // When/Then
         expect(

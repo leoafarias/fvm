@@ -9,24 +9,24 @@ import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
 
-class _MockAPIService extends Mock implements APIService {}
+class _MockAPIService extends Mock implements ApiService {}
 
 void main() {
   // Set up common test variables
   late FvmContext context;
-  late APIService apiService;
+  late ApiService apiService;
   late TestCommandRunner runner;
 
   // Setup function that runs before each test
   setUp(() {
     context = TestFactory.context(generators: {
-      APIService: (_) => _MockAPIService(),
+      ApiService: (_) => _MockAPIService(),
     });
     // Initialize test runner first
     runner = TestFactory.commandRunner(context: context);
 
     // Initialize mocks with test runner's context
-    apiService = context.get<APIService>();
+    apiService = context.get<ApiService>();
   });
 
   group('APICommand', () {
@@ -129,7 +129,7 @@ void main() {
 
     setUp(() {
       versions = [
-        CacheFlutterVersion(
+        CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('stable'),
           directory: runner.context.versionsCachePath,
         )
@@ -197,7 +197,7 @@ void main() {
     setUp(() async {
       // Setup mock releases response
       final releases =
-          await runner.context.get<FlutterReleasesService>().getReleases();
+          await runner.context.get<FlutterReleaseClient>().fetchReleases();
       response = GetReleasesResponse(
         versions: releases.versions,
         channels: releases.channels,

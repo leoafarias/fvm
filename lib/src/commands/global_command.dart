@@ -2,6 +2,8 @@ import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
+import '../services/cache_service.dart';
+import '../services/project_service.dart';
 import '../utils/constants.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
@@ -43,16 +45,17 @@ class GlobalCommand extends BaseFvmCommand {
 
     final ensureCache = EnsureCacheWorkflow(context);
     final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
+    final cacheService = get<CacheService>();
 
     if (unlinkArg) {
-      final globalVersion = services.cache.getGlobal();
+      final globalVersion = cacheService.getGlobal();
 
       if (globalVersion == null) {
         logger
           ..info('No global version is set')
           ..info();
       } else {
-        services.cache.unlinkGlobal();
+        cacheService.unlinkGlobal();
         logger
           ..success('Global version unlinked')
           ..info();
@@ -65,7 +68,7 @@ class GlobalCommand extends BaseFvmCommand {
 
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
-      final versions = await services.cache.getAllVersions();
+      final versions = await cacheService.getAllVersions();
       version = logger.cacheVersionSelector(versions);
     }
 
@@ -79,12 +82,12 @@ class GlobalCommand extends BaseFvmCommand {
     final cacheVersion = await ensureCache(flutterVersion, force: forceArg);
 
     // Sets version as the global
-    services.cache.setGlobal(cacheVersion);
+    cacheService.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter', binDir: true);
 
     // Get pinned version, for comparison on terminal
-    final project = services.project.findAncestor();
+    final project = get<ProjectService>().findAncestor();
 
     final pinnedVersion = project.pinnedVersion;
 
@@ -92,7 +95,7 @@ class GlobalCommand extends BaseFvmCommand {
 
     if (pinnedVersion != null) {
       //TODO: Should run validation on this
-      pinnedCacheVersion = services.cache.getVersion(pinnedVersion);
+      pinnedCacheVersion = cacheService.getVersion(pinnedVersion);
     }
 
     final isDefaultInPath = flutterInPath == context.globalCacheBinPath;

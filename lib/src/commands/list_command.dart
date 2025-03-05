@@ -1,8 +1,11 @@
 import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
+import '../services/cache_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_service.dart';
 import '../services/releases_service/models/version_model.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
 
@@ -19,7 +22,7 @@ class ListCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    final cacheVersions = await services.cache.getAllVersions();
+    final cacheVersions = await get<CacheService>().getAllVersions();
 
     final directorySize = await getFullDirectorySize(cacheVersions);
 
@@ -46,9 +49,9 @@ class ListCommand extends BaseFvmCommand {
       return ExitCode.success.code;
     }
 
-    final releases = await services.releases.getReleases();
-    final globalVersion = services.cache.getGlobal();
-    final localVersion = services.project.findVersion();
+    final releases = await get<FlutterReleaseClient>().fetchReleases();
+    final globalVersion = get<CacheService>().getGlobal();
+    final localVersion = get<ProjectService>().findVersion();
 
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
@@ -64,11 +67,11 @@ class ListCommand extends BaseFvmCommand {
       FlutterSdkRelease? latestRelease;
 
       if (version.isChannel && !version.isMain) {
-        latestRelease = releases.getLatestChannelRelease(version.name);
+        latestRelease =
+            releases.latestChannelRelease(version.releaseChannel!.name);
       }
 
-      final release =
-          releases.getReleaseFromVersion(version.flutterSdkVersion ?? '');
+      final release = releases.fromVersion(version.flutterSdkVersion ?? '');
 
       String releaseDate = '';
       String channel = '';

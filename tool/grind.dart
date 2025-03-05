@@ -39,7 +39,7 @@ Future<void> getReleases() async {
   String owner = 'leoafarias';
   String repo = 'fvm';
 
-  final response = await fetch(
+  final response = await httpRequest(
     'https://api.github.com/repos/$owner/$repo/releases?per_page=100',
     headers: {'Accept': 'application/vnd.github.v3+json'},
   );

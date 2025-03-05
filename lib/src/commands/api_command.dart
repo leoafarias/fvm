@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
 
+import '../api/api_service.dart';
 import '../api/models/json_response.dart';
 import '../utils/exceptions.dart';
 import '../utils/pretty_json.dart';
@@ -28,9 +29,9 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
       final response = await runSubCommand();
 
       if (shouldCompress) {
-        logger.write(response.toJson());
+        print(response.toJson());
       } else {
-        logger.write(prettyJson(response.toMap()));
+        print(prettyJson(response.toMap()));
       }
 
       return ExitCode.success.code;
@@ -78,7 +79,7 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
 
   @override
   FutureOr<GetContextResponse> runSubCommand() {
-    return services.api.getContext();
+    return get<ApiService>().getContext();
   }
 }
 
@@ -108,7 +109,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return services.api.getProject(projectDir);
+    return get<ApiService>().getProject(projectDir);
   }
 }
 
@@ -134,7 +135,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   Future<GetCacheVersionsResponse> runSubCommand() {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return services.api.getCachedVersions(
+    return get<ApiService>().getCachedVersions(
       skipCacheSizeCalculation: shouldSkipSizing,
     );
   }
@@ -167,7 +168,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return services.api.getReleases(
+    return get<ApiService>().getReleases(
       limit: limitArg,
       channelName: channelArg,
     );

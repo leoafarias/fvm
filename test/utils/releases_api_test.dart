@@ -13,8 +13,8 @@ void main() {
 
   group('Flutter Releases API', () {
     test('Has Flutter Releases', () async {
-      final flutterReleases = FlutterReleasesService(context);
-      final releases = await flutterReleases.getReleases();
+      final flutterReleases = FlutterReleaseClient(context);
+      final releases = await flutterReleases.fetchReleases();
       final versionsExists = releases.containsVersion('v1.8.1') &&
           releases.containsVersion('v1.9.6') &&
           releases.containsVersion('v1.10.5') &&

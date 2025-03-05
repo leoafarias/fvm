@@ -29,12 +29,10 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
         return VersionType.release;
       case 'channel':
         return VersionType.channel;
-      case 'gitReference':
-        return VersionType.gitReference;
-      case 'local':
-        return VersionType.local;
-      case 'unknown':
-        return VersionType.unknown;
+      case 'unknownRef':
+        return VersionType.unknownRef;
+      case 'custom':
+        return VersionType.custom;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -47,12 +45,10 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
         return 'release';
       case VersionType.channel:
         return 'channel';
-      case VersionType.gitReference:
-        return 'gitReference';
-      case VersionType.local:
-        return 'local';
-      case VersionType.unknown:
-        return 'unknown';
+      case VersionType.unknownRef:
+        return 'unknownRef';
+      case VersionType.custom:
+        return 'custom';
     }
   }
 }

@@ -137,7 +137,7 @@ void main() {
 
     setUp(() async {
       context = TestFactory.context();
-      releasesResponse = await services.releases.getReleases();
+      releasesResponse = await services.releaseClient.fetchReleases();
     });
 
     test('returns all releases when no filters applied', () async {

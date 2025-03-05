@@ -14,11 +14,11 @@ abstract class Contextual {
 
   @protected
   Logger get logger => _context.get();
+
+  @protected
+  T get<T extends Contextual>() => _context.get();
 }
 
 abstract class ContextualService extends Contextual {
   ContextualService(super.context);
-
-  @protected
-  ServicesProvider get services => _context.get();
 }

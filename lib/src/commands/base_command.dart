@@ -1,6 +1,7 @@
 import 'package:args/command_runner.dart';
 import 'package:meta/meta.dart';
 
+import '../services/base_service.dart';
 import '../services/logger_service.dart';
 import '../utils/context.dart';
 
@@ -11,9 +12,9 @@ abstract class BaseFvmCommand extends Command<int> {
 
   BaseFvmCommand(this.context);
 
-  ServicesProvider get services => context.get();
-
   Logger get logger => context.get();
+
+  T get<T extends Contextual>() => context.get();
 
   @override
   String get invocation => 'fvm $name';

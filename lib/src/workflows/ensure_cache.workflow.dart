@@ -5,6 +5,8 @@ import 'package:mason_logger/mason_logger.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
+import '../services/flutter_service.dart';
+import '../services/git_service.dart';
 import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
 import 'workflow.dart';
@@ -29,7 +31,7 @@ class EnsureCacheWorkflow extends Workflow {
     );
 
     if (shouldReinstall) {
-      services.cache.remove(version);
+      get<CacheService>().remove(version);
       logger.info(
         'The corrupted SDK version is now being removed and a reinstallation will follow...',
       );
@@ -66,11 +68,11 @@ class EnsureCacheWorkflow extends Workflow {
 
     if (selectedOption == firstOption) {
       logger.info('Moving SDK to the correct cache directory...');
-      services.cache.moveToSdkVersionDirectory(version);
+      get<CacheService>().moveToSdkVersionDirectory(version);
     }
 
     logger.info('Removing incorrect SDK version...');
-    services.cache.remove(version);
+    get<CacheService>().remove(version);
 
     return call(version, shouldInstall: true);
   }
@@ -102,13 +104,15 @@ class EnsureCacheWorkflow extends Workflow {
     _validateContext();
     _validateGit();
     // Get valid flutter version
+    final cacheService = get<CacheService>();
+    final flutterService = get<FlutterService>();
+    final gitService = get<GitService>();
 
     try {
-      final cacheVersion = services.cache.getVersion(version);
+      final cacheVersion = cacheService.getVersion(version);
 
       if (cacheVersion != null) {
-        final integrity =
-            await services.cache.verifyCacheIntegrity(cacheVersion);
+        final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
 
         if (integrity == CacheIntegrity.invalid) {
           return await _handleNonExecutable(
@@ -119,13 +123,13 @@ class EnsureCacheWorkflow extends Workflow {
 
         if (integrity == CacheIntegrity.versionMismatch &&
             !force &&
-            !version.isLocal) {
+            !version.isCustom) {
           return await _handleVersionMismatch(cacheVersion);
         } else if (force) {
           logger.warn(
             'Not checking for version mismatch as --force flag is set.',
           );
-        } else if (version.isLocal) {
+        } else if (version.isCustom) {
           logger.warn(
             'Not checking for version mismatch as local version is being used.',
           );
@@ -141,7 +145,7 @@ class EnsureCacheWorkflow extends Workflow {
         return cacheVersion;
       }
 
-      if (version.isLocal) {
+      if (version.isCustom) {
         throw AppException('Local Flutter SDKs must be installed manually.');
       }
 
@@ -166,7 +170,7 @@ class EnsureCacheWorkflow extends Workflow {
 
       if (useGitCache) {
         try {
-          await services.git.updateLocalMirror();
+          await gitService.updateLocalMirror();
         } on Exception {
           logger.warn(
             'Failed to setup local cache. Falling back to git clone.',
@@ -179,7 +183,7 @@ class EnsureCacheWorkflow extends Workflow {
         'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
       );
       try {
-        await services.flutter.install(version);
+        await flutterService.install(version);
 
         progress.complete(
           'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
@@ -189,7 +193,7 @@ class EnsureCacheWorkflow extends Workflow {
         rethrow;
       }
 
-      final newCacheVersion = services.cache.getVersion(version);
+      final newCacheVersion = cacheService.getVersion(version);
       if (newCacheVersion == null) {
         throw AppException('Could not verify cache version $version');
       }

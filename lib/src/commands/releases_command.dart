@@ -3,6 +3,7 @@ import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../services/releases_service/models/version_model.dart';
+import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
@@ -49,7 +50,7 @@ class ReleasesCommand extends BaseFvmCommand {
 
     logger.debug('Filtering by channel: $channelName');
 
-    final releases = await services.releases.getReleases();
+    final releases = await get<FlutterReleaseClient>().fetchReleases();
 
     final versions = releases.versions.reversed;
 
