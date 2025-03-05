@@ -1,9 +1,9 @@
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+import 'package:yaml_writer/yaml_writer.dart';
 
 import '../models/config_model.dart';
 import '../utils/constants.dart';
-import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
 /// Fvm Config
@@ -30,8 +30,6 @@ class ConfigCommand extends BaseFvmCommand {
     // Flag if settings should be saved
     final globalConfig = LocalAppConfig.read().toMap();
     bool hasChanges = false;
-
-    print(globalConfig);
 
     void updateConfigKey<T>(ConfigOptions key, T value) {
       if (wasParsed(key.paramKey)) {
@@ -79,7 +77,10 @@ class ConfigCommand extends BaseFvmCommand {
       return ExitCode.success.code;
     }
 
-    logger.info(prettyJson(config.toMap()));
+    final yamlWriter = YamlWriter();
+    final yamlString = yamlWriter.write(config.toMap());
+
+    logger.info(yamlString);
 
     return ExitCode.success.code;
   }

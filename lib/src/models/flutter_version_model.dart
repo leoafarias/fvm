@@ -170,8 +170,8 @@ class FlutterVersion with FlutterVersionMappable {
 // A small class for each fork's definition:
 @MappableClass(ignoreNull: true)
 class FlutterFork with FlutterForkMappable {
-  final String alias;
-  final String repositoryUrl;
+  final String name;
+  final String url;
 
-  const FlutterFork({required this.alias, required this.repositoryUrl});
+  const FlutterFork({required this.name, required this.url});
 }

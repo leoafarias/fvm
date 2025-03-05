@@ -35,7 +35,7 @@ class ForkAddCommand extends BaseFvmCommand {
     final alias = args[0];
     final url = args[1];
 
-    final forkDef = FlutterFork(alias: alias, repositoryUrl: url);
+    final forkDef = FlutterFork(name: alias, url: url);
 
     LocalAppConfig.read()
       ..forks.add(forkDef)
@@ -65,7 +65,7 @@ class ForkRemoveCommand extends BaseFvmCommand {
     final alias = args[0];
 
     LocalAppConfig.read()
-      ..forks.removeWhere((f) => f.alias == alias)
+      ..forks.removeWhere((f) => f.name == alias)
       ..save();
 
     logger.success('Fork alias "$alias" removed');
@@ -89,8 +89,8 @@ class ForkListCommand extends BaseFvmCommand {
       logger.info('No fork aliases found');
     } else {
       for (final fork in forks) {
-        final alias = fork.alias;
-        final url = fork.repositoryUrl;
+        final alias = fork.name;
+        final url = fork.url;
         logger.info('$alias: $url');
       }
     }

@@ -454,7 +454,7 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
   static Set<FlutterFork> _$forks(LocalAppConfig v) => v.forks;
   static const Field<LocalAppConfig, Set<FlutterFork>> _f$forks =
-      Field('forks', _$forks, opt: true, def: const {});
+      Field('forks', _$forks, opt: true);
 
   @override
   final MappableFields<LocalAppConfig> fields = const {
@@ -578,7 +578,7 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none,
-          Set<FlutterFork>? forks}) =>
+          Object? forks = $none}) =>
       $apply(FieldCopyWithData({
         if (disableUpdateCheck != $none)
           #disableUpdateCheck: disableUpdateCheck,
@@ -593,7 +593,7 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
         if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
-        if (forks != null) #forks: forks
+        if (forks != $none) #forks: forks
       }));
   @override
   LocalAppConfig $make(CopyWithData data) => LocalAppConfig(

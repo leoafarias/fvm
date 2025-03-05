@@ -195,9 +195,13 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   }
 
   static LocalAppConfig read() {
-    return _configFile.existsSync()
-        ? LocalAppConfig.fromJson(_configFile.readAsStringSync())
-        : LocalAppConfig();
+    try {
+      return _configFile.existsSync()
+          ? LocalAppConfig.fromJson(_configFile.readAsStringSync())
+          : LocalAppConfig();
+    } catch (e) {
+      return LocalAppConfig();
+    }
   }
 
   static File get _configFile => File(kAppConfigFile);

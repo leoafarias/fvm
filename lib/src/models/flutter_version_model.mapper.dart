@@ -268,23 +268,21 @@ class FlutterForkMapper extends ClassMapperBase<FlutterFork> {
   @override
   final String id = 'FlutterFork';
 
-  static String _$alias(FlutterFork v) => v.alias;
-  static const Field<FlutterFork, String> _f$alias = Field('alias', _$alias);
-  static String _$repositoryUrl(FlutterFork v) => v.repositoryUrl;
-  static const Field<FlutterFork, String> _f$repositoryUrl =
-      Field('repositoryUrl', _$repositoryUrl);
+  static String _$name(FlutterFork v) => v.name;
+  static const Field<FlutterFork, String> _f$name = Field('name', _$name);
+  static String _$url(FlutterFork v) => v.url;
+  static const Field<FlutterFork, String> _f$url = Field('url', _$url);
 
   @override
   final MappableFields<FlutterFork> fields = const {
-    #alias: _f$alias,
-    #repositoryUrl: _f$repositoryUrl,
+    #name: _f$name,
+    #url: _f$url,
   };
   @override
   final bool ignoreNull = true;
 
   static FlutterFork _instantiate(DecodingData data) {
-    return FlutterFork(
-        alias: data.dec(_f$alias), repositoryUrl: data.dec(_f$repositoryUrl));
+    return FlutterFork(name: data.dec(_f$name), url: data.dec(_f$url));
   }
 
   @override
@@ -338,7 +336,7 @@ extension FlutterForkValueCopy<$R, $Out>
 
 abstract class FlutterForkCopyWith<$R, $In extends FlutterFork, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
-  $R call({String? alias, String? repositoryUrl});
+  $R call({String? name, String? url});
   FlutterForkCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -351,14 +349,12 @@ class _FlutterForkCopyWithImpl<$R, $Out>
   late final ClassMapperBase<FlutterFork> $mapper =
       FlutterForkMapper.ensureInitialized();
   @override
-  $R call({String? alias, String? repositoryUrl}) => $apply(FieldCopyWithData({
-        if (alias != null) #alias: alias,
-        if (repositoryUrl != null) #repositoryUrl: repositoryUrl
-      }));
+  $R call({String? name, String? url}) => $apply(FieldCopyWithData(
+      {if (name != null) #name: name, if (url != null) #url: url}));
   @override
   FlutterFork $make(CopyWithData data) => FlutterFork(
-      alias: data.get(#alias, or: $value.alias),
-      repositoryUrl: data.get(#repositoryUrl, or: $value.repositoryUrl));
+      name: data.get(#name, or: $value.name),
+      url: data.get(#url, or: $value.url));
 
   @override
   FlutterForkCopyWith<$R2, FlutterFork, $Out2> $chain<$R2, $Out2>(

@@ -16,7 +16,7 @@ class ValidateFlutterVersionWorkflow extends Workflow {
 
       // Check if fork exists on config
       final fork = context.config.forks
-          .firstWhereOrNull((f) => f.alias == flutterVersion.fork);
+          .firstWhereOrNull((f) => f.name == flutterVersion.fork);
 
       if (fork == null) {
         throw AppException(
