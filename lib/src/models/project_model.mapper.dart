@@ -27,8 +27,8 @@ class ProjectMapper extends ClassMapperBase<Project> {
       Field('config', _$config);
   static String _$path(Project v) => v.path;
   static const Field<Project, String> _f$path = Field('path', _$path);
-  static PubSpec? _$pubspec(Project v) => v.pubspec;
-  static const Field<Project, PubSpec> _f$pubspec = Field('pubspec', _$pubspec);
+  static Pubspec? _$pubspec(Project v) => v.pubspec;
+  static const Field<Project, Pubspec> _f$pubspec = Field('pubspec', _$pubspec);
   static String _$name(Project v) => v.name;
   static const Field<Project, String> _f$name = Field('name', _$name);
   static FlutterVersion? _$pinnedVersion(Project v) => v.pinnedVersion;
@@ -159,7 +159,7 @@ extension ProjectValueCopy<$R, $Out> on ObjectCopyWith<$R, Project, $Out> {
 abstract class ProjectCopyWith<$R, $In extends Project, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ProjectConfigCopyWith<$R, ProjectConfig, ProjectConfig>? get config;
-  $R call({ProjectConfig? config, String? path, PubSpec? pubspec});
+  $R call({ProjectConfig? config, String? path, Pubspec? pubspec});
   ProjectCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 

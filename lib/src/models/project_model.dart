@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec/pubspec.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
 import '../services/logger_service.dart';
 import '../utils/constants.dart';
@@ -13,6 +13,8 @@ import 'config_model.dart';
 import 'flutter_version_model.dart';
 
 part 'project_model.mapper.dart';
+
+typedef PubSpec = Pubspec;
 
 /// Represents a Flutter project.
 ///
@@ -79,7 +81,7 @@ class Project with ProjectMappable {
 
     final pubspecFile = File(join(path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
-        ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
+        ? PubSpec.parse(pubspecFile.readAsStringSync())
         : null;
 
     return Project(config: config, path: path, pubspec: pubspec);
@@ -179,7 +181,7 @@ class Project with ProjectMappable {
   /// Retrieves the Flutter SDK constraint from the pubspec.yaml file.
   ///
   /// Returns `null` if the constraint is not defined.
-  VersionConstraint? get sdkConstraint => pubspec?.environment?.sdkConstraint;
+  VersionConstraint? get sdkConstraint => pubspec?.environment?['sdk'];
 }
 
 String _fvmPath(String path) {
@@ -224,5 +226,5 @@ class PubspecMapper extends SimpleMapper<PubSpec> {
 
   @override
   // ignore: avoid-dynamic
-  dynamic encode(PubSpec self) => self.toJson();
+  dynamic encode(PubSpec self) => self.toString();
 }
