@@ -13,7 +13,7 @@ packages:
     dependency: transitive
     description: dart
     source: sdk
-    version: "0.3.2"
+    version: "0.3.1"
   analyzer:
     dependency: transitive
     description:
@@ -450,10 +450,10 @@ packages:
     dependency: transitive
     description:
       name: macros
-      sha256: "0acaed5d6b7eab89f63350bccd82119e6c602df0f391260d0e32b5e23db79536"
+      sha256: "6245feb91dfa3693100d2e680f6c5614405b1623b555b4b3cba3cb88a3beb5c2"
       url: "https://pub.dev"
     source: hosted
-    version: "0.1.2-main.4"
+    version: "0.1.2-main.3"
   mason_logger:
     dependency: "direct main"
     description:
@@ -574,30 +574,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.4.0"
-  pubspec:
-    dependency: "direct main"
-    description:
-      name: pubspec
-      sha256: f534a50a2b4d48dc3bc0ec147c8bd7c304280fff23b153f3f11803c4d49d927e
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.3.0"
   pubspec_parse:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: pubspec_parse
       sha256: c799b721d79eb6ee6fa56f00c04b472dcd44a30d258fac2174a6ec57302678f8
       url: "https://pub.dev"
     source: hosted
     version: "1.3.0"
-  quiver:
-    dependency: transitive
-    description:
-      name: quiver
-      sha256: ea0b925899e64ecdfbf9c7becb60d5b50e706ade44a85b2363be2a22d88117d2
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.2"
   retry:
     dependency: transitive
     description:
@@ -782,14 +766,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.2"
-  uri:
-    dependency: transitive
-    description:
-      name: uri
-      sha256: "889eea21e953187c6099802b7b4cf5219ba8f3518f604a1033064d45b1b8268a"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   vm_service:
     dependency: transitive
     description:
