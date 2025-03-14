@@ -57,6 +57,7 @@ class ReleasesCommand extends BaseCommand {
 
     final table = createTable()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
+      ..insertColumn(header: 'Dart SDK', alignment: TextAlignment.left)
       ..insertColumn(header: 'Release Date', alignment: TextAlignment.left)
       ..insertColumn(header: 'Channel', alignment: TextAlignment.left);
 
@@ -77,6 +78,7 @@ class ReleasesCommand extends BaseCommand {
 
       table.insertRow([
         release.version,
+        release.dartSdkVersion ?? 'n/a',
         friendlyDate(release.releaseDate),
         channelLabel,
       ]);
