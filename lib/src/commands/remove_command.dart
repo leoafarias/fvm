@@ -60,6 +60,44 @@ class RemoveCommand extends BaseCommand {
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
+
+    // Check if the version contains a wildcard pattern
+    if (version.contains('*')) {
+      final pattern = version.replaceAll('*', '.*');
+      final versions = await CacheService.fromContext.getAllVersions();
+      final matchingVersions = versions.where((v) {
+        final regex = RegExp('^$pattern\$');
+        return regex.hasMatch(v.name);
+      }).toList();
+
+      if (matchingVersions.isEmpty) {
+        logger.info('No Flutter SDK versions found matching pattern: $version');
+        return ExitCode.success.code;
+      }
+
+      final confirmRemoval = logger.confirm(
+        'Found ${matchingVersions.length} versions matching pattern "$version". Do you want to remove them all?',
+        defaultValue: false,
+      );
+
+      if (!confirmRemoval) {
+        return ExitCode.success.code;
+      }
+
+      for (final matchingVersion in matchingVersions) {
+        final progress = logger.progress('Removing ${matchingVersion.name}...');
+        try {
+          CacheService.fromContext.remove(matchingVersion);
+          progress.complete('${matchingVersion.name} removed.');
+        } on Exception {
+          progress.fail('Could not remove ${matchingVersion.name}');
+          rethrow;
+        }
+      }
+
+      return ExitCode.success.code;
+    }
+
     final validVersion = FlutterVersion.parse(version);
     final cacheVersion = CacheService.fromContext.getVersion(validVersion);
 
