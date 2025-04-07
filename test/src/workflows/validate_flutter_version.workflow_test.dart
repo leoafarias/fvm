@@ -1,4 +1,3 @@
-import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/validate_flutter_version.workflow.dart';
 import 'package:test/test.dart';
 
@@ -14,21 +13,24 @@ void main() {
 
       final workflow = ValidateFlutterVersionWorkflow(context);
 
-      final result = await workflow.call(version);
+      final result = workflow.call(version);
 
       expect(result.isRelease, isTrue);
       expect(result.name, equals(version));
     });
 
     /// Invalid version
-    test('should return invalid version', () async {
+    test('should return invalid version as unknownRef', () async {
       const version = 'invalid-version';
 
       final context = TestFactory.context();
 
       final workflow = ValidateFlutterVersionWorkflow(context);
 
-      expect(() => workflow.call(version), throwsA(isA<AppException>()));
+      final result = workflow.call(version);
+
+      expect(result.isUnknownRef, isTrue);
+      expect(result.name, equals(version));
     });
 
     /// Channel
@@ -39,7 +41,7 @@ void main() {
 
       final workflow = ValidateFlutterVersionWorkflow(context);
 
-      final result = await workflow.call(version);
+      final result = workflow.call(version);
 
       expect(result.isChannel, isTrue);
       expect(result.name, equals(version));
@@ -56,7 +58,7 @@ void main() {
       final workflow = ValidateFlutterVersionWorkflow(context);
 
       // Act
-      final result = await workflow.call(version, force: true);
+      final result = workflow.call(version, force: true);
 
       // Assert
       expect(result.isUnknownRef, isTrue);

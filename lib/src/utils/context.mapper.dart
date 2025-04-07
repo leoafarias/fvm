@@ -152,7 +152,8 @@ mixin FvmContextMappable {
   }
 
   FvmContextCopyWith<FvmContext, FvmContext, FvmContext> get copyWith =>
-      _FvmContextCopyWithImpl(this as FvmContext, $identity, $identity);
+      _FvmContextCopyWithImpl<FvmContext, FvmContext>(
+          this as FvmContext, $identity, $identity);
   @override
   String toString() {
     return FvmContextMapper.ensureInitialized()
@@ -174,7 +175,7 @@ mixin FvmContextMappable {
 extension FvmContextValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FvmContext, $Out> {
   FvmContextCopyWith<$R, FvmContext, $Out> get $asFvmContext =>
-      $base.as((v, t, t2) => _FvmContextCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _FvmContextCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
@@ -262,5 +263,5 @@ class _FvmContextCopyWithImpl<$R, $Out>
   @override
   FvmContextCopyWith<$R2, FvmContext, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FvmContextCopyWithImpl($value, $cast, t);
+      _FvmContextCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

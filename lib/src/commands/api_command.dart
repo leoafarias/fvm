@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../api/api_service.dart';

@@ -76,56 +76,81 @@ class FlutterVersion with FlutterVersionMappable {
         type = VersionType.custom;
 
   factory FlutterVersion.parse(String version) {
-    final parts = version.split('@');
+    // Match pattern: [fork/]version[@channel]
+    final pattern =
+        RegExp(r'^(?:(?<fork>[^/]+)/)?(?<version>[^@]+)(?:@(?<channel>\w+))?$');
+    final match = pattern.firstMatch(version);
 
-    if (parts.length == 2) {
-      final channel = parts.last;
-      if (isFlutterChannel(channel)) {
-        return FlutterVersion.release(
-          version,
-          releaseChannel: FlutterChannel.fromValue(channel),
+    if (match == null) {
+      throw FormatException('Invalid version format: $version');
+    }
+
+    // Extract components
+    final forkName = match.namedGroup('fork');
+    final versionPart = match.namedGroup('version')!;
+    final channelPart = match.namedGroup('channel');
+
+    // Handle custom versions
+    if (versionPart.startsWith('custom_')) {
+      if (forkName != null || channelPart != null) {
+        throw FormatException(
+          'Custom versions cannot have fork or channel specifications',
         );
       }
 
-      throw FormatException('Invalid version format');
+      return FlutterVersion.custom(versionPart);
     }
 
-    final forkParts = version.split('/');
-
-    if (forkParts.length == 2) {
-      final alias = forkParts.first;
-      final version = forkParts.last;
-
-      final forkedVersion = FlutterVersion.parse(version);
-
-      return forkedVersion.copyWith(fork: alias);
+    // Handle channel versions
+    if (isFlutterChannel(versionPart)) {
+      return FlutterVersion.channel(versionPart, fork: forkName);
     }
 
-    if (version.startsWith('custom_')) {
-      return FlutterVersion.custom(version);
-    }
-
-    // Check if its commit
-    // Check if its channel
-    if (isFlutterChannel(version)) {
-      return FlutterVersion.channel(version);
-    }
-
-    try {
-      if (version.startsWith('v')) {
-        version = version.replaceFirst('v', '');
+    // Handle release versions with channel
+    if (channelPart != null) {
+      if (!isFlutterChannel(channelPart)) {
+        throw FormatException('Invalid channel: $channelPart');
       }
 
-      // ignore: avoid-unused-instances
-      Version.parse(version);
+      final nameToUse = '$versionPart@$channelPart';
 
-      return FlutterVersion.release(version);
+      return FlutterVersion.release(
+        nameToUse,
+        releaseChannel: FlutterChannel.fromValue(channelPart),
+        fork: forkName,
+      );
+    }
+
+    // Try to parse as semantic version
+    try {
+      // Create a version to check for validation only
+      String checkVersion = versionPart;
+      if (versionPart.startsWith('v')) {
+        // Strip 'v' only for validation check
+        checkVersion = versionPart.substring(1);
+      }
+
+      // Validate it's a proper semver
+      // ignore: avoid-unused-instances
+      Version.parse(checkVersion);
+
+      // Use the original version string (preserving v if present)
+      return FlutterVersion.release(versionPart, fork: forkName);
     } catch (e) {
-      return FlutterVersion.gitReference(version);
+      // Not a valid semver, treat as git reference
+      return FlutterVersion.gitReference(versionPart, fork: forkName);
     }
   }
 
-  String get version => name.split('@').first;
+  String get version {
+    // If this is a forked version, strip out the fork prefix first
+    String versionName = name;
+    if (fromFork && name.contains('/')) {
+      versionName = name.split('/').last;
+    }
+
+    return versionName.split('@').first;
+  }
 
   bool get isMain => name == 'master' || name == 'main';
 
@@ -174,4 +199,8 @@ class FlutterFork with FlutterForkMappable {
   final String url;
 
   const FlutterFork({required this.name, required this.url});
+
+  // Improved toString for debugging
+  @override
+  String toString() => 'FlutterFork(name: $name, url: $url)';
 }

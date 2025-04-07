@@ -93,4 +93,35 @@ void main() {
       });
     }
   });
+
+  // Group 5: Forked versions
+  group('Fork validation in install command:', () {
+    const testForkName = 'testfork';
+    const testForkUrl = 'https://github.com/flutter/flutter.git';
+
+    test('Validates fork exists in config', () async {
+      final runner = TestFactory.commandRunner();
+
+      // Try to install a version with a fork that's not configured
+      expect(
+        () => runner.runOrThrow(['fvm', 'install', '$testForkName/stable']),
+        throwsA(
+          predicate<Exception>(
+            (e) => e
+                .toString()
+                .contains('Fork "$testForkName" has not been configured'),
+          ),
+        ),
+      );
+    });
+
+    // Note: The tests for non-existent versions in forked repos aren't working
+    // because the MockFlutterService in the test environment doesn't properly
+    // simulate git errors. We need to handle these scenarios in real integration tests.
+  });
+
+  // Note: Additional tests for non-existent versions in the main repository
+  // would also need to be added as integration tests rather than unit tests,
+  // as the MockFlutterService doesn't properly simulate the git errors
+  // we're trying to detect and handle.
 }

@@ -58,7 +58,8 @@ void main() {
 
         final targetBin = link.targetSync();
 
-        final channelBin = services.cache.getVersionCacheDir(channel);
+        final channelBin =
+            services.cache.getVersionCacheDir(FlutterVersion.parse(channel));
 
         expect(targetBin == channelBin.path, true);
         expect(linkExists, true);
@@ -134,7 +135,7 @@ void main() {
 
       final targetPath = link.targetSync();
       final valid = FlutterVersion.parse(release);
-      final versionDir = services.cache.getVersionCacheDir(valid.name);
+      final versionDir = services.cache.getVersionCacheDir(valid);
 
       expect(targetPath == versionDir.path, true);
       expect(linkExists, true);

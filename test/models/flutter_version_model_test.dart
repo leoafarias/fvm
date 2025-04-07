@@ -255,5 +255,47 @@ void main() {
       expect(version2.compareTo(version1), greaterThan(0));
       expect(version1.compareTo(version1), equals(0));
     });
+
+    group('Fork functionality', () {
+      test('parse method - fork with channel version', () {
+        final version = FlutterVersion.parse('myfork/stable');
+        expect(version.fork, 'myfork');
+        expect(version.fromFork, isTrue);
+        expect(version.type, VersionType.channel);
+      });
+
+      test('parse method - fork with release version', () {
+        final version = FlutterVersion.parse('myfork/2.10.0');
+        expect(version.fork, 'myfork');
+        expect(version.fromFork, isTrue);
+        expect(version.type, VersionType.release);
+        expect(version.version, '2.10.0');
+      });
+
+      test('parse method - fork with commit version', () {
+        final version = FlutterVersion.parse('myfork/f4c74a6ec3');
+        expect(version.fork, 'myfork');
+        expect(version.fromFork, isTrue);
+        expect(version.type, VersionType.unknownRef);
+      });
+
+      test('parse method - fork with release version and channel', () {
+        final version = FlutterVersion.parse('myfork/2.10.0@beta');
+        expect(version.fork, 'myfork');
+        expect(version.fromFork, isTrue);
+        expect(version.type, VersionType.release);
+        expect(version.releaseChannel, FlutterChannel.beta);
+        expect(version.version, '2.10.0');
+      });
+
+      test('copyWith preserves fork information', () {
+        final version = FlutterVersion.parse('myfork/2.10.0');
+        final copied = version.copyWith(name: '2.11.0');
+
+        expect(copied.name, '2.11.0');
+        expect(copied.fork, 'myfork');
+        expect(copied.fromFork, isTrue);
+      });
+    });
   });
 }

@@ -51,3 +51,9 @@ fvm
 # FVM Version Cache
 .fvm/
 
+test/fixtures/sample_app
+.brain
+.orbit
+
+# Example app directory
+example_app/

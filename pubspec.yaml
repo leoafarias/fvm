@@ -31,6 +31,7 @@ dependencies:
   dart_mappable: ^4.2.2
   cli_completion: ^0.5.0
   yaml_writer: ^2.1.0
+  win32: ^5.0.0
   
 dev_dependencies:
   cli_pkg: 2.10.0

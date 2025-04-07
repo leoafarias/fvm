@@ -45,10 +45,38 @@ void main() {
 
   group('CacheService', () {
     group('getVersionCacheDir', () {
-      test('returns correct directory path', () {
+      test('returns correct directory path for regular version name', () {
         // Given
-        const version = 'stable';
-        final expected = path.join(tempDir.path, version);
+        const versionName = 'stable';
+        final version = FlutterVersion.parse(versionName);
+        final expected = path.join(tempDir.path, versionName);
+
+        // When
+        final result = cacheService.getVersionCacheDir(version);
+
+        // Then
+        expect(result.path, expected);
+      });
+
+      test('returns correct directory path for forked versions', () {
+        // Given
+        const forkName = 'testfork';
+        const versionName = 'master';
+        final version = FlutterVersion.parse('$forkName/$versionName');
+        final expected = path.join(tempDir.path, forkName, versionName);
+
+        // When
+        final result = cacheService.getVersionCacheDir(version);
+
+        // Then
+        expect(result.path, expected);
+      });
+
+      test('backwards compatibility for string-based version paths', () {
+        // Given
+        const versionName = 'stable';
+        final version = FlutterVersion.parse(versionName);
+        final expected = path.join(tempDir.path, versionName);
 
         // When
         final result = cacheService.getVersionCacheDir(version);
@@ -105,6 +133,10 @@ void main() {
         for (final version in versions) {
           Directory(path.join(tempDir.path, version))
               .createSync(recursive: true);
+
+          // Add the "version" file that marks this as a Flutter SDK directory
+          File(path.join(tempDir.path, version, 'version'))
+              .writeAsStringSync('$version (test)');
         }
 
         // Create a non-directory file that should be ignored

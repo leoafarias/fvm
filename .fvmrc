@@ -1,3 +1,4 @@
 {
-  "flutter": "stable"
+  "flutter": "stable",
+  "flavors": {}
 }

@@ -108,100 +108,95 @@ class EnsureCacheWorkflow extends Workflow {
     final flutterService = get<FlutterService>();
     final gitService = get<GitService>();
 
-    try {
-      final cacheVersion = cacheService.getVersion(version);
+    final cacheVersion = cacheService.getVersion(version);
 
-      if (cacheVersion != null) {
-        final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
+    if (cacheVersion != null) {
+      final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
 
-        if (integrity == CacheIntegrity.invalid) {
-          return await _handleNonExecutable(
-            cacheVersion,
-            shouldInstall: shouldInstall,
-          );
-        }
-
-        if (integrity == CacheIntegrity.versionMismatch &&
-            !force &&
-            !version.isCustom) {
-          return await _handleVersionMismatch(cacheVersion);
-        } else if (force) {
-          logger.warn(
-            'Not checking for version mismatch as --force flag is set.',
-          );
-        } else if (version.isCustom) {
-          logger.warn(
-            'Not checking for version mismatch as local version is being used.',
-          );
-        }
-
-        // If should install notify the user that is already installed
-        if (shouldInstall) {
-          logger.success(
-            'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is already installed.',
-          );
-        }
-
-        return cacheVersion;
-      }
-
-      if (version.isCustom) {
-        throw AppException('Local Flutter SDKs must be installed manually.');
-      }
-
-      if (!shouldInstall) {
-        logger.info(
-          'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
+      if (integrity == CacheIntegrity.invalid) {
+        return await _handleNonExecutable(
+          cacheVersion,
+          shouldInstall: shouldInstall,
         );
-
-        if (!force) {
-          final shouldInstallConfirmed = logger.confirm(
-            'Would you like to install it now?',
-            defaultValue: true,
-          );
-
-          if (!shouldInstallConfirmed) {
-            exit(ExitCode.unavailable.code);
-          }
-        }
       }
 
-      bool useGitCache = context.gitCache;
-
-      if (useGitCache) {
-        try {
-          await gitService.updateLocalMirror();
-        } on Exception {
-          logger.warn(
-            'Failed to setup local cache. Falling back to git clone.',
-          );
-          rethrow;
-        }
+      if (integrity == CacheIntegrity.versionMismatch &&
+          !force &&
+          !version.isCustom) {
+        return await _handleVersionMismatch(cacheVersion);
+      } else if (force) {
+        logger.warn(
+          'Not checking for version mismatch as --force flag is set.',
+        );
+      } else if (version.isCustom) {
+        logger.warn(
+          'Not checking for version mismatch as local version is being used.',
+        );
       }
 
-      final progress = logger.progress(
-        'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+      // If should install notify the user that is already installed
+      if (shouldInstall) {
+        logger.success(
+          'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is already installed.',
+        );
+      }
+
+      return cacheVersion;
+    }
+
+    if (version.isCustom) {
+      throw AppException('Local Flutter SDKs must be installed manually.');
+    }
+
+    if (!shouldInstall) {
+      logger.info(
+        'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
       );
-      try {
-        await flutterService.install(version);
 
-        progress.complete(
-          'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
+      if (!force) {
+        final shouldInstallConfirmed = logger.confirm(
+          'Would you like to install it now?',
+          defaultValue: true,
         );
+
+        if (!shouldInstallConfirmed) {
+          exit(ExitCode.unavailable.code);
+        }
+      }
+    }
+
+    bool useGitCache = context.gitCache;
+
+    if (useGitCache) {
+      try {
+        await gitService.updateLocalMirror();
       } on Exception {
-        progress.fail('Failed to install ${version.name}');
+        logger.warn(
+          'Failed to setup local cache. Falling back to git clone.',
+        );
         rethrow;
       }
+    }
 
-      final newCacheVersion = cacheService.getVersion(version);
-      if (newCacheVersion == null) {
-        throw AppException('Could not verify cache version $version');
-      }
+    final progress = logger.progress(
+      'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+    );
+    try {
+      await flutterService.install(version);
 
-      return newCacheVersion;
+      progress.complete(
+        'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
+      );
     } on Exception {
-      logger.fail('Failed to ensure $version is cached.');
+      progress.fail('Failed to install ${version.name}');
       rethrow;
     }
+
+    final newCacheVersion = cacheService.getVersion(version);
+    if (newCacheVersion == null) {
+      throw AppException('Could not verify cache version $version');
+    }
+
+    return newCacheVersion;
   }
 }

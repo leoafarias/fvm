@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
@@ -53,9 +54,18 @@ class FlutterService extends ContextualService {
   }
 
   Future<void> install(FlutterVersion version) async {
-    final versionDir = get<CacheService>().getVersionCacheDir(version.name);
+    // Get the version-specific cache directory using the FlutterVersion object
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
 
-    assert(!version.isCustom, 'Custom version is not supported');
+    // For fork versions, ensure the parent directory exists
+    if (version.fromFork) {
+      final forkDir =
+          Directory(path.join(context.versionsCachePath, version.fork!));
+      if (!forkDir.existsSync()) {
+        forkDir.createSync(recursive: true);
+      }
+      logger.debug('Created fork directory: ${forkDir.path}');
+    }
 
     // Check if its git commit
     String? channel = version.name;
@@ -77,6 +87,27 @@ class FlutterService extends ContextualService {
       }
     }
 
+    // Determine which URL to use for cloning
+    String repoUrl = context.flutterUrl;
+
+    // If this is a forked version, use the fork's URL
+    if (version.fromFork) {
+      logger.debug('Installing from fork: ${version.fork}');
+
+      try {
+        repoUrl = context.getForkUrl(version.fork!);
+        logger.info('Using forked repository URL: $repoUrl');
+      } catch (e, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Fork "${version.fork}" not found in configuration. '
+            'Please add it first using: fvm fork add ${version.fork} <url>',
+          ),
+          stackTrace,
+        );
+      }
+    }
+
     try {
       final result = await runGit(
         [
@@ -89,14 +120,14 @@ class FlutterService extends ContextualService {
             channel,
           ],
           if (context.gitCache) ...['--reference', context.gitCachePath],
-          context.flutterUrl,
+          repoUrl,
           versionDir.path,
         ],
         echoOutput: !(context.isTest || !logger.isVerbose),
       );
 
-      final gitVersionDir =
-          get<CacheService>().getVersionCacheDir(version.name);
+      // Use FlutterVersion object with getVersionCacheDir
+      final gitVersionDir = get<CacheService>().getVersionCacheDir(version);
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
@@ -107,10 +138,59 @@ class FlutterService extends ContextualService {
 
       /// If version is not a channel reset to version
       if (!version.isChannel) {
-        await get<GitService>().resetHard(
-          gitVersionDir.path,
-          version.version,
-        );
+        try {
+          // First check if this is actually a branch in the forked repo
+          final gitDir = await GitDir.fromExisting(gitVersionDir.path);
+          final branchResult = await gitDir.runCommand(
+              ['branch', '-r', '--list', 'origin/${version.version}']);
+
+          final branchOutput = (branchResult.stdout as String).trim();
+          final isBranch = branchOutput.isNotEmpty;
+
+          if (isBranch) {
+            // If it's a branch, just check it out instead of hard reset
+            await gitDir.runCommand(['checkout', version.version]);
+            logger.debug('Checked out branch: ${version.version}');
+          } else {
+            // If it's not a branch, perform the hard reset
+            await get<GitService>().resetHard(
+              gitVersionDir.path,
+              version.version,
+            );
+          }
+        } catch (e, stackTrace) {
+          // Handle specific git errors for reference not found
+          String errorMessage = e.toString().toLowerCase();
+
+          // Simplify to focus on most common error patterns
+          if (errorMessage.contains('unknown revision') ||
+              errorMessage.contains('ambiguous argument') ||
+              errorMessage.contains('not found')) {
+            // Clean up failed installation
+            get<CacheService>().remove(version);
+
+            // Provide a clear error message
+            if (version.fromFork) {
+              Error.throwWithStackTrace(
+                AppException(
+                  'Reference "${version.version}" was not found in fork "${version.fork}".\n'
+                  'Please verify that this version exists in the forked repository.',
+                ),
+                stackTrace,
+              );
+            }
+            Error.throwWithStackTrace(
+              AppException(
+                'Reference "${version.version}" was not found in the Flutter repository.\n'
+                'Please check that you have specified a valid version.',
+              ),
+              stackTrace,
+            );
+          }
+
+          // If it's not a "reference not found" error, rethrow the original exception
+          rethrow;
+        }
       }
 
       if (result.exitCode != ExitCode.success.code) {
@@ -118,6 +198,38 @@ class FlutterService extends ContextualService {
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }
+    } on ProcessException catch (e, stackTrace) {
+      // Improved error message for clone failures
+      String errorMessage = e.toString().toLowerCase();
+
+      // Simplify clone error detection
+      if (errorMessage.contains('repository not found') ||
+          errorMessage.contains('remote branch') &&
+              errorMessage.contains('not found')) {
+        get<CacheService>().remove(version);
+
+        if (version.fromFork) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
+              'Please verify that the fork URL is correct and the version exists.',
+            ),
+            stackTrace,
+          );
+        }
+
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to clone Flutter repository with version "${version.version}".\n'
+            'The branch or tag does not exist in the upstream repository.',
+          ),
+          stackTrace,
+        );
+      }
+
+      // Clean up and rethrow
+      get<CacheService>().remove(version);
+      rethrow;
     } on Exception {
       get<CacheService>().remove(version);
       rethrow;

@@ -27,6 +27,7 @@ import '../workflows/use_version.workflow.dart';
 import '../workflows/validate_flutter_version.workflow.dart';
 import '../workflows/verify_project.workflow.dart';
 import 'constants.dart';
+import 'extensions.dart';
 import 'file_lock.dart';
 
 part 'context.mapper.dart';
@@ -92,11 +93,13 @@ class FvmContext with FvmContextMappable {
     bool isTest = false,
   }) {
     // Load all configs
+    final builtConfig =
+        AppConfigService.buildConfig(overrides: configOverrides);
 
     return FvmContext.raw(
       debugLabel: debugLabel,
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
-      config: AppConfigService.buildConfig(overrides: configOverrides),
+      config: builtConfig,
       environment: {...Platform.environment, ...?environmentOverrides},
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
@@ -205,6 +208,16 @@ class FvmContext with FvmContextMappable {
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');
+  }
+
+  /// Gets the Flutter URL to use for a specific fork
+  String getForkUrl(String forkName) {
+    final fork = config.forks.firstWhereOrNull((f) => f.name == forkName);
+    if (fork == null) {
+      throw Exception('Fork "$forkName" not found in configuration');
+    }
+
+    return fork.url;
   }
 }
 

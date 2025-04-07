@@ -42,7 +42,7 @@ void main() {
         // Check the symlink target
         final targetPath = link.targetSync();
         final valid = FlutterVersion.parse(version);
-        final versionDir = services.cache.getVersionCacheDir(valid.name);
+        final versionDir = services.cache.getVersionCacheDir(valid);
 
         // Perform assertions
         expect(targetPath == versionDir.path, true);

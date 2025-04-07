@@ -39,3 +39,77 @@ Please view our [FAQ](https://www.fvm.app/documentation/getting-started/faq).
 ## License
 
 This project is licensed under the MIT License; see [LICENSE](LICENSE) file for details.
+
+# FVM Version Format Testing Guide
+
+This directory contains a testing environment for validating the Flutter Version Manager (FVM) version format handling. The tests focus on ensuring that all valid version formats are correctly parsed and applied, while invalid formats are properly rejected.
+
+## Test Script Overview
+
+The `run_tests.sh` script automates the testing of various version formats with FVM. It:
+
+1. Creates a clean Flutter test environment
+2. Tests different version formats including:
+   - Channel versions (stable, beta, dev, master)
+   - Semantic versions (e.g., 2.10.0)
+   - Versions with 'v' prefix (e.g., v2.10.0)  
+   - Versions with channel specification (e.g., 2.10.0@beta)
+   - Fork specifications (e.g., custom-fork/stable)
+3. Validates error handling for invalid formats
+4. Reports test results
+
+## Running the Tests
+
+To run the tests with standard output:
+
+```bash
+./run_tests.sh
+```
+
+For detailed debugging output:
+
+```bash
+./run_tests.sh --verbose
+```
+
+## Tested Version Formats
+
+The script tests the following version formats:
+
+| Format | Example | Description |
+|--------|---------|-------------|
+| Channel | `stable`, `beta` | Flutter release channels |
+| Semantic Version | `2.10.0` | Specific Flutter version |
+| V-prefixed Version | `v2.10.0` | Version with 'v' prefix |
+| Version with Channel | `2.10.0@beta` | Specific version from a channel |
+| V-prefixed with Channel | `v2.10.0@beta` | V-prefixed version from a channel |
+| Fork with Channel | `custom-fork/stable` | Fork with specified channel |
+
+## Error Cases
+
+The script also validates proper rejection of invalid formats:
+
+- Invalid channel specification (`2.10.0@invalid`)
+- Custom build with channel (`custom_build@beta`)
+- Non-existent fork (`unknown-fork/stable`)
+
+## Test Results
+
+After running the tests, review the output to ensure all tests passed. If any failures occur, the script will provide details about what went wrong.
+
+For a complete record of test outcomes, refer to the `TEST_RESULTS.md` file which may be generated after running the tests.
+
+## Prerequisites
+
+- Dart SDK must be installed and available in PATH
+- Flutter SDK must be installed and available in PATH
+- The script should be run from the `test/fixtures/sample_app` directory
+
+## Troubleshooting
+
+If some tests are skipped, it may be because:
+
+1. The required Flutter versions are not installed
+2. The `list` command in the FVM implementation has issues
+
+In these cases, the script will continue with available tests and provide warnings about what was skipped.

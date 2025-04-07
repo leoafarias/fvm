@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
-import 'package:path/path.dart' as p;
 
+import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/file_lock.dart';
 import '../utils/git_clone_update_printer.dart';
 import 'base_service.dart';
+import 'cache_service.dart';
 import 'process_service.dart';
 
 /// Service for Git operations
@@ -152,9 +153,12 @@ class GitService extends ContextualService {
     }
   }
 
-  /// Returns the [name] of a branch or tag for a [version]
+  /// Returns the [name] of a branch [version]
   Future<String?> getBranch(String version) async {
-    final versionDir = Directory(p.join(context.versionsCachePath, version));
+    // For backward compatibility, use the FlutterVersion object
+    // to ensure proper directory path resolution
+    final flutterVersion = FlutterVersion.parse(version);
+    final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
 
     final isGitDir = await GitDir.isGitDir(versionDir.path);
 
@@ -169,7 +173,10 @@ class GitService extends ContextualService {
 
   /// Returns the [name] of a tag [version]
   Future<String?> getTag(String version) async {
-    final versionDir = Directory(p.join(context.versionsCachePath, version));
+    // For backward compatibility, use the FlutterVersion object
+    // to ensure proper directory path resolution
+    final flutterVersion = FlutterVersion.parse(version);
+    final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
 
     final isGitDir = await GitDir.isGitDir(versionDir.path);
 

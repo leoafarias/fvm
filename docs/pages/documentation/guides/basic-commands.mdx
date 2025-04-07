@@ -30,7 +30,7 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 > fvm use [version] [options]
 ```
 
-`version`: Desired Flutter SDK version (e.g., `2.2.3`) or channel (e.g., `stable`).
+`version`: Desired Flutter SDK version (e.g., `2.2.3`) or channel (e.g., `stable`). If omitted, FVM will check for an existing pinned version in the project or prompt you to select one.
 
 ### Options
 
@@ -40,7 +40,22 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 -  `-s, --skip-setup`: Omits Flutter setup post-installation for expedited process.
 -  `--skip-pub-get`: Skips resolving dependencies (`flutter pub get`) after switching Flutter SDK.
 
-- `--fvm-skip-input`: Skips requests for user input and uses default values.
+### What Happens Behind the Scenes
+
+When you run `fvm use`, several important things happen:
+
+1. **SDK Setup**: FVM ensures the specified Flutter SDK version is properly set up
+2. **Project References**: 
+   - Creates an `.fvm` directory in your project
+   - Sets up a symlink to the cached Flutter SDK version
+   - Creates a `flutter_sdk` link for proper IDE integration (especially for Android Studio)
+3. **Configuration**: 
+   - Updates project configuration files 
+   - Adds appropriate entries to .gitignore
+   - Configures VS Code settings (if using VS Code)
+4. **Dependencies**: Runs `flutter pub get` to resolve dependencies (unless skipped)
+
+For VS Code users, FVM will notify you if you need to restart your terminal to apply changes.
 
 ### Examples
 

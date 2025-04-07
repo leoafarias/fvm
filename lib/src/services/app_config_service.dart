@@ -9,13 +9,25 @@ const String flutterGitUrl = 'FLUTTER_GIT_URL';
 class AppConfigService {
   const AppConfigService._();
 
+  /// Build FVM Config
   static AppConfig buildConfig({AppConfig? overrides}) {
-    return createAppConfig(
-      globalConfig: LocalAppConfig.read(),
-      envConfig: _loadEnvironment(),
-      projectConfig: _loadProjectConfig(),
+    final globalConfig = LocalAppConfig.read();
+    final envConfig = _loadEnvironment();
+    final projectConfig = _loadProjectConfig();
+
+    final result = createAppConfig(
+      globalConfig: globalConfig,
+      envConfig: envConfig,
+      projectConfig: projectConfig,
       overrides: overrides,
     );
+
+    // Ensure forks are preserved from global config if result has none
+    if (result.forks.isEmpty && globalConfig.forks.isNotEmpty) {
+      return result.copyWith(forks: globalConfig.forks);
+    }
+
+    return result;
   }
 
   static AppConfig createAppConfig({
@@ -65,15 +77,6 @@ class AppConfigService {
           ),
         );
       }
-
-      appConfig = appConfig.copyWith.$merge(
-        AppConfig(
-          cachePath: config.cachePath,
-          useGitCache: config.useGitCache,
-          gitCachePath: config.gitCachePath,
-          flutterUrl: config.flutterUrl,
-        ),
-      );
     }
 
     return appConfig;

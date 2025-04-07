@@ -18,6 +18,10 @@ abstract class BaseFvmCommand extends Command<int> {
 
   @override
   String get invocation => 'fvm $name';
+
+  // Override to make sure commands are visible by default
+  @override
+  bool get hidden => false;
 }
 
 extension CommandExtension on Command {

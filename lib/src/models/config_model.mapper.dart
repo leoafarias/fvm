@@ -25,13 +25,13 @@ class ConfigOptionsMapper extends EnumMapper<ConfigOptions> {
   @override
   ConfigOptions decode(dynamic value) {
     switch (value) {
-      case 'cachePath':
+      case r'cachePath':
         return ConfigOptions.cachePath;
-      case 'useGitCache':
+      case r'useGitCache':
         return ConfigOptions.useGitCache;
-      case 'gitCachePath':
+      case r'gitCachePath':
         return ConfigOptions.gitCachePath;
-      case 'flutterUrl':
+      case r'flutterUrl':
         return ConfigOptions.flutterUrl;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -42,13 +42,13 @@ class ConfigOptionsMapper extends EnumMapper<ConfigOptions> {
   dynamic encode(ConfigOptions self) {
     switch (self) {
       case ConfigOptions.cachePath:
-        return 'cachePath';
+        return r'cachePath';
       case ConfigOptions.useGitCache:
-        return 'useGitCache';
+        return r'useGitCache';
       case ConfigOptions.gitCachePath:
-        return 'gitCachePath';
+        return r'gitCachePath';
       case ConfigOptions.flutterUrl:
-        return 'flutterUrl';
+        return r'flutterUrl';
     }
   }
 }
@@ -129,7 +129,8 @@ mixin EnvConfigMappable {
   }
 
   EnvConfigCopyWith<EnvConfig, EnvConfig, EnvConfig> get copyWith =>
-      _EnvConfigCopyWithImpl(this as EnvConfig, $identity, $identity);
+      _EnvConfigCopyWithImpl<EnvConfig, EnvConfig>(
+          this as EnvConfig, $identity, $identity);
   @override
   String toString() {
     return EnvConfigMapper.ensureInitialized()
@@ -150,7 +151,7 @@ mixin EnvConfigMappable {
 
 extension EnvConfigValueCopy<$R, $Out> on ObjectCopyWith<$R, EnvConfig, $Out> {
   EnvConfigCopyWith<$R, EnvConfig, $Out> get $asEnvConfig =>
-      $base.as((v, t, t2) => _EnvConfigCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _EnvConfigCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class EnvConfigCopyWith<$R, $In extends EnvConfig, $Out>
@@ -193,7 +194,7 @@ class _EnvConfigCopyWithImpl<$R, $Out>
   @override
   EnvConfigCopyWith<$R2, EnvConfig, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _EnvConfigCopyWithImpl($value, $cast, t);
+      _EnvConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class AppConfigMapper extends ClassMapperBase<AppConfig> {
@@ -302,7 +303,8 @@ mixin AppConfigMappable {
   }
 
   AppConfigCopyWith<AppConfig, AppConfig, AppConfig> get copyWith =>
-      _AppConfigCopyWithImpl(this as AppConfig, $identity, $identity);
+      _AppConfigCopyWithImpl<AppConfig, AppConfig>(
+          this as AppConfig, $identity, $identity);
   @override
   String toString() {
     return AppConfigMapper.ensureInitialized()
@@ -323,7 +325,7 @@ mixin AppConfigMappable {
 
 extension AppConfigValueCopy<$R, $Out> on ObjectCopyWith<$R, AppConfig, $Out> {
   AppConfigCopyWith<$R, AppConfig, $Out> get $asAppConfig =>
-      $base.as((v, t, t2) => _AppConfigCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _AppConfigCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class AppConfigCopyWith<$R, $In extends AppConfig, $Out>
@@ -401,7 +403,7 @@ class _AppConfigCopyWithImpl<$R, $Out>
   @override
   AppConfigCopyWith<$R2, AppConfig, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _AppConfigCopyWithImpl($value, $cast, t);
+      _AppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
@@ -512,8 +514,9 @@ mixin LocalAppConfigMappable {
   }
 
   LocalAppConfigCopyWith<LocalAppConfig, LocalAppConfig, LocalAppConfig>
-      get copyWith => _LocalAppConfigCopyWithImpl(
-          this as LocalAppConfig, $identity, $identity);
+      get copyWith =>
+          _LocalAppConfigCopyWithImpl<LocalAppConfig, LocalAppConfig>(
+              this as LocalAppConfig, $identity, $identity);
   @override
   String toString() {
     return LocalAppConfigMapper.ensureInitialized()
@@ -536,7 +539,7 @@ mixin LocalAppConfigMappable {
 extension LocalAppConfigValueCopy<$R, $Out>
     on ObjectCopyWith<$R, LocalAppConfig, $Out> {
   LocalAppConfigCopyWith<$R, LocalAppConfig, $Out> get $asLocalAppConfig =>
-      $base.as((v, t, t2) => _LocalAppConfigCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _LocalAppConfigCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class LocalAppConfigCopyWith<$R, $In extends LocalAppConfig, $Out>
@@ -616,7 +619,7 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
   @override
   LocalAppConfigCopyWith<$R2, LocalAppConfig, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _LocalAppConfigCopyWithImpl($value, $cast, t);
+      _LocalAppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
@@ -720,7 +723,7 @@ mixin ProjectConfigMappable {
   }
 
   ProjectConfigCopyWith<ProjectConfig, ProjectConfig, ProjectConfig>
-      get copyWith => _ProjectConfigCopyWithImpl(
+      get copyWith => _ProjectConfigCopyWithImpl<ProjectConfig, ProjectConfig>(
           this as ProjectConfig, $identity, $identity);
   @override
   String toString() {
@@ -744,7 +747,7 @@ mixin ProjectConfigMappable {
 extension ProjectConfigValueCopy<$R, $Out>
     on ObjectCopyWith<$R, ProjectConfig, $Out> {
   ProjectConfigCopyWith<$R, ProjectConfig, $Out> get $asProjectConfig =>
-      $base.as((v, t, t2) => _ProjectConfigCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _ProjectConfigCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
@@ -826,5 +829,5 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
   @override
   ProjectConfigCopyWith<$R2, ProjectConfig, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _ProjectConfigCopyWithImpl($value, $cast, t);
+      _ProjectConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
