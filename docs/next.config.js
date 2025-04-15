@@ -1,3 +1,5 @@
+const path = require("path");
+const CopyPlugin = require("copy-webpack-plugin");
 const withNextra = require("nextra")({
   theme: "nextra-theme-docs",
   themeConfig: "./theme.config.tsx",
@@ -5,7 +7,15 @@ const withNextra = require("nextra")({
 
 module.exports = withNextra({
   reactStrictMode: true,
-
+  webpack: (config, options) => {
+    config.plugins.push(new CopyPlugin({
+      patterns: [
+        { from: "../scripts/install.sh", to: path.resolve(__dirname, "public") },
+        { from: "../scripts/uninstall.sh", to: path.resolve(__dirname, "public") },
+      ],
+    }));
+    return config
+  },
   async redirects() {
     return [
       {
