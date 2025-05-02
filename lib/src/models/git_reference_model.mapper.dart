@@ -115,8 +115,7 @@ mixin GitBranchMappable {
   }
 
   GitBranchCopyWith<GitBranch, GitBranch, GitBranch> get copyWith =>
-      _GitBranchCopyWithImpl<GitBranch, GitBranch>(
-          this as GitBranch, $identity, $identity);
+      _GitBranchCopyWithImpl(this as GitBranch, $identity, $identity);
   @override
   String toString() {
     return GitBranchMapper.ensureInitialized()
@@ -137,7 +136,7 @@ mixin GitBranchMappable {
 
 extension GitBranchValueCopy<$R, $Out> on ObjectCopyWith<$R, GitBranch, $Out> {
   GitBranchCopyWith<$R, GitBranch, $Out> get $asGitBranch =>
-      $base.as((v, t, t2) => _GitBranchCopyWithImpl<$R, $Out>(v, t, t2));
+      $base.as((v, t, t2) => _GitBranchCopyWithImpl(v, t, t2));
 }
 
 abstract class GitBranchCopyWith<$R, $In extends GitBranch, $Out>
@@ -166,7 +165,7 @@ class _GitBranchCopyWithImpl<$R, $Out>
   @override
   GitBranchCopyWith<$R2, GitBranch, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _GitBranchCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      _GitBranchCopyWithImpl($value, $cast, t);
 }
 
 class GitTagMapper extends ClassMapperBase<GitTag> {
@@ -221,7 +220,7 @@ mixin GitTagMappable {
   }
 
   GitTagCopyWith<GitTag, GitTag, GitTag> get copyWith =>
-      _GitTagCopyWithImpl<GitTag, GitTag>(this as GitTag, $identity, $identity);
+      _GitTagCopyWithImpl(this as GitTag, $identity, $identity);
   @override
   String toString() {
     return GitTagMapper.ensureInitialized().stringifyValue(this as GitTag);
@@ -240,7 +239,7 @@ mixin GitTagMappable {
 
 extension GitTagValueCopy<$R, $Out> on ObjectCopyWith<$R, GitTag, $Out> {
   GitTagCopyWith<$R, GitTag, $Out> get $asGitTag =>
-      $base.as((v, t, t2) => _GitTagCopyWithImpl<$R, $Out>(v, t, t2));
+      $base.as((v, t, t2) => _GitTagCopyWithImpl(v, t, t2));
 }
 
 abstract class GitTagCopyWith<$R, $In extends GitTag, $Out>
@@ -266,5 +265,5 @@ class _GitTagCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, GitTag, $Out>
 
   @override
   GitTagCopyWith<$R2, GitTag, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _GitTagCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      _GitTagCopyWithImpl($value, $cast, t);
 }

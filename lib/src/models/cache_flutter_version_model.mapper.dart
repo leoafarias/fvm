@@ -116,9 +116,9 @@ mixin CacheFlutterVersionMappable {
   }
 
   CacheFlutterVersionCopyWith<CacheFlutterVersion, CacheFlutterVersion,
-      CacheFlutterVersion> get copyWith => _CacheFlutterVersionCopyWithImpl<
-          CacheFlutterVersion, CacheFlutterVersion>(
-      this as CacheFlutterVersion, $identity, $identity);
+          CacheFlutterVersion>
+      get copyWith => _CacheFlutterVersionCopyWithImpl(
+          this as CacheFlutterVersion, $identity, $identity);
   @override
   String toString() {
     return CacheFlutterVersionMapper.ensureInitialized()
@@ -141,8 +141,8 @@ mixin CacheFlutterVersionMappable {
 extension CacheFlutterVersionValueCopy<$R, $Out>
     on ObjectCopyWith<$R, CacheFlutterVersion, $Out> {
   CacheFlutterVersionCopyWith<$R, CacheFlutterVersion, $Out>
-      get $asCacheFlutterVersion => $base.as(
-          (v, t, t2) => _CacheFlutterVersionCopyWithImpl<$R, $Out>(v, t, t2));
+      get $asCacheFlutterVersion =>
+          $base.as((v, t, t2) => _CacheFlutterVersionCopyWithImpl(v, t, t2));
 }
 
 abstract class CacheFlutterVersionCopyWith<$R, $In extends CacheFlutterVersion,
@@ -191,5 +191,5 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
   @override
   CacheFlutterVersionCopyWith<$R2, CacheFlutterVersion, $Out2>
       $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-          _CacheFlutterVersionCopyWithImpl<$R2, $Out2>($value, $cast, t);
+          _CacheFlutterVersionCopyWithImpl($value, $cast, t);
 }

@@ -25,19 +25,19 @@ class LevelMapper extends EnumMapper<Level> {
   @override
   Level decode(dynamic value) {
     switch (value) {
-      case r'verbose':
+      case 'verbose':
         return Level.verbose;
-      case r'debug':
+      case 'debug':
         return Level.debug;
-      case r'info':
+      case 'info':
         return Level.info;
-      case r'warning':
+      case 'warning':
         return Level.warning;
-      case r'error':
+      case 'error':
         return Level.error;
-      case r'critical':
+      case 'critical':
         return Level.critical;
-      case r'quiet':
+      case 'quiet':
         return Level.quiet;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -48,19 +48,19 @@ class LevelMapper extends EnumMapper<Level> {
   dynamic encode(Level self) {
     switch (self) {
       case Level.verbose:
-        return r'verbose';
+        return 'verbose';
       case Level.debug:
-        return r'debug';
+        return 'debug';
       case Level.info:
-        return r'info';
+        return 'info';
       case Level.warning:
-        return r'warning';
+        return 'warning';
       case Level.error:
-        return r'error';
+        return 'error';
       case Level.critical:
-        return r'critical';
+        return 'critical';
       case Level.quiet:
-        return r'quiet';
+        return 'quiet';
     }
   }
 }

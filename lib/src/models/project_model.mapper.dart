@@ -133,8 +133,7 @@ mixin ProjectMappable {
   }
 
   ProjectCopyWith<Project, Project, Project> get copyWith =>
-      _ProjectCopyWithImpl<Project, Project>(
-          this as Project, $identity, $identity);
+      _ProjectCopyWithImpl(this as Project, $identity, $identity);
   @override
   String toString() {
     return ProjectMapper.ensureInitialized().stringifyValue(this as Project);
@@ -154,7 +153,7 @@ mixin ProjectMappable {
 
 extension ProjectValueCopy<$R, $Out> on ObjectCopyWith<$R, Project, $Out> {
   ProjectCopyWith<$R, Project, $Out> get $asProject =>
-      $base.as((v, t, t2) => _ProjectCopyWithImpl<$R, $Out>(v, t, t2));
+      $base.as((v, t, t2) => _ProjectCopyWithImpl(v, t, t2));
 }
 
 abstract class ProjectCopyWith<$R, $In extends Project, $Out>
@@ -190,5 +189,5 @@ class _ProjectCopyWithImpl<$R, $Out>
 
   @override
   ProjectCopyWith<$R2, Project, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _ProjectCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      _ProjectCopyWithImpl($value, $cast, t);
 }
