@@ -20,14 +20,16 @@ Darwin*) OS='macos' ;;
 esac
 
 case "$ARCH" in
-  x86_64) ARCH='x64' ;;
-  arm64|aarch64) ARCH='arm64' ;;
-  armv7l) ARCH='arm' ;;
-  *) log_message "Unsupported architecture"; exit 1 ;;
+x86_64) ARCH='x64' ;;
+arm64 | aarch64) ARCH='arm64' ;;
+armv7l) ARCH='arm' ;;
+*)
+    log_message "Unsupported architecture"
+    exit 1
+    ;;
 esac
 
 # Terminal colors setup
-
 Color_Off='\033[0m' # Reset
 Green='\033[0;32m'  # Green
 Red='\033[0;31m'
@@ -46,11 +48,6 @@ error() {
     exit 1
 }
 
-# Check if running as root
-if [[ $(id -u) -eq 0 ]]; then
-    error "Should not run as root"
-fi
-
 # Log detected OS and architecture
 log_message "Detected OS: $OS"
 log_message "Detected Architecture: $ARCH"
@@ -58,18 +55,6 @@ log_message "Detected Architecture: $ARCH"
 # Check for curl
 if ! command -v curl &>/dev/null; then
     error "curl is required but not installed."
-fi
-
-# Check for escalation tool
-for cmd in sudo doas; do
-    if command -v "$cmd" &>/dev/null; then
-        ESCALATION_TOOL="$cmd"
-        break
-    fi
-done
-
-if [ -z "$ESCALATION_TOOL" ]; then
-    error "Cannot find sudo or doas for escalated privileges"
 fi
 
 # Get installed FVM version if exists
@@ -93,16 +78,15 @@ log_message "Installing FVM version $FVM_VERSION."
 # Setup installation directory and symlink
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
+SYMLINK_DIR="$HOME/.local/bin"
 
-SYMLINK_TARGET="/usr/local/bin/fvm"
-
+# Create Symlink directory if it doesn't exit
+mkdir -p "$SYMLINK_DIR" || error "Failed to create Symlink directory: $SYMLINK_DIR."
 
 # Create FVM directory if it doesn't exist
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create FVM directory: $FVM_DIR_BIN."
 
-
 # Check if FVM_DIR_BIN exists, and if it does delete it
-
 if [ -d "$FVM_DIR_BIN" ]; then
     log_message "FVM bin directory already exists. Removing it."
     if ! rm -rf "$FVM_DIR_BIN"; then
@@ -131,142 +115,17 @@ if ! mv "$FVM_DIR/fvm" "$FVM_DIR_BIN"; then
     error "Failed to move fvm to bin directory."
 fi
 
-
 # Create a symlink
-if ! "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"; then
+if ! ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_DIR/fvm"; then
     error "Failed to create symlink."
 fi
 
-tildify() {
-    if [[ $1 = $HOME/* ]]; then
-        local replacement=\~/
-
-        echo "${1/$HOME\//$replacement}"
-    else
-        echo "$1"
-    fi
-}
-
-tilde_FVM_DIR_BIN=$(tildify "$FVM_DIR_BIN")
-refresh_command=''
-
-case $(basename "$SHELL") in
-fish)
-    commands=(
-        "set --export PATH $FVM_DIR_BIN \$PATH"
-    )
-
-    fish_config=$HOME/.config/fish/config.fish
-    tilde_fish_config=$(tildify "$fish_config")
-
-    if [[ -w $fish_config ]]; then
-        {
-            echo -e '\n# FVM'
-
-            for command in "${commands[@]}"; do
-                echo "$command"
-            done
-        } >>"$fish_config"
-
-        log_message "Added \"$tilde_FVM_DIR_BIN\" to \$PATH in \"$tilde_fish_config\""
-        refresh_command="source $tilde_fish_config"
-
-    else
-        log_message "Manually add the directory to $tilde_fish_config (or similar):"
-
-        for command in "${commands[@]}"; do
-            info_bold "  $command"
-        done
-    fi
-    ;;
-zsh)
-    commands=(
-        "export PATH=\"$FVM_DIR_BIN:\$PATH\""
-    )
-
-    zsh_config=$HOME/.zshrc
-    tilde_zsh_config=$(tildify "$zsh_config")
-
-    if [[ -w $zsh_config ]]; then
-        {
-            echo -e '\n# FVM'
-
-            for command in "${commands[@]}"; do
-                echo "$command"
-            done
-        } >>"$zsh_config"
-
-        log_message "Added \"$tilde_FVM_DIR_BIN\" to \$PATH in \"$tilde_zsh_config\""
-        refresh_command="source $zsh_config"
-
-    else
-        log_message "Manually add the directory to $tilde_zsh_config (or similar):"
-
-        for command in "${commands[@]}"; do
-            info_bold "  $command"
-        done
-    fi
-    ;;
-bash)
-    commands=(
-        "export PATH=$FVM_DIR_BIN:\$PATH"
-    )
-
-    bash_configs=(
-        "$HOME/.bashrc"
-        "$HOME/.bash_profile"
-    )
-
-    if [[ ${XDG_CONFIG_HOME:-} ]]; then
-        bash_configs+=(
-            "$XDG_CONFIG_HOME/.bash_profile"
-            "$XDG_CONFIG_HOME/.bashrc"
-            "$XDG_CONFIG_HOME/bash_profile"
-            "$XDG_CONFIG_HOME/bashrc"
-        )
-    fi
-
-    set_manually=true
-    for bash_config in "${bash_configs[@]}"; do
-        tilde_bash_config=$(tildify "$bash_config")
-
-        if [[ -w $bash_config ]]; then
-            {
-                echo -e '\n# FVM'
-
-                for command in "${commands[@]}"; do
-                    echo "$command"
-                done
-            } >>"$bash_config"
-
-            log_message "Added \"$tilde_FVM_DIR_BIN\" to \$PATH in \"$tilde_bash_config\""
-            refresh_command="source $bash_config"
-            set_manually=false
-            break
-        fi
-    done
-
-    if [[ $set_manually = true ]]; then
-        log_message "Manually add the directory to $tilde_bash_config (or similar):"
-
-        for command in "${commands[@]}"; do
-            info_bold "  $command"
-        done
-    fi
-    ;;
-*)
+# Verify installation
+INSTALLED_FVM_VERSION=$("$FVM_DIR_BIN/fvm" --version 2>&1) || error "Failed to verify installed FVM version."
+success "FVM $INSTALLED_FVM_VERSION installed successfully."
+if ! command -v fvm &>/dev/null; then
+    echo
     log_message 'Manually add the directory to ~/.bashrc (or similar):'
-    info_bold "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
-    ;;
-esac
-
-echo
-log_message "To get started, run:"
-echo
-
-
-if [[ $refresh_command ]]; then
-    info_bold "  $refresh_command"
+    info_bold "  export PATH=\"$SYMLINK_DIR:\$PATH\""
+    echo
 fi
-
-info_bold "  fvm --help"
