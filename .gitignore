@@ -48,6 +48,7 @@ test/support_assets/*/pubspec.lock
 .fvm
 .fvmrc
 docs/.next
+docs/public/*.sh
 
 # Ignore fvm binary
 fvm
