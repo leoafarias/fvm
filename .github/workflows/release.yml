@@ -95,7 +95,7 @@ jobs:
         uses: ./.github/actions/prepare
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Get and modify tag name
         id: get_tag_name
@@ -123,5 +123,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           file: ./.docker/Dockerfile
+          platforms: linux/amd64,linux/arm64/v8
           push: true
           tags: leoafarias/fvm:{{ steps.get_tag_name.outputs.modified_tag_name}}
