@@ -80,6 +80,13 @@ void main() {
       expect(version.type, VersionType.custom);
     });
 
+    test('custom constructor', () {
+      final version = FlutterVersion.custom('custom_3.7.0@huawei');
+      expect(version.name, 'custom_3.7.0@huawei');
+      expect(version.releaseFromChannel, isNull);
+      expect(version.type, VersionType.custom);
+    });
+
     test('release constructor', () {
       final version =
           FlutterVersion.release('1.0.0', releaseFromChannel: 'stable');
@@ -105,6 +112,13 @@ void main() {
     test('parse method - custom version', () {
       final version = FlutterVersion.parse('custom_123');
       expect(version.name, 'custom_123');
+      expect(version.releaseFromChannel, isNull);
+      expect(version.type, VersionType.custom);
+    });
+
+    test('parse method - custom version', () {
+      final version = FlutterVersion.parse('custom_3.6.0@huawei');
+      expect(version.name, 'custom_3.6.0@huawei');
       expect(version.releaseFromChannel, isNull);
       expect(version.type, VersionType.custom);
     });
@@ -158,6 +172,12 @@ void main() {
 
     test('isCustom getter', () {
       final version = FlutterVersion.custom('custom_123');
+      expect(version.isCustom, isTrue);
+    });
+
+
+    test('isCustom getter', () {
+      final version = FlutterVersion.custom('custom_3.22.0@huawei');
       expect(version.isCustom, isTrue);
     });
 
