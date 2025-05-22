@@ -193,7 +193,7 @@ Future<void> _checkGitignore(Project project, {required bool force}) async {
   }
 
   if (logger.confirm('Would you like to do that now?', defaultValue: true)) {
-    ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
+    ignoreFile.writeAsStringSync('${lines.join('\n')}\n', mode: FileMode.write);
     logger
       ..success('Added $pathToAdd to .gitignore')
       ..spacer;
