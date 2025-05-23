@@ -236,11 +236,50 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
   });
 
   static ProjectConfig? loadFromDirectory(Directory directory) {
+    // First try the new config file format (.fvmrc in project root)
     final configFile = File(p.join(directory.path, kFvmConfigFileName));
 
-    return configFile.existsSync()
-        ? ProjectConfig.fromJson(configFile.readAsStringSync())
-        : null;
+    if (configFile.existsSync()) {
+      // Read the config file content
+      final content = configFile.readAsStringSync();
+
+      // Return null for empty files or whitespace-only files
+      if (content.trim().isEmpty) {
+        return null;
+      }
+
+      try {
+        return ProjectConfig.fromJson(content);
+      } catch (e) {
+        // Handle JSON parsing errors gracefully
+        return null;
+      }
+    }
+
+    // If new config doesn't exist or has issues, try the legacy config file
+    // Located at <project_root>/.fvm/fvm_config.json
+    final legacyConfigFile =
+        File(p.join(directory.path, kFvmDirName, kFvmLegacyConfigFileName));
+
+    if (legacyConfigFile.existsSync()) {
+      try {
+        final content = legacyConfigFile.readAsStringSync();
+
+        // Return null for empty files or whitespace-only files
+        if (content.trim().isEmpty) {
+          return null;
+        }
+
+        // Parse legacy config
+        return ProjectConfig.fromJson(content);
+      } catch (e) {
+        // Handle JSON parsing errors gracefully
+        return null;
+      }
+    }
+
+    // No valid config found
+    return null;
   }
 
   static ProjectConfig fromJson(String json) {

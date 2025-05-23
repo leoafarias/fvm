@@ -6,7 +6,7 @@ import 'logger_service.dart';
 abstract class Contextual {
   final FvmContext _context;
 
-  Contextual(this._context);
+  const Contextual(this._context);
 
   /// Gets context, if no context is passed will get from scope
   @protected
@@ -20,5 +20,5 @@ abstract class Contextual {
 }
 
 abstract class ContextualService extends Contextual {
-  ContextualService(super.context);
+  const ContextualService(super.context);
 }

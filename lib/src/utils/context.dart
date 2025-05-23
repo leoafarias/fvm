@@ -28,7 +28,6 @@ import '../workflows/validate_flutter_version.workflow.dart';
 import '../workflows/verify_project.workflow.dart';
 import 'constants.dart';
 import 'extensions.dart';
-import 'file_lock.dart';
 
 part 'context.mapper.dart';
 
@@ -108,8 +107,6 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
-
   /// Directory where FVM is stored
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
@@ -186,17 +183,6 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
-  FileLocker createLock(String name, {Duration? expiresIn}) {
-    if (!_lockDir.existsSync()) {
-      _lockDir.createSync(recursive: true);
-    }
-
-    return FileLocker(
-      join(_lockDir.path, '$name.lock'),
-      lockExpiration: expiresIn ?? const Duration(seconds: 10),
-    );
-  }
-
   T get<T>() {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
@@ -222,7 +208,7 @@ class FvmContext with FvmContextMappable {
 }
 
 class ServicesProvider extends Contextual {
-  ServicesProvider(super.context);
+  const ServicesProvider(super.context);
 
   ProjectService get project => super.context.get();
   CacheService get cache => super.context.get();

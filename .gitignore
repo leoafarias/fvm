@@ -57,3 +57,7 @@ test/fixtures/sample_app
 
 # Example app directory
 example_app/
+
+**/.claude/settings.local.json
+CLAUDE.md
+.claude/

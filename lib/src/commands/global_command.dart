@@ -7,8 +7,6 @@ import '../services/project_service.dart';
 import '../utils/constants.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
-import '../workflows/ensure_cache.workflow.dart';
-import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
@@ -43,8 +41,6 @@ class GlobalCommand extends BaseFvmCommand {
     final unlinkArg = boolArg('unlink');
     final forceArg = boolArg('force');
 
-    final ensureCache = EnsureCacheWorkflow(context);
-    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
     final cacheService = get<CacheService>();
 
     if (unlinkArg) {
@@ -75,11 +71,9 @@ class GlobalCommand extends BaseFvmCommand {
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
-    final flutterVersion =
-        await validateFlutterVersion(version, force: forceArg);
-
     // Ensure version is installed
-    final cacheVersion = await ensureCache(flutterVersion, force: forceArg);
+    final cacheVersion =
+        await resolveAndEnsureVersion(version, force: forceArg);
 
     // Sets version as the global
     cacheService.setGlobal(cacheVersion);

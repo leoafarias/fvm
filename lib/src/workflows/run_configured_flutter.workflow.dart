@@ -21,7 +21,7 @@ class RunConfiguredFlutterWorkflow extends Workflow {
 
     if (projectVersion != null) {
       final version =
-          await get<ValidateFlutterVersionWorkflow>().call(projectVersion);
+          get<ValidateFlutterVersionWorkflow>().call(projectVersion);
       selectedVersion = await get<EnsureCacheWorkflow>().call(version);
       logger.debug(
         '$kPackageName: Running Flutter from version "$projectVersion"',

@@ -12,66 +12,30 @@ import '../utils/helpers.dart';
 import 'workflow.dart';
 
 class EnsureCacheWorkflow extends Workflow {
-  EnsureCacheWorkflow(super.context);
+  const EnsureCacheWorkflow(super.context);
 
-  // More user-friendly explanation of what went wrong and what will happen next
-  Future<CacheFlutterVersion> _handleNonExecutable(
+  /// Simplified cache corruption handling - auto-fix without user prompts
+  Future<CacheFlutterVersion> _handleCorruptedCache(
     CacheFlutterVersion version, {
     required bool shouldInstall,
-  }) async {
-    logger
-      ..notice(
-        'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
-      )
-      ..info();
-
-    final shouldReinstall = logger.confirm(
-      'Would you like to reinstall this version to resolve the issue?',
-      defaultValue: true,
+  }) {
+    logger.info(
+      'Flutter SDK ${version.name} cache is corrupted. Removing and reinstalling...',
     );
 
-    if (shouldReinstall) {
-      get<CacheService>().remove(version);
-      logger.info(
-        'The corrupted SDK version is now being removed and a reinstallation will follow...',
-      );
+    get<CacheService>().remove(version);
 
-      return call(version, shouldInstall: shouldInstall);
-    }
-
-    throw AppException('Flutter SDK: ${version.name} is not executable.');
+    return call(version, shouldInstall: shouldInstall);
   }
 
-  // Clarity on why the version mismatch happened and how it can be fixed
+  /// Simplified version mismatch handling - auto-fix without user prompts
   Future<CacheFlutterVersion> _handleVersionMismatch(
     CacheFlutterVersion version,
   ) {
-    logger
-      ..notice(
-        'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
-      )
-      ..info(
-        'This can occur if you manually run "flutter upgrade" on a cached SDK.',
-      )
-      ..info();
-
-    final firstOption =
-        'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}';
-
-    final secondOption =
-        'Remove incorrect version and reinstall ${version.name}';
-
-    final selectedOption = logger.select(
-      'How would you like to resolve this?',
-      options: [firstOption, secondOption],
+    logger.info(
+      'Version mismatch detected for ${version.name}. Removing and reinstalling...',
     );
 
-    if (selectedOption == firstOption) {
-      logger.info('Moving SDK to the correct cache directory...');
-      get<CacheService>().moveToSdkVersionDirectory(version);
-    }
-
-    logger.info('Removing incorrect SDK version...');
     get<CacheService>().remove(version);
 
     return call(version, shouldInstall: true);
@@ -95,7 +59,11 @@ class EnsureCacheWorkflow extends Workflow {
 
   /// Ensures that the specified Flutter SDK version is cached locally.
   ///
-  /// Returns a [CacheFlutterVersion] which represents the locally cached version.
+  /// Simplified approach:
+  /// - If cache exists and is valid, return it
+  /// - If cache exists but is invalid, auto-remove and reinstall
+  /// - If cache doesn't exist, install it (with confirmation only in interactive mode)
+  /// - Minimal user prompts - fail fast on errors
   Future<CacheFlutterVersion> call(
     FlutterVersion version, {
     bool shouldInstall = false,
@@ -114,7 +82,7 @@ class EnsureCacheWorkflow extends Workflow {
       final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
 
       if (integrity == CacheIntegrity.invalid) {
-        return await _handleNonExecutable(
+        return await _handleCorruptedCache(
           cacheVersion,
           shouldInstall: shouldInstall,
         );
@@ -148,42 +116,38 @@ class EnsureCacheWorkflow extends Workflow {
       throw AppException('Local Flutter SDKs must be installed manually.');
     }
 
-    if (!shouldInstall) {
+    // For non-interactive environments or when forced, proceed with installation
+    if (!shouldInstall && !force && !context.skipInput) {
       logger.info(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
       );
-
-      if (!force) {
-        final shouldInstallConfirmed = logger.confirm(
-          'Would you like to install it now?',
-          defaultValue: true,
-        );
-
-        if (!shouldInstallConfirmed) {
-          exit(ExitCode.unavailable.code);
-        }
-      }
+      throw AppException(
+        'Version ${version.name} is not installed. Use --force to install automatically '
+        'or run: fvm install ${version.name}',
+      );
     }
 
     bool useGitCache = context.gitCache;
 
+    // Set up git cache if enabled
     if (useGitCache) {
       try {
         await gitService.updateLocalMirror();
-      } on Exception {
+      } on Exception catch (e) {
         logger.warn(
-          'Failed to setup local cache. Falling back to git clone.',
+          'Failed to setup local git cache: $e. Falling back to direct clone.',
         );
-        rethrow;
+        // Continue without git cache - don't fail the whole operation
       }
     }
 
+    // Install the version
     final progress = logger.progress(
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
+
     try {
       await flutterService.install(version);
-
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
       );
@@ -192,9 +156,12 @@ class EnsureCacheWorkflow extends Workflow {
       rethrow;
     }
 
+    // Verify installation worked
     final newCacheVersion = cacheService.getVersion(version);
     if (newCacheVersion == null) {
-      throw AppException('Could not verify cache version $version');
+      throw AppException(
+        'Installation completed but could not verify cache version $version',
+      );
     }
 
     return newCacheVersion;

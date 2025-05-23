@@ -19,7 +19,7 @@ import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
-  FlutterService(super.context);
+  const FlutterService(super.context);
 
   Future<ProcessResult> run(
     String cmd,
@@ -139,25 +139,11 @@ class FlutterService extends ContextualService {
       /// If version is not a channel reset to version
       if (!version.isChannel) {
         try {
-          // First check if this is actually a branch in the forked repo
-          final gitDir = await GitDir.fromExisting(gitVersionDir.path);
-          final branchResult = await gitDir.runCommand(
-              ['branch', '-r', '--list', 'origin/${version.version}']);
-
-          final branchOutput = (branchResult.stdout as String).trim();
-          final isBranch = branchOutput.isNotEmpty;
-
-          if (isBranch) {
-            // If it's a branch, just check it out instead of hard reset
-            await gitDir.runCommand(['checkout', version.version]);
-            logger.debug('Checked out branch: ${version.version}');
-          } else {
-            // If it's not a branch, perform the hard reset
-            await get<GitService>().resetHard(
-              gitVersionDir.path,
-              version.version,
-            );
-          }
+          // Always use git reset --hard for consistency
+          await get<GitService>().resetHard(
+            gitVersionDir.path,
+            version.version,
+          );
         } catch (e, stackTrace) {
           // Handle specific git errors for reference not found
           String errorMessage = e.toString().toLowerCase();

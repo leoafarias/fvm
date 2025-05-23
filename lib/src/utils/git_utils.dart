@@ -1,4 +1,5 @@
-bool isPossibleGitCommit(String hash) {
+/// Checks if a string appears to be a Git commit hash.
+bool isGitCommit(String hash) {
   // Trim whitespace and normalize to lowercase
   final normalized = hash.trim().toLowerCase();
 

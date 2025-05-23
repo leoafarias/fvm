@@ -5,11 +5,16 @@ import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
+
+import 'mocks/mock_git_service.dart';
 
 class TestCommandRunner extends FvmCommandRunner {
   TestCommandRunner(
@@ -236,6 +241,7 @@ class TestFactory {
     String? debugLabel,
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
+    String? workingDirectoryOverride,
   }) {
     debugLabel ??= _generateUuid();
 
@@ -254,10 +260,12 @@ class TestFactory {
       debugLabel: debugLabel,
       configOverrides: config,
       logLevel: Level.verbose,
-      workingDirectoryOverride: createTempDir(debugLabel).path,
+      workingDirectoryOverride:
+          workingDirectoryOverride ?? createTempDir(debugLabel).path,
       isTest: true,
       generatorsOverride: {
         FlutterService: _mockFlutterService,
+        GitService: _mockGitService,
         ...?generators,
       },
     );
@@ -265,10 +273,30 @@ class TestFactory {
     return testContext;
   }
 
+  /// Creates a new context with an updated working directory
+  static FvmContext recreateContextWithWorkingDir(
+      FvmContext existing, String workingDirectory) {
+    return FvmContext.create(
+      debugLabel: existing.debugLabel,
+      configOverrides: existing.config,
+      logLevel: existing.logLevel,
+      workingDirectoryOverride: workingDirectory,
+      isTest: existing.isTest,
+      generatorsOverride: {
+        FlutterService: _mockFlutterService,
+        GitService: _mockGitService,
+      },
+    );
+  }
+
   static MockFlutterService _mockFlutterService(FvmContext context) {
     return MockFlutterService(
       context,
     );
+  }
+  
+  static MockGitService _mockGitService(FvmContext context) {
+    return MockGitService(context);
   }
 }
 
@@ -326,12 +354,58 @@ Matcher isExpectedJson(String expected) {
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
+  // Track installed versions for testing
+  final Map<String, bool> _installedVersions = {};
+
   MockFlutterService(
     super.context,
   ) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
     }
+
+    // Default setup: stable channel is installed
+    _installedVersions['stable'] = true;
+  }
+
+  /// Clear all installed versions - used for testing the no-versions-installed case
+  void clearInstalledVersions() {
+    _installedVersions.clear();
+  }
+
+  /// Check if a specific version is installed
+  bool isVersionInstalled(String version) {
+    return _installedVersions[version] == true;
+  }
+
+  /// Simulate failure of specific operations for testing error scenarios
+  void simulateFailure(String operation, {String? reason}) {
+    logger.warn('Simulating failure for operation: $operation');
+    if (reason != null) {
+      logger.warn('Reason: $reason');
+    }
+    throw Exception('Simulated failure for $operation: $reason');
+  }
+
+  /// Returns all installed versions that we've recorded
+  Future<List<CacheFlutterVersion>> getAllVersions() async {
+    final List<CacheFlutterVersion> versions = [];
+
+    for (final version in _installedVersions.keys) {
+      if (_installedVersions[version] == true) {
+        // Create a dummy CacheFlutterVersion for testing
+        final tempDir = createTempDir('mock_version_$version');
+
+        // Use the correct constructor from the implementation
+        final flutterVersion = FlutterVersion.parse(version);
+        versions.add(CacheFlutterVersion.fromVersion(
+          flutterVersion,
+          directory: tempDir.path,
+        ));
+      }
+    }
+
+    return versions;
   }
 
   /// Installs the Flutter SDK for the given [version].
@@ -344,9 +418,68 @@ class MockFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version,
   ) async {
-    try {
-      return super.install(version);
-    } finally {}
+    // Get the cache service to determine where to create the version
+    final cacheService = get<CacheService>();
+    final versionDir = cacheService.getVersionCacheDir(version);
+    
+    // Create the version directory
+    if (!versionDir.existsSync()) {
+      versionDir.createSync(recursive: true);
+    }
+    
+    // Create a version file (required for cache verification)
+    final versionFile = File(path.join(versionDir.path, 'version'));
+    versionFile.writeAsStringSync(version.name);
+    
+    // Create a minimal .git directory to simulate a git repo
+    final gitDir = Directory(path.join(versionDir.path, '.git'));
+    if (!gitDir.existsSync()) {
+      gitDir.createSync();
+    }
+    
+    // Create necessary git subdirectories
+    final objectsDir = Directory(path.join(gitDir.path, 'objects'));
+    final refsDir = Directory(path.join(gitDir.path, 'refs'));
+    final headsDir = Directory(path.join(gitDir.path, 'refs', 'heads'));
+    
+    objectsDir.createSync();
+    refsDir.createSync();
+    headsDir.createSync();
+    
+    // Create a HEAD file to simulate being on a branch
+    final headFile = File(path.join(gitDir.path, 'HEAD'));
+    // For channels, set the branch to the channel name
+    if (isFlutterChannel(version.name)) {
+      headFile.writeAsStringSync('ref: refs/heads/${version.name}\n');
+    } else if (version.name.contains('@')) {
+      // Handle version@channel syntax
+      final parts = version.name.split('@');
+      if (parts.length == 2) {
+        headFile.writeAsStringSync('ref: refs/heads/${parts[1]}\n');
+      } else {
+        headFile.writeAsStringSync('ref: refs/heads/stable\n');
+      }
+    } else if (RegExp(r'^[a-f0-9]{7,40}$').hasMatch(version.name)) {
+      // For commit hashes, use master branch
+      headFile.writeAsStringSync('ref: refs/heads/master\n');
+    } else {
+      // For specific versions, default to stable
+      headFile.writeAsStringSync('ref: refs/heads/stable\n');
+    }
+    
+    // Create a config file (required by GitDir.isGitDir)
+    final configFile = File(path.join(gitDir.path, 'config'));
+    configFile.writeAsStringSync('[core]\n\trepositoryformatversion = 0\n');
+    
+    // Create a minimal flutter binary to make it look like a real SDK
+    final binDir = Directory(path.join(versionDir.path, 'bin'));
+    if (!binDir.existsSync()) {
+      binDir.createSync();
+    }
+    
+    // Mark this version as installed in our tracking map
+    _installedVersions[version.name] = true;
+    logger.info('Installed mock version: ${version.name}');
   }
 }
 

@@ -12,16 +12,20 @@ import 'extensions.dart';
 import 'git_utils.dart';
 
 /// Checks if [name] is a channel
-
 bool isFlutterChannel(String name) {
   return kFlutterChannels.contains(name);
+}
+
+/// Checks if [name] is a channel that can be pinned to a specific release version
+bool isPinnableFlutterChannel(String name) {
+  return kPinnableFlutterChannels.contains(name);
 }
 
 /// Assigns weight to [version] to channels for comparison
 /// Returns a weight for all versions and channels
 String assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
-  if (isPossibleGitCommit(version)) {
+  if (isGitCommit(version)) {
     version = '500.0.0';
   } else {
     switch (version) {
@@ -171,6 +175,24 @@ String extractDartVersionOutput(String input) {
   throw FormatException(
     'No Dart version found in the input string. \n\n $input',
   );
+}
+
+/// Checks if a string appears to be a valid Semantic Version.
+///
+/// This function uses the pub_semver package to determine if the provided
+/// string matches the pattern of a semantic version (e.g., "1.2.3", "3.10.0-beta.2").
+///
+/// @param version The string to check
+/// @return true if the string is a valid semantic version
+bool isSemver(String version) {
+  try {
+    // Try to parse as semver
+    Version.parse(version);
+
+    return true;
+  } catch (_) {
+    return false;
+  }
 }
 
 bool isValidGitUrl(String url) {

@@ -22,7 +22,7 @@ class AppConfigService {
       overrides: overrides,
     );
 
-    // Ensure forks are preserved from global config if result has none
+    // Use global forks if result has none
     if (result.forks.isEmpty && globalConfig.forks.isNotEmpty) {
       return result.copyWith(forks: globalConfig.forks);
     }

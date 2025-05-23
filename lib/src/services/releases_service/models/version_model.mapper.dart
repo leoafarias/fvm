@@ -108,8 +108,9 @@ mixin FlutterSdkReleaseMappable {
 
   FlutterSdkReleaseCopyWith<FlutterSdkRelease, FlutterSdkRelease,
           FlutterSdkRelease>
-      get copyWith => _FlutterSdkReleaseCopyWithImpl(
-          this as FlutterSdkRelease, $identity, $identity);
+      get copyWith =>
+          _FlutterSdkReleaseCopyWithImpl<FlutterSdkRelease, FlutterSdkRelease>(
+              this as FlutterSdkRelease, $identity, $identity);
   @override
   String toString() {
     return FlutterSdkReleaseMapper.ensureInitialized()
@@ -132,8 +133,8 @@ mixin FlutterSdkReleaseMappable {
 extension FlutterSdkReleaseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterSdkRelease, $Out> {
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, $Out>
-      get $asFlutterSdkRelease =>
-          $base.as((v, t, t2) => _FlutterSdkReleaseCopyWithImpl(v, t, t2));
+      get $asFlutterSdkRelease => $base
+          .as((v, t, t2) => _FlutterSdkReleaseCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class FlutterSdkReleaseCopyWith<$R, $In extends FlutterSdkRelease,
@@ -197,7 +198,7 @@ class _FlutterSdkReleaseCopyWithImpl<$R, $Out>
   @override
   FlutterSdkReleaseCopyWith<$R2, FlutterSdkRelease, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FlutterSdkReleaseCopyWithImpl($value, $cast, t);
+      _FlutterSdkReleaseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ChannelsMapper extends ClassMapperBase<Channels> {
@@ -262,7 +263,8 @@ mixin ChannelsMappable {
   }
 
   ChannelsCopyWith<Channels, Channels, Channels> get copyWith =>
-      _ChannelsCopyWithImpl(this as Channels, $identity, $identity);
+      _ChannelsCopyWithImpl<Channels, Channels>(
+          this as Channels, $identity, $identity);
   @override
   String toString() {
     return ChannelsMapper.ensureInitialized().stringifyValue(this as Channels);
@@ -282,7 +284,7 @@ mixin ChannelsMappable {
 
 extension ChannelsValueCopy<$R, $Out> on ObjectCopyWith<$R, Channels, $Out> {
   ChannelsCopyWith<$R, Channels, $Out> get $asChannels =>
-      $base.as((v, t, t2) => _ChannelsCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _ChannelsCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class ChannelsCopyWith<$R, $In extends Channels, $Out>
@@ -334,5 +336,5 @@ class _ChannelsCopyWithImpl<$R, $Out>
   @override
   ChannelsCopyWith<$R2, Channels, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _ChannelsCopyWithImpl($value, $cast, t);
+      _ChannelsCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

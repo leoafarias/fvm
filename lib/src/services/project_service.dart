@@ -11,7 +11,7 @@ import 'base_service.dart';
 ///
 /// This class provides methods for interacting with local Flutter projects.
 class ProjectService extends ContextualService {
-  ProjectService(super.context);
+  const ProjectService(super.context);
 
   /// Recursive look up to find nested project directory
   /// Can start at a specific [directory] if provided
@@ -55,7 +55,8 @@ class ProjectService extends ContextualService {
   ///
   /// The [project] parameter is the project to be updated. The optional parameters are:
   /// - [flavors]: A map of flavor configurations.
-  /// - [pinnedVersion]: The new pinned version of the Flutter SDK.
+  /// - [flutterSdkVersion]: The new pinned version of the Flutter SDK.
+  /// - [updateVscodeSettings]: Whether to update VS Code settings.
   ///
   /// This method updates the project's configuration with the provided parameters. It creates
   /// or updates the project's config file. The updated project is returned.
@@ -68,9 +69,12 @@ class ProjectService extends ContextualService {
     final currentConfig = project.config ?? ProjectConfig();
 
     final config = currentConfig.copyWith(
-      flutter: flutterSdkVersion,
-      flavors: flavors != null ? {...?currentConfig.flavors, ...flavors} : null,
-      updateVscodeSettings: updateVscodeSettings,
+      flutter: flutterSdkVersion ?? currentConfig.flutter,
+      flavors: flavors != null
+          ? {...?currentConfig.flavors, ...flavors}
+          : currentConfig.flavors,
+      updateVscodeSettings:
+          updateVscodeSettings ?? currentConfig.updateVscodeSettings,
     );
 
     // Update flavors

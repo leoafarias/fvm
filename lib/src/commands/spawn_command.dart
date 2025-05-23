@@ -2,8 +2,6 @@ import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import '../services/flutter_service.dart';
-import '../workflows/ensure_cache.workflow.dart';
-import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Spawn Flutter Commands in other versions
@@ -27,15 +25,12 @@ class SpawnCommand extends BaseFvmCommand {
       );
     }
 
-    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
-    final ensureCache = EnsureCacheWorkflow(context);
     final version = argResults!.rest[0];
     // Removes version from first arg
     final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
-    final flutterVersion = await validateFlutterVersion(version);
     // Will install version if not already installed
-    final cacheVersion = await ensureCache(flutterVersion);
+    final cacheVersion = await resolveAndEnsureVersion(version);
     // Runs flutter command with pinned version
     logger.info('Spawning version "$version"...');
 

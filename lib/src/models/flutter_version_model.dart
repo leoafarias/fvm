@@ -142,6 +142,14 @@ class FlutterVersion with FlutterVersionMappable {
     }
   }
 
+  /// Whether this version represents a git commit reference
+  bool get isCommit {
+    // Check if the version is a valid git hash (at least 7 hex characters)
+    final regex = RegExp(r'^[0-9a-f]{7,40}$');
+
+    return regex.hasMatch(name);
+  }
+
   String get version {
     // If this is a forked version, strip out the fork prefix first
     String versionName = name;

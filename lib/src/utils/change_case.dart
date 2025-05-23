@@ -1,3 +1,5 @@
+import 'extensions.dart';
+
 const _snakeCaseSeparator = '_';
 const _paramCaseSeparator = '-';
 const _spaceSeparator = ' ';
@@ -77,13 +79,7 @@ class ChangeCase {
   String get paramCase => _lowerCase(_paramCaseSeparator);
 }
 
-extension on String {
-  String get capitalize {
-    if (isEmpty) return this;
-
-    return this[0].toUpperCase() + substring(1).toLowerCase();
-  }
-}
+// Removed duplicate capitalize extension - now using the one from extensions.dart
 
 extension on List<String> {
   List<String> get lowercase => map((e) => e.toLowerCase()).toList();

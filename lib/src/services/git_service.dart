@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:synchronized/synchronized.dart';
 
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
-import '../utils/file_lock.dart';
 import '../utils/git_clone_update_printer.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -13,15 +13,11 @@ import 'process_service.dart';
 
 /// Service for Git operations
 class GitService extends ContextualService {
-  late final FileLocker _updatingCacheLock;
+  // Replace FileLocker with synchronized.Lock
+  final Lock _updateMirrorLock = Lock();
   List<GitReference>? _referencesCache;
 
-  GitService(super.context) {
-    _updatingCacheLock = context.createLock(
-      'updating-cache',
-      expiresIn: const Duration(minutes: 10),
-    );
-  }
+  GitService(super.context);
 
   // Create a custom Process.start, that prints using the progress bar
   Future<void> _createLocalMirror() async {
@@ -94,63 +90,74 @@ class GitService extends ContextualService {
     await gitDir.runCommand(['reset', '--hard', reference]);
   }
 
-  Future<void> updateLocalMirror() async {
-    while (_updatingCacheLock.isLocked) {
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
+  /// Updates the local Git mirror of the Flutter repository.
+  ///
+  /// This method is synchronized to prevent concurrent Git operations
+  /// that could corrupt the repository.
+  Future<void> updateLocalMirror() {
+    // Use the synchronized package to ensure only one update happens at a time
+    // Add a timeout to prevent indefinite waiting
+    return _updateMirrorLock.synchronized(
+      () async {
+        final gitCacheDir = Directory(context.gitCachePath);
+        final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
 
-    final gitCacheDir = Directory(context.gitCachePath);
-    final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
-
-    try {
-      if (isGitDir) {
         try {
-          logger.debug('Updating local mirror...');
-          final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+          if (isGitDir) {
+            try {
+              logger.debug('Updating local mirror...');
+              final gitDir = await GitDir.fromExisting(gitCacheDir.path);
 
-          // First, prune any stale references
-          logger.debug('Pruning stale references...');
-          await gitDir.runCommand(['remote', 'prune', 'origin']);
+              // First, prune any stale references
+              logger.debug('Pruning stale references...');
+              await gitDir.runCommand(['remote', 'prune', 'origin']);
 
-          // Then fetch all refs including tags
-          logger.debug('Fetching all refs...');
-          await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+              // Then fetch all refs including tags
+              logger.debug('Fetching all refs...');
+              await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
 
-          // Check if there are any uncommitted changes
-          logger.debug('Checking for uncommitted changes...');
-          final statusResult =
-              await gitDir.runCommand(['status', '--porcelain']);
+              // Check if there are any uncommitted changes
+              logger.debug('Checking for uncommitted changes...');
+              final statusResult =
+                  await gitDir.runCommand(['status', '--porcelain']);
 
-          final output = (statusResult.stdout as String).trim();
-          if (output.isEmpty) {
-            logger.debug('No uncommitted changes. Working directory is clean.');
+              final output = (statusResult.stdout as String).trim();
+              if (output.isEmpty) {
+                logger.debug(
+                  'No uncommitted changes. Working directory is clean.',
+                );
+              } else {
+                await _createLocalMirror();
+              }
+
+              logger.debug('Local mirror updated successfully');
+            } catch (e) {
+              logger.err('Error updating local mirror: $e');
+
+              // Only recreate the mirror if it's a critical git error
+              if (e is ProcessException &&
+                  (e.message.contains('not a git repository') ||
+                      e.message.contains('corrupt') ||
+                      e.message.contains('damaged'))) {
+                logger.warn(
+                  'Local mirror appears to be corrupted, recreating...',
+                );
+                await _createLocalMirror();
+              } else {
+                rethrow;
+              }
+            }
           } else {
             await _createLocalMirror();
           }
-
-          logger.debug('Local mirror updated successfully');
         } catch (e) {
-          logger.err('Error updating local mirror: $e');
-
-          // Only recreate the mirror if it's a critical git error
-          if (e is ProcessException &&
-              (e.message.contains('not a git repository') ||
-                  e.message.contains('corrupt') ||
-                  e.message.contains('damaged'))) {
-            logger.warn('Local mirror appears to be corrupted, recreating...');
-            await _createLocalMirror();
-          } else {
-            rethrow;
-          }
+          // The synchronized package will ensure the lock is released
+          // even if an exception occurs
+          rethrow;
         }
-      } else {
-        await _createLocalMirror();
-      }
-    } catch (e) {
-      rethrow;
-    } finally {
-      _updatingCacheLock.unlock();
-    }
+      },
+      timeout: const Duration(minutes: 10),
+    ); // Match the previous 10-minute timeout
   }
 
   /// Returns the [name] of a branch [version]

@@ -1,0 +1,220 @@
+{
+  "channels": {
+    "stable": {
+      "name": "stable",
+      "hash": "ea121f8859e4b13e47a8f845e4586164519588bc",
+      "message": "[flutter_releases] Pin engine version for 3.29.3 stable (#166936)",
+      "type": "branch"
+    },
+    "beta": {
+      "name": "beta",
+      "hash": "3bd718ee44049e25d33327ee9886ec30c97ffa33",
+      "message": "Update `engine.version` (#168069)",
+      "type": "branch"
+    },
+    "dev": {
+      "name": "dev",
+      "hash": "d6260f127fe3f88c98231243b387b48448479bff",
+      "message": "Update Engine revision to 3950c6140a3f1cb295364b0446627bd3a1736915 for beta release 3.4.0-17.2.pre (#112084)",
+      "type": "branch"
+    },
+    "master": {
+      "name": "master",
+      "hash": "d6260f127fe3f88c98231243b387b48448479bff",
+      "message": "Update Engine revision to 3950c6140a3f1cb295364b0446627bd3a1736915 for beta release 3.4.0-17.2.pre (#112084)",
+      "type": "branch"
+    }
+  },
+  "releases": {
+    "3.0.0": {
+      "name": "3.0.0",
+      "hash": "ee4e09cce01d6f2d7f4baebd247fde02e5008851",
+      "message": "[flutter_releases] Flutter stable 2.13.0 Framework Cherrypicks (#103375)",
+      "type": "tag"
+    },
+    "3.0.1": {
+      "name": "3.0.1",
+      "hash": "fb57da5f945d02ef4f98dfd9409a72b7cce74268",
+      "type": "tag"
+    },
+    "3.0.2": {
+      "name": "3.0.2",
+      "hash": "cd41fdd495f6944ecd3506c21e94c6567b073278",
+      "type": "tag"
+    },
+    "3.0.3": {
+      "name": "3.0.3",
+      "hash": "676cefaaff197f27424942307668886253e1ec35",
+      "type": "tag"
+    },
+    "3.0.4": {
+      "name": "3.0.4",
+      "hash": "85684f9300908116a78138ea4c6036c35c9a1236",
+      "type": "tag"
+    },
+    "3.0.5": {
+      "name": "3.0.5",
+      "hash": "f1875d570e39de09040c8f79aa13cc56baab8db1",
+      "type": "tag"
+    },
+    "2.10.0": {
+      "name": "2.10.0",
+      "hash": "5f105a6ca7a5ac7b8bc9b241f4c2d86f4188cf5c",
+      "type": "tag"
+    },
+    "2.10.1": {
+      "name": "2.10.1",
+      "hash": "db747aa1331bd95bc9b3874c842261ca2d302cd5",
+      "type": "tag"
+    },
+    "2.10.2": {
+      "name": "2.10.2",
+      "hash": "097d3313d8e2c7f901932d63e537c1acefb87800",
+      "type": "tag"
+    },
+    "2.10.3": {
+      "name": "2.10.3",
+      "hash": "7e9793dee1b85a243edd0e06cb1658e98b077561",
+      "type": "tag"
+    },
+    "2.10.4": {
+      "name": "2.10.4",
+      "hash": "c860cba910319332564e1e9d470a17074c1f2dfd",
+      "type": "tag"
+    },
+    "2.10.5": {
+      "name": "2.10.5",
+      "hash": "5464c5bac742001448fe4fc0597be939379f88ea",
+      "type": "tag"
+    }
+  },
+  "preReleases": {
+    "3.0.0-0.0.pre": {
+      "name": "3.0.0-0.0.pre",
+      "hash": "3bf40fd9beb91fc097e3d406a5df51eaead2baf5",
+      "type": "tag"
+    },
+    "2.10.0-0.0.pre": {
+      "name": "2.10.0-0.0.pre",
+      "hash": "95e555344dc746ad46ada9de9cc475042c63ec55",
+      "type": "tag"
+    },
+    "2.10.0-0.1.pre": {
+      "name": "2.10.0-0.1.pre",
+      "hash": "628f0e3f3a01d6e6b5fd8c2d7b8f0d58883b6673",
+      "type": "tag"
+    },
+    "2.10.0-0.2.pre": {
+      "name": "2.10.0-0.2.pre",
+      "hash": "73adb1406a9cff796e2203ad16fd285220a6ec97",
+      "type": "tag"
+    },
+    "2.10.0-0.3.pre": {
+      "name": "2.10.0-0.3.pre",
+      "hash": "fdd0af78bbda27e1084ec859b27765d927cbe27e",
+      "type": "tag"
+    }
+  },
+  "gitReferences": [
+    {
+      "name": "refs/heads/stable",
+      "hash": "ea121f8859e4b13e47a8f845e4586164519588bc",
+      "type": "branch"
+    },
+    {
+      "name": "refs/heads/beta",
+      "hash": "3bd718ee44049e25d33327ee9886ec30c97ffa33",
+      "type": "branch"
+    },
+    {
+      "name": "refs/heads/dev",
+      "hash": "d6260f127fe3f88c98231243b387b48448479bff",
+      "type": "branch"
+    },
+    {
+      "name": "refs/tags/3.0.0",
+      "hash": "ee4e09cce01d6f2d7f4baebd247fde02e5008851",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.1",
+      "hash": "fb57da5f945d02ef4f98dfd9409a72b7cce74268",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.2",
+      "hash": "cd41fdd495f6944ecd3506c21e94c6567b073278",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.3",
+      "hash": "676cefaaff197f27424942307668886253e1ec35",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.4",
+      "hash": "85684f9300908116a78138ea4c6036c35c9a1236",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.5",
+      "hash": "f1875d570e39de09040c8f79aa13cc56baab8db1",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.0",
+      "hash": "5f105a6ca7a5ac7b8bc9b241f4c2d86f4188cf5c",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.1",
+      "hash": "db747aa1331bd95bc9b3874c842261ca2d302cd5",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.2",
+      "hash": "097d3313d8e2c7f901932d63e537c1acefb87800",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.3",
+      "hash": "7e9793dee1b85a243edd0e06cb1658e98b077561",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.4",
+      "hash": "c860cba910319332564e1e9d470a17074c1f2dfd",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.5",
+      "hash": "5464c5bac742001448fe4fc0597be939379f88ea",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/3.0.0-0.0.pre",
+      "hash": "3bf40fd9beb91fc097e3d406a5df51eaead2baf5",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.0-0.0.pre",
+      "hash": "95e555344dc746ad46ada9de9cc475042c63ec55",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.0-0.1.pre",
+      "hash": "628f0e3f3a01d6e6b5fd8c2d7b8f0d58883b6673",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.0-0.2.pre",
+      "hash": "73adb1406a9cff796e2203ad16fd285220a6ec97",
+      "type": "tag"
+    },
+    {
+      "name": "refs/tags/2.10.0-0.3.pre",
+      "hash": "fdd0af78bbda27e1084ec859b27765d927cbe27e",
+      "type": "tag"
+    }
+  ]
+}

@@ -295,6 +295,41 @@ void main() {
       final result = await workflow.call(project, cacheVersion, force: true);
       expect(result, isA<Project>());
     });
+    test('should verify target directory exists before creating symlinks',
+        () async {
+      // Skip on Windows where symlinks require admin rights
+      if (Platform.isWindows) {
+        return;
+      }
+
+      final testDir = createTempDir();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.services.project.findAncestor(directory: testDir);
+
+      // Create a cache version with a non-existent directory
+      final mockCacheVersion = MockCacheFlutterVersion();
+      final nonExistentDir = p.join(cacheDir.path, 'non_existent_directory');
+
+      when(() => mockCacheVersion.name).thenReturn('3.10.0');
+      when(() => mockCacheVersion.directory).thenReturn(nonExistentDir);
+      when(() => mockCacheVersion.printFriendlyName).thenReturn('Mock version');
+      when(() => mockCacheVersion.dartSdkVersion).thenReturn('2.19.0');
+      when(() => mockCacheVersion.toFlutterVersion())
+          .thenReturn(FlutterVersion.parse('3.10.0'));
+
+      // Ensure context has privilegedAccess set to true
+      final privilegedContext = TestFactory.context(privilegedAccess: true);
+      final workflow = UpdateProjectReferencesWorkflow(privilegedContext);
+
+      // Run workflow with non-existent target directory
+      // This should throw an exception due to invalid target path
+      expect(
+        () => workflow.call(project, mockCacheVersion, force: true),
+        throwsA(isA<AppDetailedException>()),
+      );
+    });
   });
 }
 

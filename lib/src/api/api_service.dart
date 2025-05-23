@@ -8,7 +8,7 @@ import '../utils/helpers.dart';
 import 'models/json_response.dart';
 
 class ApiService extends ContextualService {
-  ApiService(super.context);
+  const ApiService(super.context);
 
   GetContextResponse getContext() => GetContextResponse(context: context);
 
