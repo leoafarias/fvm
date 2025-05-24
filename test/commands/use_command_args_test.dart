@@ -116,6 +116,8 @@ void main() {
         'use',
         'beta',
         '--pin',
+        '--force',
+        '--skip-setup',
       ]);
 
       // Get the project and verify its configuration
@@ -130,7 +132,7 @@ void main() {
     test('with --pin flag on non-channel throws error', () async {
       // --pin should only work with channels
       expect(
-          () async => await runner.run([
+          () async => await runner.runOrThrow([
                 'fvm',
                 'use',
                 '2.0.0', // Not a channel
@@ -201,7 +203,7 @@ void main() {
     test('with invalid flag throws error', () async {
       // Invalid flag should throw an error
       expect(
-          () async => await runner.run([
+          () async => await runner.runOrThrow([
                 'fvm',
                 'use',
                 'stable',

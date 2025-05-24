@@ -63,9 +63,12 @@ void main() {
       // Test Channel Versions
       print('\n===== Testing Channel Versions =====');
 
-      // Ensure stable channel is available
-      print('\nEnsuring stable channel is available...');
+      // Ensure required channels are available
+      print('\nEnsuring required channels are available...');
       await testRunner.runOrThrow(['fvm', 'install', 'stable']);
+      await testRunner.runOrThrow(['fvm', 'install', 'beta']);
+      await testRunner.runOrThrow(['fvm', 'install', 'dev']);
+      await testRunner.runOrThrow(['fvm', 'install', 'master']);
 
       // Test various channel versions
       await _testVersion(testRunner, services, 'stable', 'Stable Channel');

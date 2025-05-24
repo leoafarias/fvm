@@ -79,7 +79,7 @@ void main() {
     test('rejects pinning master channel', () async {
       // Run the use command with pin option on master channel
       // This should fail as master is not a stable channel for pinning
-      final result = runner.run([
+      final result = runner.runOrThrow([
         'fvm',
         'use',
         'master',
@@ -95,7 +95,7 @@ void main() {
     test('rejects pinning main channel', () async {
       // Run the use command with pin option on main channel
       // This should fail as main is not a stable channel for pinning
-      final result = runner.run([
+      final result = runner.runOrThrow([
         'fvm',
         'use',
         'main',
@@ -110,7 +110,7 @@ void main() {
 
     test('rejects pinning a non-channel version', () async {
       // Run the use command with pin option on a version
-      final result = runner.run([
+      final result = runner.runOrThrow([
         'fvm',
         'use',
         '3.10.0',

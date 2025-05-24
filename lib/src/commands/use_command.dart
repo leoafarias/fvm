@@ -3,6 +3,7 @@ import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:meta/meta.dart';
 
+import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/constants.dart';
@@ -134,10 +135,29 @@ class UseCommand extends BaseFvmCommand {
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-    }
 
-    // Get version from first arg
-    version ??= argResults!.rest[0];
+      // If no version argument and no pinned version, show error
+      if (version == null) {
+        // Check if there are any installed versions to provide a more helpful error
+        final installedVersions = await get<CacheService>().getAllVersions();
+
+        if (installedVersions.isEmpty) {
+          throw UsageException(
+            'No Flutter version specified and no versions are installed.\n'
+            'Please specify a version: fvm use <version>\n'
+            'Or install a version first: fvm install <version>',
+            usage,
+          );
+        }
+        throw UsageException(
+          'No Flutter version specified and no pinned version found.',
+          usage,
+        );
+      }
+    } else {
+      // Get version from first arg
+      version = argResults!.rest[0];
+    }
 
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {

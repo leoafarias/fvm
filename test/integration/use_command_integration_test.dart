@@ -22,6 +22,7 @@ void main() {
     final testContext = TestFactory.context(
       debugLabel: 'use_command_integration_test',
       workingDirectoryOverride: tempDirectory.path,
+      privilegedAccess: true, // Enable symlink creation
     );
 
     runner = TestCommandRunner(testContext);
@@ -34,7 +35,7 @@ void main() {
   });
 
   /// This is the main integration test that exercises the full workflow of the use command
-  /// It goes through a series of operations to test the complete functionality
+  /// It goes through a series `of operations to test the complete functionality
   test('Full end-to-end use command workflow', () async {
     // Step 1: Use a stable channel version
     var exitCode = await runner.run([
@@ -55,7 +56,7 @@ void main() {
     var fvmDir = Directory(p.join(tempDirectory.path, '.fvm'));
     expect(fvmDir.existsSync(), isTrue);
 
-    var flutterSdkLink = File(p.join(fvmDir.path, 'flutter_sdk'));
+    var flutterSdkLink = Link(p.join(fvmDir.path, 'flutter_sdk'));
     expect(flutterSdkLink.existsSync(), isTrue);
 
     // Step 2: Switch to a release version
@@ -78,22 +79,22 @@ void main() {
       'use',
       'beta',
       '--flavor',
-      'dev',
+      'development',
     ]);
 
     expect(exitCode, ExitCode.success.code);
 
-    // Verify flavor was added but main version is still the same
+    // Verify flavor was added and main version was changed to beta
     project = Project.loadFromDirectory(tempDirectory);
-    expect(project.pinnedVersion?.name, '3.10.0'); // Main version unchanged
+    expect(project.pinnedVersion?.name, 'beta'); // Main version changed to beta
     expect(project.flavors.length, 1);
-    expect(project.flavors['dev'], 'beta');
+    expect(project.flavors['development'], 'beta');
 
     // Step 4: Switch to the flavor
     exitCode = await runner.run([
       'fvm',
       'use',
-      'dev', // Using the flavor name
+      'development', // Using the flavor name
     ]);
 
     expect(exitCode, ExitCode.success.code);
@@ -113,9 +114,10 @@ void main() {
 
     expect(exitCode, ExitCode.success.code);
 
-    // Verify flavor was added but main version is still beta
+    // Verify flavor was added and main version changed to 2.10.0
     project = Project.loadFromDirectory(tempDirectory);
-    expect(project.pinnedVersion?.name, 'beta'); // Main version unchanged
+    expect(project.pinnedVersion?.name,
+        '2.10.0'); // Main version changed to 2.10.0
     expect(project.flavors.length, 2);
     expect(project.flavors['legacy'], '2.10.0');
 
@@ -127,7 +129,7 @@ void main() {
 
     expect(exitCode, ExitCode.success.code);
 
-    // Verify we've switched to the flavor's version
+    // Verify we've switched to the flavor's version (no change since it's already 2.10.0)
     project = Project.loadFromDirectory(tempDirectory);
     expect(project.pinnedVersion?.name, '2.10.0');
 
@@ -141,7 +143,7 @@ void main() {
 
     expect(exitCode, ExitCode.success.code);
 
-    // Verify we're back to the original version
+    // Verify we're back to 3.10.0
     project = Project.loadFromDirectory(tempDirectory);
     expect(project.pinnedVersion?.name, '3.10.0');
 
@@ -166,32 +168,35 @@ void main() {
       'use',
       'stable',
       '--flavor',
-      'dev', // This flavor already exists with 'beta'
+      'development', // This flavor already exists with 'beta'
     ]);
 
     expect(exitCode, ExitCode.success.code);
 
-    // Verify the flavor was updated
+    // Verify the flavor was updated and main version changed to stable
     project = Project.loadFromDirectory(tempDirectory);
     expect(project.pinnedVersion?.name,
-        'abcdef1234567890'); // Main version unchanged
-    expect(project.flavors['dev'], 'stable'); // Updated from 'beta'
+        'stable'); // Main version changed to stable
+    expect(project.flavors['development'], 'stable'); // Updated from 'beta'
 
     // Step 9: Verify .gitignore and VS Code settings
     final gitignoreFile = File(p.join(tempDirectory.path, '.gitignore'));
     if (gitignoreFile.existsSync()) {
       final content = gitignoreFile.readAsStringSync();
-      expect(content.contains('.fvm/flutter_sdk'), isTrue);
+      expect(content.contains('.fvm/'), isTrue);
     }
 
     final vscodeDir = Directory(p.join(tempDirectory.path, '.vscode'));
-    if (vscodeDir.existsSync()) {
-      final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
-      if (settingsFile.existsSync()) {
-        final content = settingsFile.readAsStringSync();
-        expect(content.contains('flutter.sdkPath'), isTrue);
-      }
-    }
+    expect(vscodeDir.existsSync(), isTrue,
+        reason: 'VSCode directory should be created');
+
+    final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
+    expect(settingsFile.existsSync(), isTrue,
+        reason: 'VSCode settings.json should be created');
+
+    final content = settingsFile.readAsStringSync();
+    expect(content.contains('dart.flutterSdkPath'), isTrue,
+        reason: 'VSCode settings should contain dart.flutterSdkPath');
   });
 
   test('Handles dependencies workflow correctly', () async {

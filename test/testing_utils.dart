@@ -5,7 +5,6 @@ import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
-import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:git/git.dart';
@@ -294,7 +293,7 @@ class TestFactory {
       context,
     );
   }
-  
+
   static MockGitService _mockGitService(FvmContext context) {
     return MockGitService(context);
   }
@@ -357,6 +356,9 @@ class MockFlutterService extends FlutterService {
   // Track installed versions for testing
   final Map<String, bool> _installedVersions = {};
 
+  // Track simulated failures for testing
+  final Map<String, String?> _simulatedFailures = {};
+
   MockFlutterService(
     super.context,
   ) {
@@ -365,7 +367,238 @@ class MockFlutterService extends FlutterService {
     }
 
     // Default setup: stable channel is installed
-    _installedVersions['stable'] = true;
+    _preInstallDefaultVersions();
+  }
+
+  /// Pre-install default versions that should be available in tests
+  void _preInstallDefaultVersions() {
+    // Install common versions used in tests
+    final versionsToInstall = [
+      'stable',
+      'beta',
+      'dev',
+      'master',
+      '3.10.0',
+      '2.10.0',
+      'abcdef1234567890', // Mock Git hash for testing
+    ];
+
+    for (final versionName in versionsToInstall) {
+      final version = FlutterVersion.parse(versionName);
+      _createMockInstallation(version);
+      _installedVersions[versionName] = true;
+    }
+  }
+
+  /// Create a mock installation directory structure for a version
+  void _createMockInstallation(FlutterVersion version) {
+    final cacheService = get<CacheService>();
+    final versionDir = cacheService.getVersionCacheDir(version);
+
+    // Create the version directory
+    if (!versionDir.existsSync()) {
+      versionDir.createSync(recursive: true);
+    }
+
+    // Note: We don't create the version file during installation
+    // The version file will be created during setup (when flutter --version is run)
+    // This ensures that newly installed versions appear as "not setup" initially
+
+    // Create a minimal .git directory to simulate a git repo
+    final gitDir = Directory(path.join(versionDir.path, '.git'));
+    if (!gitDir.existsSync()) {
+      gitDir.createSync();
+    }
+
+    // Create necessary git subdirectories
+    final objectsDir = Directory(path.join(gitDir.path, 'objects'));
+    final refsDir = Directory(path.join(gitDir.path, 'refs'));
+    final headsDir = Directory(path.join(gitDir.path, 'refs', 'heads'));
+
+    objectsDir.createSync();
+    refsDir.createSync();
+    headsDir.createSync();
+
+    // Create a HEAD file to simulate being on a branch
+    final headFile = File(path.join(gitDir.path, 'HEAD'));
+    // For channels, set the branch to the channel name
+    if (isFlutterChannel(version.name)) {
+      headFile.writeAsStringSync('ref: refs/heads/${version.name}\n');
+    } else if (version.name.contains('@')) {
+      // Handle version@channel syntax
+      final parts = version.name.split('@');
+      if (parts.length == 2) {
+        headFile.writeAsStringSync('ref: refs/heads/${parts[1]}\n');
+      } else {
+        headFile.writeAsStringSync('ref: refs/heads/stable\n');
+      }
+    } else if (RegExp(r'^[a-f0-9]{7,40}$').hasMatch(version.name)) {
+      // For commit hashes, use master branch
+      headFile.writeAsStringSync('ref: refs/heads/master\n');
+    } else {
+      // For specific versions, default to stable
+      headFile.writeAsStringSync('ref: refs/heads/stable\n');
+    }
+
+    // Create a config file (required by GitDir.isGitDir)
+    final configFile = File(path.join(gitDir.path, 'config'));
+    configFile.writeAsStringSync('[core]\n\trepositoryformatversion = 0\n');
+
+    // Create a minimal flutter binary to make it look like a real SDK
+    final binDir = Directory(path.join(versionDir.path, 'bin'));
+    if (!binDir.existsSync()) {
+      binDir.createSync();
+    }
+
+    // Create a flutter executable file with proper name and permissions
+    final flutterExec = File(path.join(binDir.path, flutterExecFileName));
+
+    // Generate mock Flutter version output in the expected format
+    String channelName;
+    if (isFlutterChannel(version.name)) {
+      channelName = version.name;
+    } else {
+      channelName = 'stable'; // Default channel for specific versions
+    }
+
+    // Mock Dart SDK versions that correspond to Flutter versions
+    String dartVersionContent;
+    if (isFlutterChannel(version.name)) {
+      // Mock Dart versions for channels based on realistic versions
+      switch (version.name) {
+        case 'stable':
+          dartVersionContent = '3.6.0';
+          break;
+        case 'beta':
+          dartVersionContent = '3.7.0-0.1.pre';
+          break;
+        case 'dev':
+          dartVersionContent = '2.19.0';
+          break;
+        case 'master':
+        case 'main':
+          dartVersionContent = '3.8.0-0.1.pre';
+          break;
+        default:
+          dartVersionContent = '3.6.0';
+      }
+    } else {
+      // For specific versions, use appropriate Dart versions
+      if (version.name.startsWith('3.')) {
+        dartVersionContent = '3.6.0'; // Modern Flutter versions use Dart 3.x
+      } else if (version.name.startsWith('2.')) {
+        dartVersionContent = '2.19.0'; // Flutter 2.x used Dart 2.x
+      } else {
+        dartVersionContent = '3.6.0'; // Default to modern Dart
+      }
+    }
+
+    // Generate mock Flutter version content for the output
+    String flutterVersionContent;
+    if (isFlutterChannel(version.name)) {
+      // Mock version numbers for channels based on realistic Flutter versions
+      switch (version.name) {
+        case 'stable':
+          flutterVersionContent = '3.29.3';
+          break;
+        case 'beta':
+          flutterVersionContent = '3.30.0-0.1.pre';
+          break;
+        case 'dev':
+          flutterVersionContent = '2.13.0-0.1.pre';
+          break;
+        case 'master':
+        case 'main':
+          flutterVersionContent = '3.31.0-0.1.pre';
+          break;
+        default:
+          flutterVersionContent = '3.29.3';
+      }
+    } else {
+      // For specific versions or commit hashes, use the version name
+      flutterVersionContent = version.name;
+    }
+
+    final mockFlutterOutput =
+        '''Flutter $flutterVersionContent • channel $channelName • https://github.com/flutter/flutter.git
+Framework • revision abc123def4 (1 day ago) • 2024-01-01 12:00:00 -0800
+Engine • revision 456789abc1
+Tools • Dart $dartVersionContent • DevTools 2.28.0''';
+
+    if (Platform.isWindows) {
+      // On Windows, create a batch file
+      flutterExec.writeAsStringSync('''@echo off
+if "%1"=="--version" (
+echo $mockFlutterOutput
+) else (
+echo Mock Flutter command: %*
+)''');
+    } else {
+      // On Unix-like systems, create a shell script
+      flutterExec.writeAsStringSync('''#!/bin/bash
+if [ "\$1" = "--version" ]; then
+echo "$mockFlutterOutput"
+else
+echo "Mock Flutter command: \$@"
+fi''');
+      // Make it executable
+      Process.runSync('chmod', ['+x', flutterExec.path]);
+    }
+
+    // Create Dart SDK directory structure but not the version file yet
+    final dartSdkDir =
+        Directory(path.join(versionDir.path, 'bin', 'cache', 'dart-sdk'));
+    if (!dartSdkDir.existsSync()) {
+      dartSdkDir.createSync(recursive: true);
+    }
+
+    // Note: We don't create the Dart SDK version file during installation
+    // It will be created during setup to simulate real behavior
+
+    // Create a dart executable in the correct location based on Flutter version
+    // For modern versions (>1.17.5), dart is in the main bin directory
+    // For old versions (<=1.17.5), dart is in bin/cache/dart-sdk/bin
+    String dartExecPath;
+    if (version.name.startsWith('1.') &&
+        (version.name.startsWith('1.0.') ||
+            version.name.startsWith('1.1.') ||
+            version.name == '1.17.5' ||
+            version.name.startsWith('1.17.') &&
+                double.tryParse(version.name.substring(5)) != null &&
+                double.parse(version.name.substring(5)) <= 5)) {
+      // Old path structure: bin/cache/dart-sdk/bin
+      final dartBinDir = Directory(path.join(dartSdkDir.path, 'bin'));
+      if (!dartBinDir.existsSync()) {
+        dartBinDir.createSync();
+      }
+      dartExecPath = path.join(dartBinDir.path, dartExecFileName);
+    } else {
+      // Modern path structure: bin (same as Flutter)
+      dartExecPath = path.join(binDir.path, dartExecFileName);
+    }
+
+    final dartExec = File(dartExecPath);
+    final mockDartOutput = 'Dart SDK version: $dartVersionContent';
+
+    if (Platform.isWindows) {
+      // On Windows, create a batch file
+      dartExec.writeAsStringSync('''@echo off
+if "%1"=="--version" (
+echo $mockDartOutput
+) else (
+echo Mock Dart command: %*
+)''');
+    } else {
+      // On Unix-like systems, create a shell script
+      dartExec.writeAsStringSync('''#!/bin/bash
+if [ "\$1" = "--version" ]; then
+echo "$mockDartOutput"
+else
+echo "Mock Dart command: \$@"
+fi''');
+      // Make it executable
+      Process.runSync('chmod', ['+x', dartExec.path]);
+    }
   }
 
   /// Clear all installed versions - used for testing the no-versions-installed case
@@ -384,7 +617,7 @@ class MockFlutterService extends FlutterService {
     if (reason != null) {
       logger.warn('Reason: $reason');
     }
-    throw Exception('Simulated failure for $operation: $reason');
+    _simulatedFailures[operation] = reason;
   }
 
   /// Returns all installed versions that we've recorded
@@ -418,68 +651,100 @@ class MockFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version,
   ) async {
-    // Get the cache service to determine where to create the version
-    final cacheService = get<CacheService>();
-    final versionDir = cacheService.getVersionCacheDir(version);
-    
-    // Create the version directory
-    if (!versionDir.existsSync()) {
-      versionDir.createSync(recursive: true);
+    // Check for simulated failures
+    final failureKey = 'install:${version.name}';
+    if (_simulatedFailures.containsKey(failureKey)) {
+      final reason = _simulatedFailures[failureKey];
+      throw Exception('Simulated failure for $failureKey: $reason');
     }
-    
-    // Create a version file (required for cache verification)
-    final versionFile = File(path.join(versionDir.path, 'version'));
-    versionFile.writeAsStringSync(version.name);
-    
-    // Create a minimal .git directory to simulate a git repo
-    final gitDir = Directory(path.join(versionDir.path, '.git'));
-    if (!gitDir.existsSync()) {
-      gitDir.createSync();
-    }
-    
-    // Create necessary git subdirectories
-    final objectsDir = Directory(path.join(gitDir.path, 'objects'));
-    final refsDir = Directory(path.join(gitDir.path, 'refs'));
-    final headsDir = Directory(path.join(gitDir.path, 'refs', 'heads'));
-    
-    objectsDir.createSync();
-    refsDir.createSync();
-    headsDir.createSync();
-    
-    // Create a HEAD file to simulate being on a branch
-    final headFile = File(path.join(gitDir.path, 'HEAD'));
-    // For channels, set the branch to the channel name
-    if (isFlutterChannel(version.name)) {
-      headFile.writeAsStringSync('ref: refs/heads/${version.name}\n');
-    } else if (version.name.contains('@')) {
-      // Handle version@channel syntax
-      final parts = version.name.split('@');
-      if (parts.length == 2) {
-        headFile.writeAsStringSync('ref: refs/heads/${parts[1]}\n');
-      } else {
-        headFile.writeAsStringSync('ref: refs/heads/stable\n');
-      }
-    } else if (RegExp(r'^[a-f0-9]{7,40}$').hasMatch(version.name)) {
-      // For commit hashes, use master branch
-      headFile.writeAsStringSync('ref: refs/heads/master\n');
-    } else {
-      // For specific versions, default to stable
-      headFile.writeAsStringSync('ref: refs/heads/stable\n');
-    }
-    
-    // Create a config file (required by GitDir.isGitDir)
-    final configFile = File(path.join(gitDir.path, 'config'));
-    configFile.writeAsStringSync('[core]\n\trepositoryformatversion = 0\n');
-    
-    // Create a minimal flutter binary to make it look like a real SDK
-    final binDir = Directory(path.join(versionDir.path, 'bin'));
-    if (!binDir.existsSync()) {
-      binDir.createSync();
-    }
-    
+
+    // Create the mock installation directory structure
+    _createMockInstallation(version);
+
     // Mark this version as installed in our tracking map
     _installedVersions[version.name] = true;
     logger.info('Installed mock version: ${version.name}');
+  }
+
+  /// Simulates the setup process by creating the version file
+  @override
+  Future<ProcessResult> setup(CacheFlutterVersion version) async {
+    // Create the version file during setup to simulate real behavior
+    final versionFile = File(path.join(version.directory, 'version'));
+
+    // Generate the appropriate version content
+    String flutterVersionContent;
+    if (isFlutterChannel(version.name)) {
+      // Mock version numbers for channels based on realistic Flutter versions
+      switch (version.name) {
+        case 'stable':
+          flutterVersionContent = '3.29.3';
+          break;
+        case 'beta':
+          flutterVersionContent = '3.30.0-0.1.pre';
+          break;
+        case 'dev':
+          flutterVersionContent = '2.13.0-0.1.pre';
+          break;
+        case 'master':
+        case 'main':
+          flutterVersionContent = '3.31.0-0.1.pre';
+          break;
+        default:
+          flutterVersionContent = '3.29.3';
+      }
+    } else {
+      // For specific versions or commit hashes, use the version name
+      flutterVersionContent = version.name;
+    }
+
+    versionFile.writeAsStringSync(flutterVersionContent);
+
+    // Also create the Dart SDK version file during setup
+    final dartSdkDir =
+        Directory(path.join(version.directory, 'bin', 'cache', 'dart-sdk'));
+    if (!dartSdkDir.existsSync()) {
+      dartSdkDir.createSync(recursive: true);
+    }
+
+    final dartVersionFile = File(path.join(dartSdkDir.path, 'version'));
+
+    // Generate appropriate Dart version content
+    String dartVersionContent;
+    if (isFlutterChannel(version.name)) {
+      // Mock Dart versions for channels based on realistic versions
+      switch (version.name) {
+        case 'stable':
+          dartVersionContent = '3.6.0';
+          break;
+        case 'beta':
+          dartVersionContent = '3.7.0-0.1.pre';
+          break;
+        case 'dev':
+          dartVersionContent = '2.19.0';
+          break;
+        case 'master':
+        case 'main':
+          dartVersionContent = '3.8.0-0.1.pre';
+          break;
+        default:
+          dartVersionContent = '3.6.0';
+      }
+    } else {
+      // For specific versions, use appropriate Dart versions
+      if (version.name.startsWith('3.')) {
+        dartVersionContent = '3.6.0'; // Modern Flutter versions use Dart 3.x
+      } else if (version.name.startsWith('2.')) {
+        dartVersionContent = '2.19.0'; // Flutter 2.x used Dart 2.x
+      } else {
+        dartVersionContent = '3.6.0'; // Default to modern Dart
+      }
+    }
+
+    dartVersionFile.writeAsStringSync(dartVersionContent);
+
+    // Return a successful ProcessResult
+    return ProcessResult(0, 0, 'Mock setup completed', '');
   }
 }
 

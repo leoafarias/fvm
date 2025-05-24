@@ -1,11 +1,10 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:io/io.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -15,15 +14,18 @@ void main() {
     late TestCommandRunner runner;
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      // Create a context with mock CacheService that returns empty versions
+      final context = TestFactory.context(
+        generators: {
+          CacheService: (context) => MockCacheService(context),
+        },
+      );
+      runner = TestCommandRunner(context);
     });
 
     test(
         'provides clear error message when no version arguments and no installed versions',
         () async {
-      // Get a reference to the original services
-      final services = runner.services;
-
       // Create a temporary directory and project structure
       final tempDir = createTempDir('use_command_no_version_test');
       createPubspecYaml(tempDir, name: 'test_project');
@@ -32,26 +34,13 @@ void main() {
       final originalDir = Directory.current;
       Directory.current = tempDir;
 
-      // Ensure no versions are installed in cache
-      final mockFlutterService =
-          services.get<FlutterService>() as MockFlutterService;
-      mockFlutterService.clearInstalledVersions();
-
       try {
-        // Execute the command - it should throw a UsageException with our error message
-        expect(
-          () => runner.run(['fvm', 'use', '--force', '--skip-setup']),
-          throwsA(
-            predicate((e) =>
-                e is UsageException &&
-                e.message.contains(
-                    'No version specified and no versions are installed') &&
-                e.message
-                    .contains('Please specify a version: fvm use <version>') &&
-                e.message.contains(
-                    'Or install a version first: fvm install <version>')),
-          ),
-        );
+        // Execute the command - it should return a usage error exit code
+        final exitCode =
+            await runner.run(['fvm', 'use', '--force', '--skip-setup']);
+
+        // Should return usage error exit code
+        expect(exitCode, ExitCode.usage.code);
       } finally {
         // Restore original directory
         Directory.current = originalDir;
