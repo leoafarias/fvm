@@ -16,7 +16,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   static const String releaseFile = 'release';
   static const String flutterSdkLink = 'flutter_sdk';
 
-  UpdateProjectReferencesWorkflow(super.context);
+  const UpdateProjectReferencesWorkflow(super.context);
 
   /// Updates the link to make sure its always correct
   ///

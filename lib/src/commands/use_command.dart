@@ -128,8 +128,7 @@ class UseCommand extends BaseFvmCommand {
       }
     }
 
-    final flutterVersion =
-        await validateFlutterVersion(version, force: forceOption);
+    final flutterVersion = validateFlutterVersion(version);
 
     final cacheVersion = await ensureCache(flutterVersion, force: forceOption);
 

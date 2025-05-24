@@ -4,9 +4,9 @@ import '../utils/extensions.dart';
 import 'workflow.dart';
 
 class ValidateFlutterVersionWorkflow extends Workflow {
-  ValidateFlutterVersionWorkflow(super.context);
+  const ValidateFlutterVersionWorkflow(super.context);
 
-  FlutterVersion call(String version, {bool force = false}) {
+  FlutterVersion call(String version) {
     final flutterVersion = FlutterVersion.parse(version);
 
     if (flutterVersion.fromFork) {

@@ -89,9 +89,9 @@ class ListCommand extends BaseFvmCommand {
             getVersionOutput(),
             version.dartSdkVersion ?? '',
             releaseDate,
-            globalVersion == version ? green.wrap(dot) ?? '' : '',
+            globalVersion == version ? (green.wrap(dot) ?? '') : '',
             localVersion == printVersion && localVersion != null
-                ? green.wrap(dot) ?? ''
+                ? (green.wrap(dot) ?? '')
                 : '',
           ],
         ])

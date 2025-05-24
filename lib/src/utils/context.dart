@@ -222,7 +222,7 @@ class FvmContext with FvmContextMappable {
 }
 
 class ServicesProvider extends Contextual {
-  ServicesProvider(super.context);
+  const ServicesProvider(super.context);
 
   ProjectService get project => super.context.get();
   CacheService get cache => super.context.get();

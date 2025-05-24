@@ -6,15 +6,7 @@ import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import '../testing_utils.dart';
-
 void main() {
-  late TestCommandRunner runner;
-
-  setUp(() {
-    runner = TestFactory.commandRunner();
-  });
-
   test('Does CLI version match', () async {
     final yaml = File(
       join(Directory.current.path, 'pubspec.yaml'),
@@ -103,7 +95,7 @@ Tools • Dart 2.13.0''';
       final content =
           '''  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
-    
+
       0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
      27  203M   27 56.1M    0     0  61.8M      0  0:00:03 --:--:--  0:00:03 61.8M
      88  203M   88  180M    0     0  94.9M      0  0:00:02  0:00:01  0:00:01 94.9M

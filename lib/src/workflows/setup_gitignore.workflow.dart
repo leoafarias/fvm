@@ -25,7 +25,7 @@ class SetupGitIgnoreWorkflow extends Workflow {
   static const String kGitIgnoreHeading = '# FVM Version Cache';
 
   /// Creates a new [SetupGitIgnoreWorkflow] with the provided context.
-  SetupGitIgnoreWorkflow(super.context);
+  const SetupGitIgnoreWorkflow(super.context);
 
   /// Updates the project's .gitignore file to include FVM-specific entries.
   ///

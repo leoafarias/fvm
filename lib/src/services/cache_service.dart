@@ -21,7 +21,7 @@ enum CacheIntegrity {
 
 /// Service to interact with FVM Cache
 class CacheService extends ContextualService {
-  CacheService(super.context);
+  const CacheService(super.context);
 
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
@@ -111,6 +111,7 @@ class CacheService extends ContextualService {
     }
 
     cacheVersions.sort((a, b) => a.compareTo(b));
+
     return cacheVersions.reversed.toList();
   }
 
@@ -144,10 +145,9 @@ class CacheService extends ContextualService {
         version.fork!,
         version.version,
       ));
-    } else {
-      // Standard path (unchanged): versionsCachePath/versionName
-      return Directory(path.join(context.versionsCachePath, version.name));
-    }
+    } // Standard path (unchanged): versionsCachePath/versionName
+
+    return Directory(path.join(context.versionsCachePath, version.name));
   }
 
   // For backward compatibility - used by existing string-based calls

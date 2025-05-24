@@ -5,7 +5,7 @@ import 'package:io/io.dart';
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
-  ProcessService(super.context);
+  const ProcessService(super.context);
 
   void _throwIfProcessFailed(
     ProcessResult pr,

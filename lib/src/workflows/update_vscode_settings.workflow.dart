@@ -20,7 +20,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
   static const String kWorkspaceFileExt = '.code-workspace';
 
   /// Creates a new [UpdateVsCodeSettingsWorkflow] with the provided context.
-  UpdateVsCodeSettingsWorkflow(super.context);
+  const UpdateVsCodeSettingsWorkflow(super.context);
 
   /// Checks if the project has VS Code configuration files.
   bool _hasVsCodeFiles(Project project) {

@@ -4,7 +4,7 @@ import '../utils/exceptions.dart';
 import 'workflow.dart';
 
 class VerifyProjectWorkflow extends Workflow {
-  VerifyProjectWorkflow(super.context);
+  const VerifyProjectWorkflow(super.context);
 
   void call(Project project, {required bool force}) {
     if (project.hasPubspec || force) return;

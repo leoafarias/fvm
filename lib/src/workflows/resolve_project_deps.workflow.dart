@@ -1,57 +1,12 @@
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
-import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
 import '../services/process_service.dart';
 import '../utils/exceptions.dart';
 import 'workflow.dart';
 
 class ResolveProjectDependenciesWorkflow extends Workflow {
-  ResolveProjectDependenciesWorkflow(super.context);
-
-  void _logDetails(CacheFlutterVersion version, Project project) {
-    final dartGeneratorVersion = project.dartToolGeneratorVersion;
-    final dartToolVersion = project.dartToolVersion;
-    final dartSdkVersion = version.dartSdkVersion;
-    final flutterSdkVersion = version.flutterSdkVersion;
-    // Print a separator line for easier reading
-    logger.debug('----------------------------------------');
-
-    // Print general information
-    logger.debug('🔍  Verbose Details');
-    logger.debug('');
-
-    // Dart Information
-    logger.debug('🎯 Dart Info:');
-    logger.debug('   Dart Generator Version: $dartGeneratorVersion');
-    logger.debug('   Dart SDK Version:       $dartSdkVersion');
-
-    // Tool Information
-    logger.debug('');
-    logger.debug('🛠️ Tool Info:');
-    logger.debug('   Dart Tool Version:      $dartToolVersion');
-    logger.debug('   SDK Version:            $flutterSdkVersion');
-
-    // Print another separator line for clarity
-    logger.debug('----------------------------------------');
-
-    if (dartToolVersion == flutterSdkVersion) {
-      logger
-          .debug('✅ Dart tool version matches SDK version, skipping resolve.');
-
-      return;
-    }
-
-    // Print a warning for mismatch
-    logger.debug('');
-    logger.debug('⚠️ SDK version mismatch:');
-    logger.debug('   Dart Tool Version:      $dartToolVersion');
-    logger.debug('   Flutter SDK Version:    $flutterSdkVersion');
-    logger.debug('');
-
-    // Final separator line
-    logger.debug('----------------------------------------');
-  }
+  const ResolveProjectDependenciesWorkflow(super.context);
 
   Future<bool> call(
     Project project,
@@ -59,7 +14,6 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     required bool force,
   }) async {
     final flutterService = get<FlutterService>();
-    final cacheService = get<CacheService>();
 
     if (version.isNotSetup) {
       logger.warn('Flutter SDK is not setup, skipping resolve dependencies.');

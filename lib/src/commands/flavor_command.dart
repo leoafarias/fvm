@@ -49,7 +49,7 @@ class FlavorCommand extends BaseFvmCommand {
       final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
       // Will install version if not already installed
-      final flutterVersion = await validateFlutterVersion(version);
+      final flutterVersion = validateFlutterVersion(version);
       final cacheVersion = await ensureCache(flutterVersion);
       // Runs flutter command with pinned version
       logger

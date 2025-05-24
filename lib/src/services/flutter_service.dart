@@ -19,7 +19,7 @@ import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
-  FlutterService(super.context);
+  const FlutterService(super.context);
 
   Future<ProcessResult> run(
     String cmd,
@@ -142,7 +142,8 @@ class FlutterService extends ContextualService {
           // First check if this is actually a branch in the forked repo
           final gitDir = await GitDir.fromExisting(gitVersionDir.path);
           final branchResult = await gitDir.runCommand(
-              ['branch', '-r', '--list', 'origin/${version.version}']);
+            ['branch', '-r', '--list', 'origin/${version.version}'],
+          );
 
           final branchOutput = (branchResult.stdout as String).trim();
           final isBranch = branchOutput.isNotEmpty;

@@ -8,7 +8,7 @@ import '../utils/exceptions.dart';
 import 'workflow.dart';
 
 class CheckProjectConstraintsWorkflow extends Workflow {
-  CheckProjectConstraintsWorkflow(super.context);
+  const CheckProjectConstraintsWorkflow(super.context);
 
   /// Checks if the Flutter SDK version used in the project meets the specified constraints.
   FutureOr<bool> call(

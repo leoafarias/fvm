@@ -12,7 +12,7 @@ import '../utils/helpers.dart';
 import 'workflow.dart';
 
 class EnsureCacheWorkflow extends Workflow {
-  EnsureCacheWorkflow(super.context);
+  const EnsureCacheWorkflow(super.context);
 
   // More user-friendly explanation of what went wrong and what will happen next
   Future<CacheFlutterVersion> _handleNonExecutable(

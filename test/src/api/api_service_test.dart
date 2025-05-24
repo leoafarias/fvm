@@ -134,11 +134,9 @@ void main() {
   });
 
   group('getReleases', () {
-    late FvmContext context;
     late FlutterReleasesResponse releasesResponse;
 
     setUp(() async {
-      context = TestFactory.context();
       releasesResponse = await services.releaseClient.fetchReleases();
     });
 

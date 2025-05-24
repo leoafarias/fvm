@@ -97,7 +97,6 @@ void main() {
   // Group 5: Forked versions
   group('Fork validation in install command:', () {
     const testForkName = 'testfork';
-    const testForkUrl = 'https://github.com/flutter/flutter.git';
 
     test('Validates fork exists in config', () async {
       final runner = TestFactory.commandRunner();

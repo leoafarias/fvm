@@ -75,7 +75,7 @@ class InstallCommand extends BaseFvmCommand {
     }
     version ??= argResults!.rest[0];
 
-    final flutterVersion = await validateFlutterVersion(version);
+    final flutterVersion = validateFlutterVersion(version);
 
     final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
 

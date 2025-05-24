@@ -58,7 +58,7 @@ void main() {
       final workflow = ValidateFlutterVersionWorkflow(context);
 
       // Act
-      final result = workflow.call(version, force: true);
+      final result = workflow.call(version);
 
       // Assert
       expect(result.isUnknownRef, isTrue);

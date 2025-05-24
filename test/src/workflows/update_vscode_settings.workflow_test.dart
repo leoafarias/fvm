@@ -114,7 +114,9 @@ void main() {
       expect(settingsFile.existsSync(), isFalse);
     });
 
-    test('should skip when no VS Code files are detected', () async {
+    test(
+        'should skip when no VS Code files are detected and not running from VS Code',
+        () async {
       final testDir = createTempDir();
       // Create test project without .vscode directory
       createPubspecYaml(testDir);
@@ -124,18 +126,30 @@ void main() {
       );
 
       final project = runner.services.project.findAncestor(directory: testDir);
+
+      // Create workflow with test context that doesn't simulate VS Code environment
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
       await workflow(project);
 
-      // Verify VS Code directory is created with settings.json
-      // (Behavior changed: now it creates settings if needed)
-      final settingsFile =
-          File(p.join(testDir.path, '.vscode', 'settings.json'));
+      // Check if VS Code directory was created
+      final vscodeDir = Directory(p.join(testDir.path, '.vscode'));
+      final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
 
-      // Updated expectation to match current behavior
-      expect(settingsFile.existsSync(), isTrue);
+      // The behavior depends on whether isVsCode() returns true (running from VS Code)
+      // When running tests from VS Code, settings will be created
+      // When running from command line, they should not be created
+      final isRunningFromVsCode =
+          Platform.environment['TERM_PROGRAM'] == 'vscode';
+
+      if (isRunningFromVsCode) {
+        // If running from VS Code, settings should be created
+        expect(settingsFile.existsSync(), isTrue);
+      } else {
+        // If not running from VS Code, settings should not be created
+        expect(settingsFile.existsSync(), isFalse);
+      }
     });
 
     test('should update existing VS Code settings correctly', () async {

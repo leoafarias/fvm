@@ -3,7 +3,7 @@ import '../services/flutter_service.dart';
 import 'workflow.dart';
 
 class SetupFlutterWorkflow extends Workflow {
-  SetupFlutterWorkflow(super.context);
+  const SetupFlutterWorkflow(super.context);
 
   Future<void> call(CacheFlutterVersion version) async {
     // Skip setup if version has already been setup.

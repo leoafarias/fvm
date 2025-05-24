@@ -33,7 +33,7 @@ class SpawnCommand extends BaseFvmCommand {
     // Removes version from first arg
     final flutterArgs = [...?argResults?.rest]..removeAt(0);
 
-    final flutterVersion = await validateFlutterVersion(version);
+    final flutterVersion = validateFlutterVersion(version);
     // Will install version if not already installed
     final cacheVersion = await ensureCache(flutterVersion);
     // Runs flutter command with pinned version

@@ -11,7 +11,7 @@ import 'validate_flutter_version.workflow.dart';
 import 'workflow.dart';
 
 class RunConfiguredFlutterWorkflow extends Workflow {
-  RunConfiguredFlutterWorkflow(super.context);
+  const RunConfiguredFlutterWorkflow(super.context);
 
   Future<ProcessResult> call(String cmd, {required List<String> args}) async {
     // Try to select a version: project version has priority, then global.
@@ -21,7 +21,7 @@ class RunConfiguredFlutterWorkflow extends Workflow {
 
     if (projectVersion != null) {
       final version =
-          await get<ValidateFlutterVersionWorkflow>().call(projectVersion);
+          get<ValidateFlutterVersionWorkflow>().call(projectVersion);
       selectedVersion = await get<EnsureCacheWorkflow>().call(version);
       logger.debug(
         '$kPackageName: Running Flutter from version "$projectVersion"',
