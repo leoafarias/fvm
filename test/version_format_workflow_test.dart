@@ -1,17 +1,15 @@
 import 'dart:io';
 
-import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:test/test.dart';
 
 import 'testing_utils.dart';
 
 void main() {
   late TestCommandRunner testRunner;
-  late ServicesProvider services;
 
   setUp(() {
     testRunner = TestFactory.commandRunner();
-    services = testRunner.services;
   });
 
   group('Version Format Workflow Test', () {
@@ -68,17 +66,16 @@ void main() {
       await testRunner.runOrThrow(['fvm', 'install', 'stable']);
 
       // Test various channel versions
-      await _testVersion(testRunner, services, 'stable', 'Stable Channel');
-      await _testVersion(testRunner, services, 'beta', 'Beta Channel');
-      await _testVersion(testRunner, services, 'dev', 'Dev Channel');
-      await _testVersion(testRunner, services, 'master', 'Master Channel');
+      await _testVersion(testRunner, 'stable', 'Stable Channel');
+      await _testVersion(testRunner, 'beta', 'Beta Channel');
+      await _testVersion(testRunner, 'dev', 'Dev Channel');
+      await _testVersion(testRunner, 'master', 'Master Channel');
 
       // Test semantic versions if available
       print('\n===== Testing Semantic Versions =====');
       try {
-        await _testVersion(testRunner, services, '2.10.0', 'Specific Version');
-        await _testVersion(
-            testRunner, services, 'v2.10.0', 'Version with v prefix');
+        await _testVersion(testRunner, '2.10.0', 'Specific Version');
+        await _testVersion(testRunner, 'v2.10.0', 'Version with v prefix');
       } catch (e) {
         print(
             'Warning: Skipping semantic version tests - version may not be available');
@@ -88,8 +85,8 @@ void main() {
       print('\n===== Testing Versions with Channels =====');
       try {
         await _testVersion(
-            testRunner, services, '2.10.0@beta', 'Version with beta channel');
-        await _testVersion(testRunner, services, 'v2.10.0@beta',
+            testRunner, '2.10.0@beta', 'Version with beta channel');
+        await _testVersion(testRunner, 'v2.10.0@beta',
             'Version with v prefix and beta channel');
       } catch (e) {
         print(
@@ -115,7 +112,8 @@ void main() {
 
       // Check final configuration
       print('\nFinal configuration:');
-      final projectConfig = services.project.findAncestor();
+      final projectConfig =
+          testRunner.context.get<ProjectService>().findAncestor();
       expect(projectConfig.pinnedVersion?.name, equals('stable'));
 
       print('\nTests completed successfully!');
@@ -126,7 +124,6 @@ void main() {
 /// Helper function to test a specific version
 Future<void> _testVersion(
   TestCommandRunner runner,
-  ServicesProvider services,
   String version,
   String description,
 ) async {
@@ -136,7 +133,7 @@ Future<void> _testVersion(
   await runner.runOrThrow(['fvm', 'use', version]);
 
   // Verify the config file exists
-  final project = services.project.findAncestor();
+  final project = runner.context.get<ProjectService>().findAncestor();
   final configFile = File(project.configPath);
   expect(configFile.existsSync(), isTrue,
       reason: 'Config file should exist after update');

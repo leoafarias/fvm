@@ -15,20 +15,7 @@ import 'verify_project.workflow.dart';
 import 'workflow.dart';
 
 class UseVersionWorkflow extends Workflow {
-  late final SetupFlutterWorkflow _setupFlutter;
-  late final ResolveProjectDependenciesWorkflow _resolveProjectDependencies;
-  late final SetupGitIgnoreWorkflow _setupGitIgnore;
-  late final UpdateProjectReferencesWorkflow _updateProjectReferences;
-  late final UpdateVsCodeSettingsWorkflow _updateVsCodeSettings;
-  late final VerifyProjectWorkflow _verifyProject;
-  UseVersionWorkflow(super.context) {
-    _updateProjectReferences = get<UpdateProjectReferencesWorkflow>();
-    _setupGitIgnore = get<SetupGitIgnoreWorkflow>();
-    _resolveProjectDependencies = get<ResolveProjectDependenciesWorkflow>();
-    _setupFlutter = get<SetupFlutterWorkflow>();
-    _verifyProject = get<VerifyProjectWorkflow>();
-    _updateVsCodeSettings = get<UpdateVsCodeSettingsWorkflow>();
-  }
+  const UseVersionWorkflow(super.context);
 
   Future<void> call({
     required CacheFlutterVersion version,
@@ -39,25 +26,29 @@ class UseVersionWorkflow extends Workflow {
     String? flavor,
   }) async {
     if (!skipSetup) {
-      await _setupFlutter(version);
+      await get<SetupFlutterWorkflow>()(version);
     }
 
-    _verifyProject(project, force: force);
+    get<VerifyProjectWorkflow>()(project, force: force);
 
-    final updatedProject = await _updateProjectReferences(
+    final updatedProject = await get<UpdateProjectReferencesWorkflow>()(
       project,
       version,
       flavor: flavor,
       force: force,
     );
 
-    await _setupGitIgnore(project, force: force);
+    await get<SetupGitIgnoreWorkflow>()(project, force: force);
 
     if (!skipPubGet) {
-      await _resolveProjectDependencies(updatedProject, version, force: force);
+      await get<ResolveProjectDependenciesWorkflow>()(
+        updatedProject,
+        version,
+        force: force,
+      );
     }
 
-    await _updateVsCodeSettings(updatedProject);
+    await get<UpdateVsCodeSettingsWorkflow>()(updatedProject);
 
     final versionLabel = cyan.wrap(version.printFriendlyName);
     // Different message if configured environment

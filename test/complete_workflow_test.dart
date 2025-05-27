@@ -1,18 +1,17 @@
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/git_service.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:test/test.dart';
 
 import 'testing_utils.dart';
 
 void main() {
   late TestCommandRunner testRunner;
-  late ServicesProvider services;
 
   setUp(() {
     testRunner = TestFactory.commandRunner();
-
-    services = testRunner.services;
   });
 
   group('Complete flow', () {
@@ -23,16 +22,17 @@ void main() {
 
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {
-        return services.cache.getVersion(
-          FlutterVersion.parse(channel),
-        );
+        return testRunner.context.get<CacheService>().getVersion(
+              FlutterVersion.parse(channel),
+            );
       }
 
       // Get the installed version
       var cacheVersion = await getCacheVersion();
 
       // Get the branch from Git
-      final existingChannel = await services.git.getBranch(channel);
+      final existingChannel =
+          await testRunner.context.get<GitService>().getBranch(channel);
 
       // Verify installation succeeded
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -61,14 +61,14 @@ void main() {
       );
 
       // Verify project has no pinned version yet
-      var project = services.project.findAncestor();
+      var project = testRunner.context.get<ProjectService>().findAncestor();
       expect(project.pinnedVersion, isNull);
 
       // Use the channel in the project, but skip setup
       await testRunner.runOrThrow(['fvm', 'use', channel, '--skip-setup']);
 
       // Reload project and version information
-      project = services.project.findAncestor();
+      project = testRunner.context.get<ProjectService>().findAncestor();
       cacheVersion = await getCacheVersion();
 
       // Verify project now has pinned version

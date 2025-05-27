@@ -4,6 +4,7 @@ import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/update_project_references.workflow.dart';
 import 'package:mocktail/mocktail.dart';
@@ -55,7 +56,8 @@ void main() {
       createPubspecYaml(testDir, name: 'test_project');
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       expect(project.name, equals('test_project'));
 
       // Create cache version
@@ -95,7 +97,8 @@ void main() {
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -124,7 +127,8 @@ void main() {
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final cacheVersion = createCacheVersion('3.10.0');
 
       // Ensure context has privilegedAccess set to true
@@ -152,7 +156,8 @@ void main() {
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final cacheVersion = createCacheVersion('3.10.0');
 
       // Create context with privilegedAccess set to false
@@ -208,7 +213,8 @@ void main() {
       expect(flutterSdkLink.targetSync(), equals(tempDir.path));
 
       // Now run the workflow with a different target
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -237,8 +243,9 @@ void main() {
       await Process.run('chmod', ['555', fvmDir.path]);
 
       try {
-        final project =
-            runner.services.project.findAncestor(directory: testDir);
+        final project = runner.context
+            .get<ProjectService>()
+            .findAncestor(directory: testDir);
         final cacheVersion = createCacheVersion('3.10.0');
 
         final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -280,7 +287,8 @@ void main() {
         createTempDir().path,
       );
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 

@@ -25,13 +25,13 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
   @override
   VersionType decode(dynamic value) {
     switch (value) {
-      case 'release':
+      case r'release':
         return VersionType.release;
-      case 'channel':
+      case r'channel':
         return VersionType.channel;
-      case 'unknownRef':
+      case r'unknownRef':
         return VersionType.unknownRef;
-      case 'custom':
+      case r'custom':
         return VersionType.custom;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -42,13 +42,13 @@ class VersionTypeMapper extends EnumMapper<VersionType> {
   dynamic encode(VersionType self) {
     switch (self) {
       case VersionType.release:
-        return 'release';
+        return r'release';
       case VersionType.channel:
-        return 'channel';
+        return r'channel';
       case VersionType.unknownRef:
-        return 'unknownRef';
+        return r'unknownRef';
       case VersionType.custom:
-        return 'custom';
+        return r'custom';
     }
   }
 }
@@ -79,13 +79,13 @@ class FlutterChannelMapper extends EnumMapper<FlutterChannel> {
   @override
   FlutterChannel decode(dynamic value) {
     switch (value) {
-      case 'stable':
+      case r'stable':
         return FlutterChannel.stable;
-      case 'dev':
+      case r'dev':
         return FlutterChannel.dev;
-      case 'beta':
+      case r'beta':
         return FlutterChannel.beta;
-      case 'master':
+      case r'master':
         return FlutterChannel.master;
       default:
         throw MapperException.unknownEnumValue(value);
@@ -96,13 +96,13 @@ class FlutterChannelMapper extends EnumMapper<FlutterChannel> {
   dynamic encode(FlutterChannel self) {
     switch (self) {
       case FlutterChannel.stable:
-        return 'stable';
+        return r'stable';
       case FlutterChannel.dev:
-        return 'dev';
+        return r'dev';
       case FlutterChannel.beta:
-        return 'beta';
+        return r'beta';
       case FlutterChannel.master:
-        return 'master';
+        return r'master';
     }
   }
 }
@@ -183,8 +183,9 @@ mixin FlutterVersionMappable {
   }
 
   FlutterVersionCopyWith<FlutterVersion, FlutterVersion, FlutterVersion>
-      get copyWith => _FlutterVersionCopyWithImpl(
-          this as FlutterVersion, $identity, $identity);
+      get copyWith =>
+          _FlutterVersionCopyWithImpl<FlutterVersion, FlutterVersion>(
+              this as FlutterVersion, $identity, $identity);
   @override
   String toString() {
     return FlutterVersionMapper.ensureInitialized()
@@ -207,7 +208,7 @@ mixin FlutterVersionMappable {
 extension FlutterVersionValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterVersion, $Out> {
   FlutterVersionCopyWith<$R, FlutterVersion, $Out> get $asFlutterVersion =>
-      $base.as((v, t, t2) => _FlutterVersionCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _FlutterVersionCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class FlutterVersionCopyWith<$R, $In extends FlutterVersion, $Out>
@@ -251,7 +252,7 @@ class _FlutterVersionCopyWithImpl<$R, $Out>
   @override
   FlutterVersionCopyWith<$R2, FlutterVersion, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FlutterVersionCopyWithImpl($value, $cast, t);
+      _FlutterVersionCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class FlutterForkMapper extends ClassMapperBase<FlutterFork> {
@@ -309,7 +310,8 @@ mixin FlutterForkMappable {
   }
 
   FlutterForkCopyWith<FlutterFork, FlutterFork, FlutterFork> get copyWith =>
-      _FlutterForkCopyWithImpl(this as FlutterFork, $identity, $identity);
+      _FlutterForkCopyWithImpl<FlutterFork, FlutterFork>(
+          this as FlutterFork, $identity, $identity);
   @override
   String toString() {
     return FlutterForkMapper.ensureInitialized()
@@ -331,7 +333,7 @@ mixin FlutterForkMappable {
 extension FlutterForkValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterFork, $Out> {
   FlutterForkCopyWith<$R, FlutterFork, $Out> get $asFlutterFork =>
-      $base.as((v, t, t2) => _FlutterForkCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _FlutterForkCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class FlutterForkCopyWith<$R, $In extends FlutterFork, $Out>
@@ -359,5 +361,5 @@ class _FlutterForkCopyWithImpl<$R, $Out>
   @override
   FlutterForkCopyWith<$R2, FlutterFork, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FlutterForkCopyWithImpl($value, $cast, t);
+      _FlutterForkCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

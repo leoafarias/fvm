@@ -221,20 +221,6 @@ class FvmContext with FvmContextMappable {
   }
 }
 
-class ServicesProvider extends Contextual {
-  const ServicesProvider(super.context);
-
-  ProjectService get project => super.context.get();
-  CacheService get cache => super.context.get();
-  FlutterService get flutter => super.context.get();
-  FlutterReleaseClient get releaseClient => super.context.get();
-  ApiService get api => super.context.get();
-  GitService get git => super.context.get();
-  ProcessService get process => super.context.get();
-  @override
-  Logger get logger => super.context.get();
-}
-
 class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
   const GeneratorsMapper();
 
@@ -259,7 +245,6 @@ const _defaultGenerators = <Type, Generator>{
   ApiService: ApiService.new,
   GitService: GitService.new,
   ProcessService: ProcessService.new,
-  ServicesProvider: ServicesProvider.new,
   Logger: Logger.new,
   UseVersionWorkflow: UseVersionWorkflow.new,
   CheckProjectConstraintsWorkflow: CheckProjectConstraintsWorkflow.new,

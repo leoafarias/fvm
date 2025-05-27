@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/api/api_service.dart';
 import 'package:fvm/src/api/models/json_response.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -9,8 +11,6 @@ import '../../mocks.dart';
 import '../../testing_utils.dart';
 
 void main() {
-  late ServicesProvider services;
-
   late FvmContext context;
 
   setUpAll(() {
@@ -27,14 +27,12 @@ void main() {
         // FlutterReleasesService: (_) => MockFlutterReleasesService(),
       },
     );
-
-    services = context.get<ServicesProvider>();
   });
 
   group('getContext', () {
     test('returns context wrapped in response object', () {
       // Execute
-      final result = services.api.getContext();
+      final result = context.get<ApiService>().getContext();
 
       // Verify
       expect(result, isA<GetContextResponse>());
@@ -45,50 +43,55 @@ void main() {
     test('returns project for null directory', () {
       // Set up
       final mockProject = MockProject();
-      when(() => services.project.findAncestor(directory: null))
+      when(() => context.get<ProjectService>().findAncestor(directory: null))
           .thenReturn(mockProject);
 
       // Execute
-      final result = services.api.getProject();
+      final result = context.get<ApiService>().getProject();
 
       // Verify
       expect(result, isA<GetProjectResponse>());
       expect(result.project, equals(mockProject));
-      verify(() => services.project.findAncestor(directory: null)).called(1);
+      verify(() => context.get<ProjectService>().findAncestor(directory: null))
+          .called(1);
     });
 
     test('returns project for specified directory', () {
       // Set up
       final directory = Directory('/test/path');
       final mockProject = MockProject();
-      when(() => services.project.findAncestor(directory: directory))
+      when(() =>
+              context.get<ProjectService>().findAncestor(directory: directory))
           .thenReturn(mockProject);
 
       // Execute
-      final result = services.api.getProject(directory);
+      final result = context.get<ApiService>().getProject(directory);
 
       // Verify
       expect(result, isA<GetProjectResponse>());
       expect(result.project, equals(mockProject));
-      verify(() => services.project.findAncestor(directory: directory))
+      verify(() =>
+              context.get<ProjectService>().findAncestor(directory: directory))
           .called(1);
     });
   });
 
   group('getCachedVersions', () {
     test('returns versions with directories', () async {
-      await services.flutter.install(
-        FlutterVersion.parse('beta'),
-      );
+      await context.get<FlutterService>().install(
+            FlutterVersion.parse('beta'),
+          );
 
-      await services.flutter.install(
-        FlutterVersion.parse('stable'),
-      );
+      await context.get<FlutterService>().install(
+            FlutterVersion.parse('stable'),
+          );
 
-      final stableDir =
-          services.cache.getVersionCacheDir(FlutterVersion.parse('stable'));
-      final flutter3Dir =
-          services.cache.getVersionCacheDir(FlutterVersion.parse('beta'));
+      final stableDir = context
+          .get<CacheService>()
+          .getVersionCacheDir(FlutterVersion.parse('stable'));
+      final flutter3Dir = context
+          .get<CacheService>()
+          .getVersionCacheDir(FlutterVersion.parse('beta'));
 
       // Verify directories exist instead of checking sizes
       expect(stableDir.existsSync(), isTrue,
@@ -96,10 +99,11 @@ void main() {
       expect(flutter3Dir.existsSync(), isTrue,
           reason: 'Beta directory should exist');
 
-      final cachedVersionsResponse = await services.cache.getAllVersions();
+      final cachedVersionsResponse =
+          await context.get<CacheService>().getAllVersions();
 
       // Execute
-      final result = await services.api.getCachedVersions();
+      final result = await context.get<ApiService>().getCachedVersions();
 
       // Verify
       expect(result, isA<GetCacheVersionsResponse>());
@@ -111,20 +115,21 @@ void main() {
     test(
         'returns versions without size calculation when skipCacheSizeCalculation is true',
         () async {
-      await services.flutter.install(
-        FlutterVersion.parse('3.0.0'),
-      );
+      await context.get<FlutterService>().install(
+            FlutterVersion.parse('3.0.0'),
+          );
 
-      await services.flutter.install(
-        FlutterVersion.parse('stable'),
-      );
+      await context.get<FlutterService>().install(
+            FlutterVersion.parse('stable'),
+          );
 
-      final cachedVersionsResponse = await services.cache.getAllVersions();
+      final cachedVersionsResponse =
+          await context.get<CacheService>().getAllVersions();
 
       // Execute
-      final result = await services.api.getCachedVersions(
-        skipCacheSizeCalculation: true,
-      );
+      final result = await context.get<ApiService>().getCachedVersions(
+            skipCacheSizeCalculation: true,
+          );
 
       // Verify
       expect(result, isA<GetCacheVersionsResponse>());
@@ -137,12 +142,13 @@ void main() {
     late FlutterReleasesResponse releasesResponse;
 
     setUp(() async {
-      releasesResponse = await services.releaseClient.fetchReleases();
+      releasesResponse =
+          await context.get<FlutterReleaseClient>().fetchReleases();
     });
 
     test('returns all releases when no filters applied', () async {
       // Execute
-      final result = await services.api.getReleases();
+      final result = await context.get<ApiService>().getReleases();
 
       // Verify
       expect(result, isA<GetReleasesResponse>());
@@ -152,7 +158,7 @@ void main() {
 
     test('returns limited releases when limit is specified', () async {
       // Execute
-      final result = await services.api.getReleases(limit: 2);
+      final result = await context.get<ApiService>().getReleases(limit: 2);
 
       // Verify
       expect(result, isA<GetReleasesResponse>());
@@ -162,7 +168,8 @@ void main() {
 
     test('returns filtered releases when channel is specified', () async {
       // Execute
-      final result = await services.api.getReleases(channelName: 'stable');
+      final result =
+          await context.get<ApiService>().getReleases(channelName: 'stable');
 
       // Verify
       expect(result, isA<GetReleasesResponse>());
@@ -174,8 +181,9 @@ void main() {
         'returns limited and filtered releases when both limit and channel specified',
         () async {
       // Execute
-      final result =
-          await services.api.getReleases(limit: 1, channelName: 'stable');
+      final result = await context
+          .get<ApiService>()
+          .getReleases(limit: 1, channelName: 'stable');
 
       // Verify
       expect(result, isA<GetReleasesResponse>());

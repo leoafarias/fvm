@@ -16,8 +16,6 @@ class TestCommandRunner extends FvmCommandRunner {
     super.context,
   );
 
-  ServicesProvider get services => context.get();
-
   @override
   Future<int> run(Iterable<String> args) async {
     final firstArg = args.first;

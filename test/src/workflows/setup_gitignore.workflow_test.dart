@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/workflows/setup_gitignore.workflow.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -26,7 +27,8 @@ void main() {
         testDir,
       );
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
 
       expect(project.name, equals('test_project_2'));
 
@@ -54,7 +56,8 @@ void main() {
         testDir,
       );
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -77,7 +80,8 @@ void main() {
       final gitignore = File(p.join(testDir.path, '.gitignore'));
       gitignore.writeAsStringSync('.fvm/\n');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -112,7 +116,8 @@ void main() {
 /coverage/
 ''');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -159,8 +164,9 @@ void main() {
       await Process.run('chmod', ['444', gitignore.path]);
 
       try {
-        final project =
-            runner.services.project.findAncestor(directory: testDir);
+        final project = runner.context
+            .get<ProjectService>()
+            .findAncestor(directory: testDir);
         final workflow = SetupGitIgnoreWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -223,7 +229,8 @@ void main() {
           '\t/build/\r\n'
           '# End comments\r\n');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -258,7 +265,8 @@ void main() {
       // Initialize git repository
       await Process.run('git', ['init'], workingDirectory: testDir.path);
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow

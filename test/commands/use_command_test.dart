@@ -1,5 +1,6 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/extensions.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -16,11 +17,9 @@ const _versionList = [
 
 void main() {
   late TestCommandRunner runner;
-  late ServicesProvider services;
 
   setUp(() {
     runner = TestFactory.commandRunner();
-    services = runner.services;
   });
 
   group('Use workflow:', () {
@@ -35,14 +34,15 @@ void main() {
         ]);
 
         // Get the project and verify its configuration
-        final project = services.project.findAncestor();
+        final project = runner.context.get<ProjectService>().findAncestor();
         final link = project.localVersionSymlinkPath.link;
         final linkExists = link.existsSync();
 
         // Check the symlink target
         final targetPath = link.targetSync();
         final valid = FlutterVersion.parse(version);
-        final versionDir = services.cache.getVersionCacheDir(valid);
+        final versionDir =
+            runner.context.get<CacheService>().getVersionCacheDir(valid);
 
         // Perform assertions
         expect(targetPath == versionDir.path, true);

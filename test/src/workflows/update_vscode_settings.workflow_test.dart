@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/workflows/update_vscode_settings.workflow.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -30,7 +31,8 @@ void main() {
       final vscodeDir = Directory(p.join(testDir.path, '.vscode'));
       vscodeDir.createSync();
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
 
       // Test with privileged access
 
@@ -72,7 +74,8 @@ void main() {
       final vscodeDir = Directory(p.join(testDir.path, '.vscode'));
       vscodeDir.createSync();
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       expect(project.name, equals('test_project_2'));
 
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -103,7 +106,8 @@ void main() {
       final vscodeDir = Directory(p.join(testDir.path, '.vscode'));
       vscodeDir.createSync();
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -125,7 +129,8 @@ void main() {
         testDir,
       );
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
 
       // Create workflow with test context that doesn't simulate VS Code environment
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -174,7 +179,8 @@ void main() {
 }
 ''');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -212,7 +218,8 @@ void main() {
 }
 ''');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow - should fail gracefully
@@ -248,8 +255,9 @@ void main() {
       await Process.run('chmod', ['444', settingsFile.path]);
 
       try {
-        final project =
-            runner.services.project.findAncestor(directory: testDir);
+        final project = runner.context
+            .get<ProjectService>()
+            .findAncestor(directory: testDir);
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -289,7 +297,8 @@ void main() {
 }
 ''');
 
-      final project = runner.services.project.findAncestor(directory: testDir);
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow

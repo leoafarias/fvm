@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -8,15 +9,14 @@ void main() {
   // Reusable test function for all version installations
   Future<void> testInstallVersion(String version) async {
     final runner = TestFactory.commandRunner();
-    final services = runner.services;
 
     // Run the install command
     final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
 
     // Get the installed version from cache
-    final cacheVersion = services.cache.getVersion(
-      FlutterVersion.parse(version),
-    );
+    final cacheVersion = runner.context.get<CacheService>().getVersion(
+          FlutterVersion.parse(version),
+        );
 
     // Determine the expected release channel
     String? releaseChannel;
@@ -27,9 +27,11 @@ void main() {
       if (cacheVersion!.releaseChannel != null) {
         releaseChannel = cacheVersion.releaseChannel!.name;
       } else {
-        final release = await services.releaseClient.getReleaseByVersion(
-          cacheVersion.version,
-        );
+        final release = await runner.context
+            .get<FlutterReleaseClient>()
+            .getReleaseByVersion(
+              cacheVersion.version,
+            );
 
         if (cacheVersion.isUnknownRef) {
           releaseChannel = FlutterChannel.master.name;
@@ -40,9 +42,9 @@ void main() {
     }
 
     // Get the actual branch from the installed version
-    final existingChannel = await services.git.getBranch(
-      version,
-    );
+    final existingChannel = await runner.context.get<GitService>().getBranch(
+          version,
+        );
 
     // Assertions
     expect(cacheVersion != null, true, reason: 'Install does not exist');
