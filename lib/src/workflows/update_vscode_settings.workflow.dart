@@ -29,6 +29,49 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     return vscodeDir.existsSync();
   }
 
+  /// Gets the relative path from the working directory for display purposes.
+  String _getRelativePath(String filePath) {
+    return p.relative(filePath, from: context.workingDirectory);
+  }
+
+  /// Handles JSON parsing errors with consistent error messaging.
+  void _handleJsonParseError(
+    String filePath,
+    FormatException e,
+    String fileType,
+  ) {
+    final relativePath = _getRelativePath(filePath);
+    logger.err(
+      'Error parsing $fileType at $relativePath: ${e.message}\n'
+      'Please use a tool like https://jsonlint.com to validate and fix it',
+    );
+  }
+
+  /// Validates that the Flutter SDK path exists and warns if not.
+  void _validateSdkPath(Project project, String context) {
+    if (project.pinnedVersion != null &&
+        !Directory(project.localVersionSymlinkPath).existsSync()) {
+      logger.warn(
+        'Flutter SDK not found at ${project.localVersionSymlinkPath}, but updating $context anyway.',
+      );
+    }
+  }
+
+  /// Resolves the Flutter SDK path for VSCode settings.
+  /// Returns relative path if privileged access, absolute path otherwise.
+  String _resolveSdkPath(Project project, {String? relativeTo}) {
+    if (context.privilegedAccess) {
+      final relativePath = p.relative(
+        project.localVersionSymlinkPath,
+        from: relativeTo ?? project.path,
+      );
+
+      return convertToPosixPath(relativePath);
+    }
+
+    return project.localVersionSymlinkPath;
+  }
+
   /// Finds a VS Code workspace file in the project directory.
   ///
   /// Returns the most relevant workspace file or null if none is found.
@@ -85,16 +128,16 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     final vscodeSettingsFile = File(p.join(vscodeDir.path, 'settings.json'));
 
     // Check if project is using VS Code
-    final isUsingVscode = isVsCode() || vscodeDir.existsSync();
-
-    // If not using VS Code, no settings to update
-    if (!isUsingVscode) {
+    if (!isVsCode() && !_hasVsCodeFiles(project)) {
       logger.debug(
         'Project is not using $kVsCode, skipping folder settings update.',
       );
 
       return;
     }
+
+    // Validate SDK path
+    _validateSdkPath(project, 'VSCode settings');
 
     // Create the settings file if it doesn't exist
     if (!vscodeSettingsFile.existsSync()) {
@@ -115,42 +158,30 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       if (contents.isNotEmpty) {
         currentSettings = jsonc.decode(contents);
       }
-    } on FormatException catch (_) {
-      final relativePath = p.relative(
-        vscodeSettingsFile.path,
-        from: context.workingDirectory,
-      );
-
-      logger.err(
-        'Error parsing $kVsCode settings at $relativePath\n'
-        'Please use a tool like https://jsonlint.com to validate and fix it',
-      );
+    } on FormatException catch (e) {
+      _handleJsonParseError(vscodeSettingsFile.path, e, '$kVsCode settings');
 
       return;
     } catch (e) {
-      logger.err('Failed to read $kVsCode settings: $e');
+      final relativePath = _getRelativePath(vscodeSettingsFile.path);
+      logger.err('Failed to read $kVsCode settings at $relativePath: $e');
 
       return;
     }
 
-    // Update Flutter SDK path setting
+    // Update Flutter SDK path setting only if there's a pinned version
     try {
-      if (context.privilegedAccess) {
-        final relativePath = p.relative(
-          project.localVersionSymlinkPath,
-          from: project.path,
-        );
-
-        currentSettings["dart.flutterSdkPath"] =
-            convertToPosixPath(relativePath);
+      if (project.pinnedVersion != null) {
+        currentSettings["dart.flutterSdkPath"] = _resolveSdkPath(project);
+        logger.success('Updated $kVsCode folder Flutter SDK path setting.');
       } else {
-        currentSettings["dart.flutterSdkPath"] =
-            project.localVersionSymlinkPath;
+        logger.debug(
+          'Skipping dart.flutterSdkPath setting - no pinned Flutter version.',
+        );
       }
 
       // Write updated settings back to file
       vscodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
-      logger.success('Updated $kVsCode folder Flutter SDK path setting.');
     } catch (e) {
       logger.err('Failed to update $kVsCode folder settings: $e');
     }
@@ -166,6 +197,9 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       return;
     }
 
+    // Validate SDK path
+    _validateSdkPath(project, 'workspace file');
+
     try {
       // Read workspace file
       String contents = workspaceFile.readAsStringSync();
@@ -174,53 +208,37 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       if (contents.isNotEmpty) {
         try {
           workspaceSettings = jsonc.decode(contents);
-        } on FormatException catch (_) {
-          final relativePath = p.relative(
-            workspaceFile.path,
-            from: context.workingDirectory,
-          );
-          logger.err(
-            'Error parsing workspace file at $relativePath\n'
-            'Please use a tool like https://jsonlint.com to validate and fix it',
-          );
+        } on FormatException catch (e) {
+          _handleJsonParseError(workspaceFile.path, e, 'workspace file');
+
+          return;
         }
       }
 
       // Initialize settings section if it doesn't exist
       workspaceSettings['settings'] ??= <String, dynamic>{};
 
-      // Get path to Flutter SDK
-      final String sdkPath;
-      if (context.privilegedAccess) {
-        // For workspace files, calculate relative path from workspace file location
+      // Update Flutter SDK setting only if there's a pinned version
+      if (project.pinnedVersion != null) {
         final workspaceDir = p.dirname(workspaceFile.path);
-        final relativePath = p.relative(
-          project.localVersionSymlinkPath,
-          from: workspaceDir,
-        );
-        sdkPath = convertToPosixPath(relativePath);
+        final sdkPath = _resolveSdkPath(project, relativeTo: workspaceDir);
+        workspaceSettings['settings']['dart.flutterSdkPath'] = sdkPath;
       } else {
-        sdkPath = project.localVersionSymlinkPath;
+        logger.debug(
+          'Skipping dart.flutterSdkPath setting in workspace file - no pinned Flutter version.',
+        );
       }
-
-      // Update Flutter SDK setting
-      workspaceSettings['settings']['dart.flutterSdkPath'] = sdkPath;
 
       // Write changes back
       workspaceFile.writeAsStringSync(prettyJson(workspaceSettings));
 
-      final relativePath = p.relative(
-        workspaceFile.path,
-        from: context.workingDirectory,
-      );
-      logger.success(
-        'Updated Flutter SDK path in workspace file: $relativePath',
-      );
+      final relativePath = _getRelativePath(workspaceFile.path);
+      final message = project.pinnedVersion != null
+          ? 'Updated Flutter SDK path in workspace file: $relativePath'
+          : 'Updated workspace file: $relativePath';
+      logger.success(message);
     } catch (e) {
-      final relativePath = p.relative(
-        workspaceFile.path,
-        from: context.workingDirectory,
-      );
+      final relativePath = _getRelativePath(workspaceFile.path);
       logger.err('Failed to update workspace file $relativePath: $e');
       // Continue to next workspace file
     }
@@ -240,8 +258,9 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
     if (project.pinnedVersion == null) {
       logger.warn(
-        '$kPackageName: Project is not using a pinned Flutter version, skipping $kVsCode settings update.',
+        '$kPackageName: Project is not using a pinned Flutter version.',
       );
+      // Continue execution but skip setting dart.flutterSdkPath
     }
 
     if (!updateVscodeSettings) {
@@ -249,12 +268,10 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
         '$kPackageName does not manage $kVsCode settings for this project.',
       );
 
-      // Check if project is using VS Code in some way
-      final isUsingVscode = isVsCode() ||
+      // Check if project is using VS Code
+      if (isVsCode() ||
           _hasVsCodeFiles(project) ||
-          _findWorkspaceFile(project) != null;
-
-      if (isUsingVscode) {
+          _findWorkspaceFile(project) != null) {
         logger.warn(
           'You are using $kVsCode, but $kPackageName is '
           'not managing $kVsCode settings for this project. '

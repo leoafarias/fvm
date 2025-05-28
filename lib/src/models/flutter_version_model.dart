@@ -22,7 +22,8 @@ enum FlutterChannel {
   stable,
   dev,
   beta,
-  master;
+  master,
+  main;
 
   const FlutterChannel();
 

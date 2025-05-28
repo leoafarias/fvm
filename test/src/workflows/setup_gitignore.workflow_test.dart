@@ -34,8 +34,8 @@ void main() {
 
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
-      // Run workflow with force flag
-      final result = await workflow.call(project, force: true);
+      // Run workflow
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify .gitignore was created and contains expected content
@@ -61,7 +61,7 @@ void main() {
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
-      final result = await workflow.call(project, force: true);
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify .gitignore was not created
@@ -69,7 +69,7 @@ void main() {
       expect(gitignore.existsSync(), isFalse);
     });
 
-    test('should not duplicate entries in existing .gitignore', () async {
+    test('should not duplicate entries in existing .gitignore', () {
       final testDir = createTempDir();
       // Create test project with existing .gitignore
       createPubspecYaml(testDir);
@@ -85,7 +85,7 @@ void main() {
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
-      final result = await workflow.call(project, force: true);
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify .gitignore wasn't modified
@@ -94,7 +94,7 @@ void main() {
           contents.where((line) => line.trim() == '.fvm/').length, equals(1));
     });
 
-    test('should handle and clean empty lines correctly', () async {
+    test('should handle and clean empty lines correctly', () {
       final testDir = createTempDir();
       // Create test project with .gitignore containing multiple empty lines
       createPubspecYaml(testDir);
@@ -121,7 +121,7 @@ void main() {
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
-      final result = await workflow.call(project, force: true);
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify .gitignore was updated without duplicate blank lines
@@ -170,7 +170,7 @@ void main() {
         final workflow = SetupGitIgnoreWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
-        final result = await workflow.call(project, force: true);
+        final result = workflow.call(project);
         expect(result, isFalse);
 
         // Content should remain unchanged
@@ -182,7 +182,7 @@ void main() {
       }
     });
 
-    test('should handle non-existent parent directories correctly', () async {
+    test('should handle non-existent parent directories correctly', () {
       final testDir = createTempDir();
       // Create test project
       createPubspecYaml(testDir);
@@ -204,8 +204,8 @@ void main() {
 
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
-      // Run workflow with force flag - should create parent directories
-      final result = await workflow.call(mockProject, force: true);
+      // Run workflow - should create parent directories
+      final result = workflow.call(mockProject);
       expect(result, isTrue);
 
       // Verify .gitignore was created
@@ -213,7 +213,7 @@ void main() {
       expect(gitignore.existsSync(), isTrue);
     });
 
-    test('should preserve existing formatting when possible', () async {
+    test('should preserve existing formatting when possible', () {
       final testDir = createTempDir();
       // Create test project with specially formatted .gitignore
       createPubspecYaml(testDir);
@@ -234,7 +234,7 @@ void main() {
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
-      final result = await workflow.call(project, force: true);
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify original formatting (tabs) was preserved in existing content
@@ -270,7 +270,7 @@ void main() {
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
-      final result = await workflow.call(project, force: true);
+      final result = workflow.call(project);
       expect(result, isTrue);
 
       // Verify .gitignore was created

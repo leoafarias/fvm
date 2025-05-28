@@ -38,7 +38,7 @@ class UseVersionWorkflow extends Workflow {
       force: force,
     );
 
-    await get<SetupGitIgnoreWorkflow>()(project, force: force);
+    get<SetupGitIgnoreWorkflow>()(project);
 
     if (!skipPubGet) {
       await get<ResolveProjectDependenciesWorkflow>()(

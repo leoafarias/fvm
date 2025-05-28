@@ -1,8 +1,4 @@
-import 'dart:async';
 import 'dart:io';
-
-import 'package:git/git.dart';
-import 'package:io/ansi.dart';
 
 import '../models/project_model.dart';
 import '../utils/constants.dart';
@@ -34,47 +30,22 @@ class SetupGitIgnoreWorkflow extends Workflow {
   ///
   /// If [updateGitIgnore] is disabled in the project config, this operation is skipped.
   ///
-  /// When [force] is true, skips the confirmation prompt and applies the changes
-  /// automatically. Otherwise, prompts the user for confirmation before modifying
-  /// the file.
+  /// Automatically applies the changes without prompting for improved user experience.
   ///
   /// Returns `true` if the operation was successful or if no action was needed,
   /// and `false` if an error occurred during file operations.
-  Future<bool> call(Project project, {required bool force}) async {
-    logger.debug('Checking .gitignore');
-
+  bool call(Project project) {
     // Check if gitignore management is enabled for this project
     final updateGitIgnore = project.config?.updateGitIgnore ?? true;
-    logger.debug('Update gitignore: $updateGitIgnore');
 
     if (!updateGitIgnore) {
-      logger.debug(
-        '$kPackageName does not manage .gitignore for this project.',
-      );
-
       return true;
     }
 
     final ignoreFile = project.gitIgnoreFile;
-    bool isGitRepo = false;
-
-    // Safely check if this is a git repository
-    try {
-      isGitRepo = await GitDir.isGitDir(project.path);
-    } catch (e) {
-      logger.warn('Failed to check git repository status: $e');
-      isGitRepo = false;
-    }
 
     // Create the .gitignore file if it doesn't exist
     if (!ignoreFile.existsSync()) {
-      if (!isGitRepo) {
-        logger.warn(
-          'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
-          'to determine what to index and display on searches.',
-        );
-      }
-
       try {
         ignoreFile.createSync(recursive: true);
       } catch (e) {
@@ -96,8 +67,6 @@ class SetupGitIgnoreWorkflow extends Workflow {
 
     // Check if the entry already exists
     if (lines.any((line) => line.trim() == kFvmPathToAdd)) {
-      logger.debug('$kFvmPathToAdd already exists in .gitignore');
-
       return true;
     }
 
@@ -125,30 +94,9 @@ class SetupGitIgnoreWorkflow extends Workflow {
       return previousValue;
     });
 
-    logger.info(
-      'You should add the $kPackageName version directory "${cyan.wrap(kFvmPathToAdd)}" to .gitignore.',
-    );
-
-    // Handle force flag or ask for confirmation
-    if (force) {
-      logger.warn(
-        'Skipping .gitignore confirmation because of --force flag detected',
-      );
-    } else {
-      final confirmation =
-          logger.confirm('Would you like to do that now?', defaultValue: true);
-
-      if (!confirmation) {
-        return false;
-      }
-    }
-
-    // Write the updated content to the .gitignore file
+    // Write the updated content to the .gitignore file silently
     try {
       ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
-      logger.success(
-        'Added $kFvmPathToAdd to .gitignore ${force ? '(forced)' : ''}',
-      );
 
       return true;
     } catch (e) {

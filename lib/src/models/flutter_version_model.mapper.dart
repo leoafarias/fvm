@@ -87,6 +87,8 @@ class FlutterChannelMapper extends EnumMapper<FlutterChannel> {
         return FlutterChannel.beta;
       case r'master':
         return FlutterChannel.master;
+      case r'main':
+        return FlutterChannel.main;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -103,6 +105,8 @@ class FlutterChannelMapper extends EnumMapper<FlutterChannel> {
         return r'beta';
       case FlutterChannel.master:
         return r'master';
+      case FlutterChannel.main:
+        return r'main';
     }
   }
 }

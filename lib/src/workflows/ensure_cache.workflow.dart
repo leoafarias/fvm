@@ -14,32 +14,25 @@ import 'workflow.dart';
 class EnsureCacheWorkflow extends Workflow {
   const EnsureCacheWorkflow(super.context);
 
-  // More user-friendly explanation of what went wrong and what will happen next
+  // Auto-fix corrupted cache for improved user experience
   Future<CacheFlutterVersion> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
-  }) async {
+  }) {
     logger
       ..notice(
         'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
       )
-      ..info();
+      ..info('Auto-fixing corrupted cache by reinstalling...');
 
-    final shouldReinstall = logger.confirm(
-      'Would you like to reinstall this version to resolve the issue?',
-      defaultValue: true,
+    // Always auto-fix corrupted cache - no prompting needed
+    // Corrupted cache is always a problem that needs fixing
+    get<CacheService>().remove(version);
+    logger.info(
+      'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
 
-    if (shouldReinstall) {
-      get<CacheService>().remove(version);
-      logger.info(
-        'The corrupted SDK version is now being removed and a reinstallation will follow...',
-      );
-
-      return call(version, shouldInstall: shouldInstall);
-    }
-
-    throw AppException('Flutter SDK: ${version.name} is not executable.');
+    return call(version, shouldInstall: shouldInstall);
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
@@ -152,17 +145,8 @@ class EnsureCacheWorkflow extends Workflow {
       logger.info(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
       );
+      logger.info('Installing Flutter SDK automatically...');
 
-      if (!force) {
-        final shouldInstallConfirmed = logger.confirm(
-          'Would you like to install it now?',
-          defaultValue: true,
-        );
-
-        if (!shouldInstallConfirmed) {
-          exit(ExitCode.unavailable.code);
-        }
-      }
     }
 
     bool useGitCache = context.gitCache;

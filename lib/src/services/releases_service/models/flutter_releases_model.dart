@@ -8,7 +8,7 @@ import 'version_model.dart';
 
 part 'flutter_releases_model.mapper.dart';
 
-const _flutterChannels = ['stable', 'beta', 'dev', 'master'];
+const _flutterChannels = ['stable', 'beta', 'dev'];
 
 /// Flutter Releases
 @MappableClass()
