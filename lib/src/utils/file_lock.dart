@@ -1,19 +1,26 @@
 import 'dart:async';
 import 'dart:io';
 
+/// File-based locking mechanism with automatic expiration.
+/// Prevents concurrent access to shared resources across processes.
 class FileLocker {
+  /// The file path used for the lock file.
   final String path;
+
+  /// Duration after which the lock automatically expires.
   final Duration lockExpiration;
 
+  /// Creates a new FileLocker instance.
   const FileLocker(this.path, {required this.lockExpiration});
 
   File get _file => File(path);
 
   bool get _lockExists => _file.existsSync();
 
+  /// Returns true if the lock is currently active and not expired.
   bool get isLocked => _lockExists && isLockedWithin(lockExpiration);
 
-  /// Get the timestamp from inside the file contents
+  /// Gets the lock creation timestamp from file content or modification time.
   DateTime? get lastModified {
     if (!_lockExists) return null;
 

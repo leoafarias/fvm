@@ -17,7 +17,7 @@ class ListCommand extends BaseFvmCommand {
   final name = 'list';
 
   @override
-  final description = 'Lists installed Flutter SDK Versions';
+  final description = 'Lists all Flutter SDK versions installed by FVM';
 
   /// Constructor
   ListCommand(super.context);
@@ -124,7 +124,7 @@ class ListCommand extends BaseFvmCommand {
         ..info(
           'This will complete the first time you run any command with the SDK.',
         )
-        ..info();
+        ..info('');
     }
 
     // Early return if no versions are installed

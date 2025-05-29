@@ -20,8 +20,8 @@ class DoctorCommand extends BaseFvmCommand {
   final name = 'doctor';
 
   @override
-  final description = 'Shows information about environment, '
-      'and project configuration.';
+  final description =
+      'Shows detailed information about the FVM environment and project configuration';
 
   final console = Console();
 

@@ -11,14 +11,14 @@ import 'constants.dart';
 import 'extensions.dart';
 import 'git_utils.dart';
 
-/// Checks if [name] is a channel
-
+/// Checks if [name] is a valid Flutter release channel.
 bool isFlutterChannel(String name) {
   return kFlutterChannels.contains(name);
 }
 
-/// Assigns weight to [version] to channels for comparison
-/// Returns a weight for all versions and channels
+/// Converts Flutter versions and channels to comparable semver strings.
+/// Assigns weights: git commits (500.0.0), master (400.0.0), stable (300.0.0),
+/// beta (200.0.0), dev (100.0.0), invalid (0.0.0).
 String assignVersionWeight(String version) {
   /// Assign version number to continue to work with semver
   if (isPossibleGitCommit(version)) {
@@ -66,18 +66,32 @@ String assignVersionWeight(String version) {
   return version;
 }
 
+/// Formats a DateTime as "Month Day, Year" (e.g., "Jan 15, 2024").
 String friendlyDate(DateTime dateTime) {
   return formatDate(dateTime, [M, ' ', d, ', ', yyyy]);
 }
 
+/// Returns true if running inside Visual Studio Code.
 bool isVsCode() => Platform.environment['TERM_PROGRAM'] == 'vscode';
 
+/// Parsed Flutter version information from `flutter --version` output.
 class FlutterVersionOutput {
+  /// The Flutter SDK version (e.g., "3.15.0").
   final String? flutterVersion;
+
+  /// The Flutter release channel (e.g., "stable", "beta", "dev").
   final String? channel;
+
+  /// The Dart SDK version (e.g., "3.2.0").
   final String? dartVersion;
+
+  /// The Dart build version including build metadata (e.g., "3.2.0-134.1.beta").
   final String? dartBuildVersion;
+
+  /// The Flutter framework Git revision hash.
   final String? frameworkRevision;
+
+  /// The Flutter engine Git revision hash.
   final String? engineRevision;
 
   const FlutterVersionOutput({
@@ -95,22 +109,25 @@ class FlutterVersionOutput {
   }
 }
 
-// Parses Flutter version output
-// EXAMPLE:1
-// Flutter 3.15.0-15.1.pre • channel beta • https://github.com/flutter/flutter.git
-// Framework • revision b2ec15bfa3 (5 days ago) • 2023-09-14 15:31:44 -0500
-// Engine • revision 5c86194494
-// Tools • Dart 3.2.0 (build 3.2.0-134.1.beta) • DevTools 2.27.0
-// EXAMPLE:2
-// Flutter 3.10.5 • channel stable • https://github.com/flutter/flutter.git
-// Framework • revision 796c8ef792 (3 months ago) • 2023-06-13 15:51:02 -0700
-// Engine • revision 45f6e00911
-// Tools • Dart 3.0.5 • DevTools 2.23.1
-// EXAMPLE:3
-// Flutter 2.2.0 • channel stable • https://github.com/flutter/flutter.git
-// Framework • revision b22742018b (2 years, 4 months ago) • 2021-05-14 19:12:57 -0700
-// Engine • revision a9d88a4d18
-// Tools • Dart 2.13.0
+/// Parses Flutter version output from `flutter --version` command.
+///
+/// Example input formats:
+/// ```
+/// Flutter 3.15.0-15.1.pre • channel beta • https://github.com/flutter/flutter.git
+/// Framework • revision b2ec15bfa3 (5 days ago) • 2023-09-14 15:31:44 -0500
+/// Engine • revision 5c86194494
+/// Tools • Dart 3.2.0 (build 3.2.0-134.1.beta) • DevTools 2.27.0
+/// ```
+///
+/// ```
+/// Flutter 3.10.5 • channel stable • https://github.com/flutter/flutter.git
+/// Framework • revision 796c8ef792 (3 months ago) • 2023-06-13 15:51:02 -0700
+/// Engine • revision 45f6e00911
+/// Tools • Dart 3.0.5 • DevTools 2.23.1
+/// ```
+///
+/// Returns a [FlutterVersionOutput] object with parsed version information.
+/// Throws [FormatException] if the content cannot be parsed.
 FlutterVersionOutput extractFlutterVersionOutput(String content) {
   final filteredContent = _extractFlutterInfoBlock(content);
 
@@ -161,18 +178,19 @@ String _extractFlutterInfoBlock(String content) {
   return content.substring(flutterInfoBlock);
 }
 
+/// Extracts Dart version from `dart --version` output.
 String extractDartVersionOutput(String input) {
-  // The updated regular expression to capture the full version string
   final RegExp regExp = RegExp(r'Dart SDK version: (\S+)');
   final match = regExp.firstMatch(input);
   if (match != null) {
-    return match.group(1)!.trim(); // Returns the version number
+    return match.group(1)!.trim();
   }
   throw FormatException(
     'No Dart version found in the input string. \n\n $input',
   );
 }
 
+/// Validates if a URL is a valid Git repository URL.
 bool isValidGitUrl(String url) {
   try {
     final uri = Uri.parse(url);
@@ -185,6 +203,7 @@ bool isValidGitUrl(String url) {
   }
 }
 
+/// Converts string to boolean. Returns null for invalid values.
 bool? stringToBool(String value) {
   final lowerCase = value.toLowerCase();
   if (lowerCase == 'true') {
@@ -198,6 +217,7 @@ bool? stringToBool(String value) {
   return null;
 }
 
+/// Formats bytes into human-readable format (e.g., "1.5 GB").
 String formatFriendlyBytes(int bytes, [int decimals = 2]) {
   if (bytes <= 0) return '0 B';
 
@@ -212,13 +232,12 @@ String formatFriendlyBytes(int bytes, [int decimals = 2]) {
   return '${scaledValue.toStringAsFixed(decimals)} ${suffixes[suffixIndex]}';
 }
 
+/// Calculates total size of a directory recursively.
 Future<int> getDirectorySize(Directory dir) async {
   int total = 0;
 
-  // Using async/await to asynchronously handle the file system's directories and files
   await for (FileSystemEntity entity in dir.list(recursive: true)) {
     if (entity is File) {
-      // Accumulate file size
       total += await entity.length();
     }
   }
@@ -226,6 +245,7 @@ Future<int> getDirectorySize(Directory dir) async {
   return total;
 }
 
+/// Calculates total size of all cached Flutter versions in parallel.
 Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
   if (versions.isEmpty) return 0;
 
@@ -254,18 +274,16 @@ Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
   }
 }
 
+/// Updates environment variables by prepending paths to PATH.
 Map<String, String> updateEnvironmentVariables(
   List<String> paths,
   Map<String, String> env,
 ) {
-  // Remove any values that are similar
-  // within the list of paths.
+  // Remove duplicates
   paths = paths.toSet().toList();
 
   final updatedEnvironment = Map<String, String>.from(env);
-
   final envPath = env['PATH'] ?? '';
-
   final separator = Platform.isWindows ? ';' : ':';
 
   updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;

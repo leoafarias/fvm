@@ -9,7 +9,8 @@ class FlutterCommand extends BaseFvmCommand {
   @override
   final name = 'flutter';
   @override
-  final description = 'Proxies Flutter Commands';
+  final description =
+      'Runs Flutter commands using the project\'s configured SDK version';
   @override
   final argParser = ArgParser.allowAnything();
 

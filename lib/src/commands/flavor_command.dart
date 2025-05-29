@@ -13,7 +13,7 @@ class FlavorCommand extends BaseFvmCommand {
   final name = 'flavor';
   @override
   final description =
-      'Executes a Flutter command using a specified version defined by the project flavor';
+      'Executes Flutter commands using the SDK version configured for a specific project flavor';
   @override
   final argParser = ArgParser.allowAnything();
 

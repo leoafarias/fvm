@@ -17,7 +17,7 @@ class GlobalCommand extends BaseFvmCommand {
   final name = 'global';
 
   @override
-  final description = 'Sets Flutter SDK Version as a global';
+  final description = 'Sets a Flutter SDK version as the global default';
 
   /// Constructor
   GlobalCommand(super.context) {
@@ -25,14 +25,14 @@ class GlobalCommand extends BaseFvmCommand {
       ..addFlag(
         'unlink',
         abbr: 'u',
-        help: 'Unlinks the global version',
+        help: 'Removes the global Flutter SDK version setting',
         defaultsTo: false,
         negatable: false,
       )
       ..addFlag(
         'force',
         abbr: 'f',
-        help: 'Skips validation checks',
+        help: 'Bypasses Flutter SDK validation checks',
         defaultsTo: false,
         negatable: false,
       );
@@ -93,7 +93,6 @@ class GlobalCommand extends BaseFvmCommand {
     CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
-      //TODO: Should run validation on this
       pinnedCacheVersion = cacheService.getVersion(pinnedVersion);
     }
 

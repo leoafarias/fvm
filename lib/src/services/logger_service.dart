@@ -53,9 +53,9 @@ class Logger extends ContextualService {
     }
   }
 
-  void info([String? message]) {
+  void info([String message = '']) {
     _logger.info(message);
-    _outputs.add(message ?? '');
+    _outputs.add(message);
   }
 
   void success(String message) {
@@ -66,19 +66,19 @@ class Logger extends ContextualService {
     info('${Icons.failure.red()} $message');
   }
 
-  void warn([String? message]) {
+  void warn([String message = '']) {
     _logger.warn(message);
-    _outputs.add(message ?? '');
+    _outputs.add(message);
   }
 
-  void err([String? message]) {
+  void err([String message = '']) {
     _logger.err(message);
-    _outputs.add(message ?? '');
+    _outputs.add(message);
   }
 
-  void debug([String? message]) {
+  void debug([String message = '']) {
     _logger.detail(message);
-    _outputs.add(message ?? '');
+    _outputs.add(message);
   }
 
   void write(String message) {

@@ -8,7 +8,8 @@ class DartCommand extends BaseFvmCommand {
   @override
   final name = 'dart';
   @override
-  final description = 'Proxies Dart Commands';
+  final description =
+      'Runs Dart commands using the project\'s configured Flutter SDK';
   @override
   final argParser = ArgParser.allowAnything();
 

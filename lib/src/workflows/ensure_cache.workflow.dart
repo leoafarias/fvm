@@ -146,7 +146,6 @@ class EnsureCacheWorkflow extends Workflow {
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
       );
       logger.info('Installing Flutter SDK automatically...');
-
     }
 
     bool useGitCache = context.gitCache;

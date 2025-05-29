@@ -9,7 +9,8 @@ class ExecCommand extends BaseFvmCommand {
   @override
   final name = 'exec';
   @override
-  final description = 'Executes scripts with the configured Flutter SDK';
+  final description =
+      'Executes commands with the project\'s configured Flutter SDK in the environment';
   @override
   final argParser = ArgParser.allowAnything();
 

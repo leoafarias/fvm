@@ -1,5 +1,3 @@
-// Use just for reference, should not change
-
 import 'dart:convert';
 import 'dart:io';
 

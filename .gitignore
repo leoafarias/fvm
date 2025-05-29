@@ -52,9 +52,8 @@ fvm
 .fvm/
 
 test/fixtures/sample_app
-.brain
-.orbit
 
 # Example app directory
 example_app/
-.serena
+.context
+.augment-guidelines

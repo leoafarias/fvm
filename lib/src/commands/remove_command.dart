@@ -13,13 +13,13 @@ class RemoveCommand extends BaseFvmCommand {
   final name = 'remove';
 
   @override
-  final description = 'Removes Flutter SDK Version';
+  final description = 'Removes Flutter SDK versions from the cache';
 
   RemoveCommand(super.context) {
     argParser.addFlag(
       'all',
       abbr: 'a',
-      help: 'Removes all versions',
+      help: 'Removes all cached Flutter SDK versions',
       negatable: false,
     );
   }

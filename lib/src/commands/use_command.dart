@@ -17,8 +17,7 @@ class UseCommand extends BaseFvmCommand {
   final name = 'use';
 
   @override
-  String description =
-      'Sets Flutter SDK Version you would like to use in a project';
+  String description = 'Sets the Flutter SDK version for the current project';
 
   /// Constructor
   UseCommand(super.context) {
@@ -26,32 +25,32 @@ class UseCommand extends BaseFvmCommand {
       ..addFlag(
         'force',
         abbr: 'f',
-        help: 'Skips command guards that does Flutter project checks.',
+        help: 'Bypasses Flutter project validation checks',
         negatable: false,
       )
       ..addFlag(
         'pin',
         abbr: 'p',
         help:
-            'If version provided is a channel. Will pin the latest release of the channel',
+            'Pins the latest release of a channel instead of using the channel directly',
         negatable: false,
       )
       ..addOption(
         'flavor',
-        help: 'Sets version for a project flavor',
+        help: 'Sets the Flutter SDK version for a specific project flavor',
         defaultsTo: null,
         aliases: ['env'],
       )
       ..addFlag(
         'skip-pub-get',
-        help: 'Skip resolving dependencies after switching Flutter SDK',
+        help: 'Skips running "flutter pub get" after switching SDK versions',
         defaultsTo: false,
         negatable: false,
       )
       ..addFlag(
         'skip-setup',
         abbr: 's',
-        help: 'Skips Flutter setup after install',
+        help: 'Skips downloading SDK dependencies after switching versions',
         negatable: false,
       );
   }

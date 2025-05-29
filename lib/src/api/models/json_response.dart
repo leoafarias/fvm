@@ -38,7 +38,7 @@ class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
   /// Channels in Flutter releases
   final Channels channels;
 
-  /// LIst of all releases
+  /// List of all releases
   final List<FlutterSdkRelease> versions;
 
   static final fromMap = GetReleasesResponseMapper.fromMap;

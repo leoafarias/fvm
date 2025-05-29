@@ -116,3 +116,28 @@ Future<void> coverage() async {
     ],
   );
 }
+
+@Task('Run integration tests')
+Future<void> integrationTest() async {
+  print('Running integration tests...');
+
+  // Check if integration test script exists
+  final script = File('scripts/integration_test.sh');
+  if (!script.existsSync()) {
+    throw GrinderException('Integration test script not found: ${script.path}');
+  }
+
+  // Make script executable
+  await runAsync('chmod', arguments: ['+x', script.path]);
+
+  // Run integration tests
+  await runAsync('bash', arguments: [script.path]);
+
+  print('Integration tests completed successfully');
+}
+
+@Task('Run all tests (unit + integration)')
+@Depends(test, integrationTest)
+void testAll() {
+  print('All tests completed successfully');
+}

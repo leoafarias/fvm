@@ -9,7 +9,8 @@ class DestroyCommand extends BaseFvmCommand {
   final name = 'destroy';
 
   @override
-  final description = 'Destroy FVM cache by deleting FVM directory';
+  final description =
+      'Completely removes the FVM cache and all cached Flutter SDK versions';
 
   /// Constructor
   DestroyCommand(super.context);

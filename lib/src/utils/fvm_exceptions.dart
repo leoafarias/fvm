@@ -6,10 +6,10 @@ import 'package:io/io.dart';
 class FvmException implements Exception {
   /// User-readable error message
   final String message;
-  
+
   /// Optional additional details for debugging
   final String? details;
-  
+
   /// Exit code to use when this exception causes program termination
   final int exitCode;
 

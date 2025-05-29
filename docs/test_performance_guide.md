@@ -7,17 +7,14 @@ This guide provides tools and strategies for monitoring and optimizing test perf
 ### Running Performance Analysis
 
 ```bash
-# Quick analysis (unit tests only)
-dart scripts/quick_performance_test.dart
+# Run tests with timing information
+dart test --reporter=expanded
 
-# Full analysis including workflow tests
-dart scripts/test_performance_monitor.dart --include-workflow
+# Run specific test files for focused analysis
+dart test test/src/api/api_service_test.dart --reporter=expanded
 
-# JSON output for CI/CD integration
-dart scripts/test_performance_monitor.dart --json
-
-# Set custom performance threshold (default: 1000ms)
-dart scripts/test_performance_monitor.dart --threshold 500
+# Run tests with JSON output for parsing
+dart test --reporter=json
 ```
 
 ### Current Performance Baseline
@@ -100,21 +97,18 @@ Add performance monitoring to your CI pipeline:
 # .github/workflows/test.yml
 - name: Run Performance Analysis
   run: |
-    dart scripts/test_performance_monitor.dart --json > test_performance.json
-    dart scripts/test_performance_monitor.dart --threshold 500
+    dart test --reporter=json > test_performance.json
+    # Parse JSON output for performance metrics
 ```
 
 ### Performance Regression Detection
 
 ```bash
-# Compare current performance with baseline
-dart scripts/test_performance_monitor.dart --json > current_performance.json
+# Run tests with timing and parse output
+dart test --reporter=json > current_performance.json
 
-# Set up alerts for performance regressions
-if [ $(jq '.summary.averagePerTest' current_performance.json) -gt 400 ]; then
-  echo "Performance regression detected!"
-  exit 1
-fi
+# Use standard Dart test tools for performance monitoring
+dart test --reporter=expanded | grep -E "^\s*\d+:\d+\s+\+\d+"
 ```
 
 ### Tracking Performance Over Time
@@ -181,11 +175,13 @@ dart test --coverage=coverage
 dart test --concurrency=8
 ```
 
-### Custom Performance Scripts
+### Built-in Dart Test Tools
 
-- `scripts/quick_performance_test.dart`: Fast unit test analysis
-- `scripts/test_performance_monitor.dart`: Comprehensive monitoring
-- `scripts/test_performance_analyzer.dart`: Detailed analysis with insights
+Use Dart's built-in test tools for performance analysis:
+
+- `dart test --reporter=expanded`: Shows detailed timing for each test
+- `dart test --reporter=json`: Provides machine-readable output for parsing
+- `dart test --concurrency=N`: Controls parallel execution for performance testing
 
 ### Performance Thresholds
 

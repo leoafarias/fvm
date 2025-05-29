@@ -39,7 +39,7 @@ class ForkAddCommand extends BaseFvmCommand {
   @override
   final name = 'add';
   @override
-  final description = 'Adds a new fork. Usage: fvm fork add <alias> <url>';
+  final description = 'Adds a new Flutter fork alias for custom repositories';
   @override
   final hidden = false;
 
@@ -90,7 +90,7 @@ class ForkRemoveCommand extends BaseFvmCommand {
   @override
   final name = 'remove';
   @override
-  final description = 'Removes a fork alias. Usage: fvm fork remove <alias>';
+  final description = 'Removes a configured Flutter fork alias';
   @override
   final hidden = false;
 
@@ -120,7 +120,7 @@ class ForkListCommand extends BaseFvmCommand {
   @override
   final name = 'list';
   @override
-  final description = 'Lists all fork aliases. Usage: fvm fork list';
+  final description = 'Lists all configured Flutter fork aliases';
   @override
   final hidden = false;
 

@@ -15,7 +15,7 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
     argParser.addFlag(
       'compress',
       abbr: 'c',
-      help: 'Prints JSON with no whitespace',
+      help: 'Outputs compact JSON without formatting or whitespace',
       negatable: false,
     );
   }
@@ -54,7 +54,8 @@ class APICommand extends BaseFvmCommand {
   final name = 'api';
 
   @override
-  String description = 'JSON API for FVM data';
+  String description =
+      'Provides JSON API access to FVM data for integrations and tooling';
 
   /// Constructor
   APICommand(super.context) {
@@ -73,7 +74,8 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
   final name = 'context';
 
   @override
-  final description = 'Gets context data for FVM';
+  final description =
+      'Returns FVM environment and configuration information as JSON';
 
   /// Constructor
   APIContextCommand(super.controller);
@@ -89,14 +91,15 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
   final name = 'project';
 
   @override
-  final description = 'Gets project data for FVM';
+  final description =
+      'Returns Flutter project configuration and settings as JSON';
 
   /// Constructor
   APIProjectCommand(super.context) {
     argParser.addOption(
       'path',
       abbr: 'p',
-      help: 'Path to project, defaults to working directory if not provided',
+      help: 'Path to Flutter project (defaults to current directory)',
     );
   }
 
@@ -119,7 +122,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   final name = 'list';
 
   @override
-  final description = 'Lists installed Flutter SDK Versions';
+  final description = 'Returns installed Flutter SDK versions as JSON';
 
   /// Constructor
   APIListCommand(super.controller) {
@@ -127,7 +130,7 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
       'skip-size-calculation',
       abbr: 's',
       help:
-          'Skips calculating the size of the versions, useful for large caches',
+          'Skips calculating cache sizes for faster response (useful for large caches)',
       negatable: false,
     );
   }
@@ -147,19 +150,19 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   final name = 'releases';
 
   @override
-  final description = 'Lists Flutter SDK Releases';
+  final description = 'Returns available Flutter SDK releases as JSON';
 
   /// Constructor
   APIReleasesCommand(super.controller) {
     argParser
       ..addOption(
         'limit',
-        help: 'Limits the amount of releases',
-        valueHelp: 'limit',
+        help: 'Limits the number of releases returned',
+        valueHelp: 'number',
       )
       ..addOption(
         'filter-channel',
-        help: 'Filter by channel name',
+        help: 'Filters releases by channel (stable, beta, dev)',
         allowed: ['stable', 'beta', 'dev'],
       );
   }

@@ -16,7 +16,8 @@ class InstallCommand extends BaseFvmCommand {
   final name = 'install';
 
   @override
-  final description = 'Installs Flutter SDK Version';
+  final description =
+      'Installs a Flutter SDK version and caches it for future use';
 
   /// Constructor
   InstallCommand(super.context) {
@@ -24,7 +25,7 @@ class InstallCommand extends BaseFvmCommand {
       ..addFlag(
         'setup',
         abbr: 's',
-        help: 'Builds SDK after install',
+        help: 'Downloads SDK dependencies after install',
         defaultsTo: false,
         negatable: false,
       )

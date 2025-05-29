@@ -3,7 +3,6 @@ import 'package:io/io.dart';
 import 'package:yaml_writer/yaml_writer.dart';
 
 import '../models/config_model.dart';
-import '../utils/constants.dart';
 import 'base_command.dart';
 
 /// Fvm Config
@@ -12,14 +11,14 @@ class ConfigCommand extends BaseFvmCommand {
   final name = 'config';
 
   @override
-  final description = 'Set global configuration settings for FVM';
+  final description = 'Configure global FVM settings and preferences';
 
   /// Constructor
   ConfigCommand(super.context) {
     ConfigOptions.injectArgParser(argParser);
     argParser.addFlag(
       'update-check',
-      help: 'Checks if there is a new version of $kPackageName available.',
+      help: 'Enables or disables automatic update checking for FVM',
       defaultsTo: true,
       negatable: true,
     );

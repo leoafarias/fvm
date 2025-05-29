@@ -14,7 +14,8 @@ class ReleasesCommand extends BaseFvmCommand {
   final name = 'releases';
 
   @override
-  final description = 'View all Flutter SDK releases available for install. ';
+  final description =
+      'Lists all Flutter SDK releases available for installation';
 
   /// Constructor
   // Add option to pass channel name
@@ -22,7 +23,7 @@ class ReleasesCommand extends BaseFvmCommand {
     argParser.addOption(
       'channel',
       abbr: 'c',
-      help: 'Filter by channel name',
+      help: 'Filter releases by channel (stable, beta, dev, all)',
       allowed: ['stable', 'beta', 'dev', 'all'],
       defaultsTo: 'stable',
     );

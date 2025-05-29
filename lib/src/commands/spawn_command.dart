@@ -11,7 +11,7 @@ class SpawnCommand extends BaseFvmCommand {
   @override
   final name = 'spawn';
   @override
-  final description = 'Spawns a command on a Flutter version';
+  final description = 'Executes Flutter commands using a specific SDK version';
   @override
   final argParser = ArgParser.allowAnything();
 
