@@ -115,7 +115,7 @@ void main() {
 
       // Reset to stable at the end
       print('\nResetting to stable channel...');
-      await appTestRunner.runOrThrow(['fvm', 'use', 'stable']);
+      await appTestRunner.runOrThrow(['fvm', 'use', 'stable', '--force']);
 
       // Check final configuration
       print('\nFinal configuration:');
@@ -136,8 +136,8 @@ Future<void> _testVersion(
 ) async {
   print('----- Testing $description: $version -----');
 
-  // Use the version
-  await runner.runOrThrow(['fvm', 'use', version]);
+  // Use the version with --force flag to bypass constraint checks in tests
+  await runner.runOrThrow(['fvm', 'use', version, '--force']);
 
   // Verify the config file exists
   final project = runner.context.get<ProjectService>().findAncestor();
