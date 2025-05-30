@@ -39,7 +39,7 @@ Future<void> getReleases() async {
   String owner = 'leoafarias';
   String repo = 'fvm';
 
-  final response = await fetch(
+  final response = await httpRequest(
     'https://api.github.com/repos/$owner/$repo/releases?per_page=100',
     headers: {'Accept': 'application/vnd.github.v3+json'},
   );
@@ -115,4 +115,29 @@ Future<void> coverage() async {
       '--out=coverage/lcov.info',
     ],
   );
+}
+
+@Task('Run integration tests')
+Future<void> integrationTest() async {
+  print('Running integration tests...');
+
+  // Check if integration test script exists
+  final script = File('scripts/integration_test.sh');
+  if (!script.existsSync()) {
+    throw GrinderException('Integration test script not found: ${script.path}');
+  }
+
+  // Make script executable
+  await runAsync('chmod', arguments: ['+x', script.path]);
+
+  // Run integration tests
+  await runAsync('bash', arguments: [script.path]);
+
+  print('Integration tests completed successfully');
+}
+
+@Task('Run all tests (unit + integration)')
+@Depends(test, integrationTest)
+void testAll() {
+  print('All tests completed successfully');
 }

@@ -1,20 +1,19 @@
 import 'package:io/io.dart';
 
-import '../services/logger_service.dart';
-import '../utils/context.dart';
 import '../utils/extensions.dart';
 import 'base_command.dart';
 
 /// Destroy FVM cache by deleting all Flutter SDK versions
-class DestroyCommand extends BaseCommand {
+class DestroyCommand extends BaseFvmCommand {
   @override
   final name = 'destroy';
 
   @override
-  final description = 'Destroy FVM cache by deleting FVM directory';
+  final description =
+      'Completely removes the FVM cache and all cached Flutter SDK versions';
 
   /// Constructor
-  DestroyCommand();
+  DestroyCommand(super.context);
 
   @override
   Future<int> run() async {
@@ -23,10 +22,10 @@ class DestroyCommand extends BaseCommand {
       'This action cannot be undone. Do you want to proceed?',
       defaultValue: false,
     )) {
-      if (ctx.versionsCachePath.dir.existsSync()) {
-        ctx.versionsCachePath.dir.deleteSync(recursive: true);
+      if (context.versionsCachePath.dir.existsSync()) {
+        context.versionsCachePath.dir.deleteSync(recursive: true);
         logger.success(
-          'FVM Directory ${ctx.versionsCachePath}\n has been deleted',
+          'FVM Directory ${context.versionsCachePath}\n has been deleted',
         );
       }
     }

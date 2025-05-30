@@ -1,0 +1,8 @@
+concurrency: 4
+timeout: 5m
+paths:
+  - test/utils
+  - test/src
+  - test/version_format_workflow_test.dart
+  - test/complete_workflow_test.dart
+# Do not include widget tests or sample/example app tests

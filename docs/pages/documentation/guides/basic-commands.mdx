@@ -30,7 +30,7 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 > fvm use [version] [options]
 ```
 
-`version`: Desired Flutter SDK version (e.g., `2.2.3`) or channel (e.g., `stable`).
+`version`: Desired Flutter SDK version (e.g., `2.2.3`) or channel (e.g., `stable`). If omitted, FVM will check for an existing pinned version in the project or prompt you to select one.
 
 ### Options
 
@@ -40,7 +40,22 @@ Sets a specific Flutter SDK version for a project, ensuring environment consiste
 -  `-s, --skip-setup`: Omits Flutter setup post-installation for expedited process.
 -  `--skip-pub-get`: Skips resolving dependencies (`flutter pub get`) after switching Flutter SDK.
 
-- `--fvm-skip-input`: Skips requests for user input and uses default values.
+### What Happens Behind the Scenes
+
+When you run `fvm use`, several important things happen:
+
+1. **SDK Setup**: FVM ensures the specified Flutter SDK version is properly set up
+2. **Project References**: 
+   - Creates an `.fvm` directory in your project
+   - Sets up a symlink to the cached Flutter SDK version
+   - Creates a `flutter_sdk` link for proper IDE integration (especially for Android Studio)
+3. **Configuration**: 
+   - Updates project configuration files 
+   - Adds appropriate entries to .gitignore
+   - Configures VS Code settings (if using VS Code)
+4. **Dependencies**: Runs `flutter pub get` to resolve dependencies (unless skipped)
+
+For VS Code users, FVM will notify you if you need to restart your terminal to apply changes.
 
 ### Examples
 
@@ -103,14 +118,19 @@ Installs a specified Flutter SDK version to your machine and caches it for futur
 ### Usage
 
 ```bash
-> fvm install [version]
+> fvm install [version] [options]
 ```
 
 Without `[version]`, installs the version specified in the project's FVM settings.
 
+### Aliases
+
+- `fvm i` - Short alias for the install command
+
 ### Options
 
--  `-s, --setup`: Builds the SDK post-installation for immediate readiness.
+-  `-s, --setup`: Downloads SDK dependencies after install for immediate readiness.
+-  `--skip-pub-get`: Skips running "flutter pub get" after switching SDK versions.
 
 ### Examples
 
@@ -145,11 +165,9 @@ The `list` command in FVM (Flutter Version Management) is used to display a list
 > fvm list
 ```
 
-or its alias:
+### Aliases
 
-```bash
-> fvm ls
-```
+- `fvm ls` - Short alias for the list command
 
 ### Examples
 
@@ -172,7 +190,7 @@ The `releases` command in FVM (Flutter Version Management) allows you to view al
 
 ### Options
 
--  `-c, --channel [channel_name]`: Filter the releases by a specific channel (e.g., `stable`, `beta`, `dev`). If no channel is specified, it defaults to showing releases from the `stable` channel.
+-  `-c, --channel [channel_name]`: Filter releases by channel (stable, beta, dev, all). Defaults to stable if not specified.
 
 ### Examples
 
@@ -197,18 +215,29 @@ The `remove` command in FVM (Flutter Version Management) is used to remove a spe
 ### Usage
 
 ```bash
-> fvm remove [version]
+> fvm remove [version] [options]
 ```
 
-`[version]`: The Flutter SDK version you want to remove.
+`[version]`: The Flutter SDK version you want to remove. If omitted, FVM will prompt you to select from installed versions.
+
+### Options
+
+-  `-a, --all`: Removes all cached Flutter SDK versions.
 
 ### Examples
 
-**Removing a Specific Version**:  
+**Removing a Specific Version**:
 To remove Flutter SDK version `2.2.3` from your machine, you would run:
 
 ```bash
 fvm remove 2.2.3
+```
+
+**Removing All Versions**:
+To remove all cached Flutter SDK versions:
+
+```bash
+fvm remove --all
 ```
 
 ## Global
@@ -225,8 +254,8 @@ The `global` command in FVM (Flutter Version Management) is used to set a specif
 
 ### Options
 
--  `-f, --force`: Bypasses Flutter project checks.
--  `-u, --unlink`: Unlinks the global version, reverting to the default Flutter SDK version.
+-  `-f, --force`: Bypasses Flutter SDK validation checks.
+-  `-u, --unlink`: Removes the global Flutter SDK version setting, reverting to the default Flutter SDK version.
 
 ### Examples
 
@@ -246,7 +275,7 @@ fvm global --unlink
 
 ## Spawn
 
-The `spawn` command is used to execute Flutter commands using a specific Flutter SDK version.
+The `spawn` command executes Flutter commands using a specific Flutter SDK version.
 
 This command is particularly useful when you need to run a Flutter command (such as `flutter build`) with a version of the SDK different from the one currently active or configured in your project.
 
@@ -280,7 +309,7 @@ fvm spawn 2.2.3 flutter test
 
 ## Exec
 
-The `exec` command in FVM is designed to execute scripts or commands using the Flutter SDK version configured for your project. This command is particularly useful for ensuring that the correct version of the Flutter SDK is used for various scripts and operations in a project-specific context.
+The `exec` command executes commands with the project's configured Flutter SDK in the environment. This command is particularly useful for ensuring that the correct version of the Flutter SDK is used for various scripts and operations in a project-specific context.
 
 ### Usage
 
@@ -310,7 +339,7 @@ fvm exec path/to/script.sh
 
 ## Destroy
 
-The `destroy` command in FVM is a powerful tool used to completely remove the FVM cache, including all cached Flutter SDK versions. This command is useful for cleaning up space or resetting your FVM setup.
+The `destroy` command completely removes the FVM cache and all cached Flutter SDK versions. This command is useful for cleaning up space or resetting your FVM setup.
 
 ### Usage
 
@@ -329,7 +358,7 @@ fvm destroy
 
 ## Flavor
 
-The `flavor` command is used to execute Flutter commands using a specific Flutter SDK version defined by a project flavor.
+The `flavor` command executes Flutter commands using the SDK version configured for a specific project flavor.
 
 This command is particularly useful when you need to run a Flutter command (such as `flutter build`) with a version of the SDK associated with a particular flavor of your project.
 
@@ -354,9 +383,173 @@ To build your Flutter project using the Flutter SDK version associated with the 
 > fvm flavor development flutter build
 ```
 
-**Running Tests with a Different Flavor**:  
+**Running Tests with a Different Flavor**:
 If you need to run tests using the Flutter SDK version associated with the `staging` flavor:
 
 ```bash
 > fvm flavor staging flutter test
 ```
+
+## Fork
+
+The `fork` command allows you to manage Flutter fork aliases for custom repositories. This is useful when working with custom Flutter forks or company-specific Flutter versions.
+
+### Usage
+
+```bash
+> fvm fork [subcommand] [arguments]
+```
+
+### Subcommands
+
+- `add`: Add a new fork alias
+- `remove`: Remove a fork alias
+- `list`: List all configured fork aliases
+
+### Fork Add
+
+Adds a new Flutter fork alias that can be used with any FVM command.
+
+**Usage:**
+```bash
+> fvm fork add <alias> <url>
+```
+
+**Examples:**
+
+**Adding a Company Fork**:
+```bash
+fvm fork add mycompany https://github.com/mycompany/flutter.git
+```
+
+**Adding a Personal Fork**:
+```bash
+fvm fork add personal https://github.com/username/flutter.git
+```
+
+After adding a fork, you can use it with any version format:
+```bash
+fvm install mycompany/stable
+fvm use mycompany/3.19.0
+fvm install personal/beta
+```
+
+### Fork Remove
+
+Removes a configured fork alias.
+
+**Usage:**
+```bash
+> fvm fork remove <alias>
+```
+
+**Examples:**
+
+**Removing a Fork Alias**:
+```bash
+fvm fork remove mycompany
+```
+
+### Fork List
+
+Lists all configured fork aliases.
+
+**Usage:**
+```bash
+> fvm fork list
+```
+
+This will display all configured forks with their aliases and repository URLs.
+
+## Config
+
+The `config` command configures global FVM settings and preferences.
+
+### Usage
+
+```bash
+> fvm config [options]
+```
+
+### Options
+
+- `--cache-path`: Set custom cache directory path
+- `--flutter-url`: Set custom Flutter repository URL
+- `--git-cache`: Enable/disable Git cache
+- `--update-check`: Enable/disable automatic update checking for FVM
+
+### Examples
+
+**Viewing Current Configuration**:
+```bash
+fvm config
+```
+
+**Setting Custom Flutter Repository**:
+```bash
+fvm config --flutter-url https://github.com/mycompany/flutter.git
+```
+
+**Disabling Update Checking**:
+```bash
+fvm config --no-update-check
+```
+
+## Doctor
+
+The `doctor` command shows detailed information about the FVM environment and project configuration.
+
+### Usage
+
+```bash
+> fvm doctor
+```
+
+### What It Shows
+
+- Project information and configuration
+- IDE integration status (VS Code settings)
+- Environment details (OS, Dart runtime)
+- Path configurations and validation
+
+This command is useful for troubleshooting FVM setup issues and verifying your configuration.
+
+## API
+
+The `api` command provides JSON API access to FVM data for integrations and tooling.
+
+### Usage
+
+```bash
+> fvm api [subcommand] [options]
+```
+
+### Subcommands
+
+- `list`: Returns installed Flutter SDK versions as JSON
+- `releases`: Returns available Flutter releases as JSON
+- `context`: Returns FVM environment and configuration information as JSON
+- `project`: Returns Flutter project configuration and settings as JSON
+
+### Common Options
+
+- `-c, --compress`: Outputs compact JSON without formatting or whitespace
+
+### Examples
+
+**Getting Cached Versions**:
+```bash
+fvm api list
+```
+
+**Getting Available Releases**:
+```bash
+fvm api releases --filter-channel stable
+```
+
+**Getting Project Information**:
+```bash
+fvm api project --path /path/to/project
+```
+
+For detailed API response formats, see the [JSON API documentation](../advanced/json-api).

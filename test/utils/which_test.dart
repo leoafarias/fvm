@@ -14,10 +14,9 @@ void main() {
     }
     var endTime = DateTime.now();
     var elapsedTime = endTime.difference(startTime);
-    print(
-        'Time taken for $totalIterations iterations: ${elapsedTime.inMilliseconds}ms');
-    print(
-      'Time taken for 1 iteration: ${elapsedTime.inMilliseconds / totalIterations}ms',
-    );
+
+    final perInvocationSpeed = elapsedTime.inMilliseconds / totalIterations;
+
+    expect(perInvocationSpeed, lessThan(1), reason: 'should be faster');
   });
 }

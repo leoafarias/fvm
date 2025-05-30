@@ -21,8 +21,10 @@ void main() {
     final envName = 'PATH';
     final fakePath = 'FAKE_PATH';
 
-    final newEnvVar =
-        updateEnvironmentVariables(['FAKE_PATH', 'ANOTHER_FAKE_PATH'], envVars);
+    final newEnvVar = updateEnvironmentVariables(
+      ['FAKE_PATH', 'ANOTHER_FAKE_PATH'],
+      envVars,
+    );
 
     // expect(newEnvVar[envName], envVars[envName]);
     expect(newEnvVar[envName]!.contains(fakePath), true);
@@ -93,7 +95,7 @@ Tools • Dart 2.13.0''';
       final content =
           '''  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
-    
+
       0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
      27  203M   27 56.1M    0     0  61.8M      0  0:00:03 --:--:--  0:00:03 61.8M
      88  203M   88  180M    0     0  94.9M      0  0:00:02  0:00:01  0:00:01 94.9M
@@ -213,5 +215,15 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(result.channel, 'beta');
     expect(result.dartVersion, '3.2.0');
     expect(result.dartBuildVersion, '3.2.0-134.1.beta');
+  });
+
+  test('formatFriendlyBytes', () {
+    expect(formatFriendlyBytes(1024), '1.00 KB');
+    expect(formatFriendlyBytes(1024 * 1024), '1.00 MB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024), '1.00 GB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024), '1.00 TB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024), '1.00 PB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
+        '1.00 EB');
   });
 }

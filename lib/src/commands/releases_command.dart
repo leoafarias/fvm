@@ -2,7 +2,6 @@ import 'package:args/command_runner.dart';
 import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
-import '../services/logger_service.dart';
 import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/console_utils.dart';
@@ -10,20 +9,21 @@ import '../utils/helpers.dart';
 import 'base_command.dart';
 
 /// List installed SDK Versions
-class ReleasesCommand extends BaseCommand {
+class ReleasesCommand extends BaseFvmCommand {
   @override
   final name = 'releases';
 
   @override
-  final description = 'View all Flutter SDK releases available for install. ';
+  final description =
+      'Lists all Flutter SDK releases available for installation';
 
   /// Constructor
   // Add option to pass channel name
-  ReleasesCommand() {
+  ReleasesCommand(super.context) {
     argParser.addOption(
       'channel',
       abbr: 'c',
-      help: 'Filter by channel name',
+      help: 'Filter releases by channel (stable, beta, dev, all)',
       allowed: ['stable', 'beta', 'dev', 'all'],
       defaultsTo: 'stable',
     );
@@ -49,9 +49,9 @@ class ReleasesCommand extends BaseCommand {
       return release.channel.name != channelName;
     }
 
-    logger.detail('Filtering by channel: $channelName');
+    logger.debug('Filtering by channel: $channelName');
 
-    final releases = await FlutterReleasesClient.getReleases();
+    final releases = await get<FlutterReleaseClient>().fetchReleases();
 
     final versions = releases.versions.reversed;
 

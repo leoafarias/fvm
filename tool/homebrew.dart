@@ -31,7 +31,7 @@ Future<void> _homebrewFormula() async {
     'Accept': 'application/vnd.github.v3+json',
   };
 
-  final response = await fetch(url.toString(), headers: headers);
+  final response = await httpRequest(url.toString(), headers: headers);
 
   final Map<String, dynamic> release = jsonc.decode(response);
   final List assets = release['assets'];

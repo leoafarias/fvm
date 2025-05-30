@@ -39,7 +39,7 @@ class FlutterReleasesResponseMapper
       v._versionReleaseMap;
   static const Field<FlutterReleasesResponse, Map<String, FlutterSdkRelease>>
       _f$_versionReleaseMap = Field('_versionReleaseMap', _$_versionReleaseMap,
-          key: 'versionReleaseMap');
+          key: r'versionReleaseMap');
 
   @override
   final MappableFields<FlutterReleasesResponse> fields = const {
@@ -82,7 +82,8 @@ mixin FlutterReleasesResponseMappable {
 
   FlutterReleasesResponseCopyWith<FlutterReleasesResponse,
           FlutterReleasesResponse, FlutterReleasesResponse>
-      get copyWith => _FlutterReleasesResponseCopyWithImpl(
+      get copyWith => _FlutterReleasesResponseCopyWithImpl<
+              FlutterReleasesResponse, FlutterReleasesResponse>(
           this as FlutterReleasesResponse, $identity, $identity);
   @override
   String toString() {
@@ -106,8 +107,8 @@ mixin FlutterReleasesResponseMappable {
 extension FlutterReleasesResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterReleasesResponse, $Out> {
   FlutterReleasesResponseCopyWith<$R, FlutterReleasesResponse, $Out>
-      get $asFlutterReleasesResponse => $base
-          .as((v, t, t2) => _FlutterReleasesResponseCopyWithImpl(v, t, t2));
+      get $asFlutterReleasesResponse => $base.as((v, t, t2) =>
+          _FlutterReleasesResponseCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class FlutterReleasesResponseCopyWith<
@@ -175,5 +176,5 @@ class _FlutterReleasesResponseCopyWithImpl<$R, $Out>
   @override
   FlutterReleasesResponseCopyWith<$R2, FlutterReleasesResponse, $Out2>
       $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-          _FlutterReleasesResponseCopyWithImpl($value, $cast, t);
+          _FlutterReleasesResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

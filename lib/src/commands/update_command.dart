@@ -1,19 +1,18 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:pub_updater/pub_updater.dart';
 
-import '../services/logger_service.dart';
 import '../utils/constants.dart';
 import '../version.dart';
+import 'base_command.dart';
 
-class UpdateCommand extends Command<int> {
+class UpdateCommand extends BaseFvmCommand {
   static const String commandName = 'update';
 
   final PubUpdater _pubUpdater;
 
-  UpdateCommand({PubUpdater? pubUpdater})
+  UpdateCommand(super.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater();
 
   @override
