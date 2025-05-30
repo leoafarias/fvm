@@ -25,7 +25,7 @@ class DestroyCommand extends BaseFvmCommand {
       if (context.versionsCachePath.dir.existsSync()) {
         context.versionsCachePath.dir.deleteSync(recursive: true);
         logger.success(
-          'FVM Directory ${context.versionsCachePath}\n has been deleted',
+          'FVM Directory ${context.versionsCachePath} has been deleted',
         );
       }
     }
