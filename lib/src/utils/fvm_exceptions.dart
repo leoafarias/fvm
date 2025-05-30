@@ -13,11 +13,7 @@ class FvmException implements Exception {
   /// Exit code to use when this exception causes program termination
   final int exitCode;
 
-  const FvmException(
-    this.message, {
-    this.details,
-    this.exitCode = 1,
-  });
+  const FvmException(this.message, {this.details, this.exitCode = 1});
 
   @override
   String toString() => message;
