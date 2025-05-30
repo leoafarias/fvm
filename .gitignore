@@ -57,3 +57,11 @@ test/fixtures/sample_app
 example_app/
 .context
 .augment-guidelines
+
+# Platform-specific directories (generated during testing)
+windows/
+web/
+linux/
+macos/
+ios/
+android/
