@@ -383,12 +383,8 @@ else
 fi
 
 log_test "21. Testing exec command..."
-# Create a simple script to execute
-echo '#!/bin/bash' > test_script.sh
-echo 'echo "Exec test successful"' >> test_script.sh
-chmod +x test_script.sh
-
-run_fvm exec ./test_script.sh > /tmp/exec_output.txt 2>&1
+# Test exec with a cross-platform command (echo)
+run_fvm exec echo "Exec test successful" > /tmp/exec_output.txt 2>&1
 if grep -q "Exec test successful" /tmp/exec_output.txt; then
     log_success "Exec command works"
 else
