@@ -9,6 +9,11 @@ void main() {
     const testForkName = 'testfork';
     const testForkUrl = 'https://github.com/testuser/flutter.git';
 
+    // Ensure global config directory exists before running fork tests
+    setUpAll(() {
+      ensureGlobalConfigDirectoryExists();
+    });
+
     test('Add a fork', () async {
       final runner = TestFactory.commandRunner();
 

@@ -351,3 +351,12 @@ class MockFlutterService extends FlutterService {
 final _sharedTestFvmDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
 final _sharedGitCacheDir =
     Directory(p.join(_sharedTestFvmDir.path, 'gitcache'));
+
+/// Ensures the global FVM configuration directory exists for tests that need it.
+/// This is particularly important for fork management tests in CI environments.
+void ensureGlobalConfigDirectoryExists() {
+  final configDir = Directory(kAppConfigFile).parent;
+  if (!configDir.existsSync()) {
+    configDir.createSync(recursive: true);
+  }
+}

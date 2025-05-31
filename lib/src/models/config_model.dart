@@ -209,11 +209,6 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   String get location => _configFile.path;
 
   void save() {
-    // Ensure the parent directory exists before writing the file
-    final parentDir = _configFile.parent;
-    if (!parentDir.existsSync()) {
-      parentDir.createSync(recursive: true);
-    }
     _configFile.writeAsStringSync(prettyJson(toMap()));
   }
 }
