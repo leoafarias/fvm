@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/convert_posix_path.dart';
 import 'package:fvm/src/workflows/update_vscode_settings.workflow.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -53,11 +54,11 @@ void main() {
       await nonPrivilegedWorkflow(project);
 
       // Verify absolute path is used without privileged access
+      // Note: Path should be converted to POSIX format for JSON compatibility
       final nonPrivilegedContents = settingsFile.readAsStringSync();
-      expect(
-          nonPrivilegedContents,
-          contains(
-              '"dart.flutterSdkPath": "${project.localVersionSymlinkPath}"'));
+      final expectedPath = convertToPosixPath(project.localVersionSymlinkPath);
+      expect(nonPrivilegedContents,
+          contains('"dart.flutterSdkPath": "$expectedPath"'));
     });
 
     test('should create and update VS Code settings when force is true',
