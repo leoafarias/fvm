@@ -59,17 +59,22 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
   /// Resolves the Flutter SDK path for VSCode settings.
   /// Returns relative path if privileged access, absolute path otherwise.
+  /// Always converts to POSIX format for JSON compatibility on Windows.
   String _resolveSdkPath(Project project, {String? relativeTo}) {
+    String sdkPath;
+
     if (context.privilegedAccess) {
-      final relativePath = p.relative(
+      sdkPath = p.relative(
         project.localVersionSymlinkPath,
         from: relativeTo ?? project.path,
       );
-
-      return convertToPosixPath(relativePath);
+    } else {
+      sdkPath = project.localVersionSymlinkPath;
     }
 
-    return project.localVersionSymlinkPath;
+    // Always convert to POSIX format for JSON compatibility
+    // This prevents double-escaping of Windows backslashes in JSON output
+    return convertToPosixPath(sdkPath);
   }
 
   /// Finds a VS Code workspace file in the project directory.

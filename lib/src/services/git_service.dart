@@ -29,7 +29,15 @@ class GitService extends ContextualService {
     logger.info('Creating local mirror...');
     final process = await Process.start(
       'git',
-      ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
+      [
+        'clone',
+        '--progress',
+        // Enable long paths on Windows to prevent checkout failures
+        if (Platform.isWindows) '-c',
+        if (Platform.isWindows) 'core.longpaths=true',
+        context.flutterUrl,
+        gitCacheDir.path,
+      ],
       runInShell: true,
     );
 

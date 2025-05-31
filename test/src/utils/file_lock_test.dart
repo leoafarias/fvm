@@ -79,8 +79,15 @@ void main() {
       final firstModTime = fileLocker.lastModified;
 
       // Wait a bit to ensure time difference
-      // With our new implementation, even microseconds should work
-      await Future.delayed(Duration(microseconds: 5));
+      // Windows file system has different timing precision than Unix systems
+      final delayDuration = Platform.isWindows
+          ? Duration(
+              milliseconds:
+                  10) // Windows needs more time for detectable changes
+          : Duration(
+              microseconds: 5); // Unix systems can detect microsecond changes
+
+      await Future.delayed(delayDuration);
 
       fileLocker.lock();
       final secondModTime = fileLocker.lastModified;

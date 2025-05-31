@@ -113,6 +113,8 @@ class FlutterService extends ContextualService {
         [
           'clone',
           '--progress',
+          // Enable long paths on Windows to prevent checkout failures
+          if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
           if (!version.isUnknownRef) ...[
             '-c',
             'advice.detachedHead=false',
