@@ -126,7 +126,6 @@ Future<void> integrationTest() async {
     'run',
     'bin/main.dart',
     'integration-test',
-    '--fast', // Use fast mode in CI to reduce execution time
   ]);
 
   print('Integration tests completed successfully');
