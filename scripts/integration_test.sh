@@ -460,27 +460,6 @@ fi
 echo ""
 echo "=== Phase 7: Fork Management Tests ==="
 
-# Ensure FVM global configuration directory exists for fork tests
-# This is needed in CI environments where the directory may not exist
-FVM_CONFIG_DIR=""
-case "$(uname)" in
-    "Darwin")
-        FVM_CONFIG_DIR="$HOME/Library/Application Support/fvm"
-        ;;
-    "Linux")
-        FVM_CONFIG_DIR="$HOME/.config/fvm"
-        ;;
-    "MINGW"*|"CYGWIN"*|"MSYS"*)
-        FVM_CONFIG_DIR="$APPDATA/fvm"
-        ;;
-esac
-
-if [ -n "$FVM_CONFIG_DIR" ] && [ ! -d "$FVM_CONFIG_DIR" ]; then
-    log_test "Creating FVM configuration directory for fork tests..."
-    mkdir -p "$FVM_CONFIG_DIR"
-    log_success "FVM configuration directory created: $FVM_CONFIG_DIR"
-fi
-
 log_test "27. Testing fork add command..."
 # Clean up any existing test fork first
 run_fvm fork remove $TEST_FORK_NAME 2>/dev/null || true
