@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 
-import '../models/flutter_version_model.dart';
 import '../runner.dart';
-import '../services/cache_service.dart';
 import '../services/logger_service.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
@@ -435,7 +433,8 @@ class IntegrationTestRunner {
   /// Test corrupted cache recovery (based on bash script lines 545-565)
   Future<void> _testCorruptedCacheRecovery() async {
     const corruptVersion = 'corrupt-test';
-    final corruptDir = Directory(p.join(_fvmCachePath, corruptVersion));
+    final corruptDir =
+        Directory(p.join(_fvmCachePath, 'versions', corruptVersion));
 
     try {
       // Create a corrupted version directory
@@ -467,7 +466,7 @@ class IntegrationTestRunner {
     await _runFvmCommand(['remove', 'dev']);
 
     // Verify removal
-    final devDir = Directory(p.join(_fvmCachePath, 'dev'));
+    final devDir = Directory(p.join(_fvmCachePath, 'versions', 'dev'));
     if (devDir.existsSync()) {
       throw AppException('Version directory still exists after removal');
     }
@@ -717,25 +716,21 @@ class IntegrationTestRunner {
 
   /// Verify installation of a Flutter version
   void _verifyInstallation(String version) {
-    final cacheService = context.get<CacheService>();
-    final flutterVersion = FlutterVersion.parse(version);
-    final cacheVersion = cacheService.getVersion(flutterVersion);
+    // Check directly in our isolated cache directory
+    final versionDir = Directory(p.join(_fvmCachePath, 'versions', version));
 
-    if (cacheVersion == null) {
-      throw AppException(
-        'Version $version not found in cache after installation',
-      );
-    }
-
-    final versionDir = Directory(cacheVersion.directory);
     if (!versionDir.existsSync()) {
       throw AppException(
-        'Version directory does not exist: ${cacheVersion.directory}',
+        'Version $version not found in isolated cache after installation: ${versionDir.path}',
       );
     }
 
     // Verify essential Flutter files exist (like bash script lines 194-207)
     _verifyFlutterDirectoryStructure(versionDir);
+
+    logger.info(
+      '✓ Version $version verified in isolated cache: ${versionDir.path}',
+    );
   }
 
   /// Verify Flutter directory structure (based on bash script lines 194-207)
@@ -865,16 +860,16 @@ class IntegrationTestRunner {
 
   /// Verify version removal
   void _verifyVersionRemoval(String version) {
-    final cacheService = context.get<CacheService>();
-    final flutterVersion = FlutterVersion.parse(version);
-    final cacheVersion = cacheService.getVersion(flutterVersion);
+    // Check directly in our isolated cache directory
+    final versionDir = Directory(p.join(_fvmCachePath, 'versions', version));
 
-    if (cacheVersion != null) {
-      final versionDir = Directory(cacheVersion.directory);
-      if (versionDir.existsSync()) {
-        throw AppException('Version $version still exists after removal');
-      }
+    if (versionDir.existsSync()) {
+      throw AppException(
+        'Version $version still exists in isolated cache after removal: ${versionDir.path}',
+      );
     }
+
+    logger.info('✓ Version $version successfully removed from isolated cache');
   }
 
   /// Print test summary
