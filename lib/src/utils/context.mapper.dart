@@ -6,100 +6,100 @@
 
 part of 'context.dart';
 
-class FVMContextMapper extends ClassMapperBase<FVMContext> {
-  FVMContextMapper._();
+class FvmContextMapper extends ClassMapperBase<FvmContext> {
+  FvmContextMapper._();
 
-  static FVMContextMapper? _instance;
-  static FVMContextMapper ensureInitialized() {
+  static FvmContextMapper? _instance;
+  static FvmContextMapper ensureInitialized() {
     if (_instance == null) {
-      MapperContainer.globals.use(_instance = FVMContextMapper._());
+      MapperContainer.globals.use(_instance = FvmContextMapper._());
       MapperContainer.globals.useAll([GeneratorsMapper()]);
       AppConfigMapper.ensureInitialized();
+      LevelMapper.ensureInitialized();
     }
     return _instance!;
   }
 
   @override
-  final String id = 'FVMContext';
+  final String id = 'FvmContext';
 
-  static String _$id(FVMContext v) => v.id;
-  static const Field<FVMContext, String> _f$id = Field('id', _$id);
-  static String _$workingDirectory(FVMContext v) => v.workingDirectory;
-  static const Field<FVMContext, String> _f$workingDirectory =
+  static String? _$debugLabel(FvmContext v) => v.debugLabel;
+  static const Field<FvmContext, String> _f$debugLabel =
+      Field('debugLabel', _$debugLabel);
+  static String _$workingDirectory(FvmContext v) => v.workingDirectory;
+  static const Field<FvmContext, String> _f$workingDirectory =
       Field('workingDirectory', _$workingDirectory);
-  static AppConfig _$config(FVMContext v) => v.config;
-  static const Field<FVMContext, AppConfig> _f$config =
+  static AppConfig _$config(FvmContext v) => v.config;
+  static const Field<FvmContext, AppConfig> _f$config =
       Field('config', _$config);
-  static Map<String, String> _$environment(FVMContext v) => v.environment;
-  static const Field<FVMContext, Map<String, String>> _f$environment =
+  static Map<Type, Contextual Function(FvmContext)> _$_generators(
+          FvmContext v) =>
+      v._generators;
+  static const Field<FvmContext, Map<Type, Contextual Function(FvmContext)>>
+      _f$_generators = Field('_generators', _$_generators, key: r'generators');
+  static Map<String, String> _$environment(FvmContext v) => v.environment;
+  static const Field<FvmContext, Map<String, String>> _f$environment =
       Field('environment', _$environment);
-  static List<String> _$args(FVMContext v) => v.args;
-  static const Field<FVMContext, List<String>> _f$args = Field('args', _$args);
-  static bool _$_skipInput(FVMContext v) => v._skipInput;
-  static const Field<FVMContext, bool> _f$_skipInput =
-      Field('_skipInput', _$_skipInput, key: 'skipInput');
-  static Map<Type, ContextService Function(FVMContext)> _$generators(
-          FVMContext v) =>
-      v.generators;
-  static const Field<FVMContext, Map<Type, ContextService Function(FVMContext)>>
-      _f$generators = Field('generators', _$generators);
-  static bool _$isTest(FVMContext v) => v.isTest;
-  static const Field<FVMContext, bool> _f$isTest =
+  static bool _$_skipInput(FvmContext v) => v._skipInput;
+  static const Field<FvmContext, bool> _f$_skipInput =
+      Field('_skipInput', _$_skipInput, key: r'skipInput');
+  static bool _$isTest(FvmContext v) => v.isTest;
+  static const Field<FvmContext, bool> _f$isTest =
       Field('isTest', _$isTest, opt: true, def: false);
-  static String _$fvmDir(FVMContext v) => v.fvmDir;
-  static const Field<FVMContext, String> _f$fvmDir = Field('fvmDir', _$fvmDir);
-  static bool _$gitCache(FVMContext v) => v.gitCache;
-  static const Field<FVMContext, bool> _f$gitCache =
+  static Level _$logLevel(FvmContext v) => v.logLevel;
+  static const Field<FvmContext, Level> _f$logLevel =
+      Field('logLevel', _$logLevel, opt: true, def: Level.info);
+  static String _$fvmDir(FvmContext v) => v.fvmDir;
+  static const Field<FvmContext, String> _f$fvmDir = Field('fvmDir', _$fvmDir);
+  static bool _$gitCache(FvmContext v) => v.gitCache;
+  static const Field<FvmContext, bool> _f$gitCache =
       Field('gitCache', _$gitCache);
-  static bool _$runPubGetOnSdkChanges(FVMContext v) => v.runPubGetOnSdkChanges;
-  static const Field<FVMContext, bool> _f$runPubGetOnSdkChanges =
+  static bool _$runPubGetOnSdkChanges(FvmContext v) => v.runPubGetOnSdkChanges;
+  static const Field<FvmContext, bool> _f$runPubGetOnSdkChanges =
       Field('runPubGetOnSdkChanges', _$runPubGetOnSdkChanges);
-  static String _$fvmVersion(FVMContext v) => v.fvmVersion;
-  static const Field<FVMContext, String> _f$fvmVersion =
+  static String _$fvmVersion(FvmContext v) => v.fvmVersion;
+  static const Field<FvmContext, String> _f$fvmVersion =
       Field('fvmVersion', _$fvmVersion);
-  static String _$gitCachePath(FVMContext v) => v.gitCachePath;
-  static const Field<FVMContext, String> _f$gitCachePath =
+  static String _$gitCachePath(FvmContext v) => v.gitCachePath;
+  static const Field<FvmContext, String> _f$gitCachePath =
       Field('gitCachePath', _$gitCachePath);
-  static String _$flutterUrl(FVMContext v) => v.flutterUrl;
-  static const Field<FVMContext, String> _f$flutterUrl =
+  static String _$flutterUrl(FvmContext v) => v.flutterUrl;
+  static const Field<FvmContext, String> _f$flutterUrl =
       Field('flutterUrl', _$flutterUrl);
-  static DateTime? _$lastUpdateCheck(FVMContext v) => v.lastUpdateCheck;
-  static const Field<FVMContext, DateTime> _f$lastUpdateCheck =
+  static DateTime? _$lastUpdateCheck(FvmContext v) => v.lastUpdateCheck;
+  static const Field<FvmContext, DateTime> _f$lastUpdateCheck =
       Field('lastUpdateCheck', _$lastUpdateCheck);
-  static bool _$updateCheckDisabled(FVMContext v) => v.updateCheckDisabled;
-  static const Field<FVMContext, bool> _f$updateCheckDisabled =
+  static bool _$updateCheckDisabled(FvmContext v) => v.updateCheckDisabled;
+  static const Field<FvmContext, bool> _f$updateCheckDisabled =
       Field('updateCheckDisabled', _$updateCheckDisabled);
-  static bool _$privilegedAccess(FVMContext v) => v.privilegedAccess;
-  static const Field<FVMContext, bool> _f$privilegedAccess =
+  static bool _$privilegedAccess(FvmContext v) => v.privilegedAccess;
+  static const Field<FvmContext, bool> _f$privilegedAccess =
       Field('privilegedAccess', _$privilegedAccess);
-  static String _$globalCacheLink(FVMContext v) => v.globalCacheLink;
-  static const Field<FVMContext, String> _f$globalCacheLink =
+  static String _$globalCacheLink(FvmContext v) => v.globalCacheLink;
+  static const Field<FvmContext, String> _f$globalCacheLink =
       Field('globalCacheLink', _$globalCacheLink);
-  static String _$globalCacheBinPath(FVMContext v) => v.globalCacheBinPath;
-  static const Field<FVMContext, String> _f$globalCacheBinPath =
+  static String _$globalCacheBinPath(FvmContext v) => v.globalCacheBinPath;
+  static const Field<FvmContext, String> _f$globalCacheBinPath =
       Field('globalCacheBinPath', _$globalCacheBinPath);
-  static String _$versionsCachePath(FVMContext v) => v.versionsCachePath;
-  static const Field<FVMContext, String> _f$versionsCachePath =
+  static String _$versionsCachePath(FvmContext v) => v.versionsCachePath;
+  static const Field<FvmContext, String> _f$versionsCachePath =
       Field('versionsCachePath', _$versionsCachePath);
-  static String _$configPath(FVMContext v) => v.configPath;
-  static const Field<FVMContext, String> _f$configPath =
-      Field('configPath', _$configPath);
-  static bool _$isCI(FVMContext v) => v.isCI;
-  static const Field<FVMContext, bool> _f$isCI = Field('isCI', _$isCI);
-  static bool _$skipInput(FVMContext v) => v.skipInput;
-  static const Field<FVMContext, bool> _f$skipInput =
+  static bool _$isCI(FvmContext v) => v.isCI;
+  static const Field<FvmContext, bool> _f$isCI = Field('isCI', _$isCI);
+  static bool _$skipInput(FvmContext v) => v.skipInput;
+  static const Field<FvmContext, bool> _f$skipInput =
       Field('skipInput', _$skipInput);
 
   @override
-  final MappableFields<FVMContext> fields = const {
-    #id: _f$id,
+  final MappableFields<FvmContext> fields = const {
+    #debugLabel: _f$debugLabel,
     #workingDirectory: _f$workingDirectory,
     #config: _f$config,
+    #_generators: _f$_generators,
     #environment: _f$environment,
-    #args: _f$args,
     #_skipInput: _f$_skipInput,
-    #generators: _f$generators,
     #isTest: _f$isTest,
+    #logLevel: _f$logLevel,
     #fvmDir: _f$fvmDir,
     #gitCache: _f$gitCache,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
@@ -112,107 +112,116 @@ class FVMContextMapper extends ClassMapperBase<FVMContext> {
     #globalCacheLink: _f$globalCacheLink,
     #globalCacheBinPath: _f$globalCacheBinPath,
     #versionsCachePath: _f$versionsCachePath,
-    #configPath: _f$configPath,
     #isCI: _f$isCI,
     #skipInput: _f$skipInput,
   };
 
-  static FVMContext _instantiate(DecodingData data) {
-    return FVMContext.base(
-        id: data.dec(_f$id),
+  static FvmContext _instantiate(DecodingData data) {
+    return FvmContext.raw(
+        debugLabel: data.dec(_f$debugLabel),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
+        generators: data.dec(_f$_generators),
         environment: data.dec(_f$environment),
-        args: data.dec(_f$args),
         skipInput: data.dec(_f$_skipInput),
-        generators: data.dec(_f$generators),
-        isTest: data.dec(_f$isTest));
+        isTest: data.dec(_f$isTest),
+        logLevel: data.dec(_f$logLevel));
   }
 
   @override
   final Function instantiate = _instantiate;
 
-  static FVMContext fromMap(Map<String, dynamic> map) {
-    return ensureInitialized().decodeMap<FVMContext>(map);
+  static FvmContext fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<FvmContext>(map);
   }
 
-  static FVMContext fromJson(String json) {
-    return ensureInitialized().decodeJson<FVMContext>(json);
+  static FvmContext fromJson(String json) {
+    return ensureInitialized().decodeJson<FvmContext>(json);
   }
 }
 
-mixin FVMContextMappable {
+mixin FvmContextMappable {
   String toJson() {
-    return FVMContextMapper.ensureInitialized()
-        .encodeJson<FVMContext>(this as FVMContext);
+    return FvmContextMapper.ensureInitialized()
+        .encodeJson<FvmContext>(this as FvmContext);
   }
 
   Map<String, dynamic> toMap() {
-    return FVMContextMapper.ensureInitialized()
-        .encodeMap<FVMContext>(this as FVMContext);
+    return FvmContextMapper.ensureInitialized()
+        .encodeMap<FvmContext>(this as FvmContext);
   }
 
-  FVMContextCopyWith<FVMContext, FVMContext, FVMContext> get copyWith =>
-      _FVMContextCopyWithImpl(this as FVMContext, $identity, $identity);
+  FvmContextCopyWith<FvmContext, FvmContext, FvmContext> get copyWith =>
+      _FvmContextCopyWithImpl<FvmContext, FvmContext>(
+          this as FvmContext, $identity, $identity);
   @override
   String toString() {
-    return FVMContextMapper.ensureInitialized()
-        .stringifyValue(this as FVMContext);
+    return FvmContextMapper.ensureInitialized()
+        .stringifyValue(this as FvmContext);
   }
 
   @override
   bool operator ==(Object other) {
-    return FVMContextMapper.ensureInitialized()
-        .equalsValue(this as FVMContext, other);
+    return FvmContextMapper.ensureInitialized()
+        .equalsValue(this as FvmContext, other);
   }
 
   @override
   int get hashCode {
-    return FVMContextMapper.ensureInitialized().hashValue(this as FVMContext);
+    return FvmContextMapper.ensureInitialized().hashValue(this as FvmContext);
   }
 }
 
-extension FVMContextValueCopy<$R, $Out>
-    on ObjectCopyWith<$R, FVMContext, $Out> {
-  FVMContextCopyWith<$R, FVMContext, $Out> get $asFVMContext =>
-      $base.as((v, t, t2) => _FVMContextCopyWithImpl(v, t, t2));
+extension FvmContextValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, FvmContext, $Out> {
+  FvmContextCopyWith<$R, FvmContext, $Out> get $asFvmContext =>
+      $base.as((v, t, t2) => _FvmContextCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
-abstract class FVMContextCopyWith<$R, $In extends FVMContext, $Out>
+abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config;
-  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
-      get environment;
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args;
   MapCopyWith<
       $R,
       Type,
-      ContextService Function(FVMContext),
-      ObjectCopyWith<$R, ContextService Function(FVMContext),
-          ContextService Function(FVMContext)>> get generators;
+      Contextual Function(FvmContext),
+      ObjectCopyWith<$R, Contextual Function(FvmContext),
+          Contextual Function(FvmContext)>> get _generators;
+  MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
+      get environment;
   $R call(
-      {String? id,
+      {String? debugLabel,
       String? workingDirectory,
       AppConfig? config,
+      Map<Type, Contextual Function(FvmContext)>? generators,
       Map<String, String>? environment,
-      List<String>? args,
       bool? skipInput,
-      Map<Type, ContextService Function(FVMContext)>? generators,
-      bool? isTest});
-  FVMContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
+      bool? isTest,
+      Level? logLevel});
+  FvmContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
-class _FVMContextCopyWithImpl<$R, $Out>
-    extends ClassCopyWithBase<$R, FVMContext, $Out>
-    implements FVMContextCopyWith<$R, FVMContext, $Out> {
-  _FVMContextCopyWithImpl(super.value, super.then, super.then2);
+class _FvmContextCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, FvmContext, $Out>
+    implements FvmContextCopyWith<$R, FvmContext, $Out> {
+  _FvmContextCopyWithImpl(super.value, super.then, super.then2);
 
   @override
-  late final ClassMapperBase<FVMContext> $mapper =
-      FVMContextMapper.ensureInitialized();
+  late final ClassMapperBase<FvmContext> $mapper =
+      FvmContextMapper.ensureInitialized();
   @override
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config =>
       $value.config.copyWith.$chain((v) => call(config: v));
+  @override
+  MapCopyWith<
+      $R,
+      Type,
+      Contextual Function(FvmContext),
+      ObjectCopyWith<$R, Contextual Function(FvmContext),
+          Contextual Function(FvmContext)>> get _generators => MapCopyWith(
+      $value._generators,
+      (v, t) => ObjectCopyWith(v, $identity, t),
+      (v) => call(generators: v));
   @override
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
       get environment => MapCopyWith(
@@ -220,53 +229,39 @@ class _FVMContextCopyWithImpl<$R, $Out>
           (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(environment: v));
   @override
-  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get args =>
-      ListCopyWith($value.args, (v, t) => ObjectCopyWith(v, $identity, t),
-          (v) => call(args: v));
-  @override
-  MapCopyWith<
-      $R,
-      Type,
-      ContextService Function(FVMContext),
-      ObjectCopyWith<$R, ContextService Function(FVMContext),
-          ContextService Function(FVMContext)>> get generators => MapCopyWith(
-      $value.generators,
-      (v, t) => ObjectCopyWith(v, $identity, t),
-      (v) => call(generators: v));
-  @override
   $R call(
-          {String? id,
+          {Object? debugLabel = $none,
           String? workingDirectory,
           AppConfig? config,
+          Map<Type, Contextual Function(FvmContext)>? generators,
           Map<String, String>? environment,
-          List<String>? args,
           bool? skipInput,
-          Map<Type, ContextService Function(FVMContext)>? generators,
-          bool? isTest}) =>
+          bool? isTest,
+          Level? logLevel}) =>
       $apply(FieldCopyWithData({
-        if (id != null) #id: id,
+        if (debugLabel != $none) #debugLabel: debugLabel,
         if (workingDirectory != null) #workingDirectory: workingDirectory,
         if (config != null) #config: config,
-        if (environment != null) #environment: environment,
-        if (args != null) #args: args,
-        if (skipInput != null) #skipInput: skipInput,
         if (generators != null) #generators: generators,
-        if (isTest != null) #isTest: isTest
+        if (environment != null) #environment: environment,
+        if (skipInput != null) #skipInput: skipInput,
+        if (isTest != null) #isTest: isTest,
+        if (logLevel != null) #logLevel: logLevel
       }));
   @override
-  FVMContext $make(CopyWithData data) => FVMContext.base(
-      id: data.get(#id, or: $value.id),
+  FvmContext $make(CopyWithData data) => FvmContext.raw(
+      debugLabel: data.get(#debugLabel, or: $value.debugLabel),
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
       config: data.get(#config, or: $value.config),
+      generators: data.get(#generators, or: $value._generators),
       environment: data.get(#environment, or: $value.environment),
-      args: data.get(#args, or: $value.args),
       skipInput: data.get(#skipInput, or: $value._skipInput),
-      generators: data.get(#generators, or: $value.generators),
-      isTest: data.get(#isTest, or: $value.isTest));
+      isTest: data.get(#isTest, or: $value.isTest),
+      logLevel: data.get(#logLevel, or: $value.logLevel));
 
   @override
-  FVMContextCopyWith<$R2, FVMContext, $Out2> $chain<$R2, $Out2>(
+  FvmContextCopyWith<$R2, FvmContext, $Out2> $chain<$R2, $Out2>(
           Then<$Out2, $R2> t) =>
-      _FVMContextCopyWithImpl($value, $cast, t);
+      _FvmContextCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

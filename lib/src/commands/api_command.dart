@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../api/api_service.dart';
 import '../api/models/json_response.dart';
+import '../utils/exceptions.dart';
 import '../utils/pretty_json.dart';
 import 'base_command.dart';
 
-abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
-  APISubCommand() {
+abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
+  APISubCommand(super.context) {
     argParser.addFlag(
       'compress',
       abbr: 'c',
-      help: 'Prints JSON with no whitespace',
+      help: 'Outputs compact JSON without formatting or whitespace',
       negatable: false,
     );
   }
@@ -22,9 +24,9 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
 
   @override
   Future<int> run() async {
-    try {
-      final shouldCompress = boolArg('compress');
+    final shouldCompress = boolArg('compress');
 
+    try {
       final response = await runSubCommand();
 
       if (shouldCompress) {
@@ -33,27 +35,34 @@ abstract class APISubCommand<T extends APIResponse> extends BaseCommand {
         print(prettyJson(response.toMap()));
       }
 
-      exit(ExitCode.success.code);
-    } on Exception catch (_) {
-      rethrow;
+      return ExitCode.success.code;
+    } on Exception catch (e, stackTrace) {
+      Error.throwWithStackTrace(
+        AppDetailedException(
+          'Exception running API command $name',
+          e.toString(),
+        ),
+        stackTrace,
+      );
     }
   }
 }
 
 /// Friendly JSON API for implementations with FVM
-class APICommand extends BaseCommand {
+class APICommand extends BaseFvmCommand {
   @override
   final name = 'api';
 
   @override
-  String description = 'JSON API for FVM data';
+  String description =
+      'Provides JSON API access to FVM data for integrations and tooling';
 
   /// Constructor
-  APICommand() {
-    addSubcommand(APIListCommand());
-    addSubcommand(APIReleasesCommand());
-    addSubcommand(APIContextCommand());
-    addSubcommand(APIProjectCommand());
+  APICommand(super.context) {
+    addSubcommand(APIListCommand(context));
+    addSubcommand(APIReleasesCommand(context));
+    addSubcommand(APIContextCommand(context));
+    addSubcommand(APIProjectCommand(context));
   }
 
   @override
@@ -65,14 +74,15 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
   final name = 'context';
 
   @override
-  final description = 'Gets context data for FVM';
+  final description =
+      'Returns FVM environment and configuration information as JSON';
 
   /// Constructor
-  APIContextCommand();
+  APIContextCommand(super.controller);
 
   @override
-  FutureOr<GetContextResponse> runSubCommand() async {
-    return APIService.fromContext.getContext();
+  FutureOr<GetContextResponse> runSubCommand() {
+    return get<ApiService>().getContext();
   }
 }
 
@@ -81,14 +91,15 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
   final name = 'project';
 
   @override
-  final description = 'Gets project data for FVM';
+  final description =
+      'Returns Flutter project configuration and settings as JSON';
 
   /// Constructor
-  APIProjectCommand() {
+  APIProjectCommand(super.context) {
     argParser.addOption(
       'path',
       abbr: 'p',
-      help: 'Path to project, defaults to working directory if not provided',
+      help: 'Path to Flutter project (defaults to current directory)',
     );
   }
 
@@ -102,7 +113,7 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
       projectDir = Directory(projectPath);
     }
 
-    return APIService.fromContext.getProject(projectDir);
+    return get<ApiService>().getProject(projectDir);
   }
 }
 
@@ -111,25 +122,26 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   final name = 'list';
 
   @override
-  final description = 'Lists installed Flutter SDK Versions';
+  final description = 'Returns installed Flutter SDK versions as JSON';
 
   /// Constructor
-  APIListCommand() {
+  APIListCommand(super.controller) {
     argParser.addFlag(
       'skip-size-calculation',
       abbr: 's',
       help:
-          'Skips calculating the size of the versions, useful for large caches',
+          'Skips calculating cache sizes for faster response (useful for large caches)',
       negatable: false,
     );
   }
 
   @override
-  Future<GetCacheVersionsResponse> runSubCommand() async {
+  Future<GetCacheVersionsResponse> runSubCommand() {
     final shouldSkipSizing = boolArg('skip-size-calculation');
 
-    return await APIService.fromContext
-        .getCachedVersions(skipCacheSizeCalculation: shouldSkipSizing);
+    return get<ApiService>().getCachedVersions(
+      skipCacheSizeCalculation: shouldSkipSizing,
+    );
   }
 }
 
@@ -138,29 +150,31 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   final name = 'releases';
 
   @override
-  final description = 'Lists Flutter SDK Releases';
+  final description = 'Returns available Flutter SDK releases as JSON';
 
   /// Constructor
-  APIReleasesCommand() {
+  APIReleasesCommand(super.controller) {
     argParser
       ..addOption(
         'limit',
-        help: 'Limits the amount of releases',
-        valueHelp: 'limit',
+        help: 'Limits the number of releases returned',
+        valueHelp: 'number',
       )
       ..addOption(
         'filter-channel',
-        help: 'Filter by channel name',
+        help: 'Filters releases by channel (stable, beta, dev)',
         allowed: ['stable', 'beta', 'dev'],
       );
   }
 
   @override
-  Future<GetReleasesResponse> runSubCommand() async {
+  Future<GetReleasesResponse> runSubCommand() {
     final limitArg = intArg('limit');
     final channelArg = stringArg('filter-channel');
 
-    return await APIService.fromContext
-        .getReleases(limit: limitArg, channelName: channelArg);
+    return get<ApiService>().getReleases(
+      limit: limitArg,
+      channelName: channelArg,
+    );
   }
 }

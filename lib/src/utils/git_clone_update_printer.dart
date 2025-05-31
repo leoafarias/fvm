@@ -1,10 +1,7 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:io/ansi.dart';
 
-import 'package:mason_logger/mason_logger.dart';
-
-import '../../services/logger_service.dart';
-import '../extensions.dart';
+import '../services/logger_service.dart';
+import 'extensions.dart';
 
 final regexes = {
   'Enumerating objects:': RegExp(r'Enumerating objects: +(\d+)%'),
@@ -22,7 +19,7 @@ final maxLabelLength =
 
 var _hasFailedPrint = false;
 
-void updateProgress(String line) {
+void printProgressBar(String line, Logger logger) {
   if (_hasFailedPrint) {
     logger.info('\n');
 
@@ -43,23 +40,23 @@ void updateProgress(String line) {
         if (percentage == null) return;
 
         if (lastMatchedEntry.isNotEmpty && lastMatchedEntry != label) {
-          printProgressBar(lastMatchedEntry, 100);
+          _printProgressBar(lastMatchedEntry, 100, logger);
           logger.write('\n');
         }
 
-        printProgressBar(label, percentage);
+        _printProgressBar(label, percentage, logger);
 
         lastPercentage = percentage;
         lastMatchedEntry = label;
       }
     }
   } catch (e) {
-    logger.detail('Failed to update progress bar $e');
+    logger.debug('Failed to update progress bar $e');
     _hasFailedPrint = true;
   }
 }
 
-void printProgressBar(String label, int percentage) {
+void _printProgressBar(String label, int percentage, Logger logger) {
   final progressBarWidth = 50;
   final progressInBlocks = (percentage / 100 * progressBarWidth).round();
   final progressBlocks = '${green.wrap('█')}' * progressInBlocks;
@@ -68,36 +65,4 @@ void printProgressBar(String label, int percentage) {
   final output = '\r $label [$progressBlocks$remainingBlocks] $percentage%';
 
   logger.write(output);
-}
-
-// Create a custom Process.start, that prints using the progress bar
-Future<void> runGitCloneUpdate(List<String> args) async {
-  final process = await Process.start('git', args, runInShell: true);
-
-  final processLogs = <String>[];
-
-  try {
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stderr.transform(utf8.decoder).listen((line) {
-      updateProgress(line);
-      processLogs.add(line);
-    });
-
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stdout.transform(utf8.decoder).listen((line) {
-      logger.info(line);
-    });
-  } catch (e) {
-    logger.detail('Formatting error due to invalid return $e');
-    logger.info('Updating....');
-  }
-
-  final exitCode = await process.exitCode;
-  if (exitCode != 0) {
-    logger.err(processLogs.join('\n'));
-    throw Exception('Git clone failed');
-  }
-  logger
-    ..spacer
-    ..success('Clone complete');
 }

@@ -39,7 +39,7 @@ Future<void> getReleases() async {
   String owner = 'leoafarias';
   String repo = 'fvm';
 
-  final response = await fetch(
+  final response = await httpRequest(
     'https://api.github.com/repos/$owner/$repo/releases?per_page=100',
     headers: {'Accept': 'application/vnd.github.v3+json'},
   );
@@ -115,4 +115,24 @@ Future<void> coverage() async {
       '--out=coverage/lcov.info',
     ],
   );
+}
+
+@Task('Run integration tests')
+Future<void> integrationTest() async {
+  print('Running integration tests...');
+
+  // Run integration tests using the new Dart command
+  await runAsync('dart', arguments: [
+    'run',
+    'bin/main.dart',
+    'integration-test',
+  ]);
+
+  print('Integration tests completed successfully');
+}
+
+@Task('Run all tests (unit + integration)')
+@Depends(test, integrationTest)
+void testAll() {
+  print('All tests completed successfully');
 }

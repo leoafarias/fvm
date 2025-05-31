@@ -1,100 +1,135 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
-import 'package:io/io.dart' as io;
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/ansi.dart';
+import 'package:io/io.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
-import '../utils/commands.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
-import '../utils/parsers/git_clone_update_printer.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
+import 'git_service.dart';
 import 'logger_service.dart';
+import 'process_service.dart';
 import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
-class FlutterService extends ContextService {
+class FlutterService extends ContextualService {
   const FlutterService(super.context);
 
-  // Ensures cache.dir exists and its up to date
-  Future<void> _ensureCacheDir() async {
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
+  Future<ProcessResult> run(
+    String cmd,
+    List<String> args,
+    CacheFlutterVersion version, {
+    bool throwOnError = false,
+  }) {
+    final versionRunner = VersionRunner(context: context, version: version);
 
-    // If cache file does not exists create it
-    if (!isGitDir) {
-      await updateLocalMirror();
-    }
+    return versionRunner.run(cmd, args, throwOnError: throwOnError);
   }
 
-  static FlutterService get fromContext => getProvider();
+  Future<ProcessResult> pubGet(
+    CacheFlutterVersion version, {
+    bool throwOnError = false,
+    bool offline = false,
+  }) {
+    final args = ['pub', 'get', if (offline) '--offline'];
 
-  /// Upgrades a cached channel
-  Future<void> runUpgrade(CacheFlutterVersion version) async {
-    if (version.isChannel) {
-      await runFlutter(['upgrade'], version: version);
-    } else {
-      throw AppException('Can only upgrade Flutter Channels');
-    }
+    return run('flutter', args, version, throwOnError: throwOnError);
   }
 
-  /// Clones Flutter SDK from Version Number or Channel
-  Future<void> install(
-    FlutterVersion version, {
-    required bool useGitCache,
-  }) async {
-    final versionDir = CacheService(context).getVersionCacheDir(version.name);
+  Future<ProcessResult> setup(CacheFlutterVersion version) {
+    return run('flutter', ['--version'], version);
+  }
+
+  Future<ProcessResult> runFlutter(
+    List<String> args,
+    CacheFlutterVersion version,
+  ) {
+    return run('flutter', args, version);
+  }
+
+  Future<void> install(FlutterVersion version) async {
+    // Get the version-specific cache directory using the FlutterVersion object
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
+
+    // For fork versions, ensure the parent directory exists
+    if (version.fromFork) {
+      final forkDir =
+          Directory(path.join(context.versionsCachePath, version.fork!));
+      if (!forkDir.existsSync()) {
+        forkDir.createSync(recursive: true);
+      }
+      logger.debug('Created fork directory: ${forkDir.path}');
+    }
 
     // Check if its git commit
-    String? channel;
+    String? channel = version.name;
 
     if (version.isChannel) {
       channel = version.name;
-      // If its not a commit hash
-    } else if (version.isRelease) {
-      if (version.releaseFromChannel != null) {
+    }
+    if (version.isRelease) {
+      if (version.releaseChannel != null) {
         // Version name forces channel version
-        channel = version.releaseFromChannel;
+        channel = version.releaseChannel!.name;
       } else {
         final release =
-            await FlutterReleasesClient.getReleaseFromVersion(version.name);
-        channel = release?.channel.name;
+            await get<FlutterReleaseClient>().getReleaseByVersion(version.name);
+
+        if (release != null) {
+          channel = release.channel.name;
+        }
       }
     }
 
-    final versionCloneParams = [
-      '-c',
-      'advice.detachedHead=false',
-      '-b',
-      channel ?? version.name,
-    ];
+    // Determine which URL to use for cloning
+    String repoUrl = context.flutterUrl;
 
-    final useMirrorParams = ['--reference', context.gitCachePath];
+    // If this is a forked version, use the fork's URL
+    if (version.fromFork) {
+      logger.debug('Installing from fork: ${version.fork}');
 
-    final cloneArgs = [
-      //if its a git hash
-      if (!version.isCommit) ...versionCloneParams,
-      if (useGitCache) ...useMirrorParams,
-    ];
+      try {
+        repoUrl = context.getForkUrl(version.fork!);
+        logger.info('Using forked repository URL: $repoUrl');
+      } catch (e, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Fork "${version.fork}" not found in configuration. '
+            'Please add it first using: fvm fork add ${version.fork} <url>',
+          ),
+          stackTrace,
+        );
+      }
+    }
 
     try {
       final result = await runGit(
         [
           'clone',
           '--progress',
-          ...cloneArgs,
-          context.flutterUrl,
+          // Enable long paths on Windows to prevent checkout failures
+          if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+          if (!version.isUnknownRef) ...[
+            '-c',
+            'advice.detachedHead=false',
+            '-b',
+            channel,
+          ],
+          if (context.gitCache) ...['--reference', context.gitCachePath],
+          repoUrl,
           versionDir.path,
         ],
         echoOutput: !(context.isTest || !logger.isVerbose),
       );
 
-      final gitVersionDir =
-          CacheService(context).getVersionCacheDir(version.name);
+      // Use FlutterVersion object with getVersionCacheDir
+      final gitVersionDir = get<CacheService>().getVersionCacheDir(version);
       final isGit = await GitDir.isGitDir(gitVersionDir.path);
 
       if (!isGit) {
@@ -105,9 +140,60 @@ class FlutterService extends ContextService {
 
       /// If version is not a channel reset to version
       if (!version.isChannel) {
-        final gitDir = await GitDir.fromExisting(gitVersionDir.path);
-        // reset --hard $version
-        await gitDir.runCommand(['reset', '--hard', version.version]);
+        try {
+          // First check if this is actually a branch in the forked repo
+          final gitDir = await GitDir.fromExisting(gitVersionDir.path);
+          final branchResult = await gitDir.runCommand(
+            ['branch', '-r', '--list', 'origin/${version.version}'],
+          );
+
+          final branchOutput = (branchResult.stdout as String).trim();
+          final isBranch = branchOutput.isNotEmpty;
+
+          if (isBranch) {
+            // If it's a branch, just check it out instead of hard reset
+            await gitDir.runCommand(['checkout', version.version]);
+            logger.debug('Checked out branch: ${version.version}');
+          } else {
+            // If it's not a branch, perform the hard reset
+            await get<GitService>().resetHard(
+              gitVersionDir.path,
+              version.version,
+            );
+          }
+        } catch (e, stackTrace) {
+          // Handle specific git errors for reference not found
+          String errorMessage = e.toString().toLowerCase();
+
+          // Simplify to focus on most common error patterns
+          if (errorMessage.contains('unknown revision') ||
+              errorMessage.contains('ambiguous argument') ||
+              errorMessage.contains('not found')) {
+            // Clean up failed installation
+            get<CacheService>().remove(version);
+
+            // Provide a clear error message
+            if (version.fromFork) {
+              Error.throwWithStackTrace(
+                AppException(
+                  'Reference "${version.version}" was not found in fork "${version.fork}".\n'
+                  'Please verify that this version exists in the forked repository.',
+                ),
+                stackTrace,
+              );
+            }
+            Error.throwWithStackTrace(
+              AppException(
+                'Reference "${version.version}" was not found in the Flutter repository.\n'
+                'Please check that you have specified a valid version.',
+              ),
+              stackTrace,
+            );
+          }
+
+          // If it's not a "reference not found" error, rethrow the original exception
+          rethrow;
+        }
       }
 
       if (result.exitCode != ExitCode.success.code) {
@@ -115,129 +201,96 @@ class FlutterService extends ContextService {
           'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
         );
       }
-    } on Exception {
-      CacheService(context).remove(version);
+    } on ProcessException catch (e, stackTrace) {
+      // Improved error message for clone failures
+      String errorMessage = e.toString().toLowerCase();
+
+      // Simplify clone error detection
+      if (errorMessage.contains('repository not found') ||
+          errorMessage.contains('remote branch') &&
+              errorMessage.contains('not found')) {
+        get<CacheService>().remove(version);
+
+        if (version.fromFork) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
+              'Please verify that the fork URL is correct and the version exists.',
+            ),
+            stackTrace,
+          );
+        }
+
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to clone Flutter repository with version "${version.version}".\n'
+            'The branch or tag does not exist in the upstream repository.',
+          ),
+          stackTrace,
+        );
+      }
+
+      // Clean up and rethrow
+      get<CacheService>().remove(version);
       rethrow;
-    }
-  }
-
-  /// Updates local Flutter repo mirror
-  /// Will be used mostly for testing
-  Future<void> updateLocalMirror() async {
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-
-    // If cache file does not exists create it
-    if (isGitDir) {
-      final gitDir = await GitDir.fromExisting(context.gitCachePath);
-      logger.detail('Syncing local mirror...');
-
-      try {
-        await gitDir.runCommand(['pull', 'origin']);
-      } on ProcessException catch (e) {
-        logger.err(e.message);
-      }
-    } else {
-      final gitCacheDir = Directory(context.gitCachePath);
-      // Ensure brand new directory
-      if (gitCacheDir.existsSync()) {
-        gitCacheDir.deleteSync(recursive: true);
-      }
-      gitCacheDir.createSync(recursive: true);
-
-      logger.info('Creating local mirror...');
-
-      await runGitCloneUpdate(
-        ['clone', '--progress', context.flutterUrl, gitCacheDir.path],
-      );
-    }
-  }
-
-  /// Gets a commit for the Flutter repo
-  /// If commit does not exist returns null
-  Future<bool> isCommit(String commit) async {
-    final commitSha = await getReference(commit);
-    if (commitSha == null) {
-      return false;
-    }
-
-    return commit.contains(commitSha);
-  }
-
-  /// Gets a tag for the Flutter repository
-  /// If tag does not exist returns null
-  Future<bool> isTag(String tag) async {
-    final commitSha = await getReference(tag);
-    if (commitSha == null) {
-      return false;
-    }
-
-    final tags = await getTags();
-
-    return tags.any((t) => t == tag);
-  }
-
-  Future<List<String>> getTags() async {
-    await _ensureCacheDir();
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-    if (!isGitDir) {
-      throw Exception('Git cache directory does not exist');
-    }
-
-    final gitDir = await GitDir.fromExisting(context.gitCachePath);
-    final result = await gitDir.runCommand(['tag']);
-    if (result.exitCode != 0) {
-      return [];
-    }
-
-    return LineSplitter.split(result.stdout as String)
-        .map((line) => line.trim())
-        .toList();
-  }
-
-  Future<String?> getReference(String ref) async {
-    await _ensureCacheDir();
-    final isGitDir = await GitDir.isGitDir(context.gitCachePath);
-    if (!isGitDir) {
-      throw Exception('Git cache directory does not exist');
-    }
-
-    try {
-      final gitDir = await GitDir.fromExisting(context.gitCachePath);
-      final result = await gitDir.runCommand(
-        ['rev-parse', '--short', '--verify', ref],
-      );
-
-      return result.stdout.trim();
     } on Exception {
-      return null;
+      get<CacheService>().remove(version);
+      rethrow;
     }
   }
 }
 
-class FlutterServiceMock extends FlutterService {
-  FlutterServiceMock(FVMContext context) : super(context);
+class VersionRunner {
+  final FvmContext _context;
+  final CacheFlutterVersion _version;
 
-  @override
-  Future<void> install(
-    FlutterVersion version, {
-    required bool useGitCache,
+  const VersionRunner({
+    required FvmContext context,
+    required CacheFlutterVersion version,
+  })  : _context = context,
+        _version = version;
+
+  Map<String, String> _updateEnvironmentVariables(List<String> paths) {
+    // Remove any values that are similar
+    // within the list of paths.
+    paths = paths.toSet().toList();
+
+    final env = _context.environment;
+
+    final logger = _context.get<Logger>();
+
+    logger.debug('Starting to update environment variables...');
+
+    final updatedEnvironment = Map<String, String>.from(env);
+
+    final envPath = env['PATH'] ?? '';
+
+    final separator = Platform.isWindows ? ';' : ':';
+
+    updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
+
+    return updatedEnvironment;
+  }
+
+  /// Runs dart cmd
+  Future<ProcessResult> run(
+    String cmd,
+    List<String> args, {
+    bool? echoOutput,
+    bool? throwOnError,
   }) async {
-    /// Moves directory from main context HOME/fvm/versions to test context
-
-    final mainContext = FVMContext.main;
-    var cachedVersion = CacheService(mainContext).getVersion(version);
-    if (cachedVersion == null) {
-      await FlutterService(mainContext)
-          .install(version, useGitCache: useGitCache);
-      cachedVersion = CacheService(mainContext).getVersion(version);
-    }
-    final versionDir = CacheService(mainContext).getVersionCacheDir(
-      version.name,
-    );
-    final testVersionDir = CacheService(context).getVersionCacheDir(
-      version.name,
+    // Update environment
+    final environment = _updateEnvironmentVariables(
+      [_version.binPath, _version.dartBinPath],
     );
 
-    await io.copyPath(versionDir.path, testVersionDir.path);
+    // Run command
+    return await _context.get<ProcessService>().run(
+          cmd,
+          args: args,
+          environment: environment,
+          throwOnError: throwOnError ?? false,
+          echoOutput: echoOutput ?? true,
+        );
   }
 }

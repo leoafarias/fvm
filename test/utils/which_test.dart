@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fvm/src/utils/which.dart';
 import 'package:test/test.dart';
 
@@ -14,10 +16,18 @@ void main() {
     }
     var endTime = DateTime.now();
     var elapsedTime = endTime.difference(startTime);
-    print(
-        'Time taken for $totalIterations iterations: ${elapsedTime.inMilliseconds}ms');
-    print(
-      'Time taken for 1 iteration: ${elapsedTime.inMilliseconds / totalIterations}ms',
+
+    final perInvocationSpeed = elapsedTime.inMilliseconds / totalIterations;
+
+    // Platform-specific performance expectations
+    // Windows PATH lookup is significantly slower than Unix systems
+    final expectedMaxTime = Platform.isWindows ? 50.0 : 1.0;
+
+    expect(
+      perInvocationSpeed,
+      lessThan(expectedMaxTime),
+      reason:
+          'should be faster than ${expectedMaxTime}ms per call on ${Platform.operatingSystem}',
     );
   });
 }

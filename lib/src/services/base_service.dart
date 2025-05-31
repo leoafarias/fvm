@@ -1,14 +1,24 @@
+import 'package:meta/meta.dart';
+
 import '../utils/context.dart';
+import 'logger_service.dart';
 
-abstract class ContextService {
-  final FVMContext? _context;
+abstract class Contextual {
+  final FvmContext _context;
 
-  const ContextService(FVMContext? context) : _context = context;
+  const Contextual(this._context);
 
   /// Gets context, if no context is passed will get from scope
-  FVMContext get context {
-    if (_context == null) return ctx;
+  @protected
+  FvmContext get context => _context;
 
-    return _context!;
-  }
+  @protected
+  Logger get logger => _context.get();
+
+  @protected
+  T get<T extends Contextual>() => _context.get();
+}
+
+abstract class ContextualService extends Contextual {
+  const ContextualService(super.context);
 }

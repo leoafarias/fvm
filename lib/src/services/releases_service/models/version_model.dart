@@ -1,7 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../../models/flutter_version_model.dart';
 import '../releases_client.dart';
-import 'channels_model.dart';
 
 part 'version_model.mapper.dart';
 
@@ -61,7 +61,7 @@ class FlutterSdkRelease with FlutterSdkReleaseMappable {
   /// Returns archive url of the release
   @MappableField()
   String get archiveUrl {
-    return '$storageUrl/flutter_infra_release/releases/$archive';
+    return '${FlutterReleaseClient.storageUrl}/flutter_infra_release/releases/$archive';
   }
 }
 
