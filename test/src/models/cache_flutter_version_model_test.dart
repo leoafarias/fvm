@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() {
@@ -44,7 +45,8 @@ void main() {
         FlutterVersion.parse('test'),
         directory: '/path/to/cache',
       );
-      expect(version.binPath, '/path/to/cache/bin');
+      // Use platform-aware path construction
+      expect(version.binPath, path.join('/path/to/cache', 'bin'));
     });
 
     test('hasOldBinPath getter', () {
@@ -66,13 +68,14 @@ void main() {
         FlutterVersion.release('1.17.5'),
         directory: '/path/to/cache',
       );
-      expect(version1.dartBinPath, '/path/to/cache/bin/cache/dart-sdk/bin');
+      expect(version1.dartBinPath,
+          path.join('/path/to/cache', 'bin', 'cache', 'dart-sdk', 'bin'));
 
       final version2 = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('2.0.0'),
         directory: '/path/to/cache',
       );
-      expect(version2.dartBinPath, '/path/to/cache/bin');
+      expect(version2.dartBinPath, path.join('/path/to/cache', 'bin'));
     });
 
     test('dartExec getter', () {
@@ -80,7 +83,8 @@ void main() {
         FlutterVersion.release('2.0.0'),
         directory: '/path/to/cache',
       );
-      expect(version.dartExec, '/path/to/cache/bin/dart');
+      expect(version.dartExec,
+          path.join('/path/to/cache', 'bin', dartExecFileName));
     });
 
     test('flutterExec getter', () {
@@ -88,7 +92,8 @@ void main() {
         FlutterVersion.release('test'),
         directory: '/path/to/cache',
       );
-      expect(version.flutterExec, '/path/to/cache/bin/flutter');
+      expect(version.flutterExec,
+          path.join('/path/to/cache', 'bin', flutterExecFileName));
     });
 
     test('flutterSdkVersion getter', () {
