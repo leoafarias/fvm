@@ -121,17 +121,13 @@ Future<void> coverage() async {
 Future<void> integrationTest() async {
   print('Running integration tests...');
 
-  // Check if integration test script exists
-  final script = File('scripts/integration_test.sh');
-  if (!script.existsSync()) {
-    throw GrinderException('Integration test script not found: ${script.path}');
-  }
-
-  // Make script executable
-  await runAsync('chmod', arguments: ['+x', script.path]);
-
-  // Run integration tests
-  await runAsync('bash', arguments: [script.path]);
+  // Run integration tests using the new Dart command
+  await runAsync('dart', arguments: [
+    'run',
+    'bin/main.dart',
+    'integration-test',
+    '--fast', // Use fast mode in CI to reduce execution time
+  ]);
 
   print('Integration tests completed successfully');
 }

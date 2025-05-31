@@ -8,8 +8,8 @@ The integration test suite is designed to complement the existing fast unit test
 
 ## Test Structure
 
-### Main Integration Test Script
-- **`scripts/integration_test.sh`** - Comprehensive bash script with 38 integration tests covering all major FVM workflows
+### Main Integration Test Command
+- **`fvm integration-test`** - Comprehensive Dart command with 38 integration tests covering all major FVM workflows
 
 ### Dart Integration Test Framework
 - **`integration_test_utils.dart`** - Utilities for creating isolated test environments
@@ -110,22 +110,31 @@ The integration test suite is designed to complement the existing fast unit test
 
 ## Running the Tests
 
-### Quick Integration Test
+### Comprehensive Integration Test Suite
 ```bash
-# Run the comprehensive integration test suite
-./scripts/integration_test.sh
+# Run all 38 integration tests
+fvm integration-test
+
+# Run in fast mode (skip heavy operations)
+fvm integration-test --fast
+
+# Run specific test phase (1-11)
+fvm integration-test --phase 3
+
+# Run specific test by number (1-38)
+fvm integration-test --test 15
+
+# List all available test phases
+fvm integration-test --list-phases
+
+# Run cleanup only
+fvm integration-test --cleanup-only
 ```
 
 ### Dart Integration Tests
 ```bash
 # Run Dart-based integration tests
 dart test test/integration/
-```
-
-### Individual Test Categories
-```bash
-# Run specific test phases by modifying the script
-# or using environment variables for selective testing
 ```
 
 ## Test Environment
@@ -164,18 +173,18 @@ dart test test/integration/
 ## Maintenance
 
 ### Updating Test Versions
-Update the test configuration variables in `scripts/integration_test.sh`:
-```bash
-TEST_CHANNEL="stable"
-TEST_RELEASE="3.19.0"
-TEST_COMMIT="fb57da5f94"
+Update the test configuration constants in `lib/src/commands/integration_test_command.dart`:
+```dart
+static const testChannel = 'stable';
+static const testRelease = '3.19.0';
+static const testCommit = 'fb57da5f94';
 ```
 
 ### Adding New Tests
-1. Add new test phases to the integration script
-2. Follow the existing pattern with `log_test` and `log_success`
+1. Add new test phases to the IntegrationTestRunner class
+2. Follow the existing pattern with `_logTest` and `_logSuccess`
 3. Ensure proper cleanup and error handling
-4. Update the test summary section
+4. Update the test summary section and phase mapping
 
 ### Debugging Failed Tests
 - Check individual test output for specific failures

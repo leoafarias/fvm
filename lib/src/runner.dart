@@ -19,6 +19,7 @@ import 'commands/flutter_command.dart';
 import 'commands/fork_command.dart';
 import 'commands/global_command.dart';
 import 'commands/install_command.dart';
+import 'commands/integration_test_command.dart';
 import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
@@ -65,6 +66,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(APICommand(context));
     addCommand(GlobalCommand(context));
     addCommand(FlavorCommand(context));
+    addCommand(IntegrationTestCommand(context));
   }
 
   /// Checks if the current version (set by the build runner on the
