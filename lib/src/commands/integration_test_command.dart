@@ -387,8 +387,12 @@ class IntegrationTestRunner {
       throw AppException('Config output missing header');
     }
 
-    if (!output.contains('cachePath')) {
-      throw AppException('Config output missing cachePath');
+    // Handle both empty config and configured states
+    final hasNoSettings = output.contains('No settings have been configured');
+    final hasCachePath = output.contains('cachePath');
+    
+    if (!hasNoSettings && !hasCachePath) {
+      throw AppException('Config output missing expected content');
     }
 
     // Verify it's valid output (not empty or error)
