@@ -23,9 +23,8 @@ class InstallCommand extends BaseFvmCommand {
   InstallCommand(super.context) {
     argParser
       ..addFlag(
-        'setup',
-        abbr: 's',
-        help: 'Downloads SDK dependencies after install',
+        'skip-setup',
+        help: 'Skip downloading SDK dependencies after install',
         defaultsTo: false,
         negatable: false,
       )
@@ -39,7 +38,7 @@ class InstallCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    final setup = boolArg('setup');
+    final skipSetup = boolArg('skip-setup');
     final skipPubGet = boolArg('skip-pub-get');
     String? version;
 
@@ -68,7 +67,7 @@ class InstallCommand extends BaseFvmCommand {
         version: cacheVersion,
         project: project,
         force: true,
-        skipSetup: !setup,
+        skipSetup: skipSetup,
         skipPubGet: skipPubGet,
       );
 
@@ -80,7 +79,7 @@ class InstallCommand extends BaseFvmCommand {
 
     final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
 
-    if (setup) {
+    if (!skipSetup) {
       await setupFlutter(cacheVersion);
     }
 

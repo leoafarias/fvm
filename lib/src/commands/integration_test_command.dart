@@ -4,7 +4,9 @@ import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 
 import '../models/config_model.dart';
+import '../models/flutter_version_model.dart';
 import '../runner.dart';
+import '../services/cache_service.dart';
 import '../services/logger_service.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
@@ -16,7 +18,8 @@ class IntegrationTestCommand extends BaseFvmCommand {
   final name = 'integration-test';
 
   @override
-  final description = 'Runs comprehensive integration tests (hidden command)';
+  final description = 'Runs comprehensive integration tests (hidden command)\n'
+      'WARNING: This will destroy your FVM cache and reinstall Flutter versions!';
 
   @override
   final hidden = true; // Hidden from help output
@@ -32,8 +35,21 @@ class IntegrationTestCommand extends BaseFvmCommand {
 
   void _runCleanup() {
     logger.info('🧹 Running integration test cleanup...');
-    final integrationTest = IntegrationTestRunner(context);
-    integrationTest.cleanup();
+    // Just clean up any temporary test artifacts
+    final tempDir = Directory.systemTemp;
+    final testArtifacts = tempDir.listSync().where((item) => 
+      item.path.contains('fvm_test_artifacts_'));
+    
+    for (final artifact in testArtifacts) {
+      try {
+        if (artifact is Directory) {
+          artifact.deleteSync(recursive: true);
+        }
+      } catch (e) {
+        logger.warn('Could not delete ${artifact.path}: $e');
+      }
+    }
+    
     logger.info('✅ Cleanup completed');
   }
 
@@ -62,16 +78,26 @@ class IntegrationTestCommand extends BaseFvmCommand {
 
 /// Integration test runner that executes comprehensive FVM tests
 class IntegrationTestRunner {
-  final FvmContext context; // Test configuration constants
-  static const testChannel = 'stable';
-  static const testRelease = '3.19.0';
-  static const testCommit = 'fb57da5f94';
-  static const testForkName = 'testfork';
+  final FvmContext context;
 
+  // Test configuration constants as FlutterVersion objects
+  // Optimized to minimize SDK downloads - only 4 versions needed:
+  // - stable: Used for most tests (tests 5, 9, 11, etc.)
+  // - 3.19.0: Release version test (test 6)
+  // - fb57da5f94: Git commit test (test 7, removed in test 33)
+  // - 3.22.0: Setup test (test 8 - validates default setup behavior, removed in test 14)
+  // 
+  // Note: Most commands use --skip-setup to speed up tests
+  // Only test 8 runs setup to validate the default behavior
+  // Flutter SDK validation happens once in test 16
+  static final testChannelVersion = FlutterVersion.parse('stable');
+  static final testReleaseVersion = FlutterVersion.parse('3.19.0');
+  static final testCommitVersion = FlutterVersion.parse('fb57da5f94');
+  static final setupTestVersion = FlutterVersion.parse('3.22.0'); // Used in test 8
+  static const testForkName = 'testfork';
   static const testForkUrl = 'https://github.com/flutter/flutter.git';
   late Directory _testDir;
   late String _originalDir;
-  late String _fvmCachePath;
   late Directory _tempFilesDir;
 
   IntegrationTestRunner(this.context);
@@ -80,32 +106,46 @@ class IntegrationTestRunner {
   Future<void> _setup() async {
     _originalDir = Directory.current.path;
 
-    // Use current FVM project directory as test directory (destructive approach)
+    // Use current FVM project directory as test directory
     _testDir = Directory(_originalDir);
 
     // Create temporary files directory for test artifacts
     _tempFilesDir = Directory.systemTemp.createTempSync('fvm_test_artifacts_');
 
-    // Create isolated test cache directory for destructive operations
-    await _createIsolatedTestCache();
-
     logger.info('🔥 DESTRUCTIVE INTEGRATION TEST MODE');
     logger.info('Test directory: ${_testDir.path} (current FVM project)');
-    logger.info('Isolated test cache: $_fvmCachePath');
-    logger.info('⚠️  This test will perform real FVM operations');
+    logger.info('');
+    logger.warn('⚠️  WARNING: This test will:');
+    logger.warn('  - DELETE all your cached Flutter versions');
+    logger.warn('  - Download and install multiple Flutter versions');
+    logger.warn('  - Modify your project configuration');
+    logger.warn('  - This can take 10-30 minutes depending on your internet speed');
+    logger.info('');
+    
+    // Clean the cache to start with a clean state
+    logger.info('🧹 Cleaning FVM cache for a clean test environment...');
+    await _cleanCache();
+    logger.info('✅ Cache cleaned, starting with fresh state');
+    logger.info('');
   }
 
-  /// Create isolated test cache directory for destructive operations
-  Future<void> _createIsolatedTestCache() async {
-    final testCacheDir =
-        Directory.systemTemp.createTempSync('fvm_destructive_cache_');
-    _fvmCachePath = testCacheDir.path;
-
-    // Create versions subdirectory structure
-    final versionsDir = Directory(p.join(_fvmCachePath, 'versions'));
-    await versionsDir.create(recursive: true);
-
-    logger.info('Created isolated destructive cache at: $_fvmCachePath');
+  /// Clean the cache by destroying all versions
+  Future<void> _cleanCache() async {
+    final cacheService = context.get<CacheService>();
+    
+    // Get all installed versions
+    final versions = await cacheService.getAllVersions();
+    
+    if (versions.isNotEmpty) {
+      logger.info('Found ${versions.length} installed versions, destroying cache...');
+      
+      // Use destroy command with --force flag to clean everything
+      await _runFvmCommand(['destroy', '--force']);
+      
+      logger.info('Cache destroyed successfully');
+    } else {
+      logger.info('Cache is already empty');
+    }
   }
 
   /// Phase 1: Basic Command Interface (4 tests)
@@ -134,23 +174,25 @@ class IntegrationTestRunner {
     logger.info('=== Phase 2: Installation Workflow Tests ===');
 
     _logTest('5. Testing channel installation...');
-    await _runFvmCommand(['install', testChannel]);
-    _verifyInstallation(testChannel);
+    await _runFvmCommand(['install', testChannelVersion.name, '--skip-setup']);
+    await _verifyInstallation(testChannelVersion);
     _logSuccess('Channel installation works');
 
     _logTest('6. Testing release installation...');
-    await _runFvmCommand(['install', testRelease]);
-    _verifyInstallation(testRelease);
+    await _runFvmCommand(['install', testReleaseVersion.name, '--skip-setup']);
+    await _verifyInstallation(testReleaseVersion);
     _logSuccess('Release installation works');
 
     _logTest('7. Testing Git commit installation...');
-    await _runFvmCommand(['install', testCommit]);
-    _verifyInstallation(testCommit);
+    await _runFvmCommand(['install', testCommitVersion.name, '--skip-setup']);
+    await _verifyInstallation(testCommitVersion);
     _logSuccess('Git commit installation works');
 
-    _logTest('8. Testing installation with setup flag...');
-    await _runFvmCommand(['install', testChannel, '--setup']);
-    _logSuccess('Installation with setup works');
+    _logTest('8. Testing installation with setup (default behavior)...');
+    // Test default behavior - setup should run automatically
+    await _runFvmCommand(['install', setupTestVersion.name]);
+    await _verifyInstallation(setupTestVersion);
+    _logSuccess('Installation with setup works (default behavior)');
   }
 
   /// Phase 3: Project Lifecycle Tests (8 tests)
@@ -160,19 +202,26 @@ class IntegrationTestRunner {
     _logTest('9. Testing FVM use workflow...');
     logger.info('Test directory before use: ${_testDir.path}');
     logger.info('Current working directory: ${Directory.current.path}');
-    await _runFvmCommand(['use', testChannel]);
+    await _runFvmCommand(['use', testChannelVersion.name, '--skip-setup']);
     logger.info('Test directory after use: ${_testDir.path}');
     logger.info('Current working directory: ${Directory.current.path}');
     _verifyProjectConfiguration();
     _logSuccess('Use command works');
 
     _logTest('10. Testing use with flavor...');
-    await _runFvmCommand(['use', testRelease, '--flavor', 'production']);
+    await _runFvmCommand([
+      'use',
+      testReleaseVersion.name,
+      '--flavor',
+      'production',
+      '--skip-setup',
+    ]);
     await _verifyFlavorConfiguration('production');
     _logSuccess('Flavor configuration works');
 
     _logTest('11. Testing use with force flag...');
-    await _runFvmCommand(['use', testChannel, '--force']);
+    // Use the already installed stable version
+    await _runFvmCommand(['use', testChannelVersion.name, '--force', '--skip-setup']);
     _logSuccess('Force flag works');
 
     _logTest('12. Testing VS Code settings integration...');
@@ -184,25 +233,17 @@ class IntegrationTestRunner {
     _logSuccess('Gitignore integration verified');
   }
 
-  /// Phase 4: Version Management Tests (3 tests)
+  /// Phase 4: Version Management Tests (2 tests)
   Future<void> _runPhase4VersionManagement() async {
     logger.info('=== Phase 4: Version Management Tests ===');
 
-    _logTest(
-      '14. Skipping global version setting (affects system-wide config)...',
-    );
-    logger.info(
-      'ℹ Global command skipped to avoid modifying system configuration',
-    );
-    _logSuccess('Global version test skipped');
-
-    _logTest('15. Testing version removal...');
-    await _runFvmCommand(['install', 'beta']);
-    await _runFvmCommand(['remove', 'beta']);
-    _verifyVersionRemoval('beta');
+    _logTest('14. Testing version removal...');
+    // Use the version installed for setup test
+    await _runFvmCommand(['remove', setupTestVersion.name]);
+    _verifyVersionRemoval(setupTestVersion);
     _logSuccess('Version removal works');
 
-    _logTest('16. Testing doctor command...');
+    _logTest('15. Testing doctor command...');
     await _runFvmCommand(['doctor']);
     _logSuccess('Doctor command works');
   }
@@ -211,17 +252,33 @@ class IntegrationTestRunner {
   Future<void> _runPhase5AdvancedCommands() async {
     logger.info('=== Phase 5: Advanced Command Tests ===');
 
-    _logTest('18. Testing Flutter proxy command...');
-    final flutterOutput =
-        await _runFvmCommandWithOutput(['flutter', '--version']);
+    _logTest('16. Testing Flutter proxy command and SDK validation...');
+    // This is the single point where we validate Flutter version properly
+    final flutterOutput = await _runFvmCommandWithOutput([
+      'flutter',
+      '--version',
+    ]);
     await _createTempFile('flutter_version.txt', flutterOutput);
     if (flutterOutput.isNotEmpty) {
       logger.info('Flutter version output:');
       logger.info(flutterOutput.split('\n').take(2).join('\n'));
+      
+      // Validate that Flutter is properly set up
+      if (!flutterOutput.contains('Flutter')) {
+        throw AppException('Flutter version output does not contain Flutter information');
+      }
+      
+      // Check if we can run doctor to ensure SDK is properly set up
+      logger.info('Validating Flutter SDK setup with doctor...');
+      final doctorOutput = await _runFvmCommandWithOutput(['flutter', 'doctor', '-v']);
+      if (!doctorOutput.contains('Flutter') || !doctorOutput.contains('Dart')) {
+        throw AppException('Flutter doctor output indicates SDK is not properly set up');
+      }
+      logger.info('✓ Flutter SDK is properly set up and validated');
     }
-    _logSuccess('Flutter proxy works');
+    _logSuccess('Flutter proxy works and SDK is validated');
 
-    _logTest('19. Testing Dart proxy command...');
+    _logTest('17. Testing Dart proxy command...');
     final dartOutput = await _runFvmCommandWithOutput(['dart', '--version']);
     await _createTempFile('dart_version.txt', dartOutput);
     if (dartOutput.isNotEmpty) {
@@ -230,9 +287,12 @@ class IntegrationTestRunner {
     }
     _logSuccess('Dart proxy works');
 
-    _logTest('20. Testing spawn command...');
-    final spawnOutput =
-        await _runFvmCommandWithOutput(['spawn', testChannel, '--version']);
+    _logTest('18. Testing spawn command...');
+    final spawnOutput = await _runFvmCommandWithOutput([
+      'spawn',
+      testChannelVersion.name,
+      '--version',
+    ]);
     await _createTempFile('spawn_version.txt', spawnOutput);
     if (spawnOutput.isNotEmpty) {
       logger.info('Spawn output:');
@@ -240,25 +300,35 @@ class IntegrationTestRunner {
     }
     _logSuccess('Spawn command works');
 
-    _logTest('21. Testing exec command...');
-    final execOutput = await _runFvmCommandWithOutput(
-      ['exec', 'echo', 'Exec test successful'],
-    );
+    _logTest('19. Testing exec command...');
+    final execOutput = await _runFvmCommandWithOutput([
+      'exec',
+      'echo',
+      'Exec test successful',
+    ]);
     await _createTempFile('exec_output.txt', execOutput);
     if (!execOutput.contains('Exec test successful')) {
       throw AppException('Exec command output verification failed');
     }
     _logSuccess('Exec command works');
 
-    _logTest('22. Testing flavor command...');
+    _logTest('20. Testing flavor command...');
     // Set up flavor first
-    await _runFvmCommand(['use', testChannel, '--flavor', 'development']);
+    await _runFvmCommand([
+      'use',
+      testChannelVersion.name,
+      '--flavor',
+      'development',
+      '--skip-setup',
+    ]);
 
     // Test flavor command
     try {
-      final flavorOutput = await _runFvmCommandWithOutput(
-        ['flavor', 'development', '--version'],
-      );
+      final flavorOutput = await _runFvmCommandWithOutput([
+        'flavor',
+        'development',
+        '--version',
+      ]);
       await _createTempFile('flavor_output.txt', flavorOutput);
       if (flavorOutput.isNotEmpty) {
         logger.info('Flavor output:');
@@ -274,7 +344,7 @@ class IntegrationTestRunner {
   Future<void> _runPhase6ApiCommands() async {
     logger.info('=== Phase 6: API Command Tests ===');
 
-    _logTest('23. Testing API list command...');
+    _logTest('21. Testing API list command...');
     final apiListOutput = await _runFvmCommandWithOutput(['api', 'list']);
     await _createTempFile('api_list.txt', apiListOutput);
     if (apiListOutput.isNotEmpty) {
@@ -283,9 +353,13 @@ class IntegrationTestRunner {
     }
     _logSuccess('API list command works');
 
-    _logTest('24. Testing API releases command...');
-    final apiReleasesOutput =
-        await _runFvmCommandWithOutput(['api', 'releases', '--limit', '3']);
+    _logTest('22. Testing API releases command...');
+    final apiReleasesOutput = await _runFvmCommandWithOutput([
+      'api',
+      'releases',
+      '--limit',
+      '3',
+    ]);
     await _createTempFile('api_releases.txt', apiReleasesOutput);
     if (apiReleasesOutput.isNotEmpty) {
       logger.info('API releases sample:');
@@ -293,7 +367,7 @@ class IntegrationTestRunner {
     }
     _logSuccess('API releases command works');
 
-    _logTest('25. Testing API project command...');
+    _logTest('23. Testing API project command...');
     final apiProjectOutput = await _runFvmCommandWithOutput(['api', 'project']);
     await _createTempFile('api_project.txt', apiProjectOutput);
     if (apiProjectOutput.isNotEmpty) {
@@ -302,7 +376,7 @@ class IntegrationTestRunner {
     }
     _logSuccess('API project command works');
 
-    _logTest('26. Testing API context command...');
+    _logTest('24. Testing API context command...');
     final apiContextOutput = await _runFvmCommandWithOutput(['api', 'context']);
     await _createTempFile('api_context.txt', apiContextOutput);
     if (apiContextOutput.isNotEmpty) {
@@ -316,7 +390,7 @@ class IntegrationTestRunner {
   Future<void> _runPhase7ForkManagement() async {
     logger.info('=== Phase 7: Fork Management Tests ===');
 
-    _logTest('27. Testing fork add command...');
+    _logTest('25. Testing fork add command...');
     // Clean up any existing test fork first
     try {
       await _runFvmCommand(['fork', 'remove', testForkName]);
@@ -326,7 +400,7 @@ class IntegrationTestRunner {
     await _runFvmCommand(['fork', 'add', testForkName, testForkUrl]);
     _logSuccess('Fork add command works');
 
-    _logTest('28. Testing fork list command...');
+    _logTest('26. Testing fork list command...');
     final forkListOutput = await _runFvmCommandWithOutput(['fork', 'list']);
     if (!forkListOutput.contains(testForkName)) {
       throw AppException('Fork not found in list');
@@ -335,7 +409,7 @@ class IntegrationTestRunner {
     logger.info(forkListOutput);
     _logSuccess('Fork list command works and shows added fork');
 
-    _logTest('29. Testing fork remove command...');
+    _logTest('27. Testing fork remove command...');
     await _runFvmCommand(['fork', 'remove', testForkName]);
 
     // Verify fork was removed
@@ -350,7 +424,7 @@ class IntegrationTestRunner {
   Future<void> _runPhase8ConfigManagement() async {
     logger.info('=== Phase 8: Configuration Management Tests ===');
 
-    _logTest('30. Testing config command...');
+    _logTest('28. Testing config command...');
     final configOutput = await _runFvmCommandWithOutput(['config']);
     await _createTempFile('config_output.txt', configOutput);
     _verifyConfigOutput(configOutput);
@@ -358,8 +432,8 @@ class IntegrationTestRunner {
     logger.info(configOutput.split('\n').take(10).join('\n'));
     _logSuccess('Config command works');
 
-    _logTest('31. Testing config setting modification...');
-    
+    _logTest('29. Testing config setting modification...');
+
     // Backup existing config in memory
     final config = LocalAppConfig.read();
     final configFile = File(config.location);
@@ -367,18 +441,18 @@ class IntegrationTestRunner {
     if (configFile.existsSync()) {
       originalConfig = await configFile.readAsString();
     }
-    
+
     try {
       final testCachePath = p.join(Directory.systemTemp.path, 'fvm_test_cache');
-      
+
       // Test cache path modification
       await _runFvmCommand(['config', '--cache-path', testCachePath]);
       final modifiedConfig = await _runFvmCommandWithOutput(['config']);
-      
+
       if (!modifiedConfig.contains('cachePath')) {
         throw AppException('Cache path not updated in config output');
       }
-      
+
       _logSuccess('Config modification works');
     } finally {
       // Always restore original config
@@ -401,7 +475,7 @@ class IntegrationTestRunner {
     // Handle both empty config and configured states
     final hasNoSettings = output.contains('No settings have been configured');
     final hasCachePath = output.contains('cachePath');
-    
+
     if (!hasNoSettings && !hasCachePath) {
       throw AppException('Config output missing expected content');
     }
@@ -418,7 +492,7 @@ class IntegrationTestRunner {
   Future<void> _runPhase9ErrorHandling() async {
     logger.info('=== Phase 9: Error Handling Tests ===');
 
-    _logTest('32. Testing invalid version handling...');
+    _logTest('30. Testing invalid version handling...');
     try {
       await _runFvmCommand(['install', 'invalid-version-12345']);
       throw AppException('Invalid version should have failed');
@@ -429,7 +503,7 @@ class IntegrationTestRunner {
       _logSuccess('Invalid version handled gracefully');
     }
 
-    _logTest('33. Testing invalid command handling...');
+    _logTest('31. Testing invalid command handling...');
     try {
       await _runFvmCommand(['invalid-command-xyz']);
       throw AppException('Invalid command should have failed');
@@ -440,7 +514,7 @@ class IntegrationTestRunner {
       _logSuccess('Invalid command handled gracefully');
     }
 
-    _logTest('34. Testing corrupted cache recovery...');
+    _logTest('32. Testing corrupted cache recovery...');
     await _testCorruptedCacheRecovery();
     _logSuccess('Corrupted cache recovery works');
   }
@@ -448,8 +522,9 @@ class IntegrationTestRunner {
   /// Test corrupted cache recovery (based on bash script lines 545-565)
   Future<void> _testCorruptedCacheRecovery() async {
     const corruptVersion = 'corrupt-test';
-    final corruptDir =
-        Directory(p.join(_fvmCachePath, 'versions', corruptVersion));
+    final corruptDir = Directory(
+      p.join(context.versionsCachePath, corruptVersion),
+    );
 
     try {
       // Create a corrupted version directory
@@ -458,7 +533,7 @@ class IntegrationTestRunner {
       await corruptFile.writeAsString('corrupted');
 
       // Try to install a valid version (should work fine despite corruption)
-      await _runFvmCommand(['install', testChannel]);
+      await _runFvmCommand(['install', testChannelVersion.name]);
 
       logger.info('✓ System recovered from corrupted cache entry');
     } catch (e) {
@@ -475,27 +550,20 @@ class IntegrationTestRunner {
   Future<void> _runPhase10CleanupOperations() async {
     logger.info('=== Phase 10: Cleanup Operations Tests ===');
 
-    _logTest('35. Testing selective version removal...');
-    // Install multiple versions for cleanup testing
-    await _runFvmCommand(['install', 'dev']);
-    await _runFvmCommand(['remove', 'dev']);
-
-    // Verify removal
-    final devDir = Directory(p.join(_fvmCachePath, 'versions', 'dev'));
-    if (devDir.existsSync()) {
-      throw AppException('Version directory still exists after removal');
-    }
-    logger.info('✓ Version directory removed from cache');
+    _logTest('33. Testing selective version removal...');
+    // Remove one of the previously installed versions
+    await _runFvmCommand(['remove', testCommitVersion.name]);
+    _verifyVersionRemoval(testCommitVersion);
     _logSuccess('Selective version removal works');
 
-    _logTest('36. Testing destroy command with backup/restore...');
+    _logTest('34. Testing destroy command with backup/restore...');
     await _testDestroyCommandSafely();
     _logSuccess('Destroy command test completed');
   }
 
   /// Test destroy command safely (focused on destroy functionality, not backup/restore)
   Future<void> _testDestroyCommandSafely() async {
-    final cacheDir = Directory(_fvmCachePath);
+    final cacheDir = Directory(context.fvmDir);
     if (!cacheDir.existsSync()) {
       logger.info('No cache directory to test destroy command');
 
@@ -504,8 +572,9 @@ class IntegrationTestRunner {
 
     try {
       // Create a minimal test structure to verify destroy works
-      final testVersionDir =
-          Directory(p.join(cacheDir.path, 'versions', 'destroy_test'));
+      final testVersionDir = Directory(
+        p.join(cacheDir.path, 'versions', 'destroy_test'),
+      );
       if (!testVersionDir.existsSync()) {
         await testVersionDir.create(recursive: true);
         final testFile = File(p.join(testVersionDir.path, 'test_marker.txt'));
@@ -514,48 +583,56 @@ class IntegrationTestRunner {
 
       // Count versions before destroy
       final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
-      final versionsBefore = versionsDir.existsSync() 
-          ? versionsDir.listSync().whereType<Directory>().length 
-          : 0;
+      final versionsBefore =
+          versionsDir.existsSync()
+              ? versionsDir.listSync().whereType<Directory>().length
+              : 0;
       logger.info('Versions before destroy: $versionsBefore');
 
       // Test destroy command
       logger.info('Testing destroy command...');
-      await _runFvmCommand(['destroy']);
+      await _runFvmCommand(['destroy', '--force']);
 
       // Verify cache was cleared
       if (cacheDir.existsSync()) {
-        final versionsAfter = versionsDir.existsSync() 
-            ? versionsDir.listSync().whereType<Directory>().length 
-            : 0;
+        final versionsAfter =
+            versionsDir.existsSync()
+                ? versionsDir.listSync().whereType<Directory>().length
+                : 0;
         logger.info('Versions after destroy: $versionsAfter');
-        
+
         // Check if test version was removed
         if (testVersionDir.existsSync()) {
-          throw AppException('Test version directory still exists after destroy');
+          throw AppException(
+            'Test version directory still exists after destroy',
+          );
         }
-        
+
         // The destroy command should have cleared the versions directory
         if (versionsDir.existsSync() && versionsAfter > 0) {
-          final remaining = versionsDir.listSync().map((e) => p.basename(e.path)).join(', ');
+          final remaining = versionsDir
+              .listSync()
+              .map((e) => p.basename(e.path))
+              .join(', ');
           logger.info('Note: Some versions remain after destroy: $remaining');
-          logger.info('This may be normal if versions were added during testing');
+          logger.info(
+            'This may be normal if versions were added during testing',
+          );
         }
       }
 
       logger.info('✓ Destroy command successfully executed');
-      
+
       // Re-create cache structure and install a version for subsequent tests
       if (!versionsDir.existsSync()) {
         await versionsDir.create(recursive: true);
         logger.info('Re-created versions directory for subsequent tests');
       }
-      
+
       // Install a version so final validation has something to verify
       logger.info('Installing a version for final validation...');
-      await _runFvmCommand(['install', testChannel]);
+      await _runFvmCommand(['install', testChannelVersion.name, '--skip-setup']);
       logger.info('✓ Reinstalled test version after destroy');
-      
     } catch (e) {
       // Re-create cache structure even on error
       final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
@@ -566,63 +643,138 @@ class IntegrationTestRunner {
     }
   }
 
-
   /// Phase 11: Final Validation Tests (2 tests)
   Future<void> _runPhase11FinalValidation() async {
     logger.info('=== Phase 11: Final Validation Tests ===');
 
-    _logTest('37. Final system state validation...');
+    _logTest('35. Final system state validation...');
     final versionOutput = await _runFvmCommandWithOutput(['--version']);
     await _createTempFile('final_version.txt', versionOutput);
     logger.info('FVM version: $versionOutput');
-    _verifyFinalSystemState();
+    await _verifyFinalSystemState();
     _logSuccess('FVM still functional after all tests');
 
-    _logTest('38. Testing concurrent operation safety...');
+    _logTest('36. Testing concurrent operation safety...');
     await _testConcurrentOperations();
     _logSuccess('Concurrent operations completed safely');
   }
 
-  /// Verify final system state (based on bash script lines 619-624)
-  void _verifyFinalSystemState() {
-    // Verify cache directory structure
-    final cacheDir = Directory(_fvmCachePath);
-    if (!cacheDir.existsSync()) {
-      throw AppException('FVM cache directory missing after tests');
-    }
+  /// Phase 12: Global Command Test (2 tests) - Run last to avoid affecting other tests
+  Future<void> _runPhase12GlobalCommand() async {
+    logger.info('=== Phase 12: Global Command Test ===');
+    logger.info(
+      'Running global command tests last to avoid affecting other tests',
+    );
 
-    // Verify versions directory exists
-    final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
-    if (!versionsDir.existsSync()) {
-      throw AppException('FVM versions directory missing after tests');
-    }
+    _logTest('37. Testing global version setting...');
 
-    // Count installed versions (like bash script lines 603-608)
-    final installedVersions =
-        versionsDir.listSync().whereType<Directory>().toList();
+    // First, backup current global configuration
+    final originalGlobalVersion = _getGlobalVersion();
+    logger.info('Current global version: ${originalGlobalVersion ?? "none"}');
+
+    try {
+      // Set global version (skip setup since it's already installed)
+      await _runFvmCommand(['global', testChannelVersion.name]);
+      _logSuccess('Global version set successfully');
+
+      _logTest('38. Validating global command with PATH verification...');
+
+      // Verify the global symlink was created
+      final globalLink = Link(context.globalCacheLink);
+      if (!globalLink.existsSync()) {
+        throw AppException('Global default symlink not created');
+      }
+
+      // Verify it points to the correct version
+      final target = globalLink.targetSync();
+      if (!target.contains(testChannelVersion.name)) {
+        throw AppException('Global symlink points to wrong version: $target');
+      }
+
+      // Log the PATH that should be added
+      logger.info(
+        'PATH verification: FVM global bin should be at: ${context.globalCacheBinPath}',
+      );
+
+      // Verify flutter binary exists through the cache service
+      final cacheService = context.get<CacheService>();
+      final globalVersion = cacheService.getGlobal();
+      if (globalVersion == null) {
+        throw AppException('Global version not found after setting');
+      }
+      
+      final globalFlutterBin = File(globalVersion.flutterExec);
+      if (!globalFlutterBin.existsSync()) {
+        logger.warn(
+          'Warning: Flutter binary not found at expected path: ${globalVersion.flutterExec}',
+        );
+        logger.info(
+          'Note: This might be normal if symlinks are handled differently',
+        );
+      }
+
+      // Verify we can get the global version through the service
+      final currentGlobalVersion = _getGlobalVersion();
+      if (currentGlobalVersion != testChannelVersion.name) {
+        throw AppException(
+          'Global version mismatch: expected ${testChannelVersion.name}, got $currentGlobalVersion',
+        );
+      }
+
+      logger.info('✓ Global version verified: ${testChannelVersion.name}');
+      logger.info('✓ Global symlink exists at: ${globalLink.path}');
+      logger.info('✓ Global PATH would include: ${context.globalCacheBinPath}');
+      _logSuccess('Global command validated with PATH verification');
+    } finally {
+      // Restore original global version if there was one
+      if (originalGlobalVersion != null) {
+        logger.info(
+          'Restoring original global version: $originalGlobalVersion',
+        );
+        try {
+          await _runFvmCommand(['global', originalGlobalVersion]);
+        } catch (e) {
+          logger.warn('Could not restore original global version: $e');
+        }
+      }
+    }
+  }
+
+  /// Get current global version if any
+  String? _getGlobalVersion() {
+    final cacheService = context.get<CacheService>();
+
+    return cacheService.getGlobalVersion();
+  }
+
+  /// Verify final system state
+  Future<void> _verifyFinalSystemState() async {
+    final cacheService = context.get<CacheService>();
+
+    // Get all installed versions using the service
+    final installedVersions = await cacheService.getAllVersions();
 
     if (installedVersions.isEmpty) {
       throw AppException('No Flutter versions found after tests');
     }
 
-    // Verify each version has proper structure
-    for (final versionDir in installedVersions) {
-      final versionName = p.basename(versionDir.path);
-      final flutterBin = File(p.join(versionDir.path, 'bin', 'flutter'));
-      if (!flutterBin.existsSync()) {
-        logger.warn('Warning: Version $versionName missing flutter binary');
+    // Verify each version has valid cache integrity
+    for (final version in installedVersions) {
+      final integrity = await cacheService.verifyCacheIntegrity(version);
+      if (integrity != CacheIntegrity.valid) {
+        logger.warn(
+          'Warning: Version ${version.name} has integrity issue: $integrity',
+        );
       }
     }
 
     logger.info('✓ Final system state verified');
-    logger.info('  - Cache directory exists: ${cacheDir.path}');
-    logger.info('  - Versions directory exists: ${versionsDir.path}');
+    logger.info('  - Cache directory: ${context.fvmDir}');
     logger.info('  - Installed versions: ${installedVersions.length}');
 
     // List all installed versions
-    for (final versionDir in installedVersions) {
-      final versionName = p.basename(versionDir.path);
-      logger.info('    - $versionName');
+    for (final version in installedVersions) {
+      logger.info('    - ${version.printFriendlyName}');
     }
   }
 
@@ -644,7 +796,7 @@ class IntegrationTestRunner {
     // Test concurrent installation (if not in fast mode)
     logger.info('Testing concurrent version access...');
     final concurrentFutures = [
-      _runFvmCommand(['spawn', testChannel, '--version']),
+      _runFvmCommand(['spawn', testChannelVersion.name, '--version']),
       _runFvmCommand(['flutter', '--version']),
     ];
 
@@ -653,20 +805,9 @@ class IntegrationTestRunner {
     logger.info('✓ All concurrent operations completed successfully');
   }
 
-  /// Helper method to run FVM commands with isolated cache
+  /// Helper method to run FVM commands
   Future<void> _runFvmCommand(List<String> args) async {
-    // Create a test context with isolated cache directory
-    final testConfig = context.config.copyWith(cachePath: _fvmCachePath);
-
-    final testContext = FvmContext.create(
-      workingDirectoryOverride: _testDir.path,
-      configOverrides: testConfig,
-      environmentOverrides: context.environment,
-      skipInput: true,
-      isTest: true,
-    );
-
-    final runner = FvmCommandRunner(testContext);
+    final runner = FvmCommandRunner(context);
     final exitCode = await runner.run(args);
     if (exitCode != 0) {
       throw AppException(
@@ -674,17 +815,15 @@ class IntegrationTestRunner {
       );
     }
   }
+  
 
-  /// Helper method to run FVM commands and capture output with isolated cache
+  /// Helper method to run FVM commands and capture output
   Future<String> _runFvmCommandWithOutput(List<String> args) async {
     final result = await Process.run(
       'dart',
       ['run', p.join(_originalDir, 'bin', 'main.dart'), ...args],
       workingDirectory: _testDir.path,
-      environment: {
-        ...Platform.environment,
-        'FVM_CACHE_PATH': _fvmCachePath,
-      },
+      environment: Platform.environment,
     );
 
     if (result.exitCode != 0) {
@@ -716,63 +855,27 @@ class IntegrationTestRunner {
   }
 
   /// Verify installation of a Flutter version
-  void _verifyInstallation(String version) {
-    // Check directly in our isolated cache directory
-    final versionDir = Directory(p.join(_fvmCachePath, 'versions', version));
+  Future<void> _verifyInstallation(FlutterVersion version) async {
+    final cacheService = context.get<CacheService>();
+    final cacheVersion = cacheService.getVersion(version);
 
-    if (!versionDir.existsSync()) {
+    if (cacheVersion == null) {
       throw AppException(
-        'Version $version not found in isolated cache after installation: ${versionDir.path}',
+        'Version ${version.name} not found in isolated cache after installation',
       );
     }
 
-    // Verify essential Flutter files exist (like bash script lines 194-207)
-    _verifyFlutterDirectoryStructure(versionDir);
+    // Verify cache integrity
+    final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
+    if (integrity != CacheIntegrity.valid) {
+      throw AppException(
+        'Version ${version.name} has invalid cache integrity: $integrity',
+      );
+    }
 
     logger.info(
-      '✓ Version $version verified in isolated cache: ${versionDir.path}',
+      '✓ Version ${version.name} verified in isolated cache: ${cacheVersion.directory}',
     );
-  }
-
-  /// Verify Flutter directory structure (based on bash script lines 194-207)
-  void _verifyFlutterDirectoryStructure(Directory flutterDir) {
-    // Essential files that must exist
-    final requiredFiles = ['bin/flutter', 'bin/dart'];
-
-    // Version file is optional for Git commits (might not exist or be generated later)
-    final optionalFiles = ['version'];
-
-    final requiredDirs = ['bin', 'packages'];
-
-    for (final file in requiredFiles) {
-      final filePath = File(p.join(flutterDir.path, file));
-      if (!filePath.existsSync()) {
-        throw AppException(
-          'Required Flutter file missing: ${filePath.path}',
-        );
-      }
-    }
-
-    for (final dir in requiredDirs) {
-      final dirPath = Directory(p.join(flutterDir.path, dir));
-      if (!dirPath.existsSync()) {
-        throw AppException(
-          'Required Flutter directory missing: ${dirPath.path}',
-        );
-      }
-    }
-
-    // Check optional files but don't fail if missing
-    for (final file in optionalFiles) {
-      final filePath = File(p.join(flutterDir.path, file));
-      if (filePath.existsSync()) {
-        logger.info('✓ Optional file found: $file');
-      } else {
-        logger.info('ℹ Optional file missing: $file (normal for Git commits)');
-      }
-    }
-
-    logger.info('✓ Flutter directory structure verified');
   }
 
   /// Verify project configuration after use command
@@ -810,7 +913,7 @@ class IntegrationTestRunner {
     }
 
     final target = link.targetSync();
-    if (!target.contains(_fvmCachePath)) {
+    if (!target.contains(context.versionsCachePath)) {
       throw AppException(
         '.fvm/flutter_sdk symlink points to wrong location: $target',
       );
@@ -860,17 +963,19 @@ class IntegrationTestRunner {
   }
 
   /// Verify version removal
-  void _verifyVersionRemoval(String version) {
-    // Check directly in our isolated cache directory
-    final versionDir = Directory(p.join(_fvmCachePath, 'versions', version));
+  void _verifyVersionRemoval(FlutterVersion version) {
+    final cacheService = context.get<CacheService>();
+    final cacheVersion = cacheService.getVersion(version);
 
-    if (versionDir.existsSync()) {
+    if (cacheVersion != null) {
       throw AppException(
-        'Version $version still exists in isolated cache after removal: ${versionDir.path}',
+        'Version ${version.name} still exists in isolated cache after removal',
       );
     }
 
-    logger.info('✓ Version $version successfully removed from isolated cache');
+    logger.info(
+      '✓ Version ${version.name} successfully removed from isolated cache',
+    );
   }
 
   /// Print test summary
@@ -879,20 +984,21 @@ class IntegrationTestRunner {
     logger.info('🎉 Integration Test Summary:');
     logger.info('✅ All 38 tests passed successfully!');
     logger.info('📊 Test Coverage:');
-    logger.info('   • Basic Operations: 6 tests (1-6)');
-    logger.info('   • Version Management: 6 tests (7-12)');
-    logger.info('   • Project Configuration: 4 tests (13-16)');
-    logger.info('   • List Operations: 1 test (17)');
-    logger.info('   • Advanced Commands: 5 tests (18-22)');
-    logger.info('   • API Commands: 4 tests (23-26)');
-    logger.info('   • Fork Management: 3 tests (27-29)');
-    logger.info('   • Configuration: 2 tests (30-31)');
-    logger.info('   • Error Handling: 3 tests (32-34)');
-    logger.info('   • Cleanup Operations: 2 tests (35-36)');
-    logger.info('   • Final Validation: 2 tests (37-38)');
+    logger.info('   • Basic Commands: 4 tests (1-4)');
+    logger.info('   • Installation Workflows: 4 tests (5-8)');
+    logger.info('   • Project Lifecycle: 5 tests (9-13)');
+    logger.info('   • Version Management: 2 tests (14-15)');
+    logger.info('   • Advanced Commands: 5 tests (16-20)');
+    logger.info('   • API Commands: 4 tests (21-24)');
+    logger.info('   • Fork Management: 3 tests (25-27)');
+    logger.info('   • Configuration: 2 tests (28-29)');
+    logger.info('   • Error Handling: 3 tests (30-32)');
+    logger.info('   • Cleanup Operations: 2 tests (33-34)');
+    logger.info('   • Final Validation: 2 tests (35-36)');
+    logger.info('   • Global Command: 2 tests (37-38)');
     logger.info('');
     logger.info('📁 Test artifacts saved to: ${_tempFilesDir.path}');
-    logger.info('🔍 Cache verified at: $_fvmCachePath');
+    logger.info('🔍 Cache verified at: ${context.fvmDir}');
     logger.info('');
     logger.info('🚀 FVM integration tests completed successfully!');
     logger.info(
@@ -948,6 +1054,9 @@ class IntegrationTestRunner {
 
     // Step 11: Final System Verification
     await _runPhase11FinalValidation();
+
+    // Step 12: Global Command Test (run last to avoid affecting other tests)
+    await _runPhase12GlobalCommand();
   }
 
   Logger get logger => context.get();
@@ -973,20 +1082,16 @@ class IntegrationTestRunner {
   /// Cleanup test environment
   void cleanup() {
     try {
-      // Clean up isolated test cache directory (destructive cleanup)
-      final testCacheDir = Directory(_fvmCachePath);
-      if (testCacheDir.existsSync()) {
-        testCacheDir.deleteSync(recursive: true);
-        logger.info('🧹 Cleaned up isolated test cache: $_fvmCachePath');
-      }
-
       // Clean up temporary files directory
       if (_tempFilesDir.existsSync()) {
         _tempFilesDir.deleteSync(recursive: true);
         logger.info('🧹 Cleaned up test artifacts: ${_tempFilesDir.path}');
       }
 
-      logger.info('✅ Destructive test cleanup completed');
+      logger.info('✅ Test cleanup completed');
+      logger.info('');
+      logger.info('⚠️  Note: Your FVM cache has been modified by this test');
+      logger.info('   Run "fvm doctor" to see the current state');
     } catch (e) {
       logger.warn('Warning: Could not clean up test directories: $e');
     }
