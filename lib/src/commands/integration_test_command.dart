@@ -482,93 +482,78 @@ class IntegrationTestRunner {
     _logSuccess('Destroy command test completed');
   }
 
-  /// Test destroy command safely with backup/restore (like bash script lines 577-592)
+  /// Test destroy command safely (focused on destroy functionality, not backup/restore)
   Future<void> _testDestroyCommandSafely() async {
     final cacheDir = Directory(_fvmCachePath);
     if (!cacheDir.existsSync()) {
       logger.info('No cache directory to test destroy command');
-
       return;
     }
 
-    // Create backup directory
-    final backupDir = Directory(p.join(_tempFilesDir.path, 'fvm_cache_backup'));
-
     try {
-      // Create a minimal test cache structure
+      // Create a minimal test structure to verify destroy works
       final testVersionDir =
-          Directory(p.join(cacheDir.path, 'versions', 'test_version'));
+          Directory(p.join(cacheDir.path, 'versions', 'destroy_test'));
       if (!testVersionDir.existsSync()) {
         await testVersionDir.create(recursive: true);
-        final testFile = await _createTempFile('test_marker', 'test');
-        await testFile.copy(p.join(testVersionDir.path, 'test_marker'));
+        final testFile = File(p.join(testVersionDir.path, 'test_marker.txt'));
+        await testFile.writeAsString('This file should be deleted by destroy');
       }
 
-      // Backup existing cache (only if it has content)
-      final versionsDirs = Directory(p.join(cacheDir.path, 'versions'));
-      if (versionsDirs.existsSync() && versionsDirs.listSync().isNotEmpty) {
-        logger.info('Backing up cache directory...');
-        await _copyDirectory(cacheDir, backupDir);
-      }
+      // Count versions before destroy
+      final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
+      final versionsBefore = versionsDir.existsSync() 
+          ? versionsDir.listSync().whereType<Directory>().length 
+          : 0;
+      logger.info('Versions before destroy: $versionsBefore');
 
       // Test destroy command
       logger.info('Testing destroy command...');
       await _runFvmCommand(['destroy']);
 
-      // Verify cache was cleared (allow some system files to remain)
+      // Verify cache was cleared
       if (cacheDir.existsSync()) {
-        final remainingFiles = cacheDir.listSync();
-        final significantFiles = remainingFiles.where((file) {
-          final name = p.basename(file.path);
-
-          // Allow system files and empty directories to remain
-          return !name.startsWith('.') &&
-              !(file is Directory && file.listSync().isEmpty);
-        }).toList();
-
-        if (significantFiles.isNotEmpty) {
-          logger.info(
-            'Remaining files after destroy: ${significantFiles.map((f) => p.basename(f.path)).join(', ')}',
-          );
-          logger.info(
-            'Note: Some files may remain after destroy (this is normal)',
-          );
+        final versionsAfter = versionsDir.existsSync() 
+            ? versionsDir.listSync().whereType<Directory>().length 
+            : 0;
+        logger.info('Versions after destroy: $versionsAfter');
+        
+        // Check if test version was removed
+        if (testVersionDir.existsSync()) {
+          throw AppException('Test version directory still exists after destroy');
+        }
+        
+        // The destroy command should have cleared the versions directory
+        if (versionsDir.existsSync() && versionsAfter > 0) {
+          final remaining = versionsDir.listSync().map((e) => p.basename(e.path)).join(', ');
+          logger.info('Note: Some versions remain after destroy: $remaining');
+          logger.info('This may be normal if versions were added during testing');
         }
       }
 
-      logger.info('✓ Destroy command successfully cleared cache');
-
-      // Restore backup if it exists
-      if (backupDir.existsSync()) {
-        logger.info('Restoring cache from backup...');
-        await _copyDirectory(backupDir, cacheDir);
-        logger.info('✓ Cache restored from backup');
+      logger.info('✓ Destroy command successfully executed');
+      
+      // Re-create cache structure and install a version for subsequent tests
+      if (!versionsDir.existsSync()) {
+        await versionsDir.create(recursive: true);
+        logger.info('Re-created versions directory for subsequent tests');
       }
-    } finally {
-      // Clean up backup
-      if (backupDir.existsSync()) {
-        backupDir.deleteSync(recursive: true);
+      
+      // Install a version so final validation has something to verify
+      logger.info('Installing a version for final validation...');
+      await _runFvmCommand(['install', testChannel]);
+      logger.info('✓ Reinstalled test version after destroy');
+      
+    } catch (e) {
+      // Re-create cache structure even on error
+      final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
+      if (!versionsDir.existsSync()) {
+        await versionsDir.create(recursive: true);
       }
+      rethrow;
     }
   }
 
-  /// Copy directory recursively
-  Future<void> _copyDirectory(Directory source, Directory destination) async {
-    if (!destination.existsSync()) {
-      await destination.create(recursive: true);
-    }
-
-    await for (final entity in source.list(recursive: false)) {
-      if (entity is File) {
-        final newFile = File(p.join(destination.path, p.basename(entity.path)));
-        await entity.copy(newFile.path);
-      } else if (entity is Directory) {
-        final newDir =
-            Directory(p.join(destination.path, p.basename(entity.path)));
-        await _copyDirectory(entity, newDir);
-      }
-    }
-  }
 
   /// Phase 11: Final Validation Tests (2 tests)
   Future<void> _runPhase11FinalValidation() async {

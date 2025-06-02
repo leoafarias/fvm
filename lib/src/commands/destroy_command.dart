@@ -17,10 +17,13 @@ class DestroyCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    // In test mode with skipInput, default to true to allow automated testing
+    final defaultConfirm = context.isTest && context.skipInput;
+    
     if (logger.confirm(
       'Are you sure you want to destroy the FVM cache directory and references?\n'
       'This action cannot be undone. Do you want to proceed?',
-      defaultValue: false,
+      defaultValue: defaultConfirm,
     )) {
       if (context.versionsCachePath.dir.existsSync()) {
         context.versionsCachePath.dir.deleteSync(recursive: true);
