@@ -83,13 +83,6 @@ final kAppConfigFile = join(_configHome, kPackageName, kFvmConfigFileName);
 ///
 /// If none of these conditions apply, it falls back to using '$HOME/.config'.
 String get _configHome {
-  // This is used just for testing.
-  // Should not be used for anything else
-  final fvmGlobalConfigPath = _env['TEST_FVM_GLOBAL_CONFIG_PATH'];
-  if (fvmGlobalConfigPath != null) {
-    return fvmGlobalConfigPath;
-  }
-
   if (Platform.isWindows) {
     final appdata = _env['APPDATA'];
     if (appdata == null) {
