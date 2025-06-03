@@ -15,7 +15,6 @@ class SpawnCommand extends BaseFvmCommand {
   @override
   final argParser = ArgParser.allowAnything();
 
-  /// Constructor
   SpawnCommand(super.context);
 
   @override

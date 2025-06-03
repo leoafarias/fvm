@@ -248,7 +248,7 @@ class TestFactory {
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
-      forks: globalConfig.forks,  // Preserve global forks
+      forks: globalConfig.forks, // Preserve global forks
     );
 
     // Create the test context using the computed contextId, the config overrides,

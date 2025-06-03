@@ -183,9 +183,6 @@ class Logger extends ContextualService {
   }
 }
 
-final dot = '\u{25CF}'; // ●
-final rightArrow = '\u{2192}'; // →
-
 class Icons {
   const Icons._();
   // Success: ✓

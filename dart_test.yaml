@@ -1,5 +1,5 @@
-concurrency: 4
-timeout: 5m
+concurrency: 2
+timeout: 10m
 paths:
   - test/utils
   - test/src

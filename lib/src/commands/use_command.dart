@@ -19,7 +19,6 @@ class UseCommand extends BaseFvmCommand {
   @override
   String description = 'Sets the Flutter SDK version for the current project';
 
-  /// Constructor
   UseCommand(super.context) {
     argParser
       ..addFlag(
@@ -78,7 +77,15 @@ class UseCommand extends BaseFvmCommand {
     }
 
     // Get version from first arg
-    version ??= argResults!.rest[0];
+    version ??= firstRestArg;
+
+    // At this point, version could still be null, so we need to ensure it's not
+    if (version == null) {
+      throw UsageException(
+        'Please provide a Flutter SDK version or run in a project with FVM configured.',
+        usage,
+      );
+    }
 
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {

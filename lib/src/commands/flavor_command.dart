@@ -17,7 +17,6 @@ class FlavorCommand extends BaseFvmCommand {
   @override
   final argParser = ArgParser.allowAnything();
 
-  /// Constructor
   FlavorCommand(super.context);
 
   @override

@@ -19,7 +19,6 @@ class GlobalCommand extends BaseFvmCommand {
   @override
   final description = 'Sets a Flutter SDK version as the global default';
 
-  /// Constructor
   GlobalCommand(super.context) {
     argParser
       ..addFlag(

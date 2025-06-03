@@ -61,9 +61,9 @@ void main() {
         expect(useExitCode, ExitCode.success.code);
 
         // Verify project is using fork version
-        final project = installRunner.context.get<ProjectService>().findAncestor();
-        expect(
-            project.pinnedVersion?.name, equals('leo-test-21'));
+        final project =
+            installRunner.context.get<ProjectService>().findAncestor();
+        expect(project.pinnedVersion?.name, equals('leo-test-21'));
       });
 
       test('Fork list shows configured forks', () async {

@@ -13,7 +13,6 @@ class ConfigCommand extends BaseFvmCommand {
   @override
   final description = 'Configure global FVM settings and preferences';
 
-  /// Constructor
   ConfigCommand(super.context) {
     ConfigOptions.injectArgParser(argParser);
     argParser.addFlag(

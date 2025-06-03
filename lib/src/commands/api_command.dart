@@ -57,7 +57,6 @@ class APICommand extends BaseFvmCommand {
   String description =
       'Provides JSON API access to FVM data for integrations and tooling';
 
-  /// Constructor
   APICommand(super.context) {
     addSubcommand(APIListCommand(context));
     addSubcommand(APIReleasesCommand(context));
@@ -77,7 +76,6 @@ class APIContextCommand extends APISubCommand<GetContextResponse> {
   final description =
       'Returns FVM environment and configuration information as JSON';
 
-  /// Constructor
   APIContextCommand(super.controller);
 
   @override
@@ -94,7 +92,6 @@ class APIProjectCommand extends APISubCommand<GetProjectResponse> {
   final description =
       'Returns Flutter project configuration and settings as JSON';
 
-  /// Constructor
   APIProjectCommand(super.context) {
     argParser.addOption(
       'path',

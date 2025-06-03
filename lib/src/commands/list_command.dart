@@ -19,7 +19,6 @@ class ListCommand extends BaseFvmCommand {
   @override
   final description = 'Lists all Flutter SDK versions installed by FVM';
 
-  /// Constructor
   ListCommand(super.context);
 
   /// Displays a formatted table of Flutter SDK versions
@@ -71,7 +70,7 @@ class ListCommand extends BaseFvmCommand {
         if (latestRelease != null && version.isChannel) {
           // If its not the latest version
           if (latestRelease.version != version.flutterSdkVersion) {
-            return '$flutterSdkVersion $rightArrow ${(green.wrap(latestRelease.version))}';
+            return '$flutterSdkVersion ${Icons.arrowRight} ${(green.wrap(latestRelease.version))}';
           }
 
           return flutterSdkVersion;
@@ -89,9 +88,9 @@ class ListCommand extends BaseFvmCommand {
             getVersionOutput(),
             version.dartSdkVersion ?? '',
             releaseDate,
-            globalVersion == version ? (green.wrap(dot) ?? '') : '',
+            globalVersion == version ? (green.wrap(Icons.circle) ?? '') : '',
             localVersion == printVersion && localVersion != null
-                ? (green.wrap(dot) ?? '')
+                ? (green.wrap(Icons.circle) ?? '')
                 : '',
           ],
         ])

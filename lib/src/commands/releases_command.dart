@@ -17,7 +17,6 @@ class ReleasesCommand extends BaseFvmCommand {
   final description =
       'Lists all Flutter SDK releases available for installation';
 
-  /// Constructor
   // Add option to pass channel name
   ReleasesCommand(super.context) {
     argParser.addOption(

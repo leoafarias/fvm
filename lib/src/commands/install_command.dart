@@ -19,7 +19,6 @@ class InstallCommand extends BaseFvmCommand {
   final description =
       'Installs a Flutter SDK version and caches it for future use';
 
-  /// Constructor
   InstallCommand(super.context) {
     argParser
       ..addFlag(
@@ -41,7 +40,6 @@ class InstallCommand extends BaseFvmCommand {
   Future<int> run() async {
     final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
-    String? version;
 
     final ensureCache = EnsureCacheWorkflow(context);
     final useVersion = UseVersionWorkflow(context);
@@ -74,7 +72,7 @@ class InstallCommand extends BaseFvmCommand {
 
       return ExitCode.success.code;
     }
-    version ??= argResults!.rest[0];
+    final version = firstRestArg!;
 
     final flutterVersion = validateFlutterVersion(version);
 

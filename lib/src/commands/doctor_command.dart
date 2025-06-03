@@ -25,7 +25,6 @@ class DoctorCommand extends BaseFvmCommand {
 
   final console = Console();
 
-  /// Constructor
   DoctorCommand(super.context);
 
   void _printProject(Project project) {

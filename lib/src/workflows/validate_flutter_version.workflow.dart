@@ -1,6 +1,6 @@
 import '../models/flutter_version_model.dart';
+import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
-import '../utils/fvm_exceptions.dart';
 import 'workflow.dart';
 
 class ValidateFlutterVersionWorkflow extends Workflow {
@@ -17,10 +17,9 @@ class ValidateFlutterVersionWorkflow extends Workflow {
           .firstWhereOrNull((f) => f.name == flutterVersion.fork);
 
       if (fork == null) {
-        throw FvmException(
+        throw AppDetailedException(
           'Fork "${flutterVersion.fork}" has not been configured',
-          details: 'Add the fork to your configuration first: fvm config',
-          exitCode: 1,
+          'Add the fork to your configuration first: fvm config',
         );
       }
 

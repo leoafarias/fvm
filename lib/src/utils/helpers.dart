@@ -52,9 +52,8 @@ String assignVersionWeight(String version) {
   }
 
   try {
-    // Checking to throw an issue if it cannot parse
-    // ignore: avoid-unused-instances
-    Version.parse(version);
+    // Validate version format - throws if invalid
+    final _ = Version.parse(version);
   } on Exception {
     if (isCustom) {
       return '400.0.0';

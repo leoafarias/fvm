@@ -48,6 +48,9 @@ extension CommandExtension on Command {
   }
 
   /// Gets the parsed command-line option named [name] as `List<String>`.
-  // ignore: prefer-correct-json-casts
-  List<String?> stringsArg(String name) => argResults![name] as List<String>;
+  List<String?> stringsArg(String name) => (argResults![name] as List).cast();
+
+  /// Gets the first rest argument if available, otherwise returns null
+  String? get firstRestArg =>
+      argResults!.rest.isEmpty ? null : argResults!.rest[0];
 }
