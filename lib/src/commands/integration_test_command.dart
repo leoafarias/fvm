@@ -87,7 +87,7 @@ class IntegrationTestRunner {
   // - fb57da5f94: Git commit test (test 7, removed in test 33)
   // - 3.22.0: Setup test (test 8 - validates default setup behavior, removed in test 14)
   // 
-  // Note: Most commands use --skip-setup to speed up tests
+  // Note: Setup doesn't run by default to speed up tests
   // Only test 8 runs setup to validate the default behavior
   // Flutter SDK validation happens once in test 16
   static final testChannelVersion = FlutterVersion.parse('stable');
@@ -174,25 +174,25 @@ class IntegrationTestRunner {
     logger.info('=== Phase 2: Installation Workflow Tests ===');
 
     _logTest('5. Testing channel installation...');
-    await _runFvmCommand(['install', testChannelVersion.name, '--skip-setup']);
+    await _runFvmCommand(['install', testChannelVersion.name]);
     await _verifyInstallation(testChannelVersion);
     _logSuccess('Channel installation works');
 
     _logTest('6. Testing release installation...');
-    await _runFvmCommand(['install', testReleaseVersion.name, '--skip-setup']);
+    await _runFvmCommand(['install', testReleaseVersion.name]);
     await _verifyInstallation(testReleaseVersion);
     _logSuccess('Release installation works');
 
     _logTest('7. Testing Git commit installation...');
-    await _runFvmCommand(['install', testCommitVersion.name, '--skip-setup']);
+    await _runFvmCommand(['install', testCommitVersion.name]);
     await _verifyInstallation(testCommitVersion);
     _logSuccess('Git commit installation works');
 
-    _logTest('8. Testing installation with setup (default behavior)...');
-    // Test default behavior - setup should run automatically
-    await _runFvmCommand(['install', setupTestVersion.name]);
+    _logTest('8. Testing installation with setup...');
+    // Test setup flag - explicitly run setup
+    await _runFvmCommand(['install', setupTestVersion.name, '--setup']);
     await _verifyInstallation(setupTestVersion);
-    _logSuccess('Installation with setup works (default behavior)');
+    _logSuccess('Installation with setup flag works');
   }
 
   /// Phase 3: Project Lifecycle Tests (8 tests)
