@@ -1,15 +1,63 @@
----
-id: json-api
-title: JSON API
----
-
 # JSON API
 
-FVM CLI provides a set of JSON API endpoints to manage Flutter SDK versions effectively. This documentation outlines the available commands, their options, and the JSON structure of responses returned by each endpoint.
+FVM provides JSON API endpoints for integrating with other tools. All commands support the `--compress` option for compact output.
 
 ## Commands
 
-All commands are executed using the `fvm api` prefix, followed by the command name. The available commands are:
+### list
+
+Lists installed Flutter SDK versions.
+
+```bash
+fvm api list [--compress] [--skip-size-calculation]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--skip-size-calculation` - Skip cache size calculation
+
+### releases
+
+Shows available Flutter releases.
+
+```bash
+fvm api releases [--compress] [--limit <n>] [--filter-channel <channel>]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--limit` - Number of releases to return
+- `--filter-channel` - Filter by channel (stable, beta, dev)
+
+### context
+
+Returns FVM environment information.
+
+```bash
+fvm api context [--compress]
+```
+
+### project
+
+Returns project configuration.
+
+```bash
+fvm api project [--compress] [--path <path>]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--path` - Project directory path
+
+## Integration Example
+
+```bash
+# Get current project version
+fvm api project --compress | jq -r '.project.pinnedVersion'
+
+# List installed versions
+fvm api list --compress | jq -r '.versions[].name'
+```
 
 ### `list`
 

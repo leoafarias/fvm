@@ -1,0 +1,224 @@
+---
+id: workflows
+title: Common Workflows
+---
+
+# Common Workflows
+
+Quick guides for typical FVM tasks. Each workflow shows the essential commands to accomplish specific goals.
+
+## Setting up a new project
+
+Configure a Flutter project to use a specific SDK version.
+
+```bash
+# Navigate to project
+cd myproject
+
+# Set Flutter version
+fvm use 3.19.0
+
+# Or use latest stable
+fvm use stable --pin
+```
+
+**Result:** Creates `.fvm` directory and `.fvmrc` configuration file.
+
+## Switching between versions
+
+Change SDK versions for different projects or testing.
+
+```bash
+# Check current version
+fvm list
+
+# Switch to different version
+fvm use 3.16.0
+
+# Force switch without validation
+fvm use 3.16.0 --force
+```
+
+## Working with multiple flavors
+
+Manage different SDK versions for development, staging, and production.
+
+```bash
+# Set development version
+fvm use 3.19.0 --flavor development
+
+# Set production version
+fvm use 3.16.0 --flavor production
+
+# Use flavor-specific version
+fvm flavor development build apk
+```
+
+## Testing with different versions
+
+Run tests across multiple Flutter SDK versions.
+
+```bash
+# Test with current project version
+fvm flutter test
+
+# Test with specific version
+fvm spawn 3.19.0 test
+
+# Test with another version
+fvm spawn 3.16.0 test
+```
+
+## CI/CD integration
+
+Set up FVM in continuous integration pipelines.
+
+```bash
+# Install FVM
+dart pub global activate fvm
+
+# Install project SDK version
+fvm install
+
+# Run Flutter commands
+fvm flutter build apk --release
+```
+
+## Managing custom forks
+
+Use company or personal Flutter forks.
+
+```bash
+# Add fork
+fvm fork add company https://github.com/company/flutter.git
+
+# Install from fork
+fvm install company/stable
+
+# Use fork version
+fvm use company/3.19.0
+```
+
+## Global version setup
+
+Configure a system-wide default Flutter version.
+
+```bash
+# Set global version
+fvm global 3.19.0
+
+# Add to PATH (one-time setup)
+export PATH="$PATH:$HOME/.fvm/bin"
+
+# Use global version
+flutter doctor
+```
+
+## Cleaning up old versions
+
+Remove unused SDK versions to free disk space.
+
+```bash
+# List installed versions
+fvm list
+
+# Remove specific version
+fvm remove 3.10.0
+
+# Remove all versions
+fvm remove --all
+```
+
+## Monorepo setup
+
+Configure FVM for projects with multiple Flutter apps.
+
+```bash
+# Root configuration
+cd monorepo
+fvm use 3.19.0
+
+# App-specific versions
+cd apps/mobile
+fvm use 3.16.0
+
+# Package uses root version
+cd packages/shared
+# Inherits from root
+```
+
+## Offline installation
+
+Install Flutter SDK from local cache or network share.
+
+```bash
+# Configure custom cache path
+fvm config --cache-path /shared/flutter-cache
+
+# Disable git cache for offline use
+fvm config --no-use-git-cache
+
+# Install from local cache
+fvm install 3.19.0
+```
+
+## Troubleshooting
+
+Common solutions for FVM issues.
+
+```bash
+# Check environment
+fvm doctor
+
+# Verify project setup
+cd myproject
+fvm doctor
+
+# Force reinstall
+fvm remove 3.19.0
+fvm install 3.19.0 --setup
+
+# Reset global config
+fvm global --unlink
+```
+
+## IDE configuration
+
+### VS Code
+
+FVM automatically configures VS Code settings. To manually configure:
+
+1. Run `fvm use <version>` in project
+2. Restart VS Code or reload window
+3. Verify SDK path in settings
+
+### Android Studio / IntelliJ
+
+1. Open **Project Structure** (Cmd/Ctrl + ;)
+2. Set **Flutter SDK path** to: `.fvm/flutter_sdk`
+3. Apply and restart IDE
+
+## Best practices
+
+### Version selection
+
+- Use specific versions for production apps
+- Pin channels for active development
+- Document version requirements in README
+
+### Team collaboration
+
+```bash
+# Add to .gitignore
+.fvm/flutter_sdk
+
+# Commit these files
+.fvmrc
+.fvm/fvm_config.json
+```
+
+### Performance tips
+
+- Enable git cache for faster installs
+- Use `--skip-setup` when switching versions frequently
+- Run `fvm install` in CI before build steps
