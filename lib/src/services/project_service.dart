@@ -68,10 +68,10 @@ class ProjectService extends ContextualService {
     final currentConfig = project.config ?? ProjectConfig();
 
     // Merge flavors and set to null if empty
-    final mergedFlavors = flavors != null 
-        ? {...?currentConfig.flavors, ...flavors} 
+    final mergedFlavors = flavors != null
+        ? {...?currentConfig.flavors, ...flavors}
         : currentConfig.flavors;
-    
+
     final config = currentConfig.copyWith(
       flutter: flutterSdkVersion,
       flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,

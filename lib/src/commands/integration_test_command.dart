@@ -33,12 +33,13 @@ class IntegrationTestCommand extends BaseFvmCommand {
   }
 
   void _runCleanup() {
-    logger.info('🧹 Running integration test cleanup...');
+    logger.info('Running integration test cleanup...');
     // Just clean up any temporary test artifacts
     final tempDir = Directory.systemTemp;
-    final testArtifacts = tempDir.listSync().where((item) => 
-      item.path.contains('fvm_test_artifacts_'));
-    
+    final testArtifacts = tempDir
+        .listSync()
+        .where((item) => item.path.contains('fvm_test_artifacts_'));
+
     for (final artifact in testArtifacts) {
       try {
         if (artifact is Directory) {
@@ -48,8 +49,8 @@ class IntegrationTestCommand extends BaseFvmCommand {
         logger.warn('Could not delete ${artifact.path}: $e');
       }
     }
-    
-    logger.info('✅ Cleanup completed');
+
+    logger.success('Cleanup completed');
   }
 
   @override
@@ -64,11 +65,11 @@ class IntegrationTestCommand extends BaseFvmCommand {
 
     try {
       await integrationTest.runAll();
-      logger.info('✅ Integration tests completed successfully!');
+      logger.success('Integration tests completed successfully!');
 
       return ExitCode.success.code;
     } catch (e) {
-      logger.fail('❌ Integration test failed: $e');
+      logger.fail('Integration test failed: $e');
 
       return ExitCode.software.code;
     }
@@ -85,14 +86,15 @@ class IntegrationTestRunner {
   // - 3.19.0: Release version test (test 6)
   // - fb57da5f94: Git commit test (test 7, removed in test 33)
   // - 3.22.0: Setup test (test 8 - validates default setup behavior, removed in test 14)
-  // 
+  //
   // Note: Setup doesn't run by default to speed up tests
   // Only test 8 runs setup to validate the default behavior
   // Flutter SDK validation happens once in test 16
   static final testChannelVersion = FlutterVersion.parse('stable');
   static final testReleaseVersion = FlutterVersion.parse('3.19.0');
   static final testCommitVersion = FlutterVersion.parse('fb57da5f94');
-  static final setupTestVersion = FlutterVersion.parse('3.22.0'); // Used in test 8
+  static final setupTestVersion =
+      FlutterVersion.parse('3.22.0'); // Used in test 8
   static const testForkName = 'testfork';
   static const testForkUrl = 'https://github.com/flutter/flutter.git';
   late Directory _testDir;
@@ -111,36 +113,40 @@ class IntegrationTestRunner {
     // Create temporary files directory for test artifacts
     _tempFilesDir = Directory.systemTemp.createTempSync('fvm_test_artifacts_');
 
-    logger.info('🔥 DESTRUCTIVE INTEGRATION TEST MODE');
+    logger.warn('DESTRUCTIVE INTEGRATION TEST MODE');
     logger.info('Test directory: ${_testDir.path} (current FVM project)');
     logger.info('');
-    logger.warn('⚠️  WARNING: This test will:');
+    logger.warn('WARNING: This test will:');
     logger.warn('  - DELETE all your cached Flutter versions');
     logger.warn('  - Download and install multiple Flutter versions');
     logger.warn('  - Modify your project configuration');
-    logger.warn('  - This can take 10-30 minutes depending on your internet speed');
+    logger.warn(
+      '  - This can take 10-30 minutes depending on your internet speed',
+    );
     logger.info('');
-    
+
     // Clean the cache to start with a clean state
-    logger.info('🧹 Cleaning FVM cache for a clean test environment...');
+    logger.info('Cleaning FVM cache for a clean test environment...');
     await _cleanCache();
-    logger.info('✅ Cache cleaned, starting with fresh state');
+    logger.success('Cache cleaned, starting with fresh state');
     logger.info('');
   }
 
   /// Clean the cache by destroying all versions
   Future<void> _cleanCache() async {
     final cacheService = context.get<CacheService>();
-    
+
     // Get all installed versions
     final versions = await cacheService.getAllVersions();
-    
+
     if (versions.isNotEmpty) {
-      logger.info('Found ${versions.length} installed versions, destroying cache...');
-      
+      logger.info(
+        'Found ${versions.length} installed versions, destroying cache...',
+      );
+
       // Use destroy command with --force flag to clean everything
       await _runFvmCommand(['destroy', '--force']);
-      
+
       logger.info('Cache destroyed successfully');
     } else {
       logger.info('Cache is already empty');
@@ -220,7 +226,9 @@ class IntegrationTestRunner {
 
     _logTest('11. Testing use with force flag...');
     // Use the already installed stable version
-    await _runFvmCommand(['use', testChannelVersion.name, '--force', '--skip-setup']);
+    await _runFvmCommand(
+      ['use', testChannelVersion.name, '--force', '--skip-setup'],
+    );
     _logSuccess('Force flag works');
 
     _logTest('12. Testing VS Code settings integration...');
@@ -261,19 +269,24 @@ class IntegrationTestRunner {
     if (flutterOutput.isNotEmpty) {
       logger.info('Flutter version output:');
       logger.info(flutterOutput.split('\n').take(2).join('\n'));
-      
+
       // Validate that Flutter is properly set up
       if (!flutterOutput.contains('Flutter')) {
-        throw AppException('Flutter version output does not contain Flutter information');
+        throw AppException(
+          'Flutter version output does not contain Flutter information',
+        );
       }
-      
+
       // Check if we can run doctor to ensure SDK is properly set up
       logger.info('Validating Flutter SDK setup with doctor...');
-      final doctorOutput = await _runFvmCommandWithOutput(['flutter', 'doctor', '-v']);
+      final doctorOutput =
+          await _runFvmCommandWithOutput(['flutter', 'doctor', '-v']);
       if (!doctorOutput.contains('Flutter') || !doctorOutput.contains('Dart')) {
-        throw AppException('Flutter doctor output indicates SDK is not properly set up');
+        throw AppException(
+          'Flutter doctor output indicates SDK is not properly set up',
+        );
       }
-      logger.info('✓ Flutter SDK is properly set up and validated');
+      logger.success('Flutter SDK is properly set up and validated');
     }
     _logSuccess('Flutter proxy works and SDK is validated');
 
@@ -432,26 +445,30 @@ class IntegrationTestRunner {
     _logSuccess('Config command works');
 
     _logTest('29. Testing config setting modification...');
-    
+
     // Skip cache path modification during integration test
     // as it causes issues with the in-memory context
-    logger.info('Note: Skipping cache path modification to avoid context issues');
-    logger.info('This test would normally modify the cache path, but it causes');
-    logger.info('the in-memory context to become out of sync with the config file.');
-    
+    logger
+        .info('Note: Skipping cache path modification to avoid context issues');
+    logger
+        .info('This test would normally modify the cache path, but it causes');
+    logger.info(
+      'the in-memory context to become out of sync with the config file.',
+    );
+
     // Instead, test a different config option that won't affect the test flow
     try {
       // Test update check setting which is safe to modify
       await _runFvmCommand(['config', '--no-update-check']);
       final modifiedConfig = await _runFvmCommandWithOutput(['config']);
-      
+
       if (!modifiedConfig.contains('updateCheck: false')) {
         throw AppException('Update check setting not updated in config output');
       }
-      
+
       // Restore the setting
       await _runFvmCommand(['config', '--update-check']);
-      
+
       _logSuccess('Config modification works');
     } catch (e) {
       // If update-check flag isn't available, just skip this test
@@ -480,7 +497,7 @@ class IntegrationTestRunner {
       throw AppException('Config output is empty');
     }
 
-    logger.info('✓ Config output contains valid configuration');
+    logger.success('Config output contains valid configuration');
   }
 
   /// Phase 9: Error Handling Tests (3 tests)
@@ -530,7 +547,7 @@ class IntegrationTestRunner {
       // Try to install a valid version (should work fine despite corruption)
       await _runFvmCommand(['install', testChannelVersion.name]);
 
-      logger.info('✓ System recovered from corrupted cache entry');
+      logger.success('System recovered from corrupted cache entry');
     } catch (e) {
       logger.info('Note: Corrupted cache recovery test inconclusive: $e');
     } finally {
@@ -578,10 +595,9 @@ class IntegrationTestRunner {
 
       // Count versions before destroy
       final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
-      final versionsBefore =
-          versionsDir.existsSync()
-              ? versionsDir.listSync().whereType<Directory>().length
-              : 0;
+      final versionsBefore = versionsDir.existsSync()
+          ? versionsDir.listSync().whereType<Directory>().length
+          : 0;
       logger.info('Versions before destroy: $versionsBefore');
 
       // Test destroy command
@@ -590,10 +606,9 @@ class IntegrationTestRunner {
 
       // Verify cache was cleared
       if (cacheDir.existsSync()) {
-        final versionsAfter =
-            versionsDir.existsSync()
-                ? versionsDir.listSync().whereType<Directory>().length
-                : 0;
+        final versionsAfter = versionsDir.existsSync()
+            ? versionsDir.listSync().whereType<Directory>().length
+            : 0;
         logger.info('Versions after destroy: $versionsAfter');
 
         // Check if test version was removed
@@ -605,10 +620,8 @@ class IntegrationTestRunner {
 
         // The destroy command should have cleared the versions directory
         if (versionsDir.existsSync() && versionsAfter > 0) {
-          final remaining = versionsDir
-              .listSync()
-              .map((e) => p.basename(e.path))
-              .join(', ');
+          final remaining =
+              versionsDir.listSync().map((e) => p.basename(e.path)).join(', ');
           logger.info('Note: Some versions remain after destroy: $remaining');
           logger.info(
             'This may be normal if versions were added during testing',
@@ -616,7 +629,7 @@ class IntegrationTestRunner {
         }
       }
 
-      logger.info('✓ Destroy command successfully executed');
+      logger.success('Destroy command successfully executed');
 
       // Re-create cache structure and install a version for subsequent tests
       if (!versionsDir.existsSync()) {
@@ -628,7 +641,7 @@ class IntegrationTestRunner {
       logger.info('Installing a version for final validation...');
       // Need to run setup so the version file is created
       await _runFvmCommand(['install', testChannelVersion.name, '--setup']);
-      logger.info('✓ Reinstalled test version after destroy');
+      logger.success('Reinstalled test version after destroy');
     } catch (e) {
       // Re-create cache structure even on error
       final versionsDir = Directory(p.join(cacheDir.path, 'versions'));
@@ -698,7 +711,7 @@ class IntegrationTestRunner {
       if (globalVersion == null) {
         throw AppException('Global version not found after setting');
       }
-      
+
       final globalFlutterBin = File(globalVersion.flutterExec);
       if (!globalFlutterBin.existsSync()) {
         logger.warn(
@@ -717,9 +730,10 @@ class IntegrationTestRunner {
         );
       }
 
-      logger.info('✓ Global version verified: ${testChannelVersion.name}');
-      logger.info('✓ Global symlink exists at: ${globalLink.path}');
-      logger.info('✓ Global PATH would include: ${context.globalCacheBinPath}');
+      logger.success('Global version verified: ${testChannelVersion.name}');
+      logger.success('Global symlink exists at: ${globalLink.path}');
+      logger
+          .success('Global PATH would include: ${context.globalCacheBinPath}');
       _logSuccess('Global command validated with PATH verification');
     } finally {
       // Restore original global version if there was one
@@ -746,7 +760,7 @@ class IntegrationTestRunner {
   /// Verify final system state
   Future<void> _verifyFinalSystemState() async {
     final cacheService = context.get<CacheService>();
-    
+
     // Debug: Log cache directory being used
     logger.info('Checking cache directory: ${context.versionsCachePath}');
     final cacheDir = Directory(context.versionsCachePath);
@@ -767,13 +781,16 @@ class IntegrationTestRunner {
     // Also check directory directly as a fallback
     if (installedVersions.isEmpty && cacheDir.existsSync()) {
       final dirs = cacheDir.listSync().whereType<Directory>().toList();
-      final validDirs = dirs.where((d) => 
-        File(p.join(d.path, 'version')).existsSync()
-      ).toList();
-      
+      final validDirs = dirs
+          .where((d) => File(p.join(d.path, 'version')).existsSync())
+          .toList();
+
       if (validDirs.isNotEmpty) {
-        logger.warn('Cache service reports 0 versions but found ${validDirs.length} in directory');
+        logger.warn(
+          'Cache service reports 0 versions but found ${validDirs.length} in directory',
+        );
         logger.warn('This might be a cache service refresh issue');
+
         // Don't fail if we found versions in the directory
         return;
       }
@@ -793,7 +810,7 @@ class IntegrationTestRunner {
       }
     }
 
-    logger.info('✓ Final system state verified');
+    logger.success('Final system state verified');
     logger.info('  - Cache directory: ${context.fvmDir}');
     logger.info('  - Installed versions: ${installedVersions.length}');
 
@@ -827,7 +844,7 @@ class IntegrationTestRunner {
 
     await Future.wait(concurrentFutures);
 
-    logger.info('✓ All concurrent operations completed successfully');
+    logger.success('All concurrent operations completed successfully');
   }
 
   /// Helper method to run FVM commands
@@ -840,7 +857,6 @@ class IntegrationTestRunner {
       );
     }
   }
-  
 
   /// Helper method to run FVM commands and capture output
   Future<String> _runFvmCommandWithOutput(List<String> args) async {
@@ -871,12 +887,12 @@ class IntegrationTestRunner {
 
   /// Helper method to log test start
   void _logTest(String message) {
-    logger.info('🧪 $message');
+    logger.info('[TEST] $message');
   }
 
   /// Helper method to log test success
   void _logSuccess(String message) {
-    logger.info('✅ $message');
+    logger.success(message);
   }
 
   /// Verify installation of a Flutter version
@@ -1006,9 +1022,9 @@ class IntegrationTestRunner {
   /// Print test summary
   void _printSummary() {
     logger.info('');
-    logger.info('🎉 Integration Test Summary:');
-    logger.info('✅ All 38 tests passed successfully!');
-    logger.info('📊 Test Coverage:');
+    logger.info('=== Integration Test Summary ===');
+    logger.success('All 38 tests passed successfully!');
+    logger.info('--- Test Coverage ---');
     logger.info('   • Basic Commands: 4 tests (1-4)');
     logger.info('   • Installation Workflows: 4 tests (5-8)');
     logger.info('   • Project Lifecycle: 5 tests (9-13)');
@@ -1022,26 +1038,26 @@ class IntegrationTestRunner {
     logger.info('   • Final Validation: 2 tests (35-36)');
     logger.info('   • Global Command: 2 tests (37-38)');
     logger.info('');
-    logger.info('📁 Test artifacts saved to: ${_tempFilesDir.path}');
-    logger.info('🔍 Cache verified at: ${context.fvmDir}');
+    logger.info('[INFO] Test artifacts saved to: ${_tempFilesDir.path}');
+    logger.info('[INFO] Cache verified at: ${context.fvmDir}');
     logger.info('');
-    logger.info('🚀 FVM integration tests completed successfully!');
+    logger.success('FVM integration tests completed successfully!');
     logger.info(
       '   Perfect equivalent to bash script with 38 comprehensive tests',
     );
     logger.info('');
     logger.info('Real-world operations tested:');
-    logger.info('  ✓ Actual Git clones and Flutter SDK installations');
-    logger.info('  ✓ File system changes (symlinks, .fvmrc, .gitignore)');
-    logger.info('  ✓ VS Code settings integration');
-    logger.info('  ✓ Configuration persistence');
-    logger.info('  ✓ Error recovery and graceful failure handling');
-    logger.info('  ✓ Multi-version management');
-    logger.info('  ✓ Fork repository management');
-    logger.info('  ✓ API endpoint functionality');
-    logger.info('  ✓ Output capture and verification');
-    logger.info('  ✓ Corrupted cache recovery');
-    logger.info('  ✓ Concurrent operation safety');
+    logger.info('  - Actual Git clones and Flutter SDK installations');
+    logger.info('  - File system changes (symlinks, .fvmrc, .gitignore)');
+    logger.info('  - VS Code settings integration');
+    logger.info('  - Configuration persistence');
+    logger.info('  - Error recovery and graceful failure handling');
+    logger.info('  - Multi-version management');
+    logger.info('  - Fork repository management');
+    logger.info('  - API endpoint functionality');
+    logger.info('  - Output capture and verification');
+    logger.info('  - Corrupted cache recovery');
+    logger.info('  - Concurrent operation safety');
     logger.info('');
   }
 
@@ -1091,7 +1107,7 @@ class IntegrationTestRunner {
     await _setup();
 
     try {
-      logger.info('🧪 Starting FVM Integration Test Workflow');
+      logger.info('[TEST] Starting FVM Integration Test Workflow');
       logger.info('Running complete test suite with all 38 tests');
       logger.info('');
 
@@ -1110,12 +1126,12 @@ class IntegrationTestRunner {
       // Clean up temporary files directory
       if (_tempFilesDir.existsSync()) {
         _tempFilesDir.deleteSync(recursive: true);
-        logger.info('🧹 Cleaned up test artifacts: ${_tempFilesDir.path}');
+        logger.info('[CLEAN] Cleaned up test artifacts: ${_tempFilesDir.path}');
       }
 
-      logger.info('✅ Test cleanup completed');
+      logger.success('Test cleanup completed');
       logger.info('');
-      logger.info('⚠️  Note: Your FVM cache has been modified by this test');
+      logger.warn('Note: Your FVM cache has been modified by this test');
       logger.info('   Run "fvm doctor" to see the current state');
     } catch (e) {
       logger.warn('Warning: Could not clean up test directories: $e');

@@ -25,15 +25,16 @@ class DestroyCommand extends BaseFvmCommand {
   @override
   Future<int> run() async {
     final force = boolArg('force');
-    
+
     // Proceed if force flag is used OR user confirms
     // When skipInput is true, default to false (safe default for destructive operation)
-    final shouldProceed = force || logger.confirm(
-      'Are you sure you want to destroy the FVM cache directory and references?\n'
-      'This action cannot be undone. Do you want to proceed?',
-      defaultValue: false,
-    );
-    
+    final shouldProceed = force ||
+        logger.confirm(
+          'Are you sure you want to destroy the FVM cache directory and references?\n'
+          'This action cannot be undone. Do you want to proceed?',
+          defaultValue: false,
+        );
+
     if (shouldProceed) {
       if (context.versionsCachePath.dir.existsSync()) {
         context.versionsCachePath.dir.deleteSync(recursive: true);
