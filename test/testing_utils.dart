@@ -237,13 +237,18 @@ class TestFactory {
   }) {
     debugLabel ??= _generateUuid();
 
+    // Read global config to preserve forks
+    final globalConfig = LocalAppConfig.read();
+
     // Create a configuration for the test context using a temporary directory for cache
     // and the main git cache path from the existing FVMContext.
+    // Always include forks from global config to ensure they're available in tests
     final config = AppConfig(
       cachePath: createTempDir().path,
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
+      forks: globalConfig.forks,  // Preserve global forks
     );
 
     // Create the test context using the computed contextId, the config overrides,
