@@ -129,7 +129,8 @@ void main() {
 
       // Reset to stable at the end
       print('\nResetting to stable channel...');
-      await appTestRunner.runOrThrow(['fvm', 'use', 'stable', '--force']);
+      await appTestRunner
+          .runOrThrow(['fvm', 'use', 'stable', '--force', '--skip-setup']);
 
       // Check final configuration
       print('\nFinal configuration:');
@@ -151,7 +152,7 @@ Future<void> _testVersion(
   print('----- Testing $description: $version -----');
 
   // Use the version with --force flag to bypass constraint checks in tests
-  await runner.runOrThrow(['fvm', 'use', version, '--force']);
+  await runner.runOrThrow(['fvm', 'use', version, '--force', '--skip-setup']);
 
   // Verify the config file exists
   final project = runner.context.get<ProjectService>().findAncestor();
@@ -180,7 +181,7 @@ Future<void> _testErrorCase(
 
   // This should fail
   try {
-    await runner.run(['fvm', 'use', version]);
+    await runner.run(['fvm', 'use', version, '--skip-setup']);
     print('Warning: Command should have failed but succeeded');
   } catch (e) {
     print('Test passed: Command failed as expected');

@@ -193,7 +193,7 @@ void main() {
       );
 
       expect(
-        await runner.runOrThrow(['fvm', 'use', 'production']),
+        await runner.runOrThrow(['fvm', 'use', 'production', '--skip-setup']),
         ExitCode.success.code,
       );
     });
