@@ -21,6 +21,7 @@ import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/resolve_project_deps.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
 import '../workflows/setup_gitignore.workflow.dart';
+import '../workflows/update_melos_settings.workflow.dart';
 import '../workflows/update_project_references.workflow.dart';
 import '../workflows/update_vscode_settings.workflow.dart';
 import '../workflows/use_version.workflow.dart';
@@ -252,6 +253,7 @@ const _defaultGenerators = <Type, Generator>{
   SetupFlutterWorkflow: SetupFlutterWorkflow.new,
   SetupGitIgnoreWorkflow: SetupGitIgnoreWorkflow.new,
   UpdateProjectReferencesWorkflow: UpdateProjectReferencesWorkflow.new,
+  UpdateMelosSettingsWorkflow: UpdateMelosSettingsWorkflow.new,
   UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
   ValidateFlutterVersionWorkflow: ValidateFlutterVersionWorkflow.new,
   VerifyProjectWorkflow: VerifyProjectWorkflow.new,

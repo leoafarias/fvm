@@ -246,6 +246,9 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
   static bool? _$updateGitIgnore(AppConfig v) => v.updateGitIgnore;
   static const Field<AppConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
+  static bool? _$updateMelosSettings(AppConfig v) => v.updateMelosSettings;
+  static const Field<AppConfig, bool> _f$updateMelosSettings =
+      Field('updateMelosSettings', _$updateMelosSettings, opt: true);
 
   @override
   final MappableFields<AppConfig> fields = const {
@@ -260,6 +263,7 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
+    #updateMelosSettings: _f$updateMelosSettings,
   };
   @override
   final bool ignoreNull = true;
@@ -276,7 +280,8 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
         privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
-        updateGitIgnore: data.dec(_f$updateGitIgnore));
+        updateGitIgnore: data.dec(_f$updateGitIgnore),
+        updateMelosSettings: data.dec(_f$updateMelosSettings));
   }
 
   @override
@@ -341,7 +346,8 @@ abstract class AppConfigCopyWith<$R, $In extends AppConfig, $Out>
       bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
-      bool? updateGitIgnore});
+      bool? updateGitIgnore,
+      bool? updateMelosSettings});
   AppConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -365,7 +371,8 @@ class _AppConfigCopyWithImpl<$R, $Out>
           Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
-          Object? updateGitIgnore = $none}) =>
+          Object? updateGitIgnore = $none,
+          Object? updateMelosSettings = $none}) =>
       $apply(FieldCopyWithData({
         if (disableUpdateCheck != $none)
           #disableUpdateCheck: disableUpdateCheck,
@@ -380,7 +387,9 @@ class _AppConfigCopyWithImpl<$R, $Out>
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
-        if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore
+        if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+        if (updateMelosSettings != $none)
+          #updateMelosSettings: updateMelosSettings
       }));
   @override
   AppConfig $make(CopyWithData data) => AppConfig(
@@ -398,7 +407,9 @@ class _AppConfigCopyWithImpl<$R, $Out>
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
-      updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore));
+      updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+      updateMelosSettings:
+          data.get(#updateMelosSettings, or: $value.updateMelosSettings));
 
   @override
   AppConfigCopyWith<$R2, AppConfig, $Out2> $chain<$R2, $Out2>(
@@ -454,6 +465,9 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
   static bool? _$updateGitIgnore(LocalAppConfig v) => v.updateGitIgnore;
   static const Field<LocalAppConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
+  static bool? _$updateMelosSettings(LocalAppConfig v) => v.updateMelosSettings;
+  static const Field<LocalAppConfig, bool> _f$updateMelosSettings =
+      Field('updateMelosSettings', _$updateMelosSettings, opt: true);
   static Set<FlutterFork> _$forks(LocalAppConfig v) => v.forks;
   static const Field<LocalAppConfig, Set<FlutterFork>> _f$forks =
       Field('forks', _$forks, opt: true);
@@ -470,6 +484,7 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
+    #updateMelosSettings: _f$updateMelosSettings,
     #forks: _f$forks,
   };
   @override
@@ -487,6 +502,7 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore),
+        updateMelosSettings: data.dec(_f$updateMelosSettings),
         forks: data.dec(_f$forks));
   }
 
@@ -556,6 +572,7 @@ abstract class LocalAppConfigCopyWith<$R, $In extends LocalAppConfig, $Out>
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
       bool? updateGitIgnore,
+      bool? updateMelosSettings,
       Set<FlutterFork>? forks});
   LocalAppConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
@@ -581,6 +598,7 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
           Object? updateGitIgnore = $none,
+          Object? updateMelosSettings = $none,
           Object? forks = $none}) =>
       $apply(FieldCopyWithData({
         if (disableUpdateCheck != $none)
@@ -596,6 +614,8 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
         if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+        if (updateMelosSettings != $none)
+          #updateMelosSettings: updateMelosSettings,
         if (forks != $none) #forks: forks
       }));
   @override
@@ -614,6 +634,8 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
       updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+      updateMelosSettings:
+          data.get(#updateMelosSettings, or: $value.updateMelosSettings),
       forks: data.get(#forks, or: $value.forks));
 
   @override
@@ -668,6 +690,9 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
   static bool? _$updateGitIgnore(ProjectConfig v) => v.updateGitIgnore;
   static const Field<ProjectConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
+  static bool? _$updateMelosSettings(ProjectConfig v) => v.updateMelosSettings;
+  static const Field<ProjectConfig, bool> _f$updateMelosSettings =
+      Field('updateMelosSettings', _$updateMelosSettings, opt: true);
 
   @override
   final MappableFields<ProjectConfig> fields = const {
@@ -681,6 +706,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
     #updateGitIgnore: _f$updateGitIgnore,
+    #updateMelosSettings: _f$updateMelosSettings,
   };
   @override
   final bool ignoreNull = true;
@@ -696,7 +722,8 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
         privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
-        updateGitIgnore: data.dec(_f$updateGitIgnore));
+        updateGitIgnore: data.dec(_f$updateGitIgnore),
+        updateMelosSettings: data.dec(_f$updateMelosSettings));
   }
 
   @override
@@ -764,7 +791,8 @@ abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
       bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
-      bool? updateGitIgnore});
+      bool? updateGitIgnore,
+      bool? updateMelosSettings});
   ProjectConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -795,7 +823,8 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
-          Object? updateGitIgnore = $none}) =>
+          Object? updateGitIgnore = $none,
+          Object? updateMelosSettings = $none}) =>
       $apply(FieldCopyWithData({
         if (flutter != $none) #flutter: flutter,
         if (flavors != $none) #flavors: flavors,
@@ -808,7 +837,9 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
-        if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore
+        if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+        if (updateMelosSettings != $none)
+          #updateMelosSettings: updateMelosSettings
       }));
   @override
   ProjectConfig $make(CopyWithData data) => ProjectConfig(
@@ -824,7 +855,9 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
-      updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore));
+      updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+      updateMelosSettings:
+          data.get(#updateMelosSettings, or: $value.updateMelosSettings));
 
   @override
   ProjectConfigCopyWith<$R2, ProjectConfig, $Out2> $chain<$R2, $Out2>(

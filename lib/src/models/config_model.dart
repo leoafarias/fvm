@@ -98,6 +98,7 @@ abstract class FileConfig extends Config {
   final bool? runPubGetOnSdkChanges;
   final bool? updateVscodeSettings;
   final bool? updateGitIgnore;
+  final bool? updateMelosSettings;
 
   /// Constructor
   const FileConfig({
@@ -109,6 +110,7 @@ abstract class FileConfig extends Config {
     required this.runPubGetOnSdkChanges,
     required this.updateVscodeSettings,
     required this.updateGitIgnore,
+    this.updateMelosSettings,
   });
 }
 
@@ -141,6 +143,7 @@ class AppConfig extends FileConfig with AppConfigMappable {
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
+    super.updateMelosSettings,
   });
 }
 
@@ -171,6 +174,9 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
 
   @override
   bool? updateGitIgnore;
+  
+  @override
+  bool? updateMelosSettings;
 
   static final fromMap = LocalAppConfigMapper.fromMap;
   static final fromJson = LocalAppConfigMapper.fromJson;
@@ -187,6 +193,7 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
     this.runPubGetOnSdkChanges,
     this.updateVscodeSettings,
     this.updateGitIgnore,
+    this.updateMelosSettings,
     Set<FlutterFork>? forks,
   }) {
     this.forks = {...?forks};
@@ -237,6 +244,7 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
+    super.updateMelosSettings,
   });
 
   static ProjectConfig? loadFromDirectory(Directory directory) {

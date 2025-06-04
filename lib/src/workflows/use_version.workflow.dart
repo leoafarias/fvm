@@ -9,6 +9,7 @@ import '../utils/which.dart';
 import 'resolve_project_deps.workflow.dart';
 import 'setup_flutter.workflow.dart';
 import 'setup_gitignore.workflow.dart';
+import 'update_melos_settings.workflow.dart';
 import 'update_project_references.workflow.dart';
 import 'update_vscode_settings.workflow.dart';
 import 'verify_project.workflow.dart';
@@ -49,6 +50,8 @@ class UseVersionWorkflow extends Workflow {
     }
 
     await get<UpdateVsCodeSettingsWorkflow>()(updatedProject);
+
+    await get<UpdateMelosSettingsWorkflow>()(updatedProject);
 
     final versionLabel = cyan.wrap(version.printFriendlyName);
     // Different message if configured environment
