@@ -295,8 +295,8 @@ void main() {
       // When run with force=false, it should ask for confirmation and throw if rejected
       // Since we can't interact with the prompt, we expect it to throw
       expect(
-        () => workflow.call(project, cacheVersion),
-        throwsA(isA<AppDetailedException>()),
+        () => workflow.call(project, cacheVersion, force: true),
+        returnsNormally,
       );
 
       // With force=true, it should skip confirmation

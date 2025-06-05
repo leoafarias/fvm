@@ -188,12 +188,13 @@ void main() {
           '--flavor',
           'production',
           '--skip-setup',
+          '--force',
         ]),
         ExitCode.success.code,
       );
 
       expect(
-        await runner.runOrThrow(['fvm', 'use', 'production', '--skip-setup']),
+        await runner.runOrThrow(['fvm', 'use', 'production', '--skip-setup', '--force']),
         ExitCode.success.code,
       );
     });

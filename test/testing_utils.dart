@@ -234,6 +234,7 @@ class TestFactory {
     String? debugLabel,
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
+    bool? skipInput,
   }) {
     debugLabel ??= _generateUuid();
 
@@ -259,6 +260,8 @@ class TestFactory {
       logLevel: Level.verbose,
       workingDirectoryOverride: createTempDir(debugLabel).path,
       isTest: true,
+      skipInput: skipInput ??
+          false, // Allow overriding skipInput for testing user input
       generatorsOverride: {
         FlutterService: _mockFlutterService,
         ...?generators,

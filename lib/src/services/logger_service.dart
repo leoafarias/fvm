@@ -21,14 +21,12 @@ Level _toLogLevel(mason.Level level) {
 
 class Logger extends ContextualService {
   final mason.Logger _logger;
-  final bool _isTest;
   final bool _isCI;
   final bool _skipInput;
   final List<String> _outputs = [];
 
   Logger(super.context)
       : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
-        _isTest = context.isTest,
         _isCI = context.isCI,
         _skipInput = context.skipInput;
 
@@ -118,9 +116,6 @@ class Logger extends ContextualService {
   }
 
   bool confirm(String? message, {required bool defaultValue}) {
-    // When running tests, always return true.
-    if (_isTest) return defaultValue;
-
     if (_isCI || _skipInput) {
       info(message ?? '');
       warn('Skipping input confirmation');

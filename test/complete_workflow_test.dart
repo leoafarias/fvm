@@ -65,7 +65,7 @@ void main() {
       expect(project.pinnedVersion, isNull);
 
       // Use the channel in the project, but skip setup
-      await testRunner.runOrThrow(['fvm', 'use', channel, '--skip-setup']);
+      await testRunner.runOrThrow(['fvm', 'use', channel, '--skip-setup', '--force']);
 
       // Reload project and version information
       project = testRunner.context.get<ProjectService>().findAncestor();

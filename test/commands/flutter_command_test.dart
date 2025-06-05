@@ -28,7 +28,8 @@ void main() {
     // Test 1: On cache version
     test('On cache version', () async {
       // Run the command to use a specific channel
-      await testRunner.run(['fvm', 'use', channel]);
+      // Use --force to bypass project verification prompt
+      await testRunner.run(['fvm', 'use', channel, '--force']);
 
       // Get project and cache version
       final project = testRunner.context.get<ProjectService>().findAncestor();

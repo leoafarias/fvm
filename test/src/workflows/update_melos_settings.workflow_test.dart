@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/workflows/update_melos_settings.workflow.dart';
 import 'package:path/path.dart' as p;
@@ -8,6 +9,7 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../testing_utils.dart';
+import 'test_logger.dart';
 
 void main() {
   group('UpdateMelosSettingsWorkflow', () {
@@ -17,7 +19,7 @@ void main() {
       runner = TestFactory.commandRunner();
     });
 
-    test('should detect and update melos.yaml', () async {
+    test('should detect melos.yaml and skip without confirmation', () async {
       final testDir = createTempDir();
       // Create test project
       createPubspecYaml(testDir);
@@ -34,19 +36,34 @@ packages:
   - packages/**
 ''');
 
+      final originalContent = melosFile.readAsStringSync();
+
+      // Create a custom context with TestLogger that declines confirmation
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse('configure melos.yaml', false),
+        },
+      );
+      
+      final customRunner = TestCommandRunner(context);
       final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final workflow = UpdateMelosSettingsWorkflow(runner.context);
+          customRunner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
       await workflow(project);
 
-      // Verify melos.yaml was updated
-      final melosContent = melosFile.readAsStringSync();
-      final yaml = loadYaml(melosContent) as Map;
-
-      expect(yaml['sdkPath'], isNotNull);
-      expect(yaml['sdkPath'], contains('.fvm/flutter_sdk'));
+      // Verify melos.yaml was NOT updated (user declined)
+      final newContent = melosFile.readAsStringSync();
+      expect(newContent, originalContent);
+      
+      // Verify we can see the detection message
+      final logger = customRunner.context.get<Logger>();
+      expect(
+        logger.outputs.any((msg) => msg.contains('Detected melos.yaml without FVM configuration')),
+        isTrue,
+      );
     });
 
     test('should skip melos update if sdkPath already exists', () async {
@@ -81,7 +98,7 @@ sdkPath: /any/existing/path
       expect(newContent, originalContent);
     });
 
-    test('should find melos.yaml in parent directory', () async {
+    test('should find melos.yaml in parent directory but not update', () async {
       final testDir = createTempDir();
       // Create test project in a subdirectory
       final subDir = Directory(p.join(testDir.path, 'subproject'));
@@ -101,20 +118,27 @@ packages:
   - subproject/**
 ''');
 
+      final originalContent = melosFile.readAsStringSync();
+
+      // Create a custom context with TestLogger that declines confirmation
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse('configure melos.yaml', false),
+        },
+      );
+      
+      final customRunner = TestCommandRunner(context);
       final project =
-          runner.context.get<ProjectService>().findAncestor(directory: subDir);
-      final workflow = UpdateMelosSettingsWorkflow(runner.context);
+          customRunner.context.get<ProjectService>().findAncestor(directory: subDir);
+      final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
       await workflow(project);
 
-      // Verify melos.yaml was found and updated
-      final melosContent = melosFile.readAsStringSync();
-      final yaml = loadYaml(melosContent) as Map;
-
-      expect(yaml['sdkPath'], isNotNull);
-      // Should be relative path from parent to subproject's FVM
-      expect(yaml['sdkPath'], 'subproject/.fvm/flutter_sdk');
+      // Verify melos.yaml was found but NOT updated
+      final newContent = melosFile.readAsStringSync();
+      expect(newContent, originalContent);
     });
 
     test('should not modify melos.yaml with existing non-FVM sdkPath', () async {
@@ -173,18 +197,27 @@ packages:
   - lib/**
 ''');
 
+      final originalContent = melosFile.readAsStringSync();
+
+      // Create a custom context with TestLogger that declines confirmation
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse('configure melos.yaml', false),
+        },
+      );
+      
+      final customRunner = TestCommandRunner(context);
       final project =
-          runner.context.get<ProjectService>().findAncestor(directory: nestedDir);
-      final workflow = UpdateMelosSettingsWorkflow(runner.context);
+          customRunner.context.get<ProjectService>().findAncestor(directory: nestedDir);
+      final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
       await workflow(project);
 
-      // Verify relative path is correct
-      final melosContent = melosFile.readAsStringSync();
-      final yaml = loadYaml(melosContent) as Map;
-
-      expect(yaml['sdkPath'], '.fvm/flutter_sdk');
+      // Verify melos.yaml was NOT updated
+      final newContent = melosFile.readAsStringSync();
+      expect(newContent, originalContent);
     });
 
     test('should not update melos settings when config disables it', () async {
@@ -250,7 +283,7 @@ packages:
       expect(newContent, originalContent);
     });
 
-    test('should update existing FVM path if different', () async {
+    test('should detect existing FVM path but not update without confirmation', () async {
       final testDir = createTempDir();
       // Create test project
       createPubspecYaml(testDir);
@@ -268,18 +301,27 @@ packages:
 sdkPath: .fvm/versions/3.10.0
 ''');
 
+      final originalContent = melosFile.readAsStringSync();
+
+      // Create a custom context with TestLogger that declines update
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse('Update existing FVM path', false),
+        },
+      );
+      
+      final customRunner = TestCommandRunner(context);
       final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final workflow = UpdateMelosSettingsWorkflow(runner.context);
+          customRunner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
       await workflow(project);
 
-      // Verify sdkPath was updated to new format
-      final melosContent = melosFile.readAsStringSync();
-      final yaml = loadYaml(melosContent) as Map;
-
-      expect(yaml['sdkPath'], '.fvm/flutter_sdk');
+      // Verify sdkPath was NOT updated
+      final newContent = melosFile.readAsStringSync();
+      expect(newContent, originalContent);
     });
 
     test('should skip update when no pinned version', () async {
@@ -312,5 +354,153 @@ packages:
       final newContent = melosFile.readAsStringSync();
       expect(newContent, originalContent);
     });
+
+    group('with simulated user input', () {
+      test('should update melos.yaml when user confirms (simulated Yes)', () async {
+        final testDir = createTempDir();
+        createPubspecYaml(testDir);
+        createProjectConfig(
+          ProjectConfig(flutter: '3.10.0'),
+          testDir,
+        );
+
+        // Create a melos.yaml file without sdkPath
+        final melosFile = File(p.join(testDir.path, 'melos.yaml'));
+        melosFile.writeAsStringSync('''
+name: test_workspace
+packages:
+  - packages/**
+''');
+
+        // Create a custom context with TestLogger
+        final context = TestFactory.context(
+          generators: {
+            Logger: (context) => TestLogger(context)
+              ..setConfirmResponse('configure melos.yaml', true),
+          },
+        );
+        
+        final customRunner = TestCommandRunner(context);
+        final project = customRunner.context.get<ProjectService>().findAncestor(directory: testDir);
+        final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
+        
+        // Run workflow
+        await workflow(project);
+        
+        // Verify melos.yaml was updated
+        final melosContent = melosFile.readAsStringSync();
+        final yaml = loadYaml(melosContent) as Map;
+        
+        expect(yaml['sdkPath'], isNotNull);
+        expect(yaml['sdkPath'], '.fvm/flutter_sdk');
+        
+        // Verify logged messages
+        final logger = customRunner.context.get<Logger>();
+        expect(
+          logger.outputs.any((msg) => msg.contains('Detected melos.yaml without FVM configuration')),
+          isTrue,
+        );
+        expect(
+          logger.outputs.any((msg) => msg.contains('Added FVM Flutter SDK path to melos.yaml')),
+          isTrue,
+        );
+      });
+
+      test('should update existing FVM path when user confirms', () async {
+        final testDir = createTempDir();
+        createPubspecYaml(testDir);
+        createProjectConfig(
+          ProjectConfig(flutter: '3.10.0'),
+          testDir,
+        );
+
+        // Create a melos.yaml with old FVM path
+        final melosFile = File(p.join(testDir.path, 'melos.yaml'));
+        melosFile.writeAsStringSync('''
+name: test_workspace
+packages:
+  - packages/**
+sdkPath: .fvm/versions/3.10.0
+''');
+
+        // Create a custom context with TestLogger that says Yes
+        final context = TestFactory.context(
+          generators: {
+            Logger: (context) => TestLogger(context)
+              ..setConfirmResponse('Update existing FVM path', true),
+          },
+        );
+        
+        final customRunner = TestCommandRunner(context);
+        final project = customRunner.context.get<ProjectService>().findAncestor(directory: testDir);
+        final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
+        
+        // Run workflow
+        await workflow(project);
+        
+        // Verify melos.yaml was updated
+        final melosContent = melosFile.readAsStringSync();
+        final yaml = loadYaml(melosContent) as Map;
+        
+        expect(yaml['sdkPath'], '.fvm/flutter_sdk');
+        
+        // Verify logged messages
+        final logger = customRunner.context.get<Logger>();
+        expect(
+          logger.outputs.any((msg) => msg.contains('Updated FVM Flutter SDK path in melos.yaml')),
+          isTrue,
+        );
+      });
+
+      test('should verify all output is captured in logger', () async {
+        final testDir = createTempDir();
+        createPubspecYaml(testDir);
+        createProjectConfig(
+          ProjectConfig(flutter: '3.10.0'),
+          testDir,
+        );
+
+        // Create a melos.yaml
+        final melosFile = File(p.join(testDir.path, 'melos.yaml'));
+        melosFile.writeAsStringSync('''
+name: test_workspace
+packages:
+  - packages/**
+''');
+
+        // Create a custom context with TestLogger that declines confirmation
+        final context = TestFactory.context(
+          generators: {
+            Logger: (context) => TestLogger(context)
+              ..setConfirmResponse('configure melos.yaml', false),
+          },
+        );
+        
+        final customRunner = TestCommandRunner(context);
+        final project =
+            customRunner.context.get<ProjectService>().findAncestor(directory: testDir);
+        final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
+        final logger = customRunner.context.get<Logger>();
+        
+        // Clear previous outputs
+        logger.outputs.clear();
+        
+        await workflow(project);
+        
+        // Verify that we can see all the logged outputs
+        expect(logger.outputs.length, greaterThan(0));
+        expect(
+          logger.outputs.any((msg) => msg.contains('Detected melos.yaml')),
+          isTrue,
+          reason: 'Should capture detection message',
+        );
+        expect(
+          logger.outputs.any((msg) => msg.contains('User declined')),
+          isTrue,
+          reason: 'Should log when user declines',
+        );
+      });
+    });
+
   });
 }
