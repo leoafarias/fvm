@@ -1,7 +1,0 @@
-{
-  "flutter": "stable",
-  "flavors": {
-    "production": "3.19.0",
-    "development": "stable"
-  }
-}
