@@ -1,0 +1,47 @@
+---
+name: Test Install Script
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'scripts/install.sh'
+      - '.github/workflows/install_test.yml'
+
+jobs:
+  install:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run as root (expected to fail)
+        run: |
+          if sudo bash scripts/install.sh; then
+            echo "Install unexpectedly succeeded as root" >&2
+            exit 1
+          fi
+        shell: bash
+
+      - name: Run install.sh
+        run: bash scripts/install.sh
+        shell: bash
+
+      - name: Verify installation
+        run: fvm --version
+
+      - name: Run install.sh again (should skip)
+        run: |
+          VERSION=$(fvm --version | awk '{print $2}')
+          bash scripts/install.sh "$VERSION"
+        shell: bash
+
+      - name: Verify installation again
+        run: fvm --version
+
+      - name: Cleanup
+        run: bash scripts/uninstall.sh
+        if: always()

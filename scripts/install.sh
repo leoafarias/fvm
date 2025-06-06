@@ -157,20 +157,6 @@ if [[ -z "$ESCALATION_TOOL" ]]; then
   error "Cannot find sudo or doas for escalated privileges. Aborting."
 fi
 
-###############################################################################
-# (Optional) Detect Currently Installed FVM
-# -----------------------------------------------------------------------------
-# If FVM is already installed, we fetch its version. Could be used to skip re-
-# installing if the version matches, but for now we only store it in a variable
-# in case we want to display it or run comparisons.
-###############################################################################
-INSTALLED_FVM_VERSION=""
-if command -v fvm &>/dev/null; then
-  # '|| error' ensures that if 'fvm --version' fails, we exit.
-  INSTALLED_FVM_VERSION="$(fvm --version 2>&1)" || error "Failed to fetch installed FVM version."
-  # We do nothing further with this, but it's a placeholder if you'd like to
-  # compare or display it.
-fi
 
 ###############################################################################
 # Determine Which FVM Version to Install
@@ -197,6 +183,28 @@ else
 fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
+
+###############################################################################
+# Detect Currently Installed FVM and Skip or Upgrade if Needed
+# -----------------------------------------------------------------------------
+# If FVM is already installed, get its version. If it's the same as the
+# requested version, exit early. Otherwise, let the script continue to perform
+# an upgrade.
+###############################################################################
+INSTALLED_FVM_VERSION=""
+if command -v fvm &>/dev/null; then
+  INSTALLED_FVM_VERSION="$(fvm --version 2>/dev/null | awk '{print $2}')"
+  if [[ -z "$INSTALLED_FVM_VERSION" ]]; then
+    error "Failed to fetch installed FVM version."
+  fi
+
+  if [[ "$INSTALLED_FVM_VERSION" == "$FVM_VERSION" ]]; then
+    success "FVM $FVM_VERSION is already installed."
+    exit 0
+  else
+    info "Upgrading FVM from $INSTALLED_FVM_VERSION to $FVM_VERSION"
+  fi
+fi
 
 ###############################################################################
 # Define Installation Directories
@@ -279,12 +287,10 @@ info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
 # for readability when we display paths to the user. E.g., /home/username/.fvm_flutter/bin => ~/.fvm_flutter/bin
 ###############################################################################
 tildify() {
-  if [[ "$1" = "$HOME/"* ]]; then
-    local replacement='~/'
-    echo "${1/$HOME\//$replacement}"
-  else
-    echo "$1"
-  fi
+  case $1 in
+    "$HOME"*) echo "${1/#$HOME/~}" ;;
+    *) echo "$1" ;;
+  esac
 }
 
 tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
