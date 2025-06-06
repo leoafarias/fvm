@@ -4,25 +4,22 @@ import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/logger_service.dart';
-import '../utils/console_utils.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
-class RemoveCommand extends BaseCommand {
+class RemoveCommand extends BaseFvmCommand {
   @override
   final name = 'remove';
 
   @override
-  final description = 'Removes Flutter SDK Version';
+  final description = 'Removes Flutter SDK versions from the cache';
 
-  RemoveCommand() {
+  RemoveCommand(super.context) {
     argParser.addFlag(
       'all',
       abbr: 'a',
-      help: 'Removes all versions',
+      help: 'Removes all cached Flutter SDK versions',
       negatable: false,
     );
   }
@@ -39,7 +36,7 @@ class RemoveCommand extends BaseCommand {
         defaultValue: false,
       );
       if (confirmRemoval) {
-        final versionsCache = Directory(ctx.versionsCachePath);
+        final versionsCache = Directory(context.versionsCachePath);
         if (versionsCache.existsSync()) {
           versionsCache.deleteSync(recursive: true);
 
@@ -55,13 +52,13 @@ class RemoveCommand extends BaseCommand {
     String? version;
 
     if (argResults!.rest.isEmpty) {
-      final versions = await CacheService.fromContext.getAllVersions();
-      version = cacheVersionSelector(versions);
+      final versions = await get<CacheService>().getAllVersions();
+      version = logger.cacheVersionSelector(versions);
     }
     // Assign if its empty
     version ??= argResults!.rest[0];
     final validVersion = FlutterVersion.parse(version);
-    final cacheVersion = CacheService.fromContext.getVersion(validVersion);
+    final cacheVersion = get<CacheService>().getVersion(validVersion);
 
     // Check if version is installed
     if (cacheVersion == null) {
@@ -74,7 +71,7 @@ class RemoveCommand extends BaseCommand {
     try {
       /// Remove if version is cached
 
-      CacheService.fromContext.remove(cacheVersion);
+      get<CacheService>().remove(cacheVersion);
 
       progress.complete('${validVersion.name} removed.');
     } on Exception {

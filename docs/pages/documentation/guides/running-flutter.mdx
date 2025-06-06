@@ -7,80 +7,57 @@ import { Callout } from "nextra/components";
 
 # Running Flutter
 
-There are a few ways you can interact with the Flutter SDK setup. These will depend primarily on preference.
+FVM provides proxy commands to run Flutter and Dart with the correct SDK version for your project.
 
 ## Proxy Commands
-
-You are able to proxy any `flutter` or `dart` commands to the configured version by adding `fvm` in front of it.
 
 ### Flutter
 
 ```bash
-# Use
-> fvm flutter {command}
-# Instead of
-> flutter {command}
+fvm flutter <command>
 ```
 
 ### Dart
 
 ```bash
-# Use
-> fvm dart {command}
-# Instead of
-> dart {command}
+fvm dart <command>
 ```
 
 <Callout type="info">
 
-Configure the following alias for a shorthand version of the command:
+**Tip:** Create aliases for convenience:
 
 ```bash
-# aliases
-f="fvm flutter"
-d="fvm dart"
-
-# Now you can use
-f run
+alias f="fvm flutter"
+alias d="fvm dart"
 ```
 
 </Callout>
 
-### Benefits
+## SDK Resolution Order
 
--  Find relative project configurations.
--  Monorepo compatibility.
--  Fallback to `global` configured version or `PATH` configured.
+When you run `fvm flutter` or `fvm dart`, FVM looks for the SDK in this order:
 
-### Routing
+1. Project `.fvmrc` file
+2. Ancestor directory `.fvmrc`
+3. Global version (`fvm global`)
+4. System PATH Flutter
 
-When proxying commands, `FVM` will look for an SDK in the following order:
+## Direct SDK Access
 
-1. Project
-2. Ancestor directory
-3. Global (Set through FVM)
-4. Environment (Flutter version configured on `PATH`)
-
-## Call SDK Directly
-
-Versions installed by FVM are standard Flutter SDK installs. That means you are able to call them directly without proxying through FVM.
-
-Using the symlink will dynamically call the configured version for the project.
+You can also call the SDK directly using the symlink:
 
 ```bash
-# flutter run
 .fvm/flutter_sdk/bin/flutter run
 ```
 
-<Callout type="info">
+## Spawn Command
 
-Configure the following alias to call the relative project version, without the need to proxy:
+Run commands with any installed Flutter version:
 
 ```bash
-fv=".fvm/flutter_sdk/bin/flutter"
+fvm spawn 3.19.0 doctor
 ```
-
-</Callout>
 
 <Callout type="info">
 

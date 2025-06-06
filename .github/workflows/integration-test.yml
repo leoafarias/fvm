@@ -1,0 +1,39 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  integration-test:
+    name: Integration Tests
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Integration Test"
+          git config --global user.email "test@fvm.app"
+
+      - name: Run Integration Tests
+        shell: bash
+        run: dart run grinder integration-test

@@ -1,43 +1,51 @@
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:mason_logger/mason_logger.dart';
 import 'package:path/path.dart';
-import 'package:scope/scope.dart';
 
 import '../api/api_service.dart';
 import '../models/config_model.dart';
+import '../models/log_level_model.dart';
+import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
-import '../services/config_repository.dart';
 import '../services/flutter_service.dart';
-import '../services/global_version_service.dart';
+import '../services/git_service.dart';
 import '../services/logger_service.dart';
+import '../services/process_service.dart';
 import '../services/project_service.dart';
+import '../services/releases_service/releases_client.dart';
 import '../version.dart';
+import '../workflows/check_project_constraints.workflow.dart';
+import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/resolve_project_deps.workflow.dart';
+import '../workflows/setup_flutter.workflow.dart';
+import '../workflows/setup_gitignore.workflow.dart';
+import '../workflows/update_melos_settings.workflow.dart';
+import '../workflows/update_project_references.workflow.dart';
+import '../workflows/update_vscode_settings.workflow.dart';
+import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
+import '../workflows/verify_project.workflow.dart';
 import 'constants.dart';
+import 'extensions.dart';
+import 'file_lock.dart';
 
 part 'context.mapper.dart';
 
-final contextKey = ScopeKey<FVMContext>();
-
-/// Generates an [FVMContext] value.
+/// Generates an [FvmContext] value.
 ///
 /// Generators are allowed to return `null`, in which case the context will
 /// store the `null` value as the value for that type.
 
-typedef Generator<T extends ContextService> = T Function(FVMContext context);
+typedef Generator<T extends Contextual> = T Function(FvmContext context);
 
-FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
-
-T getProvider<T>() => ctx.get();
+// FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
 
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
-class FVMContext with FVMContextMappable {
-  static FVMContext main = FVMContext.create();
-
+class FvmContext with FvmContextMappable {
   /// Name of the context
-  final String id;
+  final String? debugLabel;
 
   /// Working Directory for FVM
   final String workingDirectory;
@@ -45,83 +53,63 @@ class FVMContext with FVMContextMappable {
   /// Flag to determine if context is running in a test
   final bool isTest;
 
-  /// Generators for dependencies
-  final Map<Type, Generator> generators;
-
   /// App config
   final AppConfig config;
 
   /// Environment variables
   final Map<String, String> environment;
 
-  final List<String> args;
+  /// Log level
+  final Level logLevel;
 
   /// True if the `--fvm-skip-input` flag was passed to the command
   final bool _skipInput;
 
-  /// Generated values
+  final Map<Type, Generator> _generators;
   final Map<Type, dynamic> _dependencies = {};
 
   /// Constructor
   /// If nothing is provided set default
   @MappableConstructor()
-  FVMContext.base({
-    required this.id,
+  FvmContext.raw({
+    required this.debugLabel,
     required this.workingDirectory,
     required this.config,
+    required Map<Type, Generator> generators,
     required this.environment,
-    required this.args,
     required bool skipInput,
-    required this.generators,
     this.isTest = false,
-  }) : _skipInput = skipInput;
+    this.logLevel = Level.info,
+  })  : _skipInput = skipInput,
+        _generators = generators;
 
-  static FVMContext create({
-    String? id,
-    List<String>? args,
+  static FvmContext create({
+    String? debugLabel,
     AppConfig? configOverrides,
-    String? workingDirectory,
-    Map<Type, dynamic>? generatorOverrides,
+    String? workingDirectoryOverride,
+    Map<Type, Generator>? generatorsOverride,
     Map<String, String>? environmentOverrides,
+    bool skipInput = false,
+    Level? logLevel,
     bool isTest = false,
   }) {
-    workingDirectory ??= Directory.current.path;
-
     // Load all configs
-    final config = ConfigRepository.load(overrides: configOverrides);
+    final builtConfig =
+        AppConfigService.buildConfig(overrides: configOverrides);
 
-    final level = isTest ? Level.error : Level.info;
-
-    final environment = {...Platform.environment, ...?environmentOverrides};
-
-    // Skips input if running in CI
-
-    final updatedArgs = [...?args];
-
-    final skipInput = updatedArgs.remove('--fvm-skip-input');
-
-    return FVMContext.base(
-      id: id ?? 'MAIN',
-      workingDirectory: workingDirectory,
-      config: config,
-      environment: environment,
-      args: updatedArgs,
+    return FvmContext.raw(
+      debugLabel: debugLabel,
+      workingDirectory: workingDirectoryOverride ?? Directory.current.path,
+      config: builtConfig,
+      environment: {...Platform.environment, ...?environmentOverrides},
+      logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
-      generators: {
-        LoggerService: (context) => LoggerService(
-              level: level,
-              context: context,
-            ),
-        ProjectService: ProjectService.new,
-        FlutterService: FlutterService.new,
-        CacheService: CacheService.new,
-        GlobalVersionService: GlobalVersionService.new,
-        APIService: APIService.new,
-        ...?generatorOverrides,
-      },
       isTest: isTest,
+      generators: {..._defaultGenerators, ...?generatorsOverride},
     );
   }
+
+  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
 
   /// Directory where FVM is stored
   @MappableField()
@@ -189,10 +177,6 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   String get versionsCachePath => join(fvmDir, 'versions');
 
-  /// Config path
-  @MappableField()
-  String get configPath => kAppConfigFile;
-
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
   @MappableField()
@@ -203,12 +187,23 @@ class FVMContext with FVMContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
+  FileLocker createLock(String name, {Duration? expiresIn}) {
+    if (!_lockDir.existsSync()) {
+      _lockDir.createSync(recursive: true);
+    }
+
+    return FileLocker(
+      join(_lockDir.path, '$name.lock'),
+      lockExpiration: expiresIn ?? const Duration(seconds: 10),
+    );
+  }
+
   T get<T>() {
     if (_dependencies.containsKey(T)) {
       return _dependencies[T] as T;
     }
-    if (generators.containsKey(T)) {
-      final generator = generators[T] as Generator;
+    if (_generators.containsKey(T)) {
+      final generator = _generators[T] as Generator;
       _dependencies[T] = generator(this);
 
       return _dependencies[T];
@@ -216,8 +211,15 @@ class FVMContext with FVMContextMappable {
     throw Exception('Generator for $T not found');
   }
 
-  @override
-  String toString() => id;
+  /// Gets the Flutter URL to use for a specific fork
+  String getForkUrl(String forkName) {
+    final fork = config.forks.firstWhereOrNull((f) => f.name == forkName);
+    if (fork == null) {
+      throw Exception('Fork "$forkName" not found in configuration');
+    }
+
+    return fork.url;
+  }
 }
 
 class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
@@ -231,5 +233,29 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 
   @override
   // ignore: avoid-dynamic
-  dynamic encode(Map<Type, Generator> self) => null;
+  dynamic encode(Map<Type, Generator> self) {
+    return null;
+  }
 }
+
+const _defaultGenerators = <Type, Generator>{
+  ProjectService: ProjectService.new,
+  CacheService: CacheService.new,
+  FlutterReleaseClient: FlutterReleaseClient.new,
+  FlutterService: FlutterService.new,
+  ApiService: ApiService.new,
+  GitService: GitService.new,
+  ProcessService: ProcessService.new,
+  Logger: Logger.new,
+  UseVersionWorkflow: UseVersionWorkflow.new,
+  CheckProjectConstraintsWorkflow: CheckProjectConstraintsWorkflow.new,
+  ResolveProjectDependenciesWorkflow: ResolveProjectDependenciesWorkflow.new,
+  SetupFlutterWorkflow: SetupFlutterWorkflow.new,
+  SetupGitIgnoreWorkflow: SetupGitIgnoreWorkflow.new,
+  UpdateProjectReferencesWorkflow: UpdateProjectReferencesWorkflow.new,
+  UpdateMelosSettingsWorkflow: UpdateMelosSettingsWorkflow.new,
+  UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
+  ValidateFlutterVersionWorkflow: ValidateFlutterVersionWorkflow.new,
+  VerifyProjectWorkflow: VerifyProjectWorkflow.new,
+  EnsureCacheWorkflow: EnsureCacheWorkflow.new,
+};

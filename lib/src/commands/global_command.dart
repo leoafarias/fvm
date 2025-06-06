@@ -3,39 +3,35 @@ import 'package:tint/tint.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../services/cache_service.dart';
-import '../services/global_version_service.dart';
-import '../services/logger_service.dart';
 import '../services/project_service.dart';
-import '../utils/console_utils.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
-class GlobalCommand extends BaseCommand {
+class GlobalCommand extends BaseFvmCommand {
   @override
   final name = 'global';
 
   @override
-  final description = 'Sets Flutter SDK Version as a global';
+  final description = 'Sets a Flutter SDK version as the global default';
 
-  /// Constructor
-  GlobalCommand() {
+  GlobalCommand(super.context) {
     argParser
       ..addFlag(
         'unlink',
         abbr: 'u',
-        help: 'Unlinks the global version',
+        help: 'Removes the global Flutter SDK version setting',
         defaultsTo: false,
         negatable: false,
       )
       ..addFlag(
         'force',
         abbr: 'f',
-        help: 'Skips validation checks',
+        help: 'Bypasses Flutter SDK validation checks',
         defaultsTo: false,
         negatable: false,
       );
@@ -46,18 +42,22 @@ class GlobalCommand extends BaseCommand {
     final unlinkArg = boolArg('unlink');
     final forceArg = boolArg('force');
 
+    final ensureCache = EnsureCacheWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
+    final cacheService = get<CacheService>();
+
     if (unlinkArg) {
-      final globalVersion = GlobalVersionService.fromContext.getGlobal();
+      final globalVersion = cacheService.getGlobal();
 
       if (globalVersion == null) {
         logger
           ..info('No global version is set')
-          ..spacer;
+          ..info();
       } else {
-        GlobalVersionService.fromContext.unlinkGlobal();
+        cacheService.unlinkGlobal();
         logger
           ..success('Global version unlinked')
-          ..spacer;
+          ..info();
       }
 
       return ExitCode.success.code;
@@ -67,48 +67,49 @@ class GlobalCommand extends BaseCommand {
 
     // Show chooser if not version is provided
     if (argResults!.rest.isEmpty) {
-      final versions = await CacheService.fromContext.getAllVersions();
-      version = cacheVersionSelector(versions);
+      final versions = await cacheService.getAllVersions();
+      version = logger.cacheVersionSelector(versions);
     }
 
     // Get first arg if it was not empty
     version ??= argResults!.rest[0];
 
+    final flutterVersion = validateFlutterVersion(version);
+
     // Ensure version is installed
-    final cacheVersion = await ensureCacheWorkflow(version, force: forceArg);
+    final cacheVersion = await ensureCache(flutterVersion, force: forceArg);
 
     // Sets version as the global
-    GlobalVersionService.fromContext.setGlobal(cacheVersion);
+    cacheService.setGlobal(cacheVersion);
 
     final flutterInPath = which('flutter', binDir: true);
 
     // Get pinned version, for comparison on terminal
-    final project = ProjectService.fromContext.findAncestor();
+    final project = get<ProjectService>().findAncestor();
 
     final pinnedVersion = project.pinnedVersion;
 
     CacheFlutterVersion? pinnedCacheVersion;
 
     if (pinnedVersion != null) {
-      //TODO: Should run validation on this
-      pinnedCacheVersion = CacheService.fromContext.getVersion(pinnedVersion);
+      pinnedCacheVersion = cacheService.getVersion(pinnedVersion);
     }
 
-    final isDefaultInPath = flutterInPath == ctx.globalCacheBinPath;
+    final isDefaultInPath = flutterInPath == context.globalCacheBinPath;
     final isCachedVersionInPath = flutterInPath == cacheVersion.binPath;
     final isPinnedVersionInPath = flutterInPath == pinnedCacheVersion?.binPath;
 
     logger
-      ..detail('')
-      ..detail('Default in path: $isDefaultInPath')
-      ..detail('Cached version in path: $isCachedVersionInPath')
-      ..detail('Pinned version in path: $isPinnedVersionInPath')
-      ..detail('')
-      ..detail('flutterInPath: $flutterInPath')
-      ..detail('ctx.globalCacheBinPath: ${ctx.globalCacheBinPath}')
-      ..detail('cacheVersion.binPath: ${cacheVersion.binPath}')
-      ..detail('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
-      ..detail('');
+      ..debug('')
+      ..debug('Default in path: $isDefaultInPath')
+      ..debug('Cached version in path: $isCachedVersionInPath')
+      ..debug('Pinned version in path: $isPinnedVersionInPath')
+      ..debug('')
+      ..debug('flutterInPath: $flutterInPath')
+      ..debug('context.globalCacheBinPath: ${context.globalCacheBinPath}')
+      ..debug('cacheVersion.binPath: ${cacheVersion.binPath}')
+      ..debug('pinnedCacheVersion?.binPath: ${pinnedCacheVersion?.binPath}')
+      ..debug('');
 
     logger.info(
       'Flutter SDK: ${cyan.wrap(cacheVersion.printFriendlyName)} is now global',
@@ -122,8 +123,8 @@ class GlobalCommand extends BaseCommand {
           'CURRENT: ${flutterInPath ?? 'No version is configured on path.'}'
               .brightRed(),
         )
-        ..info('CHANGE TO: ${ctx.globalCacheBinPath}'.green())
-        ..spacer;
+        ..info('CHANGE TO: ${context.globalCacheBinPath}'.green())
+        ..info();
     }
 
     if (isVsCode()) {

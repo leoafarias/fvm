@@ -1,31 +1,28 @@
-// Use just for reference, should not change
-
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:path/path.dart' as p;
 
 import '../utils/change_case.dart';
 import '../utils/constants.dart';
-import '../utils/extensions.dart';
 import '../utils/pretty_json.dart';
+import 'flutter_version_model.dart';
 
 part 'config_model.mapper.dart';
 
 @MappableEnum()
-enum ConfigKeys {
+enum ConfigOptions {
   cachePath(description: 'Path where $kPackageName will cache versions'),
   useGitCache(
     description:
         'Enable/Disable git cache globally, which is used for faster version installs.',
   ),
   gitCachePath(description: 'Path where local Git reference cache is stored'),
-  flutterUrl(description: 'Flutter repository Git URL to clone from'),
+  flutterUrl(description: 'Flutter repository Git URL to clone from');
 
-  privilegedAccess(description: 'Enable/Disable privileged access for FVM');
-
-  const ConfigKeys({required this.description});
+  const ConfigOptions({required this.description});
 
   final String description;
 
@@ -37,52 +34,45 @@ enum ConfigKeys {
 
   String get propKey => _recase.camelCase;
 
-  static injectArgParser(ArgParser argParser) {
+  static ArgParser injectArgParser(ArgParser argParser) {
     final configKeysFunctions = {
-      ConfigKeys.cachePath: () {
+      ConfigOptions.cachePath: () {
         argParser.addOption(
-          ConfigKeys.cachePath.paramKey,
-          help: ConfigKeys.cachePath.description,
+          ConfigOptions.cachePath.paramKey,
+          help: ConfigOptions.cachePath.description,
         );
       },
-      ConfigKeys.useGitCache: () {
+      ConfigOptions.useGitCache: () {
         argParser.addFlag(
-          ConfigKeys.useGitCache.paramKey,
-          help: ConfigKeys.useGitCache.description,
+          ConfigOptions.useGitCache.paramKey,
+          help: ConfigOptions.useGitCache.description,
           defaultsTo: true,
           negatable: true,
         );
       },
-      ConfigKeys.gitCachePath: () {
+      ConfigOptions.gitCachePath: () {
         argParser.addOption(
-          ConfigKeys.gitCachePath.paramKey,
-          help: ConfigKeys.gitCachePath.description,
+          ConfigOptions.gitCachePath.paramKey,
+          help: ConfigOptions.gitCachePath.description,
         );
       },
-      ConfigKeys.flutterUrl: () {
+      ConfigOptions.flutterUrl: () {
         argParser.addOption(
-          ConfigKeys.flutterUrl.paramKey,
-          help: ConfigKeys.flutterUrl.description,
-        );
-      },
-      ConfigKeys.privilegedAccess: () {
-        argParser.addFlag(
-          ConfigKeys.privilegedAccess.paramKey,
-          help: ConfigKeys.privilegedAccess.description,
-          defaultsTo: true,
-          negatable: true,
+          ConfigOptions.flutterUrl.paramKey,
+          help: ConfigOptions.flutterUrl.description,
         );
       },
     };
 
-    for (final key in ConfigKeys.values) {
+    for (final key in ConfigOptions.values) {
       configKeysFunctions[key]?.call();
     }
+
+    return argParser;
   }
 }
 
-@MappableClass(ignoreNull: true)
-abstract class BaseConfig with BaseConfigMappable {
+abstract class Config {
   // If should use gitCache
   final bool? useGitCache;
 
@@ -95,51 +85,20 @@ abstract class BaseConfig with BaseConfigMappable {
   final String? cachePath;
 
   /// Constructor
-  const BaseConfig({
-    required this.cachePath,
-    required this.useGitCache,
-    required this.gitCachePath,
-    required this.flutterUrl,
+  const Config({
+    this.cachePath,
+    this.useGitCache,
+    this.gitCachePath,
+    this.flutterUrl,
   });
 }
 
-@MappableClass(ignoreNull: true)
-class EnvConfig extends BaseConfig with EnvConfigMappable {
-  static final fromMap = EnvConfigMapper.fromMap;
-  static final fromJson = EnvConfigMapper.fromJson;
-
-  const EnvConfig({
-    required super.cachePath,
-    required super.useGitCache,
-    required super.gitCachePath,
-    required super.flutterUrl,
-  });
-
-  static EnvConfig empty() {
-    return EnvConfig(
-      cachePath: null,
-      useGitCache: null,
-      gitCachePath: null,
-      flutterUrl: null,
-    );
-  }
-}
-
-@MappableClass(ignoreNull: true)
-class FileConfig extends BaseConfig with FileConfigMappable {
-  /// If Vscode settings is not managed by FVM
-  final bool? updateVscodeSettings;
-
-  /// If FVM should update .gitignore
-  final bool? updateGitIgnore;
-
-  final bool? runPubGetOnSdkChanges;
-
-  /// If FVM should run with privileged access
+abstract class FileConfig extends Config {
   final bool? privilegedAccess;
-
-  static final fromMap = FileConfigMapper.fromMap;
-  static final fromJson = FileConfigMapper.fromJson;
+  final bool? runPubGetOnSdkChanges;
+  final bool? updateVscodeSettings;
+  final bool? updateGitIgnore;
+  final bool? updateMelosSettings;
 
   /// Constructor
   const FileConfig({
@@ -151,29 +110,31 @@ class FileConfig extends BaseConfig with FileConfigMappable {
     required this.runPubGetOnSdkChanges,
     required this.updateVscodeSettings,
     required this.updateGitIgnore,
+    this.updateMelosSettings,
   });
+}
 
-  void save(String path) {
-    final jsonContents = prettyJson(toMap());
-
-    path.file.write(jsonContents);
-  }
+@MappableClass(ignoreNull: true)
+class EnvConfig extends Config with EnvConfigMappable {
+  const EnvConfig({
+    super.cachePath,
+    super.useGitCache,
+    super.gitCachePath,
+    super.flutterUrl,
+  });
 }
 
 @MappableClass(ignoreNull: true)
 class AppConfig extends FileConfig with AppConfigMappable {
-  /// Disables update notification
-
   final bool? disableUpdateCheck;
+
   final DateTime? lastUpdateCheck;
 
-  static final fromMap = AppConfigMapper.fromMap;
-  static final fromJson = AppConfigMapper.fromJson;
-
-  /// Constructor
+  final Set<FlutterFork> forks;
   const AppConfig({
     this.disableUpdateCheck,
     this.lastUpdateCheck,
+    this.forks = const {},
     super.cachePath,
     super.useGitCache,
     super.gitCachePath,
@@ -182,69 +143,86 @@ class AppConfig extends FileConfig with AppConfigMappable {
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
+    super.updateMelosSettings,
   });
+}
 
-  static AppConfig empty() {
-    return AppConfig(
-      disableUpdateCheck: null,
-      lastUpdateCheck: null,
-      cachePath: null,
-      useGitCache: null,
-      gitCachePath: null,
-      flutterUrl: null,
-      privilegedAccess: null,
-      runPubGetOnSdkChanges: null,
-      updateVscodeSettings: null,
-      updateGitIgnore: null,
-    );
+@MappableClass(ignoreNull: true)
+class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
+  /// Disables update notification
+  @override
+  bool? disableUpdateCheck;
+  @override
+  DateTime? lastUpdateCheck;
+  @override
+  late Set<FlutterFork> forks;
+
+  @override
+  String? cachePath;
+  @override
+  String? gitCachePath;
+  @override
+  String? flutterUrl;
+  @override
+  bool? useGitCache;
+  @override
+  bool? privilegedAccess;
+  @override
+  bool? runPubGetOnSdkChanges;
+  @override
+  bool? updateVscodeSettings;
+
+  @override
+  bool? updateGitIgnore;
+  
+  @override
+  bool? updateMelosSettings;
+
+  static final fromMap = LocalAppConfigMapper.fromMap;
+  static final fromJson = LocalAppConfigMapper.fromJson;
+
+  /// Constructor
+  LocalAppConfig({
+    this.disableUpdateCheck,
+    this.lastUpdateCheck,
+    this.cachePath,
+    this.useGitCache,
+    this.gitCachePath,
+    this.flutterUrl,
+    this.privilegedAccess,
+    this.runPubGetOnSdkChanges,
+    this.updateVscodeSettings,
+    this.updateGitIgnore,
+    this.updateMelosSettings,
+    Set<FlutterFork>? forks,
+  }) {
+    this.forks = {...?forks};
   }
 
-  static AppConfig? loadFromPath(String path) {
-    final configFile = File(path);
-
-    return configFile.existsSync()
-        ? AppConfig.fromJson(configFile.readAsStringSync())
-        : null;
+  static LocalAppConfig read() {
+    try {
+      return _configFile.existsSync()
+          ? LocalAppConfig.fromJson(_configFile.readAsStringSync())
+          : LocalAppConfig();
+    } catch (e) {
+      return LocalAppConfig();
+    }
   }
 
-  AppConfig merge(BaseConfig? config) {
-    if (config == null) return this;
-    AppConfig newConfig;
-    if (config is EnvConfig) {
-      newConfig = AppConfig(
-        disableUpdateCheck: disableUpdateCheck,
-        cachePath: config.cachePath,
-        useGitCache: config.useGitCache,
-        gitCachePath: config.gitCachePath,
-        flutterUrl: config.flutterUrl,
-      );
+  static File get _configFile => File(kAppConfigFile);
+
+  bool get isEmpty => LocalAppConfig() == this;
+
+  String get location => _configFile.path;
+
+  void save() {
+    // Ensure the parent directory exists before writing the file
+    // This follows the same pattern used throughout FVM for directory creation
+    final parentDir = _configFile.parent;
+    if (!parentDir.existsSync()) {
+      parentDir.createSync(recursive: true);
     }
-
-    if (config is ProjectConfig) {
-      newConfig = AppConfig(
-        cachePath: config.cachePath,
-        useGitCache: config.useGitCache,
-        gitCachePath: config.gitCachePath,
-        flutterUrl: config.flutterUrl,
-        privilegedAccess: config.privilegedAccess,
-        runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
-        updateVscodeSettings: config.updateVscodeSettings,
-        updateGitIgnore: config.updateGitIgnore,
-      );
-    }
-
-    if (config is AppConfig) {
-      return copyWith.$merge(config);
-    }
-
-    newConfig = AppConfig(
-      cachePath: config.cachePath,
-      useGitCache: config.useGitCache,
-      gitCachePath: config.gitCachePath,
-      flutterUrl: config.flutterUrl,
-    );
-
-    return copyWith.$merge(newConfig);
+    _configFile.writeAsStringSync(prettyJson(toMap()));
   }
 }
 
@@ -266,25 +244,11 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
     super.updateGitIgnore,
+    super.updateMelosSettings,
   });
 
-  static ProjectConfig empty() {
-    return ProjectConfig(
-      flutter: null,
-      flavors: null,
-      cachePath: null,
-      useGitCache: null,
-      gitCachePath: null,
-      flutterUrl: null,
-      privilegedAccess: null,
-      runPubGetOnSdkChanges: null,
-      updateVscodeSettings: null,
-      updateGitIgnore: null,
-    );
-  }
-
-  static ProjectConfig? loadFromPath(String path) {
-    final configFile = File(path);
+  static ProjectConfig? loadFromDirectory(Directory directory) {
+    final configFile = File(p.join(directory.path, kFvmConfigFileName));
 
     return configFile.existsSync()
         ? ProjectConfig.fromJson(configFile.readAsStringSync())
@@ -308,4 +272,9 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
       if (flavors != null && flavors!.isNotEmpty) 'flavors': flavors,
     };
   }
+
+  String toLegacyJson() => prettyJson(toLegacyMap());
+
+  @override
+  String toJson() => prettyJson(toMap());
 }

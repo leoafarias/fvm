@@ -1,63 +1,38 @@
 import 'package:args/args.dart';
 
-import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
-import '../utils/commands.dart';
-import '../utils/constants.dart';
 import '../utils/exceptions.dart';
-import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/run_configured_flutter.workflow.dart';
 import 'base_command.dart';
 
 /// Proxies Flutter Commands
-class FlutterCommand extends BaseCommand {
+class FlutterCommand extends BaseFvmCommand {
   @override
   final name = 'flutter';
   @override
-  final description = 'Proxies Flutter Commands';
+  final description =
+      'Runs Flutter commands using the project\'s configured SDK version';
   @override
   final argParser = ArgParser.allowAnything();
 
-  /// Constructor
-  FlutterCommand();
+  FlutterCommand(super.context);
 
   @override
   Future<int> run() async {
-    final version = ProjectService.fromContext.findVersion();
-    final args = [...?argResults?.arguments];
+    final args = argResults!.arguments;
+    checkIfUpgradeCommand(args);
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
 
-    CacheFlutterVersion? cacheVersion;
+    final result = await runConfiguredFlutterWorkflow('flutter', args: args);
 
-    if (version != null) {
-      // Will install version if not already installed
-      cacheVersion = await ensureCacheWorkflow(version);
+    return result.exitCode;
+  }
+}
 
-      logger
-        ..detail('$kPackageName: Running Flutter SDK from version $version')
-        ..detail('');
-
-      void checkIfUpgradeCommand(List<String> args) {
-        if (args.isNotEmpty && args.first == 'upgrade') {
-          throw AppException(
-            'You should not upgrade a release version. '
-            'Please install a channel instead to upgrade it. ',
-          );
-        }
-      }
-
-      // If its not a channel silence version check
-      if (!cacheVersion.isChannel) {
-        checkIfUpgradeCommand(args);
-      }
-      // Runs flutter command with pinned version
-    } else {
-      logger
-        ..detail('$kPackageName: Running Flutter SDK from PATH')
-        ..detail('');
-      // Running null will default to flutter version on paths
-    }
-    final results = await runFlutter(args, version: cacheVersion);
-
-    return results.exitCode;
+void checkIfUpgradeCommand(List<String> args) {
+  if (args.isNotEmpty && args.first == 'upgrade') {
+    throw AppException(
+      'You should not upgrade a release version. '
+      'Please install a channel instead to upgrade it. ',
+    );
   }
 }

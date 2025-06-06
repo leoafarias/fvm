@@ -80,7 +80,7 @@ brew untap leoafarias/fvm
 <Tabs.Tab>
 You are also able to install FVM as a [pub package](https://pub.dev/packages/fvm).
 
-However, if you plan on using FVM to manage your [global Flutter install](/docs/guides/global_version), we recommend installing it as a standalone.
+However, if you plan on using FVM to manage your [global Flutter install](/documentation/guides/global-configuration), we recommend installing it as a standalone.
 
 <Callout type="warning">
   This is not recommended if you plan on using FVM to manage your global Flutter install.
@@ -91,4 +91,27 @@ dart pub global activate fvm
 ```
 
 </Tabs.Tab>
+</Tabs>
+
+## PATH Setup
+
+After installation, add FVM to your PATH:
+
+<Tabs items={['macOS/Linux', 'Windows']}>
+  <Tabs.Tab>
+Add to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
+
+```bash
+export PATH="$PATH:$HOME/.pub-cache/bin"
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+Add to your PATH environment variable:
+
+```
+%USERPROFILE%\AppData\Local\Pub\Cache\bin
+```
+
+  </Tabs.Tab>
 </Tabs>
