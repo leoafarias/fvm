@@ -27,6 +27,9 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Move install scripts to public directory
+        run: dart run grinder moveScripts
+
       - name: Deploy Github
         run: dart run grinder pkg-github-release
 
