@@ -45,17 +45,16 @@ void main() {
 
   group('CacheService', () {
     group('getVersionCacheDir', () {
-      final cases = <String, String>{
-        'stable': path.join(tempDir.path, 'stable'),
-        'testfork/master': path.join(tempDir.path, 'testfork', 'master'),
-      };
+      test('returns correct directory path for stable', () {
+        final version = FlutterVersion.parse('stable');
+        final result = cacheService.getVersionCacheDir(version);
+        expect(result.path, path.join(tempDir.path, 'stable'));
+      });
 
-      cases.forEach((versionName, expectedPath) {
-        test('returns correct directory path for $versionName', () {
-          final version = FlutterVersion.parse(versionName);
-          final result = cacheService.getVersionCacheDir(version);
-          expect(result.path, expectedPath);
-        });
+      test('returns correct directory path for testfork/master', () {
+        final version = FlutterVersion.parse('testfork/master');
+        final result = cacheService.getVersionCacheDir(version);
+        expect(result.path, path.join(tempDir.path, 'testfork', 'master'));
       });
 
       test('backwards compatibility for string-based version paths', () {
