@@ -1,4 +1,4 @@
-name: Test CLI
+name: CLI and Integration Tests
 
 on:
   workflow_call:
@@ -14,6 +14,9 @@ on:
       - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
+
+  push:
+    branches: [ main, develop ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -63,6 +66,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
+    needs: test
     strategy:
       matrix:
         os: [macos-latest, windows-latest]
@@ -78,3 +82,34 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ${{ matrix.os }}
+    needs: test
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Integration Test"
+          git config --global user.email "test@fvm.app"
+
+      - name: Run Integration Tests
+        shell: bash
+        run: dart run grinder integration-test
