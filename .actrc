@@ -1,0 +1,18 @@
+# act configuration file
+# Use medium-sized Ubuntu image for better compatibility
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+-P ubuntu-22.04=catthehacker/ubuntu:act-22.04
+
+# Use self-hosted for macOS simulation (runs on host system)
+-P macos-latest=-self-hosted
+-P macos-13=-self-hosted
+-P macos-12=-self-hosted
+
+# Enable offline mode for faster testing
+--action-offline-mode
+
+# Use host network for better connectivity
+--network host
+
+# Container architecture
+--container-architecture linux/amd64
