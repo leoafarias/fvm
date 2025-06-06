@@ -1,6 +1,6 @@
 # Example
 
-The following is a step by step if you want to run an specific version of Flutter within a project.
+The following is a step by step if you want to run a specific version of Flutter within a project.
 
 First choose the version you would like to install and cache on your machine.
 
