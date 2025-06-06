@@ -80,8 +80,16 @@ class EnsureCacheWorkflow extends Workflow {
   }
 
   void _validateGit() {
-    final isGitInstalled = Process.runSync('git', ['--version']).exitCode == 0;
-    if (!isGitInstalled) {
+    try {
+      // `Process.runSync` throws a [ProcessException] when the executable
+      // cannot be found. If Git is installed, it returns a [ProcessResult]
+      // whose [exitCode] is `0` on success.
+      final isGitInstalled =
+          Process.runSync('git', ['--version']).exitCode == 0;
+      if (!isGitInstalled) {
+        throw AppException('Git is not installed');
+      }
+    } on ProcessException {
       throw AppException('Git is not installed');
     }
   }
