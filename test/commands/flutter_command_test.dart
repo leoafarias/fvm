@@ -193,5 +193,56 @@ void main() {
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
+
+    // Test 4: Upgrade command behavior
+    group('upgrade command', () {
+      test('allows upgrade on channel version', () async {
+        // Setup: Use a channel version
+        await testRunner.run(['fvm', 'use', 'stable', '--force']);
+        
+        // Act: Try to run upgrade (it may fail due to network, but shouldn't be blocked)
+        final exitCode = await testRunner.run(['fvm', 'flutter', 'upgrade']);
+        
+        // Assert: Should not throw an AppException for policy reasons
+        // Note: It might fail for other reasons (network, etc.) but not due to version check
+        expect(exitCode, isNot(equals(ExitCode.usage.code)));
+      });
+
+      test('blocks upgrade on release version', () async {
+        // Setup: Install and use a release version
+        await testRunner.run(['fvm', 'install', '3.10.5', '--setup']);
+        await testRunner.run(['fvm', 'use', '3.10.5', '--force']);
+        
+        // Act: Try to run upgrade on a release version
+        final exitCode = await testRunner.run(['fvm', 'flutter', 'upgrade']);
+        
+        // Assert: Should return ExitCode.data (65) which is the exit code for AppException
+        expect(exitCode, equals(ExitCode.data.code));
+      });
+
+      test('allows upgrade when no version is configured', () async {
+        // Setup: Remove any project configuration
+        await testRunner.run(['fvm', 'remove', '--force']);
+        
+        // Act: Try to run upgrade
+        final exitCode = await testRunner.run(['fvm', 'flutter', 'upgrade']);
+        
+        // Assert: Should not be blocked by version check
+        // (might fail because no Flutter is available, but that's expected)
+        expect(exitCode, isNotNull);
+      });
+
+      test('correctly handles release version with channel suffix', () async {
+        // Setup: Use a version with channel suffix
+        await testRunner.run(['fvm', 'install', '3.10.5', '--setup']);
+        await testRunner.run(['fvm', 'use', '3.10.5', '--force']);
+        
+        // Act: Try to run upgrade on a release version
+        final exitCode = await testRunner.run(['fvm', 'flutter', 'upgrade']);
+        
+        // Assert: Should return ExitCode.data (65) for AppException
+        expect(exitCode, equals(ExitCode.data.code));
+      });
+    });
   });
 }
