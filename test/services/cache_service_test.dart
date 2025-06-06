@@ -45,44 +45,22 @@ void main() {
 
   group('CacheService', () {
     group('getVersionCacheDir', () {
-      test('returns correct directory path for regular version name', () {
-        // Given
-        const versionName = 'stable';
-        final version = FlutterVersion.parse(versionName);
-        final expected = path.join(tempDir.path, versionName);
+      final cases = <String, String>{
+        'stable': path.join(tempDir.path, 'stable'),
+        'testfork/master': path.join(tempDir.path, 'testfork', 'master'),
+      };
 
-        // When
-        final result = cacheService.getVersionCacheDir(version);
-
-        // Then
-        expect(result.path, expected);
-      });
-
-      test('returns correct directory path for forked versions', () {
-        // Given
-        const forkName = 'testfork';
-        const versionName = 'master';
-        final version = FlutterVersion.parse('$forkName/$versionName');
-        final expected = path.join(tempDir.path, forkName, versionName);
-
-        // When
-        final result = cacheService.getVersionCacheDir(version);
-
-        // Then
-        expect(result.path, expected);
+      cases.forEach((versionName, expectedPath) {
+        test('returns correct directory path for $versionName', () {
+          final version = FlutterVersion.parse(versionName);
+          final result = cacheService.getVersionCacheDir(version);
+          expect(result.path, expectedPath);
+        });
       });
 
       test('backwards compatibility for string-based version paths', () {
-        // Given
-        const versionName = 'stable';
-        final version = FlutterVersion.parse(versionName);
-        final expected = path.join(tempDir.path, versionName);
-
-        // When
-        final result = cacheService.getVersionCacheDir(version);
-
-        // Then
-        expect(result.path, expected);
+        final result = cacheService.getVersionCacheDirByName('stable');
+        expect(result.path, path.join(tempDir.path, 'stable'));
       });
     });
 
@@ -115,33 +93,38 @@ void main() {
     });
 
     group('getAllVersions', () {
-      test('returns empty list when versions directory does not exist',
-          () async {
-        // Given
-        tempDir.deleteSync(recursive: true);
+      test(
+        'returns empty list when versions directory does not exist',
+        () async {
+          // Given
+          tempDir.deleteSync(recursive: true);
 
-        // When
-        final result = await cacheService.getAllVersions();
+          // When
+          final result = await cacheService.getAllVersions();
 
-        // Then
-        expect(result, isEmpty);
-      });
+          // Then
+          expect(result, isEmpty);
+        },
+      );
 
       test('returns sorted list of versions when versions exist', () async {
         // Given
         final versions = ['2.0.0', '1.0.0', 'stable', 'beta'];
         for (final version in versions) {
-          Directory(path.join(tempDir.path, version))
-              .createSync(recursive: true);
+          Directory(
+            path.join(tempDir.path, version),
+          ).createSync(recursive: true);
 
           // Add the "version" file that marks this as a Flutter SDK directory
-          File(path.join(tempDir.path, version, 'version'))
-              .writeAsStringSync('$version (test)');
+          File(
+            path.join(tempDir.path, version, 'version'),
+          ).writeAsStringSync('$version (test)');
         }
 
         // Create a non-directory file that should be ignored
-        File(path.join(tempDir.path, 'some-file.txt'))
-            .writeAsStringSync('test');
+        File(
+          path.join(tempDir.path, 'some-file.txt'),
+        ).writeAsStringSync('test');
 
         // When
         final result = await cacheService.getAllVersions();
@@ -208,8 +191,10 @@ void main() {
         // This is a simplified approach since we can't easily mock isExecutable
 
         // When/Then
-        expect(await cacheService.verifyCacheIntegrity(cacheVersion),
-            equals(CacheIntegrity.invalid));
+        expect(
+          await cacheService.verifyCacheIntegrity(cacheVersion),
+          equals(CacheIntegrity.invalid),
+        );
       });
 
       // Additional tests for other integrity cases would follow similar patterns
