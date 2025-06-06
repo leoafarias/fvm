@@ -75,7 +75,7 @@ void tearDownContext(FvmContext context) {
   //   try {
   //     tempDir.deleteSync(recursive: true);
   //   } on FileSystemException catch (e) {
-  //     // just log the erorr, as it can fail due to open files
+  //     // just log the error, as it can fail due to open files
   //     logger.err(e.message);
   //   }
   // }
