@@ -226,4 +226,18 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
         '1.00 EB');
   });
+
+  group('stringToBool', () {
+    test("'true' returns true", () {
+      expect(stringToBool('true'), isTrue);
+    });
+
+    test("'false' returns false", () {
+      expect(stringToBool('false'), isFalse);
+    });
+
+    test('invalid value returns null', () {
+      expect(stringToBool('maybe'), isNull);
+    });
+  });
 }
