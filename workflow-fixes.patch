@@ -1,0 +1,62 @@
+From 54b9f7215f22f0b09e4be9d93882340c6e8ef829 Mon Sep 17 00:00:00 2001
+From: Test User <test@example.com>
+Date: Fri, 6 Jun 2025 21:31:11 +0000
+Subject: [PATCH] fix: correct GitHub Actions matrix configuration for
+ multi-shell testing
+
+- Fix matrix strategy to use only include section (avoid Cartesian product)
+- Improve shell environment setup with proper directory creation
+- Add better logging for debugging matrix variables
+- Ensure config file creation works for all shell types
+
+This resolves the 'Setup shell environment' failures in the workflow
+where matrix variables were undefined due to incorrect matrix configuration.
+---
+ .github/workflows/install-script-test.yml | 20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/.github/workflows/install-script-test.yml b/.github/workflows/install-script-test.yml
+index 0afa57f..366a765 100644
+--- a/.github/workflows/install-script-test.yml
++++ b/.github/workflows/install-script-test.yml
+@@ -220,8 +220,6 @@ jobs:
+     strategy:
+       fail-fast: false
+       matrix:
+-        os: [ubuntu-latest, macos-latest]
+-        shell: [bash, zsh, fish]
+         include:
+           - os: ubuntu-latest
+             shell: bash
+@@ -282,16 +280,22 @@ jobs:
+ 
+       - name: Setup shell environment
+         run: |
+-          # Create config directory if needed (for fish)
+-          if [[ "${{ matrix.shell }}" == "fish" ]]; then
+-            mkdir -p ~/.config/fish
+-          fi
++          # Create config directory and file
++          config_file="${{ matrix.config_file }}"
++          config_dir="$(dirname "$config_file")"
++
++          echo "Setting up shell environment for ${{ matrix.shell }}"
++          echo "Config file: $config_file"
++          echo "Config directory: $config_dir"
++
++          # Create config directory if it doesn't exist
++          mkdir -p "$config_dir"
+ 
+           # Create config file if it doesn't exist
+-          touch "${{ matrix.config_file }}"
++          touch "$config_file"
+ 
+-          echo "Shell config file: ${{ matrix.config_file }}"
+           echo "Expected export command: ${{ matrix.export_cmd }}"
++          echo "✅ Shell environment setup completed"
+ 
+       - name: Test install script with shell configuration
+         run: |
+-- 
+2.49.0
+
