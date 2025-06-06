@@ -87,10 +87,13 @@ class EnsureCacheWorkflow extends Workflow {
       final isGitInstalled =
           Process.runSync('git', ['--version']).exitCode == 0;
       if (!isGitInstalled) {
-        throw AppException('Git is not installed');
+        throw const AppException('Git is not installed');
       }
-    } on ProcessException {
-      throw AppException('Git is not installed');
+    } on ProcessException catch (_, stackTrace) {
+      Error.throwWithStackTrace(
+        const AppException('Git is not installed'),
+        stackTrace,
+      );
     }
   }
 
