@@ -5,11 +5,11 @@ import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-class _MockFVMContext extends Mock implements FvmContext {}
+import '../testing_utils.dart';
 
 void main() {
   late CacheService cacheService;
-  late _MockFVMContext context;
+  late FvmContext context;
   late Directory tempDir;
 
   // Helper function to create test Flutter version
@@ -18,26 +18,21 @@ void main() {
   }
 
   setUp(() {
-    // Create a temporary directory for tests
-    tempDir = Directory.systemTemp.createTempSync('fvm_cache_test_');
+    // Create test context using TestFactory
+    context = TestFactory.context(
+      debugLabel: 'cache-service-test',
+      privilegedAccess: true,
+    );
 
-    // Set up mock context with all required properties
-    context = _MockFVMContext();
+    // Use the cache directory that TestFactory provides
+    tempDir = Directory(context.versionsCachePath);
 
-    // Properly setup the context with necessary properties
-    when(() => context.versionsCachePath).thenReturn(tempDir.path);
-    when(() => context.logLevel).thenReturn(Level.info); // Add this line
-    when(() => context.isTest).thenReturn(true);
-    when(() => context.isCI).thenReturn(false);
-    when(() => context.skipInput).thenReturn(true);
-    when(() => context.environment).thenReturn({});
-
-    // Create the cache service with mock context
+    // Create the cache service with test context
     cacheService = CacheService(context);
   });
 
   tearDown(() {
-    // Clean up temporary directory
+    // Clean up is handled by TestFactory, but we can ensure it's clean
     if (tempDir.existsSync()) {
       tempDir.deleteSync(recursive: true);
     }
@@ -96,7 +91,9 @@ void main() {
         'returns empty list when versions directory does not exist',
         () async {
           // Given
-          tempDir.deleteSync(recursive: true);
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
 
           // When
           final result = await cacheService.getAllVersions();
@@ -226,5 +223,152 @@ void main() {
 
     // Tests for private methods would typically be done through the public methods
     // that use them, or by using package:test_utils to access private members
+
+    group('Global version management:', () {
+
+      test('complete global version lifecycle', () {
+        // Create a test version
+        final version = createTestVersion('3.10.0');
+        final versionDir = Directory(path.join(tempDir.path, version.name))
+          ..createSync(recursive: true);
+
+        // Create a CacheFlutterVersion
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
+
+        // Test setGlobal
+        cacheService.setGlobal(cacheVersion);
+        final globalLink = Link(context.globalCacheLink);
+        expect(globalLink.existsSync(), isTrue);
+        expect(globalLink.targetSync(), equals(versionDir.path));
+
+        // Test getGlobal
+        final global = cacheService.getGlobal();
+        expect(global, isNotNull);
+        expect(global!.name, '3.10.0');
+
+        // Test isGlobal
+        expect(cacheService.isGlobal(cacheVersion), isTrue);
+
+        // Test with different version
+        final otherVersion = createTestVersion('3.13.0');
+        final otherDir = Directory(path.join(tempDir.path, otherVersion.name))
+          ..createSync(recursive: true);
+        final otherCacheVersion = CacheFlutterVersion.fromVersion(
+          otherVersion,
+          directory: otherDir.path,
+        );
+        expect(cacheService.isGlobal(otherCacheVersion), isFalse);
+
+        // Test unlinkGlobal
+        cacheService.unlinkGlobal();
+        expect(globalLink.existsSync(), isFalse);
+        expect(cacheService.getGlobal(), isNull);
+      });
+
+      test('unlinkGlobal when no global set', () {
+        // Should not throw even when no global is set
+        expect(() => cacheService.unlinkGlobal(), returnsNormally);
+      });
+
+      test('deprecated getGlobalVersion returns version name', () {
+        // Create and set a global version
+        final version = createTestVersion('stable');
+        final versionDir = Directory(path.join(tempDir.path, version.name))
+          ..createSync(recursive: true);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
+        
+        cacheService.setGlobal(cacheVersion);
+
+        // Test deprecated method
+        final globalVersionName = cacheService.getGlobalVersion();
+        expect(globalVersionName, equals('stable'));
+      });
+
+      test('getGlobalVersion returns null when no global set', () {
+        expect(cacheService.getGlobalVersion(), isNull);
+      });
+
+      test('getGlobal returns null for invalid cached version', () {
+        // Create a global link pointing to non-existent version
+        final globalLink = Link(context.globalCacheLink);
+        final nonExistentPath = path.join(tempDir.path, 'non-existent');
+        globalLink.createSync(nonExistentPath, recursive: true);
+
+        // Should return null since the version doesn't exist in cache
+        expect(cacheService.getGlobal(), isNull);
+      });
+    });
+
+    group('Fork cleanup:', () {
+      test('should remove empty fork directory after removing last version', () {
+        // Create fork structure
+        final forkVersion = FlutterVersion.parse('mycompany/stable');
+        final forkDir = Directory(
+          path.join(tempDir.path, 'mycompany', 'stable'),
+        )..createSync(recursive: true);
+
+        // Add some Flutter files to make it look like a valid Flutter SDK
+        File(path.join(forkDir.path, 'bin', 'flutter'))
+          ..createSync(recursive: true)
+          ..writeAsStringSync('#!/bin/bash');
+
+        // Verify fork structure exists
+        expect(forkDir.existsSync(), isTrue);
+        expect(Directory(path.join(tempDir.path, 'mycompany')).existsSync(), isTrue);
+
+        // Remove the version
+        cacheService.remove(forkVersion);
+
+        // Fork directory should be removed
+        expect(forkDir.existsSync(), isFalse);
+        expect(
+          Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
+          isFalse,
+        );
+      });
+
+      test('should not remove fork directory with other versions', () {
+        // Create multiple fork versions
+        final version1 = FlutterVersion.parse('mycompany/stable');
+        final version2 = FlutterVersion.parse('mycompany/beta');
+
+        final stableDir = Directory(
+          path.join(tempDir.path, 'mycompany', 'stable'),
+        )..createSync(recursive: true);
+
+        final betaDir = Directory(
+          path.join(tempDir.path, 'mycompany', 'beta'),
+        )..createSync(recursive: true);
+
+        // Verify both exist
+        expect(stableDir.existsSync(), isTrue);
+        expect(betaDir.existsSync(), isTrue);
+
+        // Remove only one version
+        cacheService.remove(version1);
+
+        // Stable should be gone but fork directory should still exist
+        expect(stableDir.existsSync(), isFalse);
+        expect(betaDir.existsSync(), isTrue);
+        expect(
+          Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
+          isTrue,
+        );
+      });
+
+      test('handles non-existent fork version gracefully', () {
+        // Try to remove a fork version that doesn't exist
+        final forkVersion = FlutterVersion.parse('mycompany/master');
+
+        // Should not throw
+        expect(() => cacheService.remove(forkVersion), returnsNormally);
+      });
+    });
   });
 }

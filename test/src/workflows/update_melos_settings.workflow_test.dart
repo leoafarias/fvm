@@ -14,13 +14,19 @@ import 'test_logger.dart';
 void main() {
   group('UpdateMelosSettingsWorkflow', () {
     late TestCommandRunner runner;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
+      tempDirs = TempDirectoryTracker();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     test('should detect melos.yaml and skip without confirmation', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -67,7 +73,7 @@ packages:
     });
 
     test('should skip melos update if sdkPath already exists', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -99,7 +105,7 @@ sdkPath: /any/existing/path
     });
 
     test('should find melos.yaml in parent directory but not update', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project in a subdirectory
       final subDir = Directory(p.join(testDir.path, 'subproject'));
       subDir.createSync();
@@ -142,7 +148,7 @@ packages:
     });
 
     test('should not modify melos.yaml with existing non-FVM sdkPath', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -177,7 +183,7 @@ sdkPath: /usr/local/flutter
     });
 
     test('should calculate correct relative path for nested melos', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       
       // Create a nested structure
       final nestedDir = Directory(p.join(testDir.path, 'apps', 'mobile'));
@@ -221,7 +227,7 @@ packages:
     });
 
     test('should not update melos settings when config disables it', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with config
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -252,7 +258,7 @@ packages:
     });
 
     test('should handle invalid YAML in melos file', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -284,7 +290,7 @@ packages:
     });
 
     test('should detect existing FVM path but not update without confirmation', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -325,7 +331,7 @@ sdkPath: .fvm/versions/3.10.0
     });
 
     test('should skip update when no pinned version', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project without pinned version
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -357,7 +363,7 @@ packages:
 
     group('with simulated user input', () {
       test('should update melos.yaml when user confirms (simulated Yes)', () async {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         createPubspecYaml(testDir);
         createProjectConfig(
           ProjectConfig(flutter: '3.10.0'),
@@ -407,7 +413,7 @@ packages:
       });
 
       test('should update existing FVM path when user confirms', () async {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         createPubspecYaml(testDir);
         createProjectConfig(
           ProjectConfig(flutter: '3.10.0'),
@@ -453,7 +459,7 @@ sdkPath: .fvm/versions/3.10.0
       });
 
       test('should verify all output is captured in logger', () async {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         createPubspecYaml(testDir);
         createProjectConfig(
           ProjectConfig(flutter: '3.10.0'),

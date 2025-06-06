@@ -329,6 +329,29 @@ Matcher isExpectedJson(String expected) {
   return _IsExpectedJson(expected);
 }
 
+/// A simple test helper that tracks temporary directories for cleanup.
+/// Following KISS principle - just what we need, nothing more.
+class TempDirectoryTracker {
+  final _dirs = <Directory>[];
+  
+  /// Creates a temporary directory and tracks it for cleanup.
+  Directory create() {
+    final dir = createTempDir();
+    _dirs.add(dir);
+    return dir;
+  }
+  
+  /// Cleans up all tracked directories.
+  void cleanUp() {
+    for (final dir in _dirs) {
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    }
+    _dirs.clear();
+  }
+}
+
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {

@@ -14,13 +14,19 @@ import 'test_logger.dart';
 void main() {
   group('ResolveProjectDependenciesWorkflow', () {
     late TestCommandRunner runner;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
+      tempDirs = TempDirectoryTracker();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     test('should return false when version is not setup', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       
       final project = runner.context.get<ProjectService>().findAncestor(directory: testDir);
@@ -44,7 +50,7 @@ void main() {
     });
 
     test('should return true when dart tool version matches SDK version', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       
       final project = runner.context.get<ProjectService>().findAncestor(directory: testDir);
@@ -56,7 +62,7 @@ void main() {
       versionFile.writeAsStringSync('3.10.0');
       
       // Create a properly setup version
-      final versionDir = createTempDir();
+      final versionDir = tempDirs.create();
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
@@ -80,13 +86,13 @@ void main() {
     });
 
     test('should return true when no pubspec found', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Don't create pubspec.yaml
       
       final project = runner.context.get<ProjectService>().findAncestor(directory: testDir);
       
       // Create a properly setup version
-      final versionDir = createTempDir();
+      final versionDir = tempDirs.create();
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
@@ -115,7 +121,7 @@ void main() {
       
       // Test case 1: User confirms
       {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         createPubspecYaml(testDir);
         
         final context = TestFactory.context(
@@ -129,7 +135,7 @@ void main() {
         
         // Create a minimal setup version - in real test env without Flutter,
         // pub get will fail which is what we want
-        final versionDir = createTempDir();
+        final versionDir = tempDirs.create();
         final binDir = Directory('${versionDir.path}/bin');
         binDir.createSync(recursive: true);
         File('${binDir.path}/flutter').createSync();
@@ -159,7 +165,7 @@ void main() {
       
       // Test case 2: User declines
       {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         createPubspecYaml(testDir);
         
         final context = TestFactory.context(
@@ -171,7 +177,7 @@ void main() {
         
         final project = context.get<ProjectService>().findAncestor(directory: testDir);
         
-        final versionDir = createTempDir();
+        final versionDir = tempDirs.create();
         final binDir = Directory('${versionDir.path}/bin');
         binDir.createSync(recursive: true);
         File('${binDir.path}/flutter').createSync();
@@ -198,12 +204,12 @@ void main() {
     });
 
     test('should skip confirmation with force flag', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       
       final project = runner.context.get<ProjectService>().findAncestor(directory: testDir);
       
-      final versionDir = createTempDir();
+      final versionDir = tempDirs.create();
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
