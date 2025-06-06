@@ -65,3 +65,6 @@ linux/
 macos/
 ios/
 android/
+
+# Claude development guide
+CLAUDE.md
