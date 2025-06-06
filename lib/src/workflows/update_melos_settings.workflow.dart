@@ -89,13 +89,13 @@ class UpdateMelosSettingsWorkflow extends Workflow {
           'Would you like to configure melos.yaml to use FVM-managed Flutter SDK?',
           defaultValue: false,
         );
-        
+
         if (!confirm) {
           logger.debug('User declined to configure melos.yaml for FVM.');
-          
+
           return;
         }
-        
+
         // Add sdkPath
         yamlEditor.update(['sdkPath'], expectedSdkPath);
         melosFile.writeAsStringSync(yamlEditor.toString());
@@ -108,13 +108,13 @@ class UpdateMelosSettingsWorkflow extends Workflow {
             'Update existing FVM path in melos.yaml from "$currentSdkPath" to "$expectedSdkPath"?',
             defaultValue: false,
           );
-          
+
           if (!confirm) {
             logger.debug('User declined to update FVM path in melos.yaml.');
-            
+
             return;
           }
-          
+
           yamlEditor.update(['sdkPath'], expectedSdkPath);
           melosFile.writeAsStringSync(yamlEditor.toString());
           logger.info('Updated FVM Flutter SDK path in melos.yaml');
