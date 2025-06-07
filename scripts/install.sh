@@ -110,16 +110,65 @@ info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
 ###############################################################################
-# Avoid Running as Root
+# Smart Root/Sudo Detection and Handling
 # -----------------------------------------------------------------------------
-# Installing software as root can be dangerous, especially for userland tools
-# that don't *need* full privileges. We want a user-level directory, but do
-# require a small privilege escalation for symlinking to /usr/local/bin.
-# Alternative approach: We could ask the user if they want a system-level or
-# user-level only. Here, we forcibly disallow root for simplicity.
+# We need to handle different environments intelligently:
+# 1. Regular desktop/server: Discourage root, use sudo for system symlink
+# 2. Docker/Container: Allow root execution (common in containerized environments)
+# 3. CI/CD environments: Allow root execution (often run as root)
+#
+# Detection methods:
+# - Check if we're in a container (/.dockerenv, /proc/1/cgroup)
+# - Check if this is a CI environment (common CI env vars)
+# - Allow override with FVM_ALLOW_ROOT environment variable
 ###############################################################################
+
+# Function to detect if we're running in a container
+is_container() {
+  # Check for Docker environment
+  [[ -f /.dockerenv ]] && return 0
+
+  # Check for container indicators in cgroup
+  if [[ -f /proc/1/cgroup ]]; then
+    grep -q 'docker\|lxc\|kubepods\|containerd' /proc/1/cgroup 2>/dev/null && return 0
+  fi
+
+  # Check for other container indicators
+  [[ -f /proc/1/environ ]] && grep -q 'container=' /proc/1/environ 2>/dev/null && return 0
+
+  return 1
+}
+
+# Function to detect if we're in a CI environment
+is_ci_environment() {
+  # Common CI environment variables
+  [[ -n "${CI:-}" ]] && return 0
+  [[ -n "${CONTINUOUS_INTEGRATION:-}" ]] && return 0
+  [[ -n "${GITHUB_ACTIONS:-}" ]] && return 0
+  [[ -n "${GITLAB_CI:-}" ]] && return 0
+  [[ -n "${JENKINS_URL:-}" ]] && return 0
+  [[ -n "${BUILDKITE:-}" ]] && return 0
+  [[ -n "${CIRCLECI:-}" ]] && return 0
+  [[ -n "${TRAVIS:-}" ]] && return 0
+
+  return 1
+}
+
+# Check if running as root and handle appropriately
 if [[ $(id -u) -eq 0 ]]; then
-  error "This script should not be run as root. Please run as a normal user."
+  # Allow root in specific environments
+  if is_container; then
+    info "Container environment detected - allowing root execution"
+  elif is_ci_environment; then
+    info "CI environment detected - allowing root execution"
+  elif [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
+    info "FVM_ALLOW_ROOT=true - allowing root execution"
+  else
+    error "This script should not be run as root. Please run as a normal user.
+
+If you're in a container/Docker environment, this should be detected automatically.
+If you need to override this check, set: export FVM_ALLOW_ROOT=true"
+  fi
 fi
 
 ###############################################################################
@@ -134,24 +183,39 @@ if ! command -v curl &>/dev/null; then
 fi
 
 ###############################################################################
-# Finding a Privilege-Escalation Tool
+# Smart Privilege Escalation Tool Detection
 # -----------------------------------------------------------------------------
-# We only need elevated privileges to create a symlink in /usr/local/bin, which
-# is typically root-owned. We'll look for 'sudo' or 'doas'. If neither is found,
-# we cannot proceed with system-wide symlink.
-# Alternative approach: We could skip this if we only do user-level. But for a
-# globally accessible 'fvm' command, we do need it.
+# We need elevated privileges to create a symlink in /usr/local/bin, which is
+# typically root-owned. However, if we're already running as root, we don't need
+# any escalation tool. Otherwise, we'll look for 'sudo' or 'doas'.
 ###############################################################################
 ESCALATION_TOOL=''
-for cmd in sudo doas; do
-  if command -v "$cmd" &>/dev/null; then
-    ESCALATION_TOOL="$cmd"
-    break
-  fi
-done
 
-if [[ -z "$ESCALATION_TOOL" ]]; then
-  error "Cannot find sudo or doas for escalated privileges. Aborting."
+if [[ $(id -u) -eq 0 ]]; then
+  # Already running as root - no escalation needed
+  ESCALATION_TOOL=''
+  info "Running as root - no privilege escalation needed"
+else
+  # Look for privilege escalation tools
+  for cmd in sudo doas; do
+    if command -v "$cmd" &>/dev/null; then
+      ESCALATION_TOOL="$cmd"
+      break
+    fi
+  done
+
+  if [[ -z "$ESCALATION_TOOL" ]]; then
+    error "Cannot find sudo or doas for escalated privileges.
+
+Either run as root, install sudo/doas, or set FVM_ALLOW_ROOT=true if appropriate."
+  fi
+
+  # Test if we can actually use the escalation tool
+  if ! "$ESCALATION_TOOL" -v &>/dev/null; then
+    error "Cannot use $ESCALATION_TOOL for privilege escalation.
+
+Please ensure you have the necessary permissions or run as root."
+  fi
 fi
 
 ###############################################################################
@@ -283,12 +347,18 @@ mv "$FVM_DIR/fvm" "$FVM_DIR_BIN" || error "Failed to move 'fvm' binary to bin di
 ###############################################################################
 # Create Symlink in /usr/local/bin
 # -----------------------------------------------------------------------------
-# We use whichever escalation tool we found earlier (sudo/doas) to link
-# ~/.fvm_flutter/bin/fvm => /usr/local/bin/fvm. That way any user can type 'fvm'
-# in their shell. If we skip this, the user must rely on local PATH changes only.
+# Create a system-wide symlink so any user can type 'fvm'. If we're running as
+# root, we can do this directly. Otherwise, we use the escalation tool we found.
 ###############################################################################
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
-"$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
+
+if [[ $(id -u) -eq 0 ]]; then
+  # Running as root - create symlink directly
+  ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
+else
+  # Use escalation tool
+  "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
+fi
 
 ###############################################################################
 # Helper Functions
@@ -338,8 +408,28 @@ tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
 # to detect if the user is using fish, zsh, or bash by looking at $SHELL. Then
 # we append a line to their config only if it's not already present. If we can't
 # write to the config, we instruct them to do it manually.
+#
+# Special handling for root: In container environments, we set up shell config
+# for root. In regular environments, we provide instructions for manual setup.
 ###############################################################################
 refresh_command=''
+
+# Check if we're running as root and handle shell configuration appropriately
+if [[ $(id -u) -eq 0 ]]; then
+  if is_container || is_ci_environment; then
+    info "Setting up shell configuration for root user in container/CI environment"
+    # Proceed with normal shell configuration for root
+  else
+    info "Running as root - shell configuration skipped for security"
+    log "To use fvm with other users, they should add to their shell config:"
+    info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+    echo
+    info "Installation complete!"
+    log "fvm is now available system-wide via the symlink in /usr/local/bin"
+    info "  fvm --help"
+    exit 0
+  fi
+fi
 
 case "$(basename "$SHELL")" in
   fish)
