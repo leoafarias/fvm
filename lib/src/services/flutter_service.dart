@@ -235,15 +235,26 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
   }) async {
+    final baseArgs = [
+      'clone',
+      '--progress',
+      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+      if (!version.isUnknownRef && channel != null) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '-b',
+        channel,
+      ],
+    ];
+
+    final echoOutput = !(context.isTest || !logger.isVerbose);
+
     // Try with --reference first if git cache is enabled
     if (context.gitCache) {
       try {
-        return await _executeGitClone(
-          repoUrl: repoUrl,
-          versionDir: versionDir,
-          version: version,
-          channel: channel,
-          useReference: true,
+        return await runGit(
+          [...baseArgs, '--reference', context.gitCachePath, repoUrl, versionDir.path],
+          echoOutput: echoOutput,
         );
       } on ProcessException catch (e) {
         if (isReferenceError(e.toString().toLowerCase())) {
@@ -257,56 +268,10 @@ class FlutterService extends ContextualService {
     }
 
     // Normal clone without --reference
-    return await _executeGitClone(
-      repoUrl: repoUrl,
-      versionDir: versionDir,
-      version: version,
-      channel: channel,
-      useReference: false,
+    return await runGit(
+      [...baseArgs, repoUrl, versionDir.path],
+      echoOutput: echoOutput,
     );
-  }
-
-  /// Executes Git clone with or without --reference flag
-  Future<ProcessResult> _executeGitClone({
-    required String repoUrl,
-    required Directory versionDir,
-    required FlutterVersion version,
-    required String? channel,
-    required bool useReference,
-  }) async {
-    final args = _buildGitCloneArgs(
-      repoUrl: repoUrl,
-      versionDir: versionDir,
-      version: version,
-      channel: channel,
-      useReference: useReference,
-    );
-
-    return await runGit(args, echoOutput: !(context.isTest || !logger.isVerbose));
-  }
-
-  /// Builds Git clone arguments with consistent configuration
-  List<String> _buildGitCloneArgs({
-    required String repoUrl,
-    required Directory versionDir,
-    required FlutterVersion version,
-    required String? channel,
-    required bool useReference,
-  }) {
-    return [
-      'clone',
-      '--progress',
-      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
-      if (!version.isUnknownRef && channel != null) ...[
-        '-c',
-        'advice.detachedHead=false',
-        '-b',
-        channel,
-      ],
-      if (useReference) ...['--reference', context.gitCachePath],
-      repoUrl,
-      versionDir.path,
-    ];
   }
 
   /// Checks if the error is related to --reference flag failures
