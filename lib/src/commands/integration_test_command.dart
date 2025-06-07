@@ -581,7 +581,8 @@ class IntegrationTestRunner {
 
     try {
       logger.info(
-          'Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}');
+        'Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}',
+      );
 
       // Create a corrupted git cache directory to trigger fallback
       final corruptFile = File(p.join(testGitCacheDir.path, 'corrupt_file'));
@@ -604,11 +605,13 @@ class IntegrationTestRunner {
 
       if (testVersion == null) {
         throw AppException(
-            'Version $fallbackTestVersion not found after fallback test');
+          'Version $fallbackTestVersion not found after fallback test',
+        );
       }
 
       logger.success(
-          'Git clone fallback mechanism worked correctly with isolated cache');
+        'Git clone fallback mechanism worked correctly with isolated cache',
+      );
 
       // Clean up the test version
       await testRunner.run(['remove', fallbackTestVersion]);

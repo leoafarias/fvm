@@ -1,7 +1,5 @@
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/extensions.dart';
+import 'package:args/command_runner.dart';
+import 'package:fvm/fvm.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -51,5 +49,113 @@ void main() {
         expect(exitCode, ExitCode.success.code);
       });
     }
+  });
+
+  group('Pin functionality:', () {
+    test('should pin channel to latest release', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        final exitCode = await localRunner.run(['fvm', 'use', 'stable', '--pin']);
+        expect(exitCode, ExitCode.success.code);
+
+        // Verify pinned to specific version, not channel
+        final project = context.get<ProjectService>().findAncestor();
+        expect(project.pinnedVersion?.name, isNot('stable'));
+        expect(project.pinnedVersion?.name, matches(r'^\d+\.\d+\.\d+'));
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('should fail gracefully for master channel', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', 'master', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('pin flag throws error for specific versions', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        // Pinning a specific version should throw an error
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', '3.10.0', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('should fail for invalid channel', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', 'invalid-channel', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
   });
 }

@@ -6,11 +6,23 @@ import '../testing_utils.dart';
 
 void main() {
   group('Fork commands:', () {
+    late TestCommandRunner runner;
+    late LocalAppConfig originalConfig;
     const testForkName = 'testfork';
     const testForkUrl = 'https://github.com/testuser/flutter.git';
 
+    setUp(() {
+      runner = TestFactory.commandRunner();
+      // Save the original config to restore later
+      originalConfig = LocalAppConfig.read();
+    });
+
+    tearDown(() {
+      // Restore original config to avoid affecting other tests
+      originalConfig.save();
+    });
+
     test('Add a fork', () async {
-      final runner = TestFactory.commandRunner();
 
       // Make sure the fork doesn't exist first
       LocalAppConfig.read()
@@ -34,7 +46,6 @@ void main() {
     });
 
     test('Reject invalid fork URL', () async {
-      final runner = TestFactory.commandRunner();
       final invalidUrl = 'invalid-url';
 
       expect(
@@ -44,8 +55,6 @@ void main() {
     });
 
     test('Reject duplicate fork name', () async {
-      final runner = TestFactory.commandRunner();
-
       // Add a fork first
       LocalAppConfig.read()
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))
@@ -64,8 +73,6 @@ void main() {
     });
 
     test('List forks', () async {
-      final runner = TestFactory.commandRunner();
-
       // Add a test fork
       LocalAppConfig.read()
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))
@@ -77,8 +84,6 @@ void main() {
     });
 
     test('Remove a fork', () async {
-      final runner = TestFactory.commandRunner();
-
       // Add a test fork first
       LocalAppConfig.read()
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))

@@ -1,36 +1,32 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-class _MockFVMContext extends Mock implements FvmContext {}
+import '../testing_utils.dart';
 
 void main() {
   late CacheService cacheService;
-  late _MockFVMContext context;
+  late FvmContext context;
   late Directory tempDir;
 
   setUp(() {
-    // Create a temporary directory for tests
-    tempDir = Directory.systemTemp.createTempSync('fvm_fork_test_');
+    // Create test context using TestFactory
+    context = TestFactory.context(
+      debugLabel: 'fork-cache-test',
+      privilegedAccess: true,
+    );
 
-    // Set up mock context
-    context = _MockFVMContext();
-    when(() => context.versionsCachePath).thenReturn(tempDir.path);
-    when(() => context.logLevel).thenReturn(Level.info);
-    when(() => context.isTest).thenReturn(true);
-    when(() => context.isCI).thenReturn(false);
-    when(() => context.skipInput).thenReturn(true);
-    when(() => context.environment).thenReturn({});
+    // Use the cache directory that TestFactory provides
+    tempDir = Directory(context.versionsCachePath);
 
-    // Create the cache service with mock context
+    // Create the cache service with test context
     cacheService = CacheService(context);
   });
 
   tearDown(() {
-    // Clean up temporary directory
+    // Clean up is handled by TestFactory, but we can ensure it's clean
     if (tempDir.existsSync()) {
       tempDir.deleteSync(recursive: true);
     }
@@ -68,12 +64,15 @@ void main() {
       final versionName = 'master';
       final forkVersion = FlutterVersion.parse('$forkName/$versionName');
 
-      final forkDir = Directory(path.join(tempDir.path, forkName));
-      forkDir.createSync();
+      // Create the version directory using cache service
+      final versionDir = cacheService.getVersionCacheDir(forkVersion);
+      versionDir.createSync(recursive: true);
+      
+      // Create a version file to make it look like a valid Flutter SDK
+      File(path.join(versionDir.path, 'version')).writeAsStringSync(versionName);
 
-      final versionDir = Directory(path.join(forkDir.path, versionName));
-      versionDir.createSync();
-
+      final forkDir = versionDir.parent;
+      
       expect(forkDir.existsSync(), isTrue);
       expect(versionDir.existsSync(), isTrue);
 
@@ -91,15 +90,18 @@ void main() {
       final versionName1 = 'master';
       final versionName2 = 'stable';
       final forkVersion1 = FlutterVersion.parse('$forkName/$versionName1');
+      final forkVersion2 = FlutterVersion.parse('$forkName/$versionName2');
 
-      final forkDir = Directory(path.join(tempDir.path, forkName));
-      forkDir.createSync();
+      // Create the version directories using cache service
+      final versionDir1 = cacheService.getVersionCacheDir(forkVersion1);
+      versionDir1.createSync(recursive: true);
+      File(path.join(versionDir1.path, 'version')).writeAsStringSync(versionName1);
 
-      final versionDir1 = Directory(path.join(forkDir.path, versionName1));
-      versionDir1.createSync();
+      final versionDir2 = cacheService.getVersionCacheDir(forkVersion2);
+      versionDir2.createSync(recursive: true);
+      File(path.join(versionDir2.path, 'version')).writeAsStringSync(versionName2);
 
-      final versionDir2 = Directory(path.join(forkDir.path, versionName2));
-      versionDir2.createSync();
+      final forkDir = versionDir1.parent;
 
       // When: Removing one version
       cacheService.remove(forkVersion1);

@@ -61,9 +61,14 @@ void main() {
           reason: 'Failed to run flutter pub get: ${pubGetResult.stderr}');
 
       // Create a test runner that operates in the test directory
+      // First create a proper test context with TestFactory
+      final baseContext = TestFactory.context();
+      
+      // Then create a context with the working directory override
       final testContext = FvmContext.create(
         workingDirectoryOverride: appDir.path,
         isTest: true,
+        configOverrides: baseContext.config, // Use the config from TestFactory which has proper paths
       );
       final appTestRunner = TestCommandRunner(testContext);
 
