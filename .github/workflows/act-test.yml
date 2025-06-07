@@ -1,0 +1,57 @@
+# Workflow for testing with act locally
+# This is a simplified version that works around act limitations
+name: Act Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Get dependencies
+        run: dart pub get
+
+      - name: Analyze
+        run: dart analyze
+
+      - name: Install lcov with proper setup
+        run: |
+          # Update package list first
+          sudo apt-get update -y
+          # Install lcov with non-interactive mode
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y lcov
+
+      - name: Run tests with coverage
+        run: |
+          # Run tests with coverage
+          dart test --coverage=coverage
+          
+          # Generate lcov report
+          dart pub global activate coverage
+          dart pub global run coverage:format_coverage \
+            --lcov \
+            --packages=.dart_tool/package_config.json \
+            --report-on=lib/ \
+            --in=coverage \
+            --out=coverage/lcov.info
+
+      - name: Show coverage summary
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo "Coverage report generated successfully"
+            lcov --summary coverage/lcov.info
+          else
+            echo "No coverage report found"
+          fi
