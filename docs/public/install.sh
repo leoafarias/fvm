@@ -100,11 +100,8 @@ case "$ARCH" in
   arm64|aarch64)
     ARCH='arm64'
     ;;
-  armv7l)
-    ARCH='arm'
-    ;;
   *)
-    error "Unsupported architecture: $ARCH"
+    error "Unsupported architecture: $ARCH. Only x64 and arm64 are supported."
     ;;
 esac
 
@@ -160,16 +157,11 @@ fi
 ###############################################################################
 # (Optional) Detect Currently Installed FVM
 # -----------------------------------------------------------------------------
-# If FVM is already installed, we fetch its version. Could be used to skip re-
-# installing if the version matches, but for now we only store it in a variable
-# in case we want to display it or run comparisons.
+# If FVM is already installed, we can detect it for informational purposes.
+# This could be extended in the future to compare versions or provide upgrade info.
 ###############################################################################
-INSTALLED_FVM_VERSION=""
 if command -v fvm &>/dev/null; then
-  # '|| error' ensures that if 'fvm --version' fails, we exit.
-  INSTALLED_FVM_VERSION="$(fvm --version 2>&1)" || error "Failed to fetch installed FVM version."
-  # We do nothing further with this, but it's a placeholder if you'd like to
-  # compare or display it.
+  info "Existing FVM installation detected. It will be replaced."
 fi
 
 ###############################################################################
@@ -192,8 +184,11 @@ if [[ $# -eq 0 ]]; then
     error "Failed to determine the latest FVM version from GitHub."
   fi
 else
-  # Use the argument as version
+  # Use the argument as version - validate it's not empty and doesn't contain dangerous characters
   FVM_VERSION="$1"
+  if [[ -z "$FVM_VERSION" ]] || [[ "$FVM_VERSION" =~ [^a-zA-Z0-9._-] ]]; then
+    error "Invalid version format: $FVM_VERSION"
+  fi
 fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
@@ -209,6 +204,12 @@ info "Preparing to install FVM version: $FVM_VERSION"
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET="/usr/local/bin/fvm"
+
+# Validate that the symlink target directory exists and is writable
+SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
+if [[ ! -d "$SYMLINK_DIR" ]]; then
+  error "Symlink target directory does not exist: $SYMLINK_DIR"
+fi
 
 ###############################################################################
 # Clean Up Existing FVM Bin Directory (if any), Then Recreate
@@ -230,13 +231,23 @@ mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 # We form the GitHub release URL for the chosen version, OS, and architecture.
 # Example: https://github.com/leoafarias/fvm/releases/download/2.0.0/fvm-2.0.0-linux-x64.tar.gz
 # We then download it to 'fvm.tar.gz'.
-# If you wanted to verify checksums, you could fetch a .sha256 file and compare.
 ###############################################################################
 URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
 
 info "Downloading $URL"
-if ! curl -L "$URL" -o fvm.tar.gz; then
-  error "Download failed. Check your internet connection and the URL."
+if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
+  error "Download failed. Check your internet connection and verify the version exists."
+fi
+
+# Validate the downloaded file is not empty and appears to be a gzip file
+if [[ ! -s fvm.tar.gz ]]; then
+  rm -f fvm.tar.gz
+  error "Downloaded file is empty or corrupted."
+fi
+
+if ! file fvm.tar.gz | grep -q "gzip compressed"; then
+  rm -f fvm.tar.gz
+  error "Downloaded file is not a valid gzip archive."
 fi
 
 ###############################################################################
@@ -248,7 +259,14 @@ fi
 ###############################################################################
 info "Extracting fvm.tar.gz into $FVM_DIR"
 if ! tar xzf fvm.tar.gz -C "$FVM_DIR" 2>&1; then
+  rm -f fvm.tar.gz
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
+fi
+
+# Verify the expected binary was extracted
+if [[ ! -f "$FVM_DIR/fvm" ]]; then
+  rm -f fvm.tar.gz
+  error "Expected 'fvm' binary not found after extraction."
 fi
 
 # Cleanup the tarball to avoid clutter
@@ -273,17 +291,41 @@ info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
 "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
 
 ###############################################################################
-# tildify() Helper Function
+# Helper Functions
 # -----------------------------------------------------------------------------
-# This is purely for cosmetic output. It replaces the real $HOME path with '~'
-# for readability when we display paths to the user. E.g., /home/username/.fvm_flutter/bin => ~/.fvm_flutter/bin
+# tildify() - Replaces $HOME path with '~' for readability
+# update_shell_config() - Common logic for updating shell configuration files
 ###############################################################################
 tildify() {
-  if [[ "$1" = "$HOME/"* ]]; then
-    local replacement='~/'
-    echo "${1/$HOME\//$replacement}"
+  if [[ "$1" = "$HOME"* ]]; then
+    echo "~${1#"$HOME"}"
   else
     echo "$1"
+  fi
+}
+
+# update_shell_config(config_file, export_command)
+# Updates a shell configuration file with the FVM PATH export
+update_shell_config() {
+  local config_file="$1"
+  local export_command="$2"
+  local tilde_config
+  tilde_config="$(tildify "$config_file")"
+
+  if [[ -w "$config_file" ]]; then
+    if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
+      {
+        echo -e "\n# FVM"
+        echo "$export_command"
+      } >> "$config_file"
+      info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_config]"
+      refresh_command="source $config_file"
+    else
+      info "[$tilde_config] already references $tilde_FVM_DIR_BIN; skipping."
+    fi
+    return 0
+  else
+    return 1
   fi
 }
 
@@ -296,114 +338,42 @@ tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
 # to detect if the user is using fish, zsh, or bash by looking at $SHELL. Then
 # we append a line to their config only if it's not already present. If we can't
 # write to the config, we instruct them to do it manually.
-# Why do it this way? So we avoid duplicating PATH lines, especially if the script
-# is run multiple times. Checking with 'grep -q' helps skip if it already exists.
 ###############################################################################
 refresh_command=''
 
 case "$(basename "$SHELL")" in
   fish)
-    commands=( "set --export PATH $FVM_DIR_BIN \$PATH" )
     fish_config="$HOME/.config/fish/config.fish"
-    tilde_fish_config="$(tildify "$fish_config")"
-
-    if [[ -w "$fish_config" ]]; then
-      if ! grep -q "$FVM_DIR_BIN" "$fish_config"; then
-        {
-          echo -e "\n# FVM"
-          for cmd in "${commands[@]}"; do
-            echo "$cmd"
-          done
-        } >> "$fish_config"
-        info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_fish_config]"
-        refresh_command="source $fish_config"
-      else
-        info "[$tilde_fish_config] already references $tilde_FVM_DIR_BIN; skipping."
-      fi
-    else
-      log "Manually add the following lines to $tilde_fish_config (or your fish config):"
-      for cmd in "${commands[@]}"; do
-        info "  $cmd"
-      done
+    if ! update_shell_config "$fish_config" "set --export PATH $FVM_DIR_BIN \$PATH"; then
+      log "Manually add the following line to $(tildify "$fish_config"):"
+      info "  set --export PATH $FVM_DIR_BIN \$PATH"
     fi
     ;;
   zsh)
-    commands=( "export PATH=\"$FVM_DIR_BIN:\$PATH\"" )
     zsh_config="$HOME/.zshrc"
-    tilde_zsh_config="$(tildify "$zsh_config")"
-
-    if [[ -w "$zsh_config" ]]; then
-      if ! grep -q "$FVM_DIR_BIN" "$zsh_config"; then
-        {
-          echo -e "\n# FVM"
-          for cmd in "${commands[@]}"; do
-            echo "$cmd"
-          done
-        } >> "$zsh_config"
-        info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_zsh_config]"
-        refresh_command="source $zsh_config"
-      else
-        info "[$tilde_zsh_config] already references $tilde_FVM_DIR_BIN; skipping."
-      fi
-    else
-      log "Manually add the following lines to $tilde_zsh_config (or your zsh config):"
-      for cmd in "${commands[@]}"; do
-        info "  $cmd"
-      done
+    if ! update_shell_config "$zsh_config" "export PATH=\"$FVM_DIR_BIN:\$PATH\""; then
+      log "Manually add the following line to $(tildify "$zsh_config"):"
+      info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
     fi
     ;;
   bash)
-    commands=( "export PATH=$FVM_DIR_BIN:\$PATH" )
-    bash_configs=(
-      "$HOME/.bashrc"
-      "$HOME/.bash_profile"
-    )
-
-    # If XDG_CONFIG_HOME is set, also check those possible config files
-    if [[ -n "${XDG_CONFIG_HOME:-}" ]]; then
-      bash_configs+=(
-        "$XDG_CONFIG_HOME/.bash_profile"
-        "$XDG_CONFIG_HOME/.bashrc"
-        "$XDG_CONFIG_HOME/bash_profile"
-        "$XDG_CONFIG_HOME/bashrc"
-      )
-    fi
+    # Try common bash config files in order of preference
+    bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
     for bash_config in "${bash_configs[@]}"; do
-      # If the file is writable, we can safely attempt to append.
-      if [[ -w "$bash_config" ]]; then
-        tilde_bash_config="$(tildify "$bash_config")"
-
-        # Make sure we don't insert multiple lines if it already references FVM.
-        if ! grep -q "$FVM_DIR_BIN" "$bash_config"; then
-          {
-            echo -e "\n# FVM"
-            for cmd in "${commands[@]}"; do
-              echo "$cmd"
-            done
-          } >> "$bash_config"
-          info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_bash_config]"
-          refresh_command="source $bash_config"
-        else
-          info "[$tilde_bash_config] already references $tilde_FVM_DIR_BIN; skipping."
-        fi
+      if update_shell_config "$bash_config" "export PATH=$FVM_DIR_BIN:\$PATH"; then
         set_manually=false
         break
       fi
     done
 
     if [[ "$set_manually" == true ]]; then
-      # We ended up here if none of the known bash files were writable.
-      log "Manually add the directory to your bash config (e.g., ~/.bashrc):"
-      for cmd in "${commands[@]}"; do
-        info "  $cmd"
-      done
+      log "Manually add the following line to your bash config (e.g., ~/.bashrc):"
+      info "  export PATH=$FVM_DIR_BIN:\$PATH"
     fi
     ;;
   *)
-    # If the shell isn't fish, zsh, or bash, we can't easily auto-detect the config.
-    # We ask the user to do it manually.
     log "Unknown shell: $(basename "$SHELL"). Manually add to your rc file:"
     info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
     ;;
