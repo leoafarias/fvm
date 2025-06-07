@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -13,6 +15,21 @@ import '../testing_utils.dart';
 void throwGitError(String message, List<String> args) {
   final e = ProcessException('git', args, message, 128);
   throw e;
+}
+
+/// Creates an isolated test context with separate git cache to avoid conflicts
+FvmContext createIsolatedTestContext() {
+  final tempDir =
+      Directory.systemTemp.createTempSync('fvm_flutter_service_test_');
+
+  return FvmContext.create(
+    isTest: true,
+    configOverrides: AppConfig(
+      cachePath: p.join(tempDir.path, 'cache'),
+      gitCachePath: p.join(tempDir.path, 'git_cache'),
+      useGitCache: true,
+    ),
+  );
 }
 
 void main() {
@@ -90,6 +107,38 @@ void main() {
                 msg.contains('Remote branch') &&
                 msg.contains('not found in upstream'))),
       );
+    });
+
+    group('isReferenceError method', () {
+      test('detects reference repository errors', () {
+        final context = createIsolatedTestContext();
+        final service = FlutterService(context);
+
+        // Test various reference error patterns
+        expect(
+            service.isReferenceError('fatal: reference repository not found'),
+            isTrue);
+        expect(service.isReferenceError('error: unable to read reference'),
+            isTrue);
+        expect(
+            service.isReferenceError('fatal: bad object in reference'), isTrue);
+        expect(service.isReferenceError('error: corrupt reference repository'),
+            isTrue);
+        expect(service.isReferenceError('fatal: reference not found'), isTrue);
+      });
+
+      test('does not detect non-reference errors', () {
+        final context = createIsolatedTestContext();
+        final service = FlutterService(context);
+
+        // Test non-reference error patterns
+        expect(
+            service.isReferenceError('fatal: repository not found'), isFalse);
+        expect(service.isReferenceError('fatal: remote branch not found'),
+            isFalse);
+        expect(service.isReferenceError('error: unknown revision'), isFalse);
+        expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
+      });
     });
 
     group('setup method', () {
