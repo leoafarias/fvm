@@ -17,7 +17,7 @@ void main() {
     };
 
     cases.forEach((input, expected) {
-      test('converts "' + input + '"', () {
+      test('converts "$input"', () {
         expect(convertToPosixPath(input), equals(expected));
       });
     });

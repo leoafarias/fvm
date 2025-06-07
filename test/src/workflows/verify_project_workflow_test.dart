@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/logger_service.dart';

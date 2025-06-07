@@ -1,9 +1,5 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/extensions.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -73,7 +69,7 @@ void main() {
         expect(exitCode, ExitCode.success.code);
 
         // Verify pinned to specific version, not channel
-        final project = context.get<ProjectService>().findAncestor()!;
+        final project = context.get<ProjectService>().findAncestor();
         expect(project.pinnedVersion?.name, isNot('stable'));
         expect(project.pinnedVersion?.name, matches(r'^\d+\.\d+\.\d+'));
       } finally {

@@ -1,10 +1,8 @@
-import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/app_config_service.dart';
 import 'package:test/test.dart';
 
-import '../testing_utils.dart';
 
 void main() {
   group('AppConfigService', () {

@@ -219,7 +219,7 @@ void main() {
         // Verify setup was run (project should be using the version)
         final project = context.get<ProjectService>().findAncestor();
         expect(project, isNotNull);
-        expect(project!.pinnedVersion?.name, 'stable');
+        expect(project.pinnedVersion?.name, 'stable');
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);

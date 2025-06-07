@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -53,7 +52,8 @@ void main() {
       });
 
       test('backwards compatibility for string-based version paths', () {
-        final result = cacheService.getVersionCacheDirByName('stable');
+        final version = FlutterVersion.parse('stable');
+        final result = cacheService.getVersionCacheDir(version);
         expect(result.path, path.join(tempDir.path, 'stable'));
       });
     });
@@ -225,7 +225,6 @@ void main() {
     // that use them, or by using package:test_utils to access private members
 
     group('Global version management:', () {
-
       test('complete global version lifecycle', () {
         // Create a test version
         final version = createTestVersion('3.10.0');
@@ -282,7 +281,7 @@ void main() {
           version,
           directory: versionDir.path,
         );
-        
+
         cacheService.setGlobal(cacheVersion);
 
         // Test deprecated method
@@ -306,7 +305,8 @@ void main() {
     });
 
     group('Fork cleanup:', () {
-      test('should remove empty fork directory after removing last version', () {
+      test('should remove empty fork directory after removing last version',
+          () {
         // Create fork structure
         final forkVersion = FlutterVersion.parse('mycompany/stable');
         final forkDir = Directory(
@@ -320,7 +320,8 @@ void main() {
 
         // Verify fork structure exists
         expect(forkDir.existsSync(), isTrue);
-        expect(Directory(path.join(tempDir.path, 'mycompany')).existsSync(), isTrue);
+        expect(Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
+            isTrue);
 
         // Remove the version
         cacheService.remove(forkVersion);
@@ -336,7 +337,6 @@ void main() {
       test('should not remove fork directory with other versions', () {
         // Create multiple fork versions
         final version1 = FlutterVersion.parse('mycompany/stable');
-        final version2 = FlutterVersion.parse('mycompany/beta');
 
         final stableDir = Directory(
           path.join(tempDir.path, 'mycompany', 'stable'),
