@@ -177,7 +177,8 @@ class FlutterService extends ContextualService {
               Error.throwWithStackTrace(
                 AppException(
                   'Reference "${version.version}" was not found in fork "${version.fork}".\n'
-                  'Please verify that this version exists in the forked repository.',
+                  'Please verify that this version exists in the forked repository.\n'
+                  'Repository URL: ${repoUrl}',
                 ),
                 stackTrace,
               );
@@ -185,7 +186,8 @@ class FlutterService extends ContextualService {
             Error.throwWithStackTrace(
               AppException(
                 'Reference "${version.version}" was not found in the Flutter repository.\n'
-                'Please check that you have specified a valid version.',
+                'Please check that you have specified a valid version.\n'
+                'Repository URL: ${repoUrl}',
               ),
               stackTrace,
             );
@@ -215,7 +217,8 @@ class FlutterService extends ContextualService {
           Error.throwWithStackTrace(
             AppException(
               'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
-              'Please verify that the fork URL is correct and the version exists.',
+              'Please verify that the fork URL is correct and the version exists.\n'
+              'Repository URL: ${repoUrl}',
             ),
             stackTrace,
           );
@@ -224,7 +227,8 @@ class FlutterService extends ContextualService {
         Error.throwWithStackTrace(
           AppException(
             'Failed to clone Flutter repository with version "${version.version}".\n'
-            'The branch or tag does not exist in the upstream repository.',
+            'The branch or tag does not exist in the upstream repository.\n'
+            'Repository URL: ${repoUrl}',
           ),
           stackTrace,
         );
