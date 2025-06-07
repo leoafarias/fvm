@@ -17,6 +17,22 @@ final context = TestFactory.context(
 final runner = TestFactory.commandRunner(context: context);
 ```
 
+### Test Resource Management
+Use TempDirectoryTracker to simplify cleanup and avoid repetitive code:
+
+```dart
+final tempTracker = TempDirectoryTracker();
+
+setUp(() {
+  final dir1 = tempTracker.create();
+  final dir2 = tempTracker.create();
+});
+
+tearDown(() {
+  tempTracker.cleanUp(); // Cleans all tracked dirs
+});
+```
+
 ### Test Structure Pattern
 Follow this consistent pattern for all tests:
 
