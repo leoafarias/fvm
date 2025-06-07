@@ -171,7 +171,7 @@ class CacheService extends ContextualService {
 
   /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
-    context.globalCacheLink.link.createLink(version.directory);
+    _globalCacheLink.createLink(version.directory);
   }
 
   /// Unlinks global version

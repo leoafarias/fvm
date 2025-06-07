@@ -1,3 +1,4 @@
+
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
@@ -11,13 +12,19 @@ import 'test_logger.dart';
 void main() {
   group('VerifyProjectWorkflow', () {
     late TestCommandRunner runner;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
+      tempDirs = TempDirectoryTracker();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     test('should pass when project has pubspec', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(
         ProjectConfig(flutter: '3.10.0'),
@@ -33,7 +40,7 @@ void main() {
     });
 
     test('should pass with force flag even without pubspec', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // No pubspec created
 
       final project =
@@ -46,7 +53,7 @@ void main() {
 
     group('user confirmation', () {
       test('should continue when user confirms', () {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         // No pubspec - will trigger confirmation
 
         // Create context with TestLogger that says Yes
@@ -85,7 +92,7 @@ void main() {
       });
 
       test('should throw ForceExit when user declines', () {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         // No pubspec - will trigger confirmation
 
         // Create context with TestLogger that says No
@@ -130,7 +137,7 @@ void main() {
       test(
           'should use correct default value (true) for non-destructive operation',
           () {
-        final testDir = createTempDir();
+        final testDir = tempDirs.create();
         // No pubspec - will trigger confirmation
 
         // Create context that skips input (will use default value)

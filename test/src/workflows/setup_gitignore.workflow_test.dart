@@ -12,13 +12,19 @@ import '../../testing_utils.dart';
 void main() {
   group('SetupGitignoreWorkflow', () {
     late TestCommandRunner runner;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
+      tempDirs = TempDirectoryTracker();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     test('should create and update .gitignore when force is true', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir, name: 'test_project_2');
 
@@ -48,7 +54,7 @@ void main() {
     });
 
     test('should not update .gitignore when config disables it', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with config
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -70,7 +76,7 @@ void main() {
     });
 
     test('should not duplicate entries in existing .gitignore', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with existing .gitignore
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -95,7 +101,7 @@ void main() {
     });
 
     test('should handle and clean empty lines correctly', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with .gitignore containing multiple empty lines
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -148,7 +154,7 @@ void main() {
         return;
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with a read-only .gitignore
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -183,7 +189,7 @@ void main() {
     });
 
     test('should handle non-existent parent directories correctly', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -214,7 +220,7 @@ void main() {
     });
 
     test('should preserve existing formatting when possible', () {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with specially formatted .gitignore
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -254,7 +260,7 @@ void main() {
         return; // Skip if git is not available
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(

@@ -17,10 +17,16 @@ void main() {
   group('UpdateProjectReferencesWorkflow', () {
     late TestCommandRunner runner;
     late Directory cacheDir;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
-      cacheDir = createTempDir();
+      tempDirs = TempDirectoryTracker();
+      cacheDir = tempDirs.create();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     // Helper function to create a properly structured cache version
@@ -51,7 +57,7 @@ void main() {
     }
 
     test('should successfully update project references', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir, name: 'test_project');
       createProjectConfig(ProjectConfig(), testDir);
@@ -93,7 +99,7 @@ void main() {
     });
 
     test('should update with flavor when provided', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
@@ -123,7 +129,7 @@ void main() {
         return;
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
@@ -152,7 +158,7 @@ void main() {
 
     test('should not create symlinks when privileged access is unavailable',
         () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
@@ -191,7 +197,7 @@ void main() {
         return;
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
@@ -200,7 +206,7 @@ void main() {
       fvmDir.createSync();
 
       // Create a temporary directory to initially link to
-      final tempDir = createTempDir();
+      final tempDir = tempDirs.create();
 
       // Create initial symlink pointing to temp directory
       final flutterSdkLink = Link(p.join(
@@ -231,7 +237,7 @@ void main() {
         return;
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
@@ -262,7 +268,7 @@ void main() {
     });
 
     test('should handle project constraints issues', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       createPubspecYaml(
         testDir,
         name: 'test_project',
@@ -284,7 +290,7 @@ void main() {
       );
 
       when(() => cacheVersion.directory).thenReturn(
-        createTempDir().path,
+        tempDirs.create().path,
       );
 
       final project =
