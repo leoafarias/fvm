@@ -282,14 +282,14 @@ class VersionRunner {
     List<String> args, {
     bool? echoOutput,
     bool? throwOnError,
-  }) async {
+  }) {
     // Update environment
     final environment = _updateEnvironmentVariables(
       [_version.binPath, _version.dartBinPath],
     );
 
     // Run command
-    return await _context.get<ProcessService>().run(
+    return _context.get<ProcessService>().run(
           cmd,
           args: args,
           environment: environment,
