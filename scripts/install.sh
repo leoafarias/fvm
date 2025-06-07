@@ -130,22 +130,12 @@ fi
 # Store root status for later use
 IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
 
-###############################################################################
-# Check for 'curl'
-# -----------------------------------------------------------------------------
-# We need 'curl' to fetch data from GitHub. If it's missing, we fail early with
-# instructions. Why not install it automatically? Because we don't want to rely
-# on a package manager (brew, apt, etc.). So we just inform the user.
-###############################################################################
+# Require curl for GitHub API access
 if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-###############################################################################
-# Privilege Escalation Tool Detection
-# -----------------------------------------------------------------------------
-# Find sudo/doas for system symlink creation (only needed if not root).
-###############################################################################
+# Find sudo/doas for system symlink creation (only needed if not root)
 ESCALATION_TOOL=''
 
 if [[ "$IS_ROOT" != "true" ]]; then
@@ -159,24 +149,12 @@ if [[ "$IS_ROOT" != "true" ]]; then
   [[ -z "$ESCALATION_TOOL" ]] && error "Cannot find sudo or doas. Install one or run as root."
 fi
 
-###############################################################################
-# (Optional) Detect Currently Installed FVM
-# -----------------------------------------------------------------------------
-# If FVM is already installed, we can detect it for informational purposes.
-# This could be extended in the future to compare versions or provide upgrade info.
-###############################################################################
+# Detect existing FVM installation
 if command -v fvm &>/dev/null; then
   info "Existing FVM installation detected. It will be replaced."
 fi
 
-###############################################################################
-# Determine Which FVM Version to Install
-# -----------------------------------------------------------------------------
-# If the script is called with an argument, we assume it's a version/tag (e.g. 2.0.0).
-# Otherwise, we query GitHub releases for the 'latest' tag. If that fails, we bail.
-# Why not parse JSON properly with 'jq'? Because 'jq' might not be installed.
-# So we do a quick 'grep' & 'sed' approach.
-###############################################################################
+# Determine FVM version: use argument or fetch latest from GitHub
 FVM_VERSION=""
 if [[ $# -eq 0 ]]; then
   # No arguments => fetch the 'latest' from GitHub
@@ -198,14 +176,7 @@ fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-###############################################################################
-# Define Installation Directories
-# -----------------------------------------------------------------------------
-# We want a user-level directory for storing the FVM binary. We'll create:
-#   ~/.fvm_flutter/bin
-# Then we place 'fvm' inside that bin, and symlink to /usr/local/bin/fvm.
-# Why .fvm_flutter? It's an arbitrary choice, used by convention for FVM.
-###############################################################################
+# Define installation directories
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET="/usr/local/bin/fvm"
@@ -216,13 +187,7 @@ if [[ ! -d "$SYMLINK_DIR" ]]; then
   error "Symlink target directory does not exist: $SYMLINK_DIR"
 fi
 
-###############################################################################
-# Clean Up Existing FVM Bin Directory (if any), Then Recreate
-# -----------------------------------------------------------------------------
-# We remove ~/.fvm_flutter/bin if it exists, to avoid leftover files. Then we
-# recreate it so we have a clean slate. If we didn't reorder these steps, we'd
-# risk creating it, then immediately deleting it. This ensures clarity.
-###############################################################################
+# Clean up existing installation and create fresh directory
 if [[ -d "$FVM_DIR_BIN" ]]; then
   info "FVM bin directory [$FVM_DIR_BIN] already exists. Removing it."
   rm -rf "$FVM_DIR_BIN" || error "Failed to remove existing FVM bin directory."
@@ -230,13 +195,7 @@ fi
 
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
-###############################################################################
-# Download FVM Tarball
-# -----------------------------------------------------------------------------
-# We form the GitHub release URL for the chosen version, OS, and architecture.
-# Example: https://github.com/leoafarias/fvm/releases/download/2.0.0/fvm-2.0.0-linux-x64.tar.gz
-# We then download it to 'fvm.tar.gz'.
-###############################################################################
+# Download FVM release tarball
 URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
 
 info "Downloading $URL"
@@ -255,13 +214,7 @@ if ! file fvm.tar.gz | grep -q "gzip compressed"; then
   error "Downloaded file is not a valid gzip archive."
 fi
 
-###############################################################################
-# Extract Tarball
-# -----------------------------------------------------------------------------
-# We extract it directly into ~/.fvm_flutter. The tar presumably contains a
-# single 'fvm' binary at the top level. We can verify it's indeed so. If the
-# tar file structure changes, we'd need to adjust the logic.
-###############################################################################
+# Extract and validate FVM binary
 info "Extracting fvm.tar.gz into $FVM_DIR"
 if ! tar xzf fvm.tar.gz -C "$FVM_DIR" 2>&1; then
   rm -f fvm.tar.gz
@@ -277,20 +230,10 @@ fi
 # Cleanup the tarball to avoid clutter
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
 
-###############################################################################
-# Move 'fvm' into the 'bin' subdirectory
-# -----------------------------------------------------------------------------
-# After extraction, we expect $FVM_DIR/fvm to exist. We want it in $FVM_DIR/bin
-# for clarity. This also makes it easier to add that bin path to the environment.
-###############################################################################
+# Move binary to bin subdirectory
 mv "$FVM_DIR/fvm" "$FVM_DIR_BIN" || error "Failed to move 'fvm' binary to bin directory."
 
-###############################################################################
-# Create Symlink in /usr/local/bin
-# -----------------------------------------------------------------------------
-# Create a system-wide symlink so any user can type 'fvm'. If we're running as
-# root, we can do this directly. Otherwise, we use the escalation tool we found.
-###############################################################################
+# Create system-wide symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
 
 if [[ "$IS_ROOT" == "true" ]]; then
@@ -299,12 +242,7 @@ else
   "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
 fi
 
-###############################################################################
-# Helper Functions
-# -----------------------------------------------------------------------------
-# tildify() - Replaces $HOME path with '~' for readability
-# update_shell_config() - Common logic for updating shell configuration files
-###############################################################################
+# Helper functions for shell configuration
 tildify() {
   if [[ "$1" = "$HOME"* ]]; then
     echo "~${1#"$HOME"}"
@@ -340,17 +278,7 @@ update_shell_config() {
 
 tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
 
-###############################################################################
-# Attempt to Add FVM_DIR_BIN to the User's Shell RC
-# -----------------------------------------------------------------------------
-# Many shells won't automatically include ~/.fvm_flutter/bin in PATH. We'll try
-# to detect if the user is using fish, zsh, or bash by looking at $SHELL. Then
-# we append a line to their config only if it's not already present. If we can't
-# write to the config, we instruct them to do it manually.
-#
-# Special handling for root: In container environments, we set up shell config
-# for root. In regular environments, we provide instructions for manual setup.
-###############################################################################
+# Configure shell PATH (skip for root in non-container environments)
 refresh_command=''
 
 # Skip shell config for root in non-container environments (security)
@@ -399,12 +327,7 @@ case "$(basename "$SHELL")" in
     ;;
 esac
 
-###############################################################################
-# Final Instructions
-# -----------------------------------------------------------------------------
-# We print a short message to tell the user how to immediately apply the new PATH
-# changes (if we automatically appended them) and how to start using FVM.
-###############################################################################
+# Final installation instructions
 echo
 info "Installation complete!"
 log "To use fvm right away, run:"
