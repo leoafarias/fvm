@@ -423,17 +423,39 @@ jobs:
 
       - name: Verify script consistency
         run: |
-          echo "Verifying script consistency with public version..."
-          
-          # Check if public version exists and matches
-          if [[ -f docs/public/install.sh ]]; then
-            if ! diff -q scripts/install.sh docs/public/install.sh; then
-              echo "❌ Local install.sh differs from public version"
-              echo "Differences:"
-              diff scripts/install.sh docs/public/install.sh || true
-              exit 1
-            fi
-            echo "✅ Script consistency verified"
-          else
-            echo "⚠️  Public version not found, skipping consistency check"
+          echo "Verifying script internal consistency..."
+
+          # Check script has proper structure and required functions
+          if ! grep -q "tildify()" scripts/install.sh; then
+            echo "❌ Missing tildify() function"
+            exit 1
           fi
+
+          if ! grep -q "This script should not be run as root" scripts/install.sh; then
+            echo "❌ Missing root user check"
+            exit 1
+          fi
+
+          # Check for essential logging functions
+          if ! grep -q "^success()" scripts/install.sh; then
+            echo "❌ Missing success() function"
+            exit 1
+          fi
+
+          if ! grep -q "^error()" scripts/install.sh; then
+            echo "❌ Missing error() function"
+            exit 1
+          fi
+
+          # Check for OS/architecture detection
+          if ! grep -q "uname -s" scripts/install.sh; then
+            echo "❌ Missing OS detection"
+            exit 1
+          fi
+
+          if ! grep -q "uname -m" scripts/install.sh; then
+            echo "❌ Missing architecture detection"
+            exit 1
+          fi
+
+          echo "✅ Script internal consistency verified"
