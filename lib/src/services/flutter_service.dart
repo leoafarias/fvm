@@ -22,6 +22,71 @@ import 'releases_service/releases_client.dart';
 class FlutterService extends ContextualService {
   const FlutterService(super.context);
 
+  /// Attempts to clone with --reference flag for optimization, falls back to normal clone on failure
+  Future<ProcessResult> _cloneWithFallback({
+    required String repoUrl,
+    required Directory versionDir,
+    required FlutterVersion version,
+    required String? channel,
+  }) async {
+    final args = [
+      'clone',
+      '--progress',
+      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+      if (!version.isUnknownRef && channel != null) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '-b',
+        channel,
+      ],
+    ];
+
+    final echoOutput = !(context.isTest || !logger.isVerbose);
+
+    // Try with --reference first if git cache is enabled
+    if (context.gitCache) {
+      try {
+        return await runGit(
+          [
+            ...args,
+            '--reference',
+            context.gitCachePath,
+            repoUrl,
+            versionDir.path,
+          ],
+          echoOutput: echoOutput,
+        );
+      } on ProcessException catch (e) {
+        if (isReferenceError(e.toString())) {
+          logger.warn(
+            'Git clone with --reference failed, falling back to normal clone',
+          );
+          _cleanupPartialClone(versionDir);
+          // Fall through to normal clone
+        } else {
+          rethrow;
+        }
+      }
+    }
+
+    // Normal clone without --reference
+    return await runGit(
+      [...args, repoUrl, versionDir.path],
+      echoOutput: echoOutput,
+    );
+  }
+
+  /// Cleans up partial clone state when --reference fails
+  void _cleanupPartialClone(Directory versionDir) {
+    try {
+      if (versionDir.existsSync()) {
+        versionDir.deleteSync(recursive: true);
+      }
+    } catch (_) {
+      // Ignore cleanup failures - main operation should continue
+    }
+  }
+
   Future<ProcessResult> run(
     String cmd,
     List<String> args,
@@ -232,59 +297,6 @@ class FlutterService extends ContextualService {
     }
   }
 
-  /// Attempts to clone with --reference flag for optimization, falls back to normal clone on failure
-  Future<ProcessResult> _cloneWithFallback({
-    required String repoUrl,
-    required Directory versionDir,
-    required FlutterVersion version,
-    required String? channel,
-  }) async {
-    final args = [
-      'clone',
-      '--progress',
-      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
-      if (!version.isUnknownRef && channel != null) ...[
-        '-c',
-        'advice.detachedHead=false',
-        '-b',
-        channel,
-      ],
-    ];
-
-    final echoOutput = !(context.isTest || !logger.isVerbose);
-
-    // Try with --reference first if git cache is enabled
-    if (context.gitCache) {
-      try {
-        return await runGit(
-          [
-            ...args,
-            '--reference',
-            context.gitCachePath,
-            repoUrl,
-            versionDir.path
-          ],
-          echoOutput: echoOutput,
-        );
-      } on ProcessException catch (e) {
-        if (isReferenceError(e.toString())) {
-          logger.warn(
-              'Git clone with --reference failed, falling back to normal clone');
-          await _cleanupPartialClone(versionDir);
-          // Fall through to normal clone
-        } else {
-          rethrow;
-        }
-      }
-    }
-
-    // Normal clone without --reference
-    return await runGit(
-      [...args, repoUrl, versionDir.path],
-      echoOutput: echoOutput,
-    );
-  }
-
   /// Checks if the error is related to --reference flag failures
   @visibleForTesting
   bool isReferenceError(String errorMessage) {
@@ -300,17 +312,6 @@ class FlutterService extends ContextualService {
     return referenceErrorPatterns.any(lowerMessage.contains) ||
         (lowerMessage.contains('corrupt') &&
             lowerMessage.contains('reference'));
-  }
-
-  /// Cleans up partial clone state when --reference fails
-  Future<void> _cleanupPartialClone(Directory versionDir) async {
-    try {
-      if (versionDir.existsSync()) {
-        versionDir.deleteSync(recursive: true);
-      }
-    } catch (_) {
-      // Ignore cleanup failures - main operation should continue
-    }
   }
 }
 
