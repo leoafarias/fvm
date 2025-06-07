@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
-import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart' as p;

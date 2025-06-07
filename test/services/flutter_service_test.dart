@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -13,6 +15,20 @@ import '../testing_utils.dart';
 void throwGitError(String message, List<String> args) {
   final e = ProcessException('git', args, message, 128);
   throw e;
+}
+
+/// Creates an isolated test context with separate git cache to avoid conflicts
+FvmContext createIsolatedTestContext() {
+  final tempDir = Directory.systemTemp.createTempSync('fvm_flutter_service_test_');
+
+  return FvmContext.create(
+    isTest: true,
+    configOverrides: AppConfig(
+      cachePath: p.join(tempDir.path, 'cache'),
+      gitCachePath: p.join(tempDir.path, 'git_cache'),
+      useGitCache: true,
+    ),
+  );
 }
 
 void main() {
@@ -94,7 +110,7 @@ void main() {
 
     group('isReferenceError method', () {
       test('detects reference repository errors', () {
-        final context = TestFactory.context();
+        final context = createIsolatedTestContext();
         final service = FlutterService(context);
 
         // Test various reference error patterns
@@ -106,7 +122,7 @@ void main() {
       });
 
       test('does not detect non-reference errors', () {
-        final context = TestFactory.context();
+        final context = createIsolatedTestContext();
         final service = FlutterService(context);
 
         // Test non-reference error patterns
