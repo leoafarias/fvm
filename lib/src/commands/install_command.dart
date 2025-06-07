@@ -17,7 +17,8 @@ class InstallCommand extends BaseFvmCommand {
 
   @override
   final description =
-      'Installs a Flutter SDK version and caches it for future use';
+      'Installs a Flutter SDK version and caches it for future use. '
+      'Use --download to download pre-built archives instead of Git cloning.';
 
   InstallCommand(super.context) {
     argParser
@@ -33,6 +34,13 @@ class InstallCommand extends BaseFvmCommand {
         help: 'Skip resolving dependencies after switching Flutter SDK',
         defaultsTo: false,
         negatable: false,
+      )
+      ..addFlag(
+        'download',
+        abbr: 'd',
+        help: 'Download pre-built Flutter SDK archive instead of Git cloning',
+        defaultsTo: false,
+        negatable: false,
       );
   }
 
@@ -40,6 +48,7 @@ class InstallCommand extends BaseFvmCommand {
   Future<int> run() async {
     final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
+    final useDownload = boolArg('download');
 
     final ensureCache = EnsureCacheWorkflow(context);
     final useVersion = UseVersionWorkflow(context);
@@ -60,7 +69,11 @@ class InstallCommand extends BaseFvmCommand {
         );
       }
 
-      final cacheVersion = await ensureCache(version, shouldInstall: true);
+      final cacheVersion = await ensureCache(
+        version,
+        shouldInstall: true,
+        useDownload: useDownload,
+      );
 
       await useVersion(
         version: cacheVersion,
@@ -76,7 +89,11 @@ class InstallCommand extends BaseFvmCommand {
 
     final flutterVersion = validateFlutterVersion(version);
 
-    final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
+    final cacheVersion = await ensureCache(
+      flutterVersion,
+      shouldInstall: true,
+      useDownload: useDownload,
+    );
 
     if (setup) {
       await setupFlutter(cacheVersion);

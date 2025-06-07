@@ -125,4 +125,34 @@ void main() {
   // would also need to be added as integration tests rather than unit tests,
   // as the MockFlutterService doesn't properly simulate the git errors
   // we're trying to detect and handle.
+
+  // Group 6: Download flag functionality
+  group('Download flag functionality:', () {
+    test('Install command parses --download flag correctly', () {
+      final runner = TestFactory.commandRunner();
+
+      // Test that the command parses the --download flag without throwing
+      expect(() {
+        runner.parse(['install', 'stable', '--download']);
+      }, returnsNormally);
+    });
+
+    test('Install command parses -d flag correctly', () {
+      final runner = TestFactory.commandRunner();
+
+      // Test that the command parses the -d flag without throwing
+      expect(() {
+        runner.parse(['install', 'stable', '-d']);
+      }, returnsNormally);
+    });
+
+    test('Install command with --download flag is parsed correctly', () {
+      final runner = TestFactory.commandRunner();
+
+      // Test that the command with --download flag parses correctly
+      final result = runner.parse(['install', '3.24.0', '--download']);
+      expect(result.command?.name, equals('install'));
+      expect(result.command?['download'], isTrue);
+    });
+  });
 }

@@ -5,6 +5,7 @@ import 'package:mason_logger/mason_logger.dart';
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
+import '../services/download_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../utils/exceptions.dart';
@@ -18,6 +19,7 @@ class EnsureCacheWorkflow extends Workflow {
   Future<CacheFlutterVersion> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
+    bool useDownload = false,
   }) {
     logger
       ..notice(
@@ -32,7 +34,7 @@ class EnsureCacheWorkflow extends Workflow {
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
 
-    return call(version, shouldInstall: shouldInstall);
+    return call(version, shouldInstall: shouldInstall, useDownload: useDownload);
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
@@ -104,13 +106,12 @@ class EnsureCacheWorkflow extends Workflow {
     FlutterVersion version, {
     bool shouldInstall = false,
     bool force = false,
+    bool useDownload = false,
   }) async {
     _validateContext();
     _validateGit();
     // Get valid flutter version
     final cacheService = get<CacheService>();
-    final flutterService = get<FlutterService>();
-    final gitService = get<GitService>();
 
     final cacheVersion = cacheService.getVersion(version);
 
@@ -121,6 +122,7 @@ class EnsureCacheWorkflow extends Workflow {
         return await _handleNonExecutable(
           cacheVersion,
           shouldInstall: shouldInstall,
+          useDownload: useDownload,
         );
       }
 
@@ -159,24 +161,16 @@ class EnsureCacheWorkflow extends Workflow {
       logger.info('Installing Flutter SDK automatically...');
     }
 
-    bool useGitCache = context.gitCache;
-
-    if (useGitCache) {
-      try {
-        await gitService.updateLocalMirror();
-      } on Exception {
-        logger.warn(
-          'Failed to setup local cache. Falling back to git clone.',
-        );
-        rethrow;
-      }
-    }
-
     final progress = logger.progress(
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
+
     try {
-      await flutterService.install(version);
+      if (useDownload) {
+        await _installViaDownload(version);
+      } else {
+        await _installViaGit(version);
+      }
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
@@ -192,5 +186,50 @@ class EnsureCacheWorkflow extends Workflow {
     }
 
     return newCacheVersion;
+  }
+
+  /// Installs Flutter SDK via archive download
+  Future<void> _installViaDownload(FlutterVersion version) async {
+    final downloadService = get<DownloadService>();
+
+    // Check if version can be downloaded
+    final canDownload = await downloadService.canDownload(version);
+    if (!canDownload) {
+      logger.warn(
+        'Version ${version.version} is not available for download. Falling back to Git clone.',
+      );
+      await _installViaGit(version);
+      return;
+    }
+
+    try {
+      await downloadService.downloadAndExtract(version);
+    } catch (e) {
+      logger.warn(
+        'Download failed: $e. Falling back to Git clone.',
+      );
+      await _installViaGit(version);
+    }
+  }
+
+  /// Installs Flutter SDK via Git clone
+  Future<void> _installViaGit(FlutterVersion version) async {
+    final flutterService = get<FlutterService>();
+    final gitService = get<GitService>();
+
+    bool useGitCache = context.gitCache;
+
+    if (useGitCache) {
+      try {
+        await gitService.updateLocalMirror();
+      } on Exception {
+        logger.warn(
+          'Failed to setup local cache. Falling back to git clone.',
+        );
+        rethrow;
+      }
+    }
+
+    await flutterService.install(version);
   }
 }

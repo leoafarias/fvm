@@ -9,6 +9,7 @@ import '../models/log_level_model.dart';
 import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/download_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
@@ -241,6 +242,7 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
+  DownloadService: DownloadService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
   FlutterService: FlutterService.new,
   ApiService: ApiService.new,
