@@ -257,7 +257,7 @@ class FlutterService extends ContextualService {
           echoOutput: echoOutput,
         );
       } on ProcessException catch (e) {
-        if (isReferenceError(e.toString().toLowerCase())) {
+        if (isReferenceError(e.toString())) {
           logger.warn('Git clone with --reference failed, falling back to normal clone');
           await _cleanupPartialClone(versionDir);
           // Fall through to normal clone
@@ -277,6 +277,8 @@ class FlutterService extends ContextualService {
   /// Checks if the error is related to --reference flag failures
   @visibleForTesting
   bool isReferenceError(String errorMessage) {
+    final lowerMessage = errorMessage.toLowerCase();
+
     const referenceErrorPatterns = [
       'reference repository',
       'reference not found',
@@ -284,8 +286,8 @@ class FlutterService extends ContextualService {
       'bad object',
     ];
 
-    return referenceErrorPatterns.any(errorMessage.contains) ||
-           (errorMessage.contains('corrupt') && errorMessage.contains('reference'));
+    return referenceErrorPatterns.any(lowerMessage.contains) ||
+           (lowerMessage.contains('corrupt') && lowerMessage.contains('reference'));
   }
 
   /// Cleans up partial clone state when --reference fails
