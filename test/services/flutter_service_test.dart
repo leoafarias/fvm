@@ -19,7 +19,8 @@ void throwGitError(String message, List<String> args) {
 
 /// Creates an isolated test context with separate git cache to avoid conflicts
 FvmContext createIsolatedTestContext() {
-  final tempDir = Directory.systemTemp.createTempSync('fvm_flutter_service_test_');
+  final tempDir =
+      Directory.systemTemp.createTempSync('fvm_flutter_service_test_');
 
   return FvmContext.create(
     isTest: true,
@@ -114,10 +115,15 @@ void main() {
         final service = FlutterService(context);
 
         // Test various reference error patterns
-        expect(service.isReferenceError('fatal: reference repository not found'), isTrue);
-        expect(service.isReferenceError('error: unable to read reference'), isTrue);
-        expect(service.isReferenceError('fatal: bad object in reference'), isTrue);
-        expect(service.isReferenceError('error: corrupt reference repository'), isTrue);
+        expect(
+            service.isReferenceError('fatal: reference repository not found'),
+            isTrue);
+        expect(service.isReferenceError('error: unable to read reference'),
+            isTrue);
+        expect(
+            service.isReferenceError('fatal: bad object in reference'), isTrue);
+        expect(service.isReferenceError('error: corrupt reference repository'),
+            isTrue);
         expect(service.isReferenceError('fatal: reference not found'), isTrue);
       });
 
@@ -126,8 +132,10 @@ void main() {
         final service = FlutterService(context);
 
         // Test non-reference error patterns
-        expect(service.isReferenceError('fatal: repository not found'), isFalse);
-        expect(service.isReferenceError('fatal: remote branch not found'), isFalse);
+        expect(
+            service.isReferenceError('fatal: repository not found'), isFalse);
+        expect(service.isReferenceError('fatal: remote branch not found'),
+            isFalse);
         expect(service.isReferenceError('error: unknown revision'), isFalse);
         expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
       });

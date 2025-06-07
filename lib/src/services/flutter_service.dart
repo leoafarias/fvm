@@ -253,12 +253,19 @@ class FlutterService extends ContextualService {
     if (context.gitCache) {
       try {
         return await runGit(
-          [...args, '--reference', context.gitCachePath, repoUrl, versionDir.path],
+          [
+            ...args,
+            '--reference',
+            context.gitCachePath,
+            repoUrl,
+            versionDir.path
+          ],
           echoOutput: echoOutput,
         );
       } on ProcessException catch (e) {
         if (isReferenceError(e.toString())) {
-          logger.warn('Git clone with --reference failed, falling back to normal clone');
+          logger.warn(
+              'Git clone with --reference failed, falling back to normal clone');
           await _cleanupPartialClone(versionDir);
           // Fall through to normal clone
         } else {
@@ -287,7 +294,8 @@ class FlutterService extends ContextualService {
     ];
 
     return referenceErrorPatterns.any(lowerMessage.contains) ||
-           (lowerMessage.contains('corrupt') && lowerMessage.contains('reference'));
+        (lowerMessage.contains('corrupt') &&
+            lowerMessage.contains('reference'));
   }
 
   /// Cleans up partial clone state when --reference fails

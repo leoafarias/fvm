@@ -566,7 +566,8 @@ class IntegrationTestRunner {
   /// Test Git clone fallback mechanism with isolated git cache
   Future<void> _testGitCloneFallback() async {
     // Create an isolated test context with a separate git cache
-    final testGitCacheDir = Directory.systemTemp.createTempSync('fvm_test_git_cache_');
+    final testGitCacheDir =
+        Directory.systemTemp.createTempSync('fvm_test_git_cache_');
 
     // Create a test context with isolated git cache
     final testContext = FvmContext.create(
@@ -579,7 +580,8 @@ class IntegrationTestRunner {
     );
 
     try {
-      logger.info('Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}');
+      logger.info(
+          'Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}');
 
       // Create a corrupted git cache directory to trigger fallback
       final corruptFile = File(p.join(testGitCacheDir.path, 'corrupt_file'));
@@ -597,13 +599,16 @@ class IntegrationTestRunner {
 
       // Verify installation using the test context
       final testCacheService = testContext.get<CacheService>();
-      final testVersion = testCacheService.getVersion(FlutterVersion.parse(fallbackTestVersion));
+      final testVersion = testCacheService
+          .getVersion(FlutterVersion.parse(fallbackTestVersion));
 
       if (testVersion == null) {
-        throw AppException('Version $fallbackTestVersion not found after fallback test');
+        throw AppException(
+            'Version $fallbackTestVersion not found after fallback test');
       }
 
-      logger.success('Git clone fallback mechanism worked correctly with isolated cache');
+      logger.success(
+          'Git clone fallback mechanism worked correctly with isolated cache');
 
       // Clean up the test version
       await testRunner.run(['remove', fallbackTestVersion]);
