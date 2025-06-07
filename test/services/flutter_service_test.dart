@@ -92,6 +92,31 @@ void main() {
       );
     });
 
+    group('isReferenceError method', () {
+      test('detects reference repository errors', () {
+        final context = TestFactory.context();
+        final service = FlutterService(context);
+
+        // Test various reference error patterns
+        expect(service.isReferenceError('fatal: reference repository not found'), isTrue);
+        expect(service.isReferenceError('error: unable to read reference'), isTrue);
+        expect(service.isReferenceError('fatal: bad object in reference'), isTrue);
+        expect(service.isReferenceError('error: corrupt reference repository'), isTrue);
+        expect(service.isReferenceError('fatal: reference not found'), isTrue);
+      });
+
+      test('does not detect non-reference errors', () {
+        final context = TestFactory.context();
+        final service = FlutterService(context);
+
+        // Test non-reference error patterns
+        expect(service.isReferenceError('fatal: repository not found'), isFalse);
+        expect(service.isReferenceError('fatal: remote branch not found'), isFalse);
+        expect(service.isReferenceError('error: unknown revision'), isFalse);
+        expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
+      });
+    });
+
     group('setup method', () {
       test('calls flutter --version command', () async {
         final context = TestFactory.context();

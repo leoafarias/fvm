@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
@@ -109,23 +110,11 @@ class FlutterService extends ContextualService {
     }
 
     try {
-      final result = await runGit(
-        [
-          'clone',
-          '--progress',
-          // Enable long paths on Windows to prevent checkout failures
-          if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
-          if (!version.isUnknownRef) ...[
-            '-c',
-            'advice.detachedHead=false',
-            '-b',
-            channel,
-          ],
-          if (context.gitCache) ...['--reference', context.gitCachePath],
-          repoUrl,
-          versionDir.path,
-        ],
-        echoOutput: !(context.isTest || !logger.isVerbose),
+      final result = await _cloneWithFallback(
+        repoUrl: repoUrl,
+        versionDir: versionDir,
+        version: version,
+        channel: channel,
       );
 
       // Use FlutterVersion object with getVersionCacheDir
@@ -236,6 +225,99 @@ class FlutterService extends ContextualService {
     } on Exception {
       get<CacheService>().remove(version);
       rethrow;
+    }
+  }
+
+  /// Attempts to clone with --reference flag for optimization, falls back to normal clone on failure
+  Future<ProcessResult> _cloneWithFallback({
+    required String repoUrl,
+    required Directory versionDir,
+    required FlutterVersion version,
+    required String? channel,
+  }) async {
+    final baseArgs = [
+      'clone',
+      '--progress',
+      // Enable long paths on Windows to prevent checkout failures
+      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+      if (!version.isUnknownRef && channel != null) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '-b',
+        channel,
+      ],
+    ];
+
+    final echoOutput = !(context.isTest || !logger.isVerbose);
+
+    // First attempt: try with --reference if git cache is enabled
+    if (context.gitCache) {
+      try {
+        logger.debug('Attempting clone with git cache reference...');
+        final result = await runGit(
+          [
+            ...baseArgs,
+            '--reference', context.gitCachePath,
+            repoUrl,
+            versionDir.path,
+          ],
+          echoOutput: echoOutput,
+        );
+        logger.debug('Clone with reference completed successfully');
+        return result;
+      } on ProcessException catch (e) {
+        final errorMessage = e.toString().toLowerCase();
+
+        // Check if this is a --reference related error
+        if (isReferenceError(errorMessage)) {
+          logger.warn('Git clone with --reference failed, falling back to normal clone');
+          logger.debug('Reference error: ${e.message}');
+
+          // Clean up any partial clone state
+          await _cleanupPartialClone(versionDir);
+
+          // Fall through to normal clone attempt
+        } else {
+          // If it's not a reference error, rethrow to maintain existing error handling
+          rethrow;
+        }
+      }
+    }
+
+    // Second attempt: normal clone without --reference
+    logger.debug('Performing normal clone without reference...');
+    final result = await runGit(
+      [
+        ...baseArgs,
+        repoUrl,
+        versionDir.path,
+      ],
+      echoOutput: echoOutput,
+    );
+    logger.debug('Normal clone completed successfully');
+    return result;
+  }
+
+  /// Checks if the error is related to --reference flag failures
+  @visibleForTesting
+  bool isReferenceError(String errorMessage) {
+    return errorMessage.contains('reference repository') ||
+           errorMessage.contains('reference not found') ||
+           errorMessage.contains('unable to read reference') ||
+           errorMessage.contains('bad object') ||
+           errorMessage.contains('corrupt') && errorMessage.contains('reference');
+  }
+
+  /// Cleans up partial clone state when --reference fails
+  Future<void> _cleanupPartialClone(Directory versionDir) async {
+    try {
+      if (versionDir.existsSync()) {
+        logger.debug('Cleaning up partial clone directory: ${versionDir.path}');
+        versionDir.deleteSync(recursive: true);
+      }
+    } catch (e) {
+      logger.debug('Failed to cleanup partial clone directory: $e');
+      // Don't throw here as this is cleanup - the main operation should continue
     }
   }
 }
