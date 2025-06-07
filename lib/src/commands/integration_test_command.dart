@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 
+import '../models/config_model.dart';
 import '../models/flutter_version_model.dart';
 import '../runner.dart';
 import '../services/cache_service.dart';
@@ -529,6 +530,10 @@ class IntegrationTestRunner {
     _logTest('32. Testing corrupted cache recovery...');
     await _testCorruptedCacheRecovery();
     _logSuccess('Corrupted cache recovery works');
+
+    _logTest('33. Testing Git clone fallback mechanism...');
+    await _testGitCloneFallback();
+    _logSuccess('Git clone fallback mechanism works');
   }
 
   /// Test corrupted cache recovery (based on bash script lines 545-565)
@@ -558,17 +563,75 @@ class IntegrationTestRunner {
     }
   }
 
+  /// Test Git clone fallback mechanism with isolated git cache
+  Future<void> _testGitCloneFallback() async {
+    // Create an isolated test context with a separate git cache
+    final testGitCacheDir =
+        Directory.systemTemp.createTempSync('fvm_test_git_cache_');
+
+    // Create a test context with isolated git cache
+    final testContext = FvmContext.create(
+      isTest: true,
+      configOverrides: AppConfig(
+        gitCachePath: testGitCacheDir.path,
+        useGitCache: true, // Ensure git cache is enabled for this test
+      ),
+      workingDirectoryOverride: context.workingDirectory,
+    );
+
+    try {
+      logger.info(
+          'Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}');
+
+      // Create a corrupted git cache directory to trigger fallback
+      final corruptFile = File(p.join(testGitCacheDir.path, 'corrupt_file'));
+      corruptFile.writeAsStringSync('This is not a git repository');
+      logger.info('Created corrupted git cache to trigger fallback');
+
+      // Use the isolated context to install a version
+      const fallbackTestVersion = '3.13.0';
+      final testRunner = FvmCommandRunner(testContext);
+      final exitCode = await testRunner.run(['install', fallbackTestVersion]);
+
+      if (exitCode != 0) {
+        throw AppException('Install command failed with exit code $exitCode');
+      }
+
+      // Verify installation using the test context
+      final testCacheService = testContext.get<CacheService>();
+      final testVersion = testCacheService
+          .getVersion(FlutterVersion.parse(fallbackTestVersion));
+
+      if (testVersion == null) {
+        throw AppException(
+            'Version $fallbackTestVersion not found after fallback test');
+      }
+
+      logger.success(
+          'Git clone fallback mechanism worked correctly with isolated cache');
+
+      // Clean up the test version
+      await testRunner.run(['remove', fallbackTestVersion]);
+    } finally {
+      // Clean up the isolated test cache
+      if (testGitCacheDir.existsSync()) {
+        testGitCacheDir.deleteSync(recursive: true);
+        logger.info('Cleaned up isolated test git cache');
+      }
+    }
+  }
+
   /// Phase 10: Cleanup Operations Tests (2 tests)
   Future<void> _runPhase10CleanupOperations() async {
     logger.info('=== Phase 10: Cleanup Operations Tests ===');
 
-    _logTest('33. Testing selective version removal...');
+    _logTest('34. Testing selective version removal...');
     // Remove one of the previously installed versions
     await _runFvmCommand(['remove', testCommitVersion.name]);
     _verifyVersionRemoval(testCommitVersion);
     _logSuccess('Selective version removal works');
 
-    _logTest('34. Testing destroy command with backup/restore...');
+    _logTest('35. Testing destroy command with backup/restore...');
     await _testDestroyCommandSafely();
     _logSuccess('Destroy command test completed');
   }
@@ -656,14 +719,14 @@ class IntegrationTestRunner {
   Future<void> _runPhase11FinalValidation() async {
     logger.info('=== Phase 11: Final Validation Tests ===');
 
-    _logTest('35. Final system state validation...');
+    _logTest('36. Final system state validation...');
     final versionOutput = await _runFvmCommandWithOutput(['--version']);
     await _createTempFile('final_version.txt', versionOutput);
     logger.info('FVM version: $versionOutput');
     await _verifyFinalSystemState();
     _logSuccess('FVM still functional after all tests');
 
-    _logTest('36. Testing concurrent operation safety...');
+    _logTest('37. Testing concurrent operation safety...');
     await _testConcurrentOperations();
     _logSuccess('Concurrent operations completed safely');
   }
@@ -675,7 +738,7 @@ class IntegrationTestRunner {
       'Running global command tests last to avoid affecting other tests',
     );
 
-    _logTest('37. Testing global version setting...');
+    _logTest('38. Testing global version setting...');
 
     // First, backup current global configuration
     final originalGlobalVersion = _getGlobalVersion();
@@ -686,7 +749,7 @@ class IntegrationTestRunner {
       await _runFvmCommand(['global', testChannelVersion.name]);
       _logSuccess('Global version set successfully');
 
-      _logTest('38. Validating global command with PATH verification...');
+      _logTest('39. Validating global command with PATH verification...');
 
       // Verify the global symlink was created
       final globalLink = Link(context.globalCacheLink);
@@ -1108,7 +1171,7 @@ class IntegrationTestRunner {
 
     try {
       logger.info('[TEST] Starting FVM Integration Test Workflow');
-      logger.info('Running complete test suite with all 38 tests');
+      logger.info('Running complete test suite with all 39 tests');
       logger.info('');
 
       // Execute as a continuous workflow, not separate phases
