@@ -235,10 +235,67 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
   }) async {
-    final baseArgs = [
+    // Try with --reference first if git cache is enabled
+    if (context.gitCache) {
+      try {
+        return await _executeGitClone(
+          repoUrl: repoUrl,
+          versionDir: versionDir,
+          version: version,
+          channel: channel,
+          useReference: true,
+        );
+      } on ProcessException catch (e) {
+        if (isReferenceError(e.toString().toLowerCase())) {
+          logger.warn('Git clone with --reference failed, falling back to normal clone');
+          await _cleanupPartialClone(versionDir);
+          // Fall through to normal clone
+        } else {
+          rethrow;
+        }
+      }
+    }
+
+    // Normal clone without --reference
+    return await _executeGitClone(
+      repoUrl: repoUrl,
+      versionDir: versionDir,
+      version: version,
+      channel: channel,
+      useReference: false,
+    );
+  }
+
+  /// Executes Git clone with or without --reference flag
+  Future<ProcessResult> _executeGitClone({
+    required String repoUrl,
+    required Directory versionDir,
+    required FlutterVersion version,
+    required String? channel,
+    required bool useReference,
+  }) async {
+    final args = _buildGitCloneArgs(
+      repoUrl: repoUrl,
+      versionDir: versionDir,
+      version: version,
+      channel: channel,
+      useReference: useReference,
+    );
+
+    return await runGit(args, echoOutput: !(context.isTest || !logger.isVerbose));
+  }
+
+  /// Builds Git clone arguments with consistent configuration
+  List<String> _buildGitCloneArgs({
+    required String repoUrl,
+    required Directory versionDir,
+    required FlutterVersion version,
+    required String? channel,
+    required bool useReference,
+  }) {
+    return [
       'clone',
       '--progress',
-      // Enable long paths on Windows to prevent checkout failures
       if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
       if (!version.isUnknownRef && channel != null) ...[
         '-c',
@@ -246,78 +303,34 @@ class FlutterService extends ContextualService {
         '-b',
         channel,
       ],
+      if (useReference) ...['--reference', context.gitCachePath],
+      repoUrl,
+      versionDir.path,
     ];
-
-    final echoOutput = !(context.isTest || !logger.isVerbose);
-
-    // First attempt: try with --reference if git cache is enabled
-    if (context.gitCache) {
-      try {
-        logger.debug('Attempting clone with git cache reference...');
-        final result = await runGit(
-          [
-            ...baseArgs,
-            '--reference', context.gitCachePath,
-            repoUrl,
-            versionDir.path,
-          ],
-          echoOutput: echoOutput,
-        );
-        logger.debug('Clone with reference completed successfully');
-        return result;
-      } on ProcessException catch (e) {
-        final errorMessage = e.toString().toLowerCase();
-
-        // Check if this is a --reference related error
-        if (isReferenceError(errorMessage)) {
-          logger.warn('Git clone with --reference failed, falling back to normal clone');
-          logger.debug('Reference error: ${e.message}');
-
-          // Clean up any partial clone state
-          await _cleanupPartialClone(versionDir);
-
-          // Fall through to normal clone attempt
-        } else {
-          // If it's not a reference error, rethrow to maintain existing error handling
-          rethrow;
-        }
-      }
-    }
-
-    // Second attempt: normal clone without --reference
-    logger.debug('Performing normal clone without reference...');
-    final result = await runGit(
-      [
-        ...baseArgs,
-        repoUrl,
-        versionDir.path,
-      ],
-      echoOutput: echoOutput,
-    );
-    logger.debug('Normal clone completed successfully');
-    return result;
   }
 
   /// Checks if the error is related to --reference flag failures
   @visibleForTesting
   bool isReferenceError(String errorMessage) {
-    return errorMessage.contains('reference repository') ||
-           errorMessage.contains('reference not found') ||
-           errorMessage.contains('unable to read reference') ||
-           errorMessage.contains('bad object') ||
-           errorMessage.contains('corrupt') && errorMessage.contains('reference');
+    const referenceErrorPatterns = [
+      'reference repository',
+      'reference not found',
+      'unable to read reference',
+      'bad object',
+    ];
+
+    return referenceErrorPatterns.any(errorMessage.contains) ||
+           (errorMessage.contains('corrupt') && errorMessage.contains('reference'));
   }
 
   /// Cleans up partial clone state when --reference fails
   Future<void> _cleanupPartialClone(Directory versionDir) async {
     try {
       if (versionDir.existsSync()) {
-        logger.debug('Cleaning up partial clone directory: ${versionDir.path}');
         versionDir.deleteSync(recursive: true);
       }
-    } catch (e) {
-      logger.debug('Failed to cleanup partial clone directory: $e');
-      // Don't throw here as this is cleanup - the main operation should continue
+    } catch (_) {
+      // Ignore cleanup failures - main operation should continue
     }
   }
 }
