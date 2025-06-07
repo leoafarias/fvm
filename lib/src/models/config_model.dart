@@ -174,7 +174,7 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
 
   @override
   bool? updateGitIgnore;
-  
+
   @override
   bool? updateMelosSettings;
 

@@ -297,10 +297,12 @@ const skipCopyWith = GenerateMethods.decode |
 
 /// Recursively searches for a directory and returns the first valid candidate.
 ///
-/// This function will traverse up the directory hierarchy until it finds a valid
-/// candidate or reaches the root directory.
+/// This function traverses up the directory hierarchy until it finds a
+/// directory accepted by the [validate] callback, or reaches the root. The
+/// optional [debugPrinter] is invoked with debug messages at each step, and
+/// defaults to a no-op if not provided.
 ///
-/// If no valid candidate is found, it will return the result of calling the
+/// If no valid candidate is found, `null` is returned.
 T? lookUpDirectoryAncestor<T>({
   required Directory directory,
   required T? Function(Directory) validate,
@@ -331,5 +333,6 @@ T? lookUpDirectoryAncestor<T>({
   return lookUpDirectoryAncestor(
     directory: directory.parent,
     validate: validate,
+    debugPrinter: debugPrinter,
   );
 }
