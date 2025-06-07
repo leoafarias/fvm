@@ -48,6 +48,10 @@ docs/.next
 fvm
 .env.local
 
+# Act local testing
+.secrets.act
+*.act.log
+
 # FVM Version Cache
 .fvm/
 

@@ -1,0 +1,16 @@
+# Act configuration for FVM project
+# This file configures the Docker images used by act when running GitHub Actions locally
+
+# Ubuntu - most frequently used runner
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Windows/macOS jobs will run in Linux containers (act limitation)
+# These are mapped for compatibility with workflows that use them
+-P windows-latest=catthehacker/ubuntu:act-latest
+-P macos-latest=catthehacker/ubuntu:act-latest
+
+# Use node 18 as default (matching GitHub Actions)
+--container-architecture linux/amd64
+
+# Enable offline mode for faster action loading
+--action-offline-mode
