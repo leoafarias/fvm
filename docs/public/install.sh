@@ -168,8 +168,8 @@ INSTALLED_FVM_VERSION=""
 if command -v fvm &>/dev/null; then
   # '|| error' ensures that if 'fvm --version' fails, we exit.
   INSTALLED_FVM_VERSION="$(fvm --version 2>&1)" || error "Failed to fetch installed FVM version."
-  info "Found existing FVM installation: $INSTALLED_FVM_VERSION"
-  # We continue with installation to update/replace the existing version
+  # We do nothing further with this, but it's a placeholder if you'd like to
+  # compare or display it.
 fi
 
 ###############################################################################
@@ -280,8 +280,8 @@ info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
 ###############################################################################
 tildify() {
   if [[ "$1" = "$HOME/"* ]]; then
-    local replacement="$HOME/"
-    echo "${1/$replacement/~/}"
+    local replacement='~/'
+    echo "${1/$HOME\//$replacement}"
   else
     echo "$1"
   fi
