@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/commands/install_command.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -153,6 +154,120 @@ void main() {
       final result = runner.parse(['install', '3.24.0', '--download']);
       expect(result.command?.name, equals('install'));
       expect(result.command?['download'], isTrue);
+    });
+  });
+
+  // Group 7: Install from project config
+  group('Install from project config:', () {
+    test('should install version from .fvmrc when no args', () async {
+      // Create a temporary directory for this test
+      final tempDir = createTempDir();
+      
+      try {
+        // Create project with config
+        createProjectConfig(
+          ProjectConfig(flutter: '3.10.0'),
+          tempDir,
+        );
+        createPubspecYaml(tempDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: tempDir.path,
+          isTest: true,
+        );
+        final runner = TestCommandRunner(context);
+
+        // Run install without arguments
+        final exitCode = await runner.run(['fvm', 'install']);
+
+        expect(exitCode, ExitCode.success.code);
+        
+        // Verify version was installed
+        final cacheService = context.get<CacheService>();
+        final version = FlutterVersion.parse('3.10.0');
+        expect(cacheService.getVersion(version), isNotNull);
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('should throw when no args and no project config', () async {
+      // Create a temporary directory without FVM config
+      final tempDir = createTempDir();
+      
+      try {
+        createPubspecYaml(tempDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: tempDir.path,
+          isTest: true,
+        );
+        final runner = TestCommandRunner(context);
+
+        expect(
+          () => runner.runOrThrow(['fvm', 'install']),
+          throwsA(predicate<AppException>(
+            (e) => e.message.contains(
+                'Please provide a channel or a version, or run'),
+          )),
+        );
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('should respect setup flag from command line', () async {
+      // Create a temporary directory for this test
+      final tempDir = createTempDir();
+      
+      try {
+        // Create project with config
+        createProjectConfig(
+          ProjectConfig(flutter: 'stable'),
+          tempDir,
+        );
+        createPubspecYaml(tempDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: tempDir.path,
+          isTest: true,
+        );
+        final runner = TestCommandRunner(context);
+
+        // Run install with setup flag
+        final exitCode = await runner.run(['fvm', 'install', '--setup']);
+
+        expect(exitCode, ExitCode.success.code);
+        
+        // Verify setup was run (project should be using the version)
+        final project = context.get<ProjectService>().findAncestor();
+        expect(project, isNotNull);
+        expect(project.pinnedVersion?.name, 'stable');
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('invocation getter returns correct string', () {
+      final context = FvmContext.create(isTest: true);
+      final command = InstallCommand(context);
+      expect(
+        command.invocation,
+        contains('fvm install {version}'),
+      );
+      expect(
+        command.invocation,
+        contains('if no {version}'),
+      );
     });
   });
 }

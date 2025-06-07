@@ -2,16 +2,13 @@ import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:test/test.dart';
 
+import '../../testing_utils.dart';
+
 void main() {
   late Logger logger;
 
   setUp(() {
-    final context = FvmContext.create(
-      logLevel: Level.info,
-      isTest: true,
-      skipInput: true,
-    );
-    logger = Logger(context);
+    logger = Logger(TestFactory.context());
   });
   group('Logger output tests', () {
     test('info adds message to outputs', () {
@@ -54,55 +51,56 @@ void main() {
     });
 
     test('confirm with skipInput true logs messages and returns default', () {
-      final context = FvmContext.create(
-        logLevel: Level.info,
-        isTest: false, // isTest is false so that the skipInput branch is used
-        skipInput: true,
-      );
+      final context = TestFactory.context(skipInput: true);
       final logger = Logger(context);
 
       final result = logger.confirm("Confirm prompt", defaultValue: false);
       expect(result, isFalse);
       // Verify that the confirmation prompt and warnings were added to outputs.
       expect(
-          logger.outputs.any((msg) => msg.contains("Confirm prompt")), isTrue);
+        logger.outputs.any((msg) => msg.contains("Confirm prompt")),
+        isTrue,
+      );
       expect(
-          logger.outputs
-              .any((msg) => msg.contains("Skipping input confirmation")),
-          isTrue);
+        logger.outputs.any(
+          (msg) => msg.contains("Skipping input confirmation"),
+        ),
+        isTrue,
+      );
       expect(
-          logger.outputs
-              .any((msg) => msg.contains("Using default value of false")),
-          isTrue);
+        logger.outputs.any(
+          (msg) => msg.contains("Using default value of false"),
+        ),
+        isTrue,
+      );
     });
 
-    test('select with skipInput true returns default selection when provided',
-        () {
-      final context = FvmContext.create(
-        logLevel: Level.info,
-        isTest: false,
-        skipInput: true,
-      );
-      final logger = Logger(context);
-      // When skipInput is true and a defaultSelection is provided, the method returns the corresponding option.
-      final result = logger.select("Select an option",
-          options: ['one', 'two'], defaultSelection: 1);
-      expect(result, equals('two'));
-    });
+    test(
+      'select with skipInput true returns default selection when provided',
+      () {
+        final context = TestFactory.context(skipInput: true);
+        final logger = Logger(context);
+        // When skipInput is true and a defaultSelection is provided, the method returns the corresponding option.
+        final result = logger.select(
+          "Select an option",
+          options: ['one', 'two'],
+          defaultSelection: 1,
+        );
+        expect(result, equals('two'));
+      },
+    );
   });
 
   group('Logger progress tests', () {
     test('progress logs message when verbose', () {
-      final context = FvmContext.create(
-        logLevel: Level.verbose,
-        isTest: true,
-        skipInput: true,
-      );
+      final context = TestFactory.context(skipInput: true);
       final logger = Logger(context);
       // When verbose, progress cancels and logs the message.
       logger.progress("Processing...");
       expect(
-          logger.outputs.any((msg) => msg.contains("Processing...")), isTrue);
+        logger.outputs.any((msg) => msg.contains("Processing...")),
+        isTrue,
+      );
     });
   });
 

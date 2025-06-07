@@ -13,14 +13,20 @@ import '../../testing_utils.dart';
 void main() {
   group('UpdateVsCodeSettingsWorkflow', () {
     late TestCommandRunner runner;
+    late TempDirectoryTracker tempDirs;
 
     setUp(() {
       runner = TestFactory.commandRunner();
+      tempDirs = TempDirectoryTracker();
+    });
+
+    tearDown(() {
+      tempDirs.cleanUp();
     });
 
     test('should handle relative vs absolute paths based on privileged access',
         () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -63,7 +69,7 @@ void main() {
 
     test('should create and update VS Code settings when force is true',
         () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir, name: 'test_project_2');
       createProjectConfig(
@@ -95,7 +101,7 @@ void main() {
 
     test('should not update VS Code settings when config disables it',
         () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project with config
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -122,7 +128,7 @@ void main() {
     test(
         'should skip when no VS Code files are detected and not running from VS Code',
         () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project without .vscode directory
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -159,7 +165,7 @@ void main() {
     });
 
     test('should update existing VS Code settings correctly', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -197,7 +203,7 @@ void main() {
     });
 
     test('should handle invalid JSON in settings file', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -237,7 +243,7 @@ void main() {
         return;
       }
 
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -274,7 +280,7 @@ void main() {
     });
 
     test('should update workspace file when it exists', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
@@ -313,7 +319,7 @@ void main() {
     });
 
     test('should handle non-existent parent directories correctly', () async {
-      final testDir = createTempDir();
+      final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
