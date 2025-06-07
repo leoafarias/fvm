@@ -24,7 +24,7 @@ void main() {
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -73,7 +73,7 @@ packages:
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -108,7 +108,7 @@ sdkPath: /any/existing/path
 
       createPubspecYaml(subDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         subDir,
       );
 
@@ -150,7 +150,7 @@ packages:
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -189,7 +189,7 @@ sdkPath: /usr/local/flutter
 
       createPubspecYaml(nestedDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         nestedDir,
       );
 
@@ -261,7 +261,7 @@ packages:
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -294,7 +294,7 @@ packages:
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -304,7 +304,7 @@ packages:
 name: test_workspace
 packages:
   - packages/**
-sdkPath: .fvm/versions/3.10.0
+sdkPath: .fvm/versions/${TestVersions.validRelease}
 ''');
 
       final originalContent = melosFile.readAsStringSync();
@@ -368,7 +368,7 @@ packages:
         final testDir = createTempDir();
         createPubspecYaml(testDir);
         createProjectConfig(
-          ProjectConfig(flutter: '3.10.0'),
+          ProjectConfig(flutter: TestVersions.validRelease),
           testDir,
         );
 
@@ -422,7 +422,7 @@ packages:
         final testDir = createTempDir();
         createPubspecYaml(testDir);
         createProjectConfig(
-          ProjectConfig(flutter: '3.10.0'),
+          ProjectConfig(flutter: TestVersions.validRelease),
           testDir,
         );
 
@@ -432,7 +432,7 @@ packages:
 name: test_workspace
 packages:
   - packages/**
-sdkPath: .fvm/versions/3.10.0
+sdkPath: .fvm/versions/${TestVersions.validRelease}
 ''');
 
         // Create a custom context with TestLogger that says Yes
@@ -471,7 +471,7 @@ sdkPath: .fvm/versions/3.10.0
         final testDir = createTempDir();
         createPubspecYaml(testDir);
         createProjectConfig(
-          ProjectConfig(flutter: '3.10.0'),
+          ProjectConfig(flutter: TestVersions.validRelease),
           testDir,
         );
 

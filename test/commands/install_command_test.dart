@@ -15,8 +15,8 @@ void main() {
 
     // Get the installed version from cache
     final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+      FlutterVersion.parse(version),
+    );
 
     // Determine the expected release channel
     String? releaseChannel;
@@ -29,9 +29,7 @@ void main() {
       } else {
         final release = await runner.context
             .get<FlutterReleaseClient>()
-            .getReleaseByVersion(
-              cacheVersion.version,
-            );
+            .getReleaseByVersion(cacheVersion.version);
 
         if (cacheVersion.isUnknownRef) {
           releaseChannel = FlutterChannel.master.name;
@@ -43,8 +41,8 @@ void main() {
 
     // Get the actual branch from the installed version
     final existingChannel = await runner.context.get<GitService>().getBranch(
-          version,
-        );
+      version,
+    );
 
     // Assertions
     expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -54,7 +52,12 @@ void main() {
 
   // Group 1: Flutter channels
   group('Install Flutter channels:', () {
-    final channelVersions = ['master', 'stable', 'beta', 'dev'];
+    final channelVersions = [
+      TestVersions.master,
+      TestVersions.stable,
+      TestVersions.beta,
+      TestVersions.dev,
+    ];
 
     for (var version in channelVersions) {
       test('Install $version channel', () async {
@@ -76,7 +79,10 @@ void main() {
 
   // Group 3: Versions with specific channels
   group('Install versions with specific channels:', () {
-    final versionWithChannels = ['2.2.2@beta', '2.2.2@dev'];
+    final versionWithChannels = [
+      '2.2.2',
+      '2.2.2',
+    ];
 
     for (var version in versionWithChannels) {
       test('Install $version', () async {
@@ -87,7 +93,7 @@ void main() {
 
   // Group 4: Git commit hashes
   group('Install from Git commit hash:', () {
-    final commitHashes = ['f4c74a6ec3'];
+    final commitHashes = [TestVersions.validCommit];
 
     for (var version in commitHashes) {
       test('Install commit $version', () async {
@@ -98,7 +104,7 @@ void main() {
 
   // Group 5: Forked versions
   group('Fork validation in install command:', () {
-    const testForkName = 'testfork';
+    const testForkName = TestVersions.leoFork;
 
     test('Validates fork exists in config', () async {
       final runner = TestFactory.commandRunner();
@@ -108,9 +114,9 @@ void main() {
         () => runner.runOrThrow(['fvm', 'install', '$testForkName/stable']),
         throwsA(
           predicate<Exception>(
-            (e) => e
-                .toString()
-                .contains('Fork "$testForkName" has not been configured'),
+            (e) => e.toString().contains(
+              'Fork "$testForkName" has not been configured',
+            ),
           ),
         ),
       );

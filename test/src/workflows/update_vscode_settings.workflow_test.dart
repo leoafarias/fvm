@@ -24,7 +24,7 @@ void main() {
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -46,7 +46,7 @@ void main() {
       final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
       final privilegedContents = settingsFile.readAsStringSync();
       expect(privilegedContents,
-          contains('"dart.flutterSdkPath": ".fvm/versions/3.10.0"'));
+          contains('"dart.flutterSdkPath": ".fvm/versions/${TestVersions.validRelease}"'));
 
       final nonPrivilegedWorkflow = UpdateVsCodeSettingsWorkflow(
           TestFactory.context(privilegedAccess: false));
@@ -67,7 +67,7 @@ void main() {
       // Create test project
       createPubspecYaml(testDir, name: 'test_project_2');
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -90,7 +90,7 @@ void main() {
 
       final contents = settingsFile.readAsStringSync();
       expect(contents, contains('dart.flutterSdkPath'));
-      expect(contents, contains('.fvm/versions/3.10.0'));
+      expect(contents, contains('.fvm/versions/${TestVersions.validRelease}'));
     });
 
     test('should not update VS Code settings when config disables it',
@@ -163,7 +163,7 @@ void main() {
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '2.2.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -192,7 +192,7 @@ void main() {
       expect(contents, contains('"editor.formatOnSave": true'));
       expect(contents, contains('"editor.fontSize": 14'));
       expect(contents, contains('"dart.flutterSdkPath":'));
-      expect(contents, contains('.fvm/versions/2.2.0'));
+      expect(contents, contains('.fvm/versions/${TestVersions.validRelease}'));
       expect(contents, isNot(contains('/some/old/path')));
     });
 
@@ -278,7 +278,7 @@ void main() {
       // Create test project
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.9.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 
@@ -308,7 +308,7 @@ void main() {
       // Verify workspace file was updated
       final contents = workspaceFile.readAsStringSync();
       expect(
-          contents, contains('"dart.flutterSdkPath": ".fvm/versions/3.9.0"'));
+          contents, contains('"dart.flutterSdkPath": ".fvm/versions/${TestVersions.validRelease}"'));
       expect(contents, contains('"editor.formatOnSave": true'));
     });
 

@@ -16,7 +16,7 @@ void main() {
 
   group('Complete flow', () {
     test('Full project workflow', () async {
-      final channel = 'stable';
+      final channel = TestVersions.stable;
       // Install the Flutter channel
       await testRunner.runOrThrow(['fvm', 'install', channel]);
 

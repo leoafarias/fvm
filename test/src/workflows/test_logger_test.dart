@@ -64,7 +64,7 @@ void main() {
       final context = TestFactory.context(
         generators: {
           Logger: (context) => TestLogger(context)
-            ..setVersionResponse('Select a version', '3.10.0'),
+            ..setVersionResponse('Select a version', '${TestVersions.validRelease}'),
         },
         skipInput: false, // Allow user input for testing
       );
@@ -73,25 +73,25 @@ void main() {
 
       final versions = [
         CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
-          directory: '/test/3.10.0',
+          FlutterVersion.parse('${TestVersions.validRelease}'),
+          directory: '/test/${TestVersions.validRelease}',
         ),
         CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.11.0'),
-          directory: '/test/3.11.0',
+          FlutterVersion.parse('${'3.11.0'}'),
+          directory: '/test/${'3.11.0'}',
         ),
       ];
 
       final result = logger.cacheVersionSelector(versions);
 
-      expect(result, '3.10.0');
+      expect(result, '${TestVersions.validRelease}');
       expect(
         logger.outputs.any((msg) => msg.contains('Select a version')),
         isTrue,
       );
       expect(
         logger.outputs
-            .any((msg) => msg.contains('User selected version: 3.10.0')),
+            .any((msg) => msg.contains('User selected version: ${TestVersions.validRelease}')),
         isTrue,
       );
     });

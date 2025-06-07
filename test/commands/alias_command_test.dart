@@ -14,7 +14,7 @@ void main() {
 
     group('Install command aliases:', () {
       test('fvm i works same as fvm install', () async {
-        const version = 'stable';
+        const version = TestVersions.stable;
 
         // Test that 'fvm i' works
         final exitCode = await runner.runOrThrow(['fvm', 'i', version]);

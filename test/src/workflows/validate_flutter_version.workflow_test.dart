@@ -7,7 +7,7 @@ void main() {
   group('ValidateFlutterVersionWorkflow', () {
     /// Valid release version
     test('should return valid release version', () async {
-      const version = '3.10.0';
+      const version = TestVersions.validRelease;
 
       final context = TestFactory.context();
 
@@ -21,7 +21,7 @@ void main() {
 
     /// Invalid version
     test('should return invalid version as unknownRef', () async {
-      const version = 'invalid-version';
+      const version = TestVersions.invalidRelease;
 
       final context = TestFactory.context();
 
@@ -35,7 +35,7 @@ void main() {
 
     /// Channel
     test('should return channel version', () async {
-      const version = 'stable';
+      const version = TestVersions.stable;
 
       final context = TestFactory.context();
 
@@ -51,7 +51,7 @@ void main() {
 
     test('should skip validation when force flag is true', () async {
       // Arrange
-      const version = 'invalid-version';
+      const version = TestVersions.invalidRelease;
 
       final context = TestFactory.context();
 

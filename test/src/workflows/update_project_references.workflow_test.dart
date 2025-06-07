@@ -61,7 +61,7 @@ void main() {
       expect(project.name, equals('test_project'));
 
       // Create cache version
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
@@ -99,7 +99,7 @@ void main() {
 
       final project =
           runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
@@ -129,7 +129,7 @@ void main() {
 
       final project =
           runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
       // Ensure context has privilegedAccess set to true
       final privilegedContext = TestFactory.context(privilegedAccess: true);
@@ -158,7 +158,7 @@ void main() {
 
       final project =
           runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
       // Create context with privilegedAccess set to false
       final nonPrivilegedContext = TestFactory.context(privilegedAccess: false);
@@ -215,7 +215,7 @@ void main() {
       // Now run the workflow with a different target
       final project =
           runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+      final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
       await workflow.call(project, cacheVersion, force: true);
@@ -246,7 +246,7 @@ void main() {
         final project = runner.context
             .get<ProjectService>()
             .findAncestor(directory: testDir);
-        final cacheVersion = createCacheVersion('3.10.0');
+        final cacheVersion = createCacheVersion(TestVersions.validRelease);
 
         final workflow = UpdateProjectReferencesWorkflow(runner.context);
 

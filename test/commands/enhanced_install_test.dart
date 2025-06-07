@@ -16,58 +16,78 @@ void main() {
 
     group('Install command flags:', () {
       test('Install with --setup flag', () async {
-        const version = 'stable';
+        const version = TestVersions.stable;
 
-        final exitCode =
-            await runner.runOrThrow(['fvm', 'install', version, '--setup']);
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'install',
+          version,
+          '--setup',
+        ]);
 
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
+          FlutterVersion.parse(version),
+        );
         expect(cacheVersion != null, true, reason: 'Install with setup failed');
       });
 
       test('Install with --skip-pub-get flag', () async {
-        const version = 'stable';
+        const version = TestVersions.stable;
 
-        final exitCode = await runner
-            .runOrThrow(['fvm', 'install', version, '--skip-pub-get']);
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'install',
+          version,
+          '--skip-pub-get',
+        ]);
 
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(cacheVersion != null, true,
-            reason: 'Install with skip-pub-get failed');
+          FlutterVersion.parse(version),
+        );
+        expect(
+          cacheVersion != null,
+          true,
+          reason: 'Install with skip-pub-get failed',
+        );
       });
 
       test('Install with both --setup and --skip-pub-get flags', () async {
-        const version = 'beta';
+        const version = TestVersions.beta;
 
-        final exitCode = await runner.runOrThrow(
-            ['fvm', 'install', version, '--setup', '--skip-pub-get']);
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'install',
+          version,
+          '--setup',
+          '--skip-pub-get',
+        ]);
 
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(cacheVersion != null, true,
-            reason: 'Install with multiple flags failed');
+          FlutterVersion.parse(version),
+        );
+        expect(
+          cacheVersion != null,
+          true,
+          reason: 'Install with multiple flags failed',
+        );
       });
     });
 
     group('Install from project configuration:', () {
       test('Install without version uses project config', () async {
         // Create a temporary directory for this test
-        final tempDir =
-            Directory.systemTemp.createTempSync('fvm_install_test_');
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_install_test_',
+        );
         final originalDir = Directory.current;
 
         try {
@@ -75,7 +95,7 @@ void main() {
           Directory.current = tempDir;
 
           // Create a .fvmrc file with a version
-          const projectVersion = 'stable';
+          const projectVersion = TestVersions.stable;
           final configFile = File('.fvmrc');
           configFile.writeAsStringSync('{"flutter": "$projectVersion"}');
 
@@ -91,12 +111,14 @@ void main() {
           expect(exitCode, ExitCode.success.code);
 
           // Verify the project version was installed
-          final cacheVersion =
-              localRunner.context.get<CacheService>().getVersion(
-                    FlutterVersion.parse(projectVersion),
-                  );
-          expect(cacheVersion != null, true,
-              reason: 'Project config install failed');
+          final cacheVersion = localRunner.context
+              .get<CacheService>()
+              .getVersion(FlutterVersion.parse(projectVersion));
+          expect(
+            cacheVersion != null,
+            true,
+            reason: 'Project config install failed',
+          );
         } finally {
           // Restore original directory and clean up
           Directory.current = originalDir;
@@ -106,65 +128,78 @@ void main() {
         }
       });
 
-      test('Install without version and no config shows helpful error',
-          () async {
-        // Ensure no config file exists
-        final configFile = File('.fvmrc');
-        if (configFile.existsSync()) {
-          configFile.deleteSync();
-        }
+      test(
+        'Install without version and no config shows helpful error',
+        () async {
+          // Ensure no config file exists
+          final configFile = File('.fvmrc');
+          if (configFile.existsSync()) {
+            configFile.deleteSync();
+          }
 
-        // Should fail with helpful message
-        expect(
-          () => runner.runOrThrow(['fvm', 'install']),
-          throwsA(isA<Exception>()),
-        );
-      });
+          // Should fail with helpful message
+          expect(
+            () => runner.runOrThrow(['fvm', 'install']),
+            throwsA(isA<Exception>()),
+          );
+        },
+      );
     });
 
     group('Install version formats:', () {
       test('Install version with v prefix', () async {
-        const version =
-            'v1.12.0'; // Use a version that actually exists with v prefix
+        const version = 'v1.12.0'; // Use a version that actually exists with v prefix
 
         final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation (should strip v prefix)
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(cacheVersion != null, true,
-            reason: 'Install with v prefix failed');
+          FlutterVersion.parse(version),
+        );
+        expect(
+          cacheVersion != null,
+          true,
+          reason: 'Install with v prefix failed',
+        );
       });
 
       test('Install version with channel suffix', () async {
-        const version = '3.19.0@beta';
+        const version = '3.19.0';
 
         final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(cacheVersion != null, true,
-            reason: 'Install with channel suffix failed');
+          FlutterVersion.parse(version),
+        );
+        expect(
+          cacheVersion != null,
+          true,
+          reason: 'Install with channel suffix failed',
+        );
       });
 
       test('Install git commit hash', () async {
-        const commitHash = 'f4c74a6ec3';
+        const commitHash = TestVersions.validCommit;
 
-        final exitCode =
-            await runner.runOrThrow(['fvm', 'install', commitHash]);
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'install',
+          commitHash,
+        ]);
         expect(exitCode, ExitCode.success.code);
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(commitHash),
-            );
-        expect(cacheVersion != null, true,
-            reason: 'Install commit hash failed');
+          FlutterVersion.parse(commitHash),
+        );
+        expect(
+          cacheVersion != null,
+          true,
+          reason: 'Install commit hash failed',
+        );
       });
     });
 

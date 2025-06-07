@@ -20,7 +20,7 @@ void main() {
       final testDir = createTempDir();
       createPubspecYaml(testDir);
       createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
+        ProjectConfig(flutter: TestVersions.validRelease),
         testDir,
       );
 

@@ -1,6 +1,8 @@
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:test/test.dart';
 
+import 'testing_utils.dart';
+
 void main() {
   group('Flutter Version Format Tests', () {
     group('Channel Versions', () {
@@ -72,15 +74,15 @@ void main() {
 
     group('Git References', () {
       test('Short git commit', () {
-        final version = FlutterVersion.parse('f4c74a6ec3');
-        expect(version.name, 'f4c74a6ec3');
+        final version = FlutterVersion.parse(TestVersions.validCommit);
+        expect(version.name, TestVersions.validCommit);
         expect(version.isUnknownRef, isTrue);
         expect(version.isRelease, isFalse);
         expect(version.isChannel, isFalse);
       });
 
       test('Full git commit', () {
-        final longCommit = 'de25def7784a2e63a9e7d5cc50dff84db8f69298';
+        final longCommit = TestVersions.invalidCommit;
         final version = FlutterVersion.parse(longCommit);
         expect(version.name, longCommit);
         expect(version.isUnknownRef, isTrue);
@@ -153,8 +155,10 @@ void main() {
       });
 
       test('Fork with commit', () {
-        final version = FlutterVersion.parse('myfork/f4c74a6ec3');
-        expect(version.name, 'f4c74a6ec3');
+        final version = FlutterVersion.parse(
+          'myfork/${TestVersions.validCommit}',
+        );
+        expect(version.name, TestVersions.validCommit);
         expect(version.fork, 'myfork');
         expect(version.fromFork, isTrue);
         expect(version.isUnknownRef, isTrue);
@@ -174,23 +178,41 @@ void main() {
     group('Error Cases', () {
       test('Invalid channel', () {
         expect(
-            () => FlutterVersion.parse('2.10.0@invalid'),
-            throwsA(isA<FormatException>().having(
-                (e) => e.message, 'message', contains('Invalid channel'))));
+          () => FlutterVersion.parse('2.10.0@invalid'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid channel'),
+            ),
+          ),
+        );
       });
 
       test('Custom version with fork', () {
         expect(
-            () => FlutterVersion.parse('myfork/custom_build'),
-            throwsA(isA<FormatException>().having((e) => e.message, 'message',
-                contains('Custom versions cannot have fork'))));
+          () => FlutterVersion.parse('myfork/custom_build'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Custom versions cannot have fork'),
+            ),
+          ),
+        );
       });
 
       test('Custom version with channel', () {
         expect(
-            () => FlutterVersion.parse('custom_build@beta'),
-            throwsA(isA<FormatException>().having((e) => e.message, 'message',
-                contains('Custom versions cannot have fork or channel'))));
+          () => FlutterVersion.parse('custom_build@beta'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Custom versions cannot have fork or channel'),
+            ),
+          ),
+        );
       });
     });
 

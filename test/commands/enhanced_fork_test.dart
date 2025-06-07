@@ -7,8 +7,8 @@ import '../testing_utils.dart';
 void main() {
   group('Enhanced Fork Integration Tests:', () {
     late TestCommandRunner runner;
-    const testForkName = 'leo';
-    const testForkUrl = 'https://github.com/leoafarias/flutter.git';
+    const testForkName = TestVersions.leoFork;
+    const testForkUrl = TestVersions.leoForkUrl;
 
     setUp(() {
       runner = TestFactory.commandRunner();
@@ -47,14 +47,14 @@ void main() {
 
         // Step 2: Install version from fork with specific branch
         final installExitCode = await installRunner
-            .runOrThrow(['fvm', 'install', '$testForkName/leo-test-21']);
+            .runOrThrow(['fvm', 'install', "\$testForkName/${TestVersions.customForkBranch}"]); 
         expect(installExitCode, ExitCode.success.code);
 
         // Step 3: Use version from fork
         final useExitCode = await installRunner.runOrThrow([
           'fvm',
           'use',
-          '$testForkName/leo-test-21',
+          "\$testForkName/${TestVersions.customForkBranch}",
           '--force',
           '--skip-setup'
         ]);
@@ -63,7 +63,7 @@ void main() {
         // Verify project is using fork version
         final project =
             installRunner.context.get<ProjectService>().findAncestor();
-        expect(project.pinnedVersion?.name, equals('leo-test-21'));
+        expect(project.pinnedVersion?.name, equals(TestVersions.customForkBranch));
       });
 
       test('Fork list shows configured forks', () async {
@@ -97,7 +97,7 @@ void main() {
       test('Install from non-existent fork fails gracefully', () async {
         expect(
           () =>
-              runner.runOrThrow(['fvm', 'install', 'nonexistent/leo-test-21']),
+              runner.runOrThrow(['fvm', 'install', 'nonexistent/${TestVersions.customForkBranch}']),
           throwsA(
             predicate<Exception>(
               (e) => e
@@ -110,7 +110,7 @@ void main() {
 
       test('Use non-existent fork fails gracefully', () async {
         expect(
-          () => runner.runOrThrow(['fvm', 'use', 'nonexistent/leo-test-21']),
+          () => runner.runOrThrow(['fvm', 'use', 'nonexistent/${TestVersions.customForkBranch}']),
           throwsA(
             predicate<Exception>(
               (e) => e

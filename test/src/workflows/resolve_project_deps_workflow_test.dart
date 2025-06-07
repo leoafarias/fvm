@@ -28,7 +28,7 @@ void main() {
 
       // Create a version that is not setup (directory doesn't exist)
       final notSetupVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
+        FlutterVersion.parse(TestVersions.validRelease),
         directory: '/nonexistent',
       );
 
@@ -56,17 +56,17 @@ void main() {
       final dartToolDir = Directory('${project.path}/.dart_tool');
       dartToolDir.createSync();
       final versionFile = File('${dartToolDir.path}/version');
-      versionFile.writeAsStringSync('3.10.0');
+      versionFile.writeAsStringSync(TestVersions.validRelease);
 
       // Create a properly setup version
       final versionDir = createTempDir();
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
-      File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+      File('${versionDir.path}/version').writeAsStringSync(TestVersions.validRelease);
 
       final setupVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
+        FlutterVersion.parse(TestVersions.validRelease),
         directory: versionDir.path,
       );
 
@@ -95,10 +95,10 @@ void main() {
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
-      File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+      File('${versionDir.path}/version').writeAsStringSync(TestVersions.validRelease);
 
       final setupVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
+        FlutterVersion.parse(TestVersions.validRelease),
         directory: versionDir.path,
       );
 
@@ -141,10 +141,10 @@ void main() {
         final binDir = Directory('${versionDir.path}/bin');
         binDir.createSync(recursive: true);
         File('${binDir.path}/flutter').createSync();
-        File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+        File('${versionDir.path}/version').writeAsStringSync(TestVersions.validRelease);
 
         final version = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
+          FlutterVersion.parse(TestVersions.validRelease),
           directory: versionDir.path,
         );
 
@@ -185,10 +185,10 @@ void main() {
         final binDir = Directory('${versionDir.path}/bin');
         binDir.createSync(recursive: true);
         File('${binDir.path}/flutter').createSync();
-        File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+        File('${versionDir.path}/version').writeAsStringSync(TestVersions.validRelease);
 
         final version = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
+          FlutterVersion.parse(TestVersions.validRelease),
           directory: versionDir.path,
         );
 
@@ -218,10 +218,10 @@ void main() {
       final binDir = Directory('${versionDir.path}/bin');
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
-      File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+      File('${versionDir.path}/version').writeAsStringSync(TestVersions.validRelease);
 
       final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
+        FlutterVersion.parse(TestVersions.validRelease),
         directory: versionDir.path,
       );
 

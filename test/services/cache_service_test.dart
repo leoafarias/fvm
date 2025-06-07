@@ -47,7 +47,7 @@ void main() {
     group('getVersionCacheDir', () {
       test('returns correct directory path for regular version name', () {
         // Given
-        const versionName = 'stable';
+        const versionName = TestVersions.stable;
         final version = FlutterVersion.parse(versionName);
         final expected = path.join(tempDir.path, versionName);
 
@@ -74,7 +74,7 @@ void main() {
 
       test('backwards compatibility for string-based version paths', () {
         // Given
-        const versionName = 'stable';
+        const versionName = TestVersions.stable;
         final version = FlutterVersion.parse(versionName);
         final expected = path.join(tempDir.path, versionName);
 
@@ -100,7 +100,7 @@ void main() {
 
       test('returns CacheFlutterVersion when version exists', () {
         // Given
-        final version = createTestVersion('stable');
+        final version = createTestVersion(TestVersions.stable);
         final versionDir = Directory(path.join(tempDir.path, version.name))
           ..createSync(recursive: true);
 
@@ -115,33 +115,43 @@ void main() {
     });
 
     group('getAllVersions', () {
-      test('returns empty list when versions directory does not exist',
-          () async {
-        // Given
-        tempDir.deleteSync(recursive: true);
+      test(
+        'returns empty list when versions directory does not exist',
+        () async {
+          // Given
+          tempDir.deleteSync(recursive: true);
 
-        // When
-        final result = await cacheService.getAllVersions();
+          // When
+          final result = await cacheService.getAllVersions();
 
-        // Then
-        expect(result, isEmpty);
-      });
+          // Then
+          expect(result, isEmpty);
+        },
+      );
 
       test('returns sorted list of versions when versions exist', () async {
         // Given
-        final versions = ['2.0.0', '1.0.0', 'stable', 'beta'];
+        final versions = [
+          '2.0.0',
+          '1.0.0',
+          TestVersions.stable,
+          TestVersions.beta,
+        ];
         for (final version in versions) {
-          Directory(path.join(tempDir.path, version))
-              .createSync(recursive: true);
+          Directory(
+            path.join(tempDir.path, version),
+          ).createSync(recursive: true);
 
           // Add the "version" file that marks this as a Flutter SDK directory
-          File(path.join(tempDir.path, version, 'version'))
-              .writeAsStringSync('$version (test)');
+          File(
+            path.join(tempDir.path, version, 'version'),
+          ).writeAsStringSync('$version (test)');
         }
 
         // Create a non-directory file that should be ignored
-        File(path.join(tempDir.path, 'some-file.txt'))
-            .writeAsStringSync('test');
+        File(
+          path.join(tempDir.path, 'some-file.txt'),
+        ).writeAsStringSync('test');
 
         // When
         final result = await cacheService.getAllVersions();
@@ -156,7 +166,7 @@ void main() {
 
         // One of these should be true depending on the sorting logic
         expect(
-          firstVersionName == 'stable' ||
+          firstVersionName == TestVersions.stable ||
               firstVersionName == '2.0.0' ||
               lastVersionName == '1.0.0',
           isTrue,
@@ -167,7 +177,7 @@ void main() {
     group('remove', () {
       test('removes version directory if it exists', () {
         // Given
-        final version = createTestVersion('stable');
+        final version = createTestVersion(TestVersions.stable);
         final versionDir = Directory(path.join(tempDir.path, version.name))
           ..createSync(recursive: true);
 
@@ -195,7 +205,7 @@ void main() {
 
       test('returns invalid when flutter executable does not exist', () async {
         // Setup - create a version with mock executable status
-        final version = createTestVersion('stable');
+        final version = createTestVersion(TestVersions.stable);
         final versionDir = Directory(path.join(tempDir.path, version.name))
           ..createSync(recursive: true);
 
@@ -208,8 +218,10 @@ void main() {
         // This is a simplified approach since we can't easily mock isExecutable
 
         // When/Then
-        expect(await cacheService.verifyCacheIntegrity(cacheVersion),
-            equals(CacheIntegrity.invalid));
+        expect(
+          await cacheService.verifyCacheIntegrity(cacheVersion),
+          equals(CacheIntegrity.invalid),
+        );
       });
 
       // Additional tests for other integrity cases would follow similar patterns

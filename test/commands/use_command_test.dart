@@ -7,13 +7,8 @@ import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
-// Assuming this is defined in your testing_utils.dart
-const _versionList = [
-  'stable',
-  'beta',
-  'dev',
-  '2.0.0',
-];
+// Central list of versions used for the `fvm use` command tests.
+const _versionList = TestVersionBuckets.useVersions;
 
 void main() {
   late TestCommandRunner runner;

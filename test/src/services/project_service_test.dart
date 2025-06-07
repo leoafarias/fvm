@@ -18,7 +18,7 @@ void main() {
       final tempDir = createTempDir();
 
       createProjectConfig(
-        ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'}),
+        ProjectConfig(flutter: TestVersions.validRelease, flavors: {'dev': TestVersions.validRelease}),
         tempDir,
       );
 
@@ -37,7 +37,7 @@ void main() {
       final parentDir = createTempDir();
       final childDir = Directory(p.join(parentDir.path, 'child'))..createSync();
 
-      final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
+      final config = ProjectConfig(flutter: TestVersions.validRelease, flavors: {'dev': TestVersions.validRelease});
       createProjectConfig(config, parentDir);
 
       final projectService = ProjectService(FvmContext.create(
@@ -58,14 +58,14 @@ void main() {
         ),
       );
 
-      final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
+      final config = ProjectConfig(flutter: TestVersions.validRelease, flavors: {'dev': TestVersions.validRelease});
       createProjectConfig(config, tempDir);
 
       final pubspecFile = File(p.join(tempDir.path, 'pubspec.yaml'));
       pubspecFile.writeAsStringSync('name: test_project');
 
       final version = projectService.findVersion();
-      expect(version, equals('2.2.3'));
+      expect(version, equals(TestVersions.validRelease));
     });
 
     test('update writes new configuration correctly', () {
@@ -74,7 +74,7 @@ void main() {
         workingDirectoryOverride: tempDir.path,
       ));
 
-      final config = ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'});
+      final config = ProjectConfig(flutter: TestVersions.validRelease, flavors: {'dev': TestVersions.validRelease});
       createProjectConfig(config, tempDir);
 
       // Write an initial config file.
@@ -87,8 +87,8 @@ void main() {
       // Update the project with new configuration values.
       projectService.update(
         project,
-        flavors: {'prod': '2.3.0'},
-        flutterSdkVersion: '2.3.0',
+        flavors: {'prod': '3.11.0'},
+        flutterSdkVersion: '3.11.0',
         updateVscodeSettings: true,
       );
 
@@ -101,17 +101,17 @@ void main() {
       final flavors = updatedConfig!.flavors;
       expect(flavors, isNotNull);
       expect(flavors!.keys, contains('prod'));
-      expect(flavors['prod'], equals('2.3.0'));
+      expect(flavors['prod'], equals('3.11.0'));
       expect(flavors.keys, contains('dev'));
-      expect(flavors['dev'], equals('2.2.3'));
+      expect(flavors['dev'], equals(TestVersions.validRelease));
 
       // Verify that the updated config contains the new flutter version and merged flavors.
-      expect(updatedConfig.flutter, equals('2.3.0'));
+      expect(updatedConfig.flutter, equals('3.11.0'));
 
       expect(updatedConfig.updateVscodeSettings, isTrue);
 
       // Also, check that the updated project reflects the new configuration.
-      expect(updatedProject.pinnedVersion?.name, equals('2.3.0'));
+      expect(updatedProject.pinnedVersion?.name, equals('3.11.0'));
     });
 
     /// Project returns the working directory if no config is found

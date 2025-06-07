@@ -14,7 +14,7 @@ import '../testing_utils.dart';
 void main() {
   // Define variables we'll use across tests
   late TestCommandRunner testRunner;
-  const channel = 'stable'; // Set your desired channel
+  const channel = TestVersions.stable; // Set your desired channel
 
   // Setup that runs before the entire test suite
   setUpAll(() async {
@@ -87,7 +87,7 @@ void main() {
 
     // Test 2: On global version
     test('On global version', () async {
-      final versionNumber = "2.2.0";
+      final versionNumber = TestVersions.validRelease;
 
       // Install specific version
       await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
@@ -141,7 +141,7 @@ void main() {
 
     // Test 3: Exec command
     test('Exec command', () async {
-      final versionNumber = "3.10.5";
+      final versionNumber = TestVersions.validRelease;
 
       // Install specific version
       await testRunner.run(['fvm', 'install', versionNumber, '--setup']);

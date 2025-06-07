@@ -23,8 +23,8 @@ void main() {
 
       // Create some test content in cache directory
       final cacheDir = Directory(context.versionsCachePath);
-      final version1Dir = Directory('${cacheDir.path}/3.10.0');
-      final version2Dir = Directory('${cacheDir.path}/3.11.0');
+      final version1Dir = Directory('${cacheDir.path}/${TestVersions.validRelease}');
+      final version2Dir = Directory('${cacheDir.path}/${'3.11.0'}');
       version1Dir.createSync(recursive: true);
       version2Dir.createSync(recursive: true);
       expect(cacheDir.existsSync(), isTrue);
@@ -61,8 +61,8 @@ void main() {
 
       // Create some test content in cache directory
       final cacheDir = Directory(context.versionsCachePath);
-      final version1Dir = Directory('${cacheDir.path}/3.10.0');
-      final version2Dir = Directory('${cacheDir.path}/3.11.0');
+      final version1Dir = Directory('${cacheDir.path}/${TestVersions.validRelease}');
+      final version2Dir = Directory('${cacheDir.path}/${'3.11.0'}');
       version1Dir.createSync(recursive: true);
       version2Dir.createSync(recursive: true);
       expect(cacheDir.existsSync(), isTrue);
@@ -95,12 +95,12 @@ void main() {
       final context = TestFactory.context();
       final customRunner = TestCommandRunner(context);
 
-      await runnerZoned(customRunner, ['fvm', 'remove', '3.99.0']);
+      await runnerZoned(customRunner, ['fvm', 'remove', '${TestVersions.invalidRelease}']);
 
       // Verify appropriate message was shown
       final logger = customRunner.context.get<Logger>();
       expect(
-        logger.outputs.any((msg) => msg.contains('3.99.0 is not installed')),
+        logger.outputs.any((msg) => msg.contains('${TestVersions.invalidRelease} is not installed')),
         isTrue,
       );
     });
@@ -116,7 +116,7 @@ void main() {
 
       // Create some test content in cache directory
       final cacheDir = Directory(context.versionsCachePath);
-      final version1Dir = Directory('${cacheDir.path}/3.10.0');
+      final version1Dir = Directory('${cacheDir.path}/${TestVersions.validRelease}');
       version1Dir.createSync(recursive: true);
       expect(cacheDir.existsSync(), isTrue);
 

@@ -84,13 +84,13 @@ void main() {
 
       // Ensure stable channel is available
       print('\nEnsuring stable channel is available...');
-      await appTestRunner.runOrThrow(['fvm', 'install', 'stable']);
+      await appTestRunner.runOrThrow(['fvm', 'install', TestVersions.stable]);
 
       // Test various channel versions
-      await _testVersion(appTestRunner, 'stable', 'Stable Channel');
-      await _testVersion(appTestRunner, 'beta', 'Beta Channel');
-      await _testVersion(appTestRunner, 'dev', 'Dev Channel');
-      await _testVersion(appTestRunner, 'master', 'Master Channel');
+      await _testVersion(appTestRunner, TestVersions.stable, 'Stable Channel');
+      await _testVersion(appTestRunner, TestVersions.beta, 'Beta Channel');
+      await _testVersion(appTestRunner, TestVersions.dev, 'Dev Channel');
+      await _testVersion(appTestRunner, TestVersions.master, 'Master Channel');
 
       // Test semantic versions if available
       print('\n===== Testing Semantic Versions =====');
@@ -143,13 +143,13 @@ void main() {
       // Reset to stable at the end
       print('\nResetting to stable channel...');
       await appTestRunner
-          .runOrThrow(['fvm', 'use', 'stable', '--force', '--skip-setup']);
+          .runOrThrow(['fvm', 'use', TestVersions.stable, '--force', '--skip-setup']);
 
       // Check final configuration
       print('\nFinal configuration:');
       final projectConfig =
           appTestRunner.context.get<ProjectService>().findAncestor();
-      expect(projectConfig.pinnedVersion?.name, equals('stable'));
+      expect(projectConfig.pinnedVersion?.name, equals(TestVersions.stable));
 
       print('\nTests completed successfully!');
     });
@@ -210,7 +210,7 @@ Future<void> _testAliases(TestCommandRunner runner) async {
   try {
     // Test install alias 'i'
     print('Testing fvm i (install alias)...');
-    await runner.runOrThrow(['fvm', 'i', 'stable']);
+    await runner.runOrThrow(['fvm', 'i', TestVersions.stable]);
     print('Install alias: SUCCESS');
 
     // Test list alias 'ls'
@@ -232,18 +232,18 @@ Future<void> _testInstallFlags(TestCommandRunner runner) async {
   try {
     // Test install with --setup flag
     print('Testing fvm install with --setup flag...');
-    await runner.runOrThrow(['fvm', 'install', 'stable', '--setup']);
+    await runner.runOrThrow(['fvm', 'install', TestVersions.stable, '--setup']);
     print('Install with --setup: SUCCESS');
 
     // Test install with --skip-pub-get flag
     print('Testing fvm install with --skip-pub-get flag...');
-    await runner.runOrThrow(['fvm', 'install', 'beta', '--skip-pub-get']);
+    await runner.runOrThrow(['fvm', 'install', TestVersions.beta, '--skip-pub-get']);
     print('Install with --skip-pub-get: SUCCESS');
 
     // Test install with both flags
     print('Testing fvm install with both flags...');
     await runner
-        .runOrThrow(['fvm', 'install', 'dev', '--setup', '--skip-pub-get']);
+        .runOrThrow(['fvm', 'install', TestVersions.dev, '--setup', '--skip-pub-get']);
     print('Install with both flags: SUCCESS');
   } catch (e) {
     print('Install flags test error: $e');
