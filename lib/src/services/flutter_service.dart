@@ -235,36 +235,43 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
   }) async {
-    for (final useReference in [context.gitCache, false]) {
-      if (!useReference) break; // Skip second iteration if git cache is disabled
+    final args = [
+      'clone',
+      '--progress',
+      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+      if (!version.isUnknownRef && channel != null) ...[
+        '-c',
+        'advice.detachedHead=false',
+        '-b',
+        channel,
+      ],
+    ];
 
+    final echoOutput = !(context.isTest || !logger.isVerbose);
+
+    // Try with --reference first if git cache is enabled
+    if (context.gitCache) {
       try {
-        return await runGit([
-          'clone',
-          '--progress',
-          if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
-          if (!version.isUnknownRef && channel != null) ...[
-            '-c',
-            'advice.detachedHead=false',
-            '-b',
-            channel,
-          ],
-          if (useReference) ...['--reference', context.gitCachePath],
-          repoUrl,
-          versionDir.path,
-        ], echoOutput: !(context.isTest || !logger.isVerbose));
+        return await runGit(
+          [...args, '--reference', context.gitCachePath, repoUrl, versionDir.path],
+          echoOutput: echoOutput,
+        );
       } on ProcessException catch (e) {
-        if (useReference && isReferenceError(e.toString())) {
+        if (isReferenceError(e.toString())) {
           logger.warn('Git clone with --reference failed, falling back to normal clone');
           await _cleanupPartialClone(versionDir);
-          continue; // Try again without --reference
+          // Fall through to normal clone
+        } else {
+          rethrow;
         }
-        rethrow;
       }
     }
 
-    // This should never be reached due to the loop logic, but satisfies the analyzer
-    throw StateError('Git clone failed unexpectedly');
+    // Normal clone without --reference
+    return await runGit(
+      [...args, repoUrl, versionDir.path],
+      echoOutput: echoOutput,
+    );
   }
 
   /// Checks if the error is related to --reference flag failures
