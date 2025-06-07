@@ -14,42 +14,6 @@ import 'releases_service/releases_client.dart';
 class DownloadService extends ContextualService {
   const DownloadService(super.context);
 
-  /// Downloads and extracts a Flutter SDK archive for the given version
-  Future<void> downloadAndExtract(FlutterVersion version) async {
-    final releaseClient = get<FlutterReleaseClient>();
-    final cacheService = get<CacheService>();
-
-    // Get release information from the releases API
-    final release = await releaseClient.getReleaseByVersion(version.version);
-    if (release == null) {
-      throw AppException(
-        'Version ${version.version} is not available for download. '
-        'Only official Flutter releases can be downloaded as archives.',
-      );
-    }
-
-    // Get the target directory for extraction
-    final versionDir = cacheService.getVersionCacheDir(version);
-
-    // Create parent directories if needed
-    if (!versionDir.parent.existsSync()) {
-      versionDir.parent.createSync(recursive: true);
-    }
-
-    // Download the archive
-    logger.info('Downloading Flutter SDK archive...');
-    final archiveBytes = await _downloadArchive(release.archiveUrl);
-
-    // Extract the archive
-    logger.info('Extracting Flutter SDK archive...');
-    await _extractArchive(archiveBytes, versionDir);
-
-    // Verify the extraction was successful
-    await _verifyExtraction(versionDir);
-
-    logger.info('Flutter SDK downloaded and extracted successfully!');
-  }
-
   /// Downloads the archive file from the given URL
   Future<Uint8List> _downloadArchive(String url) async {
     try {
@@ -72,14 +36,17 @@ class DownloadService extends ContextualService {
 
       return Uint8List.fromList(bytes);
     } catch (e) {
-      throw AppException(
-        'Failed to download Flutter SDK archive: $e',
+      Error.throwWithStackTrace(
+        AppException('Failed to download Flutter SDK archive: $e'),
+        StackTrace.current,
       );
     }
   }
 
   /// Extracts a tar.xz archive to the specified directory
-  Future<void> _extractArchive(Uint8List archiveBytes, Directory targetDir) async {
+  Future<void> _extractArchive(
+      Uint8List archiveBytes,
+      Directory targetDir,) async {
     try {
       // Decompress XZ and extract TAR
       final xzDecoder = XZDecoder();
@@ -96,20 +63,26 @@ class DownloadService extends ContextualService {
 
         // Remove flutter/ prefix: flutter/bin/flutter -> bin/flutter
         final parts = file.name.split('/');
-        if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) continue;
+        if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) {
+          continue;
+        }
 
-        final relativePath = parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
-        if (relativePath.isEmpty) continue;
+        final relativePath =
+            parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
+        if (relativePath.isEmpty) {
+          continue;
+        }
 
         final filePath = path.join(targetDir.path, relativePath);
 
         if (file.isFile) {
           final outputFile = File(filePath);
           await outputFile.parent.create(recursive: true);
-          await outputFile.writeAsBytes(file.content as List<int>);
+          await outputFile.writeAsBytes(file.content);
 
           // Set executable permissions for binaries
-          if (relativePath.contains('/bin/') && !relativePath.endsWith('.bat')) {
+          if (relativePath.contains('/bin/') &&
+              !relativePath.endsWith('.bat')) {
             _setExecutablePermissions(outputFile);
           }
         } else {
@@ -117,7 +90,10 @@ class DownloadService extends ContextualService {
         }
       }
     } catch (e) {
-      throw AppException('Failed to extract Flutter SDK archive: $e');
+      Error.throwWithStackTrace(
+        AppException('Failed to extract Flutter SDK archive: $e'),
+        StackTrace.current,
+      );
     }
   }
 
@@ -127,13 +103,14 @@ class DownloadService extends ContextualService {
       try {
         Process.runSync('chmod', ['+x', file.path]);
       } catch (e) {
-        logger.warn('Failed to set executable permissions for ${file.path}: $e');
+        logger
+            .warn('Failed to set executable permissions for ${file.path}: $e');
       }
     }
   }
 
   /// Verifies that the extraction was successful
-  Future<void> _verifyExtraction(Directory versionDir) async {
+  void _verifyExtraction(Directory versionDir) {
     // Check for essential Flutter files
     final flutterBin = File(path.join(versionDir.path, 'bin', 'flutter'));
     final versionFile = File(path.join(versionDir.path, 'version'));
@@ -167,7 +144,46 @@ class DownloadService extends ContextualService {
       return release != null;
     } catch (e) {
       logger.debug('Failed to check if version can be downloaded: $e');
+
       return false;
     }
   }
+
+  /// Downloads and extracts a Flutter SDK archive for the given version
+  Future<void> downloadAndExtract(FlutterVersion version) async {
+    final releaseClient = get<FlutterReleaseClient>();
+    final cacheService = get<CacheService>();
+
+    // Get release information from the releases API
+    final release = await releaseClient.getReleaseByVersion(version.version);
+    if (release == null) {
+      throw AppException(
+        'Version ${version.version} is not available for download. '
+        'Only official Flutter releases can be downloaded as archives.',
+      );
+    }
+
+    // Get the target directory for extraction
+    final versionDir = cacheService.getVersionCacheDir(version);
+
+    // Create parent directories if needed
+    if (!versionDir.parent.existsSync()) {
+      versionDir.parent.createSync(recursive: true);
+    }
+
+    // Download the archive
+    logger.info('Downloading Flutter SDK archive...');
+    final archiveBytes = await _downloadArchive(release.archiveUrl);
+
+    // Extract the archive
+    logger.info('Extracting Flutter SDK archive...');
+    await _extractArchive(archiveBytes, versionDir);
+
+    // Verify the extraction was successful
+    _verifyExtraction(versionDir);
+
+    logger.info('Flutter SDK downloaded and extracted successfully!');
+  }
+
+
 }

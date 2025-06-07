@@ -34,7 +34,11 @@ class EnsureCacheWorkflow extends Workflow {
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
 
-    return call(version, shouldInstall: shouldInstall, useDownload: useDownload);
+    return call(
+      version,
+      shouldInstall: shouldInstall,
+      useDownload: useDownload,
+    );
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
@@ -97,6 +101,50 @@ class EnsureCacheWorkflow extends Workflow {
         stackTrace,
       );
     }
+  }
+
+  /// Installs Flutter SDK via archive download
+  Future<void> _installViaDownload(FlutterVersion version) async {
+    final downloadService = get<DownloadService>();
+
+    // Check if version can be downloaded
+    final canDownload = await downloadService.canDownload(version);
+    if (!canDownload) {
+      logger.warn(
+        'Version ${version.version} is not available for download. Falling back to Git clone.',
+      );
+      await _installViaGit(version);
+
+      return;
+    }
+
+    try {
+      await downloadService.downloadAndExtract(version);
+    } catch (e) {
+      logger.warn('Download failed: $e. Falling back to Git clone.');
+      await _installViaGit(version);
+    }
+  }
+
+  /// Installs Flutter SDK via Git clone
+  Future<void> _installViaGit(FlutterVersion version) async {
+    final flutterService = get<FlutterService>();
+    final gitService = get<GitService>();
+
+    bool useGitCache = context.gitCache;
+
+    if (useGitCache) {
+      try {
+        await gitService.updateLocalMirror();
+      } on Exception {
+        logger.warn(
+          'Failed to setup local cache. Falling back to git clone.',
+        );
+        rethrow;
+      }
+    }
+
+    await flutterService.install(version);
   }
 
   /// Ensures that the specified Flutter SDK version is cached locally.
@@ -186,50 +234,5 @@ class EnsureCacheWorkflow extends Workflow {
     }
 
     return newCacheVersion;
-  }
-
-  /// Installs Flutter SDK via archive download
-  Future<void> _installViaDownload(FlutterVersion version) async {
-    final downloadService = get<DownloadService>();
-
-    // Check if version can be downloaded
-    final canDownload = await downloadService.canDownload(version);
-    if (!canDownload) {
-      logger.warn(
-        'Version ${version.version} is not available for download. Falling back to Git clone.',
-      );
-      await _installViaGit(version);
-      return;
-    }
-
-    try {
-      await downloadService.downloadAndExtract(version);
-    } catch (e) {
-      logger.warn(
-        'Download failed: $e. Falling back to Git clone.',
-      );
-      await _installViaGit(version);
-    }
-  }
-
-  /// Installs Flutter SDK via Git clone
-  Future<void> _installViaGit(FlutterVersion version) async {
-    final flutterService = get<FlutterService>();
-    final gitService = get<GitService>();
-
-    bool useGitCache = context.gitCache;
-
-    if (useGitCache) {
-      try {
-        await gitService.updateLocalMirror();
-      } on Exception {
-        logger.warn(
-          'Failed to setup local cache. Falling back to git clone.',
-        );
-        rethrow;
-      }
-    }
-
-    await flutterService.install(version);
   }
 }
