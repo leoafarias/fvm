@@ -69,6 +69,7 @@ class DownloadService extends ContextualService {
       }
 
       client.close();
+
       return Uint8List.fromList(bytes);
     } catch (e) {
       throw AppException(
@@ -162,6 +163,7 @@ class DownloadService extends ContextualService {
     try {
       final releaseClient = get<FlutterReleaseClient>();
       final release = await releaseClient.getReleaseByVersion(version.version);
+
       return release != null;
     } catch (e) {
       logger.debug('Failed to check if version can be downloaded: $e');
