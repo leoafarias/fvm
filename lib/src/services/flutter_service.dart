@@ -235,43 +235,36 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
   }) async {
-    final baseArgs = [
-      'clone',
-      '--progress',
-      if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
-      if (!version.isUnknownRef && channel != null) ...[
-        '-c',
-        'advice.detachedHead=false',
-        '-b',
-        channel,
-      ],
-    ];
+    for (final useReference in [context.gitCache, false]) {
+      if (!useReference) break; // Skip second iteration if git cache is disabled
 
-    final echoOutput = !(context.isTest || !logger.isVerbose);
-
-    // Try with --reference first if git cache is enabled
-    if (context.gitCache) {
       try {
-        return await runGit(
-          [...baseArgs, '--reference', context.gitCachePath, repoUrl, versionDir.path],
-          echoOutput: echoOutput,
-        );
+        return await runGit([
+          'clone',
+          '--progress',
+          if (Platform.isWindows) ...['-c', 'core.longpaths=true'],
+          if (!version.isUnknownRef && channel != null) ...[
+            '-c',
+            'advice.detachedHead=false',
+            '-b',
+            channel,
+          ],
+          if (useReference) ...['--reference', context.gitCachePath],
+          repoUrl,
+          versionDir.path,
+        ], echoOutput: !(context.isTest || !logger.isVerbose));
       } on ProcessException catch (e) {
-        if (isReferenceError(e.toString())) {
+        if (useReference && isReferenceError(e.toString())) {
           logger.warn('Git clone with --reference failed, falling back to normal clone');
           await _cleanupPartialClone(versionDir);
-          // Fall through to normal clone
-        } else {
-          rethrow;
+          continue; // Try again without --reference
         }
+        rethrow;
       }
     }
 
-    // Normal clone without --reference
-    return await runGit(
-      [...baseArgs, repoUrl, versionDir.path],
-      echoOutput: echoOutput,
-    );
+    // This should never be reached due to the loop logic, but satisfies the analyzer
+    throw StateError('Git clone failed unexpectedly');
   }
 
   /// Checks if the error is related to --reference flag failures
