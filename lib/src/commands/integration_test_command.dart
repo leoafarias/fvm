@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 
+import '../models/config_model.dart';
 import '../models/flutter_version_model.dart';
 import '../runner.dart';
 import '../services/cache_service.dart';
@@ -562,52 +563,55 @@ class IntegrationTestRunner {
     }
   }
 
-  /// Test Git clone fallback mechanism
+  /// Test Git clone fallback mechanism with isolated git cache
   Future<void> _testGitCloneFallback() async {
-    // Test the fallback by temporarily corrupting the git cache
-    // and then installing a new version
-    final gitCacheDir = Directory(context.gitCachePath);
-    Directory? backupDir;
+    // Create an isolated test context with a separate git cache
+    final testGitCacheDir = Directory.systemTemp.createTempSync('fvm_test_git_cache_');
+
+    // Create a test context with isolated git cache
+    final testContext = FvmContext.create(
+      isTest: true,
+      configOverrides: AppConfig(
+        gitCachePath: testGitCacheDir.path,
+        useGitCache: true, // Ensure git cache is enabled for this test
+      ),
+      workingDirectoryOverride: context.workingDirectory,
+    );
 
     try {
-      // Backup the git cache if it exists
-      if (gitCacheDir.existsSync()) {
-        backupDir = Directory('${gitCacheDir.path}_backup');
-        if (backupDir.existsSync()) {
-          backupDir.deleteSync(recursive: true);
-        }
-        gitCacheDir.renameSync(backupDir.path);
-        logger.info('Backed up git cache to test fallback');
-      }
+      logger.info('Testing Git clone fallback with isolated cache: ${testGitCacheDir.path}');
 
       // Create a corrupted git cache directory to trigger fallback
-      gitCacheDir.createSync(recursive: true);
-      final corruptFile = File(p.join(gitCacheDir.path, 'corrupt_file'));
+      final corruptFile = File(p.join(testGitCacheDir.path, 'corrupt_file'));
       corruptFile.writeAsStringSync('This is not a git repository');
       logger.info('Created corrupted git cache to trigger fallback');
 
-      // Install a version that should trigger the fallback mechanism
-      // Use a different version than the ones already installed
+      // Use the isolated context to install a version
       const fallbackTestVersion = '3.13.0';
-      await _runFvmCommand(['install', fallbackTestVersion]);
-      await _verifyInstallation(FlutterVersion.parse(fallbackTestVersion));
+      final testRunner = FvmCommandRunner(testContext);
+      final exitCode = await testRunner.run(['install', fallbackTestVersion]);
 
-      logger.success('Git clone fallback mechanism worked correctly');
+      if (exitCode != 0) {
+        throw AppException('Install command failed with exit code $exitCode');
+      }
+
+      // Verify installation using the test context
+      final testCacheService = testContext.get<CacheService>();
+      final testVersion = testCacheService.getVersion(FlutterVersion.parse(fallbackTestVersion));
+
+      if (testVersion == null) {
+        throw AppException('Version $fallbackTestVersion not found after fallback test');
+      }
+
+      logger.success('Git clone fallback mechanism worked correctly with isolated cache');
 
       // Clean up the test version
-      await _runFvmCommand(['remove', fallbackTestVersion]);
+      await testRunner.run(['remove', fallbackTestVersion]);
     } finally {
-      // Restore the original git cache if it was backed up
-      if (backupDir != null && backupDir.existsSync()) {
-        if (gitCacheDir.existsSync()) {
-          gitCacheDir.deleteSync(recursive: true);
-        }
-        backupDir.renameSync(gitCacheDir.path);
-        logger.info('Restored original git cache');
-      } else if (gitCacheDir.existsSync()) {
-        // If there was no backup, just clean up the corrupted cache
-        gitCacheDir.deleteSync(recursive: true);
-        logger.info('Cleaned up corrupted git cache');
+      // Clean up the isolated test cache
+      if (testGitCacheDir.existsSync()) {
+        testGitCacheDir.deleteSync(recursive: true);
+        logger.info('Cleaned up isolated test git cache');
       }
     }
   }
