@@ -212,23 +212,39 @@ if [[ ! -s fvm.tar.gz ]] || ! file fvm.tar.gz | grep -q "gzip compressed"; then
 fi
 
 # Extract and validate FVM binary
-info "Extracting fvm.tar.gz into $FVM_DIR"
-if ! tar xzf fvm.tar.gz -C "$FVM_DIR"; then
+info "Extracting fvm.tar.gz into temporary directory"
+TEMP_EXTRACT="$FVM_DIR/temp_extract"
+mkdir -p "$TEMP_EXTRACT"
+if ! tar xzf fvm.tar.gz -C "$TEMP_EXTRACT"; then
+  rm -rf "$TEMP_EXTRACT"
   rm -f fvm.tar.gz
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
 fi
 
-# Verify the expected binary was extracted
-if [[ ! -f "$FVM_DIR/fvm" ]]; then
+# The tarball contains fvm/fvm structure with dependencies in fvm/src/
+# We need to preserve the entire structure
+if [[ -d "$TEMP_EXTRACT/fvm" ]]; then
+  # Move all contents from fvm/ to bin/
+  mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
+  rm -rf "$TEMP_EXTRACT"
+elif [[ -f "$TEMP_EXTRACT/fvm" ]]; then
+  # Old structure: just the binary at root
+  mv "$TEMP_EXTRACT/fvm" "$FVM_DIR_BIN/" || error "Failed to move fvm binary"
+  rm -rf "$TEMP_EXTRACT"
+else
+  rm -rf "$TEMP_EXTRACT"
   rm -f fvm.tar.gz
   error "Expected 'fvm' binary not found after extraction."
 fi
 
+# Verify the fvm binary exists
+if [[ ! -f "$FVM_DIR_BIN/fvm" ]]; then
+  rm -f fvm.tar.gz
+  error "FVM binary not found in expected location after extraction."
+fi
+
 # Cleanup the tarball to avoid clutter
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
-
-# Move binary to bin subdirectory
-mv "$FVM_DIR/fvm" "$FVM_DIR_BIN" || error "Failed to move 'fvm' binary to bin directory."
 
 # Create system-wide symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
