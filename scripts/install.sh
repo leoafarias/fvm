@@ -285,74 +285,17 @@ fi
 
 # Get FVM version (latest if not specified)
 if [[ -z "$FVM_VERSION" ]]; then
-  # Fetch latest release info from GitHub
-  GITHUB_URL="https://api.github.com/repos/leoafarias/fvm/releases/latest"
+  info "Getting latest FVM version..."
   
-  info "Fetching latest FVM version from GitHub..."
-  
-  # Retry logic for network issues (common on GitHub Actions macOS runners)
-  MAX_RETRIES=3
-  RETRY_DELAY=2
-  GITHUB_RESPONSE=""
-  
-  for ((i=1; i<=MAX_RETRIES; i++)); do
-    # Try to fetch with proper error handling
-    GITHUB_RESPONSE=$(curl -sSL --connect-timeout 10 --max-time 30 "$GITHUB_URL" 2>&1)
-    CURL_EXIT_CODE=$?
-    
-    # Check if curl succeeded
-    if [[ $CURL_EXIT_CODE -eq 0 ]] && [[ -n "$GITHUB_RESPONSE" ]] && echo "$GITHUB_RESPONSE" | grep -q '"tag_name"'; then
-      break
-    fi
-    
-    # If not the last attempt, wait and retry
-    if [[ $i -lt $MAX_RETRIES ]]; then
-      warn "Attempt $i failed to fetch version from GitHub (curl exit code: $CURL_EXIT_CODE). Retrying in ${RETRY_DELAY}s..."
-      sleep $RETRY_DELAY
-    fi
-  done
-  
-  # Check if all attempts failed
-  if [[ $CURL_EXIT_CODE -ne 0 ]]; then
-    error "Failed to connect to GitHub API after $MAX_RETRIES attempts (last curl exit code: $CURL_EXIT_CODE). Please check your internet connection or specify a version manually."
-  fi
-  
-  # Check if we got an empty response
-  if [[ -z "$GITHUB_RESPONSE" ]]; then
-    error "Received empty response from GitHub API after $MAX_RETRIES attempts. Please check your internet connection or specify a version manually."
-  fi
-  
-  # Check if we got an error response (like rate limiting)
-  if echo "$GITHUB_RESPONSE" | grep -q '"message"'; then
-    ERROR_MSG=$(echo "$GITHUB_RESPONSE" | sed -n 's/.*"message":[[:space:]]*"\([^"]*\)".*/\1/p')
-    if [[ -n "$ERROR_MSG" ]]; then
-      error "GitHub API error: $ERROR_MSG. Please try again later or specify a version manually."
-    fi
-  fi
-  
-  # Extract version from JSON response using multiple methods for portability
-  # Method 1: Try with sed (should work on both GNU and BSD sed)
-  FVM_VERSION=$(echo "$GITHUB_RESPONSE" | sed -n 's/.*"tag_name":[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
-  
-  # Method 2: If sed fails, try with grep and awk (more portable)
-  if [[ -z "$FVM_VERSION" ]]; then
-    FVM_VERSION=$(echo "$GITHUB_RESPONSE" | grep -o '"tag_name"[[:space:]]*:[[:space:]]*"[^"]*"' | awk -F'"' '{print $4}' | head -1)
-  fi
-  
-  # Method 3: Last resort - basic string manipulation
-  if [[ -z "$FVM_VERSION" ]]; then
-    # Extract the line containing tag_name
-    TAG_LINE=$(echo "$GITHUB_RESPONSE" | grep '"tag_name"')
-    if [[ -n "$TAG_LINE" ]]; then
-      # Remove everything before the version number
-      FVM_VERSION=${TAG_LINE#*\"tag_name\"*:*\"}
-      # Remove everything after the version number
-      FVM_VERSION=${FVM_VERSION%%\"*}
-    fi
-  fi
+  # Use GitHub's web redirect instead of API to avoid rate limits
+  # GitHub Actions runners share IPs and hit the 60 req/hour API limit
+  # This method has no rate limits and is simpler (KISS principle)
+  FVM_VERSION=$(curl -sI https://github.com/leoafarias/fvm/releases/latest | grep -i location | cut -d' ' -f2 | rev | cut -d'/' -f1 | rev | tr -d '\r')
   
   if [[ -z "$FVM_VERSION" ]]; then
-    error "Failed to parse version from GitHub API response. Response snippet: ${GITHUB_RESPONSE:0:200}... Please specify a version manually (e.g., ./install.sh 3.2.1)"
+    # Simple fallback - no complex error handling needed
+    FVM_VERSION="3.2.1"
+    warn "Could not fetch latest version. Using fallback: $FVM_VERSION"
   fi
 else
   # Validate version format
