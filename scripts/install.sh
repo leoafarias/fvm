@@ -96,6 +96,29 @@ EOF
   exit 0
 }
 
+# Helper to create symlinks
+create_symlink() {
+  local source="$1"
+  local target="$2"
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  else
+    "$ESCALATION_TOOL" ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  fi
+}
+
+# Helper to remove symlinks
+remove_symlink() {
+  local target="$1"
+  
+  if [[ "$IS_ROOT" == "true" ]]; then
+    rm -f "$target" || error "Failed to remove symlink: $target"
+  else
+    "$ESCALATION_TOOL" rm -f "$target" || error "Failed to remove symlink: $target"
+  fi
+}
+
 # Uninstall FVM
 uninstall_fvm() {
   info "Uninstalling FVM..."
@@ -130,11 +153,7 @@ uninstall_fvm() {
   # Remove symlink
   if [[ -L "$SYMLINK_TARGET" ]]; then
     info "Removing FVM symlink..."
-    if [[ "$IS_ROOT" == "true" ]]; then
-      rm -f "$SYMLINK_TARGET" || error "Failed to remove symlink"
-    else
-      "$ESCALATION_TOOL" rm -f "$SYMLINK_TARGET" || error "Failed to remove symlink"
-    fi
+    remove_symlink "$SYMLINK_TARGET"
     success "Removed $SYMLINK_TARGET"
   fi
   
@@ -236,7 +255,6 @@ info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
 # Block root execution except in containers
-info "Checking root status..."
 if [[ $(id -u) -eq 0 ]]; then
   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
     info "Root execution allowed (container/CI/override detected)"
@@ -248,27 +266,13 @@ To override: export FVM_ALLOW_ROOT=true"
   fi
 fi
 
-# Helper to create symlinks
-create_symlink() {
-  local source="$1"
-  local target="$2"
-
-  if [[ "$IS_ROOT" == "true" ]]; then
-    ln -sf "$source" "$target" || error "Failed to create symlink: $target"
-  else
-    "$ESCALATION_TOOL" ln -sf "$source" "$target" || error "Failed to create symlink: $target"
-  fi
-}
-
 # Check for required tools
-info "Checking for required tools..."
 if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
 # Only check for escalation tools if not running as root
 if [[ "$IS_ROOT" != "true" ]]; then
-  info "Checking for privilege escalation tools..."
   if [[ -z "$ESCALATION_TOOL" ]]; then
     error "Cannot find sudo or doas. Install one or run as root."
   fi
@@ -281,7 +285,6 @@ fi
 
 # Get FVM version (latest if not specified)
 if [[ -z "$FVM_VERSION" ]]; then
-  info "Fetching latest FVM version from GitHub..."
   # Use a more robust method to avoid pipefail issues
   GITHUB_RESPONSE=$(curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest || true)
   FVM_VERSION=$(echo "$GITHUB_RESPONSE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
@@ -289,7 +292,6 @@ if [[ -z "$FVM_VERSION" ]]; then
   if [[ -z "$FVM_VERSION" ]]; then
     error "Failed to determine the latest FVM version from GitHub."
   fi
-  info "Latest version detected: $FVM_VERSION"
 else
   # Validate version format
   if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
