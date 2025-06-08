@@ -266,9 +266,12 @@ if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-info "Checking for privilege escalation tools..."
-if [[ "$IS_ROOT" != "true" ]] && [[ -z "$ESCALATION_TOOL" ]]; then
-  error "Cannot find sudo or doas. Install one or run as root."
+# Only check for escalation tools if not running as root
+if [[ "$IS_ROOT" != "true" ]]; then
+  info "Checking for privilege escalation tools..."
+  if [[ -z "$ESCALATION_TOOL" ]]; then
+    error "Cannot find sudo or doas. Install one or run as root."
+  fi
 fi
 
 # Check for existing installation
@@ -278,14 +281,15 @@ fi
 
 # Get FVM version (latest if not specified)
 if [[ -z "$FVM_VERSION" ]]; then
-  FVM_VERSION="$(
-    curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest \
-    | grep '"tag_name":' \
-    | sed -E 's/.*"([^"]+)".*/\1/'
-  )"
+  info "Fetching latest FVM version from GitHub..."
+  # Use a more robust method to avoid pipefail issues
+  GITHUB_RESPONSE=$(curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest || true)
+  FVM_VERSION=$(echo "$GITHUB_RESPONSE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
+  
   if [[ -z "$FVM_VERSION" ]]; then
     error "Failed to determine the latest FVM version from GitHub."
   fi
+  info "Latest version detected: $FVM_VERSION"
 else
   # Validate version format
   if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
