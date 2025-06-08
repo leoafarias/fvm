@@ -286,8 +286,10 @@ fi
 # Get FVM version (latest if not specified)
 if [[ -z "$FVM_VERSION" ]]; then
   # Use a more robust method to avoid pipefail issues
-  GITHUB_RESPONSE=$(curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest || true)
-  FVM_VERSION=$(echo "$GITHUB_RESPONSE" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' || true)
+  GITHUB_RESPONSE=$(curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest || echo "{}")
+  
+  # Try to extract tag_name using a more robust pattern
+  FVM_VERSION=$(echo "$GITHUB_RESPONSE" | grep -o '"tag_name"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || true)
   
   if [[ -z "$FVM_VERSION" ]]; then
     error "Failed to determine the latest FVM version from GitHub."
