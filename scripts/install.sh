@@ -96,6 +96,26 @@ EOF
   exit 0
 }
 
+# Check if running in container/CI environment
+is_container_env() {
+  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
+}
+
+# Store root/container status
+IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
+IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
+
+# Find privilege escalation tool (sudo/doas)
+ESCALATION_TOOL=''
+if [[ "$IS_ROOT" != "true" ]]; then
+  for cmd in sudo doas; do
+    if command -v "$cmd" &>/dev/null; then
+      ESCALATION_TOOL="$cmd"
+      break
+    fi
+  done
+fi
+
 # Helper to create symlinks
 create_symlink() {
   local source="$1"
@@ -168,26 +188,6 @@ uninstall_fvm() {
   success "FVM has been uninstalled!"
   exit 0
 }
-
-# Check if running in container/CI environment
-is_container_env() {
-  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
-}
-
-# Store root/container status
-IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
-IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
-
-# Find privilege escalation tool (sudo/doas)
-ESCALATION_TOOL=''
-if [[ "$IS_ROOT" != "true" ]]; then
-  for cmd in sudo doas; do
-    if command -v "$cmd" &>/dev/null; then
-      ESCALATION_TOOL="$cmd"
-      break
-    fi
-  done
-fi
 
 # Parse command line arguments
 FVM_VERSION=""
