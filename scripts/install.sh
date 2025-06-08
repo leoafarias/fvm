@@ -1,55 +1,105 @@
 #!/usr/bin/env bash
-###############################################################################
-# FVM Installer
-# -----------------------------------------------------------------------------
-# This script installs FVM (Flutter Version Management) in a user-level location
-# (~/.fvm_flutter/bin) and then symlinks it system-wide to /usr/local/bin/fvm.
+# FVM Installer - Install Flutter Version Management
 #
-# Key Points:
-# 1. We do not rely on package managers (Homebrew, apt, yum, etc.). We only
-#    require core tools like curl, tar, grep, sed.
-# 2. We detect OS/architecture and automatically fetch the appropriate prebuilt
-#    binary from GitHub.
-# 3. We avoid root execution on desktop/server systems but allow it in containers.
-# 4. We set "strict mode" to fail quickly on errors or referencing unset vars.
-# 5. We attempt to update the user's shell rc (fish, zsh, bash) to add fvm's bin
-#    path if not already present, preventing repeated PATH lines on reruns.
-# 6. We thoroughly log what’s happening, using color-coded or bold messages.
-###############################################################################
+# Usage:
+#   curl -fsSL https://fvm.app/install | bash
+#   curl -fsSL https://fvm.app/install | bash -s 3.2.1
+#   ./install.sh [OPTIONS] [VERSION]
+#
+# Examples:
+#   ./install.sh              # Install latest version
+#   ./install.sh 3.2.1        # Install specific version
+#   ./install.sh --help       # Show help
+#
+# Environment:
+#   FVM_ALLOW_ROOT=true       # Allow root installation (for containers/CI)
 
-
-# Exit on error, undefined vars, pipe failures
 set -euo pipefail
 
-###############################################################################
-# Logging & Color Setup
-# -----------------------------------------------------------------------------
-# We define ANSI escape codes for colored output. Then we define helper functions
-# (log, info, success, error) for consistent, readable messaging.
-# Why do it this way? Because it avoids external dependencies like 'tput' or
-# non-standard libraries, ensuring maximum compatibility across macOS & Linux.
-###############################################################################
-Color_Off='\033[0m'      # Reset color
-Red='\033[0;31m'         # Red
-Bold_White='\033[1m'     # Bold White text
+# Script version
+SCRIPT_VERSION="1.0.0"
 
-# log() prints a line with no extra formatting.
+# Show help
+show_help() {
+  cat << EOF
+FVM Installer v${SCRIPT_VERSION}
+
+Install Flutter Version Management (FVM) on Linux/macOS
+
+USAGE:
+    curl -fsSL https://fvm.app/install | bash
+    curl -fsSL https://fvm.app/install | bash -s [VERSION]
+    ./install.sh [OPTIONS] [VERSION]
+
+OPTIONS:
+    -h, --help      Show this help message
+    -v, --version   Show script version
+
+ARGUMENTS:
+    VERSION         Specific FVM version to install (e.g., 3.2.1)
+                    If omitted, installs the latest version
+
+EXAMPLES:
+    # Install latest version
+    curl -fsSL https://fvm.app/install | bash
+    
+    # Install specific version
+    curl -fsSL https://fvm.app/install | bash -s 3.2.1
+    
+    # Allow root installation in containers
+    export FVM_ALLOW_ROOT=true
+    ./install.sh
+
+ENVIRONMENT:
+    FVM_ALLOW_ROOT  Set to 'true' to allow root installation (containers/CI)
+
+EOF
+  exit 0
+}
+
+# Colors for output
+Color_Off='\033[0m'
+Red='\033[0;31m'
+Bold_White='\033[1m'
+
+# Simple logging functions
 log() {
   echo -e "$1"
 }
 
-# info() prints in bold white for emphasis or step announcements.
 info() {
   log "${Bold_White}$1${Color_Off}"
 }
 
-# error() prints in red to stderr, then exits the script with code 1.
 error() {
   log "${Red}error: $1${Color_Off}" >&2
   exit 1
 }
 
-# Detect OS and architecture for GitHub release naming (e.g., fvm-2.0.0-linux-x64.tar.gz)
+# Parse command line arguments
+FVM_VERSION=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      show_help
+      ;;
+    -v|--version)
+      echo "FVM Installer v${SCRIPT_VERSION}"
+      exit 0
+      ;;
+    -*)
+      error "Unknown option: $1. Use --help for usage."
+      ;;
+    *)
+      # Assume it's a version number
+      FVM_VERSION="$1"
+      shift
+      ;;
+  esac
+  shift
+done
+
+# Detect OS and architecture
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
@@ -77,23 +127,16 @@ case "$ARCH" in
     ;;
 esac
 
-# Print out the detection results to keep the user informed.
 info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
-# Helper function to detect container environment
+# Check if running in container/CI environment
 is_container_env() {
   [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
 }
 
-###############################################################################
-# Root User Check with Simple Override
-# -----------------------------------------------------------------------------
-# Block root execution by default for security, but allow override for containers/CI.
-# Simple detection: check for common container/CI indicators or explicit override.
-###############################################################################
+# Block root execution except in containers
 if [[ $(id -u) -eq 0 ]]; then
-  # Allow root if: Docker/Podman container, CI environment, or explicit override
   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
     info "Root execution allowed (container/CI/override detected)"
   else
@@ -104,13 +147,11 @@ To override: export FVM_ALLOW_ROOT=true"
   fi
 fi
 
-# Store root status for later use
+# Store root/container status
 IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
-
-# Store container status for later use
 IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
 
-# Helper function to create symlinks (DRY)
+# Helper to create symlinks
 create_symlink() {
   local source="$1"
   local target="$2"
@@ -122,14 +163,13 @@ create_symlink() {
   fi
 }
 
-# Require curl for GitHub API access
+# Check for required tools
 if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-# Find sudo/doas for system symlink creation (only needed if not root)
+# Find privilege escalation tool (sudo/doas)
 ESCALATION_TOOL=''
-
 if [[ "$IS_ROOT" != "true" ]]; then
   for cmd in sudo doas; do
     if command -v "$cmd" &>/dev/null; then
@@ -141,15 +181,13 @@ if [[ "$IS_ROOT" != "true" ]]; then
   [[ -z "$ESCALATION_TOOL" ]] && error "Cannot find sudo or doas. Install one or run as root."
 fi
 
-# Detect existing FVM installation
+# Check for existing installation
 if command -v fvm &>/dev/null; then
   info "Existing FVM installation detected. It will be replaced."
 fi
 
-# Determine FVM version: use argument or fetch latest from GitHub
-FVM_VERSION=""
-if [[ $# -eq 0 ]]; then
-  # No arguments => fetch the 'latest' from GitHub
+# Get FVM version (latest if not specified)
+if [[ -z "$FVM_VERSION" ]]; then
   FVM_VERSION="$(
     curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest \
     | grep '"tag_name":' \
@@ -159,8 +197,7 @@ if [[ $# -eq 0 ]]; then
     error "Failed to determine the latest FVM version from GitHub."
   fi
 else
-  # Use the argument as version - validate it matches semantic versioning pattern
-  FVM_VERSION="$1"
+  # Validate version format
   if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
     error "Invalid version format: $FVM_VERSION. Expected format: 1.2.3 or v1.2.3"
   fi
@@ -168,12 +205,12 @@ fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-# Define installation directories
+# Setup directories
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET="/usr/local/bin/fvm"
 
-# Ensure symlink target directory exists
+# Ensure symlink directory exists
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
 if [[ ! -d "$SYMLINK_DIR" ]]; then
   if [[ "$IS_ROOT" == "true" ]]; then
@@ -186,7 +223,7 @@ Please create it with: sudo mkdir -p $SYMLINK_DIR"
   fi
 fi
 
-# Clean up existing installation and create fresh directory
+# Clean existing installation
 if [[ -d "$FVM_DIR_BIN" ]]; then
   info "FVM bin directory [$FVM_DIR_BIN] already exists. Removing it."
   rm -rf "$FVM_DIR_BIN" || error "Failed to remove existing FVM bin directory."
@@ -194,7 +231,7 @@ fi
 
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
-# Download FVM release tarball
+# Download FVM
 URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
 
 info "Downloading $URL"
@@ -205,19 +242,19 @@ if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
   - Check releases at: https://github.com/leoafarias/fvm/releases"
 fi
 
-# Validate the downloaded file
+# Validate download
 if [[ ! -s fvm.tar.gz ]]; then
   rm -f fvm.tar.gz
   error "Downloaded file is empty."
 fi
 
-# Test if it's a valid gzip by trying to list its contents
+# Test if valid gzip
 if ! tar -tzf fvm.tar.gz &>/dev/null; then
   rm -f fvm.tar.gz
   error "Downloaded file is not a valid gzip archive."
 fi
 
-# Extract and validate FVM binary
+# Extract FVM
 info "Extracting fvm.tar.gz into temporary directory"
 TEMP_EXTRACT="$FVM_DIR/temp_extract"
 mkdir -p "$TEMP_EXTRACT"
@@ -227,10 +264,9 @@ if ! tar xzf fvm.tar.gz -C "$TEMP_EXTRACT"; then
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
 fi
 
-# The tarball contains fvm/fvm structure with dependencies in fvm/src/
-# We need to preserve the entire structure
+# Handle different tarball structures
 if [[ -d "$TEMP_EXTRACT/fvm" ]]; then
-  # Move all contents from fvm/ to bin/
+  # New structure: fvm directory with binary and dependencies
   mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
   rm -rf "$TEMP_EXTRACT"
 elif [[ -f "$TEMP_EXTRACT/fvm" ]]; then
@@ -243,22 +279,20 @@ else
   error "Expected 'fvm' binary not found after extraction."
 fi
 
-# Verify the fvm binary exists
+# Verify binary exists
 if [[ ! -f "$FVM_DIR_BIN/fvm" ]]; then
   rm -f fvm.tar.gz
   error "FVM binary not found in expected location after extraction."
 fi
 
-# Cleanup the tarball to avoid clutter
+# Cleanup
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
 
-# Create system-wide symlink
+# Create system symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
 create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
 
-# Helper functions for shell configuration
-
-# Get the appropriate PATH export command for a shell type
+# Shell configuration helpers
 get_path_export() {
   local shell_type="$1"
   case "$shell_type" in
@@ -271,8 +305,6 @@ get_path_export() {
   esac
 }
 
-# update_shell_config(config_file, export_command)
-# Updates a shell configuration file with the FVM PATH export
 update_shell_config() {
   local config_file="$1"
   local export_command="$2"
@@ -299,7 +331,6 @@ update_shell_config() {
 # Configure shell PATH (skip for root in non-container environments)
 refresh_command=''
 
-# Skip shell config for root in non-container environments (security)
 if [[ "$IS_ROOT" == "true" ]] && [[ "$IS_CONTAINER" != "true" ]]; then
   info "Installation complete! (Shell config skipped for root user)"
   log "fvm is available system-wide. Other users should add to their shell config:"
@@ -307,6 +338,7 @@ if [[ "$IS_ROOT" == "true" ]] && [[ "$IS_CONTAINER" != "true" ]]; then
   exit 0
 fi
 
+# Update shell config based on current shell
 case "$(basename "$SHELL")" in
   fish)
     fish_config="$HOME/.config/fish/config.fish"
@@ -323,7 +355,6 @@ case "$(basename "$SHELL")" in
     fi
     ;;
   bash)
-    # Try common bash config files in order of preference
     bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
@@ -345,7 +376,7 @@ case "$(basename "$SHELL")" in
     ;;
 esac
 
-# Final installation instructions
+# Final instructions
 echo
 info "Installation complete!"
 log "To use fvm right away, run:"
