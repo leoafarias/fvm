@@ -47,6 +47,33 @@ jobs:
         run: |
           ./scripts/install.sh
           fvm --version
+      
+      - name: Test uninstall
+        run: |
+          # First ensure FVM is installed
+          which fvm
+          ls -la ~/.fvm_flutter/bin/
+          
+          # Run uninstall
+          ./scripts/install.sh --uninstall
+          
+          # Verify uninstall
+          if command -v fvm &>/dev/null; then
+            echo "❌ FVM command still exists after uninstall"
+            exit 1
+          fi
+          
+          if [[ -d ~/.fvm_flutter ]]; then
+            echo "❌ FVM directory still exists after uninstall"
+            exit 1
+          fi
+          
+          echo "✅ FVM successfully uninstalled"
+      
+      - name: Test uninstall on clean system (idempotency)
+        run: |
+          # Run uninstall again - should handle gracefully
+          ./scripts/install.sh --uninstall
 
   # Test container detection and root permissions
   test-container:

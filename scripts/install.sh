@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FVM Installer - Install Flutter Version Management
+# FVM Installer - Install/Uninstall Flutter Version Management
 #
 # Usage:
 #   curl -fsSL https://fvm.app/install | bash
@@ -9,6 +9,7 @@
 # Examples:
 #   ./install.sh              # Install latest version
 #   ./install.sh 3.2.1        # Install specific version
+#   ./install.sh --uninstall  # Uninstall FVM
 #   ./install.sh --help       # Show help
 #
 # Environment:
@@ -17,14 +18,48 @@
 set -euo pipefail
 
 # Script version
-SCRIPT_VERSION="1.0.0"
+SCRIPT_VERSION="1.1.0"
+
+# Installation paths
+FVM_DIR="$HOME/.fvm_flutter"
+FVM_DIR_BIN="$FVM_DIR/bin"
+SYMLINK_TARGET="/usr/local/bin/fvm"
+
+# Colors for output
+Color_Off='\033[0m'
+Red='\033[0;31m'
+Green='\033[0;32m'
+Yellow='\033[1;33m'
+Bold_White='\033[1m'
+
+# Simple logging functions
+log() {
+  echo -e "$1"
+}
+
+info() {
+  log "${Bold_White}$1${Color_Off}"
+}
+
+success() {
+  log "${Green}$1${Color_Off}"
+}
+
+warn() {
+  log "${Yellow}$1${Color_Off}"
+}
+
+error() {
+  log "${Red}error: $1${Color_Off}" >&2
+  exit 1
+}
 
 # Show help
 show_help() {
   cat << EOF
 FVM Installer v${SCRIPT_VERSION}
 
-Install Flutter Version Management (FVM) on Linux/macOS
+Install/Uninstall Flutter Version Management (FVM) on Linux/macOS
 
 USAGE:
     curl -fsSL https://fvm.app/install | bash
@@ -32,8 +67,9 @@ USAGE:
     ./install.sh [OPTIONS] [VERSION]
 
 OPTIONS:
-    -h, --help      Show this help message
-    -v, --version   Show script version
+    -h, --help        Show this help message
+    -v, --version     Show script version
+    -u, --uninstall   Uninstall FVM
 
 ARGUMENTS:
     VERSION         Specific FVM version to install (e.g., 3.2.1)
@@ -46,6 +82,9 @@ EXAMPLES:
     # Install specific version
     curl -fsSL https://fvm.app/install | bash -s 3.2.1
     
+    # Uninstall FVM
+    ./install.sh --uninstall
+    
     # Allow root installation in containers
     export FVM_ALLOW_ROOT=true
     ./install.sh
@@ -57,27 +96,84 @@ EOF
   exit 0
 }
 
-# Colors for output
-Color_Off='\033[0m'
-Red='\033[0;31m'
-Bold_White='\033[1m'
-
-# Simple logging functions
-log() {
-  echo -e "$1"
+# Uninstall FVM
+uninstall_fvm() {
+  info "Uninstalling FVM..."
+  
+  # Check if FVM is installed
+  local fvm_found=false
+  
+  # Check for FVM directory
+  if [[ -d "$FVM_DIR" ]]; then
+    fvm_found=true
+    info "Found FVM directory: $FVM_DIR"
+  fi
+  
+  # Check for symlink
+  if [[ -L "$SYMLINK_TARGET" ]] && [[ "$(readlink "$SYMLINK_TARGET")" == *"fvm"* ]]; then
+    fvm_found=true
+    info "Found FVM symlink: $SYMLINK_TARGET"
+  fi
+  
+  if [[ "$fvm_found" == false ]]; then
+    warn "FVM installation not found. Nothing to uninstall."
+    exit 0
+  fi
+  
+  # Remove FVM directory
+  if [[ -d "$FVM_DIR" ]]; then
+    info "Removing FVM directory..."
+    rm -rf "$FVM_DIR" || error "Failed to remove $FVM_DIR"
+    success "Removed $FVM_DIR"
+  fi
+  
+  # Remove symlink
+  if [[ -L "$SYMLINK_TARGET" ]]; then
+    info "Removing FVM symlink..."
+    if [[ "$IS_ROOT" == "true" ]]; then
+      rm -f "$SYMLINK_TARGET" || error "Failed to remove symlink"
+    else
+      "$ESCALATION_TOOL" rm -f "$SYMLINK_TARGET" || error "Failed to remove symlink"
+    fi
+    success "Removed $SYMLINK_TARGET"
+  fi
+  
+  # Notify about PATH cleanup
+  warn "Note: FVM PATH entries may still exist in your shell config files:"
+  log "  - ~/.bashrc"
+  log "  - ~/.zshrc"
+  log "  - ~/.config/fish/config.fish"
+  log ""
+  log "To remove them, search for lines containing '$FVM_DIR_BIN' in these files."
+  
+  success "FVM has been uninstalled!"
+  exit 0
 }
 
-info() {
-  log "${Bold_White}$1${Color_Off}"
+# Check if running in container/CI environment
+is_container_env() {
+  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
 }
 
-error() {
-  log "${Red}error: $1${Color_Off}" >&2
-  exit 1
-}
+# Store root/container status
+IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
+IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
+
+# Find privilege escalation tool (sudo/doas)
+ESCALATION_TOOL=''
+if [[ "$IS_ROOT" != "true" ]]; then
+  for cmd in sudo doas; do
+    if command -v "$cmd" &>/dev/null; then
+      ESCALATION_TOOL="$cmd"
+      break
+    fi
+  done
+fi
 
 # Parse command line arguments
 FVM_VERSION=""
+UNINSTALL_MODE=false
+
 while [[ $# -gt 0 ]]; do
   case $1 in
     -h|--help)
@@ -87,17 +183,26 @@ while [[ $# -gt 0 ]]; do
       echo "FVM Installer v${SCRIPT_VERSION}"
       exit 0
       ;;
+    -u|--uninstall)
+      UNINSTALL_MODE=true
+      ;;
     -*)
       error "Unknown option: $1. Use --help for usage."
       ;;
     *)
       # Assume it's a version number
       FVM_VERSION="$1"
-      shift
       ;;
   esac
   shift
 done
+
+# Handle uninstall mode
+if [[ "$UNINSTALL_MODE" == true ]]; then
+  uninstall_fvm
+fi
+
+# From here on is installation logic...
 
 # Detect OS and architecture
 OS="$(uname -s)"
@@ -130,11 +235,6 @@ esac
 info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
-# Check if running in container/CI environment
-is_container_env() {
-  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
-}
-
 # Block root execution except in containers
 if [[ $(id -u) -eq 0 ]]; then
   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
@@ -146,10 +246,6 @@ For containers/CI: This should be detected automatically.
 To override: export FVM_ALLOW_ROOT=true"
   fi
 fi
-
-# Store root/container status
-IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
-IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
 
 # Helper to create symlinks
 create_symlink() {
@@ -168,17 +264,8 @@ if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-# Find privilege escalation tool (sudo/doas)
-ESCALATION_TOOL=''
-if [[ "$IS_ROOT" != "true" ]]; then
-  for cmd in sudo doas; do
-    if command -v "$cmd" &>/dev/null; then
-      ESCALATION_TOOL="$cmd"
-      break
-    fi
-  done
-
-  [[ -z "$ESCALATION_TOOL" ]] && error "Cannot find sudo or doas. Install one or run as root."
+if [[ "$IS_ROOT" != "true" ]] && [[ -z "$ESCALATION_TOOL" ]]; then
+  error "Cannot find sudo or doas. Install one or run as root."
 fi
 
 # Check for existing installation
@@ -204,11 +291,6 @@ else
 fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
-
-# Setup directories
-FVM_DIR="$HOME/.fvm_flutter"
-FVM_DIR_BIN="$FVM_DIR/bin"
-SYMLINK_TARGET="/usr/local/bin/fvm"
 
 # Ensure symlink directory exists
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
