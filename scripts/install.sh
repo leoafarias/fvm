@@ -236,6 +236,7 @@ info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
 # Block root execution except in containers
+info "Checking root status..."
 if [[ $(id -u) -eq 0 ]]; then
   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
     info "Root execution allowed (container/CI/override detected)"
@@ -260,10 +261,12 @@ create_symlink() {
 }
 
 # Check for required tools
+info "Checking for required tools..."
 if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
+info "Checking for privilege escalation tools..."
 if [[ "$IS_ROOT" != "true" ]] && [[ -z "$ESCALATION_TOOL" ]]; then
   error "Cannot find sudo or doas. Install one or run as root."
 fi
