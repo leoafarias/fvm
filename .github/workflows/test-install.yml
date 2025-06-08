@@ -18,7 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: shellcheck scripts/install.sh
+      - name: Install shellcheck
+        run: |
+          # Only install if not already available (for act compatibility)
+          if ! command -v shellcheck &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y shellcheck
+          fi
+      - name: Run shellcheck
+        run: shellcheck scripts/install.sh
 
   # Test on major platforms
   test-install:
