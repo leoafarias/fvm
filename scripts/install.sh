@@ -34,7 +34,7 @@ Bold_White='\033[1m'
 
 # Simple logging functions
 log() {
-  echo -e "$1"
+  printf "%b\n" "$1"
 }
 
 info() {
