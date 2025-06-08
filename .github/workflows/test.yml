@@ -14,9 +14,23 @@ on:
       - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
+      - "**/*.md"
+      - "**/LICENSE"
+      - ".gitignore"
+      - "scripts/install.sh"
+      - "scripts/install.ps1"
 
   push:
     branches: [ main, develop ]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "**/*.md"
+      - "**/LICENSE"
+      - ".gitignore"
+      - "scripts/install.sh"
+      - "scripts/install.ps1"
 
   workflow_dispatch:
 
