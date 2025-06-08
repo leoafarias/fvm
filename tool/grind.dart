@@ -69,13 +69,12 @@ void testSetup() {
   runDartScript('bin/main.dart', arguments: ['install', 'stable']);
 }
 
-@Task('Move install.sh and uninstall.sh to public directory')
+@Task('Move install.sh to public directory')
 void moveScripts() {
   final installScript = File('scripts/install.sh');
-  final uninstallScript = File('scripts/uninstall.sh');
 
-  if (!installScript.existsSync() || !uninstallScript.existsSync()) {
-    throw Exception('Install or uninstall script does not exist');
+  if (!installScript.existsSync()) {
+    throw Exception('Install script does not exist');
   }
 
   final publicDir = Directory('docs/public');
@@ -85,9 +84,8 @@ void moveScripts() {
   }
 
   installScript.copySync(path.join(publicDir.path, 'install.sh'));
-  uninstallScript.copySync(path.join(publicDir.path, 'uninstall.sh'));
 
-  print('Moved install.sh and uninstall.sh to public directory');
+  print('Moved install.sh to public directory');
 }
 
 @Task('Run tests')

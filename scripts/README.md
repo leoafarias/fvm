@@ -11,24 +11,26 @@ The main FVM installation script for Linux/macOS that:
 - Creates a system-wide symlink
 - Configures shell PATH
 - Supports container environments (Docker, Podman, CI)
+- **Now includes uninstall functionality via `--uninstall` flag**
 
 Usage:
 ```bash
 # Install latest version
-curl -fsSL https://github.com/leoafarias/fvm/raw/main/scripts/install.sh | bash
+curl -fsSL https://fvm.app/install | bash
 
 # Install specific version
-curl -fsSL https://github.com/leoafarias/fvm/raw/main/scripts/install.sh | bash -s 3.0.0
+curl -fsSL https://fvm.app/install | bash -s 3.2.1
+
+# Uninstall FVM
+./install.sh --uninstall
+
+# Container/CI support
+export FVM_ALLOW_ROOT=true
+./install.sh
 ```
 
-### install.ps1
-PowerShell installation script for Windows.
-
-### uninstall.sh
-Uninstallation script that removes FVM and cleans up configuration.
-
 ### test-install.sh
-Simple test script for the root detection logic:
+Test script for the installation logic:
 - Tests container detection (Docker, Podman)
 - Tests CI environment detection
 - Tests manual override (FVM_ALLOW_ROOT)
@@ -48,7 +50,7 @@ Documentation for the installation process.
 
 ## Design Principles
 
-Both scripts follow:
+All scripts follow:
 - **KISS**: Simple, straightforward logic
 - **DRY**: No code duplication
 - **YAGNI**: Only essential features

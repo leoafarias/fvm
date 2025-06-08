@@ -19,6 +19,8 @@ on:
       - ".gitignore"
       - "scripts/install.sh"
       - "scripts/install.ps1"
+      - "scripts/test-install.sh"
+      - ".github/workflows/test-install.yml"
 
   push:
     branches: [ main, develop ]
@@ -31,6 +33,8 @@ on:
       - ".gitignore"
       - "scripts/install.sh"
       - "scripts/install.ps1"
+      - "scripts/test-install.sh"
+      - ".github/workflows/test-install.yml"
 
   workflow_dispatch:
 
