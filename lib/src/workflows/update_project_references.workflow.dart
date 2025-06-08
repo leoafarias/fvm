@@ -18,7 +18,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
 
   const UpdateProjectReferencesWorkflow(super.context);
 
-  /// Updates the link to make sure its always correct
+  /// Updates the link to make sure it's always correct
   ///
   /// This method updates the .fvm symlink in the provided [project] to point to the cache
   /// directory of the currently pinned Flutter SDK version. It also cleans up legacy links

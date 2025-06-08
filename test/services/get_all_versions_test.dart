@@ -1,36 +1,32 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-class _MockFVMContext extends Mock implements FvmContext {}
+import '../testing_utils.dart';
 
 void main() {
   late CacheService cacheService;
-  late _MockFVMContext context;
+  late FvmContext context;
   late Directory tempDir;
 
   setUp(() {
-    // Create a temporary directory for tests
-    tempDir = Directory.systemTemp.createTempSync('fvm_version_test_');
+    // Create test context using TestFactory
+    context = TestFactory.context(
+      debugLabel: 'get-all-versions-test',
+      privilegedAccess: true,
+    );
 
-    // Set up mock context
-    context = _MockFVMContext();
-    when(() => context.versionsCachePath).thenReturn(tempDir.path);
-    when(() => context.logLevel).thenReturn(Level.info);
-    when(() => context.isTest).thenReturn(true);
-    when(() => context.isCI).thenReturn(false);
-    when(() => context.skipInput).thenReturn(true);
-    when(() => context.environment).thenReturn({});
+    // Use the cache directory that TestFactory provides
+    tempDir = Directory(context.versionsCachePath);
 
-    // Create the cache service with mock context
+    // Create the cache service with test context
     cacheService = CacheService(context);
   });
 
   tearDown(() {
-    // Clean up temporary directory
+    // Clean up is handled by TestFactory, but we can ensure it's clean
     if (tempDir.existsSync()) {
       tempDir.deleteSync(recursive: true);
     }
@@ -40,18 +36,17 @@ void main() {
     test('detects versions in both root and fork directories', () async {
       // Setup test directories
       // 1. Standard version: stable
-      final stableDir = Directory(path.join(tempDir.path, 'stable'));
-      stableDir.createSync();
+      final stableVersion = FlutterVersion.parse('stable');
+      final stableDir = cacheService.getVersionCacheDir(stableVersion);
+      stableDir.createSync(recursive: true);
       File(path.join(stableDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('stable');
 
       // 2. Fork directory with a version inside
-      final forkDir = Directory(path.join(tempDir.path, 'testfork'));
-      forkDir.createSync();
-
-      final forkedVersionDir = Directory(path.join(forkDir.path, 'master'));
-      forkedVersionDir.createSync();
+      final forkedVersion = FlutterVersion.parse('testfork/master');
+      final forkedVersionDir = cacheService.getVersionCacheDir(forkedVersion);
+      forkedVersionDir.createSync(recursive: true);
       File(path.join(forkedVersionDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('master');
@@ -80,21 +75,21 @@ void main() {
           reason: 'Should find both the regular and forked versions');
 
       // Find regular version
-      final stableVersion = versions.firstWhere(
+      final foundStableVersion = versions.firstWhere(
         (v) => v.version == 'stable',
         orElse: () => throw TestFailure('Standard version "stable" not found'),
       );
-      expect(stableVersion.fromFork, isFalse);
-      expect(stableVersion.directory, equals(stableDir.path));
+      expect(foundStableVersion.fromFork, isFalse);
+      expect(foundStableVersion.directory, equals(stableDir.path));
 
       // Find forked version
-      final masterVersion = versions.firstWhere(
+      final foundMasterVersion = versions.firstWhere(
         (v) => v.version == 'master' && v.fromFork,
         orElse: () => throw TestFailure('Forked version "master" not found'),
       );
-      expect(masterVersion.fromFork, isTrue);
-      expect(masterVersion.fork, equals('testfork'));
-      expect(masterVersion.directory, equals(forkedVersionDir.path));
+      expect(foundMasterVersion.fromFork, isTrue);
+      expect(foundMasterVersion.fork, equals('testfork'));
+      expect(foundMasterVersion.directory, equals(forkedVersionDir.path));
     });
   });
 }
