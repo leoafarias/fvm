@@ -10,7 +10,7 @@
 #    require core tools like curl, tar, grep, sed.
 # 2. We detect OS/architecture and automatically fetch the appropriate prebuilt
 #    binary from GitHub.
-# 3. We avoid letting the script run as root for security and best practice.
+# 3. We avoid root execution on desktop/server systems but allow it in containers.
 # 4. We set "strict mode" to fail quickly on errors or referencing unset vars.
 # 5. We attempt to update the user's shell rc (fish, zsh, bash) to add fvm's bin
 #    path if not already present, preventing repeated PATH lines on reruns.
@@ -18,17 +18,7 @@
 ###############################################################################
 
 
-###############################################################################
-# Strict Mode
-# -----------------------------------------------------------------------------
-# The following line:
-#   set -euo pipefail
-# Does three things:
-#   - 'set -e': Exit the script immediately if any command returns a non-zero.
-#   - 'set -u': Treat references to unset variables as errors, stopping the script.
-#   - 'set -o pipefail': If any part of a pipe fails, the pipeline fails as well.
-# This prevents partial or confusing installs if something goes wrong.
-###############################################################################
+# Exit on error, undefined vars, pipe failures
 set -euo pipefail
 
 ###############################################################################
@@ -40,18 +30,12 @@ set -euo pipefail
 # non-standard libraries, ensuring maximum compatibility across macOS & Linux.
 ###############################################################################
 Color_Off='\033[0m'      # Reset color
-Green='\033[0;32m'       # Green
 Red='\033[0;31m'         # Red
 Bold_White='\033[1m'     # Bold White text
 
 # log() prints a line with no extra formatting.
 log() {
   echo -e "$1"
-}
-
-# success() prints in green (used for positive messages, though not mandatory).
-success() {
-  log "${Green}$1${Color_Off}"
 }
 
 # info() prints in bold white for emphasis or step announcements.
@@ -65,19 +49,7 @@ error() {
   exit 1
 }
 
-###############################################################################
-# OS and Architecture Detection
-# -----------------------------------------------------------------------------
-# We check 'uname -s' for OS and 'uname -m' for machine architecture. Then we map
-# them to specific values expected by the FVM release artifacts:
-#   - OS => linux or macos
-#   - Arch => x64, arm64, or arm
-# Why do it this way? Because FVM's GitHub releases are named accordingly
-# (e.g., fvm-2.0.0-linux-x64.tar.gz), so we must unify those naming expectations.
-#
-# Alternatives: We could parse /etc/os-release or rely on environment variables,
-# but 'uname' is the simplest universal approach on macOS & Linux.
-###############################################################################
+# Detect OS and architecture for GitHub release naming (e.g., fvm-2.0.0-linux-x64.tar.gz)
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
@@ -109,6 +81,11 @@ esac
 info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
+# Helper function to detect container environment
+is_container_env() {
+  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
+}
+
 ###############################################################################
 # Root User Check with Simple Override
 # -----------------------------------------------------------------------------
@@ -116,8 +93,8 @@ info "Detected Architecture: $ARCH"
 # Simple detection: check for common container/CI indicators or explicit override.
 ###############################################################################
 if [[ $(id -u) -eq 0 ]]; then
-  # Allow root if: Docker container, CI environment, or explicit override
-  if [[ -f /.dockerenv ]] || [[ -n "${CI:-}" ]] || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
+  # Allow root if: Docker/Podman container, CI environment, or explicit override
+  if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
     info "Root execution allowed (container/CI/override detected)"
   else
     error "This script should not be run as root. Please run as a normal user.
@@ -129,6 +106,21 @@ fi
 
 # Store root status for later use
 IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
+
+# Store container status for later use
+IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
+
+# Helper function to create symlinks (DRY)
+create_symlink() {
+  local source="$1"
+  local target="$2"
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  else
+    "$ESCALATION_TOOL" ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  fi
+}
 
 # Require curl for GitHub API access
 if ! command -v curl &>/dev/null; then
@@ -159,7 +151,7 @@ FVM_VERSION=""
 if [[ $# -eq 0 ]]; then
   # No arguments => fetch the 'latest' from GitHub
   FVM_VERSION="$(
-    curl -s https://api.github.com/repos/leoafarias/fvm/releases/latest \
+    curl --silent https://api.github.com/repos/leoafarias/fvm/releases/latest \
     | grep '"tag_name":' \
     | sed -E 's/.*"([^"]+)".*/\1/'
   )"
@@ -167,10 +159,10 @@ if [[ $# -eq 0 ]]; then
     error "Failed to determine the latest FVM version from GitHub."
   fi
 else
-  # Use the argument as version - validate it's not empty and doesn't contain dangerous characters
+  # Use the argument as version - validate it matches semantic versioning pattern
   FVM_VERSION="$1"
-  if [[ -z "$FVM_VERSION" ]] || [[ "$FVM_VERSION" =~ [^a-zA-Z0-9._-] ]]; then
-    error "Invalid version format: $FVM_VERSION"
+  if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
+    error "Invalid version format: $FVM_VERSION. Expected format: 1.2.3 or v1.2.3"
   fi
 fi
 
@@ -181,10 +173,17 @@ FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
 SYMLINK_TARGET="/usr/local/bin/fvm"
 
-# Validate that the symlink target directory exists and is writable
+# Ensure symlink target directory exists
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
 if [[ ! -d "$SYMLINK_DIR" ]]; then
-  error "Symlink target directory does not exist: $SYMLINK_DIR"
+  if [[ "$IS_ROOT" == "true" ]]; then
+    mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
+    info "Created directory: $SYMLINK_DIR"
+  else
+    error "Symlink target directory does not exist: $SYMLINK_DIR
+    
+Please create it with: sudo mkdir -p $SYMLINK_DIR"
+  fi
 fi
 
 # Clean up existing installation and create fresh directory
@@ -200,23 +199,21 @@ URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_V
 
 info "Downloading $URL"
 if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
-  error "Download failed. Check your internet connection and verify the version exists."
+  error "Download failed. Possible causes:
+  - Check your internet connection
+  - Verify the version exists: $FVM_VERSION
+  - Check releases at: https://github.com/leoafarias/fvm/releases"
 fi
 
-# Validate the downloaded file is not empty and appears to be a gzip file
-if [[ ! -s fvm.tar.gz ]]; then
+# Validate the downloaded file
+if [[ ! -s fvm.tar.gz ]] || ! file fvm.tar.gz | grep -q "gzip compressed"; then
   rm -f fvm.tar.gz
-  error "Downloaded file is empty or corrupted."
-fi
-
-if ! file fvm.tar.gz | grep -q "gzip compressed"; then
-  rm -f fvm.tar.gz
-  error "Downloaded file is not a valid gzip archive."
+  error "Downloaded file is empty, corrupted, or not a valid gzip archive."
 fi
 
 # Extract and validate FVM binary
 info "Extracting fvm.tar.gz into $FVM_DIR"
-if ! tar xzf fvm.tar.gz -C "$FVM_DIR" 2>&1; then
+if ! tar xzf fvm.tar.gz -C "$FVM_DIR"; then
   rm -f fvm.tar.gz
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
 fi
@@ -235,20 +232,21 @@ mv "$FVM_DIR/fvm" "$FVM_DIR_BIN" || error "Failed to move 'fvm' binary to bin di
 
 # Create system-wide symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
-
-if [[ "$IS_ROOT" == "true" ]]; then
-  ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
-else
-  "$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
-fi
+create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
 
 # Helper functions for shell configuration
-tildify() {
-  if [[ "$1" = "$HOME"* ]]; then
-    echo "~${1#"$HOME"}"
-  else
-    echo "$1"
-  fi
+
+# Get the appropriate PATH export command for a shell type
+get_path_export() {
+  local shell_type="$1"
+  case "$shell_type" in
+    fish)
+      echo "set --export PATH $FVM_DIR_BIN \$PATH"
+      ;;
+    *)
+      echo "export PATH=\"$FVM_DIR_BIN:\$PATH\""
+      ;;
+  esac
 }
 
 # update_shell_config(config_file, export_command)
@@ -256,8 +254,8 @@ tildify() {
 update_shell_config() {
   local config_file="$1"
   local export_command="$2"
-  local tilde_config
-  tilde_config="$(tildify "$config_file")"
+  local tilde_config="${config_file/#$HOME/\~}"
+  local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
   if [[ -w "$config_file" ]]; then
     if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
@@ -265,10 +263,10 @@ update_shell_config() {
         echo -e "\n# FVM"
         echo "$export_command"
       } >> "$config_file"
-      info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_config]"
+      info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
       refresh_command="source $config_file"
     else
-      info "[$tilde_config] already references $tilde_FVM_DIR_BIN; skipping."
+      info "[$tilde_config] already references $tilde_fvm_dir; skipping."
     fi
     return 0
   else
@@ -276,13 +274,11 @@ update_shell_config() {
   fi
 }
 
-tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
-
 # Configure shell PATH (skip for root in non-container environments)
 refresh_command=''
 
 # Skip shell config for root in non-container environments (security)
-if [[ "$IS_ROOT" == "true" ]] && [[ ! -f /.dockerenv ]] && [[ -z "${CI:-}" ]]; then
+if [[ "$IS_ROOT" == "true" ]] && [[ "$IS_CONTAINER" != "true" ]]; then
   info "Installation complete! (Shell config skipped for root user)"
   log "fvm is available system-wide. Other users should add to their shell config:"
   info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
@@ -292,16 +288,16 @@ fi
 case "$(basename "$SHELL")" in
   fish)
     fish_config="$HOME/.config/fish/config.fish"
-    if ! update_shell_config "$fish_config" "set --export PATH $FVM_DIR_BIN \$PATH"; then
-      log "Manually add the following line to $(tildify "$fish_config"):"
-      info "  set --export PATH $FVM_DIR_BIN \$PATH"
+    if ! update_shell_config "$fish_config" "$(get_path_export fish)"; then
+      log "Manually add the following line to ${fish_config/#$HOME/\~}:"
+      info "  $(get_path_export fish)"
     fi
     ;;
   zsh)
     zsh_config="$HOME/.zshrc"
-    if ! update_shell_config "$zsh_config" "export PATH=\"$FVM_DIR_BIN:\$PATH\""; then
-      log "Manually add the following line to $(tildify "$zsh_config"):"
-      info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+    if ! update_shell_config "$zsh_config" "$(get_path_export zsh)"; then
+      log "Manually add the following line to ${zsh_config/#$HOME/\~}:"
+      info "  $(get_path_export zsh)"
     fi
     ;;
   bash)
@@ -310,7 +306,7 @@ case "$(basename "$SHELL")" in
 
     set_manually=true
     for bash_config in "${bash_configs[@]}"; do
-      if update_shell_config "$bash_config" "export PATH=$FVM_DIR_BIN:\$PATH"; then
+      if update_shell_config "$bash_config" "$(get_path_export bash)"; then
         set_manually=false
         break
       fi
@@ -318,12 +314,12 @@ case "$(basename "$SHELL")" in
 
     if [[ "$set_manually" == true ]]; then
       log "Manually add the following line to your bash config (e.g., ~/.bashrc):"
-      info "  export PATH=$FVM_DIR_BIN:\$PATH"
+      info "  $(get_path_export bash)"
     fi
     ;;
   *)
     log "Unknown shell: $(basename "$SHELL"). Manually add to your rc file:"
-    info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+    info "  $(get_path_export default)"
     ;;
 esac
 
