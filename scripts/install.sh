@@ -206,9 +206,15 @@ if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
 fi
 
 # Validate the downloaded file
-if [[ ! -s fvm.tar.gz ]] || ! file fvm.tar.gz | grep -q "gzip compressed"; then
+if [[ ! -s fvm.tar.gz ]]; then
   rm -f fvm.tar.gz
-  error "Downloaded file is empty, corrupted, or not a valid gzip archive."
+  error "Downloaded file is empty."
+fi
+
+# Test if it's a valid gzip by trying to list its contents
+if ! tar -tzf fvm.tar.gz &>/dev/null; then
+  rm -f fvm.tar.gz
+  error "Downloaded file is not a valid gzip archive."
 fi
 
 # Extract and validate FVM binary
