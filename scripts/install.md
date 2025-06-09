@@ -1,19 +1,46 @@
-## Install on Mac and Linux
+# FVM Installation Guide
 
-### Install FVM
+## Install on macOS and Linux
 
-Run the command below in your terminal.
+### Quick Install (Latest Version)
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash
+curl -fsSL https://fvm.app/install | bash
 ```
 
-### Install FVM on Windows
+### Install Specific Version
 
-**Run as Admin**: Open PowerShell as Administrator.
-
-**Install**: Paste and run the below command.
-
-```powershell
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://fvm.app/install.ps1')
+```bash
+curl -fsSL https://fvm.app/install | bash -s 3.2.1
 ```
+
+### Container/CI Installation
+
+For Docker, Podman, or CI environments:
+
+```bash
+export FVM_ALLOW_ROOT=true
+curl -fsSL https://fvm.app/install | bash
+```
+
+### Uninstall
+
+```bash
+curl -fsSL https://fvm.app/install | bash -s -- --uninstall
+```
+
+## Install on Windows
+
+### Chocolatey
+
+```bash
+choco install fvm
+```
+
+## Features
+
+- **Automatic PATH configuration** for bash, zsh, and fish shells
+- **Container support** with security safeguards
+- **Version validation** and error handling
+- **Unified install/uninstall** in a single script
+- **Cross-platform** support (macOS, Linux, Windows)

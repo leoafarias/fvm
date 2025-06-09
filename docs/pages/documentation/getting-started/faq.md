@@ -40,29 +40,28 @@ When running `dart pub global activate fvm`, pub will grab the latest FVM versio
 
 ## How to uninstall FVM
 
-The uninstall process depends on how you installed FVM:
+**Install script (macOS/Linux):**
+```bash
+./install.sh --uninstall
+```
 
-**If installed via Homebrew (macOS/Linux):**
+**Homebrew:**
 ```bash
 brew uninstall fvm
 brew untap leoafarias/fvm
 ```
 
-**If installed via pub:**
+**Pub:**
 ```bash
 dart pub global deactivate fvm
 ```
 
-**If installed via Chocolatey (Windows):**
+**Chocolatey (Windows):**
 ```bash
 choco uninstall fvm
 ```
 
-**If installed via standalone installer:**
-- Follow the uninstall instructions for your specific installer
-- Remove FVM from your PATH environment variable
-
-To remove all cached Flutter versions (optional):
+**Remove cached Flutter versions (optional):**
 ```bash
 fvm destroy
 ```

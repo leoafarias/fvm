@@ -1,83 +1,229 @@
 #!/usr/bin/env bash
-###############################################################################
-# FVM Installer
-# -----------------------------------------------------------------------------
-# This script installs FVM (Flutter Version Management) in a user-level location
-# (~/.fvm_flutter/bin) and then symlinks it system-wide to /usr/local/bin/fvm.
+# FVM Installer - Install/Uninstall Flutter Version Management
 #
-# Key Points:
-# 1. We do not rely on package managers (Homebrew, apt, yum, etc.). We only
-#    require core tools like curl, tar, grep, sed.
-# 2. We detect OS/architecture and automatically fetch the appropriate prebuilt
-#    binary from GitHub.
-# 3. We avoid letting the script run as root for security and best practice.
-# 4. We set "strict mode" to fail quickly on errors or referencing unset vars.
-# 5. We attempt to update the user's shell rc (fish, zsh, bash) to add fvm's bin
-#    path if not already present, preventing repeated PATH lines on reruns.
-# 6. We thoroughly log what’s happening, using color-coded or bold messages.
-###############################################################################
+# Usage:
+#   curl -fsSL https://fvm.app/install | bash
+#   curl -fsSL https://fvm.app/install | bash -s 3.2.1
+#   ./install.sh [OPTIONS] [VERSION]
+#
+# Examples:
+#   ./install.sh              # Install latest version
+#   ./install.sh 3.2.1        # Install specific version
+#   ./install.sh --uninstall  # Uninstall FVM
+#   ./install.sh --help       # Show help
+#
+# Environment:
+#   FVM_ALLOW_ROOT=true       # Allow root installation (for containers/CI)
 
-
-###############################################################################
-# Strict Mode
-# -----------------------------------------------------------------------------
-# The following line:
-#   set -euo pipefail
-# Does three things:
-#   - 'set -e': Exit the script immediately if any command returns a non-zero.
-#   - 'set -u': Treat references to unset variables as errors, stopping the script.
-#   - 'set -o pipefail': If any part of a pipe fails, the pipeline fails as well.
-# This prevents partial or confusing installs if something goes wrong.
-###############################################################################
 set -euo pipefail
 
-###############################################################################
-# Logging & Color Setup
-# -----------------------------------------------------------------------------
-# We define ANSI escape codes for colored output. Then we define helper functions
-# (log, info, success, error) for consistent, readable messaging.
-# Why do it this way? Because it avoids external dependencies like 'tput' or
-# non-standard libraries, ensuring maximum compatibility across macOS & Linux.
-###############################################################################
-Color_Off='\033[0m'      # Reset color
-Green='\033[0;32m'       # Green
-Red='\033[0;31m'         # Red
-Bold_White='\033[1m'     # Bold White text
+# Script version
+SCRIPT_VERSION="1.1.0"
 
-# log() prints a line with no extra formatting.
+# Installation paths
+FVM_DIR="$HOME/.fvm_flutter"
+FVM_DIR_BIN="$FVM_DIR/bin"
+SYMLINK_TARGET="/usr/local/bin/fvm"
+
+# Colors for output
+Color_Off='\033[0m'
+Red='\033[0;31m'
+Green='\033[0;32m'
+Yellow='\033[1;33m'
+Bold_White='\033[1m'
+
+# Simple logging functions
 log() {
-  echo -e "$1"
+  printf "%b\n" "$1"
 }
 
-# success() prints in green (used for positive messages, though not mandatory).
-success() {
-  log "${Green}$1${Color_Off}"
-}
-
-# info() prints in bold white for emphasis or step announcements.
 info() {
   log "${Bold_White}$1${Color_Off}"
 }
 
-# error() prints in red to stderr, then exits the script with code 1.
+success() {
+  log "${Green}$1${Color_Off}"
+}
+
+warn() {
+  log "${Yellow}$1${Color_Off}"
+}
+
 error() {
   log "${Red}error: $1${Color_Off}" >&2
   exit 1
 }
 
-###############################################################################
-# OS and Architecture Detection
-# -----------------------------------------------------------------------------
-# We check 'uname -s' for OS and 'uname -m' for machine architecture. Then we map
-# them to specific values expected by the FVM release artifacts:
-#   - OS => linux or macos
-#   - Arch => x64, arm64, or arm
-# Why do it this way? Because FVM's GitHub releases are named accordingly
-# (e.g., fvm-2.0.0-linux-x64.tar.gz), so we must unify those naming expectations.
-#
-# Alternatives: We could parse /etc/os-release or rely on environment variables,
-# but 'uname' is the simplest universal approach on macOS & Linux.
-###############################################################################
+# Show help
+show_help() {
+  cat << EOF
+FVM Installer v${SCRIPT_VERSION}
+
+Install/Uninstall Flutter Version Management (FVM) on Linux/macOS
+
+USAGE:
+    curl -fsSL https://fvm.app/install | bash
+    curl -fsSL https://fvm.app/install | bash -s [VERSION]
+    ./install.sh [OPTIONS] [VERSION]
+
+OPTIONS:
+    -h, --help        Show this help message
+    -v, --version     Show script version
+    -u, --uninstall   Uninstall FVM
+
+ARGUMENTS:
+    VERSION         Specific FVM version to install (e.g., 3.2.1)
+                    If omitted, installs the latest version
+
+EXAMPLES:
+    # Install latest version
+    curl -fsSL https://fvm.app/install | bash
+    
+    # Install specific version
+    curl -fsSL https://fvm.app/install | bash -s 3.2.1
+    
+    # Uninstall FVM
+    ./install.sh --uninstall
+    
+    # Allow root installation in containers
+    export FVM_ALLOW_ROOT=true
+    ./install.sh
+
+ENVIRONMENT:
+    FVM_ALLOW_ROOT  Set to 'true' to allow root installation (containers/CI)
+
+EOF
+  exit 0
+}
+
+# Check if running in container/CI environment
+is_container_env() {
+  [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]]
+}
+
+# Store root/container status
+IS_ROOT=$([[ $(id -u) -eq 0 ]] && echo "true" || echo "false")
+IS_CONTAINER=$(is_container_env && echo "true" || echo "false")
+
+# Find privilege escalation tool (sudo/doas)
+ESCALATION_TOOL=''
+if [[ "$IS_ROOT" != "true" ]]; then
+  for cmd in sudo doas; do
+    if command -v "$cmd" &>/dev/null; then
+      ESCALATION_TOOL="$cmd"
+      break
+    fi
+  done
+fi
+
+# Helper to create symlinks
+create_symlink() {
+  local source="$1"
+  local target="$2"
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  else
+    "$ESCALATION_TOOL" ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+  fi
+}
+
+# Helper to remove symlinks
+remove_symlink() {
+  local target="$1"
+  
+  if [[ "$IS_ROOT" == "true" ]]; then
+    rm -f "$target" || error "Failed to remove symlink: $target"
+  else
+    "$ESCALATION_TOOL" rm -f "$target" || error "Failed to remove symlink: $target"
+  fi
+}
+
+# Uninstall FVM
+uninstall_fvm() {
+  info "Uninstalling FVM..."
+  
+  # Check if FVM is installed
+  local fvm_found=false
+  
+  # Check for FVM directory
+  if [[ -d "$FVM_DIR" ]]; then
+    fvm_found=true
+    info "Found FVM directory: $FVM_DIR"
+  fi
+  
+  # Check for symlink
+  if [[ -L "$SYMLINK_TARGET" ]] && [[ "$(readlink "$SYMLINK_TARGET")" == *"fvm"* ]]; then
+    fvm_found=true
+    info "Found FVM symlink: $SYMLINK_TARGET"
+  fi
+  
+  if [[ "$fvm_found" == false ]]; then
+    warn "FVM installation not found. Nothing to uninstall."
+    exit 0
+  fi
+  
+  # Remove FVM directory
+  if [[ -d "$FVM_DIR" ]]; then
+    info "Removing FVM directory..."
+    rm -rf "$FVM_DIR" || error "Failed to remove $FVM_DIR"
+    success "Removed $FVM_DIR"
+  fi
+  
+  # Remove symlink
+  if [[ -L "$SYMLINK_TARGET" ]]; then
+    info "Removing FVM symlink..."
+    remove_symlink "$SYMLINK_TARGET"
+    success "Removed $SYMLINK_TARGET"
+  fi
+  
+  # Notify about PATH cleanup
+  warn "Note: FVM PATH entries may still exist in your shell config files:"
+  log "  - ~/.bashrc"
+  log "  - ~/.zshrc"
+  log "  - ~/.config/fish/config.fish"
+  log ""
+  log "To remove them, search for lines containing '$FVM_DIR_BIN' in these files."
+  
+  success "FVM has been uninstalled!"
+  exit 0
+}
+
+# Parse command line arguments
+FVM_VERSION=""
+UNINSTALL_MODE=false
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      show_help
+      ;;
+    -v|--version)
+      echo "FVM Installer v${SCRIPT_VERSION}"
+      exit 0
+      ;;
+    -u|--uninstall)
+      UNINSTALL_MODE=true
+      ;;
+    -*)
+      error "Unknown option: $1. Use --help for usage."
+      ;;
+    *)
+      # Assume it's a version number
+      FVM_VERSION="$1"
+      ;;
+  esac
+  shift
+done
+
+# Handle uninstall mode
+if [[ "$UNINSTALL_MODE" == true ]]; then
+  uninstall_fvm
+fi
+
+# From here on is installation logic...
+
+# Detect OS and architecture
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
@@ -105,119 +251,75 @@ case "$ARCH" in
     ;;
 esac
 
-# Print out the detection results to keep the user informed.
 info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
 
-###############################################################################
-# Avoid Running as Root
-# -----------------------------------------------------------------------------
-# Installing software as root can be dangerous, especially for userland tools
-# that don't *need* full privileges. We want a user-level directory, but do
-# require a small privilege escalation for symlinking to /usr/local/bin.
-# Alternative approach: We could ask the user if they want a system-level or
-# user-level only. Here, we forcibly disallow root for simplicity.
-###############################################################################
+# Block root execution except in containers
 if [[ $(id -u) -eq 0 ]]; then
-  error "This script should not be run as root. Please run as a normal user."
+  if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
+    info "Root execution allowed (container/CI/override detected)"
+  else
+    error "This script should not be run as root. Please run as a normal user.
+
+For containers/CI: This should be detected automatically.
+To override: export FVM_ALLOW_ROOT=true"
+  fi
 fi
 
-###############################################################################
-# Check for 'curl'
-# -----------------------------------------------------------------------------
-# We need 'curl' to fetch data from GitHub. If it's missing, we fail early with
-# instructions. Why not install it automatically? Because we don't want to rely
-# on a package manager (brew, apt, etc.). So we just inform the user.
-###############################################################################
+# Check for required tools
 if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-###############################################################################
-# Finding a Privilege-Escalation Tool
-# -----------------------------------------------------------------------------
-# We only need elevated privileges to create a symlink in /usr/local/bin, which
-# is typically root-owned. We'll look for 'sudo' or 'doas'. If neither is found,
-# we cannot proceed with system-wide symlink.
-# Alternative approach: We could skip this if we only do user-level. But for a
-# globally accessible 'fvm' command, we do need it.
-###############################################################################
-ESCALATION_TOOL=''
-for cmd in sudo doas; do
-  if command -v "$cmd" &>/dev/null; then
-    ESCALATION_TOOL="$cmd"
-    break
+# Only check for escalation tools if not running as root
+if [[ "$IS_ROOT" != "true" ]]; then
+  if [[ -z "$ESCALATION_TOOL" ]]; then
+    error "Cannot find sudo or doas. Install one or run as root."
   fi
-done
-
-if [[ -z "$ESCALATION_TOOL" ]]; then
-  error "Cannot find sudo or doas for escalated privileges. Aborting."
 fi
 
-###############################################################################
-# (Optional) Detect Currently Installed FVM
-# -----------------------------------------------------------------------------
-# If FVM is already installed, we can detect it for informational purposes.
-# This could be extended in the future to compare versions or provide upgrade info.
-###############################################################################
+# Check for existing installation
 if command -v fvm &>/dev/null; then
   info "Existing FVM installation detected. It will be replaced."
 fi
 
-###############################################################################
-# Determine Which FVM Version to Install
-# -----------------------------------------------------------------------------
-# If the script is called with an argument, we assume it's a version/tag (e.g. 2.0.0).
-# Otherwise, we query GitHub releases for the 'latest' tag. If that fails, we bail.
-# Why not parse JSON properly with 'jq'? Because 'jq' might not be installed.
-# So we do a quick 'grep' & 'sed' approach.
-###############################################################################
-FVM_VERSION=""
-if [[ $# -eq 0 ]]; then
-  # No arguments => fetch the 'latest' from GitHub
-  FVM_VERSION="$(
-    curl -s https://api.github.com/repos/leoafarias/fvm/releases/latest \
-    | grep '"tag_name":' \
-    | sed -E 's/.*"([^"]+)".*/\1/'
-  )"
+# Get FVM version (latest if not specified)
+if [[ -z "$FVM_VERSION" ]]; then
+  info "Getting latest FVM version..."
+  
+  # Use GitHub's web redirect instead of API to avoid rate limits
+  # GitHub Actions runners share IPs and hit the 60 req/hour API limit
+  # This method has no rate limits and is simpler (KISS principle)
+  FVM_VERSION=$(curl -sI https://github.com/leoafarias/fvm/releases/latest | grep -i location | cut -d' ' -f2 | rev | cut -d'/' -f1 | rev | tr -d '\r')
+  
   if [[ -z "$FVM_VERSION" ]]; then
-    error "Failed to determine the latest FVM version from GitHub."
+    # Simple fallback - no complex error handling needed
+    FVM_VERSION="3.2.1"
+    warn "Could not fetch latest version. Using fallback: $FVM_VERSION"
   fi
 else
-  # Use the argument as version - validate it's not empty and doesn't contain dangerous characters
-  FVM_VERSION="$1"
-  if [[ -z "$FVM_VERSION" ]] || [[ "$FVM_VERSION" =~ [^a-zA-Z0-9._-] ]]; then
-    error "Invalid version format: $FVM_VERSION"
+  # Validate version format
+  if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
+    error "Invalid version format: $FVM_VERSION. Expected format: 1.2.3 or v1.2.3"
   fi
 fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-###############################################################################
-# Define Installation Directories
-# -----------------------------------------------------------------------------
-# We want a user-level directory for storing the FVM binary. We'll create:
-#   ~/.fvm_flutter/bin
-# Then we place 'fvm' inside that bin, and symlink to /usr/local/bin/fvm.
-# Why .fvm_flutter? It's an arbitrary choice, used by convention for FVM.
-###############################################################################
-FVM_DIR="$HOME/.fvm_flutter"
-FVM_DIR_BIN="$FVM_DIR/bin"
-SYMLINK_TARGET="/usr/local/bin/fvm"
-
-# Validate that the symlink target directory exists and is writable
+# Ensure symlink directory exists
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
 if [[ ! -d "$SYMLINK_DIR" ]]; then
-  error "Symlink target directory does not exist: $SYMLINK_DIR"
+  if [[ "$IS_ROOT" == "true" ]]; then
+    mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
+    info "Created directory: $SYMLINK_DIR"
+  else
+    error "Symlink target directory does not exist: $SYMLINK_DIR
+    
+Please create it with: sudo mkdir -p $SYMLINK_DIR"
+  fi
 fi
 
-###############################################################################
-# Clean Up Existing FVM Bin Directory (if any), Then Recreate
-# -----------------------------------------------------------------------------
-# We remove ~/.fvm_flutter/bin if it exists, to avoid leftover files. Then we
-# recreate it so we have a clean slate. If we didn't reorder these steps, we'd
-# risk creating it, then immediately deleting it. This ensures clarity.
-###############################################################################
+# Clean existing installation
 if [[ -d "$FVM_DIR_BIN" ]]; then
   info "FVM bin directory [$FVM_DIR_BIN] already exists. Removing it."
   rm -rf "$FVM_DIR_BIN" || error "Failed to remove existing FVM bin directory."
@@ -225,92 +327,85 @@ fi
 
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
-###############################################################################
-# Download FVM Tarball
-# -----------------------------------------------------------------------------
-# We form the GitHub release URL for the chosen version, OS, and architecture.
-# Example: https://github.com/leoafarias/fvm/releases/download/2.0.0/fvm-2.0.0-linux-x64.tar.gz
-# We then download it to 'fvm.tar.gz'.
-###############################################################################
+# Download FVM
 URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
 
 info "Downloading $URL"
 if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
-  error "Download failed. Check your internet connection and verify the version exists."
+  error "Download failed. Possible causes:
+  - Check your internet connection
+  - Verify the version exists: $FVM_VERSION
+  - Check releases at: https://github.com/leoafarias/fvm/releases"
 fi
 
-# Validate the downloaded file is not empty and appears to be a gzip file
+# Validate download
 if [[ ! -s fvm.tar.gz ]]; then
   rm -f fvm.tar.gz
-  error "Downloaded file is empty or corrupted."
+  error "Downloaded file is empty."
 fi
 
-if ! file fvm.tar.gz | grep -q "gzip compressed"; then
+# Test if valid gzip
+if ! tar -tzf fvm.tar.gz &>/dev/null; then
   rm -f fvm.tar.gz
   error "Downloaded file is not a valid gzip archive."
 fi
 
-###############################################################################
-# Extract Tarball
-# -----------------------------------------------------------------------------
-# We extract it directly into ~/.fvm_flutter. The tar presumably contains a
-# single 'fvm' binary at the top level. We can verify it's indeed so. If the
-# tar file structure changes, we'd need to adjust the logic.
-###############################################################################
-info "Extracting fvm.tar.gz into $FVM_DIR"
-if ! tar xzf fvm.tar.gz -C "$FVM_DIR" 2>&1; then
+# Extract FVM
+info "Extracting fvm.tar.gz into temporary directory"
+TEMP_EXTRACT="$FVM_DIR/temp_extract"
+mkdir -p "$TEMP_EXTRACT"
+if ! tar xzf fvm.tar.gz -C "$TEMP_EXTRACT"; then
+  rm -rf "$TEMP_EXTRACT"
   rm -f fvm.tar.gz
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
 fi
 
-# Verify the expected binary was extracted
-if [[ ! -f "$FVM_DIR/fvm" ]]; then
+# Handle different tarball structures
+if [[ -d "$TEMP_EXTRACT/fvm" ]]; then
+  # New structure: fvm directory with binary and dependencies
+  mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
+  rm -rf "$TEMP_EXTRACT"
+elif [[ -f "$TEMP_EXTRACT/fvm" ]]; then
+  # Old structure: just the binary at root
+  mv "$TEMP_EXTRACT/fvm" "$FVM_DIR_BIN/" || error "Failed to move fvm binary"
+  rm -rf "$TEMP_EXTRACT"
+else
+  rm -rf "$TEMP_EXTRACT"
   rm -f fvm.tar.gz
   error "Expected 'fvm' binary not found after extraction."
 fi
 
-# Cleanup the tarball to avoid clutter
+# Verify binary exists
+if [[ ! -f "$FVM_DIR_BIN/fvm" ]]; then
+  rm -f fvm.tar.gz
+  error "FVM binary not found in expected location after extraction."
+fi
+
+# Cleanup
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
 
-###############################################################################
-# Move 'fvm' into the 'bin' subdirectory
-# -----------------------------------------------------------------------------
-# After extraction, we expect $FVM_DIR/fvm to exist. We want it in $FVM_DIR/bin
-# for clarity. This also makes it easier to add that bin path to the environment.
-###############################################################################
-mv "$FVM_DIR/fvm" "$FVM_DIR_BIN" || error "Failed to move 'fvm' binary to bin directory."
-
-###############################################################################
-# Create Symlink in /usr/local/bin
-# -----------------------------------------------------------------------------
-# We use whichever escalation tool we found earlier (sudo/doas) to link
-# ~/.fvm_flutter/bin/fvm => /usr/local/bin/fvm. That way any user can type 'fvm'
-# in their shell. If we skip this, the user must rely on local PATH changes only.
-###############################################################################
+# Create system symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
-"$ESCALATION_TOOL" ln -sf "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET" || error "Failed to symlink in /usr/local/bin"
+create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
 
-###############################################################################
-# Helper Functions
-# -----------------------------------------------------------------------------
-# tildify() - Replaces $HOME path with '~' for readability
-# update_shell_config() - Common logic for updating shell configuration files
-###############################################################################
-tildify() {
-  if [[ "$1" = "$HOME"* ]]; then
-    echo "~${1#"$HOME"}"
-  else
-    echo "$1"
-  fi
+# Shell configuration helpers
+get_path_export() {
+  local shell_type="$1"
+  case "$shell_type" in
+    fish)
+      echo "set --export PATH $FVM_DIR_BIN \$PATH"
+      ;;
+    *)
+      echo "export PATH=\"$FVM_DIR_BIN:\$PATH\""
+      ;;
+  esac
 }
 
-# update_shell_config(config_file, export_command)
-# Updates a shell configuration file with the FVM PATH export
 update_shell_config() {
   local config_file="$1"
   local export_command="$2"
-  local tilde_config
-  tilde_config="$(tildify "$config_file")"
+  local tilde_config="${config_file/#$HOME/\~}"
+  local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
   if [[ -w "$config_file" ]]; then
     if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
@@ -318,10 +413,10 @@ update_shell_config() {
         echo -e "\n# FVM"
         echo "$export_command"
       } >> "$config_file"
-      info "Added [$tilde_FVM_DIR_BIN] to \$PATH in [$tilde_config]"
+      info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
       refresh_command="source $config_file"
     else
-      info "[$tilde_config] already references $tilde_FVM_DIR_BIN; skipping."
+      info "[$tilde_config] already references $tilde_fvm_dir; skipping."
     fi
     return 0
   else
@@ -329,40 +424,38 @@ update_shell_config() {
   fi
 }
 
-tilde_FVM_DIR_BIN="$(tildify "$FVM_DIR_BIN")"
-
-###############################################################################
-# Attempt to Add FVM_DIR_BIN to the User's Shell RC
-# -----------------------------------------------------------------------------
-# Many shells won't automatically include ~/.fvm_flutter/bin in PATH. We'll try
-# to detect if the user is using fish, zsh, or bash by looking at $SHELL. Then
-# we append a line to their config only if it's not already present. If we can't
-# write to the config, we instruct them to do it manually.
-###############################################################################
+# Configure shell PATH (skip for root in non-container environments)
 refresh_command=''
 
+if [[ "$IS_ROOT" == "true" ]] && [[ "$IS_CONTAINER" != "true" ]]; then
+  info "Installation complete! (Shell config skipped for root user)"
+  log "fvm is available system-wide. Other users should add to their shell config:"
+  info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+  exit 0
+fi
+
+# Update shell config based on current shell
 case "$(basename "$SHELL")" in
   fish)
     fish_config="$HOME/.config/fish/config.fish"
-    if ! update_shell_config "$fish_config" "set --export PATH $FVM_DIR_BIN \$PATH"; then
-      log "Manually add the following line to $(tildify "$fish_config"):"
-      info "  set --export PATH $FVM_DIR_BIN \$PATH"
+    if ! update_shell_config "$fish_config" "$(get_path_export fish)"; then
+      log "Manually add the following line to ${fish_config/#$HOME/\~}:"
+      info "  $(get_path_export fish)"
     fi
     ;;
   zsh)
     zsh_config="$HOME/.zshrc"
-    if ! update_shell_config "$zsh_config" "export PATH=\"$FVM_DIR_BIN:\$PATH\""; then
-      log "Manually add the following line to $(tildify "$zsh_config"):"
-      info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+    if ! update_shell_config "$zsh_config" "$(get_path_export zsh)"; then
+      log "Manually add the following line to ${zsh_config/#$HOME/\~}:"
+      info "  $(get_path_export zsh)"
     fi
     ;;
   bash)
-    # Try common bash config files in order of preference
     bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
     for bash_config in "${bash_configs[@]}"; do
-      if update_shell_config "$bash_config" "export PATH=$FVM_DIR_BIN:\$PATH"; then
+      if update_shell_config "$bash_config" "$(get_path_export bash)"; then
         set_manually=false
         break
       fi
@@ -370,21 +463,16 @@ case "$(basename "$SHELL")" in
 
     if [[ "$set_manually" == true ]]; then
       log "Manually add the following line to your bash config (e.g., ~/.bashrc):"
-      info "  export PATH=$FVM_DIR_BIN:\$PATH"
+      info "  $(get_path_export bash)"
     fi
     ;;
   *)
     log "Unknown shell: $(basename "$SHELL"). Manually add to your rc file:"
-    info "  export PATH=\"$FVM_DIR_BIN:\$PATH\""
+    info "  $(get_path_export default)"
     ;;
 esac
 
-###############################################################################
-# Final Instructions
-# -----------------------------------------------------------------------------
-# We print a short message to tell the user how to immediately apply the new PATH
-# changes (if we automatically appended them) and how to start using FVM.
-###############################################################################
+# Final instructions
 echo
 info "Installation complete!"
 log "To use fvm right away, run:"
