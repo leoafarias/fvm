@@ -71,3 +71,4 @@ ios/
 android/
 CLAUDE.md
 coverage/html_report
+.augment/env/setup.sh

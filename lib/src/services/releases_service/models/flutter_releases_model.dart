@@ -73,7 +73,8 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
   // ignore: avoid-dynamic
   final releasesJson = map['releases'] as List<dynamic>;
 
-  final systemArch = 'x64';
+  final systemArch = (Platform.version.contains('arm64') || 
+                     Platform.version.contains('aarch64')) ? 'arm64' : 'x64';
 
   final releasesList = <FlutterSdkRelease>[];
   final versionReleaseMap = <String, FlutterSdkRelease>{};
