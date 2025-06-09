@@ -91,7 +91,11 @@ void main() {
 
       // Validate the archive URL format
       expect(release.archiveUrl, contains('flutter_'));
-      expect(release.archiveUrl, contains('.tar.xz'));
+      if (Platform.isLinux) {
+        expect(release.archiveUrl, contains('.tar.xz'));
+      } else if (Platform.isMacOS || Platform.isWindows) {
+        expect(release.archiveUrl, contains('.zip'));
+      }
 
       // If SHA256 is available, validate it's a proper hash
       if (release.sha256.isNotEmpty) {
@@ -121,8 +125,10 @@ void main() {
       final cacheService = context.get<CacheService>();
 
       // Use a known small/old version to minimize download size
-      final version = FlutterVersion.parse('1.0.0');
+      final version = FlutterVersion.parse('3.0.0');
       final canDownload = await downloadService.canDownload(version);
+      expect(canDownload, isTrue, 
+        reason: 'Version 3.0.0 must be downloadable for this test to run');
 
       if (!canDownload) {
         // Skip test if version not available for download
@@ -151,7 +157,7 @@ void main() {
 
         // Verify version file content
         final versionContent = versionFile.readAsStringSync().trim();
-        expect(versionContent, contains('1.0.0'));
+        expect(versionContent, contains('3.0.0'));
 
       } finally {
         // Clean up

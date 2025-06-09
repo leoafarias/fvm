@@ -1,11 +1,11 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/flutter_version_model.dart';
 import '../utils/exceptions.dart';
+import '../version.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'releases_service/releases_client.dart';
@@ -15,119 +15,112 @@ class DownloadService extends ContextualService {
   const DownloadService(super.context);
 
   /// Downloads the archive file from the given URL
-  Future<Uint8List> _downloadArchive(String url) async {
+  Future<File> _downloadArchive(String url) async {
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 30)
+      ..idleTimeout = const Duration(minutes: 2);
+
+    final tempDir = await Directory.systemTemp.createTemp('fvm_flutter_sdk_');
+    final tempFile = File(path.join(tempDir.path, 'flutter_sdk.archive'));
+
     try {
-      final client = HttpClient();
-      final request = await client.getUrl(Uri.parse(url));
+      final request = await client.getUrl(Uri.parse(url))
+        ..headers.set('User-Agent', 'FVM/$packageVersion');
+
       final response = await request.close();
-
       if (response.statusCode != 200) {
-        throw AppException(
-          'Failed to download archive: HTTP ${response.statusCode}',
-        );
+        throw AppException('Failed to download: HTTP ${response.statusCode}');
       }
 
-      final bytes = <int>[];
+      final sink = tempFile.openWrite();
+      final progress = logger.progress('Downloading Flutter SDK');
+      int downloaded = 0;
+
       await for (final chunk in response) {
-        bytes.addAll(chunk);
-      }
+        sink.add(chunk);
+        downloaded += chunk.length;
 
-      client.close();
-
-      return Uint8List.fromList(bytes);
-    } catch (e) {
-      Error.throwWithStackTrace(
-        AppException('Failed to download Flutter SDK archive: $e'),
-        StackTrace.current,
-      );
-    }
-  }
-
-  /// Extracts a tar.xz archive to the specified directory
-  Future<void> _extractArchive(
-      Uint8List archiveBytes,
-      Directory targetDir,) async {
-    try {
-      // Decompress XZ and extract TAR
-      final xzDecoder = XZDecoder();
-      final tarBytes = xzDecoder.decodeBytes(archiveBytes);
-      final tarArchive = TarDecoder().decodeBytes(tarBytes);
-
-      if (!targetDir.existsSync()) {
-        targetDir.createSync(recursive: true);
-      }
-
-      // Extract files, removing flutter/ prefix from paths
-      for (final file in tarArchive) {
-        if (file.name.isEmpty || file.name.contains('..')) continue;
-
-        // Remove flutter/ prefix: flutter/bin/flutter -> bin/flutter
-        final parts = file.name.split('/');
-        if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) {
-          continue;
-        }
-
-        final relativePath =
-            parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
-        if (relativePath.isEmpty) {
-          continue;
-        }
-
-        final filePath = path.join(targetDir.path, relativePath);
-
-        if (file.isFile) {
-          final outputFile = File(filePath);
-          await outputFile.parent.create(recursive: true);
-          await outputFile.writeAsBytes(file.content);
-
-          // Set executable permissions for binaries
-          if (relativePath.contains('/bin/') &&
-              !relativePath.endsWith('.bat')) {
-            _setExecutablePermissions(outputFile);
-          }
+        final mb = (downloaded / 1024 / 1024).toStringAsFixed(1);
+        if (response.contentLength > 0) {
+          final percent =
+              (downloaded / response.contentLength * 100).toStringAsFixed(0);
+          final totalMB =
+              (response.contentLength / 1024 / 1024).toStringAsFixed(1);
+          progress.update('$percent% - ${mb}MB/${totalMB}MB');
         } else {
-          await Directory(filePath).create(recursive: true);
+          progress.update('${mb}MB downloaded');
         }
       }
+
+      await sink.close();
+      final finalMB = (downloaded / 1024 / 1024).toStringAsFixed(1);
+      progress.complete('Download complete (${finalMB}MB)');
+
+      return tempFile;
     } catch (e) {
-      Error.throwWithStackTrace(
-        AppException('Failed to extract Flutter SDK archive: $e'),
-        StackTrace.current,
-      );
+      if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
+      rethrow;
+    } finally {
+      client.close();
     }
   }
 
-  /// Sets executable permissions on a file (Unix-like systems only)
-  void _setExecutablePermissions(File file) {
-    if (!Platform.isWindows) {
-      try {
-        Process.runSync('chmod', ['+x', file.path]);
-      } catch (e) {
-        logger
-            .warn('Failed to set executable permissions for ${file.path}: $e');
+  /// Extracts a Flutter SDK archive to the specified directory
+  Future<void> _extractArchive(File archiveFile, Directory targetDir) async {
+    final archiveBytes = await archiveFile.readAsBytes();
+
+    // Decode based on platform
+    final archive = Platform.isLinux
+        ? TarDecoder().decodeBytes(XZDecoder().decodeBytes(archiveBytes))
+        : ZipDecoder().decodeBytes(archiveBytes);
+
+    targetDir.createSync(recursive: true);
+
+    for (final file in archive) {
+      if (file.name.isEmpty || file.name.contains('..')) continue;
+
+      // Remove flutter/ prefix
+      final parts = file.name.split('/');
+      if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) {
+        continue;
+      }
+
+      final relativePath =
+          parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
+      if (relativePath.isEmpty) continue;
+
+      final filePath = path.join(targetDir.path, relativePath);
+
+      if (file.isFile) {
+        final outputFile = File(filePath);
+        await outputFile.parent.create(recursive: true);
+        await outputFile.writeAsBytes(file.content);
+
+        // Set executable permissions for binaries
+        if (!Platform.isWindows &&
+            (relativePath.startsWith('bin/') ||
+                relativePath.contains('/bin/')) &&
+            !relativePath.endsWith('.bat')) {
+          try {
+            Process.runSync('chmod', ['+x', filePath]);
+          } catch (_) {}
+        }
+      } else {
+        Directory(filePath).createSync(recursive: true);
       }
     }
   }
 
   /// Verifies that the extraction was successful
   void _verifyExtraction(Directory versionDir) {
-    // Check for essential Flutter files
     final flutterBin = File(path.join(versionDir.path, 'bin', 'flutter'));
     final versionFile = File(path.join(versionDir.path, 'version'));
 
-    if (!flutterBin.existsSync()) {
+    if (!flutterBin.existsSync() || !versionFile.existsSync()) {
       throw AppException(
-        'Flutter binary not found after extraction. The archive may be corrupted.',
+        'Flutter SDK extraction failed - missing essential files',
       );
     }
-
-    if (!versionFile.existsSync()) {
-      throw AppException(
-        'Version file not found after extraction. The archive may be corrupted.',
-      );
-    }
-
-    logger.debug('Extraction verification successful');
   }
 
   /// Checks if a version can be downloaded (is an official release)
@@ -151,39 +144,27 @@ class DownloadService extends ContextualService {
 
   /// Downloads and extracts a Flutter SDK archive for the given version
   Future<void> downloadAndExtract(FlutterVersion version) async {
-    final releaseClient = get<FlutterReleaseClient>();
-    final cacheService = get<CacheService>();
-
-    // Get release information from the releases API
-    final release = await releaseClient.getReleaseByVersion(version.version);
+    final release =
+        await get<FlutterReleaseClient>().getReleaseByVersion(version.version);
     if (release == null) {
       throw AppException(
-        'Version ${version.version} is not available for download. '
-        'Only official Flutter releases can be downloaded as archives.',
+        'Version ${version.version} is not available for download',
       );
     }
 
-    // Get the target directory for extraction
-    final versionDir = cacheService.getVersionCacheDir(version);
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
+    versionDir.parent.createSync(recursive: true);
 
-    // Create parent directories if needed
-    if (!versionDir.parent.existsSync()) {
-      versionDir.parent.createSync(recursive: true);
+    File? tempFile;
+    try {
+      tempFile = await _downloadArchive(release.archiveUrl);
+      await _extractArchive(tempFile, versionDir);
+      _verifyExtraction(versionDir);
+      logger.info('Flutter SDK downloaded and extracted successfully!');
+    } finally {
+      if (tempFile?.parent.existsSync() == true) {
+        tempFile!.parent.deleteSync(recursive: true);
+      }
     }
-
-    // Download the archive
-    logger.info('Downloading Flutter SDK archive...');
-    final archiveBytes = await _downloadArchive(release.archiveUrl);
-
-    // Extract the archive
-    logger.info('Extracting Flutter SDK archive...');
-    await _extractArchive(archiveBytes, versionDir);
-
-    // Verify the extraction was successful
-    _verifyExtraction(versionDir);
-
-    logger.info('Flutter SDK downloaded and extracted successfully!');
   }
-
-
 }
