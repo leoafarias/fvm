@@ -2,7 +2,10 @@
 
 ## Overview
 
-FVM v4.0 represents a major evolution in Flutter Version Management, introducing powerful new features for enterprise environments, improved reliability, and enhanced developer experience. This release includes 63 commits with significant architectural improvements, new commands, and comprehensive workflow enhancements.
+FVM v4.0 represents a major evolution in Flutter Version Management, introducing powerful new features33. **Command Updates**:
+   - Replace `fvm update` with your package manager's update command
+   - Note: `fvm flavor` and `fvm destroy` commands remain available with updated behaviorCommand Updates**:
+   - Replace `fvm update` with your package manager's update command enterprise environments, improved reliability, and enhanced developer experience. This release includes 63 commits with significant architectural improvements, new commands, and comprehensive workflow enhancements.
 
 ## Major Features
 
@@ -82,8 +85,6 @@ fvm integration-test
 
 ### Commands Removed
 - **`fvm update`**: Removed - use package manager instead (brew, chocolatey, pub global)
-- **`fvm flavor`**: Use `fvm use <flavor>` instead
-- **`fvm destroy`**: Use `fvm remove --all` instead
 
 ### Configuration Changes
 - Config file moved from `.fvm/fvm_config.json` to `.fvmrc` in project root

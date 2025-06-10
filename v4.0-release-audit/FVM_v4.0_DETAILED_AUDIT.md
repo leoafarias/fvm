@@ -131,8 +131,7 @@ Based on CLAUDE.md metrics:
 
 #### 5.2 Command Changes
 - `fvm update` → Removed (use package manager)
-- `fvm flavor` → Use `fvm use <flavor>`
-- `fvm destroy` → Use `fvm remove --all`
+- Note: `fvm flavor` and `fvm destroy` commands remain available with updated behavior
 
 #### 5.3 Configuration Changes
 - `.fvm/fvm_config.json` → `.fvmrc`

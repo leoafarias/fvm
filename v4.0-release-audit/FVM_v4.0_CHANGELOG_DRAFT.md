@@ -87,8 +87,6 @@
 
 ### Removed Commands
 - `fvm update` - Use package manager (brew/chocolatey/pub) instead
-- `fvm flavor` - Use `fvm use <flavor>` instead  
-- `fvm destroy` - Use `fvm remove --all` instead
 
 ### Configuration Changes
 - Config moved from `.fvm/fvm_config.json` to `.fvmrc` in project root
