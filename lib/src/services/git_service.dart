@@ -6,7 +6,7 @@ import 'package:git/git.dart';
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/file_lock.dart';
-import '../utils/git_clone_update_printer.dart';
+import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'process_service.dart';
@@ -42,23 +42,18 @@ class GitService extends ContextualService {
     );
 
     final processLogs = <String>[];
+    final progressTracker = GitCloneProgressTracker(logger);
 
-    try {
-      // ignore: avoid-unassigned-stream-subscriptions
-      process.stderr.transform(utf8.decoder).listen((line) {
-        printProgressBar(line, logger);
-        processLogs.add(line);
-      });
+    // ignore: avoid-unassigned-stream-subscriptions
+    process.stderr.transform(utf8.decoder).listen((line) {
+      progressTracker.processLine(line);
+      processLogs.add(line);
+    });
 
-      // ignore: avoid-unassigned-stream-subscriptions
-      process.stdout.transform(utf8.decoder).listen((line) {
-        logger.info(line);
-      });
-    } catch (e) {
-      logger.debug('Formatting error due to invalid return $e');
-      // Ignore as its just a printer error
-      logger.info('Updating....');
-    }
+    // ignore: avoid-unassigned-stream-subscriptions
+    process.stdout.transform(utf8.decoder).listen((line) {
+      logger.info(line);
+    });
 
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
@@ -66,6 +61,8 @@ class GitService extends ContextualService {
       gitCacheDir.deleteSync(recursive: true);
       throw Exception('Git clone failed');
     }
+    
+    progressTracker.complete();
     logger.info('Local mirror created successfully!');
   }
 
