@@ -12,6 +12,7 @@ import 'cache_service.dart';
 import 'process_service.dart';
 
 /// Service for Git operations
+/// Handles git cache management and repository operations
 class GitService extends ContextualService {
   late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
