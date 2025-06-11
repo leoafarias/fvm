@@ -114,6 +114,40 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     }
   }
 
+  /// Checks for deprecated environment variables and shows warnings
+  void _checkDeprecatedEnvironmentVariables() {
+    // Check for deprecated variables (no longer supported)
+    final deprecatedVars = {'FVM_GIT_CACHE': 'FVM_FLUTTER_URL'};
+    
+    // Check for legacy variables (still supported but discouraged)
+    final legacyVars = {'FVM_HOME': 'FVM_CACHE_PATH'};
+
+    var hasDeprecated = false;
+    for (final entry in deprecatedVars.entries) {
+      if (context.environment.containsKey(entry.key)) {
+        if (!hasDeprecated) {
+          logger.warn('Deprecated environment variables detected:');
+          hasDeprecated = true;
+        }
+        logger.warn('  ${entry.key} → Use ${entry.value} instead');
+      }
+    }
+
+    var hasLegacy = false;
+    for (final entry in legacyVars.entries) {
+      if (context.environment.containsKey(entry.key) && 
+          !context.environment.containsKey(entry.value)) {
+        if (!hasLegacy) {
+          logger.info('Legacy environment variables detected:');
+          hasLegacy = true;
+        }
+        logger.info('  ${entry.key} → Consider using ${entry.value}');
+      }
+    }
+
+    if (hasDeprecated || hasLegacy) logger.info('');
+  }
+
   Logger get logger => context.get();
 
   @override
@@ -248,6 +282,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       logger.debug('');
     }
+
+    // Check for deprecated environment variables
+    _checkDeprecatedEnvironmentVariables();
 
     final checkingForUpdate = _checkForUpdates();
 

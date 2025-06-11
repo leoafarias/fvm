@@ -1,34 +1,13 @@
-## 4.0.0 (Unreleased)
+## 3.3.0 (Unreleased)
 
-* add: Fork repository support - manage Flutter SDKs from custom/forked repositories
-* add: `fvm fork` commands (add, remove, list) for managing fork repositories
-* add: Install from forks using `fvm install <fork>/<version>` syntax
-* add: Git clone fallback mechanism for better reliability (#867)
-* add: Smart root/sudo handling for container environments (#871)
-* add: Hidden `fvm integration-test` command for comprehensive testing
-* add: File lock mechanism to prevent concurrent operations
-* add: API subcommands: `api list`, `api releases`, `api project`, `api context`
-* add: Enhanced installation script with unified install/uninstall (#862)
-* add: Automatic Melos integration - FVM now automatically manages `sdkPath` in `melos.yaml`
-* add: `updateMelosSettings` configuration option to control Melos integration
-* add: Automatic VS Code settings update with Flutter SDK path
-* add: Smart `.gitignore` management for FVM entries
-* improve: Better error messages and stack trace preservation (#856)
-* improve: Enhanced `fvm list` output with cache path display
-* fix: Flutter upgrade channel check validation (#859)
-* fix: Installation bug (#792)
-* fix: Variable name from FMV_DIR_BIN to FVM_DIR_BIN (#722)
-* fix: Various typos in documentation (#849, #854, #778, #780)
-* BREAKING: Remove `fvm update` command - use package manager instead
-* change: `fvm flavor` and `fvm destroy` commands remain available with updated behavior
-* BREAKING: Config moved from `.fvm/fvm_config.json` to `.fvmrc` in project root
-* BREAKING: `FVM_HOME` renamed to `FVM_CACHE_PATH`
-* BREAKING: `FVM_GIT_CACHE` renamed to `FVM_FLUTTER_URL`
-* BREAKING: `fvm install` no longer runs setup by default (use `--setup` flag)
-* BREAKING: `fvm use` now runs setup by default (use `--skip-setup` to skip)
-* BREAKING: `fvm releases` defaults to stable channel only (use `--all` for all channels)
-* BREAKING: Commit hashes now require minimum 10 characters
-* BREAKING: Dropped `armv7l` architecture support
+* add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
+* add: `updateMelosSettings` configuration option to control Melos integration per project
+* add: Smart detection of existing Melos configurations with appropriate warnings
+* add: Runtime deprecation warnings for unsupported environment variables
+* add: Legacy support for `FVM_HOME` environment variable as fallback when `FVM_CACHE_PATH` is not set
+* fix: Enhanced environment variable processing logic in AppConfigService
+* add: Improved error messaging for deprecated `FVM_GIT_CACHE` environment variable
+* add: Better environment variable precedence handling with clear fallback behavior
 
 ## 3.2.1
 
@@ -186,6 +165,8 @@
 ### Changed
 
 * Command `fvm releases` now defaults to `stable` channel. Use `--all` flag to see all releases, or filter by channel.
+* Removed "flavor" command in favor for `fvm use {flavor}`
+* Removed "destroy" command in favor of `fvm remove --all`
 * Config file is now `.fvmrc` instead of `.fvm/fvm_config.json`, and `.fvm` can be added to `.gitignore`, FVM will migrate it automatically.
 * You can now use `fvm use {version} --env {flavor}` as an alias for `flavor`. Might be deprecated in the future since `env` has become a better description for environment specific settings than `flavor`.
 * When installing or using a Flutter repo `commit hash`, hash needs to be 10 digits. FVM will now validate it and provide the correct hash if it can.
@@ -195,6 +176,7 @@
 * Default FVM config location is now `.fvmrc` instead of `.fvm/fvm_config.json`. FVM will migrate it automatically. However `.fvm` should be ignored, if you depend on `fvm_config.json` in your tools or CI, you should update your configuration.
 * `fvm install` - Will not setup by default. Use `--setup` flag to setup Flutter SDK. Flag `--skip-setup` is removed.
 * `fvm releases` - Defaults to `stable` releases. Use `--all` flag to see all releases, or filter by channel using `--channel {channel}`.
+* `fvm flavor` - Removed in favor of `fvm use {flavor}`.
 * `fvm use` - Will always setup by default. Use `--skip-setup` flag to skip setup.
 * Environment variables `FVM_HOME` is now `FVM_CACHE_PATH`.
 * Environment variables `FVM_GIT_CACHE` is now `FVM_FLUTTER_URL`.

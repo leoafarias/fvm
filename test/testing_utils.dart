@@ -235,6 +235,7 @@ class TestFactory {
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
     bool? skipInput,
+    Map<String, String>? environmentOverrides,
   }) {
     debugLabel ??= _generateUuid();
 
@@ -262,6 +263,7 @@ class TestFactory {
       isTest: true,
       skipInput: skipInput ??
           false, // Allow overriding skipInput for testing user input
+      environmentOverrides: environmentOverrides,
       generatorsOverride: {
         FlutterService: _mockFlutterService,
         ...?generators,
