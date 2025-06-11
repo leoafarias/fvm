@@ -77,6 +77,17 @@ class AppConfigService {
           ),
         );
       }
+
+      if (config is EnvConfig) {
+        appConfig = appConfig.copyWith.$merge(
+          AppConfig(
+            cachePath: config.cachePath,
+            useGitCache: config.useGitCache,
+            gitCachePath: config.gitCachePath,
+            flutterUrl: config.flutterUrl,
+          ),
+        );
+      }
     }
 
     return appConfig;
@@ -98,21 +109,29 @@ class AppConfigService {
       config = config.copyWith(flutterUrl: environments[flutterGitUrl]);
     }
 
-    final configSetters = {
-      ConfigOptions.cachePath: (String value) =>
-          config = config.copyWith(cachePath: value),
-      ConfigOptions.useGitCache: (String value) =>
-          config = config.copyWith(useGitCache: stringToBool(value)),
-      ConfigOptions.gitCachePath: (String value) =>
-          config = config.copyWith(gitCachePath: value),
-      ConfigOptions.flutterUrl: (String value) =>
-          config = config.copyWith(flutterUrl: value),
-    };
-    // Apply each environment variable if it exists
+    // Apply each environment variable if it exists, with legacy fallback for cachePath
     for (final envVar in ConfigOptions.values) {
       final value = environments[envVar.envKey];
-      if (value != null) {
-        configSetters[envVar]?.call(value);
+      
+      if (envVar == ConfigOptions.cachePath) {
+        // Legacy support: Use FVM_HOME as fallback if FVM_CACHE_PATH is not set
+        final legacyFvmHome = environments['FVM_HOME'];
+        config = config.copyWith(cachePath: value ?? legacyFvmHome);
+      } else if (value != null) {
+        switch (envVar) {
+          case ConfigOptions.useGitCache:
+            config = config.copyWith(useGitCache: stringToBool(value));
+            break;
+          case ConfigOptions.gitCachePath:
+            config = config.copyWith(gitCachePath: value);
+            break;
+          case ConfigOptions.flutterUrl:
+            config = config.copyWith(flutterUrl: value);
+            break;
+          case ConfigOptions.cachePath:
+            // Already handled above
+            break;
+        }
       }
     }
 
