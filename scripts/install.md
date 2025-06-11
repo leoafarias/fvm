@@ -5,13 +5,13 @@
 ### Quick Install (Latest Version)
 
 ```bash
-curl -fsSL https://fvm.app/install | bash
+curl -fsSL https://fvm.app/install.sh | bash
 ```
 
 ### Install Specific Version
 
 ```bash
-curl -fsSL https://fvm.app/install | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 ```
 
 ### Container/CI Installation
@@ -20,13 +20,13 @@ For Docker, Podman, or CI environments:
 
 ```bash
 export FVM_ALLOW_ROOT=true
-curl -fsSL https://fvm.app/install | bash
+curl -fsSL https://fvm.app/install.sh | bash
 ```
 
 ### Uninstall
 
 ```bash
-curl -fsSL https://fvm.app/install | bash -s -- --uninstall
+curl -fsSL https://fvm.app/install.sh | bash -s -- --uninstall
 ```
 
 ## Install on Windows
