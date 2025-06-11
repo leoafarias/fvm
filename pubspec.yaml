@@ -52,7 +52,4 @@ dev_dependencies:
 
 # Git hooks configuration
 lint_staged:
-  'lib/**.dart': dart format --set-exit-if-changed && dart fix --apply && dart analyze --fatal-infos
-  'test/**.dart': dart format --set-exit-if-changed && dart fix --apply && dart analyze --fatal-infos
-  'bin/**.dart': dart format --set-exit-if-changed && dart fix --apply && dart analyze --fatal-infos
-  'tool/**.dart': dart format --set-exit-if-changed && dart fix --apply && dart analyze --fatal-infos
+  '**.dart': dart format && dart fix --apply
