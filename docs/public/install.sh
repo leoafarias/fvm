@@ -2,8 +2,8 @@
 # FVM Installer - Install/Uninstall Flutter Version Management
 #
 # Usage:
-#   curl -fsSL https://fvm.app/install | bash
-#   curl -fsSL https://fvm.app/install | bash -s 3.2.1
+#   curl -fsSL https://fvm.app/install.sh | bash
+#   curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 #   ./install.sh [OPTIONS] [VERSION]
 #
 # Examples:
@@ -62,8 +62,8 @@ FVM Installer v${SCRIPT_VERSION}
 Install/Uninstall Flutter Version Management (FVM) on Linux/macOS
 
 USAGE:
-    curl -fsSL https://fvm.app/install | bash
-    curl -fsSL https://fvm.app/install | bash -s [VERSION]
+    curl -fsSL https://fvm.app/install.sh | bash
+    curl -fsSL https://fvm.app/install.sh | bash -s [VERSION]
     ./install.sh [OPTIONS] [VERSION]
 
 OPTIONS:
@@ -77,10 +77,10 @@ ARGUMENTS:
 
 EXAMPLES:
     # Install latest version
-    curl -fsSL https://fvm.app/install | bash
-    
+    curl -fsSL https://fvm.app/install.sh | bash
+
     # Install specific version
-    curl -fsSL https://fvm.app/install | bash -s 3.2.1
+    curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
     
     # Uninstall FVM
     ./install.sh --uninstall
