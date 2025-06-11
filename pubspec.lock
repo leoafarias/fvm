@@ -17,6 +17,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.3.0"
+  ansi:
+    dependency: transitive
+    description:
+      name: ansi
+      sha256: "070af96189f9da6f996cee46049682bdcd1d191b483e13f9d2a2600729d8b2a1"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.4.2"
+  ansi_escapes:
+    dependency: transitive
+    description:
+      name: ansi_escapes
+      sha256: e2a111254904ff663b8d4be744073f7e327157c895a0ad57ad8de7938297bc8c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   ansicolor:
     dependency: transitive
     description:
@@ -377,6 +393,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  husky:
+    dependency: "direct dev"
+    description:
+      name: husky
+      sha256: ce4a92b311c03e67ff66b6e354c8d5b8ee7c663ccaedb954e93798658b439bb2
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.7"
   interact:
     dependency: "direct main"
     description:
@@ -425,6 +449,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.0.3"
+  lint_staged:
+    dependency: "direct dev"
+    description:
+      name: lint_staged
+      sha256: "969cb1829d5f5ca761dd9029762ab11e73bf83bc270a2ea03297c60eed261e3e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.5.1"
   lints:
     dependency: "direct dev"
     description:
@@ -761,6 +793,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  verbose:
+    dependency: transitive
+    description:
+      name: verbose
+      sha256: "8e63580e35d58a15e4fca702fe91766430b1d28738c160c466e5cb10c373002a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.1"
   vm_service:
     dependency: transitive
     description:
