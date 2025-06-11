@@ -16,10 +16,10 @@ The main FVM installation script for Linux/macOS that:
 Usage:
 ```bash
 # Install latest version
-curl -fsSL https://fvm.app/install | bash
+curl -fsSL https://fvm.app/install.sh | bash
 
 # Install specific version
-curl -fsSL https://fvm.app/install | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 
 # Uninstall FVM
 ./install.sh --uninstall

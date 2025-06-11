@@ -24,13 +24,13 @@ You can download the standalone packages from the GitHub repo [here](https://git
 Install the latest version:
 
 ```bash
-curl -fsSL https://fvm.app/install | bash
+curl -fsSL https://fvm.app/install.sh | bash
 ```
 
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 ```
 
 ## Homebrew
@@ -74,13 +74,13 @@ choco uninstall fvm
 Install the latest version:
 
 ```bash
-curl -fsSL https://fvm.app/install | bash
+curl -fsSL https://fvm.app/install.sh | bash
 ```
 
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 ```
 
 ## Homebrew
@@ -127,8 +127,8 @@ dart pub global deactivate fvm
 
 The install script (`install.sh`) supports several options:
 
-- **Latest version**: `curl -fsSL https://fvm.app/install | bash`
-- **Specific version**: `curl -fsSL https://fvm.app/install | bash -s 3.2.1`
+- **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
+- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1`
 - **Container/CI support**: Set `FVM_ALLOW_ROOT=true` for Docker/CI environments
 - **Help**: `./install.sh --help`
 - **Version info**: `./install.sh --version`
