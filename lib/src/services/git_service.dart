@@ -61,7 +61,7 @@ class GitService extends ContextualService {
       gitCacheDir.deleteSync(recursive: true);
       throw Exception('Git clone failed');
     }
-    
+
     progressTracker.complete();
     logger.info('Local mirror created successfully!');
   }
@@ -112,6 +112,12 @@ class GitService extends ContextualService {
         try {
           logger.debug('Updating local mirror...');
           final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+
+          // Ensure clean working directory before fetch operations
+          // This prevents merge conflicts during fetch (fixes #819)
+          logger.debug('Ensuring clean working directory...');
+          await gitDir.runCommand(['reset', '--hard', 'HEAD']);
+          await gitDir.runCommand(['clean', '-fd']);
 
           // First, prune any stale references
           logger.debug('Pruning stale references...');
