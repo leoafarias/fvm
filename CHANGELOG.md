@@ -1,4 +1,4 @@
-## 3.3.0 (Unreleased)
+## 4.0.0-beta.1
 
 * add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
 * add: `updateMelosSettings` configuration option to control Melos integration per project
