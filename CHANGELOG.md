@@ -1,5 +1,6 @@
 ## 4.0.0-beta.1
 
+* add: Manage Flutter SDKs from custom or forked repositories
 * add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
 * add: `updateMelosSettings` configuration option to control Melos integration per project
 * add: Smart detection of existing Melos configurations with appropriate warnings
