@@ -92,10 +92,14 @@ class FlutterService extends ContextualService {
     List<String> args,
     CacheFlutterVersion version, {
     bool throwOnError = false,
+    bool? echoOutput,
   }) {
     final versionRunner = VersionRunner(context: context, version: version);
 
-    return versionRunner.run(cmd, args, throwOnError: throwOnError);
+    return versionRunner.run(cmd, args,
+      throwOnError: throwOnError,
+      echoOutput: echoOutput,
+    );
   }
 
   Future<ProcessResult> pubGet(
@@ -105,7 +109,10 @@ class FlutterService extends ContextualService {
   }) {
     final args = ['pub', 'get', if (offline) '--offline'];
 
-    return run('flutter', args, version, throwOnError: throwOnError);
+    return run('flutter', args, version,
+      throwOnError: throwOnError,
+      echoOutput: false,  // Prevent duplicate progress indicators
+    );
   }
 
   Future<ProcessResult> setup(CacheFlutterVersion version) {
