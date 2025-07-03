@@ -14,6 +14,29 @@ on:
       - "docs/**"
       - "README.md"
       - "CHANGELOG.md"
+      - "**/*.md"
+      - "**/LICENSE"
+      - ".gitignore"
+      - "scripts/install.sh"
+      - "scripts/install.ps1"
+      - "scripts/test-install.sh"
+      - ".github/workflows/test-install.yml"
+
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "CHANGELOG.md"
+      - "**/*.md"
+      - "**/LICENSE"
+      - ".gitignore"
+      - "scripts/install.sh"
+      - "scripts/install.ps1"
+      - "scripts/test-install.sh"
+      - ".github/workflows/test-install.yml"
+
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -63,7 +86,9 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
+    needs: test  # Wait for main test to pass first
     strategy:
+      fail-fast: true
       matrix:
         os: [macos-latest, windows-latest]
 
@@ -78,3 +103,35 @@ jobs:
 
       - name: Tests
         uses: ./.github/actions/test
+
+  integration-test:
+    name: Integration Tests on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    needs: [test, test-os]  # Wait for all unit tests to pass first
+    timeout-minutes: 45
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Integration Test"
+          git config --global user.email "test@fvm.app"
+
+      - name: Run Integration Tests
+        shell: bash
+        run: dart run grinder integration-test

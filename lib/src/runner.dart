@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/ansi.dart';
+import 'package:io/io.dart';
 import 'package:pub_updater/pub_updater.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 import 'commands/api_command.dart';
 import 'commands/config_command.dart';
@@ -16,27 +16,30 @@ import 'commands/doctor_command.dart';
 import 'commands/exec_command.dart';
 import 'commands/flavor_command.dart';
 import 'commands/flutter_command.dart';
+import 'commands/fork_command.dart';
 import 'commands/global_command.dart';
 import 'commands/install_command.dart';
+import 'commands/integration_test_command.dart';
 import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
-import 'services/config_repository.dart';
+import 'models/config_model.dart';
+import 'models/log_level_model.dart';
 import 'services/logger_service.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
-import 'utils/deprecation_util.dart';
 import 'utils/exceptions.dart';
 import 'version.dart';
 
 /// Command Runner for FVM
 class FvmCommandRunner extends CompletionCommandRunner<int> {
+  final FvmContext context;
   final PubUpdater _pubUpdater;
 
   /// Constructor
-  FvmCommandRunner({PubUpdater? pubUpdater})
+  FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater(),
         super(kPackageName, kDescription) {
     argParser
@@ -47,21 +50,23 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         help: 'Print the current version.',
         negatable: false,
       );
-    addCommand(InstallCommand());
-    addCommand(UseCommand());
-    addCommand(ListCommand());
-    addCommand(RemoveCommand());
-    addCommand(ReleasesCommand());
-    addCommand(FlutterCommand());
-    addCommand(DartCommand());
-    addCommand(DoctorCommand());
-    addCommand(SpawnCommand());
-    addCommand(ConfigCommand());
-    addCommand(ExecCommand());
-    addCommand(DestroyCommand());
-    addCommand(APICommand());
-    addCommand(GlobalCommand());
-    addCommand(FlavorCommand());
+    addCommand(InstallCommand(context));
+    addCommand(UseCommand(context));
+    addCommand(ListCommand(context));
+    addCommand(RemoveCommand(context));
+    addCommand(ReleasesCommand(context));
+    addCommand(FlutterCommand(context));
+    addCommand(DartCommand(context));
+    addCommand(ForkCommand(context));
+    addCommand(DoctorCommand(context));
+    addCommand(SpawnCommand(context));
+    addCommand(ConfigCommand(context));
+    addCommand(ExecCommand(context));
+    addCommand(DestroyCommand(context));
+    addCommand(APICommand(context));
+    addCommand(GlobalCommand(context));
+    addCommand(FlavorCommand(context));
+    addCommand(IntegrationTestCommand(context));
   }
 
   /// Checks if the current version (set by the build runner on the
@@ -69,15 +74,17 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      final lastUpdateCheck = ctx.lastUpdateCheck ?? DateTime.now();
-      if (ctx.updateCheckDisabled) return null;
+      final lastUpdateCheck = context.lastUpdateCheck ?? DateTime.now();
+      if (context.updateCheckDisabled) return null;
       final oneDay = lastUpdateCheck.add(const Duration(days: 1));
 
       if (DateTime.now().isBefore(oneDay)) {
         return null;
       }
 
-      ConfigRepository.update(lastUpdateCheck: DateTime.now());
+      LocalAppConfig.read()
+        ..lastUpdateCheck = DateTime.now()
+        ..save();
 
       final isUpToDate = await _pubUpdater.isUpToDate(
         packageName: kPackageName,
@@ -94,18 +101,54 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         final latestVersionLabel = lightCyan.wrap(latestVersion);
 
         logger
-          ..spacer
+          ..info()
           ..info(
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
           )
-          ..spacer;
+          ..info();
       };
     } catch (_) {
       return () {
-        logger.detail("Failed to check for updates.");
+        logger.debug("Failed to check for updates.");
       };
     }
   }
+
+  /// Checks for deprecated environment variables and shows warnings
+  void _checkDeprecatedEnvironmentVariables() {
+    // Check for deprecated variables (no longer supported)
+    final deprecatedVars = {'FVM_GIT_CACHE': 'FVM_FLUTTER_URL'};
+    
+    // Check for legacy variables (still supported but discouraged)
+    final legacyVars = {'FVM_HOME': 'FVM_CACHE_PATH'};
+
+    var hasDeprecated = false;
+    for (final entry in deprecatedVars.entries) {
+      if (context.environment.containsKey(entry.key)) {
+        if (!hasDeprecated) {
+          logger.warn('Deprecated environment variables detected:');
+          hasDeprecated = true;
+        }
+        logger.warn('  ${entry.key} → Use ${entry.value} instead');
+      }
+    }
+
+    var hasLegacy = false;
+    for (final entry in legacyVars.entries) {
+      if (context.environment.containsKey(entry.key) && 
+          !context.environment.containsKey(entry.value)) {
+        if (!hasLegacy) {
+          logger.info('Legacy environment variables detected:');
+          hasLegacy = true;
+        }
+        logger.info('  ${entry.key} → Consider using ${entry.value}');
+      }
+    }
+
+    if (hasDeprecated || hasLegacy) logger.info('');
+  }
+
+  Logger get logger => context.get();
 
   @override
   void printUsage() => logger.info(usage);
@@ -113,8 +156,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   @override
   Future<int> run(Iterable<String> args) async {
     try {
-      deprecationWorkflow();
-
       final argResults = parse(args);
 
       if (argResults['verbose'] == true) {
@@ -124,21 +165,24 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final exitCode = await runCommand(argResults) ?? ExitCode.success.code;
 
       return exitCode;
+    } on ForceExit catch (e) {
+      logger.info(e.message);
+
+      return e.exitCode;
     } on AppDetailedException catch (err, stackTrace) {
       logger
         ..fail(err.message)
-        ..spacer
+        ..err()
         ..err(err.info);
-
-      _printTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     } on FileSystemException catch (err, stackTrace) {
       if (checkIfNeedsPrivilegePermission(err)) {
         logger
-          ..spacer
+          ..info()
           ..fail('Requires administrator privileges to run this command.')
-          ..spacer;
+          ..info();
 
         logger.notice(
           "You don't have the required privileges to run this command.\n"
@@ -151,10 +195,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       logger
         ..err(err.message)
-        ..spacer
+        ..info()
         ..err('Path: ${err.path}');
-
-      _printTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.ioError.code;
     } on AppException catch (err) {
@@ -163,9 +206,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       return ExitCode.data.code;
     } on ProcessException catch (e) {
       logger
-        ..spacer
+        ..info()
         ..err(e.toString())
-        ..spacer;
+        ..info();
 
       return e.errorCode;
     } on UsageException catch (err) {
@@ -173,16 +216,16 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       // exit with an error code
       logger
         ..err(err.message)
-        ..spacer
+        ..info()
         ..info(err.usage);
 
       return ExitCode.usage.code;
     } on Exception catch (err, stackTrace) {
       logger
-        ..spacer
+        ..info()
         ..err(err.toString());
 
-      _printTrace(stackTrace);
+      logger.logTrace(stackTrace);
 
       return ExitCode.unavailable.code;
     }
@@ -192,11 +235,17 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   Future<int?> runCommand(ArgResults topLevelResults) async {
     // Verbose logs
     logger
-      ..detail('')
-      ..detail('Argument information:');
+      ..debug('')
+      ..debug('Argument information:');
 
     if (topLevelResults.command?.name == 'completion') {
       super.runCommand(topLevelResults);
+
+      return ExitCode.success.code;
+    }
+
+    if (topLevelResults.command?.name == 'api') {
+      await super.runCommand(topLevelResults);
 
       return ExitCode.success.code;
     }
@@ -205,34 +254,37 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
 
     if (hasTopLevelOption) {
-      logger.detail('  Top level options:');
+      logger.debug('  Top level options:');
       for (final option in topLevelResults.options) {
         if (topLevelResults.wasParsed(option)) {
-          logger.detail('  - $option: ${topLevelResults[option]}');
+          logger.debug('  - $option: ${topLevelResults[option]}');
         }
       }
-      logger.detail('');
+      logger.debug('');
     }
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      logger.detail('Command: ${commandResult.name}');
+      logger.debug('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
       final hasCommandOption =
           commandResult.options.any((e) => commandResult.wasParsed(e));
 
       if (hasCommandOption) {
-        logger.detail('  Command options:');
+        logger.debug('  Command options:');
         for (final option in commandResult.options) {
           if (commandResult.wasParsed(option)) {
-            logger.detail('    - $option: ${commandResult[option]}');
+            logger.debug('    - $option: ${commandResult[option]}');
           }
         }
       }
 
-      logger.detail('');
+      logger.debug('');
     }
+
+    // Check for deprecated environment variables
+    _checkDeprecatedEnvironmentVariables();
 
     final checkingForUpdate = _checkForUpdates();
 
@@ -249,20 +301,5 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     logOutput?.call();
 
     return exitCode;
-  }
-}
-
-void _printTrace(StackTrace stackTrace) {
-  final trace = Trace.from(stackTrace).toString();
-  logger
-    ..detail('')
-    ..detail(trace);
-
-  if (logger.level != Level.verbose) {
-    logger
-      ..spacer
-      ..info(
-        'Please run command with  --verbose if you want more information',
-      );
   }
 }

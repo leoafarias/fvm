@@ -1,3 +1,15 @@
+## 4.0.0-beta.1
+
+* add: Manage Flutter SDKs from custom or forked repositories
+* add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
+* add: `updateMelosSettings` configuration option to control Melos integration per project
+* add: Smart detection of existing Melos configurations with appropriate warnings
+* add: Runtime deprecation warnings for unsupported environment variables
+* add: Legacy support for `FVM_HOME` environment variable as fallback when `FVM_CACHE_PATH` is not set
+* fix: Enhanced environment variable processing logic in AppConfigService
+* add: Improved error messaging for deprecated `FVM_GIT_CACHE` environment variable
+* add: Better environment variable precedence handling with clear fallback behavior
+
 ## 3.2.1
 
 * fix: `--fvm-skip-input` flag not applying to context
@@ -58,7 +70,7 @@
 * Fixed: links in FAQ by @Pavel-Sulimau
 * Fixed: forward configured flavors by @mrgnhnt96
 * Added: destroy command by @leoafarias
-* Aded: install.sh scripts @leoafarias
+* Added: install.sh scripts @leoafarias
 
 ## 3.0.13
 
@@ -108,7 +120,7 @@
 
 ## 3.0.4
 
-* VsCode settings now supports jsonc (comments, trailing commma) 
+* VsCode settings now supports jsonc (comments, trailing comma)
 * Change flutter project check to only check for pubspec.yaml
 * `fvm install`  command not creating sdk reference [#618](https://github.com/leoafarias/fvm/issues/618)
 
@@ -129,14 +141,14 @@
 
 ### Added
 
-* Tighter VSCode integration, with configuration and settings management. FVM will now automatically configure VSCode to use the correct Flutter SDK version, triggering a termianl path update, so you can just use `flutter`, commands instead of `fvm flutter`
+* Tighter VSCode integration, with configuration and settings management. FVM will now automatically configure VSCode to use the correct Flutter SDK version, triggering a terminal path update, so you can just use `flutter` commands instead of `fvm flutter`
 * Git Flutter repository mirroring for faster cloning of new versions.
 * Added a check in .gitignore for the '.fvm' directory, and auto-adding it if necessary.
 * Added verification if cached Flutter SDK has been upgraded, and provide options for corrective actions.
 * Added a check for Flutter SDK constraints check for compatibility with current project.
 * Improved FVM configuration management and settings.
 * Ability to override FVM settings on a per project basis.
-* Windows "unpriviledge" mode. If you you choose to run `fvm` in unpriviledge mode, it will not require admin rights to run, however local Flutter SDK project references will be absolute paths instead of relative links.
+* Windows "unprivileged" mode. If you choose to run `fvm` in unprivileged mode, it will not require admin rights to run; however, local Flutter SDK project references will be absolute paths instead of relative links.
 
 ### Improvements
 
@@ -158,7 +170,7 @@
 * Removed "destroy" command in favor of `fvm remove --all`
 * Config file is now `.fvmrc` instead of `.fvm/fvm_config.json`, and `.fvm` can be added to `.gitignore`, FVM will migrate it automatically.
 * You can now use `fvm use {version} --env {flavor}` as an alias for `flavor`. Might be deprecated in the future since `env` has become a better description for environment specific settings than `flavor`.
-* When installing or using a Flutter repo `commit hash`, hash needs ot be 10 digits. FVM will now validate it, and provide the correct hash if it can.
+* When installing or using a Flutter repo `commit hash`, hash needs to be 10 digits. FVM will now validate it and provide the correct hash if it can.
 
 ### Breaking Changes
 
@@ -281,7 +293,7 @@
 
 ## 1.3.6 - 2020-10-29
 
-* Improvement: Added `PATH` env on Flutter processs for better third party tooling support.
+* Improvement: Added `PATH` env on Flutter processes for better third-party tooling support.
 * Fix: Updated Grinder dependencies.
 * Fix: Better ancestor lookup logic for monorepo setups. [Issue #180](https://github.com/leoafarias/fvm/issues/180).
 

@@ -1,385 +1,111 @@
-import 'dart:async';
 import 'dart:io';
 
-import 'package:git/git.dart';
-import 'package:jsonc/jsonc.dart';
-import 'package:mason_logger/mason_logger.dart';
-import 'package:path/path.dart';
-import 'package:pub_semver/pub_semver.dart';
-
-import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
-import '../utils/convert_posix_path.dart';
-import '../utils/exceptions.dart';
-import '../utils/extensions.dart';
-import '../utils/helpers.dart';
-import '../utils/pretty_json.dart';
-import '../utils/which.dart';
-import 'resolve_dependencies.workflow.dart';
-import 'setup_flutter.workflow.dart';
+import 'workflow.dart';
 
-/// Checks if version is installed, and installs or exits
-Future<void> useVersionWorkflow({
-  required CacheFlutterVersion version,
-  required Project project,
-  bool force = false,
-  bool skipSetup = false,
-  bool runPubGetOnSdkChange = true,
-  String? flavor,
-}) async {
-  // If project use check that is Flutter project
-  if (!project.hasPubspec && !force) {
-    if (project.hasConfig) {
-      if (project.path != ctx.workingDirectory) {
-        logger
-          ..spacer
-          ..info('Using $kFvmConfigFileName in ${project.path}')
-          ..spacer
-          ..info(
-            'If this is incorrect either use the --force flag or remove the $kFvmConfigFileName and the $kFvmDirName directory.',
-          )
-          ..spacer;
+/// Manages the .gitignore file for FVM projects.
+///
+/// Handles adding the necessary entries to ignore the FVM version cache directory
+/// in git repositories. Provides interactive and non-interactive options to update
+/// the .gitignore file.
+class SetupGitIgnoreWorkflow extends Workflow {
+  /// The path pattern to add to the .gitignore file.
+  ///
+  /// Uses the [kFvmDirName] constant from constants.dart to ensure consistency.
+  static const String kFvmPathToAdd = '$kFvmDirName/';
+
+  /// The heading to add before the FVM entries in the .gitignore file.
+  ///
+  /// This helps users understand why these entries are present.
+  static const String kGitIgnoreHeading = '# FVM Version Cache';
+
+  /// Creates a new [SetupGitIgnoreWorkflow] with the provided context.
+  const SetupGitIgnoreWorkflow(super.context);
+
+  /// Updates the project's .gitignore file to include FVM-specific entries.
+  ///
+  /// Adds [kFvmPathToAdd] to the project's .gitignore file if it doesn't already
+  /// exist. Removes any older FVM-related entries before adding the new ones.
+  ///
+  /// If [updateGitIgnore] is disabled in the project config, this operation is skipped.
+  ///
+  /// Automatically applies the changes without prompting for improved user experience.
+  ///
+  /// Returns `true` if the operation was successful or if no action was needed,
+  /// and `false` if an error occurred during file operations.
+  bool call(Project project) {
+    // Check if gitignore management is enabled for this project
+    final updateGitIgnore = project.config?.updateGitIgnore ?? true;
+
+    if (!updateGitIgnore) {
+      return true;
+    }
+
+    final ignoreFile = project.gitIgnoreFile;
+
+    // Create the .gitignore file if it doesn't exist
+    if (!ignoreFile.existsSync()) {
+      try {
+        ignoreFile.createSync(recursive: true);
+      } catch (e) {
+        logger.err('Failed to create .gitignore file: $e');
+
+        return false;
       }
-    } else {
-      logger
-        ..spacer
-        ..info('No pubspec.yaml detected in this directory');
-      final proceed = logger.confirm(
-        'Would you like to continue?',
-        defaultValue: true,
-      );
-
-      if (!proceed) exit(ExitCode.success.code);
-    }
-  }
-
-  logger
-    ..detail('')
-    ..detail('Updating project config')
-    ..detail('Project name: ${project.name}')
-    ..detail('Project path: ${project.path}')
-    ..detail('');
-
-  if (!skipSetup && version.isNotSetup) {
-    await setupFlutterWorkflow(version);
-  }
-
-  // Checks if the project constraints are met
-  _checkProjectVersionConstraints(project, version, force: force);
-
-  final updatedProject = ProjectService.fromContext.update(
-    project,
-    flavors: {if (flavor != null) flavor: version.name},
-    flutterSdkVersion: version.name,
-  );
-
-  await _checkGitignore(updatedProject, force: force);
-
-  if (runPubGetOnSdkChange) {
-    await resolveDependenciesWorkflow(updatedProject, version, force: force);
-  }
-
-  _updateLocalSdkReference(updatedProject, version);
-  _updateCurrentSdkReference(updatedProject, version);
-
-  _manageVsCodeSettings(updatedProject);
-
-  final versionLabel = cyan.wrap(version.printFriendlyName);
-  // Different message if configured environment
-  if (flavor != null) {
-    logger.success(
-      'Project now uses Flutter SDK: $versionLabel on [$flavor] flavor.',
-    );
-  } else {
-    logger.success('Project now uses Flutter SDK : $versionLabel');
-  }
-
-  if (version.flutterExec == which('flutter')) {
-    logger.detail('Flutter SDK is already in your PATH');
-
-    return;
-  }
-
-  if (isVsCode()) {
-    logger
-      ..important(
-        'Running on VsCode, please restart the terminal to apply changes.',
-      )
-      ..info('You can then use "flutter" command within the VsCode terminal.');
-  }
-}
-
-/// Adds to .gitignore paths that should be ignored for fvm
-///
-/// This method adds the given [pathToAdd] to the .gitignore file of the provided [project].
-/// If the .gitignore file doesn't exist, it will be created. The method checks if
-/// the given path already exists in the .gitignore file before adding it.
-///
-/// The method prompts the user for confirmation before actually adding the path,
-/// unless running in a test environment.
-Future<void> _checkGitignore(Project project, {required bool force}) async {
-  logger.detail('Checking .gitignore');
-
-  final updateGitIgnore = project.config?.updateGitIgnore ?? true;
-
-  logger.detail('Update gitignore: $updateGitIgnore');
-
-  if (!updateGitIgnore) {
-    logger.detail(
-      '$kPackageName does not manage .gitignore for this project.',
-    );
-
-    return;
-  }
-
-  final pathToAdd = '.fvm/';
-  final heading = '# FVM Version Cache';
-  final ignoreFile = project.gitIgnoreFile;
-
-  if (!ignoreFile.existsSync()) {
-    if (!await GitDir.isGitDir(project.path)) {
-      logger.warn(
-        'Project is not a git repository. \n But will set .gitignore as IDEs may use it,'
-        'to determine what to index and display on searches,',
-      );
-    }
-    ignoreFile.createSync(recursive: true);
-  }
-
-  List<String> lines = ignoreFile.readAsLinesSync();
-
-  if (lines.any((line) => line.trim() == pathToAdd)) {
-    logger.detail('$pathToAdd already exists in .gitignore');
-
-    return;
-  }
-
-  lines = lines
-      .where((line) => !line.startsWith('.fvm') && line.trim() != heading)
-      .toList();
-
-  // Append the correct line at the end
-  lines.addAll(['', heading, pathToAdd]);
-
-  // Remove any lines that have consecutive blank lines.
-  lines = lines.fold<List<String>>([], (previousValue, element) {
-    if (previousValue.isEmpty) {
-      previousValue.add(element);
-    } else {
-      final lastLine = previousValue.last;
-      if (lastLine.trim().isEmpty && element.trim().isEmpty) {
-        return previousValue;
-      }
-      previousValue.add(element);
     }
 
-    return previousValue;
-  });
-
-  logger.info(
-    'You should add the $kPackageName version directory "${cyan.wrap(pathToAdd)}" to .gitignore.',
-  );
-
-  if (force) {
-    logger.warn(
-      'Skipping .gitignore confirmation because of --force flag detected',
-    );
-
-    return;
-  }
-
-  if (logger.confirm('Would you like to do that now?', defaultValue: true)) {
-    ignoreFile.writeAsStringSync('${lines.join('\n')}\n', mode: FileMode.write);
-    logger
-      ..success('Added $pathToAdd to .gitignore')
-      ..spacer;
-  }
-}
-
-/// Checks if the Flutter SDK version used in the project meets the specified constraints.
-///
-/// The [project] parameter represents the project being checked, while the [cachedVersion]
-/// parameter is the cached version of the Flutter SDK.
-void _checkProjectVersionConstraints(
-  Project project,
-  CacheFlutterVersion cachedVersion, {
-  required bool force,
-}) {
-  final sdkVersion = cachedVersion.dartSdkVersion;
-  final constraints = project.sdkConstraint;
-
-  if (sdkVersion != null &&
-      constraints != null &&
-      !constraints.isEmpty &&
-      sdkVersion.isNotEmpty) {
-    Version dartSdkVersion;
-
+    // Read the current content of the .gitignore file
+    List<String> lines;
     try {
-      dartSdkVersion = Version.parse(sdkVersion);
-    } on FormatException {
-      logger.warn('Could not parse Flutter SDK version $sdkVersion');
+      lines = ignoreFile.readAsLinesSync();
+    } catch (e) {
+      logger.err('Failed to read .gitignore file: $e');
 
-      return;
+      return false;
     }
 
-    final allowedInConstraint = constraints.allows(dartSdkVersion);
+    // Check if the entry already exists
+    if (lines.any((line) => line.trim() == kFvmPathToAdd)) {
+      return true;
+    }
 
-    final message =
-        '${cachedVersion.printFriendlyName} has Dart SDK $sdkVersion';
+    // Remove any existing FVM-related entries
+    lines = lines
+        .where((line) =>
+            !line.startsWith(kFvmDirName) && line.trim() != kGitIgnoreHeading)
+        .toList();
 
-    if (!allowedInConstraint) {
-      logger.notice('Flutter SDK does not meet project constraints');
+    // Append the correct line at the end
+    lines.addAll(['', kGitIgnoreHeading, kFvmPathToAdd]);
 
-      logger
-        ..info(
-          '$message does not meet the project constraints of $constraints.',
-        )
-        ..info('This could cause unexpected behavior or issues.')
-        ..spacer;
-
-      if (force) {
-        logger.warn(
-          'Skipping version constraint confirmation because of --force flag detected',
-        );
-
-        return;
+    // Remove any consecutive blank lines to keep the file clean
+    lines = lines.fold<List<String>>([], (previousValue, element) {
+      if (previousValue.isEmpty) {
+        previousValue.add(element);
+      } else {
+        final lastLine = previousValue.last;
+        if (lastLine.trim().isEmpty && element.trim().isEmpty) {
+          return previousValue;
+        }
+        previousValue.add(element);
       }
 
-      if (!logger.confirm('Would you like to proceed?', defaultValue: true)) {
-        throw AppException(
-          'The Flutter SDK version $sdkVersion is not compatible with the project constraints. You may need to adjust the version to avoid potential issues.',
-        );
-      }
-    }
-  }
-}
+      return previousValue;
+    });
 
-/// Updates the link to make sure its always correct
-///
-/// This method updates the .fvm symlink in the provided [project] to point to the cache
-/// directory of the currently pinned Flutter SDK version. It also cleans up legacy links
-/// that are no longer needed.
-///
-/// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
-  if (project.localFvmPath.file.existsSync()) {
-    project.localFvmPath.file.createSync(recursive: true);
-  }
-
-  final sdkVersionFile = join(project.localFvmPath, 'version');
-  final releaseFile = join(project.localFvmPath, 'release');
-
-  sdkVersionFile.file.write(project.dartToolVersion ?? '');
-  releaseFile.file.write(version.name);
-
-  if (!ctx.privilegedAccess) return;
-
-  project.localVersionsCachePath.dir
-    ..deleteIfExists()
-    ..createSync(recursive: true);
-
-  project.localVersionSymlinkPath.link.createLink(version.directory);
-}
-
-/// Updates the `flutter_sdk` link to ensure it always points to the pinned SDK version.
-///
-/// This is required for Android Studio to work with different Flutter SDK versions.
-///
-/// Throws an [AppException] if the project doesn't have a pinned Flutter SDK version.
-void _updateCurrentSdkReference(Project project, CacheFlutterVersion version) {
-  final currentSdkLink = join(project.localFvmPath, 'flutter_sdk');
-
-  if (currentSdkLink.link.existsSync()) {
-    currentSdkLink.link.deleteSync();
-  }
-
-  if (!ctx.privilegedAccess) return;
-
-  currentSdkLink.link.createLink(version.directory);
-}
-
-/// Updates VS Code configuration for the project
-///
-/// This method updates the VS Code configuration for the provided [project].
-/// It sets the correct exclude settings in the VS Code settings file to exclude
-/// the .fvm/versions directory from search and file watchers.///
-/// The method also updates the "dart.flutterSdkPath" setting to use the relative
-/// path of the .fvm symlink.
-void _manageVsCodeSettings(Project project) {
-  final updateVscodeSettings = project.config?.updateVscodeSettings ?? true;
-
-  final vscodeDir = Directory(join(project.path, '.vscode'));
-  final vscodeSettingsFile = File(join(vscodeDir.path, 'settings.json'));
-
-  final isUsingVscode = isVsCode() || vscodeDir.existsSync();
-
-  if (!updateVscodeSettings) {
-    logger.detail(
-      '$kPackageName does not manage $kVsCode settings for this project.',
-    );
-
-    if (isUsingVscode) {
-      logger.warn(
-        'You are using $kVsCode, but $kPackageName is '
-        'not managing $kVsCode settings for this project.'
-        'Please remove "updateVscodeSettings: false" from $kFvmConfigFileName',
-      );
-    }
-
-    return;
-  }
-
-  if (!isUsingVscode) {
-    return;
-  }
-
-  if (!vscodeSettingsFile.existsSync()) {
-    logger.detail('$kVsCode settings not found, to update.');
-    vscodeSettingsFile.createSync(recursive: true);
-  }
-
-  Map<String, dynamic> currentSettings = {};
-
-  // Check if settings.json exists; if not, create it.
-  if (vscodeSettingsFile.existsSync()) {
+    // Write the updated content to the .gitignore file silently
     try {
-      String contents = vscodeSettingsFile.readAsStringSync();
-
-      if (contents.isNotEmpty) {
-        currentSettings = jsonc.decode(contents);
-      }
-    } on FormatException catch (err, stackTrace) {
-      final relativePath = relative(
-        vscodeSettingsFile.path,
-        from: ctx.workingDirectory,
+      ignoreFile.writeAsStringSync(
+        '${lines.join('\n')}\n',
+        mode: FileMode.write,
       );
 
-      Error.throwWithStackTrace(
-        AppDetailedException(
-          'Error parsing $kVsCode settings at $relativePath',
-          'Please use a tool like https://jsonlint.com to validate and fix it\n $err',
-        ),
-        stackTrace,
-      );
+      return true;
+    } catch (e) {
+      logger.err('Failed to update .gitignore file: $e');
+
+      return false;
     }
-  } else {
-    vscodeSettingsFile.create(recursive: true);
   }
-
-  if (ctx.privilegedAccess) {
-    final relativePath = relative(
-      project.localVersionSymlinkPath,
-      from: project.path,
-    );
-
-    currentSettings["dart.flutterSdkPath"] = convertToPosixPath(relativePath);
-  } else {
-    currentSettings["dart.flutterSdkPath"] = project.localVersionSymlinkPath;
-  }
-
-  vscodeSettingsFile.writeAsStringSync(prettyJson(currentSettings));
 }

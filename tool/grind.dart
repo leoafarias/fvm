@@ -39,7 +39,7 @@ Future<void> getReleases() async {
   String owner = 'leoafarias';
   String repo = 'fvm';
 
-  final response = await fetch(
+  final response = await httpRequest(
     'https://api.github.com/repos/$owner/$repo/releases?per_page=100',
     headers: {'Accept': 'application/vnd.github.v3+json'},
   );
@@ -69,12 +69,11 @@ void testSetup() {
   runDartScript('bin/main.dart', arguments: ['install', 'stable']);
 }
 
-@Task('Move install.sh and uninstall.sh to public directory')
+@Task('Move install scripts to public directory')
 void moveScripts() {
   final installScript = File('scripts/install.sh');
-  final uninstallScript = File('scripts/uninstall.sh');
 
-  if (!installScript.existsSync() || !uninstallScript.existsSync()) {
+  if (!installScript.existsSync()) {
     throw Exception('Install or uninstall script does not exist');
   }
 
@@ -85,9 +84,8 @@ void moveScripts() {
   }
 
   installScript.copySync(path.join(publicDir.path, 'install.sh'));
-  uninstallScript.copySync(path.join(publicDir.path, 'uninstall.sh'));
 
-  print('Moved install.sh and uninstall.sh to public directory');
+  print('Moved install.sh to public directory');
 }
 
 @Task('Run tests')
@@ -115,4 +113,24 @@ Future<void> coverage() async {
       '--out=coverage/lcov.info',
     ],
   );
+}
+
+@Task('Run integration tests')
+Future<void> integrationTest() async {
+  print('Running integration tests...');
+
+  // Run integration tests using the new Dart command
+  await runAsync('dart', arguments: [
+    'run',
+    'bin/main.dart',
+    'integration-test',
+  ]);
+
+  print('Integration tests completed successfully');
+}
+
+@Task('Run all tests (unit + integration)')
+@Depends(test, integrationTest)
+void testAll() {
+  print('All tests completed successfully');
 }

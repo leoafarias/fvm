@@ -1,58 +1,55 @@
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart';
 
 import '../services/cache_service.dart';
-import '../services/logger_service.dart';
 import '../services/project_service.dart';
-import '../services/releases_service/models/channels_model.dart';
 import '../services/releases_service/releases_client.dart';
-import '../utils/console_utils.dart';
 import '../utils/helpers.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Use an installed SDK version
-class UseCommand extends BaseCommand {
+class UseCommand extends BaseFvmCommand {
   @override
   final name = 'use';
 
   @override
-  String description =
-      'Sets Flutter SDK Version you would like to use in a project';
+  String description = 'Sets the Flutter SDK version for the current project';
 
-  /// Constructor
-  UseCommand() {
+  UseCommand(super.context) {
     argParser
       ..addFlag(
         'force',
         abbr: 'f',
-        help: 'Skips command guards that does Flutter project checks.',
+        help: 'Bypasses Flutter project validation checks',
         negatable: false,
       )
       ..addFlag(
         'pin',
         abbr: 'p',
         help:
-            '''If version provided is a channel. Will pin the latest release of the channel''',
+            'Pins the latest release of a channel instead of using the channel directly',
         negatable: false,
       )
       ..addOption(
         'flavor',
-        help: 'Sets version for a project flavor',
+        help: 'Sets the Flutter SDK version for a specific project flavor',
         defaultsTo: null,
         aliases: ['env'],
       )
       ..addFlag(
         'skip-pub-get',
-        help: 'Skip resolving dependencies after switching Flutter SDK',
+        help: 'Skips running "flutter pub get" after switching SDK versions',
         defaultsTo: false,
         negatable: false,
       )
       ..addFlag(
         'skip-setup',
         abbr: 's',
-        help: 'Skips Flutter setup after install',
+        help: 'Skips downloading SDK dependencies after switching versions',
         negatable: false,
       );
   }
@@ -66,18 +63,29 @@ class UseCommand extends BaseCommand {
 
     String? version;
 
-    final project = ProjectService.fromContext.findAncestor();
+    final useVersion = UseVersionWorkflow(context);
+    final ensureCache = EnsureCacheWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
+    final project = get<ProjectService>().findAncestor();
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
       version = project.pinnedVersion?.name;
-      final versions = await CacheService.fromContext.getAllVersions();
+      final versions = await get<CacheService>().getAllVersions();
       // If no config found, ask which version to select.
-      version ??= cacheVersionSelector(versions);
+      version ??= logger.cacheVersionSelector(versions);
     }
 
     // Get version from first arg
-    version ??= argResults!.rest[0];
+    version ??= firstRestArg;
+
+    // At this point, version could still be null, so we need to ensure it's not
+    if (version == null) {
+      throw UsageException(
+        'Please provide a Flutter SDK version or run in a project with FVM configured.',
+        usage,
+      );
+    }
 
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {
@@ -88,11 +96,9 @@ class UseCommand extends BaseCommand {
         );
       }
 
-      /// Pin release to channel
-      final channel = FlutterChannel.fromName(version);
+      final releaseClient = get<FlutterReleaseClient>();
 
-      final release =
-          await FlutterReleasesClient.getLatestReleaseOfChannel(channel);
+      final release = await releaseClient.getLatestChannelRelease(version);
 
       logger.info(
         'Pinning version ${release.version} from "$version" release channel...',
@@ -128,15 +134,17 @@ class UseCommand extends BaseCommand {
       }
     }
 
-    final cacheVersion = await ensureCacheWorkflow(version, force: forceOption);
+    final flutterVersion = validateFlutterVersion(version);
+
+    final cacheVersion = await ensureCache(flutterVersion, force: forceOption);
 
     /// Run use workflow
-    await useVersionWorkflow(
+    await useVersion(
       version: cacheVersion,
       project: project,
       force: forceOption,
       skipSetup: skipSetup,
-      runPubGetOnSdkChange: !skipPubGet,
+      skipPubGet: skipPubGet,
       flavor: flavorOption,
     );
 

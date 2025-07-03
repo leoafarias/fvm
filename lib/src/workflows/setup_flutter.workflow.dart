@@ -1,14 +1,27 @@
 import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
+import '../services/flutter_service.dart';
+import 'workflow.dart';
 
-Future<void> setupFlutterWorkflow(CacheFlutterVersion version) async {
-  logger
-    ..info('Setting up Flutter SDK: ${version.name}')
-    ..spacer;
+class SetupFlutterWorkflow extends Workflow {
+  const SetupFlutterWorkflow(super.context);
 
-  await version.run('--version', echoOutput: true);
+  Future<void> call(CacheFlutterVersion version) async {
+    // Skip setup if version has already been setup.
+    if (version.isSetup) return;
 
-  logger
-    ..spacer
-    ..success('Flutter SDK: ${version.printFriendlyName} is setup');
+    logger
+      ..info('Setting up Flutter SDK: ${version.name}')
+      ..info();
+
+    try {
+      await get<FlutterService>().setup(version);
+      logger
+        ..info()
+        ..success('Flutter SDK: ${version.printFriendlyName} is setup');
+    } on Exception catch (_) {
+      logger.err('Failed to setup Flutter SDK');
+
+      rethrow;
+    }
+  }
 }

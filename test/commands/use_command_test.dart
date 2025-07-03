@@ -1,43 +1,161 @@
-@Timeout(Duration(minutes: 5))
-import 'package:fvm/src/models/flutter_version_model.dart';
-import 'package:fvm/src/services/cache_service.dart';
-import 'package:fvm/src/services/project_service.dart';
-import 'package:fvm/src/utils/extensions.dart';
+import 'package:args/command_runner.dart';
+import 'package:fvm/fvm.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
+// Assuming this is defined in your testing_utils.dart
+const _versionList = [
+  'stable',
+  'beta',
+  'dev',
+  '2.0.0',
+];
+
 void main() {
-  groupWithContext(
-    'Use workflow:',
-    () {
-      final runner = TestCommandRunner();
+  late TestCommandRunner runner;
 
-      for (var version in kVersionList) {
-        testWithContext(
-          'Use $version',
-          () async {
-            final exitCode = await runner.run(
-              'fvm use $version --force --skip-setup',
-            );
+  setUp(() {
+    runner = TestFactory.commandRunner();
+  });
 
-            final project = ProjectService.fromContext.findAncestor();
-            final link = project.localVersionSymlinkPath.link;
-            final linkExists = link.existsSync();
+  group('Use workflow:', () {
+    for (var version in _versionList) {
+      test('Use $version', () async {
+        final exitCode = await runner.run([
+          'fvm',
+          'use',
+          version,
+          '--force',
+          '--skip-setup',
+        ]);
 
-            final targetPath = link.targetSync();
-            final valid = FlutterVersion.parse(version);
-            final versionDir =
-                CacheService.fromContext.getVersionCacheDir(valid.name);
+        // Get the project and verify its configuration
+        final project = runner.context.get<ProjectService>().findAncestor();
+        final link = project.localVersionSymlinkPath.link;
+        final linkExists = link.existsSync();
 
-            expect(targetPath == versionDir.path, true);
-            expect(linkExists, true);
-            expect(project.pinnedVersion?.name, version);
-            expect(exitCode, ExitCode.success.code);
-          },
+        // Check the symlink target
+        final targetPath = link.targetSync();
+        final valid = FlutterVersion.parse(version);
+        final versionDir =
+            runner.context.get<CacheService>().getVersionCacheDir(valid);
+
+        // Perform assertions
+        expect(targetPath == versionDir.path, true);
+        expect(linkExists, true);
+        expect(project.pinnedVersion?.name, version);
+        expect(exitCode, ExitCode.success.code);
+      });
+    }
+  });
+
+  group('Pin functionality:', () {
+    test('should pin channel to latest release', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
         );
+        final localRunner = TestCommandRunner(context);
+
+        final exitCode = await localRunner.run(['fvm', 'use', 'stable', '--pin']);
+        expect(exitCode, ExitCode.success.code);
+
+        // Verify pinned to specific version, not channel
+        final project = context.get<ProjectService>().findAncestor();
+        expect(project.pinnedVersion?.name, isNot('stable'));
+        expect(project.pinnedVersion?.name, matches(r'^\d+\.\d+\.\d+'));
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
       }
-    },
-  );
+    });
+
+    test('should fail gracefully for master channel', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', 'master', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('pin flag throws error for specific versions', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        // Pinning a specific version should throw an error
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', '3.10.0', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('should fail for invalid channel', () async {
+      final testDir = createTempDir();
+      
+      try {
+        createPubspecYaml(testDir);
+
+        // Create runner with working directory
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+        final localRunner = TestCommandRunner(context);
+
+        expect(
+          () => localRunner.runOrThrow(['fvm', 'use', 'invalid-channel', '--pin']),
+          throwsA(predicate<UsageException>(
+            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
+          )),
+        );
+      } finally {
+        if (testDir.existsSync()) {
+          testDir.deleteSync(recursive: true);
+        }
+      }
+    });
+  });
 }

@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run tests before pushing
+echo "Running tests..."
+dart test
+
+# Optional: Run integration tests if they exist
+if [ -f "tool/grind.dart" ]; then
+  echo "Running integration tests..."
+  dart run grinder integrationTest || echo "Integration tests not available or failed"
+fi

@@ -1,8 +1,8 @@
-@Timeout(Duration(minutes: 5))
 import 'dart:io';
 
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
@@ -11,37 +11,47 @@ import 'package:test/test.dart';
 
 import 'testing_utils.dart';
 
-final runner = TestCommandRunner();
-
 void main() {
-  groupWithContext('Channel Workflow:', () {
-    final runner = TestCommandRunner();
+  late TestCommandRunner runner;
+  late FvmContext context;
 
-    testWithContext('Install Channel', () async {
-      // await testContextWrapper(contextKey, () async {
-      await runner.run('fvm install $channel');
+  const channel = 'stable';
+  const release = '2.0.0';
 
-      final cacheVersion =
-          CacheService.fromContext.getVersion(FlutterVersion.parse(channel));
+  setUp(() {
+    runner = TestFactory.commandRunner();
+    context = runner.context;
+  });
 
-      final existingChannel = await getBranch(channel);
+  group('Channel Workflow:', () {
+    test('Install Channel', () async {
+      await runner.runOrThrow(['fvm', 'install', channel]);
+
+      final cacheVersion = context.get<CacheService>().getVersion(
+            FlutterVersion.parse(channel),
+          );
+
+      final existingChannel = await context.get<GitService>().getBranch(
+            channel,
+          );
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
     });
 
-    testWithContext('List Channel', () async {
-      final exitCode = await runner.run('fvm list');
+    test('List Channel', () async {
+      final exitCode = await runner.runOrThrow(['fvm', 'list']);
 
       expect(exitCode, ExitCode.success.code);
     });
 
-    testWithContext('Use Channel', () async {
+    test('Use Channel', () async {
       try {
-        // Run foce to test within fvm
-        await runner.run('fvm use $channel --force --skip-setup');
+        // Run force to test within fvm
+        await runner
+            .runOrThrow(['fvm', 'use', channel, '--force', '--skip-setup']);
 
-        final project = ProjectService.fromContext.findAncestor();
+        final project = context.get<ProjectService>().findAncestor();
 
         final link = Link(project.localVersionSymlinkPath);
 
@@ -49,7 +59,9 @@ void main() {
 
         final targetBin = link.targetSync();
 
-        final channelBin = CacheService.fromContext.getVersionCacheDir(channel);
+        final channelBin = context
+            .get<CacheService>()
+            .getVersionCacheDir(FlutterVersion.parse(channel));
 
         expect(targetBin == channelBin.path, true);
         expect(linkExists, true);
@@ -58,10 +70,10 @@ void main() {
       }
     });
 
-    testWithContext('Use Flutter SDK globally', () async {
+    test('Use Flutter SDK globally', () async {
       try {
-        await runner.run('fvm global $channel');
-        final globalLink = Link(ctx.globalCacheLink);
+        await runner.runOrThrow(['fvm', 'global', channel]);
+        final globalLink = Link(context.globalCacheLink);
         final linkExists = globalLink.existsSync();
 
         final targetVersion = basename(await globalLink.target());
@@ -73,33 +85,36 @@ void main() {
       }
     });
 
-    testWithContext('Remove Channel Command', () async {
+    test('Remove Channel Command', () async {
       try {
-        await runner.run('fvm remove $channel');
+        await runner.runOrThrow(['fvm', 'remove', channel]);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
     });
 
-    testWithContext('Install Release', () async {
-      await runner.run('fvm install $release');
+    test('Install Release', () async {
+      await runner.runOrThrow(['fvm', 'install', release]);
       final valid = FlutterVersion.parse(release);
-      final existingRelease = await getTag(valid.name);
+      final existingRelease = await context.get<GitService>().getTag(
+            valid.name,
+          );
 
-      final cacheVersion = CacheService.fromContext.getVersion(valid);
+      final cacheVersion = context.get<CacheService>().getVersion(valid);
 
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
       expect(existingRelease, valid.name);
     });
 
-    testWithContext('Install commit', () async {
+    test('Install commit', () async {
       final shortGitHash = 'fb57da5f94';
 
-      await runner.run('fvm install $shortGitHash');
+      await runner.runOrThrow(['fvm', 'install', shortGitHash]);
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersionShort = CacheService.fromContext.getVersion(validShort);
+      final cacheVersionShort =
+          context.get<CacheService>().getVersion(validShort);
 
       expect(
         cacheVersionShort != null,
@@ -108,66 +123,79 @@ void main() {
       );
     });
 
-    testWithContext('Use Release', () async {
-      final exitCode = await runner.run(
-        'fvm use $release --force --skip-setup',
-      );
+    test('Use Release', () async {
+      final exitCode = await runner.runOrThrow([
+        'fvm',
+        'use',
+        release,
+        '--force',
+        '--skip-setup',
+      ]);
 
-      final project = ProjectService.fromContext.findAncestor();
+      final project = context.get<ProjectService>().findAncestor();
       final link = Link(project.localVersionSymlinkPath);
       final linkExists = link.existsSync();
 
       final targetPath = link.targetSync();
       final valid = FlutterVersion.parse(release);
-      final versionDir =
-          CacheService.fromContext.getVersionCacheDir(valid.name);
+      final versionDir = context.get<CacheService>().getVersionCacheDir(valid);
 
       expect(targetPath == versionDir.path, true);
       expect(linkExists, true);
       expect(exitCode, ExitCode.success.code);
     });
 
-    testWithContext('List Command', () async {
-      expect(await runner.run('fvm list'), ExitCode.success.code);
+    test('List Command', () async {
+      expect(await runner.runOrThrow(['fvm', 'list']), ExitCode.success.code);
     });
 
-    testWithContext('Remove Release', () async {
-      expect(await runner.run('fvm remove $release'), ExitCode.success.code);
+    test('Remove Release', () async {
+      expect(
+        await runner.runOrThrow(['fvm', 'remove', release]),
+        ExitCode.success.code,
+      );
     });
   });
 
-  groupWithContext('Commands', () {
+  group('Commands', () {
     test('Get Version', () async {
       expect(
-        await runner.run('fvm --version'),
+        await runner.runOrThrow(['fvm', '--version']),
         ExitCode.success.code,
       );
 
       expect(
-        await runner.run('fvm -v'),
-        ExitCode.success.code,
-      );
-    });
-
-    testWithContext('Doctor Command', () async {
-      expect(
-        await runner.run('fvm doctor'),
+        await runner.runOrThrow(['fvm', '-v']),
         ExitCode.success.code,
       );
     });
 
-    testWithContext('Flavor Command', () async {
-      await runner.run('fvm install $channel');
+    test('Doctor Command', () async {
+      expect(
+        await runner.runOrThrow(['fvm', 'doctor']),
+        ExitCode.success.code,
+      );
+    });
+
+    test('Flavor Command', () async {
+      await runner.runOrThrow(['fvm', 'install', channel]);
 
       expect(
-        await runner.run(
-          'fvm use $channel --flavor production --skip-setup',
-        ),
+        await runner.runOrThrow([
+          'fvm',
+          'use',
+          channel,
+          '--flavor',
+          'production',
+          '--skip-setup',
+          '--force',
+        ]),
         ExitCode.success.code,
       );
 
       expect(
-        await runner.run('fvm use production'),
+        await runner.runOrThrow(
+            ['fvm', 'use', 'production', '--skip-setup', '--force']),
         ExitCode.success.code,
       );
     });

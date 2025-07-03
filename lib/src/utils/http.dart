@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 /// Does a simple get request on [url]
-Future<String> fetch(String url, {Map<String, String>? headers}) async {
+Future<String> httpRequest(String url, {Map<String, String>? headers}) async {
   final client = HttpClient();
 
   // Add headers to request
