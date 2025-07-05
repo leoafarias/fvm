@@ -45,8 +45,6 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
       return true;
     }
 
-    final progress = logger.progress('Resolving dependencies...');
-
     // Try to resolve offline
     final pubGetOfflineResults = await flutterService.pubGet(
       version,
@@ -54,22 +52,21 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
     );
 
     if (pubGetOfflineResults.isSuccess) {
-      progress.complete('Dependencies resolved offline.');
+      logger.info('Dependencies resolved offline.');
 
       return true;
     }
 
-    progress.update('Trying to resolve dependencies...');
-
+    logger.info('Trying to resolve dependencies online...');
     final pubGetResults = await flutterService.pubGet(version);
 
     if (pubGetResults.isSuccess) {
-      progress.complete('Dependencies resolved.');
+      logger.info('Dependencies resolved.');
 
       return true;
     }
 
-    progress.fail('Could not resolve dependencies.');
+    logger.err('Could not resolve dependencies.');
     logger
       ..info()
       ..err(pubGetResults.stderr.toString());
