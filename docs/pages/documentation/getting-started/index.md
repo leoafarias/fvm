@@ -31,6 +31,6 @@ fvm flutter doctor
 
 ## Next Steps
 
-1. [Install FVM](../getting-started/installation) on your system
-2. [Configure](../getting-started/configuration) your first project
-3. Check the [FAQ](../getting-started/faq) for common questions
+1. [Install FVM](./getting-started/installation) on your system
+2. [Configure](./getting-started/configuration) your first project
+3. Check the [FAQ](./getting-started/faq) for common questions
