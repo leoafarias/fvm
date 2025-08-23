@@ -297,5 +297,46 @@ void main() {
         expect(copied.fromFork, isTrue);
       });
     });
+
+    group('Git commit hash handling', () {
+      test('should preserve full commit hash in project config', () {
+        const fullHash = '6d04a162109d07876230709adf4013db113b16a3';
+        
+        final version = FlutterVersion.parse(fullHash);
+        expect(version.name, fullHash);
+        expect(version.type, VersionType.unknownRef);
+        expect(version.isUnknownRef, isTrue);
+        
+        // The version should preserve the full hash, not truncate it
+        expect(version.name.length, 40);
+        expect(version.name, fullHash);
+      });
+      
+      test('should preserve short commit hash in project config', () {
+        const shortHash = '6d04a16210';
+        
+        final version = FlutterVersion.parse(shortHash);
+        expect(version.name, shortHash);
+        expect(version.type, VersionType.unknownRef);
+        expect(version.isUnknownRef, isTrue);
+        
+        // The version should preserve the short hash
+        expect(version.name.length, 10);
+        expect(version.name, shortHash);
+      });
+      
+      test('should not confuse full hash with short hash', () {
+        const fullHash = '6d04a162109d07876230709adf4013db113b16a3';
+        const shortHash = '6d04a16210';
+        
+        final fullVersion = FlutterVersion.parse(fullHash);
+        final shortVersion = FlutterVersion.parse(shortHash);
+        
+        // These should be different
+        expect(fullVersion.name, isNot(equals(shortVersion.name)));
+        expect(fullVersion.name.length, 40);
+        expect(shortVersion.name.length, 10);
+      });
+    });
   });
 }
