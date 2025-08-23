@@ -96,7 +96,8 @@ class SetupGitIgnoreWorkflow extends Workflow {
 
     // Write the updated content to the .gitignore file silently
     try {
-      ignoreFile.writeAsStringSync(lines.join('\n'), mode: FileMode.write);
+      // Ensure the file ends with a newline to prevent concatenation issues
+      ignoreFile.writeAsStringSync('${lines.join('\n')}\n', mode: FileMode.write);
 
       return true;
     } catch (e) {
