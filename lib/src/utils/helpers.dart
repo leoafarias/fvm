@@ -190,10 +190,27 @@ String extractDartVersionOutput(String input) {
 }
 
 /// Validates if a URL is a valid Git repository URL.
+/// Supports HTTP/HTTPS and SSH formats including:
+/// - https://github.com/user/repo.git
+/// - git@github.com:user/repo.git
+/// - ssh://git@github.com:user/repo.git
 bool isValidGitUrl(String url) {
   try {
-    final uri = Uri.parse(url);
+    // Check for SSH format: git@host:path/repo.git
+    final sshPattern = RegExp(r'^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+:[a-zA-Z0-9._/-]+\.git$');
+    if (sshPattern.hasMatch(url)) {
+      return true;
+    }
 
+    // Check for standard URI formats (http/https/ssh)
+    final uri = Uri.parse(url);
+    
+    // Handle ssh:// URLs specially
+    if (uri.scheme == 'ssh') {
+      return uri.host.isNotEmpty && uri.path.endsWith('.git');
+    }
+    
+    // For other schemes (http, https), ensure scheme, host, and .git ending
     return uri.scheme.isNotEmpty &&
         (uri.host.isNotEmpty || uri.path.isNotEmpty) &&
         uri.path.endsWith('.git');

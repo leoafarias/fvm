@@ -20,7 +20,7 @@ FVM streamlines Flutter version management. It allows per project SDK versions, 
 - Flutter's major updates demand total app migration.
 - Inconsistencies occur in development environments within teams.
 
-For more information, read [FVM documentation](https://fvm.app).
+For more information, read [FVM documentation](https://fvm.app/documentation/getting-started).
 
 ## Contributors
 

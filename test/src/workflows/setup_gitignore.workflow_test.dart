@@ -288,5 +288,41 @@ void main() {
       expect(contents, contains(SetupGitIgnoreWorkflow.kGitIgnoreHeading));
       expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
     });
+
+    test('should add trailing newline to prevent concatenation issues', () {
+      final testDir = tempDirs.create();
+      // Create test project
+      createPubspecYaml(testDir);
+      createProjectConfig(
+        ProjectConfig(),
+        testDir,
+      );
+
+      final project =
+          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final workflow = SetupGitIgnoreWorkflow(runner.context);
+
+      // Run workflow
+      final result = workflow.call(project);
+      expect(result, isTrue);
+
+      // Verify .gitignore was created and ends with newline
+      final gitignore = File(p.join(testDir.path, '.gitignore'));
+      expect(gitignore.existsSync(), isTrue);
+
+      // Read raw content to check for trailing newline
+      final rawContent = gitignore.readAsStringSync();
+      expect(rawContent.endsWith('\n'), isTrue, 
+        reason: 'gitignore file should end with newline to prevent concatenation issues');
+      
+      // Verify that appending content would work correctly
+      final bytesBeforeAppend = gitignore.lengthSync();
+      gitignore.writeAsStringSync('${rawContent}# Additional comment\n');
+      final newContent = gitignore.readAsStringSync();
+      
+      // Should not have '.fvm/# Additional comment' on same line
+      expect(newContent.contains('.fvm/# Additional comment'), isFalse,
+        reason: 'Appended content should be on a new line');
+    });
   });
 }
