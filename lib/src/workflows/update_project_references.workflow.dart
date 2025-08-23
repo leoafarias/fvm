@@ -146,6 +146,8 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       final updatedProject = get<ProjectService>().update(
         project,
         flavors: {if (flavor != null) flavor: version.name},
+        // Security: Always use version.name to preserve original user-provided hash
+        // This prevents truncation of full commit hashes which could create security vulnerabilities
         flutterSdkVersion: version.name,
       );
 

@@ -150,6 +150,9 @@ class FlutterVersion with FlutterVersionMappable {
       versionName = name.split('/').last;
     }
 
+    // Strip channel suffix (e.g., "2.10.0@beta" -> "2.10.0")
+    // SECURITY: This must preserve the original hash length for commit hashes
+    // to prevent truncation vulnerabilities (see issue #783)
     return versionName.split('@').first;
   }
 
