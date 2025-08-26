@@ -181,7 +181,7 @@ class FvmContext with FvmContextMappable {
   /// This is done by checking for common CI environment variables.
   @MappableField()
   bool get isCI {
-    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
+    return kCiEnvironmentVariables.any(environment.containsKey);
   }
 
   @MappableField()
