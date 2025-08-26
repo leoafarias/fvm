@@ -69,10 +69,10 @@ class GlobalCommand extends BaseFvmCommand {
     if (argResults!.rest.isEmpty) {
       final versions = await cacheService.getAllVersions();
       version = logger.cacheVersionSelector(versions);
+    } else {
+      // Get first arg if it was not empty
+      version = argResults!.rest[0];
     }
-
-    // Get first arg if it was not empty
-    version ??= argResults!.rest[0];
 
     final flutterVersion = validateFlutterVersion(version);
 
