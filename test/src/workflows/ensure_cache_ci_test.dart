@@ -96,35 +96,35 @@ void main() {
       expect(result, isNotNull);
     });
 
-    test('environment detection respects existing CI variables', () async {
-      final context = TestFactory.context(
-        environmentOverrides: {}, // Empty overrides still inherit platform CI variables
-        skipInput: false,
+    test('CI environment variables properly detected from multiple sources', () {
+      // Test all supported CI environment variables
+      final ciVariables = [
+        'CI',
+        'GITHUB_ACTIONS', 
+        'TRAVIS',
+        'CIRCLECI',
+        'GITLAB_CI'
+      ];
+      
+      for (final ciVar in ciVariables) {
+        final context = TestFactory.context(
+          environmentOverrides: {ciVar: 'true'},
+        );
+        
+        expect(context.isCI, isTrue, reason: 'Failed CI detection for $ciVar');
+        expect(context.skipInput, isTrue, reason: 'Failed skipInput for $ciVar');
+      }
+      
+      // Test that having multiple CI variables also works
+      final multiCiContext = TestFactory.context(
+        environmentOverrides: {
+          'CI': 'true',
+          'GITHUB_ACTIONS': 'true',
+        },
       );
-      runner = TestFactory.commandRunner(context: context);
       
-      final version = FlutterVersion.parse('3.10.0');
-      final cacheService = context.get<CacheService>();
-      final ensureCache = EnsureCacheWorkflow(context);
-      
-      // Setup version with mismatch
-      await runner.run(['fvm', 'install', '3.10.0', '--skip-setup']);
-      final cacheVersion = cacheService.getVersion(version);
-      if (cacheVersion != null) {
-        forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
-      }
-      
-      // When running in CI environment, context will inherit CI variables from platform
-      // This test verifies the workflow handles this case appropriately
-      try {
-        final result = await ensureCache(version);
-        // If it doesn't crash, that's fine - means it has some handling
-        expect(result, isNotNull);
-      } catch (e) {
-        // Expected when running in environment where interactive input isn't available
-        // The test serves to verify environment variable inheritance behavior
-        expect(e, isNotNull);
-      }
+      expect(multiCiContext.isCI, isTrue);
+      expect(multiCiContext.skipInput, isTrue);
     });
 
     test('verify CI detection works correctly', () {
