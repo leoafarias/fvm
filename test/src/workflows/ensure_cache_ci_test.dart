@@ -97,13 +97,17 @@ void main() {
     });
 
     test('CI environment variables properly detected from multiple sources', () {
-      // Test all supported CI environment variables
+      // Test ALL supported CI environment variables from constants.dart
       final ciVariables = [
         'CI',
-        'GITHUB_ACTIONS', 
-        'TRAVIS',
+        'TRAVIS', 
         'CIRCLECI',
-        'GITLAB_CI'
+        'GITHUB_ACTIONS',
+        'GITLAB_CI',
+        'JENKINS_URL',
+        'BAMBOO_BUILD_NUMBER',
+        'TEAMCITY_VERSION',
+        'TF_BUILD'
       ];
       
       for (final ciVar in ciVariables) {
