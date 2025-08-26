@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
