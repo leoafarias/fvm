@@ -74,10 +74,10 @@ class UseCommand extends BaseFvmCommand {
       final versions = await get<CacheService>().getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
+    } else {
+      // Get version from first arg
+      version = firstRestArg;
     }
-
-    // Get version from first arg
-    version ??= firstRestArg;
 
     // At this point, version could still be null, so we need to ensure it's not
     if (version == null) {
