@@ -54,10 +54,18 @@ class EnsureCacheWorkflow extends Workflow {
     final secondOption =
         'Remove incorrect version and reinstall ${version.name}';
 
-    final selectedOption = logger.select(
-      'How would you like to resolve this?',
-      options: [firstOption, secondOption],
-    );
+    String selectedOption;
+    if (context.skipInput) {
+      // In CI/non-interactive mode, automatically choose safe default: remove and reinstall
+      logger.warn('CI/non-interactive mode detected: Auto-selecting to remove and reinstall');
+      selectedOption = secondOption;
+    } else {
+      // Interactive mode: show prompt
+      selectedOption = logger.select(
+        'How would you like to resolve this?',
+        options: [firstOption, secondOption],
+      );
+    }
 
     if (selectedOption == firstOption) {
       logger.info('Moving SDK to the correct cache directory...');
