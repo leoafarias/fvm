@@ -11,6 +11,7 @@ FVM helps with the need for consistent app builds by referencing the Flutter SDK
 
 ```bash
 # Install FVM
+brew tap leoafarias/fvm
 brew install fvm
 
 # Set Flutter version for a project
@@ -31,6 +32,6 @@ fvm flutter doctor
 
 ## Next Steps
 
-1. [Install FVM](./installation) on your system
-2. [Configure](./configuration) your first project
-3. Check the [FAQ](./faq) for common questions
+1. [Install FVM](./getting-started/installation) on your system
+2. [Configure](./getting-started/configuration) your first project
+3. Check the [FAQ](./getting-started/faq) for common questions

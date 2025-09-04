@@ -96,7 +96,9 @@ class FlutterService extends ContextualService {
   }) {
     final versionRunner = VersionRunner(context: context, version: version);
 
-    return versionRunner.run(cmd, args,
+    return versionRunner.run(
+      cmd,
+      args,
       throwOnError: throwOnError,
       echoOutput: echoOutput,
     );
@@ -109,9 +111,13 @@ class FlutterService extends ContextualService {
   }) {
     final args = ['pub', 'get', if (offline) '--offline'];
 
-    return run('flutter', args, version,
+    // For offline mode, we can safely suppress output
+    // For online mode, we need to allow stdio inheritance for authentication prompts
+    return run(
+      'flutter', args, version,
       throwOnError: throwOnError,
-      echoOutput: false,  // Prevent duplicate progress indicators
+      echoOutput:
+          !offline, // Allow stdio inheritance for authentication when online
     );
   }
 
@@ -343,7 +349,7 @@ class VersionRunner {
 
     logger.debug('Starting to update environment variables...');
 
-    final updatedEnvironment = Map<String, String>.from(env);
+    final updatedEnvironment = Map<String, String>.of(env);
 
     final envPath = env['PATH'] ?? '';
 

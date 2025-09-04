@@ -19,6 +19,9 @@ void main(List<String> args) {
   pkg.githubRepo.value = '$owner/$_packageName';
   pkg.homebrewRepo.value = '$owner/homebrew-$_packageName';
   pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
+  
+  // Enable standalone executables for all platforms
+  pkg.standaloneName.value = _packageName;
 
   if (args.contains('--versioned-formula')) {
     pkg.homebrewCreateVersionedFormula.value = true;
