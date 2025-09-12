@@ -423,14 +423,13 @@ create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
 
 # Shell configuration helpers
 get_path_export() {
-  # Build a literal \$PATH for bash/zsh and a real $PATH for fish, without expanding here.
   local shell_type="$1"
   case "$shell_type" in
     fish)
-      printf 'set -gx PATH %s $PATH' "$FVM_DIR_BIN"
+      echo "set -gx PATH $FVM_DIR_BIN \$PATH"
       ;;
     *)
-      printf 'export PATH="%s:$PATH"' "$FVM_DIR_BIN"
+      echo "export PATH=\"$FVM_DIR_BIN:\$PATH\""
       ;;
   esac
 }
