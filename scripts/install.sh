@@ -153,9 +153,15 @@ uninstall_fvm() {
   fi
   
   # Check for symlink
-  if [[ -L "$SYMLINK_TARGET" ]] && [[ "$(readlink "$SYMLINK_TARGET")" == *"fvm"* ]]; then
-    fvm_found=true
-    info "Found FVM symlink: $SYMLINK_TARGET"
+  if [[ -L "$SYMLINK_TARGET" ]]; then
+    local link_target
+    link_target="$(readlink "$SYMLINK_TARGET" || true)"
+    if [[ "$link_target" == "$FVM_DIR_BIN/fvm" ]]; then
+      fvm_found=true
+      info "Found FVM symlink: $SYMLINK_TARGET"
+    else
+      warn "Skipping symlink removal: $SYMLINK_TARGET points to '$link_target'"
+    fi
   fi
   
   if [[ "$fvm_found" == false ]]; then
@@ -170,11 +176,15 @@ uninstall_fvm() {
     success "Removed $FVM_DIR"
   fi
   
-  # Remove symlink
+  # Remove symlink (only if it points to our install)
   if [[ -L "$SYMLINK_TARGET" ]]; then
-    info "Removing FVM symlink..."
-    remove_symlink "$SYMLINK_TARGET"
-    success "Removed $SYMLINK_TARGET"
+    local link_target
+    link_target="$(readlink "$SYMLINK_TARGET" || true)"
+    if [[ "$link_target" == "$FVM_DIR_BIN/fvm" ]]; then
+      info "Removing FVM symlink..."
+      remove_symlink "$SYMLINK_TARGET"
+      success "Removed $SYMLINK_TARGET"
+    fi
   fi
   
   # Notify about PATH cleanup
@@ -313,9 +323,8 @@ if [[ ! -d "$SYMLINK_DIR" ]]; then
     mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
     info "Created directory: $SYMLINK_DIR"
   else
-    error "Symlink target directory does not exist: $SYMLINK_DIR
-    
-Please create it with: sudo mkdir -p $SYMLINK_DIR"
+    "$ESCALATION_TOOL" mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
+    info "Created directory: $SYMLINK_DIR"
   fi
 fi
 
@@ -375,11 +384,12 @@ else
   error "Expected 'fvm' binary not found after extraction."
 fi
 
-# Verify binary exists
+# Verify binary exists and is executable
 if [[ ! -f "$FVM_DIR_BIN/fvm" ]]; then
   rm -f fvm.tar.gz
   error "FVM binary not found in expected location after extraction."
 fi
+chmod +x "$FVM_DIR_BIN/fvm" || error "Failed to make fvm executable."
 
 # Cleanup
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
@@ -393,7 +403,7 @@ get_path_export() {
   local shell_type="$1"
   case "$shell_type" in
     fish)
-      echo "set --export PATH $FVM_DIR_BIN \$PATH"
+      echo "set -gx PATH $FVM_DIR_BIN \$PATH"
       ;;
     *)
       echo "export PATH=\"$FVM_DIR_BIN:\$PATH\""
