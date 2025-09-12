@@ -115,3 +115,27 @@ jobs:
         run: |
           sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
           sudo /usr/local/bin/fvm --version
+
+  # Test Alpine Linux (musl) support
+  test-alpine:
+    name: Test Alpine (musl)
+    needs: validate
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          apk add --no-cache bash curl tar gzip coreutils
+      
+      - name: Test musl installation
+        run: |
+          /bin/bash -lc '
+            ./scripts/install.sh
+            if command -v fvm >/dev/null 2>&1; then
+              fvm --version
+            else
+              /usr/local/bin/fvm --version
+            fi
+          '
