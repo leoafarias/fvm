@@ -18,7 +18,7 @@
 set -euo pipefail
 
 # Script version
-SCRIPT_VERSION="1.1.0"
+SCRIPT_VERSION="1.1.1"
 
 # Installation paths
 FVM_DIR="$HOME/.fvm_flutter"
@@ -33,26 +33,11 @@ Yellow='\033[1;33m'
 Bold_White='\033[1m'
 
 # Simple logging functions
-log() {
-  printf "%b\n" "$1"
-}
-
-info() {
-  log "${Bold_White}$1${Color_Off}"
-}
-
-success() {
-  log "${Green}$1${Color_Off}"
-}
-
-warn() {
-  log "${Yellow}$1${Color_Off}"
-}
-
-error() {
-  log "${Red}error: $1${Color_Off}" >&2
-  exit 1
-}
+log() { printf "%b\n" "$1"; }
+info() { log "${Bold_White}$1${Color_Off}"; }
+success() { log "${Green}$1${Color_Off}"; }
+warn() { log "${Yellow}$1${Color_Off}"; }
+error() { log "${Red}error: $1${Color_Off}" >&2; exit 1; }
 
 # Show help
 show_help() {
@@ -72,7 +57,7 @@ OPTIONS:
     -u, --uninstall   Uninstall FVM
 
 ARGUMENTS:
-    VERSION         Specific FVM version to install (e.g., 3.2.1)
+    VERSION         Specific FVM version to install (e.g., 3.2.1 or v3.2.1)
                     If omitted, installs the latest version
 
 EXAMPLES:
@@ -153,9 +138,15 @@ uninstall_fvm() {
   fi
   
   # Check for symlink
-  if [[ -L "$SYMLINK_TARGET" ]] && [[ "$(readlink "$SYMLINK_TARGET")" == *"fvm"* ]]; then
-    fvm_found=true
-    info "Found FVM symlink: $SYMLINK_TARGET"
+  if [[ -L "$SYMLINK_TARGET" ]]; then
+    local link_target
+    link_target="$(readlink "$SYMLINK_TARGET" || true)"
+    if [[ "$link_target" == "$FVM_DIR_BIN/fvm" ]]; then
+      fvm_found=true
+      info "Found FVM symlink: $SYMLINK_TARGET"
+    else
+      warn "Skipping symlink removal: $SYMLINK_TARGET points to '$link_target'"
+    fi
   fi
   
   if [[ "$fvm_found" == false ]]; then
@@ -170,11 +161,15 @@ uninstall_fvm() {
     success "Removed $FVM_DIR"
   fi
   
-  # Remove symlink
+  # Remove symlink (only if it points to our install)
   if [[ -L "$SYMLINK_TARGET" ]]; then
-    info "Removing FVM symlink..."
-    remove_symlink "$SYMLINK_TARGET"
-    success "Removed $SYMLINK_TARGET"
+    local link_target
+    link_target="$(readlink "$SYMLINK_TARGET" || true)"
+    if [[ "$link_target" == "$FVM_DIR_BIN/fvm" ]]; then
+      info "Removing FVM symlink..."
+      remove_symlink "$SYMLINK_TARGET"
+      success "Removed $SYMLINK_TARGET"
+    fi
   fi
   
   # Notify about PATH cleanup
@@ -266,10 +261,10 @@ To override: export FVM_ALLOW_ROOT=true"
   fi
 fi
 
-# Check for required tools
-if ! command -v curl &>/dev/null; then
-  error "curl is required but not installed. Install it manually and re-run."
-fi
+# Required tools
+for req in curl tar grep cut tr readlink; do
+  command -v "$req" >/dev/null || error "$req is required but not installed. Install it and re-run."
+done
 
 # Only check for escalation tools if not running as root
 if [[ "$IS_ROOT" != "true" ]]; then
@@ -287,13 +282,12 @@ fi
 if [[ -z "$FVM_VERSION" ]]; then
   info "Getting latest FVM version..."
   
-  # Use GitHub's web redirect instead of API to avoid rate limits
-  # GitHub Actions runners share IPs and hit the 60 req/hour API limit
-  # This method has no rate limits and is simpler (KISS principle)
-  FVM_VERSION=$(curl -sI https://github.com/leoafarias/fvm/releases/latest | grep -i location | cut -d' ' -f2 | rev | cut -d'/' -f1 | rev | tr -d '\r')
-  
+  # Follow redirects and print the final URL, then grab the last path segment
+  LATEST_URL="$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/leoafarias/fvm/releases/latest || true)"
+  if [[ -n "$LATEST_URL" ]]; then
+    FVM_VERSION="${LATEST_URL##*/}"
+  fi
   if [[ -z "$FVM_VERSION" ]]; then
-    # Simple fallback - no complex error handling needed
     FVM_VERSION="3.2.1"
     warn "Could not fetch latest version. Using fallback: $FVM_VERSION"
   fi
@@ -306,17 +300,62 @@ fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-# Ensure symlink directory exists
+# Resolve musl (Alpine) vs glibc asset
+MUSL_SUFFIX=""
+if [[ "$OS" == "linux" ]]; then
+  if command -v ldd >/dev/null && ldd --version 2>&1 | grep -qi musl; then
+    MUSL_SUFFIX="-musl"
+  fi
+fi
+
+# Build the download URL, handling both v/no-v tags robustly
+VERSION_NO_V="${FVM_VERSION#v}"
+build_url() {
+  local tag="$1"
+  local version_no_v="$2"
+  printf 'https://github.com/leoafarias/fvm/releases/download/%s/fvm-%s-%s-%s%s.tar.gz' \
+         "$tag" "$version_no_v" "$OS" "$ARCH" "$MUSL_SUFFIX"
+}
+
+SELECTED_URL=""
+# Try tag as provided, then tag without leading 'v'
+TAG_CANDIDATES=("$FVM_VERSION")
+if [[ "$VERSION_NO_V" != "$FVM_VERSION" ]]; then
+  TAG_CANDIDATES+=("$VERSION_NO_V")
+fi
+
+for TAG in "${TAG_CANDIDATES[@]}"; do
+  URL="$(build_url "$TAG" "$VERSION_NO_V")"
+  if curl -fsI "$URL" >/dev/null; then
+    SELECTED_URL="$URL"
+    break
+  fi
+done
+
+# As a last resort, try an asset name with 'v' in the filename (rare)
+if [[ -z "$SELECTED_URL" ]]; then
+  for TAG in "${TAG_CANDIDATES[@]}"; do
+    URL="https://github.com/leoafarias/fvm/releases/download/$TAG/fvm-$FVM_VERSION-$OS-$ARCH$MUSL_SUFFIX.tar.gz"
+    if curl -fsI "$URL" >/dev/null; then
+      SELECTED_URL="$URL"
+      break
+    fi
+  done
+fi
+
+if [[ -z "$SELECTED_URL" ]]; then
+  error "Could not locate a matching release asset for $FVM_VERSION ($OS/$ARCH$MUSL_SUFFIX)."
+fi
+
+# Ensure symlink directory exists (with escalation if needed)
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
 if [[ ! -d "$SYMLINK_DIR" ]]; then
   if [[ "$IS_ROOT" == "true" ]]; then
     mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
-    info "Created directory: $SYMLINK_DIR"
   else
-    error "Symlink target directory does not exist: $SYMLINK_DIR
-    
-Please create it with: sudo mkdir -p $SYMLINK_DIR"
+    "$ESCALATION_TOOL" mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
   fi
+  info "Created directory: $SYMLINK_DIR"
 fi
 
 # Clean existing installation
@@ -327,11 +366,12 @@ fi
 
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
-# Download FVM
-URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
+# Download FVM to a temp dir
+TMPDIR="$(mktemp -d 2>/dev/null || printf '%s' "$FVM_DIR/tmp")"
+trap 'rm -rf "$TMPDIR"' EXIT
 
-info "Downloading $URL"
-if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
+info "Downloading $SELECTED_URL"
+if ! curl -L --fail --show-error "$SELECTED_URL" -o "$TMPDIR/fvm.tar.gz"; then
   error "Download failed. Possible causes:
   - Check your internet connection
   - Verify the version exists: $FVM_VERSION
@@ -339,50 +379,43 @@ if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
 fi
 
 # Validate download
-if [[ ! -s fvm.tar.gz ]]; then
-  rm -f fvm.tar.gz
+if [[ ! -s "$TMPDIR/fvm.tar.gz" ]]; then
   error "Downloaded file is empty."
 fi
 
 # Test if valid gzip
-if ! tar -tzf fvm.tar.gz &>/dev/null; then
-  rm -f fvm.tar.gz
+if ! tar -tzf "$TMPDIR/fvm.tar.gz" &>/dev/null; then
   error "Downloaded file is not a valid gzip archive."
 fi
 
 # Extract FVM
-info "Extracting fvm.tar.gz into temporary directory"
+info "Extracting archive into temporary directory"
 TEMP_EXTRACT="$FVM_DIR/temp_extract"
 mkdir -p "$TEMP_EXTRACT"
-if ! tar xzf fvm.tar.gz -C "$TEMP_EXTRACT"; then
+if ! tar xzf "$TMPDIR/fvm.tar.gz" -C "$TEMP_EXTRACT"; then
   rm -rf "$TEMP_EXTRACT"
-  rm -f fvm.tar.gz
   error "Extraction failed. Possibly corrupt tar or insufficient permissions."
 fi
 
 # Handle different tarball structures
 if [[ -d "$TEMP_EXTRACT/fvm" ]]; then
   # New structure: fvm directory with binary and dependencies
-  mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
+  mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || { rm -rf "$TEMP_EXTRACT"; error "Failed to move fvm contents"; }
   rm -rf "$TEMP_EXTRACT"
 elif [[ -f "$TEMP_EXTRACT/fvm" ]]; then
   # Old structure: just the binary at root
-  mv "$TEMP_EXTRACT/fvm" "$FVM_DIR_BIN/" || error "Failed to move fvm binary"
+  mv "$TEMP_EXTRACT/fvm" "$FVM_DIR_BIN/" || { rm -rf "$TEMP_EXTRACT"; error "Failed to move fvm binary"; }
   rm -rf "$TEMP_EXTRACT"
 else
   rm -rf "$TEMP_EXTRACT"
-  rm -f fvm.tar.gz
   error "Expected 'fvm' binary not found after extraction."
 fi
 
-# Verify binary exists
+# Verify binary exists and is executable
 if [[ ! -f "$FVM_DIR_BIN/fvm" ]]; then
-  rm -f fvm.tar.gz
   error "FVM binary not found in expected location after extraction."
 fi
-
-# Cleanup
-rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
+chmod +x "$FVM_DIR_BIN/fvm" || error "Failed to make fvm executable."
 
 # Create system symlink
 info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
@@ -390,13 +423,14 @@ create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
 
 # Shell configuration helpers
 get_path_export() {
+  # Build a literal \$PATH for bash/zsh and a real $PATH for fish, without expanding here.
   local shell_type="$1"
   case "$shell_type" in
     fish)
-      echo "set --export PATH $FVM_DIR_BIN \$PATH"
+      printf 'set -gx PATH %s $PATH' "$FVM_DIR_BIN"
       ;;
     *)
-      echo "export PATH=\"$FVM_DIR_BIN:\$PATH\""
+      printf 'export PATH="%s:$PATH"' "$FVM_DIR_BIN"
       ;;
   esac
 }
@@ -408,10 +442,10 @@ update_shell_config() {
   local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
   if [[ -w "$config_file" ]]; then
-    if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
+    if ! grep -qF "$FVM_DIR_BIN" "$config_file"; then
       {
-        echo -e "\n# FVM"
-        echo "$export_command"
+        printf '\n# FVM\n'
+        printf '%s\n' "$export_command"
       } >> "$config_file"
       info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
       refresh_command="source $config_file"
@@ -435,7 +469,7 @@ if [[ "$IS_ROOT" == "true" ]] && [[ "$IS_CONTAINER" != "true" ]]; then
 fi
 
 # Update shell config based on current shell
-case "$(basename "$SHELL")" in
+case "$(basename "${SHELL:-}")" in
   fish)
     fish_config="$HOME/.config/fish/config.fish"
     if ! update_shell_config "$fish_config" "$(get_path_export fish)"; then

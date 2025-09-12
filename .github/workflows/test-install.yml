@@ -93,6 +93,24 @@ jobs:
           ./scripts/install.sh
           /usr/local/bin/fvm --version
 
+  # Test Alpine Linux (musl) support
+  test-alpine:
+    name: Test Alpine (musl)
+    needs: validate
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          apk add --no-cache bash curl tar gzip coreutils
+      
+      - name: Test musl installation
+        run: |
+          /bin/bash -lc './scripts/install.sh'
+          /usr/local/bin/fvm --version || $(command -v fvm) --version
+
   # Test root blocking on non-container
   test-permissions:
     name: Test Permissions
