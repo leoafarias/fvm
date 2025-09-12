@@ -108,8 +108,14 @@ jobs:
       
       - name: Test musl installation
         run: |
-          /bin/bash -lc './scripts/install.sh'
-          /usr/local/bin/fvm --version || $(command -v fvm) --version
+          /bin/bash -lc '
+            ./scripts/install.sh
+            if command -v fvm >/dev/null 2>&1; then
+              fvm --version
+            else
+              /usr/local/bin/fvm --version
+            fi
+          '
 
   # Test root blocking on non-container
   test-permissions:

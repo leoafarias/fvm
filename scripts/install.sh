@@ -372,6 +372,7 @@ mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
 # Download FVM to a temp dir
 TMPDIR="$(mktemp -d 2>/dev/null || printf '%s' "$FVM_DIR/tmp")"
+mkdir -p "$TMPDIR" || error "Failed to create temporary directory: $TMPDIR"
 trap 'rm -rf "$TMPDIR"' EXIT
 
 info "Downloading $SELECTED_URL"
