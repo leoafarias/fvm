@@ -316,18 +316,6 @@ fi
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-# Resolve musl (Alpine) vs glibc asset
-MUSL_SUFFIX=""
-if [[ "$OS" == "linux" ]]; then
-  # Multiple methods to detect musl (Alpine Linux)
-  if [[ -f /etc/alpine-release ]] || \
-     compgen -G "/lib/ld-musl-*.so.*" > /dev/null 2>&1 || \
-     (command -v ldd >/dev/null && ldd --version 2>&1 | grep -qi musl) || \
-     (! command -v getconf >/dev/null || ! getconf GNU_LIBC_VERSION >/dev/null 2>&1); then
-    MUSL_SUFFIX="-musl"
-  fi
-fi
-
 # Ensure symlink directory exists
 SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
 if [[ ! -d "$SYMLINK_DIR" ]]; then
@@ -349,7 +337,7 @@ fi
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
 # Download FVM
-URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH$MUSL_SUFFIX.tar.gz"
+URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
 
 info "Downloading $URL"
 if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
