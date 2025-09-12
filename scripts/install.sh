@@ -303,7 +303,11 @@ info "Preparing to install FVM version: $FVM_VERSION"
 # Resolve musl (Alpine) vs glibc asset
 MUSL_SUFFIX=""
 if [[ "$OS" == "linux" ]]; then
-  if command -v ldd >/dev/null && ldd --version 2>&1 | grep -qi musl; then
+  # Multiple methods to detect musl (Alpine Linux)
+  if [[ -f /etc/alpine-release ]] || \
+     compgen -G "/lib/ld-musl-*.so.*" > /dev/null 2>&1 || \
+     (command -v ldd >/dev/null && ldd --version 2>&1 | grep -qi musl) || \
+     (! command -v getconf >/dev/null || ! getconf GNU_LIBC_VERSION >/dev/null 2>&1); then
     MUSL_SUFFIX="-musl"
   fi
 fi
