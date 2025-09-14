@@ -1,79 +1,152 @@
 name: Deploy Release
 
 on:
+  release:
+    types: [published]
+  # Manual trigger for testing
   workflow_dispatch:
-  push:
-    tags:
-      - "v*"
+    inputs:
+      release_tag:
+        description: 'Release tag to deploy (e.g., v4.0.0-beta.2)'
+        required: true
 
 env:
   PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  
   test:
     name: Test
     uses: ./.github/workflows/test.yml
 
-  release:
-    name: Release
+  validate:
+    name: Validate Release
     needs: test
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract-version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from release or input
+        id: extract-version
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
+          else
+            VERSION="${{ github.event.inputs.release_tag }}"
+          fi
+          # Remove 'v' prefix if present
+          VERSION=${VERSION#v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "🚀 Validating version: $VERSION"
+
+      - name: Update pubspec.yaml version
+        run: |
+          echo "📝 Updating pubspec.yaml version to $RELEASE_VERSION"
+          sed -i "s/^version: .*/version: $RELEASE_VERSION/" pubspec.yaml
+          echo "✅ Updated version:"
+          grep "^version:" pubspec.yaml
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+
+      - name: Generate version.dart
+        run: |
+          echo "🔨 Generating version.dart with build_runner"
+          dart run build_runner build --delete-conflicting-outputs
+          echo "✅ Generated version.dart content:"
+          cat lib/src/version.dart
+
+      - name: Validate pub.dev package (dry run)
+        run: |
+          echo "🔍 Validating package for pub.dev..."
+          dart pub publish --dry-run
+          echo "✅ Package validation successful!"
+
+  deploy:
+    name: Deploy Core
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set version from validation
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "🚀 Deploying version: $VERSION"
+          sed -i "s/^version: .*/version: $RELEASE_VERSION/" pubspec.yaml
+
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
-      - name: Deploy Github
-        run: dart run grinder pkg-github-release
+      - name: Generate version.dart
+        run: dart run build_runner build --delete-conflicting-outputs
 
-      - name: Deploy Github Linux
+      # Skip pkg-github-release - release already exists
+      - name: Deploy Linux binaries to existing release
         run: dart run grinder pkg-github-linux
 
       - name: Deploy to Pub
         run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
-        name: Deploy (Windows)
-        runs-on: windows-latest
-        needs: release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-    
-          - name: Prepare environment
-            uses: ./.github/actions/prepare
-    
-          - name: Deploy Github Windows
-            run: dart run grinder pkg-github-windows
-    
-          - name: Deploy Chocolatey (Windows)
-            run: dart run grinder pkg-chocolatey-deploy
-
-  deploy-macos:
-      name: Deploy (Macos)
-      runs-on: macos-latest
-      needs: release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      steps:
+    name: Deploy Windows
+    runs-on: windows-latest
+    needs: validate
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set version from validation
+        run: |
+          $VERSION = "${{ needs.validate.outputs.version }}"
+          echo "RELEASE_VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
+          echo "🔄 Setting version to: $VERSION"
+          # Update pubspec.yaml to match
+          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $VERSION" | Set-Content pubspec.yaml
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
-      - name: Deploy Github Mac
+      - name: Deploy Windows binaries to existing release
+        run: dart run grinder pkg-github-windows
+
+      - name: Deploy Chocolatey
+        run: dart run grinder pkg-chocolatey-deploy
+
+  deploy-macos:
+    name: Deploy macOS
+    runs-on: macos-latest
+    needs: validate
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set version from validation
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "🔄 Setting version to: $VERSION"
+          # Update pubspec.yaml to match
+          sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+
+      - name: Deploy macOS binaries to existing release
         run: dart run grinder pkg-github-macos
 
-      - name: Deploy versioned formula
+      - name: Deploy versioned Homebrew formula
         run: dart run grinder pkg-homebrew-update --versioned-formula
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
@@ -82,32 +155,26 @@ jobs:
         run: dart run grinder pkg-homebrew-update
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-          
+
   deploy-docker:
-    name: Docker Deploy (latest)
+    name: Deploy Docker
     runs-on: ubuntu-latest
-    needs: release
+    needs: validate
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set version for Docker
+        run: |
+          VERSION="${{ needs.validate.outputs.version }}"
+          echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "🐳 Building Docker image for version: $VERSION"
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
-
-      - name: Get and modify tag name
-        id: get_tag_name
-        run: |
-          # Extract the tag name from the GitHub ref
-          TAG_NAME=${{ github.ref_name }}
-          
-          # Remove leading 'v' from the tag name, if present
-          MODIFIED_TAG_NAME=$(echo "$TAG_NAME" | sed 's/^v//')
-          
-          # Set the modified tag name as an environment variable
-          echo "MODIFIED_TAG_NAME=$MODIFIED_TAG_NAME" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -118,10 +185,9 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push (latest)
-        id: docker_build_latest
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           file: ./.docker/Dockerfile
           push: true
-          tags: leoafarias/fvm:{{ steps.get_tag_name.outputs.modified_tag_name}}
+          tags: leoafarias/fvm:${{ env.RELEASE_VERSION }}
