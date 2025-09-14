@@ -22,6 +22,41 @@ FVM streamlines Flutter version management. It allows per project SDK versions, 
 
 For more information, read [FVM documentation](https://fvm.app).
 
+## Release Process (For Maintainers)
+
+FVM uses GitHub releases to trigger automated deployments across all platforms:
+
+### Creating a New Release
+
+1. **Ensure main branch is ready**
+   - All changes merged and tested
+   - Version will be set automatically from release tag
+
+2. **Create GitHub Release**
+   - Go to [GitHub Releases](https://github.com/leoafarias/fvm/releases)
+   - Click "Create a new release"  
+   - Choose tag: `v4.0.0-beta.2` (follows semver with 'v' prefix)
+   - Write release notes in GitHub editor
+   - Click "Publish release"
+
+3. **Automated Deployment**
+   - [`release.yml`](.github/workflows/release.yml) triggers automatically
+   - Deploys to: pub.dev, GitHub binaries, Homebrew, Chocolatey, Docker
+   - Monitor progress in [Actions tab](https://github.com/leoafarias/fvm/actions)
+
+### Emergency Releases
+
+For hotfixes or emergency releases:
+1. **Update version manually** in `pubspec.yaml`
+2. **Use individual platform workflows** via manual dispatch:
+   - `deploy_homebrew.yml` for Homebrew updates
+   - `deploy_docker.yml` for Docker deployment
+   - Individual platform deployments as needed
+
+For complete emergency deployment, create a GitHub release as normal.
+
+See [Workflow Documentation](.github/workflows/README.md) for detailed information.
+
 ## Contributors
 
 <a href="https://github.com/leoafarias/fvm/graphs/contributors">
