@@ -60,6 +60,15 @@ jobs:
           echo "✅ Generated version.dart content:"
           cat lib/src/version.dart
 
+      - name: Commit version updates for clean git state
+        run: |
+          echo "📝 Committing version updates to create clean git state"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml lib/src/version.dart
+          git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
+          echo "✅ Git state cleaned for publishing"
+
       - name: Validate pub.dev package (dry run)
         run: |
           echo "🔍 Validating package for pub.dev..."
