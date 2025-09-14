@@ -1,0 +1,44 @@
+# Documentation website (Next.js) - not needed in Dart package
+docs/
+
+# Shell scripts and setup files - not needed in Dart package  
+scripts/
+setup.sh
+
+# Docker configuration - not needed in Dart package
+.docker/
+
+# GitHub workflows and templates - not needed in Dart package
+.github/
+
+# Large Flutter release data files - not needed in Dart package
+releases_linux.json
+releases_macos.json  
+releases_windows.json
+
+# Development and testing files - not needed in Dart package
+ACT_TESTING_NOTES.md
+FVM_v4.0_GITHUB_RELEASE.md
+TEST_RELEASE_WORKFLOW.md
+.actrc
+.env.act
+.husky/
+coverage/
+
+# Chocolatey package spec - generated during build
+fvm.nuspec
+
+# Keep these files (they're useful for pub.dev users):
+# README.md - main project documentation
+# CHANGELOG.md - required for pub.dev
+# LICENSE - required for pub.dev
+# lib/ - the actual Dart code  
+# bin/ - CLI executables
+# test/ - useful for pub.dev users
+# example/ - useful for pub.dev users
+# tool/ - build tools that might be referenced
+# assets/ - package assets
+# pubspec.yaml - package configuration
+# analysis_options.yaml - Dart analysis configuration
+# build.yaml - build configuration
+# dart_test.yaml - test configuration
