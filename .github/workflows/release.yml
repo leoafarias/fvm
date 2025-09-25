@@ -110,6 +110,9 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       # Skip pkg-github-release - release already exists
       - name: Deploy Linux binaries to existing release
         run: dart run grinder pkg-github-linux
@@ -137,6 +140,9 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Deploy Windows binaries to existing release
         run: dart run grinder pkg-github-windows
 
@@ -161,6 +167,9 @@ jobs:
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Deploy macOS binaries to existing release
         run: dart run grinder pkg-github-macos
@@ -191,6 +200,9 @@ jobs:
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
