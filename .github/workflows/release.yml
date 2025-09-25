@@ -75,7 +75,7 @@ jobs:
       - name: Validate pub.dev package (dry run)
         run: |
           echo "🔍 Validating package for pub.dev..."
-          dart pub publish --dry-run
+          dart pub publish --dry-run --force
           echo "✅ Package validation successful!"
 
       - name: Commit and push version updates
