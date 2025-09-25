@@ -25,7 +25,10 @@ jobs:
             sudo apt-get update && sudo apt-get install -y shellcheck
           fi
       - name: Run shellcheck
-        run: shellcheck scripts/install.sh
+        run: shellcheck scripts/install.sh scripts/uninstall.sh
+      
+      - name: Test root detection logic
+        run: ./scripts/test-install.sh
 
   # Test on major platforms
   test-install:
@@ -48,7 +51,7 @@ jobs:
           ./scripts/install.sh
           fvm --version
       
-      - name: Test uninstall
+      - name: Test uninstall (via install.sh)
         run: |
           # First ensure FVM is installed
           which fvm
@@ -69,6 +72,28 @@ jobs:
           fi
           
           echo "✅ FVM successfully uninstalled"
+      
+      - name: Test standalone uninstall script
+        run: |
+          # Reinstall first
+          ./scripts/install.sh
+          which fvm
+          
+          # Test standalone uninstall
+          ./scripts/uninstall.sh
+          
+          # Verify uninstall
+          if command -v fvm &>/dev/null; then
+            echo "❌ FVM command still exists after standalone uninstall"
+            exit 1
+          fi
+          
+          if [[ -d ~/.fvm_flutter ]]; then
+            echo "❌ FVM directory still exists after standalone uninstall"
+            exit 1
+          fi
+          
+          echo "✅ Standalone uninstall successful"
       
       - name: Test uninstall on clean system (idempotency)
         run: |

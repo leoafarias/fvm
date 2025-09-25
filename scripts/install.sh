@@ -309,7 +309,7 @@ if [[ -z "$FVM_VERSION" ]]; then
   fi
 else
   # Validate version format
-  if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9._-]+)?$ ]]; then
+  if [[ ! "$FVM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*)?$ ]]; then
     error "Invalid version format: $FVM_VERSION. Expected format: 1.2.3 or v1.2.3"
   fi
 fi
@@ -372,7 +372,8 @@ fi
 # Handle different tarball structures
 if [[ -d "$TEMP_EXTRACT/fvm" ]]; then
   # New structure: fvm directory with binary and dependencies
-  mv "$TEMP_EXTRACT/fvm"/* "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
+  # Use cp -r with dot notation to handle all files including hidden ones
+  cp -r "$TEMP_EXTRACT/fvm/." "$FVM_DIR_BIN/" || error "Failed to move fvm contents"
   rm -rf "$TEMP_EXTRACT"
 elif [[ -f "$TEMP_EXTRACT/fvm" ]]; then
   # Old structure: just the binary at root
