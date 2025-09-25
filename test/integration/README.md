@@ -1,6 +1,6 @@
 # FVM Integration Test Suite
 
-This directory contains comprehensive end-to-end integration tests for FVM that validate real-world usage scenarios with actual Git operations and Flutter SDK installations.
+This directory contains end-to-end integration tests for FVM that validate real-world usage scenarios with actual Git operations and Flutter SDK installations.
 
 ## Overview
 

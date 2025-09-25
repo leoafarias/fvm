@@ -5,7 +5,7 @@ title: Monorepo support
 
 # Monorepo support
 
-FVM helps ensure that all projects or packages within a monorepo utilize a consistent Flutter SDK version. This consistency is crucial for avoiding compatibility issues and streamlining the development process. Here's how you can leverage FVM effectively in two common monorepo setups:
+FVM ensures all projects in a monorepo use the same Flutter SDK version, preventing compatibility issues and simplifying development. Here's how to set up FVM in common monorepo configurations:
 
 ## Melos: Monorepo with a Shared `pubspec.yaml`
 
