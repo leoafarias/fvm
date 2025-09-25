@@ -31,7 +31,7 @@ If you prefer to manage the configuration manually or want to disable automatic 
    ```json
    // .fvmrc
    {
-     "flutter": "3.10.0",
+     "flutter": "3.19.0",
      "updateMelosSettings": false
    }
    ```

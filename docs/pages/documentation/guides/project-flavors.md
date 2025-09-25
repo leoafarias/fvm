@@ -14,8 +14,8 @@ It allows you to create the following configuration for your project.
   "flutter": "stable",
   "flavors": {
     "development": "stable",
-    "staging": "3.16.9",
-    "production": "3.10.3"
+    "staging": "3.19.0",
+    "production": "3.16.0"
   }
 }
 ```
