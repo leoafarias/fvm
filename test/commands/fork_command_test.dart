@@ -23,14 +23,18 @@ void main() {
     });
 
     test('Add a fork', () async {
-
       // Make sure the fork doesn't exist first
       LocalAppConfig.read()
         ..forks.removeWhere((f) => f.name == testForkName)
         ..save();
 
-      final exitCode = await runner
-          .runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
+      final exitCode = await runner.runOrThrow([
+        'fvm',
+        'fork',
+        'add',
+        testForkName,
+        testForkUrl,
+      ]);
 
       expect(exitCode, ExitCode.success.code);
 
@@ -66,7 +70,7 @@ void main() {
           'fork',
           'add',
           testForkName,
-          'https://github.com/other/flutter.git'
+          'https://github.com/other/flutter.git',
         ]),
         throwsA(isA<Exception>()),
       );

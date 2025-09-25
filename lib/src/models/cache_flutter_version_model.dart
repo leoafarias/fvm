@@ -34,11 +34,11 @@ class CacheFlutterVersion extends FlutterVersion
     FlutterVersion version, {
     required this.directory,
   }) : super(
-          version.name,
-          releaseChannel: version.releaseChannel,
-          type: version.type,
-          fork: version.fork,
-        );
+         version.name,
+         releaseChannel: version.releaseChannel,
+         type: version.type,
+         fork: version.fork,
+       );
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
@@ -93,9 +93,6 @@ class CacheFlutterVersion extends FlutterVersion
   @MappableField()
   bool get isSetup => flutterSdkVersion != null;
 
-  FlutterVersion toFlutterVersion() => FlutterVersion(
-        name,
-        releaseChannel: releaseChannel,
-        type: type,
-      );
+  FlutterVersion toFlutterVersion() =>
+      FlutterVersion(name, releaseChannel: releaseChannel, type: type);
 }

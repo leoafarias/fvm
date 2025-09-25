@@ -23,16 +23,17 @@ void main() {
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {
         return testRunner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(channel),
-            );
+          FlutterVersion.parse(channel),
+        );
       }
 
       // Get the installed version
       var cacheVersion = await getCacheVersion();
 
       // Get the branch from Git
-      final existingChannel =
-          await testRunner.context.get<GitService>().getBranch(channel);
+      final existingChannel = await testRunner.context
+          .get<GitService>()
+          .getBranch(channel);
 
       // Verify installation succeeded
       expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -65,8 +66,13 @@ void main() {
       expect(project.pinnedVersion, isNull);
 
       // Use the channel in the project, but skip setup
-      await testRunner
-          .runOrThrow(['fvm', 'use', channel, '--skip-setup', '--force']);
+      await testRunner.runOrThrow([
+        'fvm',
+        'use',
+        channel,
+        '--skip-setup',
+        '--force',
+      ]);
 
       // Reload project and version information
       project = testRunner.context.get<ProjectService>().findAncestor();

@@ -64,8 +64,11 @@ class TestLogger extends Logger {
         }
       }
     }
-    return super
-        .select(message, options: options, defaultSelection: defaultSelection);
+    return super.select(
+      message,
+      options: options,
+      defaultSelection: defaultSelection,
+    );
   }
 
   @override

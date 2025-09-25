@@ -1,4 +1,3 @@
-
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
@@ -26,13 +25,11 @@ void main() {
     test('should pass when project has pubspec', () {
       final testDir = tempDirs.create();
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(flutter: '3.10.0'),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = VerifyProjectWorkflow(runner.context);
 
       // Should not throw
@@ -43,8 +40,9 @@ void main() {
       final testDir = tempDirs.create();
       // No pubspec created
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = VerifyProjectWorkflow(runner.context);
 
       // Should not throw with force
@@ -59,16 +57,17 @@ void main() {
         // Create context with TestLogger that says Yes
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('Would you like to continue?', true),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('Would you like to continue?', true),
           },
           skipInput: false, // Allow user input for testing
         );
 
         final customRunner = TestCommandRunner(context);
-        final project = customRunner.context
-            .get<ProjectService>()
-            .findAncestor(directory: testDir);
+        final project = customRunner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
         final workflow = VerifyProjectWorkflow(customRunner.context);
 
         // Should not throw when user confirms
@@ -81,8 +80,9 @@ void main() {
           isTrue,
         );
         expect(
-          logger.outputs
-              .any((msg) => msg.contains('Would you like to continue?')),
+          logger.outputs.any(
+            (msg) => msg.contains('Would you like to continue?'),
+          ),
           isTrue,
         );
         expect(
@@ -98,23 +98,29 @@ void main() {
         // Create context with TestLogger that says No
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('Would you like to continue?', false),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('Would you like to continue?', false),
           },
           skipInput: false, // Allow user input for testing
         );
 
         final customRunner = TestCommandRunner(context);
-        final project = customRunner.context
-            .get<ProjectService>()
-            .findAncestor(directory: testDir);
+        final project = customRunner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
         final workflow = VerifyProjectWorkflow(customRunner.context);
 
         // Should throw when user declines
         expect(
           () => workflow(project, force: false),
-          throwsA(isA<ForceExit>().having((e) => e.message, 'message',
-              contains('Project verification failed'))),
+          throwsA(
+            isA<ForceExit>().having(
+              (e) => e.message,
+              'message',
+              contains('Project verification failed'),
+            ),
+          ),
         );
 
         // Verify the prompt was shown
@@ -124,8 +130,9 @@ void main() {
           isTrue,
         );
         expect(
-          logger.outputs
-              .any((msg) => msg.contains('Would you like to continue?')),
+          logger.outputs.any(
+            (msg) => msg.contains('Would you like to continue?'),
+          ),
           isTrue,
         );
         expect(
@@ -135,38 +142,42 @@ void main() {
       });
 
       test(
-          'should use correct default value (true) for non-destructive operation',
-          () {
-        final testDir = tempDirs.create();
-        // No pubspec - will trigger confirmation
+        'should use correct default value (true) for non-destructive operation',
+        () {
+          final testDir = tempDirs.create();
+          // No pubspec - will trigger confirmation
 
-        // Create context that skips input (will use default value)
-        final context = TestFactory.context(
-          skipInput:
-              true, // This will cause confirm to return defaultValue (true)
-        );
+          // Create context that skips input (will use default value)
+          final context = TestFactory.context(
+            skipInput:
+                true, // This will cause confirm to return defaultValue (true)
+          );
 
-        final customRunner = TestCommandRunner(context);
-        final project = customRunner.context
-            .get<ProjectService>()
-            .findAncestor(directory: testDir);
-        final workflow = VerifyProjectWorkflow(customRunner.context);
+          final customRunner = TestCommandRunner(context);
+          final project = customRunner.context
+              .get<ProjectService>()
+              .findAncestor(directory: testDir);
+          final workflow = VerifyProjectWorkflow(customRunner.context);
 
-        // Should not throw with default behavior (returns true when skipInput is true)
-        expect(() => workflow(project, force: false), returnsNormally);
+          // Should not throw with default behavior (returns true when skipInput is true)
+          expect(() => workflow(project, force: false), returnsNormally);
 
-        // Verify the detection message was shown
-        final logger = customRunner.context.get<Logger>();
-        expect(
-          logger.outputs.any((msg) => msg.contains('No pubspec.yaml detected')),
-          isTrue,
-        );
-        expect(
-          logger.outputs
-              .any((msg) => msg.contains('Skipping input confirmation')),
-          isTrue,
-        );
-      });
+          // Verify the detection message was shown
+          final logger = customRunner.context.get<Logger>();
+          expect(
+            logger.outputs.any(
+              (msg) => msg.contains('No pubspec.yaml detected'),
+            ),
+            isTrue,
+          );
+          expect(
+            logger.outputs.any(
+              (msg) => msg.contains('Skipping input confirmation'),
+            ),
+            isTrue,
+          );
+        },
+      );
     });
   });
 }

@@ -44,8 +44,9 @@ class ListCommand extends BaseFvmCommand {
       // Get latest channel release for channels
       if (version.isChannel && !version.isMain) {
         if (version.releaseChannel != null) {
-          latestRelease =
-              releases.latestChannelRelease(version.releaseChannel!.name);
+          latestRelease = releases.latestChannelRelease(
+            version.releaseChannel!.name,
+          );
         }
       }
 

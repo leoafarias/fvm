@@ -27,10 +27,7 @@ class GetCacheVersionsResponse extends APIResponse
   static final fromMap = GetCacheVersionsResponseMapper.fromMap;
   static final fromJson = GetCacheVersionsResponseMapper.fromJson;
 
-  const GetCacheVersionsResponse({
-    required this.size,
-    required this.versions,
-  });
+  const GetCacheVersionsResponse({required this.size, required this.versions});
 }
 
 @MappableClass()
@@ -44,10 +41,7 @@ class GetReleasesResponse extends APIResponse with GetReleasesResponseMappable {
   static final fromMap = GetReleasesResponseMapper.fromMap;
   static final fromJson = GetReleasesResponseMapper.fromJson;
 
-  const GetReleasesResponse({
-    required this.versions,
-    required this.channels,
-  });
+  const GetReleasesResponse({required this.versions, required this.channels});
 }
 
 @MappableClass()

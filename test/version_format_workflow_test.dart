@@ -16,14 +16,16 @@ void main() {
       if (!isFlutterAvailable) {
         print('Skipping test: Flutter is not available in PATH');
         print(
-            'This test requires Flutter to be installed and available in the system PATH');
+          'This test requires Flutter to be installed and available in the system PATH',
+        );
         return;
       }
 
       if (!isDartAvailable) {
         print('Skipping test: Dart is not available in PATH');
         print(
-            'This test requires Dart to be installed and available in the system PATH');
+          'This test requires Dart to be installed and available in the system PATH',
+        );
         return;
       }
 
@@ -46,8 +48,11 @@ void main() {
         workingDirectory: appDir.path,
         runInShell: true,
       );
-      expect(result.exitCode, 0,
-          reason: 'Failed to create Flutter app: ${result.stderr}');
+      expect(
+        result.exitCode,
+        0,
+        reason: 'Failed to create Flutter app: ${result.stderr}',
+      );
       print('Created Flutter app in test directory');
 
       // Run flutter pub get in the test directory
@@ -57,18 +62,22 @@ void main() {
         workingDirectory: appDir.path,
         runInShell: true,
       );
-      expect(pubGetResult.exitCode, 0,
-          reason: 'Failed to run flutter pub get: ${pubGetResult.stderr}');
+      expect(
+        pubGetResult.exitCode,
+        0,
+        reason: 'Failed to run flutter pub get: ${pubGetResult.stderr}',
+      );
 
       // Create a test runner that operates in the test directory
       // First create a proper test context with TestFactory
       final baseContext = TestFactory.context();
-      
+
       // Then create a context with the working directory override
       final testContext = FvmContext.create(
         workingDirectoryOverride: appDir.path,
         isTest: true,
-        configOverrides: baseContext.config, // Use the config from TestFactory which has proper paths
+        configOverrides: baseContext
+            .config, // Use the config from TestFactory which has proper paths
       );
       final appTestRunner = TestCommandRunner(testContext);
 
@@ -104,19 +113,27 @@ void main() {
         await _testVersion(appTestRunner, 'v2.10.0', 'Version with v prefix');
       } catch (e) {
         print(
-            'Warning: Skipping semantic version tests - version may not be available');
+          'Warning: Skipping semantic version tests - version may not be available',
+        );
       }
 
       // Test versions with channels
       print('\n===== Testing Versions with Channels =====');
       try {
         await _testVersion(
-            appTestRunner, '2.10.0@beta', 'Version with beta channel');
-        await _testVersion(appTestRunner, 'v2.10.0@beta',
-            'Version with v prefix and beta channel');
+          appTestRunner,
+          '2.10.0@beta',
+          'Version with beta channel',
+        );
+        await _testVersion(
+          appTestRunner,
+          'v2.10.0@beta',
+          'Version with v prefix and beta channel',
+        );
       } catch (e) {
         print(
-            'Warning: Skipping version with channel tests - version may not be available');
+          'Warning: Skipping version with channel tests - version may not be available',
+        );
       }
 
       // Test fork functionality
@@ -125,7 +142,8 @@ void main() {
         await _testForkFunctionality(appTestRunner);
       } catch (e) {
         print(
-            'Warning: Skipping fork functionality tests - requires network access');
+          'Warning: Skipping fork functionality tests - requires network access',
+        );
         print('Error: $e');
       }
 
@@ -133,9 +151,15 @@ void main() {
       print('\n===== Testing Error Cases =====');
       await _testErrorCase(appTestRunner, '2.10.0@invalid', 'Invalid channel');
       await _testErrorCase(
-          appTestRunner, 'custom_build@beta', 'Custom version with channel');
+        appTestRunner,
+        'custom_build@beta',
+        'Custom version with channel',
+      );
       await _testErrorCase(
-          appTestRunner, 'unknown-fork/stable', 'Non-existent fork');
+        appTestRunner,
+        'unknown-fork/stable',
+        'Non-existent fork',
+      );
 
       // Test command aliases
       print('\n===== Testing Command Aliases =====');
@@ -147,13 +171,19 @@ void main() {
 
       // Reset to stable at the end
       print('\nResetting to stable channel...');
-      await appTestRunner
-          .runOrThrow(['fvm', 'use', 'stable', '--force', '--skip-setup']);
+      await appTestRunner.runOrThrow([
+        'fvm',
+        'use',
+        'stable',
+        '--force',
+        '--skip-setup',
+      ]);
 
       // Check final configuration
       print('\nFinal configuration:');
-      final projectConfig =
-          appTestRunner.context.get<ProjectService>().findAncestor();
+      final projectConfig = appTestRunner.context
+          .get<ProjectService>()
+          .findAncestor();
       expect(projectConfig.pinnedVersion?.name, equals('stable'));
 
       print('\nTests completed successfully!');
@@ -175,8 +205,11 @@ Future<void> _testVersion(
   // Verify the config file exists
   final project = runner.context.get<ProjectService>().findAncestor();
   final configFile = File(project.configPath);
-  expect(configFile.existsSync(), isTrue,
-      reason: 'Config file should exist after update');
+  expect(
+    configFile.existsSync(),
+    isTrue,
+    reason: 'Config file should exist after update',
+  );
 
   print('Config file after update:');
   print(configFile.readAsStringSync());
@@ -247,8 +280,13 @@ Future<void> _testInstallFlags(TestCommandRunner runner) async {
 
     // Test install with both flags
     print('Testing fvm install with both flags...');
-    await runner
-        .runOrThrow(['fvm', 'install', 'dev', '--setup', '--skip-pub-get']);
+    await runner.runOrThrow([
+      'fvm',
+      'install',
+      'dev',
+      '--setup',
+      '--skip-pub-get',
+    ]);
     print('Install with both flags: SUCCESS');
   } catch (e) {
     print('Install flags test error: $e');
@@ -283,8 +321,13 @@ Future<void> _testForkFunctionality(TestCommandRunner runner) async {
 
     // Test using fork version
     print('Testing fork use...');
-    await runner.runOrThrow(
-        ['fvm', 'use', '$testForkName/leo-test-21', '--force', '--skip-setup']);
+    await runner.runOrThrow([
+      'fvm',
+      'use',
+      '$testForkName/leo-test-21',
+      '--force',
+      '--skip-setup',
+    ]);
     print('Fork use: SUCCESS');
 
     // Clean up - remove fork

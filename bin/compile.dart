@@ -21,10 +21,13 @@ Future<void> main() async {
 
   // Compile the package to native executable
   print('Compiling package...');
-  final compileResult = await Process.run(
-    'dart',
-    ['compile', 'exe', 'bin/main.dart', '-o', tempFile.path],
-  );
+  final compileResult = await Process.run('dart', [
+    'compile',
+    'exe',
+    'bin/main.dart',
+    '-o',
+    tempFile.path,
+  ]);
 
   // Error checking for compile process
   if (compileResult.exitCode != 0) {
@@ -50,8 +53,12 @@ Future<void> main() async {
   await tempDir.delete();
 
   // Deactivate current globally activated version of FVM
-  final deactivateResult =
-      await Process.run('dart', ['pub', 'global', 'deactivate', 'fvm']);
+  final deactivateResult = await Process.run('dart', [
+    'pub',
+    'global',
+    'deactivate',
+    'fvm',
+  ]);
   if (deactivateResult.exitCode == 0) {
     print('Deactivated current global version of FVM successfully');
   } else {

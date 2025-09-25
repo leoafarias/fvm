@@ -41,14 +41,21 @@ void main() {
 
         // Test reference error patterns
         expect(
-            service.isReferenceError('fatal: reference repository not found'),
-            isTrue);
-        expect(service.isReferenceError('error: unable to read reference'),
-            isTrue);
+          service.isReferenceError('fatal: reference repository not found'),
+          isTrue,
+        );
         expect(
-            service.isReferenceError('fatal: bad object in reference'), isTrue);
-        expect(service.isReferenceError('error: corrupt reference repository'),
-            isTrue);
+          service.isReferenceError('error: unable to read reference'),
+          isTrue,
+        );
+        expect(
+          service.isReferenceError('fatal: bad object in reference'),
+          isTrue,
+        );
+        expect(
+          service.isReferenceError('error: corrupt reference repository'),
+          isTrue,
+        );
         expect(service.isReferenceError('fatal: reference not found'), isTrue);
       });
 
@@ -57,9 +64,13 @@ void main() {
 
         // Test non-reference error patterns
         expect(
-            service.isReferenceError('fatal: repository not found'), isFalse);
-        expect(service.isReferenceError('fatal: remote branch not found'),
-            isFalse);
+          service.isReferenceError('fatal: repository not found'),
+          isFalse,
+        );
+        expect(
+          service.isReferenceError('fatal: remote branch not found'),
+          isFalse,
+        );
         expect(service.isReferenceError('error: unknown revision'), isFalse);
         expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
         expect(service.isReferenceError('fatal: network error'), isFalse);
@@ -70,8 +81,10 @@ void main() {
       test('creates isolated git cache directory', () {
         final gitCacheDir = Directory(testContext.gitCachePath);
         expect(gitCacheDir.path, contains('git_fallback_test_'));
-        expect(gitCacheDir.path,
-            isNot(equals(TestFactory.context().gitCachePath)));
+        expect(
+          gitCacheDir.path,
+          isNot(equals(TestFactory.context().gitCachePath)),
+        );
       });
 
       test('isolated context has git cache enabled', () {
@@ -82,8 +95,10 @@ void main() {
       test('isolated context uses separate cache directory', () {
         final defaultContext = TestFactory.context();
         expect(testContext.fvmDir, isNot(equals(defaultContext.fvmDir)));
-        expect(testContext.gitCachePath,
-            isNot(equals(defaultContext.gitCachePath)));
+        expect(
+          testContext.gitCachePath,
+          isNot(equals(defaultContext.gitCachePath)),
+        );
       });
     });
 
@@ -98,7 +113,9 @@ void main() {
         expect(gitCacheDir.existsSync(), isTrue);
         expect(corruptFile.existsSync(), isTrue);
         expect(
-            corruptFile.readAsStringSync(), contains('not a git repository'));
+          corruptFile.readAsStringSync(),
+          contains('not a git repository'),
+        );
       });
     });
   });

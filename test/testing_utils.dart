@@ -12,9 +12,7 @@ import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 class TestCommandRunner extends FvmCommandRunner {
-  TestCommandRunner(
-    super.context,
-  );
+  TestCommandRunner(super.context);
 
   @override
   Future<int> run(Iterable<String> args) async {
@@ -49,19 +47,23 @@ void forceUpdateFlutterSdkVersionFile(
 
 Future<void> getCommitCount(FvmContext context) async {
   final gitDir = await GitDir.fromExisting(context.gitCachePath);
-  final result = await gitDir.runCommand(
-    ['rev-list', '--count', 'HEAD..origin/master'],
-    echoOutput: true,
-  );
+  final result = await gitDir.runCommand([
+    'rev-list',
+    '--count',
+    'HEAD..origin/master',
+  ], echoOutput: true);
   final commitCount = result.stdout.trim();
   print('Commit count: $commitCount');
 }
 
 Future<DateTime> getDateOfLastCommit(FvmContext context) async {
   final gitDir = await GitDir.fromExisting(context.gitCachePath);
-  final result = await gitDir.runCommand(
-    ['log', '-1', '--format=%cd', '--date=short'],
-  );
+  final result = await gitDir.runCommand([
+    'log',
+    '-1',
+    '--format=%cd',
+    '--date=short',
+  ]);
   final lastCommitDate = result.stdout.trim();
 
   return DateTime.parse(lastCommitDate);
@@ -75,8 +77,11 @@ Directory createTempDir([String prefix = '']) {
   return Directory.systemTemp.createTempSync('$_kTempTestDirPrefix$prefix');
 }
 
-File createPubspecYaml(Directory directory,
-    {String? name, String? sdkConstraint}) {
+File createPubspecYaml(
+  Directory directory, {
+  String? name,
+  String? sdkConstraint,
+}) {
   name ??= _generateUuid();
 
   // environment:
@@ -137,11 +142,10 @@ String _replaceTempDirectory(String path) {
 Matcher isProjectMatcher({
   Directory? expectedDirectory,
   bool hasConfig = true,
-}) =>
-    _ProjectHasConfigMatcher(
-      expectedDirectory: expectedDirectory,
-      hasConfig: hasConfig,
-    );
+}) => _ProjectHasConfigMatcher(
+  expectedDirectory: expectedDirectory,
+  hasConfig: hasConfig,
+);
 
 class _ProjectHasConfigMatcher extends Matcher {
   final Directory? _expectedDirectory;
@@ -150,8 +154,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   _ProjectHasConfigMatcher({
     Directory? expectedDirectory,
     required bool hasConfig,
-  })  : _expectedDirectory = expectedDirectory,
-        _hasConfig = hasConfig;
+  }) : _expectedDirectory = expectedDirectory,
+       _hasConfig = hasConfig;
 
   String? get expectedConfigPath => p.join(_expectedDirectory!.path, '.fvmrc');
 
@@ -189,7 +193,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   Description describe(Description description) {
     if (expectedConfigPath != null) {
       return description.add(
-          'a Project with config at "${_replaceTempDirectory(expectedConfigPath!)}"');
+        'a Project with config at "${_replaceTempDirectory(expectedConfigPath!)}"',
+      );
     }
     return description.add('a Project with a valid config');
   }
@@ -209,7 +214,8 @@ class _ProjectHasConfigMatcher extends Matcher {
     }
     if (expectedConfigPath != null && item.configPath != expectedConfigPath) {
       return mismatchDescription.add(
-          'has config at "${_replaceTempDirectory(item.configPath)}" instead of "${_replaceTempDirectory(matchState['expected'] as String)}"');
+        'has config at "${_replaceTempDirectory(item.configPath)}" instead of "${_replaceTempDirectory(matchState['expected'] as String)}"',
+      );
     }
     final configFileExists = File(item.configPath).existsSync();
     if (_hasConfig == true && !configFileExists) {
@@ -261,27 +267,25 @@ class TestFactory {
       logLevel: Level.verbose,
       workingDirectoryOverride: createTempDir(debugLabel).path,
       isTest: true,
-      skipInput: skipInput ??
+      skipInput:
+          skipInput ??
           false, // Allow overriding skipInput for testing user input
       environmentOverrides: environmentOverrides,
-      generatorsOverride: {
-        FlutterService: _mockFlutterService,
-        ...?generators,
-      },
+      generatorsOverride: {FlutterService: _mockFlutterService, ...?generators},
     );
 
     return testContext;
   }
 
   static MockFlutterService _mockFlutterService(FvmContext context) {
-    return MockFlutterService(
-      context,
-    );
+    return MockFlutterService(context);
   }
 }
 
 Future<List<String>> runnerZoned(
-    FvmCommandRunner runner, List<String> args) async {
+  FvmCommandRunner runner,
+  List<String> args,
+) async {
   final printed = <String>[];
   await runZoned(
     () async {
@@ -335,14 +339,14 @@ Matcher isExpectedJson(String expected) {
 /// Following KISS principle - just what we need, nothing more.
 class TempDirectoryTracker {
   final _dirs = <Directory>[];
-  
+
   /// Creates a temporary directory and tracks it for cleanup.
   Directory create() {
     final dir = createTempDir();
     _dirs.add(dir);
     return dir;
   }
-  
+
   /// Cleans up all tracked directories.
   void cleanUp() {
     for (final dir in _dirs) {
@@ -357,9 +361,7 @@ class TempDirectoryTracker {
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
-  MockFlutterService(
-    super.context,
-  ) {
+  MockFlutterService(super.context) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
     }
@@ -372,9 +374,7 @@ class MockFlutterService extends FlutterService {
   /// the fixture by creating the directory and a marker file. Finally, it copies
   /// the fixture repository into the version directory (configured via CacheService).
   @override
-  Future<void> install(
-    FlutterVersion version,
-  ) async {
+  Future<void> install(FlutterVersion version) async {
     try {
       return super.install(version);
     } finally {}
@@ -382,5 +382,6 @@ class MockFlutterService extends FlutterService {
 }
 
 final _sharedTestFvmDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
-final _sharedGitCacheDir =
-    Directory(p.join(_sharedTestFvmDir.path, 'gitcache'));
+final _sharedGitCacheDir = Directory(
+  p.join(_sharedTestFvmDir.path, 'gitcache'),
+);

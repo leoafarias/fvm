@@ -290,7 +290,8 @@ Map<String, String> updateEnvironmentVariables(
   return updatedEnvironment;
 }
 
-const skipCopyWith = GenerateMethods.decode |
+const skipCopyWith =
+    GenerateMethods.decode |
     GenerateMethods.encode |
     GenerateMethods.stringify |
     GenerateMethods.equals;

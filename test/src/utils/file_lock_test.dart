@@ -82,10 +82,11 @@ void main() {
       // Windows file system has different timing precision than Unix systems
       final delayDuration = Platform.isWindows
           ? Duration(
-              milliseconds:
-                  10) // Windows needs more time for detectable changes
+              milliseconds: 10,
+            ) // Windows needs more time for detectable changes
           : Duration(
-              microseconds: 5); // Unix systems can detect microsecond changes
+              microseconds: 5,
+            ); // Unix systems can detect microsecond changes
 
       await Future.delayed(delayDuration);
 
@@ -191,10 +192,11 @@ void main() {
 
     test('should wait until lock expires', () async {
       // Create a lock that will expire soon by writing a timestamp directly
-      final almostExpiredTime =
-          DateTime.now().subtract(Duration(milliseconds: 90));
-      final almostExpiredTimestamp =
-          almostExpiredTime.millisecondsSinceEpoch.toString();
+      final almostExpiredTime = DateTime.now().subtract(
+        Duration(milliseconds: 90),
+      );
+      final almostExpiredTimestamp = almostExpiredTime.millisecondsSinceEpoch
+          .toString();
 
       // Create the file with almost expired timestamp
       final parent = File(lockFilePath).parent;
@@ -261,12 +263,18 @@ void main() {
       var currentHolder = '';
       for (var op in operations) {
         if (op.contains('got lock')) {
-          expect(currentHolder, isEmpty,
-              reason: 'Another process already held the lock: $currentHolder');
+          expect(
+            currentHolder,
+            isEmpty,
+            reason: 'Another process already held the lock: $currentHolder',
+          );
           currentHolder = op.split(':')[0];
         } else if (op.contains('releasing lock')) {
-          expect(currentHolder, equals(op.split(':')[0]),
-              reason: 'Wrong process released the lock');
+          expect(
+            currentHolder,
+            equals(op.split(':')[0]),
+            reason: 'Wrong process released the lock',
+          );
           currentHolder = '';
         }
       }
@@ -360,10 +368,12 @@ void main() {
 
       try {
         // Try to get the lock with a timeout
-        unlock = await fileLocker.getLock().timeout(Duration(milliseconds: 50),
-            onTimeout: () {
-          throw TimeoutException('Failed to get lock in time');
-        });
+        unlock = await fileLocker.getLock().timeout(
+          Duration(milliseconds: 50),
+          onTimeout: () {
+            throw TimeoutException('Failed to get lock in time');
+          },
+        );
         gotLock = true;
       } on TimeoutException {
         // Expected - the timer keeps refreshing the lock
@@ -373,9 +383,12 @@ void main() {
         keepUpdating = false;
       }
 
-      expect(gotLock, isFalse,
-          reason:
-              'Should not have gotten the lock while file is constantly refreshed');
+      expect(
+        gotLock,
+        isFalse,
+        reason:
+            'Should not have gotten the lock while file is constantly refreshed',
+      );
 
       // Now wait a bit for the lock to expire
       await Future.delayed(lockExpiration * 2);
@@ -388,24 +401,26 @@ void main() {
   });
 
   group('Error handling', () {
-    test('should handle directory creation if parent directory does not exist',
-        () {
-      final nestedPath = '${tempDir.path}/nested/dir/test.lock';
-      final nestedLocker = FileLocker(
-        nestedPath,
-        lockExpiration: lockExpiration,
-      );
+    test(
+      'should handle directory creation if parent directory does not exist',
+      () {
+        final nestedPath = '${tempDir.path}/nested/dir/test.lock';
+        final nestedLocker = FileLocker(
+          nestedPath,
+          lockExpiration: lockExpiration,
+        );
 
-      // Should create parent directories
-      nestedLocker.lock();
-      expect(File(nestedPath).existsSync(), isTrue);
+        // Should create parent directories
+        nestedLocker.lock();
+        expect(File(nestedPath).existsSync(), isTrue);
 
-      // Check that a valid timestamp is written to the file
-      final content = File(nestedPath).readAsStringSync();
-      expect(int.tryParse(content.trim()), isNotNull);
+        // Check that a valid timestamp is written to the file
+        final content = File(nestedPath).readAsStringSync();
+        expect(int.tryParse(content.trim()), isNotNull);
 
-      nestedLocker.unlock();
-    });
+        nestedLocker.unlock();
+      },
+    );
 
     test('should handle file system errors gracefully', () {
       // Skip on platforms where we can't set permissions reliably
@@ -459,8 +474,9 @@ void main() {
 
       // Should get the lock almost immediately despite it being locked
       final stopwatch = Stopwatch()..start();
-      final unlock =
-          await quickLocker.getLock(pollingInterval: Duration(milliseconds: 1));
+      final unlock = await quickLocker.getLock(
+        pollingInterval: Duration(milliseconds: 1),
+      );
       stopwatch.stop();
 
       expect(quickLocker.isLocked, isTrue);
@@ -490,26 +506,28 @@ void main() {
       unlock();
     });
 
-    test('should handle polling interval longer than lock expiration',
-        () async {
-      // Create a locker with polling interval > lock expiration
-      final oddLocker = FileLocker(
-        lockFilePath,
-        lockExpiration: Duration(milliseconds: 20),
-      );
+    test(
+      'should handle polling interval longer than lock expiration',
+      () async {
+        // Create a locker with polling interval > lock expiration
+        final oddLocker = FileLocker(
+          lockFilePath,
+          lockExpiration: Duration(milliseconds: 20),
+        );
 
-      // Start a stopwatch to measure time
-      final stopwatch = Stopwatch()..start();
-      oddLocker.lock();
+        // Start a stopwatch to measure time
+        final stopwatch = Stopwatch()..start();
+        oddLocker.lock();
 
-      final unlock = await oddLocker.getLock();
-      stopwatch.stop();
+        final unlock = await oddLocker.getLock();
+        stopwatch.stop();
 
-      // Should have waited at least one polling interval
-      expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(10));
+        // Should have waited at least one polling interval
+        expect(stopwatch.elapsedMilliseconds, greaterThanOrEqualTo(10));
 
-      unlock();
-    });
+        unlock();
+      },
+    );
 
     test('should handle near-simultaneous lock requests', () async {
       // Launch many concurrent lock requests
@@ -534,8 +552,11 @@ void main() {
 
       // All IDs should be in the results exactly once
       expect(results.length, equals(count));
-      expect(results.toSet().length, equals(count),
-          reason: 'Each ID should appear exactly once');
+      expect(
+        results.toSet().length,
+        equals(count),
+        reason: 'Each ID should appear exactly once',
+      );
 
       // Final state should be unlocked
       expect(fileLocker.isLocked, isFalse);
@@ -545,8 +566,9 @@ void main() {
       // Create timestamps with just 1 microsecond difference
       final now = DateTime.now();
       final timestamp1 = now.microsecondsSinceEpoch;
-      final timestamp2 =
-          now.add(Duration(microseconds: 1)).microsecondsSinceEpoch;
+      final timestamp2 = now
+          .add(Duration(microseconds: 1))
+          .microsecondsSinceEpoch;
 
       // Ensure they're different
       expect(timestamp1, isNot(equals(timestamp2)));

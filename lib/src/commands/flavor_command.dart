@@ -51,8 +51,9 @@ class FlavorCommand extends BaseFvmCommand {
       final flutterVersion = validateFlutterVersion(version);
       final cacheVersion = await ensureCache(flutterVersion);
       // Runs flutter command with pinned version
-      logger
-          .info('Using Flutter version "$version" for the "$flavor" flavor...');
+      logger.info(
+        'Using Flutter version "$version" for the "$flavor" flavor...',
+      );
 
       final results = await get<FlutterService>().runFlutter(
         flutterArgs,

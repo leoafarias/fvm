@@ -174,23 +174,41 @@ void main() {
     group('Error Cases', () {
       test('Invalid channel', () {
         expect(
-            () => FlutterVersion.parse('2.10.0@invalid'),
-            throwsA(isA<FormatException>().having(
-                (e) => e.message, 'message', contains('Invalid channel'))));
+          () => FlutterVersion.parse('2.10.0@invalid'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid channel'),
+            ),
+          ),
+        );
       });
 
       test('Custom version with fork', () {
         expect(
-            () => FlutterVersion.parse('myfork/custom_build'),
-            throwsA(isA<FormatException>().having((e) => e.message, 'message',
-                contains('Custom versions cannot have fork'))));
+          () => FlutterVersion.parse('myfork/custom_build'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Custom versions cannot have fork'),
+            ),
+          ),
+        );
       });
 
       test('Custom version with channel', () {
         expect(
-            () => FlutterVersion.parse('custom_build@beta'),
-            throwsA(isA<FormatException>().having((e) => e.message, 'message',
-                contains('Custom versions cannot have fork or channel'))));
+          () => FlutterVersion.parse('custom_build@beta'),
+          throwsA(
+            isA<FormatException>().having(
+              (e) => e.message,
+              'message',
+              contains('Custom versions cannot have fork or channel'),
+            ),
+          ),
+        );
       });
     });
 

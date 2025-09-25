@@ -80,8 +80,8 @@ class FvmContext with FvmContextMappable {
     required bool skipInput,
     this.isTest = false,
     this.logLevel = Level.info,
-  })  : _skipInput = skipInput,
-        _generators = generators;
+  }) : _skipInput = skipInput,
+       _generators = generators;
 
   static FvmContext create({
     String? debugLabel,
@@ -94,8 +94,9 @@ class FvmContext with FvmContextMappable {
     bool isTest = false,
   }) {
     // Load all configs
-    final builtConfig =
-        AppConfigService.buildConfig(overrides: configOverrides);
+    final builtConfig = AppConfigService.buildConfig(
+      overrides: configOverrides,
+    );
 
     return FvmContext.raw(
       debugLabel: debugLabel,

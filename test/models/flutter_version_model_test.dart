@@ -84,7 +84,7 @@ void main() {
         'beta',
         '1.21.0-9.1.pre',
         'master',
-        '2.0.0'
+        '2.0.0',
       ];
       const sortedList = [
         'master',
@@ -95,14 +95,15 @@ void main() {
         '1.22.0-1.0.pre',
         '1.21.0-9.1.pre',
         '1.20.0',
-        '1.3.1'
+        '1.3.1',
       ];
 
       final versionUnsorted = unsortedList.map(FlutterVersion.parse).toList();
       versionUnsorted.sort((a, b) => a.compareTo(b));
 
-      final afterUnsorted =
-          versionUnsorted.reversed.map((e) => e.name).toList();
+      final afterUnsorted = versionUnsorted.reversed
+          .map((e) => e.name)
+          .toList();
 
       expect(afterUnsorted, sortedList);
     });
@@ -197,7 +198,9 @@ void main() {
 
     test('parse method - invalid version format', () {
       expect(
-          () => FlutterVersion.parse('1.0.0@invalid'), throwsFormatException);
+        () => FlutterVersion.parse('1.0.0@invalid'),
+        throwsFormatException,
+      );
     });
 
     test('version getter', () {

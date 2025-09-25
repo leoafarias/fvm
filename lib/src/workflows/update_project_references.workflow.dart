@@ -23,10 +23,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   /// This method updates the .fvm symlink in the provided [project] to point to the cache
   /// directory of the currently pinned Flutter SDK version. It also cleans up legacy links
   /// that are no longer needed.
-  void _updateLocalSdkReference(
-    Project project,
-    CacheFlutterVersion version,
-  ) {
+  void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
     try {
       // Only create the directory if it doesn't exist
       if (!project.localFvmPath.dir.existsSync()) {
@@ -156,10 +153,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       return updatedProject;
     } on Exception catch (e, stackTrace) {
       Error.throwWithStackTrace(
-        AppDetailedException(
-          'Error updating project references',
-          e.toString(),
-        ),
+        AppDetailedException('Error updating project references', e.toString()),
         stackTrace,
       );
     }
