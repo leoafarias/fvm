@@ -74,10 +74,11 @@ jobs:
 
       - name: Commit version updates locally
         run: |
-          echo "📝 Committing version updates locally"
+          echo "📝 Committing version updates and generated files locally"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pubspec.yaml lib/src/version.dart CHANGELOG.md
+          git add lib/src/**/*.mapper.dart
           git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
           echo "✅ Changes committed locally"
 
