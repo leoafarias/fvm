@@ -9,12 +9,7 @@ import '../utils/helpers.dart';
 part 'flutter_version_model.mapper.dart';
 
 @MappableEnum()
-enum VersionType {
-  release,
-  channel,
-  unknownRef,
-  custom,
-}
+enum VersionType { release, channel, unknownRef, custom }
 
 /// Enum of a channel
 @MappableEnum()
@@ -61,25 +56,26 @@ class FlutterVersion with FlutterVersionMappable {
   });
 
   FlutterVersion.gitReference(this.name, {this.fork})
-      : releaseChannel = null,
-        type = VersionType.unknownRef;
+    : releaseChannel = null,
+      type = VersionType.unknownRef;
 
   FlutterVersion.channel(this.name, {this.fork})
-      : releaseChannel = null,
-        type = VersionType.channel;
+    : releaseChannel = null,
+      type = VersionType.channel;
 
   const FlutterVersion.release(this.name, {this.releaseChannel, this.fork})
-      : type = VersionType.release;
+    : type = VersionType.release;
 
   const FlutterVersion.custom(this.name)
-      : releaseChannel = null,
-        fork = null,
-        type = VersionType.custom;
+    : releaseChannel = null,
+      fork = null,
+      type = VersionType.custom;
 
   factory FlutterVersion.parse(String version) {
     // Match pattern: [fork/]version[@channel]
-    final pattern =
-        RegExp(r'^(?:(?<fork>[^/]+)/)?(?<version>[^@]+)(?:@(?<channel>\w+))?$');
+    final pattern = RegExp(
+      r'^(?:(?<fork>[^/]+)/)?(?<version>[^@]+)(?:@(?<channel>\w+))?$',
+    );
     final match = pattern.firstMatch(version);
 
     if (match == null) {

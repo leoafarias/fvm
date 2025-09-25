@@ -6,12 +6,7 @@ import 'package:test/test.dart';
 import '../testing_utils.dart';
 
 // Assuming this is defined in your testing_utils.dart
-const _versionList = [
-  'stable',
-  'beta',
-  'dev',
-  '2.0.0',
-];
+const _versionList = ['stable', 'beta', 'dev', '2.0.0'];
 
 void main() {
   late TestCommandRunner runner;
@@ -39,8 +34,9 @@ void main() {
         // Check the symlink target
         final targetPath = link.targetSync();
         final valid = FlutterVersion.parse(version);
-        final versionDir =
-            runner.context.get<CacheService>().getVersionCacheDir(valid);
+        final versionDir = runner.context
+            .get<CacheService>()
+            .getVersionCacheDir(valid);
 
         // Perform assertions
         expect(targetPath == versionDir.path, true);
@@ -54,7 +50,7 @@ void main() {
   group('Pin functionality:', () {
     test('should pin channel to latest release', () async {
       final testDir = createTempDir();
-      
+
       try {
         createPubspecYaml(testDir);
 
@@ -65,7 +61,12 @@ void main() {
         );
         final localRunner = TestCommandRunner(context);
 
-        final exitCode = await localRunner.run(['fvm', 'use', 'stable', '--pin']);
+        final exitCode = await localRunner.run([
+          'fvm',
+          'use',
+          'stable',
+          '--pin',
+        ]);
         expect(exitCode, ExitCode.success.code);
 
         // Verify pinned to specific version, not channel
@@ -81,7 +82,7 @@ void main() {
 
     test('should fail gracefully for master channel', () async {
       final testDir = createTempDir();
-      
+
       try {
         createPubspecYaml(testDir);
 
@@ -94,9 +95,13 @@ void main() {
 
         expect(
           () => localRunner.runOrThrow(['fvm', 'use', 'master', '--pin']),
-          throwsA(predicate<UsageException>(
-            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
-          )),
+          throwsA(
+            predicate<UsageException>(
+              (e) => e.message.contains(
+                'Cannot pin a version that is not in dev, beta or stable',
+              ),
+            ),
+          ),
         );
       } finally {
         if (testDir.existsSync()) {
@@ -107,7 +112,7 @@ void main() {
 
     test('pin flag throws error for specific versions', () async {
       final testDir = createTempDir();
-      
+
       try {
         createPubspecYaml(testDir);
 
@@ -121,9 +126,13 @@ void main() {
         // Pinning a specific version should throw an error
         expect(
           () => localRunner.runOrThrow(['fvm', 'use', '3.10.0', '--pin']),
-          throwsA(predicate<UsageException>(
-            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
-          )),
+          throwsA(
+            predicate<UsageException>(
+              (e) => e.message.contains(
+                'Cannot pin a version that is not in dev, beta or stable',
+              ),
+            ),
+          ),
         );
       } finally {
         if (testDir.existsSync()) {
@@ -134,7 +143,7 @@ void main() {
 
     test('should fail for invalid channel', () async {
       final testDir = createTempDir();
-      
+
       try {
         createPubspecYaml(testDir);
 
@@ -146,10 +155,19 @@ void main() {
         final localRunner = TestCommandRunner(context);
 
         expect(
-          () => localRunner.runOrThrow(['fvm', 'use', 'invalid-channel', '--pin']),
-          throwsA(predicate<UsageException>(
-            (e) => e.message.contains('Cannot pin a version that is not in dev, beta or stable'),
-          )),
+          () => localRunner.runOrThrow([
+            'fvm',
+            'use',
+            'invalid-channel',
+            '--pin',
+          ]),
+          throwsA(
+            predicate<UsageException>(
+              (e) => e.message.contains(
+                'Cannot pin a version that is not in dev, beta or stable',
+              ),
+            ),
+          ),
         );
       } finally {
         if (testDir.existsSync()) {

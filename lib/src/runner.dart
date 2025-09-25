@@ -40,8 +40,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
   /// Constructor
   FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
-      : _pubUpdater = pubUpdater ?? PubUpdater(),
-        super(kPackageName, kDescription) {
+    : _pubUpdater = pubUpdater ?? PubUpdater(),
+      super(kPackageName, kDescription) {
     argParser
       ..addFlag('verbose', help: 'Print verbose output.', negatable: false)
       ..addFlag(
@@ -118,7 +118,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   void _checkDeprecatedEnvironmentVariables() {
     // Check for deprecated variables (no longer supported)
     final deprecatedVars = {'FVM_GIT_CACHE': 'FVM_FLUTTER_URL'};
-    
+
     // Check for legacy variables (still supported but discouraged)
     final legacyVars = {'FVM_HOME': 'FVM_CACHE_PATH'};
 
@@ -135,7 +135,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     var hasLegacy = false;
     for (final entry in legacyVars.entries) {
-      if (context.environment.containsKey(entry.key) && 
+      if (context.environment.containsKey(entry.key) &&
           !context.environment.containsKey(entry.value)) {
         if (!hasLegacy) {
           logger.info('Legacy environment variables detected:');
@@ -250,8 +250,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       return ExitCode.success.code;
     }
 
-    final hasTopLevelOption =
-        topLevelResults.options.any((e) => topLevelResults.wasParsed(e));
+    final hasTopLevelOption = topLevelResults.options.any(
+      (e) => topLevelResults.wasParsed(e),
+    );
 
     if (hasTopLevelOption) {
       logger.debug('  Top level options:');
@@ -268,8 +269,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       logger.debug('Command: ${commandResult.name}');
 
       // Check if any command option was parsed
-      final hasCommandOption =
-          commandResult.options.any((e) => commandResult.wasParsed(e));
+      final hasCommandOption = commandResult.options.any(
+        (e) => commandResult.wasParsed(e),
+      );
 
       if (hasCommandOption) {
         logger.debug('  Command options:');

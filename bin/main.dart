@@ -10,9 +10,7 @@ Future<void> main(List<String> args) async {
   final skipInput = updatableArgs.remove('--fvm-skip-input');
   final controller = FvmContext.create(skipInput: skipInput);
 
-  await _flushThenExit(
-    await FvmCommandRunner(controller).run(updatableArgs),
-  );
+  await _flushThenExit(await FvmCommandRunner(controller).run(updatableArgs));
 }
 
 /// Flushes the stdout and stderr streams, then exits the program with the given
@@ -22,6 +20,8 @@ Future<void> main(List<String> args) async {
 /// exited already. This is useful to prevent Future chains from proceeding
 /// after you've decided to exit.
 Future<void> _flushThenExit(int status) {
-  return Future.wait<void>([stdout.close(), stderr.close()])
-      .then((_) => exit(status));
+  return Future.wait<void>([
+    stdout.close(),
+    stderr.close(),
+  ]).then((_) => exit(status));
 }

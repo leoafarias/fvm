@@ -66,13 +66,17 @@ void main() {
       print('Found ${versions.length} versions:');
       for (final version in versions) {
         print(
-            '- ${version.name} (fromFork: ${version.fromFork}, fork: ${version.fork}, '
-            'version: ${version.version}, directory: ${version.directory})');
+          '- ${version.name} (fromFork: ${version.fromFork}, fork: ${version.fork}, '
+          'version: ${version.version}, directory: ${version.directory})',
+        );
       }
 
       // Verification
-      expect(versions.length, equals(2),
-          reason: 'Should find both the regular and forked versions');
+      expect(
+        versions.length,
+        equals(2),
+        reason: 'Should find both the regular and forked versions',
+      );
 
       // Find regular version
       final foundStableVersion = versions.firstWhere(

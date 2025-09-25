@@ -23,5 +23,5 @@ enum Level {
   critical,
 
   /// The least verbose level -- nothing is logged.
-  quiet;
+  quiet,
 }

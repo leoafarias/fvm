@@ -16,8 +16,8 @@ void main() {
 
     // Get the installed version from cache
     final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+      FlutterVersion.parse(version),
+    );
 
     // Determine the expected release channel
     String? releaseChannel;
@@ -30,9 +30,7 @@ void main() {
       } else {
         final release = await runner.context
             .get<FlutterReleaseClient>()
-            .getReleaseByVersion(
-              cacheVersion.version,
-            );
+            .getReleaseByVersion(cacheVersion.version);
 
         if (cacheVersion.isUnknownRef) {
           releaseChannel = FlutterChannel.master.name;
@@ -44,8 +42,8 @@ void main() {
 
     // Get the actual branch from the installed version
     final existingChannel = await runner.context.get<GitService>().getBranch(
-          version,
-        );
+      version,
+    );
 
     // Assertions
     expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -109,9 +107,9 @@ void main() {
         () => runner.runOrThrow(['fvm', 'install', '$testForkName/stable']),
         throwsA(
           predicate<Exception>(
-            (e) => e
-                .toString()
-                .contains('Fork "$testForkName" has not been configured'),
+            (e) => e.toString().contains(
+              'Fork "$testForkName" has not been configured',
+            ),
           ),
         ),
       );
@@ -132,13 +130,10 @@ void main() {
     test('should install version from .fvmrc when no args', () async {
       // Create a temporary directory for this test
       final tempDir = createTempDir();
-      
+
       try {
         // Create project with config
-        createProjectConfig(
-          ProjectConfig(flutter: '3.10.0'),
-          tempDir,
-        );
+        createProjectConfig(ProjectConfig(flutter: '3.10.0'), tempDir);
         createPubspecYaml(tempDir);
 
         // Create runner with working directory
@@ -152,7 +147,7 @@ void main() {
         final exitCode = await runner.run(['fvm', 'install']);
 
         expect(exitCode, ExitCode.success.code);
-        
+
         // Verify version was installed
         final cacheService = context.get<CacheService>();
         final version = FlutterVersion.parse('3.10.0');
@@ -167,7 +162,7 @@ void main() {
     test('should throw when no args and no project config', () async {
       // Create a temporary directory without FVM config
       final tempDir = createTempDir();
-      
+
       try {
         createPubspecYaml(tempDir);
 
@@ -180,10 +175,13 @@ void main() {
 
         expect(
           () => runner.runOrThrow(['fvm', 'install']),
-          throwsA(predicate<AppException>(
-            (e) => e.message.contains(
-                'Please provide a channel or a version, or run'),
-          )),
+          throwsA(
+            predicate<AppException>(
+              (e) => e.message.contains(
+                'Please provide a channel or a version, or run',
+              ),
+            ),
+          ),
         );
       } finally {
         if (tempDir.existsSync()) {
@@ -195,13 +193,10 @@ void main() {
     test('should respect setup flag from command line', () async {
       // Create a temporary directory for this test
       final tempDir = createTempDir();
-      
+
       try {
         // Create project with config
-        createProjectConfig(
-          ProjectConfig(flutter: 'stable'),
-          tempDir,
-        );
+        createProjectConfig(ProjectConfig(flutter: 'stable'), tempDir);
         createPubspecYaml(tempDir);
 
         // Create runner with working directory
@@ -215,7 +210,7 @@ void main() {
         final exitCode = await runner.run(['fvm', 'install', '--setup']);
 
         expect(exitCode, ExitCode.success.code);
-        
+
         // Verify setup was run (project should be using the version)
         final project = context.get<ProjectService>().findAncestor();
         expect(project, isNotNull);
@@ -230,14 +225,8 @@ void main() {
     test('invocation getter returns correct string', () {
       final context = FvmContext.create(isTest: true);
       final command = InstallCommand(context);
-      expect(
-        command.invocation,
-        contains('fvm install {version}'),
-      );
-      expect(
-        command.invocation,
-        contains('if no {version}'),
-      );
+      expect(command.invocation, contains('fvm install {version}'));
+      expect(command.invocation, contains('if no {version}'));
     });
   });
 }

@@ -19,8 +19,10 @@ void main() {
 
       final logger = context.get<Logger>();
 
-      final result =
-          logger.confirm('This is a test prompt', defaultValue: false);
+      final result = logger.confirm(
+        'This is a test prompt',
+        defaultValue: false,
+      );
 
       expect(result, isTrue);
       expect(
@@ -63,8 +65,9 @@ void main() {
     test('should override cacheVersionSelector method correctly', () {
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setVersionResponse('Select a version', '3.10.0'),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setVersionResponse('Select a version', '3.10.0'),
         },
         skipInput: false, // Allow user input for testing
       );
@@ -90,8 +93,9 @@ void main() {
         isTrue,
       );
       expect(
-        logger.outputs
-            .any((msg) => msg.contains('User selected version: 3.10.0')),
+        logger.outputs.any(
+          (msg) => msg.contains('User selected version: 3.10.0'),
+        ),
         isTrue,
       );
     });
@@ -115,8 +119,9 @@ void main() {
         isTrue,
       );
       expect(
-        logger.outputs
-            .any((msg) => msg.contains('Skipping input confirmation')),
+        logger.outputs.any(
+          (msg) => msg.contains('Skipping input confirmation'),
+        ),
         isTrue,
       );
     });

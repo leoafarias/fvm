@@ -57,7 +57,9 @@ class EnsureCacheWorkflow extends Workflow {
     String selectedOption;
     if (context.skipInput) {
       // In CI/non-interactive mode, automatically choose safe default: remove and reinstall
-      logger.warn('CI/non-interactive mode detected: Auto-selecting to remove and reinstall');
+      logger.warn(
+        'CI/non-interactive mode detected: Auto-selecting to remove and reinstall',
+      );
       selectedOption = secondOption;
     } else {
       // Interactive mode: show prompt
@@ -174,9 +176,7 @@ class EnsureCacheWorkflow extends Workflow {
       try {
         await gitService.updateLocalMirror();
       } on Exception {
-        logger.warn(
-          'Failed to setup local cache. Falling back to git clone.',
-        );
+        logger.warn('Failed to setup local cache. Falling back to git clone.');
         // Do not rethrow, allow to fallback to clone
       }
     }

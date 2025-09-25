@@ -100,8 +100,9 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    final releaseItem =
-        FlutterSdkRelease.fromMap(release as Map<String, dynamic>);
+    final releaseItem = FlutterSdkRelease.fromMap(
+      release as Map<String, dynamic>,
+    );
 
     /// Add to releases
     releasesList.add(releaseItem);

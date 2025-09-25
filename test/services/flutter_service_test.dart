@@ -19,8 +19,9 @@ void throwGitError(String message, List<String> args) {
 
 /// Creates an isolated test context with separate git cache to avoid conflicts
 FvmContext createIsolatedTestContext() {
-  final tempDir =
-      Directory.systemTemp.createTempSync('fvm_flutter_service_test_');
+  final tempDir = Directory.systemTemp.createTempSync(
+    'fvm_flutter_service_test_',
+  );
 
   return FvmContext.create(
     isTest: true,
@@ -43,8 +44,11 @@ void main() {
         expect(
           () => service.install(version),
           throwsA(
-            isA<AppException>().having((e) => e.toString(), 'message',
-                contains('not found in configuration')),
+            isA<AppException>().having(
+              (e) => e.toString(),
+              'message',
+              contains('not found in configuration'),
+            ),
           ),
         );
       });
@@ -60,27 +64,46 @@ void main() {
       // Test for unknown revision error message
       expect(
         () => throwGitError(
-            'fatal: ambiguous argument \'non-existent-tag\': unknown revision',
-            ['reset', '--hard', 'non-existent-tag']),
-        throwsA(isA<ProcessException>()
-            .having((e) => e.message, 'message', contains('unknown revision'))),
+          'fatal: ambiguous argument \'non-existent-tag\': unknown revision',
+          ['reset', '--hard', 'non-existent-tag'],
+        ),
+        throwsA(
+          isA<ProcessException>().having(
+            (e) => e.message,
+            'message',
+            contains('unknown revision'),
+          ),
+        ),
       );
 
       // Test for ambiguous argument error message
       expect(
-        () => throwGitError('fatal: ambiguous argument \'non-existent-branch\'',
-            ['reset', '--hard', 'non-existent-branch']),
-        throwsA(isA<ProcessException>().having(
-            (e) => e.message, 'message', contains('ambiguous argument'))),
+        () => throwGitError(
+          'fatal: ambiguous argument \'non-existent-branch\'',
+          ['reset', '--hard', 'non-existent-branch'],
+        ),
+        throwsA(
+          isA<ProcessException>().having(
+            (e) => e.message,
+            'message',
+            contains('ambiguous argument'),
+          ),
+        ),
       );
 
       // Test for not found error message
       expect(
         () => throwGitError(
-            'error: pathspec \'non-existent-ref\' did not match any file(s) known to git',
-            ['reset', '--hard', 'non-existent-ref']),
-        throwsA(isA<ProcessException>().having(
-            (e) => e.message, 'message', contains('did not match any file'))),
+          'error: pathspec \'non-existent-ref\' did not match any file(s) known to git',
+          ['reset', '--hard', 'non-existent-ref'],
+        ),
+        throwsA(
+          isA<ProcessException>().having(
+            (e) => e.message,
+            'message',
+            contains('did not match any file'),
+          ),
+        ),
       );
     });
 
@@ -89,23 +112,34 @@ void main() {
 
       // Test for repository not found error
       expect(
-        () => throwGitError('fatal: remote: Repository not found.',
-            ['clone', 'https://example.com/fork.git']),
-        throwsA(isA<ProcessException>().having(
-            (e) => e.message, 'message', contains('Repository not found'))),
+        () => throwGitError('fatal: remote: Repository not found.', [
+          'clone',
+          'https://example.com/fork.git',
+        ]),
+        throwsA(
+          isA<ProcessException>().having(
+            (e) => e.message,
+            'message',
+            contains('Repository not found'),
+          ),
+        ),
       );
 
       // Test for remote branch not found error
       expect(
         () => throwGitError(
-            'fatal: Remote branch branch-name not found in upstream origin',
-            ['clone', '-b', 'branch-name', 'https://example.com/repo.git']),
-        throwsA(isA<ProcessException>().having(
+          'fatal: Remote branch branch-name not found in upstream origin',
+          ['clone', '-b', 'branch-name', 'https://example.com/repo.git'],
+        ),
+        throwsA(
+          isA<ProcessException>().having(
             (e) => e.message,
             'message',
             (String msg) =>
                 msg.contains('Remote branch') &&
-                msg.contains('not found in upstream'))),
+                msg.contains('not found in upstream'),
+          ),
+        ),
       );
     });
 
@@ -116,14 +150,21 @@ void main() {
 
         // Test various reference error patterns
         expect(
-            service.isReferenceError('fatal: reference repository not found'),
-            isTrue);
-        expect(service.isReferenceError('error: unable to read reference'),
-            isTrue);
+          service.isReferenceError('fatal: reference repository not found'),
+          isTrue,
+        );
         expect(
-            service.isReferenceError('fatal: bad object in reference'), isTrue);
-        expect(service.isReferenceError('error: corrupt reference repository'),
-            isTrue);
+          service.isReferenceError('error: unable to read reference'),
+          isTrue,
+        );
+        expect(
+          service.isReferenceError('fatal: bad object in reference'),
+          isTrue,
+        );
+        expect(
+          service.isReferenceError('error: corrupt reference repository'),
+          isTrue,
+        );
         expect(service.isReferenceError('fatal: reference not found'), isTrue);
       });
 
@@ -133,9 +174,13 @@ void main() {
 
         // Test non-reference error patterns
         expect(
-            service.isReferenceError('fatal: repository not found'), isFalse);
-        expect(service.isReferenceError('fatal: remote branch not found'),
-            isFalse);
+          service.isReferenceError('fatal: repository not found'),
+          isFalse,
+        );
+        expect(
+          service.isReferenceError('fatal: remote branch not found'),
+          isFalse,
+        );
         expect(service.isReferenceError('error: unknown revision'), isFalse);
         expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
       });
@@ -154,10 +199,7 @@ void main() {
 
         // Since this simply passes through to run(), we can just verify
         // that the method returns a Future that completes normally
-        expect(
-          service.setup(mockCacheVersion),
-          isA<Future<ProcessResult>>(),
-        );
+        expect(service.setup(mockCacheVersion), isA<Future<ProcessResult>>());
       });
     });
 
@@ -190,10 +232,7 @@ void main() {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        expect(
-          service.pubGet(mockCacheVersion),
-          isA<Future<ProcessResult>>(),
-        );
+        expect(service.pubGet(mockCacheVersion), isA<Future<ProcessResult>>());
       });
 
       test('adds --offline flag in offline mode', () async {

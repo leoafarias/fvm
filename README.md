@@ -9,7 +9,7 @@
 ![Codecov](https://img.shields.io/codecov/c/github/leoafarias/fvm?style=for-the-badge&color=FFD43A&labelColor=F3BE00)
 [![Awesome Flutter](https://img.shields.io/badge/awesome-flutter-8A00CB?style=for-the-badge&color=8A00CB&labelColor=630092)](https://github.com/Solido/awesome-flutter)
 
-FVM streamlines Flutter version management. It allows per project SDK versions, ensuring consistent app builds and easier testing of new releases, thereby boosting the efficiency of your Flutter project tasks.
+FVM manages Flutter SDK versions per project. Switch between Flutter versions instantly without reinstalling, making it easy to test new releases and maintain consistent builds across your team.
 
 ## Why FVM?
 
