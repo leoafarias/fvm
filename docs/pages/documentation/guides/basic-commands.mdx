@@ -38,7 +38,7 @@ fvm use [version] [options]
 
 - `-f, --force` - Bypasses Flutter project validation checks
 - `-p, --pin` - Pins the latest release of a channel (not for master)
-- `--flavor <name>` - Sets version for a specific project flavor
+- `--flavor <name>`, `--env <name>` - Sets version for a specific project flavor
 - `-s, --skip-setup` - Skips SDK setup after installation
 - `--skip-pub-get` - Skips dependency resolution after switching
 
@@ -216,7 +216,7 @@ fvm spawn <version> <flutter_command> [args...]
 fvm spawn 3.19.0 build apk
 
 # Run tests with different version
-fvm spawn 3.10.0 test
+fvm spawn 3.16.0 test
 ```
 
 ## exec
@@ -297,7 +297,21 @@ fvm dart run build_runner build
 Removes the entire FVM cache and all installed versions.
 
 ```bash
+fvm destroy [options]
+```
+
+### Options
+
+- `-f, --force` - Bypasses confirmation prompt (use with caution)
+
+### Examples
+
+```bash
+# Remove cache with confirmation prompt
 fvm destroy
+
+# Remove cache without confirmation (dangerous)
+fvm destroy --force
 ```
 
 ### Warning
