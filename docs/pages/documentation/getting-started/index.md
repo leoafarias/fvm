@@ -5,7 +5,7 @@ title: Overview
 
 # Overview
 
-FVM helps with the need for consistent app builds by referencing the Flutter SDK version used on a per-project basis. It also allows you to have multiple Flutter versions installed to quickly validate and test upcoming Flutter releases with your apps without waiting for Flutter installation every time.
+FVM ensures consistent app builds by managing Flutter SDK versions per project. Install multiple Flutter versions and switch between them instantly to test new releases without reinstalling Flutter.
 
 ## Quick Start
 
