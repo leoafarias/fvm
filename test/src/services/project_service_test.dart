@@ -30,18 +30,20 @@ void main() {
       tempDirs.cleanUp();
     });
 
-    test('findAncestor returns project in current directory if config exists',
-        () {
-      final tempDir = tempDirs.create();
+    test(
+      'findAncestor returns project in current directory if config exists',
+      () {
+        final tempDir = tempDirs.create();
 
-      createProjectConfig(
-        ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'}),
-        tempDir,
-      );
+        createProjectConfig(
+          ProjectConfig(flutter: '2.2.3', flavors: {'dev': '2.2.3'}),
+          tempDir,
+        );
 
-      final project = projectService.findAncestor(directory: tempDir);
-      expect(project, isProjectMatcher(expectedDirectory: tempDir));
-    });
+        final project = projectService.findAncestor(directory: tempDir);
+        expect(project, isProjectMatcher(expectedDirectory: tempDir));
+      },
+    );
 
     test('findAncestor traverses upward to find project config', () {
       // Create a parent directory with a config file and a child directory without one.
@@ -56,10 +58,15 @@ void main() {
       expect(project, isProjectMatcher(expectedDirectory: parentDir));
     });
 
-    test('findVersion returns pinned version if config exists', () {
-      // Skip this test as it requires workingDirectoryOverride which TestFactory doesn't support
-      // TODO: Consider alternative approach for testing findVersion without workingDirectoryOverride
-    }, skip: 'Requires workingDirectoryOverride which TestFactory does not support');
+    test(
+      'findVersion returns pinned version if config exists',
+      () {
+        // Skip this test as it requires workingDirectoryOverride which TestFactory doesn't support
+        // TODO: Consider alternative approach for testing findVersion without workingDirectoryOverride
+      },
+      skip:
+          'Requires workingDirectoryOverride which TestFactory does not support',
+    );
 
     test('update writes new configuration correctly', () {
       final tempDir = tempDirs.create();

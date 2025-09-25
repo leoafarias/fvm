@@ -122,8 +122,9 @@ class CacheService extends ContextualService {
 
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
-      final forkDir =
-          Directory(path.join(context.versionsCachePath, version.fork!));
+      final forkDir = Directory(
+        path.join(context.versionsCachePath, version.fork!),
+      );
       if (forkDir.existsSync()) {
         final entries = forkDir.listSync();
         if (entries.isEmpty) {
@@ -140,11 +141,9 @@ class CacheService extends ContextualService {
   Directory getVersionCacheDir(FlutterVersion version) {
     if (version.fromFork) {
       // Fork-specific path: versionsCachePath/forkName/versionName
-      return Directory(path.join(
-        context.versionsCachePath,
-        version.fork!,
-        version.version,
-      ));
+      return Directory(
+        path.join(context.versionsCachePath, version.fork!, version.version),
+      );
     } // Standard path (unchanged): versionsCachePath/versionName
 
     return Directory(path.join(context.versionsCachePath, version.name));
@@ -234,8 +233,9 @@ class CacheService extends ContextualService {
 
     // Ensure parent directory exists for fork versions
     if (targetVersion.fromFork) {
-      final forkDir =
-          Directory(path.join(context.versionsCachePath, targetVersion.fork!));
+      final forkDir = Directory(
+        path.join(context.versionsCachePath, targetVersion.fork!),
+      );
       if (!forkDir.existsSync()) {
         forkDir.createSync(recursive: true);
       }

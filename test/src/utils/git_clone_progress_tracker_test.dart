@@ -74,7 +74,10 @@ void main() {
         }
 
         // Should not crash and may or may not produce output
-        expect(logger.writtenLines.length, lessThanOrEqualTo(malformedLines.length));
+        expect(
+          logger.writtenLines.length,
+          lessThanOrEqualTo(malformedLines.length),
+        );
       });
     });
 
@@ -106,12 +109,15 @@ void main() {
         expect(logger.writtenLines, hasLength(3));
       });
 
-      test('handles percentage decrease (git can send decreasing percentages)', () {
-        tracker.processLine('Enumerating objects: 75%');
-        tracker.processLine('Enumerating objects: 50%');
+      test(
+        'handles percentage decrease (git can send decreasing percentages)',
+        () {
+          tracker.processLine('Enumerating objects: 75%');
+          tracker.processLine('Enumerating objects: 50%');
 
-        expect(logger.writtenLines, hasLength(2));
-      });
+          expect(logger.writtenLines, hasLength(2));
+        },
+      );
     });
 
     group('Phase Transitions', () {
@@ -120,8 +126,11 @@ void main() {
         tracker.processLine('Counting objects: 25%');
 
         expect(logger.writtenLines, hasLength(4));
-        expect(logger.writtenLines[1], contains('100%')); // Previous phase completed
-        expect(logger.writtenLines[2], equals('\n')); // Newline between phases  
+        expect(
+          logger.writtenLines[1],
+          contains('100%'),
+        ); // Previous phase completed
+        expect(logger.writtenLines[2], equals('\n')); // Newline between phases
         expect(logger.writtenLines[3], contains('Counting objects:'));
       });
 
@@ -162,7 +171,7 @@ void main() {
 
         final output1 = logger.writtenLines.last;
         logger.clear();
-        
+
         tracker.processLine('Resolving deltas: 75%');
         final output2 = logger.writtenLines.last;
 
@@ -179,7 +188,7 @@ void main() {
         final startBracket = output.indexOf('[');
         final endBracket = output.indexOf(']');
         final progressSection = output.substring(startBracket + 1, endBracket);
-        
+
         // At 50%, should have 25 filled blocks out of 50 total
         final filledBlocks = '█'.allMatches(progressSection).length;
         expect(filledBlocks, equals(25));
@@ -213,7 +222,7 @@ void main() {
         tracker.processLine('Enumerating objects: 50%');
 
         expect(logger.writtenLines, hasLength(2));
-        
+
         // Process same percentage again - should not update
         tracker.processLine('Enumerating objects: 50%');
         expect(logger.writtenLines, hasLength(2));
@@ -262,9 +271,14 @@ void main() {
         }
 
         // Should process all percentage lines
-        final outputs = logger.writtenLines.where((line) => line.contains('%')).toList();
-        expect(outputs.length, greaterThanOrEqualTo(8)); // At least 8 progress updates
-        
+        final outputs = logger.writtenLines
+            .where((line) => line.contains('%'))
+            .toList();
+        expect(
+          outputs.length,
+          greaterThanOrEqualTo(8),
+        ); // At least 8 progress updates
+
         // Verify phase transitions include newlines
         expect(logger.writtenLines, contains('\n'));
       });
@@ -272,11 +286,11 @@ void main() {
       test('handles git output with varying spacing patterns', () {
         // Git uses different spacing for different percentage values
         const spacingPatterns = [
-          'Receiving objects:   0% (1/1824)',      // 3 spaces for single digit
-          'Receiving objects:   9% (165/1824)',    // 3 spaces for single digit
-          'Receiving objects:  10% (183/1824)',    // 2 spaces for double digit
-          'Receiving objects:  99% (1806/1824)',   // 2 spaces for double digit
-          'Receiving objects: 100% (1824/1824)',   // 1 space for triple digit
+          'Receiving objects:   0% (1/1824)', // 3 spaces for single digit
+          'Receiving objects:   9% (165/1824)', // 3 spaces for single digit
+          'Receiving objects:  10% (183/1824)', // 2 spaces for double digit
+          'Receiving objects:  99% (1806/1824)', // 2 spaces for double digit
+          'Receiving objects: 100% (1824/1824)', // 1 space for triple digit
         ];
 
         for (final line in spacingPatterns) {
@@ -284,7 +298,12 @@ void main() {
         }
 
         // All patterns should be recognized
-        expect(logger.writtenLines.where((line) => line.contains('Receiving objects:')).length, equals(5));
+        expect(
+          logger.writtenLines
+              .where((line) => line.contains('Receiving objects:'))
+              .length,
+          equals(5),
+        );
       });
     });
   });

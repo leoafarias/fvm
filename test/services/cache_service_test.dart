@@ -305,34 +305,38 @@ void main() {
     });
 
     group('Fork cleanup:', () {
-      test('should remove empty fork directory after removing last version',
-          () {
-        // Create fork structure
-        final forkVersion = FlutterVersion.parse('mycompany/stable');
-        final forkDir = Directory(
-          path.join(tempDir.path, 'mycompany', 'stable'),
-        )..createSync(recursive: true);
+      test(
+        'should remove empty fork directory after removing last version',
+        () {
+          // Create fork structure
+          final forkVersion = FlutterVersion.parse('mycompany/stable');
+          final forkDir = Directory(
+            path.join(tempDir.path, 'mycompany', 'stable'),
+          )..createSync(recursive: true);
 
-        // Add some Flutter files to make it look like a valid Flutter SDK
-        File(path.join(forkDir.path, 'bin', 'flutter'))
-          ..createSync(recursive: true)
-          ..writeAsStringSync('#!/bin/bash');
+          // Add some Flutter files to make it look like a valid Flutter SDK
+          File(path.join(forkDir.path, 'bin', 'flutter'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('#!/bin/bash');
 
-        // Verify fork structure exists
-        expect(forkDir.existsSync(), isTrue);
-        expect(Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
-            isTrue);
+          // Verify fork structure exists
+          expect(forkDir.existsSync(), isTrue);
+          expect(
+            Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
+            isTrue,
+          );
 
-        // Remove the version
-        cacheService.remove(forkVersion);
+          // Remove the version
+          cacheService.remove(forkVersion);
 
-        // Fork directory should be removed
-        expect(forkDir.existsSync(), isFalse);
-        expect(
-          Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
-          isFalse,
-        );
-      });
+          // Fork directory should be removed
+          expect(forkDir.existsSync(), isFalse);
+          expect(
+            Directory(path.join(tempDir.path, 'mycompany')).existsSync(),
+            isFalse,
+          );
+        },
+      );
 
       test('should not remove fork directory with other versions', () {
         // Create multiple fork versions
@@ -342,9 +346,8 @@ void main() {
           path.join(tempDir.path, 'mycompany', 'stable'),
         )..createSync(recursive: true);
 
-        final betaDir = Directory(
-          path.join(tempDir.path, 'mycompany', 'beta'),
-        )..createSync(recursive: true);
+        final betaDir = Directory(path.join(tempDir.path, 'mycompany', 'beta'))
+          ..createSync(recursive: true);
 
         // Verify both exist
         expect(stableDir.existsSync(), isTrue);

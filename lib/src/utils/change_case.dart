@@ -4,11 +4,7 @@ const _spaceSeparator = ' ';
 const _noSpaceSeparator = '';
 final RegExp _upperAlphaRegex = RegExp(r'[A-Z]');
 
-final _symbolSet = {
-  _snakeCaseSeparator,
-  _paramCaseSeparator,
-  _spaceSeparator,
-};
+final _symbolSet = {_snakeCaseSeparator, _paramCaseSeparator, _spaceSeparator};
 
 class ChangeCase {
   final String text;
@@ -30,7 +26,8 @@ class ChangeCase {
 
       sb.write(char);
 
-      final isEndOfWord = nextChar == null ||
+      final isEndOfWord =
+          nextChar == null ||
           (_upperAlphaRegex.hasMatch(nextChar) && !isAllCaps) ||
           _symbolSet.contains(nextChar);
 

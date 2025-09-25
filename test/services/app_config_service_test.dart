@@ -1,4 +1,3 @@
-
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/app_config_service.dart';
 import 'package:test/test.dart';
@@ -20,7 +19,7 @@ void main() {
         );
 
         final config = AppConfigService.buildConfig(overrides: overrides);
-        
+
         expect(config.privilegedAccess, isTrue);
         expect(config.cachePath, equals('/custom/cache'));
       });
@@ -48,9 +47,7 @@ void main() {
           ..cachePath = '/global/cache'
           ..privilegedAccess = false;
 
-        final overrides = AppConfig(
-          privilegedAccess: true,
-        );
+        final overrides = AppConfig(privilegedAccess: true);
 
         // Test the merge behavior
         final result = AppConfigService.createAppConfig(
@@ -71,7 +68,7 @@ void main() {
       test('_loadEnvironment configuration exists', () {
         // Test by creating config with environment that should be processed
         final config = AppConfigService.buildConfig();
-        
+
         // This test verifies the config structure exists and can handle environment variables
         expect(config, isA<AppConfig>());
         expect(config.cachePath, isA<String?>());
@@ -81,7 +78,7 @@ void main() {
         // Since we can't easily mock Platform.environment in tests,
         // this test verifies the structure supports environment variables.
         // The actual FVM_HOME fallback logic is tested through manual verification.
-        
+
         // Create a config and verify the structure
         final config = AppConfigService.buildConfig();
         expect(config, isA<AppConfig>());

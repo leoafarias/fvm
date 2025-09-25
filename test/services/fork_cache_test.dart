@@ -33,18 +33,20 @@ void main() {
   });
 
   group('Fork-specific caching', () {
-    test('getVersionCacheDir returns fork-specific paths for forked versions',
-        () {
-      // Given: A forked version
-      final forkVersion = FlutterVersion.parse('testfork/master');
-      final expectedPath = path.join(tempDir.path, 'testfork', 'master');
+    test(
+      'getVersionCacheDir returns fork-specific paths for forked versions',
+      () {
+        // Given: A forked version
+        final forkVersion = FlutterVersion.parse('testfork/master');
+        final expectedPath = path.join(tempDir.path, 'testfork', 'master');
 
-      // When: Getting the cache directory
-      final result = cacheService.getVersionCacheDir(forkVersion);
+        // When: Getting the cache directory
+        final result = cacheService.getVersionCacheDir(forkVersion);
 
-      // Then: Path should include the fork name
-      expect(result.path, equals(expectedPath));
-    });
+        // Then: Path should include the fork name
+        expect(result.path, equals(expectedPath));
+      },
+    );
 
     test('getVersionCacheDir returns standard paths for regular versions', () {
       // Given: A regular version
@@ -67,12 +69,14 @@ void main() {
       // Create the version directory using cache service
       final versionDir = cacheService.getVersionCacheDir(forkVersion);
       versionDir.createSync(recursive: true);
-      
+
       // Create a version file to make it look like a valid Flutter SDK
-      File(path.join(versionDir.path, 'version')).writeAsStringSync(versionName);
+      File(
+        path.join(versionDir.path, 'version'),
+      ).writeAsStringSync(versionName);
 
       final forkDir = versionDir.parent;
-      
+
       expect(forkDir.existsSync(), isTrue);
       expect(versionDir.existsSync(), isTrue);
 
@@ -95,11 +99,15 @@ void main() {
       // Create the version directories using cache service
       final versionDir1 = cacheService.getVersionCacheDir(forkVersion1);
       versionDir1.createSync(recursive: true);
-      File(path.join(versionDir1.path, 'version')).writeAsStringSync(versionName1);
+      File(
+        path.join(versionDir1.path, 'version'),
+      ).writeAsStringSync(versionName1);
 
       final versionDir2 = cacheService.getVersionCacheDir(forkVersion2);
       versionDir2.createSync(recursive: true);
-      File(path.join(versionDir2.path, 'version')).writeAsStringSync(versionName2);
+      File(
+        path.join(versionDir2.path, 'version'),
+      ).writeAsStringSync(versionName2);
 
       final forkDir = versionDir1.parent;
 
@@ -112,17 +120,18 @@ void main() {
       expect(versionDir2.existsSync(), isTrue);
     });
 
-    test('getAllVersions finds versions in both root and fork directories',
-        () async {
+    test('getAllVersions finds versions in both root and fork directories', () async {
       // Given: Both regular and forked versions
       final regularVersion = FlutterVersion.parse('stable');
       final forkVersion = FlutterVersion.parse('testfork/master');
 
       // Print debug information about the versions
       print(
-          'Regular version: $regularVersion, fromFork: ${regularVersion.fromFork}, version: ${regularVersion.version}');
+        'Regular version: $regularVersion, fromFork: ${regularVersion.fromFork}, version: ${regularVersion.version}',
+      );
       print(
-          'Fork version: $forkVersion, fromFork: ${forkVersion.fromFork}, version: ${forkVersion.version}, fork: ${forkVersion.fork}');
+        'Fork version: $forkVersion, fromFork: ${forkVersion.fromFork}, version: ${forkVersion.version}, fork: ${forkVersion.fork}',
+      );
 
       // Create version directories
       final regularDir = cacheService.getVersionCacheDir(regularVersion);
@@ -145,8 +154,9 @@ void main() {
 
       // The key is to make the fork directory look like a non-version directory
       // by ensuring it doesn't have a "version" file directly in it
-      final forkParentDir =
-          Directory(path.join(tempDir.path, forkVersion.fork!));
+      final forkParentDir = Directory(
+        path.join(tempDir.path, forkVersion.fork!),
+      );
       if (File(path.join(forkParentDir.path, 'version')).existsSync()) {
         File(path.join(forkParentDir.path, 'version')).deleteSync();
       }
@@ -163,14 +173,19 @@ void main() {
       // Print found versions
       print('Found ${versions.length} versions:');
       for (final version in versions) {
-        print('- Version: ${version.name}, fromFork: ${version.fromFork}, '
-            'version: ${version.version}, fork: ${version.fork}, '
-            'directory: ${version.directory}');
+        print(
+          '- Version: ${version.name}, fromFork: ${version.fromFork}, '
+          'version: ${version.version}, fork: ${version.fork}, '
+          'directory: ${version.directory}',
+        );
       }
 
       // Then: Both versions should be found
-      expect(versions.length, equals(2),
-          reason: 'Expected to find 2 versions, but found ${versions.length}');
+      expect(
+        versions.length,
+        equals(2),
+        reason: 'Expected to find 2 versions, but found ${versions.length}',
+      );
 
       // Check for a standard version
       expect(
@@ -182,7 +197,8 @@ void main() {
       // Check for a forked version
       expect(
         versions.any(
-            (v) => v.version == 'master' && v.fromFork && v.fork == 'testfork'),
+          (v) => v.version == 'master' && v.fromFork && v.fork == 'testfork',
+        ),
         isTrue,
         reason: 'Forked version "testfork/master" should be found',
       );

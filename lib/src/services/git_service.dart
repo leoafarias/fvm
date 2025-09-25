@@ -28,19 +28,15 @@ class GitService extends ContextualService {
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
     logger.info('Creating local mirror...');
-    final process = await Process.start(
-      'git',
-      [
-        'clone',
-        '--progress',
-        // Enable long paths on Windows to prevent checkout failures
-        if (Platform.isWindows) '-c',
-        if (Platform.isWindows) 'core.longpaths=true',
-        context.flutterUrl,
-        gitCacheDir.path,
-      ],
-      runInShell: true,
-    );
+    final process = await Process.start('git', [
+      'clone',
+      '--progress',
+      // Enable long paths on Windows to prevent checkout failures
+      if (Platform.isWindows) '-c',
+      if (Platform.isWindows) 'core.longpaths=true',
+      context.flutterUrl,
+      gitCacheDir.path,
+    ], runInShell: true);
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
@@ -84,8 +80,9 @@ class GitService extends ContextualService {
       return [];
     }
 
-    return _referencesCache =
-        GitReference.parseGitReferences(result.stdout as String);
+    return _referencesCache = GitReference.parseGitReferences(
+      result.stdout as String,
+    );
   }
 
   Future<bool> isGitReference(String version) async {
@@ -130,8 +127,10 @@ class GitService extends ContextualService {
 
           // Check if there are any uncommitted changes
           logger.debug('Checking for uncommitted changes...');
-          final statusResult =
-              await gitDir.runCommand(['status', '--porcelain']);
+          final statusResult = await gitDir.runCommand([
+            'status',
+            '--porcelain',
+          ]);
 
           final output = (statusResult.stdout as String).trim();
           if (output.isEmpty) {
@@ -197,8 +196,11 @@ class GitService extends ContextualService {
     final gitDir = await GitDir.fromExisting(versionDir.path);
 
     try {
-      final pr =
-          await gitDir.runCommand(['describe', '--tags', '--exact-match']);
+      final pr = await gitDir.runCommand([
+        'describe',
+        '--tags',
+        '--exact-match',
+      ]);
 
       return (pr.stdout as String).trim();
     } catch (e) {

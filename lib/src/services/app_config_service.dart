@@ -36,8 +36,12 @@ class AppConfigService {
     required ProjectConfig? projectConfig,
     required AppConfig? overrides,
   }) {
-    final validConfigs =
-        [globalConfig, envConfig, projectConfig, overrides].whereType<Config>();
+    final validConfigs = [
+      globalConfig,
+      envConfig,
+      projectConfig,
+      overrides,
+    ].whereType<Config>();
 
     var appConfig = AppConfig();
 
@@ -112,7 +116,7 @@ class AppConfigService {
     // Apply each environment variable if it exists, with legacy fallback for cachePath
     for (final envVar in ConfigOptions.values) {
       final value = environments[envVar.envKey];
-      
+
       if (envVar == ConfigOptions.cachePath) {
         // Legacy support: Use FVM_HOME as fallback if FVM_CACHE_PATH is not set
         final legacyFvmHome = environments['FVM_HOME'];

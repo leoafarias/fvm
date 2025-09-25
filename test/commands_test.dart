@@ -28,12 +28,12 @@ void main() {
       await runner.runOrThrow(['fvm', 'install', channel]);
 
       final cacheVersion = context.get<CacheService>().getVersion(
-            FlutterVersion.parse(channel),
-          );
+        FlutterVersion.parse(channel),
+      );
 
       final existingChannel = await context.get<GitService>().getBranch(
-            channel,
-          );
+        channel,
+      );
       expect(cacheVersion != null, true, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
@@ -48,8 +48,13 @@ void main() {
     test('Use Channel', () async {
       try {
         // Run force to test within fvm
-        await runner
-            .runOrThrow(['fvm', 'use', channel, '--force', '--skip-setup']);
+        await runner.runOrThrow([
+          'fvm',
+          'use',
+          channel,
+          '--force',
+          '--skip-setup',
+        ]);
 
         final project = context.get<ProjectService>().findAncestor();
 
@@ -59,9 +64,9 @@ void main() {
 
         final targetBin = link.targetSync();
 
-        final channelBin = context
-            .get<CacheService>()
-            .getVersionCacheDir(FlutterVersion.parse(channel));
+        final channelBin = context.get<CacheService>().getVersionCacheDir(
+          FlutterVersion.parse(channel),
+        );
 
         expect(targetBin == channelBin.path, true);
         expect(linkExists, true);
@@ -97,8 +102,8 @@ void main() {
       await runner.runOrThrow(['fvm', 'install', release]);
       final valid = FlutterVersion.parse(release);
       final existingRelease = await context.get<GitService>().getTag(
-            valid.name,
-          );
+        valid.name,
+      );
 
       final cacheVersion = context.get<CacheService>().getVersion(valid);
 
@@ -113,8 +118,9 @@ void main() {
       await runner.runOrThrow(['fvm', 'install', shortGitHash]);
       final validShort = FlutterVersion.parse(shortGitHash);
 
-      final cacheVersionShort =
-          context.get<CacheService>().getVersion(validShort);
+      final cacheVersionShort = context.get<CacheService>().getVersion(
+        validShort,
+      );
 
       expect(
         cacheVersionShort != null,
@@ -164,17 +170,11 @@ void main() {
         ExitCode.success.code,
       );
 
-      expect(
-        await runner.runOrThrow(['fvm', '-v']),
-        ExitCode.success.code,
-      );
+      expect(await runner.runOrThrow(['fvm', '-v']), ExitCode.success.code);
     });
 
     test('Doctor Command', () async {
-      expect(
-        await runner.runOrThrow(['fvm', 'doctor']),
-        ExitCode.success.code,
-      );
+      expect(await runner.runOrThrow(['fvm', 'doctor']), ExitCode.success.code);
     });
 
     test('Flavor Command', () async {
@@ -194,8 +194,13 @@ void main() {
       );
 
       expect(
-        await runner.runOrThrow(
-            ['fvm', 'use', 'production', '--skip-setup', '--force']),
+        await runner.runOrThrow([
+          'fvm',
+          'use',
+          'production',
+          '--skip-setup',
+          '--force',
+        ]),
         ExitCode.success.code,
       );
     });

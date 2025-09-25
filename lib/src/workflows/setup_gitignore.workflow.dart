@@ -72,8 +72,10 @@ class SetupGitIgnoreWorkflow extends Workflow {
 
     // Remove any existing FVM-related entries
     lines = lines
-        .where((line) =>
-            !line.startsWith(kFvmDirName) && line.trim() != kGitIgnoreHeading)
+        .where(
+          (line) =>
+              !line.startsWith(kFvmDirName) && line.trim() != kGitIgnoreHeading,
+        )
         .toList();
 
     // Append the correct line at the end
