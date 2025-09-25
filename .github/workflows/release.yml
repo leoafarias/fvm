@@ -15,19 +15,16 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  test:
-    name: Test
-    uses: ./.github/workflows/test.yml
-
-  validate:
-    name: Validate Release
-    needs: test
+  prepare-release:
+    name: Prepare Release
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.extract-version.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Extract version from release or input
         id: extract-version
@@ -41,7 +38,7 @@ jobs:
           VERSION=${VERSION#v}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "🚀 Validating version: $VERSION"
+          echo "🚀 Preparing release for version: $VERSION"
 
       - name: Update pubspec.yaml version
         run: |
@@ -75,40 +72,45 @@ jobs:
           echo "📋 CHANGELOG.md preview:"
           head -12 CHANGELOG.md
 
-      - name: Commit version updates for clean git state
-        run: |
-          echo "📝 Committing version updates to create clean git state"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pubspec.yaml lib/src/version.dart CHANGELOG.md
-          git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
-          echo "✅ Git state cleaned for publishing"
-
       - name: Validate pub.dev package (dry run)
         run: |
           echo "🔍 Validating package for pub.dev..."
           dart pub publish --dry-run
           echo "✅ Package validation successful!"
 
+      - name: Commit and push version updates
+        run: |
+          echo "📝 Committing and pushing version updates to main"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml lib/src/version.dart CHANGELOG.md
+          git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
+          git push origin main
+          echo "✅ Changes pushed to main branch"
+
+  test:
+    name: Test
+    needs: prepare-release
+    uses: ./.github/workflows/test.yml
+
   deploy:
     name: Deploy Core
-    needs: validate
+    needs: [prepare-release, test]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version from validation
+      - name: Set version from prepare-release
         run: |
-          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION="${{ needs.prepare-release.outputs.version }}"
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
           echo "🚀 Deploying version: $VERSION"
-          sed -i "s/^version: .*/version: $RELEASE_VERSION/" pubspec.yaml
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
-      - name: Generate version.dart
+      - name: Generate code with build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
       # Skip pkg-github-release - release already exists
@@ -121,7 +123,7 @@ jobs:
   deploy-windows:
     name: Deploy Windows
     runs-on: windows-latest
-    needs: validate
+    needs: [prepare-release, test]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
@@ -129,16 +131,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version from validation
+      - name: Set version from prepare-release
         run: |
-          $VERSION = "${{ needs.validate.outputs.version }}"
+          $VERSION = "${{ needs.prepare-release.outputs.version }}"
           echo "RELEASE_VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Append
-          echo "🔄 Setting version to: $VERSION"
-          # Update pubspec.yaml to match
-          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $VERSION" | Set-Content pubspec.yaml
+          echo "🔄 Deploying Windows for version: $VERSION"
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Deploy Windows binaries to existing release
         run: dart run grinder pkg-github-windows
@@ -149,23 +152,24 @@ jobs:
   deploy-macos:
     name: Deploy macOS
     runs-on: macos-latest
-    needs: validate
+    needs: [prepare-release, test]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set version from validation
+      - name: Set version from prepare-release
         run: |
-          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION="${{ needs.prepare-release.outputs.version }}"
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
-          echo "🔄 Setting version to: $VERSION"
-          # Update pubspec.yaml to match
-          sed -i '' "s/^version: .*/version: $VERSION/" pubspec.yaml
+          echo "🔄 Deploying macOS for version: $VERSION"
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Deploy macOS binaries to existing release
         run: dart run grinder pkg-github-macos
@@ -183,25 +187,28 @@ jobs:
   deploy-docker:
     name: Deploy Docker
     runs-on: ubuntu-latest
-    needs: validate
+    needs: [prepare-release, test]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set version for Docker
         run: |
-          VERSION="${{ needs.validate.outputs.version }}"
+          VERSION="${{ needs.prepare-release.outputs.version }}"
           echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
           echo "🐳 Building Docker image for version: $VERSION"
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -215,3 +222,5 @@ jobs:
           file: ./.docker/Dockerfile
           push: true
           tags: leoafarias/fvm:${{ env.RELEASE_VERSION }}
+          build-args: |
+            FVM_VERSION=${{ env.RELEASE_VERSION }}
