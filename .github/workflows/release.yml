@@ -72,19 +72,24 @@ jobs:
           echo "📋 CHANGELOG.md preview:"
           head -12 CHANGELOG.md
 
-      - name: Validate pub.dev package (dry run)
+      - name: Commit version updates locally
         run: |
-          echo "🔍 Validating package for pub.dev..."
-          dart pub publish --dry-run --force
-          echo "✅ Package validation successful!"
-
-      - name: Commit and push version updates
-        run: |
-          echo "📝 Committing and pushing version updates to main"
+          echo "📝 Committing version updates locally"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pubspec.yaml lib/src/version.dart CHANGELOG.md
           git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
+          echo "✅ Changes committed locally"
+
+      - name: Validate pub.dev package (dry run)
+        run: |
+          echo "🔍 Validating package for pub.dev..."
+          dart pub publish --dry-run
+          echo "✅ Package validation successful!"
+
+      - name: Push version updates to main
+        run: |
+          echo "📤 Pushing version updates to main branch"
           git push origin main
           echo "✅ Changes pushed to main branch"
 
