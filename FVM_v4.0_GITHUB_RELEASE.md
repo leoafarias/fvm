@@ -1,6 +1,6 @@
 # FVM 4.0.0 Release
 
-We're excited to announce FVM 4.0.0, a major release that brings enterprise-grade features to Flutter version management. This release introduces fork repository support, modular workflow architecture, and enhanced integrations for teams managing complex Flutter environments.
+FVM 4.0.0 adds fork repository support, modular workflow architecture, and enhanced integrations for teams managing complex Flutter environments.
 
 ## 🎉 Highlights
 

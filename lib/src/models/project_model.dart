@@ -183,7 +183,7 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
   const PubspecMapper();
 
   /// Converts a Pubspec object to a JSON-compatible Map
-  /// This method comprehensively handles all pubspec fields
+  /// Converts all pubspec fields to JSON-compatible Map
   Map<String, dynamic> _pubspecToJsonMap(Pubspec pubspec) {
     final map = <String, dynamic>{'name': pubspec.name};
 

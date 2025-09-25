@@ -12,14 +12,13 @@ import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import 'base_command.dart';
 
-/// Hidden integration test command for comprehensive FVM testing
+/// Hidden integration test command for complete FVM testing
 class IntegrationTestCommand extends BaseFvmCommand {
   @override
   final name = 'integration-test';
 
   @override
-  final description =
-      'Runs comprehensive integration tests (hidden command)\n'
+  final description = 'Runs complete integration tests (hidden command)\n'
       'WARNING: This will destroy your FVM cache and reinstall Flutter versions!';
 
   @override
@@ -78,7 +77,7 @@ class IntegrationTestCommand extends BaseFvmCommand {
   }
 }
 
-/// Integration test runner that executes comprehensive FVM tests
+/// Integration test runner that executes complete FVM tests
 class IntegrationTestRunner {
   final FvmContext context;
 
@@ -1124,7 +1123,7 @@ class IntegrationTestRunner {
     logger.info('');
     logger.success('FVM integration tests completed successfully!');
     logger.info(
-      '   Perfect equivalent to bash script with 38 comprehensive tests',
+      '   Perfect equivalent to bash script with 38 complete tests',
     );
     logger.info('');
     logger.info('Real-world operations tested:');
