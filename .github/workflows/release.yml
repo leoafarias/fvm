@@ -60,12 +60,27 @@ jobs:
           echo "✅ Generated version.dart content:"
           cat lib/src/version.dart
 
+      - name: Update CHANGELOG with release link
+        run: |
+          echo "📝 Adding $RELEASE_VERSION entry to CHANGELOG.md"
+          TODAY=$(date +%Y-%m-%d)
+          awk -v version="$RELEASE_VERSION" -v date="$TODAY" '
+            /^## \[Unreleased\]/ { 
+              print; print ""; 
+              print "## [" version "] - " date; print ""; 
+              print "See [Release Notes](https://github.com/leoafarias/fvm/releases/tag/v" version ")"; print ""; 
+              next 
+            } 1' CHANGELOG.md > temp_changelog && mv temp_changelog CHANGELOG.md
+          echo "✅ Added $RELEASE_VERSION to CHANGELOG.md"
+          echo "📋 CHANGELOG.md preview:"
+          head -12 CHANGELOG.md
+
       - name: Commit version updates for clean git state
         run: |
           echo "📝 Committing version updates to create clean git state"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add pubspec.yaml lib/src/version.dart
+          git add pubspec.yaml lib/src/version.dart CHANGELOG.md
           git commit -m "chore: update version to $RELEASE_VERSION for release" || echo "No changes to commit"
           echo "✅ Git state cleaned for publishing"
 
