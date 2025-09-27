@@ -15,6 +15,7 @@ const repo = 'fvm';
 void main(List<String> args) {
   pkg.name.value = _packageName;
   pkg.humanName.value = _packageName;
+  pkg.useExe.value = (_) => true;
   pkg.githubUser.value = owner;
   pkg.githubRepo.value = '$owner/$_packageName';
   pkg.homebrewRepo.value = '$owner/homebrew-$_packageName';
