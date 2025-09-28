@@ -82,7 +82,10 @@ class GitBranchMapper extends ClassMapperBase<GitBranch> {
   static const Field<GitBranch, String> _f$name = Field('name', _$name);
 
   @override
-  final MappableFields<GitBranch> fields = const {#sha: _f$sha, #name: _f$name};
+  final MappableFields<GitBranch> fields = const {
+    #sha: _f$sha,
+    #name: _f$name,
+  };
 
   static GitBranch _instantiate(DecodingData data) {
     return GitBranch(sha: data.dec(_f$sha), name: data.dec(_f$name));
@@ -102,36 +105,28 @@ class GitBranchMapper extends ClassMapperBase<GitBranch> {
 
 mixin GitBranchMappable {
   String toJson() {
-    return GitBranchMapper.ensureInitialized().encodeJson<GitBranch>(
-      this as GitBranch,
-    );
+    return GitBranchMapper.ensureInitialized()
+        .encodeJson<GitBranch>(this as GitBranch);
   }
 
   Map<String, dynamic> toMap() {
-    return GitBranchMapper.ensureInitialized().encodeMap<GitBranch>(
-      this as GitBranch,
-    );
+    return GitBranchMapper.ensureInitialized()
+        .encodeMap<GitBranch>(this as GitBranch);
   }
 
   GitBranchCopyWith<GitBranch, GitBranch, GitBranch> get copyWith =>
       _GitBranchCopyWithImpl<GitBranch, GitBranch>(
-        this as GitBranch,
-        $identity,
-        $identity,
-      );
+          this as GitBranch, $identity, $identity);
   @override
   String toString() {
-    return GitBranchMapper.ensureInitialized().stringifyValue(
-      this as GitBranch,
-    );
+    return GitBranchMapper.ensureInitialized()
+        .stringifyValue(this as GitBranch);
   }
 
   @override
   bool operator ==(Object other) {
-    return GitBranchMapper.ensureInitialized().equalsValue(
-      this as GitBranch,
-      other,
-    );
+    return GitBranchMapper.ensureInitialized()
+        .equalsValue(this as GitBranch, other);
   }
 
   @override
@@ -161,22 +156,17 @@ class _GitBranchCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GitBranch> $mapper =
       GitBranchMapper.ensureInitialized();
   @override
-  $R call({String? sha, String? name}) => $apply(
-    FieldCopyWithData({
-      if (sha != null) #sha: sha,
-      if (name != null) #name: name,
-    }),
-  );
+  $R call({String? sha, String? name}) => $apply(FieldCopyWithData(
+      {if (sha != null) #sha: sha, if (name != null) #name: name}));
   @override
   GitBranch $make(CopyWithData data) => GitBranch(
-    sha: data.get(#sha, or: $value.sha),
-    name: data.get(#name, or: $value.name),
-  );
+      sha: data.get(#sha, or: $value.sha),
+      name: data.get(#name, or: $value.name));
 
   @override
   GitBranchCopyWith<$R2, GitBranch, $Out2> $chain<$R2, $Out2>(
-    Then<$Out2, $R2> t,
-  ) => _GitBranchCopyWithImpl<$R2, $Out2>($value, $cast, t);
+          Then<$Out2, $R2> t) =>
+      _GitBranchCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GitTagMapper extends ClassMapperBase<GitTag> {
@@ -200,7 +190,10 @@ class GitTagMapper extends ClassMapperBase<GitTag> {
   static const Field<GitTag, String> _f$name = Field('name', _$name);
 
   @override
-  final MappableFields<GitTag> fields = const {#sha: _f$sha, #name: _f$name};
+  final MappableFields<GitTag> fields = const {
+    #sha: _f$sha,
+    #name: _f$name,
+  };
 
   static GitTag _instantiate(DecodingData data) {
     return GitTag(sha: data.dec(_f$sha), name: data.dec(_f$name));
@@ -264,17 +257,12 @@ class _GitTagCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, GitTag, $Out>
   @override
   late final ClassMapperBase<GitTag> $mapper = GitTagMapper.ensureInitialized();
   @override
-  $R call({String? sha, String? name}) => $apply(
-    FieldCopyWithData({
-      if (sha != null) #sha: sha,
-      if (name != null) #name: name,
-    }),
-  );
+  $R call({String? sha, String? name}) => $apply(FieldCopyWithData(
+      {if (sha != null) #sha: sha, if (name != null) #name: name}));
   @override
   GitTag $make(CopyWithData data) => GitTag(
-    sha: data.get(#sha, or: $value.sha),
-    name: data.get(#name, or: $value.name),
-  );
+      sha: data.get(#sha, or: $value.sha),
+      name: data.get(#name, or: $value.name));
 
   @override
   GitTagCopyWith<$R2, GitTag, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>

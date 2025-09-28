@@ -6,6 +6,11 @@ For detailed release notes starting from version 4.0.0-beta.2, see [GitHub Relea
 
 ## [Unreleased]
 
+## [4.0.0-beta.2] - 2025-09-28
+
+See [Release Notes](https://github.com/leoafarias/fvm/releases/tag/v4.0.0-beta.2)
+
+
 ### Added
 - GitHub release-driven deployment workflow
 - Automated version management from release tags
