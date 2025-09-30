@@ -26,7 +26,7 @@ curl -fsSL https://fvm.app/install.sh | bash
 ### Uninstall
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s -- --uninstall
+curl -fsSL https://fvm.app/uninstall.sh | bash
 ```
 
 ## Install on Windows
