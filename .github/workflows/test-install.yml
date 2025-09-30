@@ -77,6 +77,11 @@ jobs:
           fi
           echo "✅ Grinder task properly configured"
 
+      - name: Run archive structure validation
+        run: |
+          chmod +x scripts/validate_install.sh
+          ./scripts/validate_install.sh
+
   # Test on major platforms
   test-install:
     name: Install - ${{ matrix.name }}
@@ -242,3 +247,57 @@ jobs:
         run: |
           # Run uninstall again - should handle gracefully
           ./scripts/uninstall.sh
+
+  # Test additional Linux distributions
+  test-docker-variety:
+    name: Docker - ${{ matrix.name }}
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Debian 12
+            image: debian:12
+            deps: apt-get update && apt-get install -y curl tar
+          - name: Fedora 39
+            image: fedora:39
+            deps: dnf install -y curl tar findutils
+    container: ${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: ${{ matrix.deps }}
+
+      - name: Test installation
+        run: |
+          ./scripts/install.sh
+          ~/.fvm_flutter/bin/fvm --version
+
+  # Test shell integration
+  test-zsh:
+    name: Shell - zsh
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zsh
+        run: sudo apt-get update && sudo apt-get install -y zsh
+
+      - name: Test with zsh
+        shell: bash
+        run: |
+          export SHELL=/bin/zsh
+          rm -f ~/.zshrc
+          ./scripts/install.sh
+          # Verify zsh config was updated
+          if ! grep -q fvm_flutter ~/.zshrc; then
+            echo "❌ zsh config not updated"
+            exit 1
+          fi
+          echo "✅ zsh config updated correctly"
+          # Test that zsh can source and use fvm
+          zsh -c "source ~/.zshrc && fvm --version"
+          echo "✅ zsh integration works"
