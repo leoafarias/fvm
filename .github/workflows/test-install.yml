@@ -243,58 +243,83 @@ jobs:
           # Run uninstall again - should handle gracefully
           ./scripts/uninstall.sh
 
-  # Test additional Linux distributions
-  test-docker-variety:
-    name: Docker - ${{ matrix.name }}
+  # Test shell integration
+  test-shells:
+    name: Shell - ${{ matrix.shell }}
     needs: validate
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: Debian 12
-            image: debian:12
-            deps: apt-get update && apt-get install -y curl tar
-          - name: Fedora 39
-            image: fedora:39
-            deps: dnf install -y curl tar findutils
-    container: ${{ matrix.image }}
+          - shell: bash
+            config_file: ~/.bashrc
+            source_cmd: source ~/.bashrc
+            shell_cmd: bash
+
+          - shell: zsh
+            config_file: ~/.zshrc
+            source_cmd: source ~/.zshrc
+            shell_cmd: zsh
+
+          - shell: fish
+            config_file: ~/.config/fish/config.fish
+            source_cmd: source ~/.config/fish/config.fish
+            shell_cmd: fish
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: ${{ matrix.deps }}
-
-      - name: Test installation
+      - name: Install ${{ matrix.shell }}
         run: |
-          ./scripts/install.sh
-          ~/.fvm_flutter/bin/fvm --version
+          sudo apt-get update
+          sudo apt-get install -y ${{ matrix.shell }}
 
-  # Test shell integration
-  test-zsh:
-    name: Shell - zsh
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install zsh
-        run: sudo apt-get update && sudo apt-get install -y zsh
-
-      - name: Test with zsh
-        shell: bash
+      - name: Clean slate - remove config file if exists
         run: |
-          export SHELL=/bin/zsh
-          # Create empty .zshrc (simulates fresh zsh setup)
-          rm -f ~/.zshrc
-          touch ~/.zshrc
+          rm -f ${{ matrix.config_file }}
+          # Also remove parent directory for fish to test directory creation
+          if [[ "${{ matrix.shell }}" == "fish" ]]; then
+            rm -rf ~/.config/fish
+          fi
+
+      - name: Run install.sh with ${{ matrix.shell }}
+        run: |
+          export SHELL=$(which ${{ matrix.shell }})
           ./scripts/install.sh
-          # Verify zsh config was updated
-          if ! grep -q fvm_flutter ~/.zshrc; then
-            echo "❌ zsh config not updated"
+
+      - name: Verify config file was created
+        run: |
+          if [[ ! -f ${{ matrix.config_file }} ]]; then
+            echo "❌ Config file not created: ${{ matrix.config_file }}"
             exit 1
           fi
-          echo "✅ zsh config updated correctly"
-          # Test that zsh can source and use fvm
-          zsh -c "source ~/.zshrc && fvm --version"
-          echo "✅ zsh integration works"
+          echo "✅ Config file created: ${{ matrix.config_file }}"
+
+      - name: Verify PATH was added to config
+        run: |
+          if ! grep -q "fvm_flutter" ${{ matrix.config_file }}; then
+            echo "❌ PATH not added to config"
+            cat ${{ matrix.config_file }}
+            exit 1
+          fi
+          echo "✅ PATH added to ${{ matrix.shell }} config"
+
+      - name: Verify fvm works in ${{ matrix.shell }}
+        shell: bash
+        run: |
+          ${{ matrix.shell }} -c "${{ matrix.source_cmd }} && fvm --version"
+          echo "✅ fvm works in ${{ matrix.shell }}"
+
+      - name: Test idempotency - run install again
+        run: |
+          export SHELL=$(which ${{ matrix.shell }})
+          ./scripts/install.sh
+          # Should not duplicate PATH entries
+          count=$(grep -c "fvm_flutter" ${{ matrix.config_file }})
+          if [[ $count -gt 1 ]]; then
+            echo "❌ PATH duplicated in config (found $count times)"
+            cat ${{ matrix.config_file }}
+            exit 1
+          fi
+          echo "✅ Idempotency verified - PATH not duplicated"

@@ -304,20 +304,42 @@ update_shell_config() {
   local tilde_config="${config_file/#$HOME/\~}"
   local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
-  if [[ -w "$config_file" ]]; then
-    if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
-      {
-        echo -e "\n# FVM"
-        echo "$export_command"
-      } >> "$config_file"
-      info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
-      return 0
-    else
-      info "[$tilde_config] already references $tilde_fvm_dir; skipping."
-      return 0
-    fi
-  else
+  # Create parent directory if needed
+  local config_dir
+  config_dir="$(dirname "$config_file")"
+  if [[ ! -d "$config_dir" ]]; then
+    mkdir -p "$config_dir" || {
+      warn "Could not create directory: $config_dir"
+      return 1
+    }
+  fi
+
+  # Create config file if it doesn't exist
+  if [[ ! -f "$config_file" ]]; then
+    touch "$config_file" || {
+      warn "Could not create file: $tilde_config"
+      return 1
+    }
+    info "Created $tilde_config"
+  fi
+
+  # Check if writable
+  if [[ ! -w "$config_file" ]]; then
+    warn "$tilde_config exists but is not writable"
     return 1
+  fi
+
+  # Add PATH if not already present
+  if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
+    {
+      echo -e "\n# FVM"
+      echo "$export_command"
+    } >> "$config_file"
+    info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
+    return 0
+  else
+    info "[$tilde_config] already references $tilde_fvm_dir; skipping."
+    return 0
   fi
 }
 
