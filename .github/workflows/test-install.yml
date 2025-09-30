@@ -47,11 +47,13 @@ jobs:
       - name: Test installation
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
 
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
 
   # Test Alpine (musl libc)
@@ -128,6 +130,7 @@ jobs:
       - name: Test container root allowed
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
 
   # Test root blocking on non-container
@@ -151,7 +154,7 @@ jobs:
       - name: Test with override
         run: |
           sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
-          sudo fvm --version
+          sudo /root/.fvm_flutter/bin/fvm --version
 
   # Test uninstall
   test-uninstall:
@@ -164,11 +167,13 @@ jobs:
       - name: Install FVM
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           which fvm
           fvm --version
 
       - name: Uninstall FVM
         run: |
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           ./scripts/uninstall.sh
 
       - name: Verify uninstall
