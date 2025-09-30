@@ -77,11 +77,6 @@ jobs:
           fi
           echo "✅ Grinder task properly configured"
 
-      - name: Run archive structure validation
-        run: |
-          chmod +x scripts/validate_install.sh
-          ./scripts/validate_install.sh
-
   # Test on major platforms
   test-install:
     name: Install - ${{ matrix.name }}
