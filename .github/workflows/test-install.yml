@@ -285,7 +285,9 @@ jobs:
         shell: bash
         run: |
           export SHELL=/bin/zsh
+          # Create empty .zshrc (simulates fresh zsh setup)
           rm -f ~/.zshrc
+          touch ~/.zshrc
           ./scripts/install.sh
           # Verify zsh config was updated
           if ! grep -q fvm_flutter ~/.zshrc; then
