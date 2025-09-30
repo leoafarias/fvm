@@ -94,7 +94,7 @@ void main() {
       // Check that the moveScripts task is defined
       expect(
         grinderContent.contains(
-          'Move install.sh and uninstall.sh to public directory',
+          'Move install and uninstall scripts to public directory',
         ),
         true,
         reason:
@@ -108,9 +108,21 @@ void main() {
       );
 
       expect(
+        grinderContent.contains("File('scripts/uninstall.sh')"),
+        true,
+        reason: 'Grinder should reference the local uninstall script',
+      );
+
+      expect(
         grinderContent.contains("path.join(publicDir.path, 'install.sh')"),
         true,
-        reason: 'Grinder should copy to the public directory',
+        reason: 'Grinder should copy install.sh to the public directory',
+      );
+
+      expect(
+        grinderContent.contains("path.join(publicDir.path, 'uninstall.sh')"),
+        true,
+        reason: 'Grinder should copy uninstall.sh to the public directory',
       );
     });
   });
