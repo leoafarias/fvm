@@ -29,78 +29,115 @@ jobs:
 
   # Test on major platforms
   test-install:
-    name: Test - ${{ matrix.os }}
+    name: Install - ${{ matrix.name }}
     needs: validate
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        include:
+          - name: Ubuntu x64
+            os: ubuntu-latest
+          - name: macOS Intel
+            os: macos-latest
+          - name: macOS ARM64
+            os: macos-13
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test installation
         run: |
           ./scripts/install.sh
           fvm --version
-      
+
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
           fvm --version
-      
-      - name: Test uninstall
+
+  # Test Alpine (musl libc)
+  test-alpine:
+    name: Alpine (musl)
+    needs: validate
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
         run: |
-          # First ensure FVM is installed
-          which fvm
-          ls -la ~/.fvm_flutter/bin/
-          
-          # Run uninstall
-          ./scripts/install.sh --uninstall
-          
-          # Verify uninstall
-          if command -v fvm &>/dev/null; then
-            echo "❌ FVM command still exists after uninstall"
+          apk add --no-cache bash curl tar
+
+      - name: Test musl installation
+        run: |
+          ./scripts/install.sh
+          ~/.fvm_flutter/bin/fvm --version
+
+  # Test environment variables
+  test-env-vars:
+    name: Environment Variables
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test FVM_NO_PATH
+        run: |
+          FVM_NO_PATH=true ./scripts/install.sh
+          # Should NOT modify shell configs
+          if grep -q fvm_flutter ~/.bashrc ~/.bash_profile 2>/dev/null; then
+            echo "❌ FVM_NO_PATH didn't work - shell config was modified"
             exit 1
           fi
-          
-          if [[ -d ~/.fvm_flutter ]]; then
-            echo "❌ FVM directory still exists after uninstall"
+          echo "✅ FVM_NO_PATH works - shell config not modified"
+          ~/.fvm_flutter/bin/fvm --version
+
+      - name: Test FVM_DIR
+        run: |
+          rm -rf ~/.fvm_flutter
+          FVM_DIR=/tmp/custom_fvm ./scripts/install.sh
+          if [[ ! -f /tmp/custom_fvm/bin/fvm ]]; then
+            echo "❌ FVM_DIR didn't work"
             exit 1
           fi
-          
-          echo "✅ FVM successfully uninstalled"
-      
-      - name: Test uninstall on clean system (idempotency)
+          echo "✅ FVM_DIR works - installed to custom location"
+          /tmp/custom_fvm/bin/fvm --version
+
+      - name: Test v prefix stripping
         run: |
-          # Run uninstall again - should handle gracefully
-          ./scripts/install.sh --uninstall
+          rm -rf ~/.fvm_flutter /tmp/custom_fvm
+          ./scripts/install.sh v3.2.1
+          if ! ~/.fvm_flutter/bin/fvm --version | grep -q "3.2.1"; then
+            echo "❌ v prefix stripping didn't work"
+            exit 1
+          fi
+          echo "✅ v prefix stripping works"
 
   # Test container detection and root permissions
   test-container:
-    name: Test Container
+    name: Container Root
     needs: validate
     runs-on: ubuntu-latest
     container: ubuntu:latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install dependencies
         run: |
           apt-get update && apt-get install -y curl tar gzip
-      
+
       - name: Test container root allowed
         run: |
           ./scripts/install.sh
-          /usr/local/bin/fvm --version
+          fvm --version
 
   # Test root blocking on non-container
   test-permissions:
-    name: Test Permissions
+    name: Root Blocking
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test root blocked
         run: |
           # Should fail when run as root without container
@@ -110,8 +147,43 @@ jobs:
             echo "❌ Root should have been blocked"
             exit 1
           fi
-      
+
       - name: Test with override
         run: |
           sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
-          sudo /usr/local/bin/fvm --version
+          sudo fvm --version
+
+  # Test uninstall
+  test-uninstall:
+    name: Uninstall
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FVM
+        run: |
+          ./scripts/install.sh
+          which fvm
+          fvm --version
+
+      - name: Uninstall FVM
+        run: |
+          ./scripts/uninstall.sh
+
+      - name: Verify uninstall
+        run: |
+          if command -v fvm &>/dev/null; then
+            echo "❌ FVM command still exists after uninstall"
+            exit 1
+          fi
+          if [[ -d ~/.fvm_flutter ]]; then
+            echo "❌ FVM directory still exists after uninstall"
+            exit 1
+          fi
+          echo "✅ FVM successfully uninstalled"
+
+      - name: Test uninstall idempotency
+        run: |
+          # Run uninstall again - should handle gracefully
+          ./scripts/uninstall.sh
