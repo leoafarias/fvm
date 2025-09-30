@@ -27,6 +27,56 @@ jobs:
       - name: Run shellcheck
         run: shellcheck scripts/install.sh
 
+      - name: Check install.sh synchronization
+        run: |
+          echo "Checking that scripts/install.sh matches docs/public/install.sh..."
+          if ! diff -q scripts/install.sh docs/public/install.sh; then
+            echo "❌ ERROR: scripts/install.sh and docs/public/install.sh are different!"
+            echo "Please ensure both files are synchronized."
+            diff scripts/install.sh docs/public/install.sh || true
+            exit 1
+          fi
+          echo "✅ install.sh files are synchronized"
+
+      - name: Check uninstall.sh synchronization
+        run: |
+          echo "Checking that scripts/uninstall.sh matches docs/public/uninstall.sh..."
+          if ! diff -q scripts/uninstall.sh docs/public/uninstall.sh; then
+            echo "❌ ERROR: scripts/uninstall.sh and docs/public/uninstall.sh are different!"
+            echo "Please ensure both files are synchronized."
+            diff scripts/uninstall.sh docs/public/uninstall.sh || true
+            exit 1
+          fi
+          echo "✅ uninstall.sh files are synchronized"
+
+      - name: Check Dockerfile install script URL
+        run: |
+          echo "Checking Dockerfile references correct install script URL..."
+          EXPECTED_URL="https://raw.githubusercontent.com/leoafarias/fvm/main/scripts/install.sh"
+          if ! grep -q "$EXPECTED_URL" .docker/Dockerfile 2>/dev/null; then
+            echo "⚠️  WARNING: Dockerfile doesn't reference expected URL: $EXPECTED_URL"
+            echo "This might be intentional for development. Skipping..."
+          else
+            echo "✅ Dockerfile references correct install script URL"
+          fi
+
+      - name: Validate grinder task
+        run: |
+          echo "Checking grinder task configuration..."
+          if ! grep -q "Move install and uninstall scripts to public directory" tool/grind.dart; then
+            echo "❌ ERROR: Grinder task description not found"
+            exit 1
+          fi
+          if ! grep -q "scripts/install.sh" tool/grind.dart; then
+            echo "❌ ERROR: Grinder doesn't reference scripts/install.sh"
+            exit 1
+          fi
+          if ! grep -q "scripts/uninstall.sh" tool/grind.dart; then
+            echo "❌ ERROR: Grinder doesn't reference scripts/uninstall.sh"
+            exit 1
+          fi
+          echo "✅ Grinder task properly configured"
+
   # Test on major platforms
   test-install:
     name: Install - ${{ matrix.name }}
