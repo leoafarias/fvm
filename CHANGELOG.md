@@ -1,5 +1,3 @@
-## [Unreleased]
-
 ## 4.0.0-beta.3
 
 * refactor: Restore simple tag-based release workflow (removes complex GitHub release automation)
