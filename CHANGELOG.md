@@ -1,9 +1,6 @@
-## 4.0.0-beta.3
-
-* refactor: Restore simple tag-based release workflow (removes complex GitHub release automation)
-
 ## 4.0.0-beta.2
 
+* refactor: Restore simple tag-based release workflow (removes complex GitHub release automation)
 * fix: Version mismatch errors in CI and non-interactive environments
 * fix: Authentication prompts for private repository dependencies
 * fix: Fork installation fallback reliability
