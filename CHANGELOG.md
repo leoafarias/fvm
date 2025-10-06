@@ -1,28 +1,12 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-For detailed release notes starting from version 4.0.0-beta.2, see [GitHub Releases](https://github.com/leoafarias/fvm/releases).
-
 ## [Unreleased]
 
-## [4.0.0-beta.2] - 2025-09-29
+## 4.0.0-beta.2
 
-See [Release Notes](https://github.com/leoafarias/fvm/releases/tag/v4.0.0-beta.2)
+* fix: Version mismatch errors in CI and non-interactive environments
+* fix: Authentication prompts for private repository dependencies
+* fix: Fork installation fallback reliability
 
-
-## [4.0.0-beta.2] - 2025-09-28
-
-See [Release Notes](https://github.com/leoafarias/fvm/releases/tag/v4.0.0-beta.2)
-
-
-### Added
-- GitHub release-driven deployment workflow
-- Automated version management from release tags
-
-## [4.0.0-beta.1] - 2025-09-13
-
-See [Release Notes](https://github.com/leoafarias/fvm/releases/tag/v4.0.0-beta.1)
+## 4.0.0-beta.1
 
 * add: Manage Flutter SDKs from custom or forked repositories
 * add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
