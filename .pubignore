@@ -28,6 +28,9 @@ coverage/
 # Chocolatey package spec - generated during build
 fvm.nuspec
 
+# Build directory - contains compiled binaries for GitHub releases
+build/
+
 # Keep these files (they're useful for pub.dev users):
 # README.md - main project documentation
 # CHANGELOG.md - required for pub.dev
