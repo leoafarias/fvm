@@ -287,12 +287,12 @@ get_path_export() {
   local shell_type="$1"
   case "$shell_type" in
     fish)
-      # Use fish_add_path if available (Fish 3.2+), otherwise fall back to set PATH
-      if command -v fish >/dev/null 2>&1 && fish -c 'type -q fish_add_path' 2>/dev/null; then
-        echo "fish_add_path $FVM_DIR_BIN"
-      else
-        echo "set --export PATH $FVM_DIR_BIN \$PATH"
-      fi
+      # Use set --export for immediate effect (fish_add_path doesn't work in sourced scripts)
+      cat <<EOF
+if not contains "$FVM_DIR_BIN" \$PATH
+    set --export PATH "$FVM_DIR_BIN" \$PATH
+end
+EOF
       ;;
     *) echo "export PATH=\"$FVM_DIR_BIN:\$PATH\"" ;;
   esac
