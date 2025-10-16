@@ -30,17 +30,18 @@ class GitService extends ContextualService {
     final gitCacheDir = Directory(context.gitCachePath);
     logger.info('Creating local mirror...');
     final process = await Process.start(
-        'git',
-        [
-          'clone',
-          '--progress',
-          // Enable long paths on Windows to prevent checkout failures
-          if (Platform.isWindows) '-c',
-          if (Platform.isWindows) 'core.longpaths=true',
-          context.flutterUrl,
-          gitCacheDir.path,
-        ],
-        runInShell: true);
+      'git',
+      [
+        'clone',
+        '--progress',
+        // Enable long paths on Windows to prevent checkout failures
+        if (Platform.isWindows) '-c',
+        if (Platform.isWindows) 'core.longpaths=true',
+        context.flutterUrl,
+        gitCacheDir.path,
+      ],
+      runInShell: true,
+    );
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
@@ -78,20 +79,11 @@ class GitService extends ContextualService {
     try {
       final result = await get<ProcessService>().run('git', args: command);
 
-      if (result.exitCode != 0) {
-        logger.warn('Fetching git references failed');
-        logger.debug(result.stderr);
-
-        return [];
-      }
-
       return _referencesCache = GitReference.parseGitReferences(
         result.stdout as String,
       );
     } on ProcessException catch (error, stackTrace) {
-      logger.debug(
-        'ProcessException while fetching git references: $error',
-      );
+      logger.debug('ProcessException while fetching git references: $error');
       Error.throwWithStackTrace(
         AppException(
           'Failed to fetch git references from ${context.flutterUrl}. '

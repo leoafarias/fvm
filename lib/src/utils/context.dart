@@ -190,26 +190,21 @@ class FvmContext with FvmContextMappable {
 
   /// Creates a file-based lock for cross-process synchronization.
   ///
-  /// The lock is stored in `~/.fvm/locks/{name}.lock` and uses timestamp-based
-  /// expiration to prevent deadlocks caused by crashed processes.
+  /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
+  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
   ///
-  /// **Usage Pattern:**
+  /// Usage:
   /// ```dart
   /// final lock = context.createLock('my-operation', expiresIn: Duration(minutes: 5));
-  /// final unlock = await lock.getLock(); // Waits until the lock is acquired
+  /// final unlock = await lock.getLock();
   /// try {
-  ///   // Critical section guarded by the lock
+  ///   // Critical section
   /// } finally {
-  ///   unlock(); // Always release in a finally block
+  ///   unlock();
   /// }
   /// ```
   ///
-  /// **Expiration:** If a process terminates unexpectedly while holding the lock,
-  /// it automatically expires after [expiresIn], allowing other processes to continue.
-  ///
-  /// **Default Expiry:** 10 seconds (override [expiresIn] for long-running operations).
-  ///
-  /// See [FileLocker] for implementation details and edge cases.
+  /// Defaults to 10 second expiry. Override [expiresIn] for long operations.
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
