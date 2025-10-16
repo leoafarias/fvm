@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 
 import '../models/cache_flutter_version_model.dart';
+import '../services/logger_service.dart';
 import 'constants.dart';
 import 'extensions.dart';
 import 'git_utils.dart';
@@ -245,7 +246,10 @@ Future<int> getDirectorySize(Directory dir) async {
 }
 
 /// Calculates total size of all cached Flutter versions in parallel.
-Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
+Future<int> getFullDirectorySize(
+  List<CacheFlutterVersion> versions,
+  Logger logger,
+) async {
   if (versions.isEmpty) return 0;
 
   try {
@@ -256,7 +260,7 @@ Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
           return await getDirectorySize(version.directory.dir);
         } catch (e) {
           // Log error but continue with zero for this directory
-          print('Error calculating size for ${version.name}: $e');
+          logger.warn('Error calculating size for ${version.name}: $e');
 
           return 0;
         }
@@ -267,7 +271,7 @@ Future<int> getFullDirectorySize(List<CacheFlutterVersion> versions) async {
     return sizes.fold<int>(0, (sum, size) => sum + size);
   } catch (e) {
     // Fallback if parallel execution fails
-    print('Error calculating full directory size: $e');
+    logger.warn('Error calculating full directory size: $e');
 
     return 0;
   }
@@ -290,8 +294,7 @@ Map<String, String> updateEnvironmentVariables(
   return updatedEnvironment;
 }
 
-const skipCopyWith =
-    GenerateMethods.decode |
+const skipCopyWith = GenerateMethods.decode |
     GenerateMethods.encode |
     GenerateMethods.stringify |
     GenerateMethods.equals;
