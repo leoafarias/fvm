@@ -36,12 +36,8 @@ class AppConfigService {
     required ProjectConfig? projectConfig,
     required AppConfig? overrides,
   }) {
-    final validConfigs = [
-      globalConfig,
-      envConfig,
-      projectConfig,
-      overrides,
-    ].whereType<Config>();
+    final validConfigs =
+        [globalConfig, envConfig, projectConfig, overrides].whereType<Config>();
 
     var appConfig = AppConfig();
 
