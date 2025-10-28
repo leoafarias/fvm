@@ -1,6 +1,7 @@
 # Files and directories created by pub
 .dart_tool/
 .packages
+.claude
 
 # Do not version the sdk versions
 versions/
