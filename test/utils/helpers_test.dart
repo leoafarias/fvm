@@ -21,10 +21,10 @@ void main() {
     final envName = 'PATH';
     final fakePath = 'FAKE_PATH';
 
-    final newEnvVar = updateEnvironmentVariables(
-      ['FAKE_PATH', 'ANOTHER_FAKE_PATH'],
-      envVars,
-    );
+    final newEnvVar = updateEnvironmentVariables([
+      'FAKE_PATH',
+      'ANOTHER_FAKE_PATH',
+    ], envVars);
 
     // expect(newEnvVar[envName], envVars[envName]);
     expect(newEnvVar[envName]!.contains(fakePath), true);
@@ -223,7 +223,9 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(formatFriendlyBytes(1024 * 1024 * 1024), '1.00 GB');
     expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024), '1.00 TB');
     expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024), '1.00 PB');
-    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
-        '1.00 EB');
+    expect(
+      formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
+      '1.00 EB',
+    );
   });
 }

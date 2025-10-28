@@ -44,8 +44,9 @@ class ListCommand extends BaseFvmCommand {
       // Get latest channel release for channels
       if (version.isChannel && !version.isMain) {
         if (version.releaseChannel != null) {
-          latestRelease =
-              releases.latestChannelRelease(version.releaseChannel!.name);
+          latestRelease = releases.latestChannelRelease(
+            version.releaseChannel!.name,
+          );
         }
       }
 
@@ -107,7 +108,10 @@ class ListCommand extends BaseFvmCommand {
   Future<int> run() async {
     final cacheVersions = await get<CacheService>().getAllVersions();
 
-    final directorySize = await getFullDirectorySize(cacheVersions);
+    final directorySize = await getFullDirectorySize(
+      cacheVersions,
+      logger,
+    );
 
     logger
       ..info('Cache directory:  ${cyan.wrap(context.versionsCachePath)}')

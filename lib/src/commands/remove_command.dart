@@ -53,9 +53,8 @@ class RemoveCommand extends BaseFvmCommand {
 
     if (argResults!.rest.isEmpty) {
       final versions = await get<CacheService>().getAllVersions();
-      version ??= logger.cacheVersionSelector(versions);
+      version = logger.cacheVersionSelector(versions);
     } else {
-      // Assign if its empty
       version = argResults!.rest[0];
     }
     final validVersion = FlutterVersion.parse(version);

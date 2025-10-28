@@ -46,16 +46,13 @@ class FlutterService extends ContextualService {
     // Try with --reference first if git cache is enabled
     if (context.gitCache) {
       try {
-        return await runGit(
-          [
-            ...args,
-            '--reference',
-            context.gitCachePath,
-            repoUrl,
-            versionDir.path,
-          ],
-          echoOutput: echoOutput,
-        );
+        return await runGit([
+          ...args,
+          '--reference',
+          context.gitCachePath,
+          repoUrl,
+          versionDir.path,
+        ], echoOutput: echoOutput);
       } on ProcessException catch (e) {
         if (isReferenceError(e.toString())) {
           logger.warn(
@@ -70,10 +67,11 @@ class FlutterService extends ContextualService {
     }
 
     // Normal clone without --reference
-    return await runGit(
-      [...args, repoUrl, versionDir.path],
-      echoOutput: echoOutput,
-    );
+    return await runGit([
+      ...args,
+      repoUrl,
+      versionDir.path,
+    ], echoOutput: echoOutput);
   }
 
   /// Cleans up partial clone state when --reference fails
@@ -114,7 +112,9 @@ class FlutterService extends ContextualService {
     // For offline mode, we can safely suppress output
     // For online mode, we need to allow stdio inheritance for authentication prompts
     return run(
-      'flutter', args, version,
+      'flutter',
+      args,
+      version,
       throwOnError: throwOnError,
       echoOutput:
           !offline, // Allow stdio inheritance for authentication when online
@@ -138,8 +138,9 @@ class FlutterService extends ContextualService {
 
     // For fork versions, ensure the parent directory exists
     if (version.fromFork) {
-      final forkDir =
-          Directory(path.join(context.versionsCachePath, version.fork!));
+      final forkDir = Directory(
+        path.join(context.versionsCachePath, version.fork!),
+      );
       if (!forkDir.existsSync()) {
         forkDir.createSync(recursive: true);
       }
@@ -157,8 +158,9 @@ class FlutterService extends ContextualService {
         // Version name forces channel version
         channel = version.releaseChannel!.name;
       } else {
-        final release =
-            await get<FlutterReleaseClient>().getReleaseByVersion(version.name);
+        final release = await get<FlutterReleaseClient>().getReleaseByVersion(
+          version.name,
+        );
 
         if (release != null) {
           channel = release.channel.name;
@@ -210,9 +212,12 @@ class FlutterService extends ContextualService {
         try {
           // First check if this is actually a branch in the forked repo
           final gitDir = await GitDir.fromExisting(gitVersionDir.path);
-          final branchResult = await gitDir.runCommand(
-            ['branch', '-r', '--list', 'origin/${version.version}'],
-          );
+          final branchResult = await gitDir.runCommand([
+            'branch',
+            '-r',
+            '--list',
+            'origin/${version.version}',
+          ]);
 
           final branchOutput = (branchResult.stdout as String).trim();
           final isBranch = branchOutput.isNotEmpty;
@@ -335,8 +340,8 @@ class VersionRunner {
   const VersionRunner({
     required FvmContext context,
     required CacheFlutterVersion version,
-  })  : _context = context,
-        _version = version;
+  }) : _context = context,
+       _version = version;
 
   Map<String, String> _updateEnvironmentVariables(List<String> paths) {
     // Remove any values that are similar
@@ -368,17 +373,18 @@ class VersionRunner {
     bool? throwOnError,
   }) {
     // Update environment
-    final environment = _updateEnvironmentVariables(
-      [_version.binPath, _version.dartBinPath],
-    );
+    final environment = _updateEnvironmentVariables([
+      _version.binPath,
+      _version.dartBinPath,
+    ]);
 
     // Run command
     return _context.get<ProcessService>().run(
-          cmd,
-          args: args,
-          environment: environment,
-          throwOnError: throwOnError ?? false,
-          echoOutput: echoOutput ?? true,
-        );
+      cmd,
+      args: args,
+      environment: environment,
+      throwOnError: throwOnError ?? false,
+      echoOutput: echoOutput ?? true,
+    );
   }
 }

@@ -20,6 +20,9 @@ void main(List<String> args) {
   pkg.homebrewRepo.value = '$owner/homebrew-$_packageName';
   pkg.githubBearerToken.value = Platform.environment['GITHUB_TOKEN'];
 
+  // Enable standalone executables for all platforms
+  pkg.standaloneName.value = _packageName;
+
   if (args.contains('--versioned-formula')) {
     pkg.homebrewCreateVersionedFormula.value = true;
   }
@@ -120,11 +123,10 @@ Future<void> integrationTest() async {
   print('Running integration tests...');
 
   // Run integration tests using the new Dart command
-  await runAsync('dart', arguments: [
-    'run',
-    'bin/main.dart',
-    'integration-test',
-  ]);
+  await runAsync(
+    'dart',
+    arguments: ['run', 'bin/main.dart', 'integration-test'],
+  );
 
   print('Integration tests completed successfully');
 }

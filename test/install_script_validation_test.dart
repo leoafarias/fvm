@@ -7,41 +7,59 @@ void main() {
     test('Local install.sh matches docs/public version', () async {
       // Read the local script
       final localScript = File('scripts/install.sh');
-      expect(localScript.existsSync(), true,
-          reason: 'Local install.sh script should exist');
+      expect(
+        localScript.existsSync(),
+        true,
+        reason: 'Local install.sh script should exist',
+      );
 
       final localContent = await localScript.readAsString();
 
       // Read the docs/public version
       final publicScript = File('docs/public/install.sh');
-      expect(publicScript.existsSync(), true,
-          reason: 'Public install.sh script should exist in docs/public');
+      expect(
+        publicScript.existsSync(),
+        true,
+        reason: 'Public install.sh script should exist in docs/public',
+      );
 
       final publicContent = await publicScript.readAsString();
 
       // Compare the contents
-      expect(localContent.trim(), equals(publicContent.trim()),
-          reason: 'Local install.sh should match the docs/public version');
+      expect(
+        localContent.trim(),
+        equals(publicContent.trim()),
+        reason: 'Local install.sh should match the docs/public version',
+      );
     });
 
     test('Local uninstall.sh matches docs/public version', () async {
       // Read the local script
       final localScript = File('scripts/uninstall.sh');
-      expect(localScript.existsSync(), true,
-          reason: 'Local uninstall.sh script should exist');
+      expect(
+        localScript.existsSync(),
+        true,
+        reason: 'Local uninstall.sh script should exist',
+      );
 
       final localContent = await localScript.readAsString();
 
       // Read the docs/public version
       final publicScript = File('docs/public/uninstall.sh');
-      expect(publicScript.existsSync(), true,
-          reason: 'Public uninstall.sh script should exist in docs/public');
+      expect(
+        publicScript.existsSync(),
+        true,
+        reason: 'Public uninstall.sh script should exist in docs/public',
+      );
 
       final publicContent = await publicScript.readAsString();
 
       // Compare the contents
-      expect(localContent.trim(), equals(publicContent.trim()),
-          reason: 'Local uninstall.sh should match the docs/public version');
+      expect(
+        localContent.trim(),
+        equals(publicContent.trim()),
+        reason: 'Local uninstall.sh should match the docs/public version',
+      );
     });
 
     test('Dockerfile uses correct install script URL', () async {
@@ -54,33 +72,46 @@ void main() {
       // Check that it uses the correct URL
       const expectedUrl =
           'https://raw.githubusercontent.com/leoafarias/fvm/main/scripts/install.sh';
-      expect(dockerfileContent.contains(expectedUrl), true,
-          reason:
-              'Dockerfile should reference the correct public install script URL');
+      expect(
+        dockerfileContent.contains(expectedUrl),
+        true,
+        reason:
+            'Dockerfile should reference the correct public install script URL',
+      );
     });
 
     test('Grinder task moves scripts to correct location', () async {
       // This is more of a smoke test to ensure the grinder task is properly defined
       final grinderFile = File('tool/grind.dart');
-      expect(grinderFile.existsSync(), true,
-          reason: 'Grinder file should exist');
+      expect(
+        grinderFile.existsSync(),
+        true,
+        reason: 'Grinder file should exist',
+      );
 
       final grinderContent = await grinderFile.readAsString();
 
       // Check that the moveScripts task is defined
       expect(
-          grinderContent
-              .contains('Move install.sh and uninstall.sh to public directory'),
-          true,
-          reason:
-              'Grinder should have a task to move scripts to public directory');
+        grinderContent.contains(
+          'Move install.sh and uninstall.sh to public directory',
+        ),
+        true,
+        reason:
+            'Grinder should have a task to move scripts to public directory',
+      );
 
-      expect(grinderContent.contains("File('scripts/install.sh')"), true,
-          reason: 'Grinder should reference the local install script');
+      expect(
+        grinderContent.contains("File('scripts/install.sh')"),
+        true,
+        reason: 'Grinder should reference the local install script',
+      );
 
-      expect(grinderContent.contains("path.join(publicDir.path, 'install.sh')"),
-          true,
-          reason: 'Grinder should copy to the public directory');
+      expect(
+        grinderContent.contains("path.join(publicDir.path, 'install.sh')"),
+        true,
+        reason: 'Grinder should copy to the public directory',
+      );
     });
   });
 }

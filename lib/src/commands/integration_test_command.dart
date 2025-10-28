@@ -12,13 +12,13 @@ import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import 'base_command.dart';
 
-/// Hidden integration test command for comprehensive FVM testing
+/// Hidden integration test command for complete FVM testing
 class IntegrationTestCommand extends BaseFvmCommand {
   @override
   final name = 'integration-test';
 
   @override
-  final description = 'Runs comprehensive integration tests (hidden command)\n'
+  final description = 'Runs complete integration tests (hidden command)\n'
       'WARNING: This will destroy your FVM cache and reinstall Flutter versions!';
 
   @override
@@ -37,9 +37,9 @@ class IntegrationTestCommand extends BaseFvmCommand {
     logger.info('Running integration test cleanup...');
     // Just clean up any temporary test artifacts
     final tempDir = Directory.systemTemp;
-    final testArtifacts = tempDir
-        .listSync()
-        .where((item) => item.path.contains('fvm_test_artifacts_'));
+    final testArtifacts = tempDir.listSync().where(
+      (item) => item.path.contains('fvm_test_artifacts_'),
+    );
 
     for (final artifact in testArtifacts) {
       try {
@@ -77,7 +77,7 @@ class IntegrationTestCommand extends BaseFvmCommand {
   }
 }
 
-/// Integration test runner that executes comprehensive FVM tests
+/// Integration test runner that executes complete FVM tests
 class IntegrationTestRunner {
   final FvmContext context;
 
@@ -94,8 +94,9 @@ class IntegrationTestRunner {
   static final testChannelVersion = FlutterVersion.parse('stable');
   static final testReleaseVersion = FlutterVersion.parse('3.19.0');
   static final testCommitVersion = FlutterVersion.parse('fb57da5f94');
-  static final setupTestVersion =
-      FlutterVersion.parse('3.22.0'); // Used in test 8
+  static final setupTestVersion = FlutterVersion.parse(
+    '3.22.0',
+  ); // Used in test 8
   static const testForkName = 'testfork';
   static const testForkUrl = 'https://github.com/flutter/flutter.git';
   late Directory _testDir;
@@ -227,9 +228,12 @@ class IntegrationTestRunner {
 
     _logTest('11. Testing use with force flag...');
     // Use the already installed stable version
-    await _runFvmCommand(
-      ['use', testChannelVersion.name, '--force', '--skip-setup'],
-    );
+    await _runFvmCommand([
+      'use',
+      testChannelVersion.name,
+      '--force',
+      '--skip-setup',
+    ]);
     _logSuccess('Force flag works');
 
     _logTest('12. Testing VS Code settings integration...');
@@ -280,8 +284,11 @@ class IntegrationTestRunner {
 
       // Check if we can run doctor to ensure SDK is properly set up
       logger.info('Validating Flutter SDK setup with doctor...');
-      final doctorOutput =
-          await _runFvmCommandWithOutput(['flutter', 'doctor', '-v']);
+      final doctorOutput = await _runFvmCommandWithOutput([
+        'flutter',
+        'doctor',
+        '-v',
+      ]);
       if (!doctorOutput.contains('Flutter') || !doctorOutput.contains('Dart')) {
         throw AppException(
           'Flutter doctor output indicates SDK is not properly set up',
@@ -449,10 +456,12 @@ class IntegrationTestRunner {
 
     // Skip cache path modification during integration test
     // as it causes issues with the in-memory context
-    logger
-        .info('Note: Skipping cache path modification to avoid context issues');
-    logger
-        .info('This test would normally modify the cache path, but it causes');
+    logger.info(
+      'Note: Skipping cache path modification to avoid context issues',
+    );
+    logger.info(
+      'This test would normally modify the cache path, but it causes',
+    );
     logger.info(
       'the in-memory context to become out of sync with the config file.',
     );
@@ -566,8 +575,9 @@ class IntegrationTestRunner {
   /// Test Git clone fallback mechanism with isolated git cache
   Future<void> _testGitCloneFallback() async {
     // Create an isolated test context with a separate git cache
-    final testGitCacheDir =
-        Directory.systemTemp.createTempSync('fvm_test_git_cache_');
+    final testGitCacheDir = Directory.systemTemp.createTempSync(
+      'fvm_test_git_cache_',
+    );
 
     // Create a test context with isolated git cache
     final testContext = FvmContext.create(
@@ -600,8 +610,9 @@ class IntegrationTestRunner {
 
       // Verify installation using the test context
       final testCacheService = testContext.get<CacheService>();
-      final testVersion = testCacheService
-          .getVersion(FlutterVersion.parse(fallbackTestVersion));
+      final testVersion = testCacheService.getVersion(
+        FlutterVersion.parse(fallbackTestVersion),
+      );
 
       if (testVersion == null) {
         throw AppException(
@@ -686,8 +697,10 @@ class IntegrationTestRunner {
 
         // The destroy command should have cleared the versions directory
         if (versionsDir.existsSync() && versionsAfter > 0) {
-          final remaining =
-              versionsDir.listSync().map((e) => p.basename(e.path)).join(', ');
+          final remaining = versionsDir
+              .listSync()
+              .map((e) => p.basename(e.path))
+              .join(', ');
           logger.info('Note: Some versions remain after destroy: $remaining');
           logger.info(
             'This may be normal if versions were added during testing',
@@ -798,8 +811,9 @@ class IntegrationTestRunner {
 
       logger.success('Global version verified: ${testChannelVersion.name}');
       logger.success('Global symlink exists at: ${globalLink.path}');
-      logger
-          .success('Global PATH would include: ${context.globalCacheBinPath}');
+      logger.success(
+        'Global PATH would include: ${context.globalCacheBinPath}',
+      );
       _logSuccess('Global command validated with PATH verification');
     } finally {
       // Restore original global version if there was one
@@ -1109,7 +1123,7 @@ class IntegrationTestRunner {
     logger.info('');
     logger.success('FVM integration tests completed successfully!');
     logger.info(
-      '   Perfect equivalent to bash script with 38 comprehensive tests',
+      '   Perfect equivalent to bash script with 38 complete tests',
     );
     logger.info('');
     logger.info('Real-world operations tested:');

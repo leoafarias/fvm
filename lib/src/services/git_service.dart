@@ -5,6 +5,7 @@ import 'package:git/git.dart';
 
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
+import '../utils/exceptions.dart';
 import '../utils/file_lock.dart';
 import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
@@ -75,17 +76,22 @@ class GitService extends ContextualService {
 
     command.add(context.flutterUrl);
 
-    final result = await get<ProcessService>().run('git', args: command);
+    try {
+      final result = await get<ProcessService>().run('git', args: command);
 
-    if (result.exitCode != 0) {
-      logger.warn('Fetching git references failed');
-      logger.debug(result.stderr);
-
-      return [];
+      return _referencesCache = GitReference.parseGitReferences(
+        result.stdout as String,
+      );
+    } on ProcessException catch (error, stackTrace) {
+      logger.debug('ProcessException while fetching git references: $error');
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to fetch git references from ${context.flutterUrl}. '
+          'Ensure git is installed and the URL is accessible.',
+        ),
+        stackTrace,
+      );
     }
-
-    return _referencesCache =
-        GitReference.parseGitReferences(result.stdout as String);
   }
 
   Future<bool> isGitReference(String version) async {
@@ -101,9 +107,7 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
-    while (_updatingCacheLock.isLocked) {
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
+    final unlock = await _updatingCacheLock.getLock();
 
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
@@ -130,8 +134,10 @@ class GitService extends ContextualService {
 
           // Check if there are any uncommitted changes
           logger.debug('Checking for uncommitted changes...');
-          final statusResult =
-              await gitDir.runCommand(['status', '--porcelain']);
+          final statusResult = await gitDir.runCommand([
+            'status',
+            '--porcelain',
+          ]);
 
           final output = (statusResult.stdout as String).trim();
           if (output.isEmpty) {
@@ -158,10 +164,8 @@ class GitService extends ContextualService {
       } else {
         await _createLocalMirror();
       }
-    } catch (e) {
-      rethrow;
     } finally {
-      _updatingCacheLock.unlock();
+      unlock();
     }
   }
 
@@ -197,8 +201,11 @@ class GitService extends ContextualService {
     final gitDir = await GitDir.fromExisting(versionDir.path);
 
     try {
-      final pr =
-          await gitDir.runCommand(['describe', '--tags', '--exact-match']);
+      final pr = await gitDir.runCommand([
+        'describe',
+        '--tags',
+        '--exact-match',
+      ]);
 
       return (pr.stdout as String).trim();
     } catch (e) {

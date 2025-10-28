@@ -77,7 +77,7 @@ jobs:
           with-coverage: 'true'
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -86,7 +86,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
-    needs: test  # Wait for main test to pass first
+    # needs: test  # Allow parallel execution - optimization
     strategy:
       fail-fast: true
       matrix:
@@ -107,7 +107,7 @@ jobs:
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, test-os]  # Wait for all unit tests to pass first
+    needs: test  # Only wait for main Ubuntu test - optimization
     timeout-minutes: 45
 
     strategy:

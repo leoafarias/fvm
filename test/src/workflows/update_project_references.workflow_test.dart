@@ -62,8 +62,9 @@ void main() {
       createPubspecYaml(testDir, name: 'test_project');
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       expect(project.name, equals('test_project'));
 
       // Create cache version
@@ -79,18 +80,22 @@ void main() {
       );
 
       // Verify files were created
-      final versionFile = File(p.join(
-        testDir.path,
-        '.fvm',
-        UpdateProjectReferencesWorkflow.versionFile,
-      ));
+      final versionFile = File(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.versionFile,
+        ),
+      );
       expect(versionFile.existsSync(), isTrue);
 
-      final releaseFile = File(p.join(
-        testDir.path,
-        '.fvm',
-        UpdateProjectReferencesWorkflow.releaseFile,
-      ));
+      final releaseFile = File(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.releaseFile,
+        ),
+      );
       expect(releaseFile.existsSync(), isTrue);
       expect(releaseFile.readAsStringSync(), equals(cacheVersion.name));
 
@@ -103,8 +108,9 @@ void main() {
       createPubspecYaml(testDir);
       createProjectConfig(ProjectConfig(), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -122,74 +128,88 @@ void main() {
       expect(flavor, equals(cacheVersion.name));
     });
 
-    test('should create symlinks when privileged access is available',
-        () async {
-      // Skip on Windows where symlinks require admin rights
-      if (Platform.isWindows) {
-        return;
-      }
+    test(
+      'should create symlinks when privileged access is available',
+      () async {
+        // Skip on Windows where symlinks require admin rights
+        if (Platform.isWindows) {
+          return;
+        }
 
-      final testDir = tempDirs.create();
-      createPubspecYaml(testDir);
-      createProjectConfig(ProjectConfig(), testDir);
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+        createProjectConfig(ProjectConfig(), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+        final project = runner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
+        final cacheVersion = createCacheVersion('3.10.0');
 
-      // Ensure context has privilegedAccess set to true
-      final privilegedContext = TestFactory.context(privilegedAccess: true);
+        // Ensure context has privilegedAccess set to true
+        final privilegedContext = TestFactory.context(privilegedAccess: true);
 
-      final workflow = UpdateProjectReferencesWorkflow(privilegedContext);
+        final workflow = UpdateProjectReferencesWorkflow(privilegedContext);
 
-      // Run workflow
-      await workflow.call(project, cacheVersion, force: true);
+        // Run workflow
+        await workflow.call(project, cacheVersion, force: true);
 
-      // Verify symlinks were created
-      final flutterSdkLink = Link(p.join(
-        testDir.path,
-        '.fvm',
-        UpdateProjectReferencesWorkflow.flutterSdkLink,
-      ));
+        // Verify symlinks were created
+        final flutterSdkLink = Link(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.flutterSdkLink,
+          ),
+        );
 
-      expect(flutterSdkLink.existsSync(), isTrue);
-      expect(flutterSdkLink.targetSync(), equals(cacheVersion.directory));
-    });
+        expect(flutterSdkLink.existsSync(), isTrue);
+        expect(flutterSdkLink.targetSync(), equals(cacheVersion.directory));
+      },
+    );
 
-    test('should not create symlinks when privileged access is unavailable',
-        () async {
-      final testDir = tempDirs.create();
-      createPubspecYaml(testDir);
-      createProjectConfig(ProjectConfig(), testDir);
+    test(
+      'should not create symlinks when privileged access is unavailable',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+        createProjectConfig(ProjectConfig(), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
-      final cacheVersion = createCacheVersion('3.10.0');
+        final project = runner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
+        final cacheVersion = createCacheVersion('3.10.0');
 
-      // Create context with privilegedAccess set to false
-      final nonPrivilegedContext = TestFactory.context(privilegedAccess: false);
+        // Create context with privilegedAccess set to false
+        final nonPrivilegedContext = TestFactory.context(
+          privilegedAccess: false,
+        );
 
-      final workflow = UpdateProjectReferencesWorkflow(nonPrivilegedContext);
+        final workflow = UpdateProjectReferencesWorkflow(nonPrivilegedContext);
 
-      // Run workflow
-      await workflow.call(project, cacheVersion, force: true);
+        // Run workflow
+        await workflow.call(project, cacheVersion, force: true);
 
-      // Version files should still be created
-      final versionFile = File(p.join(
-        testDir.path,
-        '.fvm',
-        UpdateProjectReferencesWorkflow.versionFile,
-      ));
-      expect(versionFile.existsSync(), isTrue);
+        // Version files should still be created
+        final versionFile = File(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.versionFile,
+          ),
+        );
+        expect(versionFile.existsSync(), isTrue);
 
-      // But symlinks should not be created
-      final flutterSdkLink = Link(p.join(
-        testDir.path,
-        '.fvm',
-        UpdateProjectReferencesWorkflow.flutterSdkLink,
-      ));
-      expect(flutterSdkLink.existsSync(), isFalse);
-    });
+        // But symlinks should not be created
+        final flutterSdkLink = Link(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.flutterSdkLink,
+          ),
+        );
+        expect(flutterSdkLink.existsSync(), isFalse);
+      },
+    );
 
     test('should clean up and recreate existing symlinks', () async {
       // Skip on Windows where symlinks require admin rights
@@ -209,18 +229,18 @@ void main() {
       final tempDir = tempDirs.create();
 
       // Create initial symlink pointing to temp directory
-      final flutterSdkLink = Link(p.join(
-        fvmDir.path,
-        UpdateProjectReferencesWorkflow.flutterSdkLink,
-      ));
+      final flutterSdkLink = Link(
+        p.join(fvmDir.path, UpdateProjectReferencesWorkflow.flutterSdkLink),
+      );
       flutterSdkLink.createSync(tempDir.path);
 
       expect(flutterSdkLink.existsSync(), isTrue);
       expect(flutterSdkLink.targetSync(), equals(tempDir.path));
 
       // Now run the workflow with a different target
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -249,9 +269,9 @@ void main() {
       await Process.run('chmod', ['555', fvmDir.path]);
 
       try {
-        final project = runner.context
-            .get<ProjectService>()
-            .findAncestor(directory: testDir);
+        final project = runner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
         final cacheVersion = createCacheVersion('3.10.0');
 
         final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -285,16 +305,13 @@ void main() {
       // name
       when(() => cacheVersion.name).thenReturn('2.19.0');
 
-      when(() => cacheVersion.printFriendlyName).thenReturn(
-        'Mock version',
-      );
+      when(() => cacheVersion.printFriendlyName).thenReturn('Mock version');
 
-      when(() => cacheVersion.directory).thenReturn(
-        tempDirs.create().path,
-      );
+      when(() => cacheVersion.directory).thenReturn(tempDirs.create().path);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 

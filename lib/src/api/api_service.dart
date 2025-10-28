@@ -36,9 +36,11 @@ class ApiService extends ContextualService {
       );
     }
 
-    final versionSizes = await Future.wait(versions.map((version) {
-      return getDirectorySize(Directory(version.directory));
-    }));
+    final versionSizes = await Future.wait(
+      versions.map((version) {
+        return getDirectorySize(Directory(version.directory));
+      }),
+    );
 
     return GetCacheVersionsResponse(
       size: formatFriendlyBytes(versionSizes.fold<int>(0, (a, b) => a + b)),

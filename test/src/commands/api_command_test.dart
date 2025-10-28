@@ -19,9 +19,9 @@ void main() {
 
   // Setup function that runs before each test
   setUp(() {
-    context = TestFactory.context(generators: {
-      ApiService: (_) => _MockAPIService(),
-    });
+    context = TestFactory.context(
+      generators: {ApiService: (_) => _MockAPIService()},
+    );
     // Initialize test runner first
     runner = TestFactory.commandRunner(context: context);
 
@@ -51,9 +51,7 @@ void main() {
     setUp(() {
       response = GetContextResponse(context: context);
 
-      when(() => apiService.getContext()).thenAnswer(
-        (_) => response,
-      );
+      when(() => apiService.getContext()).thenAnswer((_) => response);
     });
 
     test('returns context data without compression', () async {
@@ -67,10 +65,12 @@ void main() {
     });
 
     test('returns compressed context data with compress flag', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'context', '--compress'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'context',
+        '--compress',
+      ]);
 
       // Verify results
       verify(() => apiService.getContext()).called(1);
@@ -95,20 +95,24 @@ void main() {
     test('returns project data for specified path', () async {
       final directory = Directory('/test/path');
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: directory,
-          );
+        directory: directory,
+      );
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(any())).thenReturn(response);
 
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'project', '--path', directory.path],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'project',
+        '--path',
+        directory.path,
+      ]);
 
       // Combine verification and capture in one step
-      final captured =
-          verify(() => apiService.getProject(captureAny())).captured;
+      final captured = verify(
+        () => apiService.getProject(captureAny()),
+      ).captured;
 
       // Verify it was called exactly once
       expect(captured.length, equals(1));
@@ -132,7 +136,7 @@ void main() {
         CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('stable'),
           directory: runner.context.versionsCachePath,
-        )
+        ),
       ];
       // Setup mock list response
       withoutSizeCalculationResponse = GetCacheVersionsResponse(
@@ -146,46 +150,55 @@ void main() {
       );
 
       // Configure API service mock
-      when(() => apiService.getCachedVersions(skipCacheSizeCalculation: true))
-          .thenAnswer((_) async => withoutSizeCalculationResponse);
-      when(() => apiService.getCachedVersions(skipCacheSizeCalculation: false))
-          .thenAnswer((_) async => sizeCalculationResponse);
+      when(
+        () => apiService.getCachedVersions(skipCacheSizeCalculation: true),
+      ).thenAnswer((_) async => withoutSizeCalculationResponse);
+      when(
+        () => apiService.getCachedVersions(skipCacheSizeCalculation: false),
+      ).thenAnswer((_) async => sizeCalculationResponse);
     });
 
     test('returns list data with size calculation', () async {
       final result = await runnerZoned(runner, ['fvm', 'api', 'list']);
 
       // Verify results
-      verify(() =>
-              apiService.getCachedVersions(skipCacheSizeCalculation: false))
-          .called(1);
+      verify(
+        () => apiService.getCachedVersions(skipCacheSizeCalculation: false),
+      ).called(1);
       expect(result, isExpectedJson(sizeCalculationResponse.toPrettyJson()));
     });
 
     test('returns list data without size calculation', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'list', '--skip-size-calculation'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--skip-size-calculation',
+      ]);
 
       // Verify results
-      verify(() => apiService.getCachedVersions(skipCacheSizeCalculation: true))
-          .called(1);
+      verify(
+        () => apiService.getCachedVersions(skipCacheSizeCalculation: true),
+      ).called(1);
       expect(result, hasLength(1));
-      expect(result,
-          isExpectedJson(withoutSizeCalculationResponse.toPrettyJson()));
+      expect(
+        result,
+        isExpectedJson(withoutSizeCalculationResponse.toPrettyJson()),
+      );
     });
 
     test('returns compressed list data', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'list', '--compress'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--compress',
+      ]);
 
       // Verify results
-      verify(() =>
-              apiService.getCachedVersions(skipCacheSizeCalculation: false))
-          .called(1);
+      verify(
+        () => apiService.getCachedVersions(skipCacheSizeCalculation: false),
+      ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(sizeCalculationResponse.toJson()));
     });
@@ -196,89 +209,104 @@ void main() {
 
     setUp(() async {
       // Setup mock releases response
-      final releases =
-          await runner.context.get<FlutterReleaseClient>().fetchReleases();
+      final releases = await runner.context
+          .get<FlutterReleaseClient>()
+          .fetchReleases();
       response = GetReleasesResponse(
         versions: releases.versions,
         channels: releases.channels,
       );
 
       // Configure API service mock
-      when(() => apiService.getReleases(limit: null, channelName: null))
-          .thenAnswer((_) async => response);
-      when(() => apiService.getReleases(limit: 10, channelName: null))
-          .thenAnswer((_) async => response);
-      when(() => apiService.getReleases(limit: null, channelName: 'stable'))
-          .thenAnswer((_) async => response);
-      when(() => apiService.getReleases(limit: 10, channelName: 'stable'))
-          .thenAnswer((_) async => response);
+      when(
+        () => apiService.getReleases(limit: null, channelName: null),
+      ).thenAnswer((_) async => response);
+      when(
+        () => apiService.getReleases(limit: 10, channelName: null),
+      ).thenAnswer((_) async => response);
+      when(
+        () => apiService.getReleases(limit: null, channelName: 'stable'),
+      ).thenAnswer((_) async => response);
+      when(
+        () => apiService.getReleases(limit: 10, channelName: 'stable'),
+      ).thenAnswer((_) async => response);
     });
 
     test('returns all releases', () async {
       final result = await runnerZoned(runner, ['fvm', 'api', 'releases']);
 
       // Verify results
-      verify(() => apiService.getReleases(limit: null, channelName: null))
-          .called(1);
+      verify(
+        () => apiService.getReleases(limit: null, channelName: null),
+      ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(response.toPrettyJson()));
     });
 
     test('returns limited releases', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'releases', '--limit', '10'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'releases',
+        '--limit',
+        '10',
+      ]);
 
       // Verify results
-      verify(() => apiService.getReleases(limit: 10, channelName: null))
-          .called(1);
+      verify(
+        () => apiService.getReleases(limit: 10, channelName: null),
+      ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(response.toPrettyJson()));
     });
 
     test('returns filtered releases by channel', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'releases', '--filter-channel', 'stable'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'releases',
+        '--filter-channel',
+        'stable',
+      ]);
 
       // Verify results
-      verify(() => apiService.getReleases(limit: null, channelName: 'stable'))
-          .called(1);
+      verify(
+        () => apiService.getReleases(limit: null, channelName: 'stable'),
+      ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(response.toPrettyJson()));
     });
 
     test('returns limited and filtered releases', () async {
-      final result = await runnerZoned(
-        runner,
-        [
-          'fvm',
-          'api',
-          'releases',
-          '--limit',
-          '10',
-          '--filter-channel',
-          'stable'
-        ],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'releases',
+        '--limit',
+        '10',
+        '--filter-channel',
+        'stable',
+      ]);
 
       // Verify results
-      verify(() => apiService.getReleases(limit: 10, channelName: 'stable'))
-          .called(1);
+      verify(
+        () => apiService.getReleases(limit: 10, channelName: 'stable'),
+      ).called(1);
       expect(result, hasLength(1));
     });
 
     test('returns compressed releases data', () async {
-      final result = await runnerZoned(
-        runner,
-        ['fvm', 'api', 'releases', '--compress'],
-      );
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'releases',
+        '--compress',
+      ]);
 
       // Verify results
-      verify(() => apiService.getReleases(limit: null, channelName: null))
-          .called(1);
+      verify(
+        () => apiService.getReleases(limit: null, channelName: null),
+      ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(response.toJson()));
     });

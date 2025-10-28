@@ -168,7 +168,8 @@ String? _dartToolGeneratorVersion(String projectPath) {
 
   return file.existsSync()
       ? (jsonDecode(file.readAsStringSync())
-          as Map<String, dynamic>)['generatorVersion'] as String?
+                as Map<String, dynamic>)['generatorVersion']
+            as String?
       : null;
 }
 
@@ -182,7 +183,7 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
   const PubspecMapper();
 
   /// Converts a Pubspec object to a JSON-compatible Map
-  /// This method comprehensively handles all pubspec fields
+  /// Converts all pubspec fields to JSON-compatible Map
   Map<String, dynamic> _pubspecToJsonMap(Pubspec pubspec) {
     final map = <String, dynamic>{'name': pubspec.name};
 
@@ -216,8 +217,9 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
       map['dev_dependencies'] = _dependenciesToJsonMap(pubspec.devDependencies);
     }
     if (pubspec.dependencyOverrides.isNotEmpty) {
-      map['dependency_overrides'] =
-          _dependenciesToJsonMap(pubspec.dependencyOverrides);
+      map['dependency_overrides'] = _dependenciesToJsonMap(
+        pubspec.dependencyOverrides,
+      );
     }
 
     // Handle Flutter configuration
@@ -239,10 +241,12 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
     }
     if (pubspec.screenshots != null && pubspec.screenshots!.isNotEmpty) {
       map['screenshots'] = pubspec.screenshots!
-          .map((screenshot) => {
-                'description': screenshot.description,
-                'path': screenshot.path,
-              })
+          .map(
+            (screenshot) => {
+              'description': screenshot.description,
+              'path': screenshot.path,
+            },
+          )
           .toList();
     }
 

@@ -81,17 +81,17 @@ fvm api list [options]
   "size": "922.50 MB",
   "versions": [
     {
-      "name": "3.19.2",
-      "directory": "/path/to/fvm/versions/3.19.2",
+      "name": "3.19.0",
+      "directory": "/path/to/fvm/versions/3.19.0",
       "releaseFromChannel": null,
       "type": "release",
-      "binPath": "/path/to/fvm/versions/3.19.2/bin",
+      "binPath": "/path/to/fvm/versions/3.19.0/bin",
       "hasOldBinPath": false,
-      "dartBinPath": "/path/to/fvm/versions/3.19.2/bin",
-      "dartExec": "/path/to/fvm/versions/3.19.2/bin/dart",
-      "flutterExec": "/path/to/fvm/versions/3.19.2/bin/flutter",
-      "flutterSdkVersion": "3.19.2",
-      "dartSdkVersion": "3.3.0",
+      "dartBinPath": "/path/to/fvm/versions/3.19.0/bin",
+      "dartExec": "/path/to/fvm/versions/3.19.0/bin/dart",
+      "flutterExec": "/path/to/fvm/versions/3.19.0/bin/flutter",
+      "flutterSdkVersion": "3.19.0",
+      "dartSdkVersion": "3.5.1",
       "isSetup": true
     },
     ...
@@ -208,29 +208,29 @@ fvm api project [options]
   "project": {
     "name": "my_project",
     "config": {
-      "flutter": "3.19.2",
+      "flutter": "3.19.0",
       "flavors": {
-        "production": "3.19.2",
+        "production": "3.19.0",
         "development": "stable"
       }
     },
     "path": "/path/to/project",
     "pinnedVersion": {
-      "name": "3.19.2",
+      "name": "3.19.0",
       "releaseFromChannel": null,
       "type": "release"
     },
     "activeFlavor": "production",
     "flavors": {
-      "production": "3.19.2",
+      "production": "3.19.0",
       "development": "stable"
     },
     "dartToolGeneratorVersion": "3.3.0",
-    "dartToolVersion": "3.19.2",
+    "dartToolVersion": "3.19.0",
     "isFlutter": true,
     "localFvmPath": "/path/to/project/.fvm",
     "localVersionsCachePath": "/path/to/project/.fvm/versions",
-    "localVersionSymlinkPath": "/path/to/project/.fvm/versions/3.19.2",
+    "localVersionSymlinkPath": "/path/to/project/.fvm/versions/3.19.0",
     "gitIgnorePath": "/path/to/project/.gitignore",
     "pubspecPath": "/path/to/project/pubspec.yaml",
     "configPath": "/path/to/project/.fvmrc",

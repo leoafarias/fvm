@@ -28,13 +28,11 @@ void main() {
       // Create test project
       createPubspecYaml(testDir, name: 'test_project_2');
 
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
 
       expect(project.name, equals('test_project_2'));
 
@@ -57,13 +55,11 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project with config
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(updateGitIgnore: false),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(updateGitIgnore: false), testDir);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -79,15 +75,13 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project with existing .gitignore
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
       final gitignore = File(p.join(testDir.path, '.gitignore'));
       gitignore.writeAsStringSync('.fvm/\n');
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -97,17 +91,16 @@ void main() {
       // Verify .gitignore wasn't modified
       final contents = gitignore.readAsLinesSync();
       expect(
-          contents.where((line) => line.trim() == '.fvm/').length, equals(1));
+        contents.where((line) => line.trim() == '.fvm/').length,
+        equals(1),
+      );
     });
 
     test('should handle and clean empty lines correctly', () {
       final testDir = tempDirs.create();
       // Create test project with .gitignore containing multiple empty lines
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
       final gitignore = File(p.join(testDir.path, '.gitignore'));
       gitignore.writeAsStringSync('''
 # Existing content
@@ -122,8 +115,9 @@ void main() {
 /coverage/
 ''');
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -157,10 +151,7 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project with a read-only .gitignore
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
 
       // Create a gitignore that doesn't include .fvm/
       final gitignore = File(p.join(testDir.path, '.gitignore'));
@@ -170,9 +161,9 @@ void main() {
       await Process.run('chmod', ['444', gitignore.path]);
 
       try {
-        final project = runner.context
-            .get<ProjectService>()
-            .findAncestor(directory: testDir);
+        final project = runner.context.get<ProjectService>().findAncestor(
+          directory: testDir,
+        );
         final workflow = SetupGitIgnoreWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -192,14 +183,12 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
 
       // Create a nested directory structure that doesn't exist yet
-      final nestedDir =
-          Directory(p.join(testDir.path, 'deeply', 'nested', 'dir'));
+      final nestedDir = Directory(
+        p.join(testDir.path, 'deeply', 'nested', 'dir'),
+      );
 
       // Mock a project with this non-existent path
       final mockProject = Project(
@@ -223,20 +212,20 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project with specially formatted .gitignore
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
 
       // Create a .gitignore with tabs instead of spaces and CRLF line endings
       final gitignore = File(p.join(testDir.path, '.gitignore'));
-      gitignore.writeAsStringSync('# Begin comments\r\n'
-          '\t/bin/\r\n'
-          '\t/build/\r\n'
-          '# End comments\r\n');
+      gitignore.writeAsStringSync(
+        '# Begin comments\r\n'
+        '\t/bin/\r\n'
+        '\t/build/\r\n'
+        '# End comments\r\n',
+      );
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -263,16 +252,14 @@ void main() {
       final testDir = tempDirs.create();
       // Create test project
       createPubspecYaml(testDir);
-      createProjectConfig(
-        ProjectConfig(),
-        testDir,
-      );
+      createProjectConfig(ProjectConfig(), testDir);
 
       // Initialize git repository
       await Process.run('git', ['init'], workingDirectory: testDir.path);
 
-      final project =
-          runner.context.get<ProjectService>().findAncestor(directory: testDir);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow

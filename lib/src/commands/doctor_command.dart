@@ -83,9 +83,10 @@ class DoctorCommand extends BaseFvmCommand {
           final sdkPath = settings['dart.flutterSdkPath'];
 
           table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
-          table.insertRow(
-            ['Matches pinned version:', sdkPath == relativeSymlinkPath],
-          );
+          table.insertRow([
+            'Matches pinned version:',
+            sdkPath == relativeSymlinkPath,
+          ]);
         } on FormatException catch (_, stackTrace) {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
@@ -109,8 +110,9 @@ class DoctorCommand extends BaseFvmCommand {
     table.insertRow([kIntelliJ]);
 
     // Get local properties file within flutter project
-    final localPropertiesFile =
-        File(p.join(project.path, 'android', 'local.properties'));
+    final localPropertiesFile = File(
+      p.join(project.path, 'android', 'local.properties'),
+    );
 
     if (localPropertiesFile.existsSync()) {
       final localProperties = localPropertiesFile.readAsLinesSync();
@@ -129,8 +131,9 @@ class DoctorCommand extends BaseFvmCommand {
       ]);
     }
 
-    final dartSdkFile =
-        File(p.join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
+    final dartSdkFile = File(
+      p.join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'),
+    );
 
     if (dartSdkFile.existsSync()) {
       final dartSdk = dartSdkFile.readAsStringSync();
@@ -176,9 +179,7 @@ class DoctorCommand extends BaseFvmCommand {
     ]);
 
     for (var key in ConfigOptions.values) {
-      table.insertRow(
-        [key.envKey, context.environment[key.envKey] ?? 'N/A'],
-      );
+      table.insertRow([key.envKey, context.environment[key.envKey] ?? 'N/A']);
     }
 
     table.insertRows([

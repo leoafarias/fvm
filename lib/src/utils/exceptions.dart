@@ -35,10 +35,8 @@ class ForceExit extends AppException {
 
   const ForceExit(super.message, this.exitCode);
 
-  static ForceExit success([String? message]) => ForceExit(
-        message ?? '',
-        ExitCode.success.code,
-      );
+  static ForceExit success([String? message]) =>
+      ForceExit(message ?? '', ExitCode.success.code);
 
   static ForceExit unavailable([String? message]) =>
       ForceExit(message ?? '', ExitCode.unavailable.code);

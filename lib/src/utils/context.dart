@@ -92,8 +92,9 @@ class FvmContext with FvmContextMappable {
     bool isTest = false,
   }) {
     // Load all configs
-    final builtConfig =
-        AppConfigService.buildConfig(overrides: configOverrides);
+    final builtConfig = AppConfigService.buildConfig(
+      overrides: configOverrides,
+    );
 
     return FvmContext.raw(
       debugLabel: debugLabel,
@@ -179,12 +180,29 @@ class FvmContext with FvmContextMappable {
   /// This is done by checking for common CI environment variables.
   @MappableField()
   bool get isCI {
-    return kCiEnvironmentVariables.any(Platform.environment.containsKey);
+    return kCiEnvironmentVariables.any(environment.containsKey);
   }
 
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
+  /// Creates a file-based lock for cross-process synchronization.
+  ///
+  /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
+  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
+  ///
+  /// Usage:
+  /// ```dart
+  /// final lock = context.createLock('my-operation', expiresIn: Duration(minutes: 5));
+  /// final unlock = await lock.getLock();
+  /// try {
+  ///   // Critical section
+  /// } finally {
+  ///   unlock();
+  /// }
+  /// ```
+  ///
+  /// Defaults to 10 second expiry. Override [expiresIn] for long operations.
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);

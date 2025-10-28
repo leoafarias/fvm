@@ -29,8 +29,13 @@ void main() {
     group('Fork workflow integration:', () {
       test('Complete fork add -> install -> use workflow', () async {
         // Step 1: Add fork
-        final addExitCode = await runner
-            .runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
+        final addExitCode = await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          testForkName,
+          testForkUrl,
+        ]);
         expect(addExitCode, ExitCode.success.code);
 
         // Verify fork was added
@@ -46,8 +51,11 @@ void main() {
         final installRunner = TestFactory.commandRunner();
 
         // Step 2: Install version from fork with specific branch
-        final installExitCode = await installRunner
-            .runOrThrow(['fvm', 'install', '$testForkName/leo-test-21']);
+        final installExitCode = await installRunner.runOrThrow([
+          'fvm',
+          'install',
+          '$testForkName/leo-test-21',
+        ]);
         expect(installExitCode, ExitCode.success.code);
 
         // Step 3: Use version from fork
@@ -56,20 +64,26 @@ void main() {
           'use',
           '$testForkName/leo-test-21',
           '--force',
-          '--skip-setup'
+          '--skip-setup',
         ]);
         expect(useExitCode, ExitCode.success.code);
 
         // Verify project is using fork version
-        final project =
-            installRunner.context.get<ProjectService>().findAncestor();
+        final project = installRunner.context
+            .get<ProjectService>()
+            .findAncestor();
         expect(project.pinnedVersion?.name, equals('leo-test-21'));
       });
 
       test('Fork list shows configured forks', () async {
         // Add a fork
-        await runner
-            .runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
+        await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          testForkName,
+          testForkUrl,
+        ]);
 
         // List should succeed and show the fork
         final listExitCode = await runner.runOrThrow(['fvm', 'fork', 'list']);
@@ -78,12 +92,21 @@ void main() {
 
       test('Fork remove cleans up properly', () async {
         // Add a fork
-        await runner
-            .runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
+        await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          testForkName,
+          testForkUrl,
+        ]);
 
         // Remove the fork
-        final removeExitCode =
-            await runner.runOrThrow(['fvm', 'fork', 'remove', testForkName]);
+        final removeExitCode = await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'remove',
+          testForkName,
+        ]);
         expect(removeExitCode, ExitCode.success.code);
 
         // Verify fork was removed
@@ -100,9 +123,9 @@ void main() {
               runner.runOrThrow(['fvm', 'install', 'nonexistent/leo-test-21']),
           throwsA(
             predicate<Exception>(
-              (e) => e
-                  .toString()
-                  .contains('Fork "nonexistent" has not been configured'),
+              (e) => e.toString().contains(
+                'Fork "nonexistent" has not been configured',
+              ),
             ),
           ),
         );
@@ -113,9 +136,9 @@ void main() {
           () => runner.runOrThrow(['fvm', 'use', 'nonexistent/leo-test-21']),
           throwsA(
             predicate<Exception>(
-              (e) => e
-                  .toString()
-                  .contains('Fork "nonexistent" has not been configured'),
+              (e) => e.toString().contains(
+                'Fork "nonexistent" has not been configured',
+              ),
             ),
           ),
         );
@@ -123,16 +146,26 @@ void main() {
 
       test('Fork add with invalid URL fails', () async {
         expect(
-          () => runner
-              .runOrThrow(['fvm', 'fork', 'add', 'invalid', 'not-a-git-url']),
+          () => runner.runOrThrow([
+            'fvm',
+            'fork',
+            'add',
+            'invalid',
+            'not-a-git-url',
+          ]),
           throwsA(isA<Exception>()),
         );
       });
 
       test('Fork add with duplicate name fails', () async {
         // Add a fork first
-        await runner
-            .runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
+        await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          testForkName,
+          testForkUrl,
+        ]);
 
         // Try to add another fork with same name
         expect(
@@ -141,7 +174,7 @@ void main() {
             'fork',
             'add',
             testForkName,
-            'https://github.com/other/flutter.git'
+            'https://github.com/other/flutter.git',
           ]),
           throwsA(isA<Exception>()),
         );
