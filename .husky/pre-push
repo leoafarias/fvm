@@ -1,6 +1,16 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Ensure dart is in PATH
+export PATH="$PATH:$HOME/flutter/bin:$HOME/flutter/bin/cache/dart-sdk/bin"
+
+# Try to find dart command
+if ! command -v dart >/dev/null 2>&1; then
+  echo "Warning: dart command not found in PATH. Skipping pre-push tests."
+  echo "PATH: $PATH"
+  exit 0
+fi
+
 # Run tests before pushing
 echo "Running tests..."
 dart test
