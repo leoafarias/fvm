@@ -101,9 +101,8 @@ void main() {
       final versionUnsorted = unsortedList.map(FlutterVersion.parse).toList();
       versionUnsorted.sort((a, b) => a.compareTo(b));
 
-      final afterUnsorted = versionUnsorted.reversed
-          .map((e) => e.name)
-          .toList();
+      final afterUnsorted =
+          versionUnsorted.reversed.map((e) => e.name).toList();
 
       expect(afterUnsorted, sortedList);
     });

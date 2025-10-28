@@ -30,8 +30,8 @@ void main() {
       createPubspecYaml(testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a version that is not setup (directory doesn't exist)
       final notSetupVersion = CacheFlutterVersion.fromVersion(
@@ -58,8 +58,8 @@ void main() {
         createPubspecYaml(testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create .dart_tool/version file in the PROJECT path (not testDir)
         final dartToolDir = Directory('${project.path}/.dart_tool');
@@ -99,8 +99,8 @@ void main() {
       // Don't create pubspec.yaml
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a properly setup version
       final versionDir = tempDirs.create();
@@ -149,8 +149,8 @@ void main() {
         );
 
         final project = context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create a minimal setup version - in real test env without Flutter,
         // pub get will fail which is what we want
@@ -198,8 +198,8 @@ void main() {
         );
 
         final project = context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         final versionDir = tempDirs.create();
         final binDir = Directory('${versionDir.path}/bin');
@@ -232,8 +232,8 @@ void main() {
       createPubspecYaml(testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       final versionDir = tempDirs.create();
       final binDir = Directory('${versionDir.path}/bin');

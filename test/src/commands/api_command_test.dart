@@ -95,8 +95,8 @@ void main() {
     test('returns project data for specified path', () async {
       final directory = Directory('/test/path');
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: directory,
-      );
+            directory: directory,
+          );
       final response = GetProjectResponse(project: project);
 
       when(() => apiService.getProject(any())).thenReturn(response);
@@ -209,9 +209,8 @@ void main() {
 
     setUp(() async {
       // Setup mock releases response
-      final releases = await runner.context
-          .get<FlutterReleaseClient>()
-          .fetchReleases();
+      final releases =
+          await runner.context.get<FlutterReleaseClient>().fetchReleases();
       response = GetReleasesResponse(
         versions: releases.versions,
         channels: releases.channels,

@@ -65,9 +65,8 @@ void main() {
     test('should override cacheVersionSelector method correctly', () {
       final context = TestFactory.context(
         generators: {
-          Logger: (context) =>
-              TestLogger(context)
-                ..setVersionResponse('Select a version', '3.10.0'),
+          Logger: (context) => TestLogger(context)
+            ..setVersionResponse('Select a version', '3.10.0'),
         },
         skipInput: false, // Allow user input for testing
       );

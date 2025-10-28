@@ -120,7 +120,8 @@ void main() {
       expect(versionDir2.existsSync(), isTrue);
     });
 
-    test('getAllVersions finds versions in both root and fork directories', () async {
+    test('getAllVersions finds versions in both root and fork directories',
+        () async {
       // Given: Both regular and forked versions
       final regularVersion = FlutterVersion.parse('stable');
       final forkVersion = FlutterVersion.parse('testfork/master');

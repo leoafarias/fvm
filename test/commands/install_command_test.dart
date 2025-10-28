@@ -16,8 +16,8 @@ void main() {
 
     // Get the installed version from cache
     final cacheVersion = runner.context.get<CacheService>().getVersion(
-      FlutterVersion.parse(version),
-    );
+          FlutterVersion.parse(version),
+        );
 
     // Determine the expected release channel
     String? releaseChannel;
@@ -42,8 +42,8 @@ void main() {
 
     // Get the actual branch from the installed version
     final existingChannel = await runner.context.get<GitService>().getBranch(
-      version,
-    );
+          version,
+        );
 
     // Assertions
     expect(cacheVersion != null, true, reason: 'Install does not exist');
@@ -108,8 +108,8 @@ void main() {
         throwsA(
           predicate<Exception>(
             (e) => e.toString().contains(
-              'Fork "$testForkName" has not been configured',
-            ),
+                  'Fork "$testForkName" has not been configured',
+                ),
           ),
         ),
       );

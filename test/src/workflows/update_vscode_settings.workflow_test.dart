@@ -37,8 +37,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Test with privileged access
 
@@ -88,8 +88,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         expect(project.name, equals('test_project_2'));
 
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -123,8 +123,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
         // Run workflow
@@ -145,8 +145,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create workflow with test context that doesn't simulate VS Code environment
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -194,8 +194,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -231,8 +231,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow - should fail gracefully
@@ -266,8 +266,8 @@ void main() {
 
       try {
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -306,8 +306,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
