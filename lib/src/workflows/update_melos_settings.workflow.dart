@@ -157,28 +157,20 @@ class UpdateMelosSettingsWorkflow extends Workflow {
       logger.debug(
         '$kPackageName does not manage Melos settings for this project.',
       );
-
-      return null;
-    }
-
-    if (project.pinnedVersion == null) {
+    } else if (project.pinnedVersion == null) {
       logger.debug(
         'Skipping Melos settings update - no pinned Flutter version.',
       );
+    } else {
+      // Find melos.yaml file
+      final melosFile = _findMelosFile(project);
 
-      return null;
+      if (melosFile == null) {
+        logger.debug('No melos.yaml file found in project hierarchy.');
+      } else {
+        // Update melos.yaml
+        _updateMelosFile(project, melosFile);
+      }
     }
-
-    // Find melos.yaml file
-    final melosFile = _findMelosFile(project);
-
-    if (melosFile == null) {
-      logger.debug('No melos.yaml file found in project hierarchy.');
-
-      return null;
-    }
-
-    // Update melos.yaml
-    _updateMelosFile(project, melosFile);
   }
 }

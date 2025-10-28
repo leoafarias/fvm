@@ -283,16 +283,12 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
           'Please remove "updateVscodeSettings: false" from $kFvmConfigFileName',
         );
       }
+    } else {
+      // Update project folder settings
+      _updateFolderSettings(project);
 
-      return null;
+      // Find and update workspace files if they exist
+      _updateWorkspaceFiles(project);
     }
-
-    // Update project folder settings
-    _updateFolderSettings(project);
-
-    // Find and update workspace files if they exist
-    _updateWorkspaceFiles(project);
-
-    return null;
   }
 }

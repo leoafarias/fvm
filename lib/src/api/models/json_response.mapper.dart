@@ -1,5 +1,6 @@
 // coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format off
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, unnecessary_cast, override_on_non_overriding_member
 // ignore_for_file: strict_raw_type, inference_failure_on_untyped_parameter
@@ -55,8 +56,9 @@ class GetCacheVersionsResponseMapper
   static GetCacheVersionsResponseMapper? _instance;
   static GetCacheVersionsResponseMapper ensureInitialized() {
     if (_instance == null) {
-      MapperContainer.globals
-          .use(_instance = GetCacheVersionsResponseMapper._());
+      MapperContainer.globals.use(
+        _instance = GetCacheVersionsResponseMapper._(),
+      );
       APIResponseMapper.ensureInitialized();
       CacheFlutterVersionMapper.ensureInitialized();
     }
@@ -67,8 +69,10 @@ class GetCacheVersionsResponseMapper
   final String id = 'GetCacheVersionsResponse';
 
   static String _$size(GetCacheVersionsResponse v) => v.size;
-  static const Field<GetCacheVersionsResponse, String> _f$size =
-      Field('size', _$size);
+  static const Field<GetCacheVersionsResponse, String> _f$size = Field(
+    'size',
+    _$size,
+  );
   static List<CacheFlutterVersion> _$versions(GetCacheVersionsResponse v) =>
       v.versions;
   static const Field<GetCacheVersionsResponse, List<CacheFlutterVersion>>
@@ -82,7 +86,9 @@ class GetCacheVersionsResponseMapper
 
   static GetCacheVersionsResponse _instantiate(DecodingData data) {
     return GetCacheVersionsResponse(
-        size: data.dec(_f$size), versions: data.dec(_f$versions));
+      size: data.dec(_f$size),
+      versions: data.dec(_f$versions),
+    );
   }
 
   @override
@@ -115,28 +121,34 @@ mixin GetCacheVersionsResponseMappable {
           this as GetCacheVersionsResponse, $identity, $identity);
   @override
   String toString() {
-    return GetCacheVersionsResponseMapper.ensureInitialized()
-        .stringifyValue(this as GetCacheVersionsResponse);
+    return GetCacheVersionsResponseMapper.ensureInitialized().stringifyValue(
+      this as GetCacheVersionsResponse,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return GetCacheVersionsResponseMapper.ensureInitialized()
-        .equalsValue(this as GetCacheVersionsResponse, other);
+    return GetCacheVersionsResponseMapper.ensureInitialized().equalsValue(
+      this as GetCacheVersionsResponse,
+      other,
+    );
   }
 
   @override
   int get hashCode {
-    return GetCacheVersionsResponseMapper.ensureInitialized()
-        .hashValue(this as GetCacheVersionsResponse);
+    return GetCacheVersionsResponseMapper.ensureInitialized().hashValue(
+      this as GetCacheVersionsResponse,
+    );
   }
 }
 
 extension GetCacheVersionsResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetCacheVersionsResponse, $Out> {
   GetCacheVersionsResponseCopyWith<$R, GetCacheVersionsResponse, $Out>
-      get $asGetCacheVersionsResponse => $base.as((v, t, t2) =>
-          _GetCacheVersionsResponseCopyWithImpl<$R, $Out>(v, t, t2));
+      get $asGetCacheVersionsResponse => $base.as(
+            (v, t, t2) =>
+                _GetCacheVersionsResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class GetCacheVersionsResponseCopyWith<
@@ -150,7 +162,8 @@ abstract class GetCacheVersionsResponseCopyWith<
           CacheFlutterVersion>> get versions;
   $R call({String? size, List<CacheFlutterVersion>? versions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
-      Then<$Out2, $R2> t);
+    Then<$Out2, $R2> t,
+  );
 }
 
 class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
@@ -167,18 +180,23 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
       $R,
       CacheFlutterVersion,
       CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
-          CacheFlutterVersion>> get versions => ListCopyWith($value.versions,
-      (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
+          CacheFlutterVersion>> get versions => ListCopyWith(
+        $value.versions,
+        (v, t) => v.copyWith.$chain(t),
+        (v) => call(versions: v),
+      );
   @override
-  $R call({String? size, List<CacheFlutterVersion>? versions}) =>
-      $apply(FieldCopyWithData({
-        if (size != null) #size: size,
-        if (versions != null) #versions: versions
-      }));
+  $R call({String? size, List<CacheFlutterVersion>? versions}) => $apply(
+        FieldCopyWithData({
+          if (size != null) #size: size,
+          if (versions != null) #versions: versions,
+        }),
+      );
   @override
   GetCacheVersionsResponse $make(CopyWithData data) => GetCacheVersionsResponse(
-      size: data.get(#size, or: $value.size),
-      versions: data.get(#versions, or: $value.versions));
+        size: data.get(#size, or: $value.size),
+        versions: data.get(#versions, or: $value.versions),
+      );
 
   @override
   GetCacheVersionsResponseCopyWith<$R2, GetCacheVersionsResponse, $Out2>
@@ -208,8 +226,10 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
   static const Field<GetReleasesResponse, List<FlutterSdkRelease>> _f$versions =
       Field('versions', _$versions);
   static Channels _$channels(GetReleasesResponse v) => v.channels;
-  static const Field<GetReleasesResponse, Channels> _f$channels =
-      Field('channels', _$channels);
+  static const Field<GetReleasesResponse, Channels> _f$channels = Field(
+    'channels',
+    _$channels,
+  );
 
   @override
   final MappableFields<GetReleasesResponse> fields = const {
@@ -219,7 +239,9 @@ class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
 
   static GetReleasesResponse _instantiate(DecodingData data) {
     return GetReleasesResponse(
-        versions: data.dec(_f$versions), channels: data.dec(_f$channels));
+      versions: data.dec(_f$versions),
+      channels: data.dec(_f$channels),
+    );
   }
 
   @override
@@ -251,20 +273,24 @@ mixin GetReleasesResponseMappable {
       this as GetReleasesResponse, $identity, $identity);
   @override
   String toString() {
-    return GetReleasesResponseMapper.ensureInitialized()
-        .stringifyValue(this as GetReleasesResponse);
+    return GetReleasesResponseMapper.ensureInitialized().stringifyValue(
+      this as GetReleasesResponse,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return GetReleasesResponseMapper.ensureInitialized()
-        .equalsValue(this as GetReleasesResponse, other);
+    return GetReleasesResponseMapper.ensureInitialized().equalsValue(
+      this as GetReleasesResponse,
+      other,
+    );
   }
 
   @override
   int get hashCode {
-    return GetReleasesResponseMapper.ensureInitialized()
-        .hashValue(this as GetReleasesResponse);
+    return GetReleasesResponseMapper.ensureInitialized().hashValue(
+      this as GetReleasesResponse,
+    );
   }
 }
 
@@ -272,7 +298,8 @@ extension GetReleasesResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetReleasesResponse, $Out> {
   GetReleasesResponseCopyWith<$R, GetReleasesResponse, $Out>
       get $asGetReleasesResponse => $base.as(
-          (v, t, t2) => _GetReleasesResponseCopyWithImpl<$R, $Out>(v, t, t2));
+            (v, t, t2) => _GetReleasesResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
@@ -283,7 +310,8 @@ abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
   ChannelsCopyWith<$R, Channels, Channels> get channels;
   $R call({List<FlutterSdkRelease>? versions, Channels? channels});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
-      Then<$Out2, $R2> t);
+    Then<$Out2, $R2> t,
+  );
 }
 
 class _GetReleasesResponseCopyWithImpl<$R, $Out>
@@ -297,21 +325,26 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
   @override
   ListCopyWith<$R, FlutterSdkRelease,
           FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
-      get versions => ListCopyWith($value.versions,
-          (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
+      get versions => ListCopyWith(
+            $value.versions,
+            (v, t) => v.copyWith.$chain(t),
+            (v) => call(versions: v),
+          );
   @override
   ChannelsCopyWith<$R, Channels, Channels> get channels =>
       $value.channels.copyWith.$chain((v) => call(channels: v));
   @override
-  $R call({List<FlutterSdkRelease>? versions, Channels? channels}) =>
-      $apply(FieldCopyWithData({
-        if (versions != null) #versions: versions,
-        if (channels != null) #channels: channels
-      }));
+  $R call({List<FlutterSdkRelease>? versions, Channels? channels}) => $apply(
+        FieldCopyWithData({
+          if (versions != null) #versions: versions,
+          if (channels != null) #channels: channels,
+        }),
+      );
   @override
   GetReleasesResponse $make(CopyWithData data) => GetReleasesResponse(
-      versions: data.get(#versions, or: $value.versions),
-      channels: data.get(#channels, or: $value.channels));
+        versions: data.get(#versions, or: $value.versions),
+        channels: data.get(#channels, or: $value.channels),
+      );
 
   @override
   GetReleasesResponseCopyWith<$R2, GetReleasesResponse, $Out2>
@@ -336,8 +369,10 @@ class GetProjectResponseMapper extends ClassMapperBase<GetProjectResponse> {
   final String id = 'GetProjectResponse';
 
   static Project _$project(GetProjectResponse v) => v.project;
-  static const Field<GetProjectResponse, Project> _f$project =
-      Field('project', _$project);
+  static const Field<GetProjectResponse, Project> _f$project = Field(
+    'project',
+    _$project,
+  );
 
   @override
   final MappableFields<GetProjectResponse> fields = const {
@@ -372,25 +407,32 @@ mixin GetProjectResponseMappable {
   }
 
   GetProjectResponseCopyWith<GetProjectResponse, GetProjectResponse,
-          GetProjectResponse>
-      get copyWith => _GetProjectResponseCopyWithImpl<GetProjectResponse,
-          GetProjectResponse>(this as GetProjectResponse, $identity, $identity);
+      GetProjectResponse> get copyWith => _GetProjectResponseCopyWithImpl<
+          GetProjectResponse, GetProjectResponse>(
+        this as GetProjectResponse,
+        $identity,
+        $identity,
+      );
   @override
   String toString() {
-    return GetProjectResponseMapper.ensureInitialized()
-        .stringifyValue(this as GetProjectResponse);
+    return GetProjectResponseMapper.ensureInitialized().stringifyValue(
+      this as GetProjectResponse,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return GetProjectResponseMapper.ensureInitialized()
-        .equalsValue(this as GetProjectResponse, other);
+    return GetProjectResponseMapper.ensureInitialized().equalsValue(
+      this as GetProjectResponse,
+      other,
+    );
   }
 
   @override
   int get hashCode {
-    return GetProjectResponseMapper.ensureInitialized()
-        .hashValue(this as GetProjectResponse);
+    return GetProjectResponseMapper.ensureInitialized().hashValue(
+      this as GetProjectResponse,
+    );
   }
 }
 
@@ -398,7 +440,8 @@ extension GetProjectResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetProjectResponse, $Out> {
   GetProjectResponseCopyWith<$R, GetProjectResponse, $Out>
       get $asGetProjectResponse => $base.as(
-          (v, t, t2) => _GetProjectResponseCopyWithImpl<$R, $Out>(v, t, t2));
+            (v, t, t2) => _GetProjectResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class GetProjectResponseCopyWith<$R, $In extends GetProjectResponse,
@@ -406,7 +449,8 @@ abstract class GetProjectResponseCopyWith<$R, $In extends GetProjectResponse,
   ProjectCopyWith<$R, Project, Project> get project;
   $R call({Project? project});
   GetProjectResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
-      Then<$Out2, $R2> t);
+    Then<$Out2, $R2> t,
+  );
 }
 
 class _GetProjectResponseCopyWithImpl<$R, $Out>
@@ -429,7 +473,8 @@ class _GetProjectResponseCopyWithImpl<$R, $Out>
 
   @override
   GetProjectResponseCopyWith<$R2, GetProjectResponse, $Out2> $chain<$R2, $Out2>(
-          Then<$Out2, $R2> t) =>
+    Then<$Out2, $R2> t,
+  ) =>
       _GetProjectResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
@@ -450,8 +495,10 @@ class GetContextResponseMapper extends ClassMapperBase<GetContextResponse> {
   final String id = 'GetContextResponse';
 
   static FvmContext _$context(GetContextResponse v) => v.context;
-  static const Field<GetContextResponse, FvmContext> _f$context =
-      Field('context', _$context);
+  static const Field<GetContextResponse, FvmContext> _f$context = Field(
+    'context',
+    _$context,
+  );
 
   @override
   final MappableFields<GetContextResponse> fields = const {
@@ -486,25 +533,32 @@ mixin GetContextResponseMappable {
   }
 
   GetContextResponseCopyWith<GetContextResponse, GetContextResponse,
-          GetContextResponse>
-      get copyWith => _GetContextResponseCopyWithImpl<GetContextResponse,
-          GetContextResponse>(this as GetContextResponse, $identity, $identity);
+      GetContextResponse> get copyWith => _GetContextResponseCopyWithImpl<
+          GetContextResponse, GetContextResponse>(
+        this as GetContextResponse,
+        $identity,
+        $identity,
+      );
   @override
   String toString() {
-    return GetContextResponseMapper.ensureInitialized()
-        .stringifyValue(this as GetContextResponse);
+    return GetContextResponseMapper.ensureInitialized().stringifyValue(
+      this as GetContextResponse,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return GetContextResponseMapper.ensureInitialized()
-        .equalsValue(this as GetContextResponse, other);
+    return GetContextResponseMapper.ensureInitialized().equalsValue(
+      this as GetContextResponse,
+      other,
+    );
   }
 
   @override
   int get hashCode {
-    return GetContextResponseMapper.ensureInitialized()
-        .hashValue(this as GetContextResponse);
+    return GetContextResponseMapper.ensureInitialized().hashValue(
+      this as GetContextResponse,
+    );
   }
 }
 
@@ -512,7 +566,8 @@ extension GetContextResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetContextResponse, $Out> {
   GetContextResponseCopyWith<$R, GetContextResponse, $Out>
       get $asGetContextResponse => $base.as(
-          (v, t, t2) => _GetContextResponseCopyWithImpl<$R, $Out>(v, t, t2));
+            (v, t, t2) => _GetContextResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
@@ -520,7 +575,8 @@ abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
   FvmContextCopyWith<$R, FvmContext, FvmContext> get context;
   $R call({FvmContext? context});
   GetContextResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
-      Then<$Out2, $R2> t);
+    Then<$Out2, $R2> t,
+  );
 }
 
 class _GetContextResponseCopyWithImpl<$R, $Out>
@@ -543,6 +599,7 @@ class _GetContextResponseCopyWithImpl<$R, $Out>
 
   @override
   GetContextResponseCopyWith<$R2, GetContextResponse, $Out2> $chain<$R2, $Out2>(
-          Then<$Out2, $R2> t) =>
+    Then<$Out2, $R2> t,
+  ) =>
       _GetContextResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
