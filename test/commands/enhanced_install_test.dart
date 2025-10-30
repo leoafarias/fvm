@@ -29,8 +29,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(cacheVersion != null, true, reason: 'Install with setup failed');
       });
 
@@ -48,8 +48,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(
           cacheVersion != null,
           true,
@@ -72,8 +72,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(
           cacheVersion != null,
           true,
@@ -156,8 +156,8 @@ void main() {
 
         // Verify installation (should strip v prefix)
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(
           cacheVersion != null,
           true,
@@ -173,8 +173,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(
           cacheVersion != null,
           true,
@@ -194,8 +194,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(commitHash),
-        );
+              FlutterVersion.parse(commitHash),
+            );
         expect(
           cacheVersion != null,
           true,

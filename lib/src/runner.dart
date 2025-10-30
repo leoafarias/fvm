@@ -40,8 +40,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
   /// Constructor
   FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
-    : _pubUpdater = pubUpdater ?? PubUpdater(),
-      super(kPackageName, kDescription) {
+      : _pubUpdater = pubUpdater ?? PubUpdater(),
+        super(kPackageName, kDescription) {
     argParser
       ..addFlag('verbose', help: 'Print verbose output.', negatable: false)
       ..addFlag(

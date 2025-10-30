@@ -28,8 +28,8 @@ void main() {
       createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = VerifyProjectWorkflow(runner.context);
 
       // Should not throw
@@ -41,8 +41,8 @@ void main() {
       // No pubspec created
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = VerifyProjectWorkflow(runner.context);
 
       // Should not throw with force
@@ -57,17 +57,16 @@ void main() {
         // Create context with TestLogger that says Yes
         final context = TestFactory.context(
           generators: {
-            Logger: (context) =>
-                TestLogger(context)
-                  ..setConfirmResponse('Would you like to continue?', true),
+            Logger: (context) => TestLogger(context)
+              ..setConfirmResponse('Would you like to continue?', true),
           },
           skipInput: false, // Allow user input for testing
         );
 
         final customRunner = TestCommandRunner(context);
         final project = customRunner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final workflow = VerifyProjectWorkflow(customRunner.context);
 
         // Should not throw when user confirms
@@ -98,17 +97,16 @@ void main() {
         // Create context with TestLogger that says No
         final context = TestFactory.context(
           generators: {
-            Logger: (context) =>
-                TestLogger(context)
-                  ..setConfirmResponse('Would you like to continue?', false),
+            Logger: (context) => TestLogger(context)
+              ..setConfirmResponse('Would you like to continue?', false),
           },
           skipInput: false, // Allow user input for testing
         );
 
         final customRunner = TestCommandRunner(context);
         final project = customRunner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final workflow = VerifyProjectWorkflow(customRunner.context);
 
         // Should throw when user declines

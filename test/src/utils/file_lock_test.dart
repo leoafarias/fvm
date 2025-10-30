@@ -195,8 +195,8 @@ void main() {
       final almostExpiredTime = DateTime.now().subtract(
         Duration(milliseconds: 90),
       );
-      final almostExpiredTimestamp = almostExpiredTime.millisecondsSinceEpoch
-          .toString();
+      final almostExpiredTimestamp =
+          almostExpiredTime.millisecondsSinceEpoch.toString();
 
       // Create the file with almost expired timestamp
       final parent = File(lockFilePath).parent;
@@ -566,9 +566,8 @@ void main() {
       // Create timestamps with just 1 microsecond difference
       final now = DateTime.now();
       final timestamp1 = now.microsecondsSinceEpoch;
-      final timestamp2 = now
-          .add(Duration(microseconds: 1))
-          .microsecondsSinceEpoch;
+      final timestamp2 =
+          now.add(Duration(microseconds: 1)).microsecondsSinceEpoch;
 
       // Ensure they're different
       expect(timestamp1, isNot(equals(timestamp2)));

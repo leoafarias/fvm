@@ -22,8 +22,8 @@ void main() {
 
         // Verify installation
         final cacheVersion = runner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(version),
-        );
+              FlutterVersion.parse(version),
+            );
         expect(cacheVersion != null, true, reason: 'Install via alias failed');
       });
 
