@@ -246,8 +246,11 @@ case "$ARCH" in
   arm64|aarch64)
     ARCH='arm64'
     ;;
+  riscv64|riscv64gc)
+    ARCH='riscv64'
+    ;;
   *)
-    error "Unsupported architecture: $ARCH. Only x64 and arm64 are supported."
+    error "Unsupported architecture: $ARCH. Only x64, arm64, and riscv64 are supported."
     ;;
 esac
 
