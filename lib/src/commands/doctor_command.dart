@@ -116,14 +116,49 @@ class DoctorCommand extends BaseFvmCommand {
 
     if (localPropertiesFile.existsSync()) {
       final localProperties = localPropertiesFile.readAsLinesSync();
-      final sdkPath = localProperties
-          .firstWhere((line) => line.startsWith('flutter.sdk'))
-          .split('=')[1];
-      final cacheVersionLink = Link(project.localVersionSymlinkPath);
-      final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
+      final sdkLines = localProperties.where(
+        (line) => line.startsWith('flutter.sdk'),
+      );
 
-      table.insertRow(['flutter.sdk', sdkPath]);
-      table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);
+      if (sdkLines.isEmpty) {
+        table.insertRow([
+          kIntelliJ,
+          'flutter.sdk not found in local.properties',
+        ]);
+      } else {
+        final sdkPath = sdkLines.first.split('=')[1];
+        table.insertRow(['flutter.sdk', sdkPath]);
+
+        // Only attempt to resolve symlink if version is pinned
+        if (project.pinnedVersion == null) {
+          table.insertRow([
+            'Matches pinned version:',
+            'No version pinned - run "fvm use <version>"',
+          ]);
+        } else {
+          final cacheVersionLink = Link(project.localVersionSymlinkPath);
+
+          if (!cacheVersionLink.existsSync()) {
+            table.insertRow([
+              'Matches pinned version:',
+              'Version symlink missing - run "fvm use ${project.pinnedVersion?.name}"',
+            ]);
+          } else {
+            try {
+              final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
+              table.insertRow([
+                'Matches pinned version:',
+                sdkPath == resolvedLink,
+              ]);
+            } on FileSystemException catch (_) {
+              table.insertRow([
+                'Matches pinned version:',
+                'Cannot resolve symlink - run "fvm use ${project.pinnedVersion?.name}"',
+              ]);
+            }
+          }
+        }
+      }
     } else {
       table.insertRow([
         kIntelliJ,
