@@ -1,21 +1,10 @@
-## 4.0.0-beta.2
-
-* refactor: Restore simple tag-based release workflow (removes complex GitHub release automation)
-* fix: Version mismatch errors in CI and non-interactive environments
-* fix: Authentication prompts for private repository dependencies
-* fix: Fork installation fallback reliability
-
-## 4.0.0-beta.1
+## 4.0.0
 
 * add: Manage Flutter SDKs from custom or forked repositories
-* add: Automatic Melos integration - FVM now automatically manages the `sdkPath` in `melos.yaml` when running `fvm use`
+* add: Automatic Melos integration - FVM automatically manages `sdkPath` in `melos.yaml`
 * add: `updateMelosSettings` configuration option to control Melos integration per project
-* add: Smart detection of existing Melos configurations with appropriate warnings
-* add: Runtime deprecation warnings for unsupported environment variables
-* add: Legacy support for `FVM_HOME` environment variable as fallback when `FVM_CACHE_PATH` is not set
-* fix: Enhanced environment variable processing logic in AppConfigService
-* add: Improved error messaging for deprecated `FVM_GIT_CACHE` environment variable
-* add: Better environment variable precedence handling with clear fallback behavior
+* fix: Enhanced environment variable processing logic
+* fix: Better environment variable precedence handling
 
 ## 3.2.1
 
