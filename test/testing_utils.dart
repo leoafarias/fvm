@@ -142,10 +142,11 @@ String _replaceTempDirectory(String path) {
 Matcher isProjectMatcher({
   Directory? expectedDirectory,
   bool hasConfig = true,
-}) => _ProjectHasConfigMatcher(
-  expectedDirectory: expectedDirectory,
-  hasConfig: hasConfig,
-);
+}) =>
+    _ProjectHasConfigMatcher(
+      expectedDirectory: expectedDirectory,
+      hasConfig: hasConfig,
+    );
 
 class _ProjectHasConfigMatcher extends Matcher {
   final Directory? _expectedDirectory;
@@ -154,8 +155,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   _ProjectHasConfigMatcher({
     Directory? expectedDirectory,
     required bool hasConfig,
-  }) : _expectedDirectory = expectedDirectory,
-       _hasConfig = hasConfig;
+  })  : _expectedDirectory = expectedDirectory,
+        _hasConfig = hasConfig;
 
   String? get expectedConfigPath => p.join(_expectedDirectory!.path, '.fvmrc');
 
@@ -267,8 +268,7 @@ class TestFactory {
       logLevel: Level.verbose,
       workingDirectoryOverride: createTempDir(debugLabel).path,
       isTest: true,
-      skipInput:
-          skipInput ??
+      skipInput: skipInput ??
           false, // Allow overriding skipInput for testing user input
       environmentOverrides: environmentOverrides,
       generatorsOverride: {FlutterService: _mockFlutterService, ...?generators},

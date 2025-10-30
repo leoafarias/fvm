@@ -181,9 +181,8 @@ void main() {
 
       // Check final configuration
       print('\nFinal configuration:');
-      final projectConfig = appTestRunner.context
-          .get<ProjectService>()
-          .findAncestor();
+      final projectConfig =
+          appTestRunner.context.get<ProjectService>().findAncestor();
       expect(projectConfig.pinnedVersion?.name, equals('stable'));
 
       print('\nTests completed successfully!');

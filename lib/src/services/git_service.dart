@@ -5,6 +5,7 @@ import 'package:git/git.dart';
 
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
+import '../utils/exceptions.dart';
 import '../utils/file_lock.dart';
 import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
@@ -28,15 +29,19 @@ class GitService extends ContextualService {
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
     logger.info('Creating local mirror...');
-    final process = await Process.start('git', [
-      'clone',
-      '--progress',
-      // Enable long paths on Windows to prevent checkout failures
-      if (Platform.isWindows) '-c',
-      if (Platform.isWindows) 'core.longpaths=true',
-      context.flutterUrl,
-      gitCacheDir.path,
-    ], runInShell: true);
+    final process = await Process.start(
+      'git',
+      [
+        'clone',
+        '--progress',
+        // Enable long paths on Windows to prevent checkout failures
+        if (Platform.isWindows) '-c',
+        if (Platform.isWindows) 'core.longpaths=true',
+        context.flutterUrl,
+        gitCacheDir.path,
+      ],
+      runInShell: true,
+    );
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
@@ -71,18 +76,22 @@ class GitService extends ContextualService {
 
     command.add(context.flutterUrl);
 
-    final result = await get<ProcessService>().run('git', args: command);
+    try {
+      final result = await get<ProcessService>().run('git', args: command);
 
-    if (result.exitCode != 0) {
-      logger.warn('Fetching git references failed');
-      logger.debug(result.stderr);
-
-      return [];
+      return _referencesCache = GitReference.parseGitReferences(
+        result.stdout as String,
+      );
+    } on ProcessException catch (error, stackTrace) {
+      logger.debug('ProcessException while fetching git references: $error');
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to fetch git references from ${context.flutterUrl}. '
+          'Ensure git is installed and the URL is accessible.',
+        ),
+        stackTrace,
+      );
     }
-
-    return _referencesCache = GitReference.parseGitReferences(
-      result.stdout as String,
-    );
   }
 
   Future<bool> isGitReference(String version) async {
@@ -98,9 +107,7 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
-    while (_updatingCacheLock.isLocked) {
-      await Future.delayed(const Duration(milliseconds: 100));
-    }
+    final unlock = await _updatingCacheLock.getLock();
 
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
@@ -157,10 +164,8 @@ class GitService extends ContextualService {
       } else {
         await _createLocalMirror();
       }
-    } catch (e) {
-      rethrow;
     } finally {
-      _updatingCacheLock.unlock();
+      unlock();
     }
   }
 

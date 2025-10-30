@@ -86,8 +86,7 @@ class InstallCommand extends BaseFvmCommand {
   }
 
   @override
-  String get invocation =>
-      'fvm install {version}, if no {version}'
+  String get invocation => 'fvm install {version}, if no {version}'
       ' is provided will install version configured in project.';
 
   @override

@@ -46,13 +46,16 @@ class FlutterService extends ContextualService {
     // Try with --reference first if git cache is enabled
     if (context.gitCache) {
       try {
-        return await runGit([
-          ...args,
-          '--reference',
-          context.gitCachePath,
-          repoUrl,
-          versionDir.path,
-        ], echoOutput: echoOutput);
+        return await runGit(
+          [
+            ...args,
+            '--reference',
+            context.gitCachePath,
+            repoUrl,
+            versionDir.path,
+          ],
+          echoOutput: echoOutput,
+        );
       } on ProcessException catch (e) {
         if (isReferenceError(e.toString())) {
           logger.warn(
@@ -67,11 +70,10 @@ class FlutterService extends ContextualService {
     }
 
     // Normal clone without --reference
-    return await runGit([
-      ...args,
-      repoUrl,
-      versionDir.path,
-    ], echoOutput: echoOutput);
+    return await runGit(
+      [...args, repoUrl, versionDir.path],
+      echoOutput: echoOutput,
+    );
   }
 
   /// Cleans up partial clone state when --reference fails
@@ -340,8 +342,8 @@ class VersionRunner {
   const VersionRunner({
     required FvmContext context,
     required CacheFlutterVersion version,
-  }) : _context = context,
-       _version = version;
+  })  : _context = context,
+        _version = version;
 
   Map<String, String> _updateEnvironmentVariables(List<String> paths) {
     // Remove any values that are similar
@@ -380,11 +382,11 @@ class VersionRunner {
 
     // Run command
     return _context.get<ProcessService>().run(
-      cmd,
-      args: args,
-      environment: environment,
-      throwOnError: throwOnError ?? false,
-      echoOutput: echoOutput ?? true,
-    );
+          cmd,
+          args: args,
+          environment: environment,
+          throwOnError: throwOnError ?? false,
+          echoOutput: echoOutput ?? true,
+        );
   }
 }

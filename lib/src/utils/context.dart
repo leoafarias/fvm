@@ -80,8 +80,8 @@ class FvmContext with FvmContextMappable {
     required bool skipInput,
     this.isTest = false,
     this.logLevel = Level.info,
-  }) : _skipInput = skipInput,
-       _generators = generators;
+  })  : _skipInput = skipInput,
+        _generators = generators;
 
   static FvmContext create({
     String? debugLabel,
@@ -188,6 +188,23 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   bool get skipInput => isCI || _skipInput;
 
+  /// Creates a file-based lock for cross-process synchronization.
+  ///
+  /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
+  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
+  ///
+  /// Usage:
+  /// ```dart
+  /// final lock = context.createLock('my-operation', expiresIn: Duration(minutes: 5));
+  /// final unlock = await lock.getLock();
+  /// try {
+  ///   // Critical section
+  /// } finally {
+  ///   unlock();
+  /// }
+  /// ```
+  ///
+  /// Defaults to 10 second expiry. Override [expiresIn] for long operations.
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);

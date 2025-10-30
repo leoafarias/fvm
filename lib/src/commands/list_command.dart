@@ -108,7 +108,7 @@ class ListCommand extends BaseFvmCommand {
   Future<int> run() async {
     final cacheVersions = await get<CacheService>().getAllVersions();
 
-    final directorySize = await getFullDirectorySize(cacheVersions);
+    final directorySize = await getFullDirectorySize(cacheVersions, logger);
 
     logger
       ..info('Cache directory:  ${cyan.wrap(context.versionsCachePath)}')

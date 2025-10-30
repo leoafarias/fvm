@@ -1,11 +1,41 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "465e421f53c05f8f33f83a243c10c55f9f6efbc2",
+    "beta": "f16b4ff8921f452da733f17b243f627d08f1e378",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "9f455d2486bcb28cad87b062475f42edc959f636"
+    "stable": "adc901062556672b4138e18a4dc62a4be8f4b3c2"
   },
   "releases": [
+    {
+      "hash": "f16b4ff8921f452da733f17b243f627d08f1e378",
+      "channel": "beta",
+      "version": "3.38.0-0.2.pre",
+      "dart_sdk_version": "3.10.0 (build 3.10.0-290.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2025-10-29T16:00:17.553891Z",
+      "archive": "beta/windows/flutter_windows_3.38.0-0.2.pre-beta.zip",
+      "sha256": "59ab879a5b07c17eeb850fdffa697eb3adf0d5d8b242ae7842bb94551ddd680f"
+    },
+    {
+      "hash": "adc901062556672b4138e18a4dc62a4be8f4b3c2",
+      "channel": "stable",
+      "version": "3.35.7",
+      "dart_sdk_version": "3.9.2",
+      "dart_sdk_arch": "x64",
+      "release_date": "2025-10-23T15:55:48.654928Z",
+      "archive": "stable/windows/flutter_windows_3.35.7-stable.zip",
+      "sha256": "b804653bfd2ad27f8d376c62a608ea2c7cbd49ff2b85010af6f8a53aa352fd62"
+    },
+    {
+      "hash": "7e592fef326466f8faafa664eac2912bb0b91fd5",
+      "channel": "beta",
+      "version": "3.38.0-0.1.pre",
+      "dart_sdk_version": "3.10.0 (build 3.10.0-290.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2025-10-20T18:42:57.479786Z",
+      "archive": "beta/windows/flutter_windows_3.38.0-0.1.pre-beta.zip",
+      "sha256": "81c5dce5ee6fdebec28a5d076975a888fb8d2806946e0cc74551b5d42d965464"
+    },
     {
       "hash": "9f455d2486bcb28cad87b062475f42edc959f636",
       "channel": "stable",
