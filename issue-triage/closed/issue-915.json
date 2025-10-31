@@ -3,7 +3,9 @@
   "title": "[DOC BUG] Broken links in https://fvm.app/documentation/getting-started and improve Mac installation instruction",
   "triagedAt": "2025-10-30",
   "priority": "p0-critical",
-  "status": "validated",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "pr-937",
   "artifact": "../../artifacts/issue-915.md",
   "url": "https://github.com/leoafarias/fvm/issues/915",
-  "notes": "Quick Start instructions corrected, but Next Steps links still hit /documentation/installation 404; tracked together with #944."}
+  "notes": "Fixed by PR #937. Documentation links now correctly resolve to /documentation/getting-started/installation."}

@@ -2,7 +2,10 @@
   "number": 805,
   "title": "[Feature Request] Auto hot reload from terminal",
   "triagedAt": "2025-10-30",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "out-of-scope",
   "artifact": "../artifacts/issue-805.md",
   "url": "https://github.com/leoafarias/fvm/issues/805",
-  "notes": "Out of scope for FVM (version management)."}
+  "notes": "Out of scope for FVM (version management)."
+}

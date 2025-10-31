@@ -1,8 +1,0 @@
-{
-  "number": 769,
-  "title": "[BUG]  In "fvm use x.y.z" command, it uses home directory instead of current cmd project directory",
-  "triagedAt": "2025-10-30",
-  "status": "resolved",
-  "artifact": "../artifacts/issue-769.md",
-  "url": "https://github.com/leoafarias/fvm/issues/769",
-  "notes": "FVM searches ancestor directories for .fvmrc; remove or relocate unwanted configs."}

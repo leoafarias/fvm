@@ -2,7 +2,10 @@
   "number": 884,
   "title": "[Feature Request] Add --[no-]update-gitignore flag to fvm use",
   "triagedAt": "2025-10-30",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "fixed-in-v4",
   "artifact": "../artifacts/issue-884.md",
   "url": "https://github.com/leoafarias/fvm/issues/884",
-  "notes": "SetupGitIgnoreWorkflow auto-updates .gitignore in v4.0.0; flag no longer necessary."}
+  "notes": "SetupGitIgnoreWorkflow auto-updates .gitignore in v4.0.0; flag no longer necessary."
+}

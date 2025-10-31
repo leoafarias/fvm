@@ -2,7 +2,10 @@
   "number": 841,
   "title": "[BUG] flutter globalized failed",
   "triagedAt": "2025-10-30",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "working-as-designed",
   "artifact": "../artifacts/issue-841.md",
   "url": "https://github.com/leoafarias/fvm/issues/841",
-  "notes": "Global command works; user must add ~/.fvm/default/bin to PATH."}
+  "notes": "Working as designed. User must add ~/.fvm/default/bin to PATH for global Flutter."
+}

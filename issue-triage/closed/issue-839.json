@@ -3,7 +3,10 @@
   "title": "[BUG] \"You should add the fvm version directory \".fvm/\" to .gitignore.\" does not add a newline",
   "triagedAt": "2025-10-30",
   "priority": "p3-low",
-  "status": "validated",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "commit-50fa23b9",
   "artifact": "../../artifacts/issue-839.md",
   "url": "https://github.com/leoafarias/fvm/issues/839",
-  "notes": "Ensure SetupGitIgnoreWorkflow writes trailing newline and add regression test."}
+  "notes": "Fixed in commit 50fa23b9 (Aug 23, 2025). SetupGitIgnoreWorkflow now ensures files end with newlines."
+}

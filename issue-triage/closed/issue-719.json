@@ -2,8 +2,10 @@
   "number": 719,
   "title": "Add documentation to optionally allow users to forward all `flutter`, `dart` calls to fvm",
   "triagedAt": "2025-10-31",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "documentation",
   "artifact": "../artifacts/issue-719.md",
   "url": "https://github.com/leoafarias/fvm/issues/719",
-  "notes": "Running Flutter guide now documents rerouting bare flutter/dart commands through FVM, matching the request."
+  "notes": "Running Flutter guide now documents rerouting bare flutter/dart commands through FVM."
 }

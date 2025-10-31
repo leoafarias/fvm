@@ -2,7 +2,10 @@
   "number": 807,
   "title": "Option to specify FVM_HOME directory",
   "triagedAt": "2025-10-30",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "already-supported",
   "artifact": "../artifacts/issue-807.md",
   "url": "https://github.com/leoafarias/fvm/issues/807",
-  "notes": "Already supported via FVM_CACHE_PATH / legacy FVM_HOME env vars."}
+  "notes": "Already supported via FVM_CACHE_PATH / legacy FVM_HOME env vars."
+}

@@ -2,7 +2,10 @@
   "number": 768,
   "title": "[Feature Request] - AI Assist to build with FVM",
   "triagedAt": "2025-10-30",
-  "status": "resolved",
+  "status": "closed",
+  "closedAt": "2025-10-31",
+  "resolvedBy": "wont-implement",
   "artifact": "../artifacts/issue-768.md",
   "url": "https://github.com/leoafarias/fvm/issues/768",
-  "notes": "Declined adding external AI badge."}
+  "notes": "Declined adding external AI badge - out of scope for FVM."
+}
