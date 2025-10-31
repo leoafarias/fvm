@@ -1,0 +1,9 @@
+{
+  "number": 783,
+  "title": "[BUG] DO NOT use short hash for commit versions (DOS attack)",
+  "triagedAt": "2025-10-30",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-783.md",
+  "url": "https://github.com/leoafarias/fvm/issues/783",
+  "notes": "Store full 40-char commit hashes in configs; add regression tests."}

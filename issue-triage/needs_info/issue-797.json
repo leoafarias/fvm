@@ -1,0 +1,8 @@
+{
+  "number": 797,
+  "title": "env: bash\\r: No such file or directory",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-797.md",
+  "url": "https://github.com/leoafarias/fvm/issues/797",
+  "notes": "Suspect CRLF line endings in Flutter script; awaiting diagnostics."}

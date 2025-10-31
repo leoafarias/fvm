@@ -1,0 +1,9 @@
+{
+  "number": 894,
+  "title": "[Feature Request] multi-user fvm cache",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-894.md",
+  "url": "https://github.com/leoafarias/fvm/issues/894",
+  "notes": "Add group-shared cache support (git core.sharedRepository, chmod g+rwX, optional cache group config)."}

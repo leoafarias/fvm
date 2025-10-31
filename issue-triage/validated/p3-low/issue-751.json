@@ -1,0 +1,9 @@
+{
+  "number": 751,
+  "title": "[Feature Request] Support range versions",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-751.md",
+  "url": "https://github.com/leoafarias/fvm/issues/751",
+  "notes": "Explore semver constraint parsing for version ranges."}

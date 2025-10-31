@@ -1,0 +1,8 @@
+{
+  "number": 841,
+  "title": "[BUG] flutter globalized failed",
+  "triagedAt": "2025-10-30",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-841.md",
+  "url": "https://github.com/leoafarias/fvm/issues/841",
+  "notes": "Global command works; user must add ~/.fvm/default/bin to PATH."}

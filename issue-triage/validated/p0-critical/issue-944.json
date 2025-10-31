@@ -1,0 +1,10 @@
+{
+  "number": 944,
+  "title": "[BUG] 404 for https://fvm.app/documentation/installation",
+  "triagedAt": "2025-10-30",
+  "priority": "p0-critical",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-944.md",
+  "url": "https://github.com/leoafarias/fvm/issues/944",
+  "notes": "Getting Started page links to /documentation/installation which 404s; see artifact for reproduction steps and fix plan."
+}

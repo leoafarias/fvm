@@ -1,0 +1,9 @@
+{
+  "number": 880,
+  "title": "[Feature Request] Add force option to spawn command",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-880.md",
+  "url": "https://github.com/leoafarias/fvm/issues/880",
+  "notes": "Add --force flag to spawn and pass through to EnsureCacheWorkflow."}

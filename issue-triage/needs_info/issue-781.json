@@ -1,0 +1,8 @@
+{
+  "number": 781,
+  "title": "[INSTALLATION] Can not install fwm using choco",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-781.md",
+  "url": "https://github.com/leoafarias/fvm/issues/781",
+  "notes": "Request Chocolatey verbose logs and directory listing."}

@@ -1,0 +1,8 @@
+{
+  "number": 759,
+  "title": "[Feature Request]: Set as global the Flutter version in .fvmrc file",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-759.md",
+  "url": "https://github.com/leoafarias/fvm/issues/759",
+  "notes": "Need VSCode settings and error output."}

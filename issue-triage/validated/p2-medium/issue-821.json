@@ -1,0 +1,9 @@
+{
+  "number": 821,
+  "title": "Support Dart VSCode getFlutterSdkCommand",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-821.md",
+  "url": "https://github.com/leoafarias/fvm/issues/821",
+  "notes": "Add fvm path command + configure dart.getFlutterSdkCommand / dart.getDartSdkCommand in VS Code workflow."}

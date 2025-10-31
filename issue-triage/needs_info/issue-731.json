@@ -1,0 +1,8 @@
+{
+  "number": 731,
+  "title": "The provided value cache.git is not the root of a git directory",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-731.md",
+  "url": "https://github.com/leoafarias/fvm/issues/731",
+  "notes": "Screenshot only; request commands and logs."}

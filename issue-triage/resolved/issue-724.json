@@ -1,0 +1,8 @@
+{
+  "number": 724,
+  "title": "SDK Path does not point to the project directory. \"fvm use\" will not make IntelliJ (Android Studio, ...) switch Flutter version. Please consult",
+  "triagedAt": "2025-10-30",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-724.md",
+  "url": "https://github.com/leoafarias/fvm/issues/724",
+  "notes": "Set Android Studio Flutter SDK path to .fvm/flutter_sdk or rely on FVM automation."}

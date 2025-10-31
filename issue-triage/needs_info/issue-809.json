@@ -1,0 +1,8 @@
+{
+  "number": 809,
+  "title": "[BUG]: cannot update to newer flutter version (sidekick related)",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-809.md",
+  "url": "https://github.com/leoafarias/fvm/issues/809",
+  "notes": "Request verbose logs and reproduction outside Sidekick."}

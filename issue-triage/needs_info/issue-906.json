@@ -1,0 +1,8 @@
+{
+  "number": 906,
+  "title": "Very long wait when opening terminal in android studio",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-906.md",
+  "url": "https://github.com/leoafarias/fvm/issues/906",
+  "notes": "Unable to reproduce without timing/log data; need shell config and measurements."}

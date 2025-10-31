@@ -1,0 +1,8 @@
+{
+  "number": 812,
+  "title": "How should I configure the fvm, I can make sure that the default global version is used under the global and the version specified by the fvmrc is used under the project",
+  "triagedAt": "2025-10-30",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-812.md",
+  "url": "https://github.com/leoafarias/fvm/issues/812",
+  "notes": "Support question; point to global + project docs."}

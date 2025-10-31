@@ -1,0 +1,9 @@
+{
+  "number": 897,
+  "title": "How to avoid warning of access .bash_profile?",
+  "triagedAt": "2025-10-30",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-897.md",
+  "url": "https://github.com/leoafarias/fvm/issues/897",
+  "notes": "Home Manager makes ~/.bash_profile read-only; add guards/skip flag so FVM doesn’t throw PathAccessException."}

@@ -1,0 +1,9 @@
+{
+  "number": 935,
+  "title": "[Feature Request] Support for RISC-V architecture",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-935.md",
+  "url": "https://github.com/leoafarias/fvm/issues/935",
+  "notes": "Install script and release pipeline only ship x64/arm64 binaries; add riscv64 builds and update docs."}

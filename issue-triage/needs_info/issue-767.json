@@ -1,0 +1,8 @@
+{
+  "number": 767,
+  "title": "[BUG] Android Studio cannot change the project's Flutter SDK path",
+  "triagedAt": "2025-10-30",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-767.md",
+  "url": "https://github.com/leoafarias/fvm/issues/767",
+  "notes": "Request .idea config and symlink info for Windows."}

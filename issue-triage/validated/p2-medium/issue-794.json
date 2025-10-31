@@ -1,0 +1,9 @@
+{
+  "number": 794,
+  "title": "Feedback for “Installation” (Raspberry Pi support)",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-794.md",
+  "url": "https://github.com/leoafarias/fvm/issues/794",
+  "notes": "Add Linux ARM artifacts and update install script to detect Pi architectures."}

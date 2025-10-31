@@ -1,0 +1,9 @@
+{
+  "number": 720,
+  "title": "[Feature Request] Automatically install required Flutter version",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-720.md",
+  "url": "https://github.com/leoafarias/fvm/issues/720",
+  "notes": "Consider `fvm sync` command to auto-install missing versions."}

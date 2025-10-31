@@ -1,0 +1,9 @@
+{
+  "number": 743,
+  "title": "[Feature Request] Don't require specifying Flutter version in VS Code dart.flutterSdkPath config",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-743.md",
+  "url": "https://github.com/leoafarias/fvm/issues/743",
+  "notes": "Consider pointing VS Code to .fvm/flutter_sdk or using getFlutterSdkCommand."}

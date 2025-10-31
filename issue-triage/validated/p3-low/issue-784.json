@@ -1,0 +1,9 @@
+{
+  "number": 784,
+  "title": "[Feature Request] Set specified version of Flutter SDK in current terminal enviroment.",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-784.md",
+  "url": "https://github.com/leoafarias/fvm/issues/784",
+  "notes": "Consider `fvm env` command to print PATH exports for temporary sessions."}

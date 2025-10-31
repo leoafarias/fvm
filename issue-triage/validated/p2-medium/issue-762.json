@@ -1,0 +1,9 @@
+{
+  "number": 762,
+  "title": "[Feature Request] Support arm64 docker images",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-762.md",
+  "url": "https://github.com/leoafarias/fvm/issues/762",
+  "notes": "Build Docker image for linux/amd64 and linux/arm64 via Buildx."}

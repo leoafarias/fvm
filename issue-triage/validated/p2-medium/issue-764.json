@@ -1,0 +1,9 @@
+{
+  "number": 764,
+  "title": "[Feature Request] FVM should automatically switch used Flutter version on git checkout",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-764.md",
+  "url": "https://github.com/leoafarias/fvm/issues/764",
+  "notes": "Retain per-project version symlinks instead of wiping .fvm/versions."}

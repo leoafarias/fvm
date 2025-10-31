@@ -1,0 +1,9 @@
+{
+  "number": 938,
+  "title": "[BUG] Cannot resolve symbolic links",
+  "triagedAt": "2025-10-30",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-938.md",
+  "url": "https://github.com/leoafarias/fvm/issues/938",
+  "notes": "`fvm doctor` crashes when `local.properties` references a flutter.sdk path but the project lacks a pinned version/symlink. Guard `resolveSymbolicLinksSync`."}

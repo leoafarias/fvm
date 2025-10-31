@@ -1,0 +1,9 @@
+{
+  "number": 761,
+  "title": "when we typo, show error",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-761.md",
+  "url": "https://github.com/leoafarias/fvm/issues/761",
+  "notes": "Detect leftover args and show unknown command usage error."}

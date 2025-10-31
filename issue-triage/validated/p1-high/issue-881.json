@@ -1,0 +1,9 @@
+{
+  "number": 881,
+  "title": "[BUG] ssh url is not supported when running fvm fork add command",
+  "triagedAt": "2025-10-30",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-881.md",
+  "url": "https://github.com/leoafarias/fvm/issues/881",
+  "notes": "Broaden git URL validation to accept SSH/scp syntax and reuse in EnsureCacheWorkflow."}

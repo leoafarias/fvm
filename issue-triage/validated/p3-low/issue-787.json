@@ -1,0 +1,9 @@
+{
+  "number": 787,
+  "title": "[Feature Request] Add alias command files for execute directly `flutter`",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-787.md",
+  "url": "https://github.com/leoafarias/fvm/issues/787",
+  "notes": "Assess packaging wrapper scripts; document current PATH-based workflow."}

@@ -1,0 +1,9 @@
+{
+  "number": 738,
+  "title": "[Feature Request] publish fvm DockerFile to github marketplace",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-738.md",
+  "url": "https://github.com/leoafarias/fvm/issues/738",
+  "notes": "Provide Codespaces devcontainer leveraging existing Docker image."}

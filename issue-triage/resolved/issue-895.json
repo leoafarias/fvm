@@ -1,0 +1,8 @@
+{
+  "number": 895,
+  "title": "Hi, may I ask when version 4.0.0 will be fully released?",
+  "triagedAt": "2025-10-30",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-895.md",
+  "url": "https://github.com/leoafarias/fvm/issues/895",
+  "notes": "4.0.0 released Oct 30, 2025; Homebrew tap now points to 4.0.0 tarball."}

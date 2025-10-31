@@ -1,0 +1,9 @@
+{
+  "number": 826,
+  "title": "[Feature Request] Add package to Winget",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-826.md",
+  "url": "https://github.com/leoafarias/fvm/issues/826",
+  "notes": "Add Winget manifests and release automation to mirror Windows binaries."}

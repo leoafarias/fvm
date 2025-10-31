@@ -1,0 +1,8 @@
+{
+  "number": 904,
+  "title": "Update usage in kotlin files",
+  "triagedAt": "2025-10-30",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-904.md",
+  "url": "https://github.com/leoafarias/fvm/issues/904",
+  "notes": "Warning comes from Flutter's flutter_tools Kotlin code; no FVM action."}

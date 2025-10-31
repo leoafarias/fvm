@@ -1,0 +1,9 @@
+{
+  "number": 786,
+  "title": "Please bump dart_console to ^4.0.0",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-786.md",
+  "url": "https://github.com/leoafarias/fvm/issues/786",
+  "notes": "Replace interact prompts and upgrade dart_console to 4.x."}
