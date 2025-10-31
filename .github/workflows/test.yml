@@ -82,6 +82,42 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
 
+  test-min-sdk:
+    name: Test with minimum SDK version
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract minimum SDK version
+        id: min-sdk
+        run: |
+          MIN_SDK=$(bash scripts/get_min_sdk_version.sh)
+          echo "version=$MIN_SDK" >> $GITHUB_OUTPUT
+          echo "Minimum SDK version: $MIN_SDK"
+
+      - name: Setup Dart with minimum SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ steps.min-sdk.outputs.version }}
+
+      - name: Install dependencies with minimum versions
+        run: |
+          dart pub get
+          dart pub downgrade
+
+      - name: Verify pubspec.lock SDK constraint
+        run: |
+          echo "Checking pubspec.lock SDK constraint..."
+          tail -2 pubspec.lock
+
+      - name: Run analyzer
+        run: dart analyze --fatal-infos
+
+      - name: Run tests
+        run: dart test
+
   test-os:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
@@ -92,7 +128,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
 
-    steps:        
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 

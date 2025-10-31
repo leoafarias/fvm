@@ -1,6 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:mason_logger/mason_logger.dart' hide ExitCode;
 
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
