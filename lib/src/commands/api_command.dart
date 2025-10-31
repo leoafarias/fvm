@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:io/io.dart';
-import 'package:mason_logger/mason_logger.dart' hide ExitCode;
 
 import '../api/api_service.dart';
 import '../api/models/json_response.dart';
