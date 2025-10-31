@@ -246,16 +246,33 @@ case "$ARCH" in
   arm64|aarch64)
     ARCH='arm64'
     ;;
+  armv7l|armv6l)
+    ARCH='arm'
+    ;;
   riscv64|riscv64gc)
     ARCH='riscv64'
     ;;
   *)
-    error "Unsupported architecture: $ARCH. Only x64, arm64, and riscv64 are supported."
+    error "Unsupported architecture: $ARCH. Only x64, arm64, arm, and riscv64 are supported."
     ;;
 esac
 
 info "Detected OS: $OS"
 info "Detected Architecture: $ARCH"
+
+# Detect musl vs glibc on Linux (for Alpine support)
+LIBC_VARIANT=""
+if [[ "$OS" == "linux" ]]; then
+  if command -v ldd >/dev/null && ldd --version 2>&1 | grep -qi musl; then
+    LIBC_VARIANT="-musl"
+    info "Detected libc: musl (Alpine)"
+  elif ls /lib/ld-musl-*.so.* &>/dev/null; then
+    LIBC_VARIANT="-musl"
+    info "Detected libc: musl (Alpine)"
+  else
+    info "Detected libc: glibc"
+  fi
+fi
 
 # Block root execution except in containers
 if [[ $(id -u) -eq 0 ]]; then
@@ -294,11 +311,13 @@ if [[ -z "$FVM_VERSION" ]]; then
   # GitHub Actions runners share IPs and hit the 60 req/hour API limit
   # This method has no rate limits and is simpler (KISS principle)
   FVM_VERSION=$(curl -sI https://github.com/leoafarias/fvm/releases/latest | grep -i location | cut -d' ' -f2 | rev | cut -d'/' -f1 | rev | tr -d '\r')
-  
+
   if [[ -z "$FVM_VERSION" ]]; then
-    # Simple fallback - no complex error handling needed
-    FVM_VERSION="3.2.1"
-    warn "Could not fetch latest version. Using fallback: $FVM_VERSION"
+    error "Could not fetch latest FVM version. Possible causes:
+  - Check your internet connection
+  - GitHub may be temporarily unavailable
+  - Try specifying a version explicitly: ./install.sh 4.0.0
+  - View available versions: https://github.com/leoafarias/fvm/releases"
   fi
 else
   # Validate version format
@@ -306,6 +325,10 @@ else
     error "Invalid version format: $FVM_VERSION. Expected format: 1.2.3 or v1.2.3"
   fi
 fi
+
+# Normalize version - strip leading "v" if present
+# GitHub releases use tags without "v" (e.g., 4.0.0, not v4.0.0)
+FVM_VERSION="${FVM_VERSION#v}"
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
@@ -331,7 +354,7 @@ fi
 mkdir -p "$FVM_DIR_BIN" || error "Failed to create directory: $FVM_DIR_BIN"
 
 # Download FVM
-URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH.tar.gz"
+URL="https://github.com/leoafarias/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-$ARCH$LIBC_VARIANT.tar.gz"
 
 info "Downloading $URL"
 if ! curl -L --fail --show-error "$URL" -o fvm.tar.gz; then
