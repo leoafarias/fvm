@@ -1,0 +1,10 @@
+{
+  "number": 583,
+  "title": "[Feature Request] Replace current version by upgrading it",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-583.md",
+  "url": "https://github.com/leoafarias/fvm/issues/583",
+  "notes": "Add an `fvm upgrade` workflow (with `--force`/`--remove-old`) that resolves the latest channel release, installs it, and switches the global SDK without manual remove/global steps."
+}

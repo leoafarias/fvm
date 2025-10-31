@@ -1,0 +1,10 @@
+{
+  "number": 587,
+  "title": "[Question] Cannot change ownership to uid 397546, gid 5000: Invalid argument",
+  "triagedAt": "2025-10-31",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-587.md",
+  "url": "https://github.com/leoafarias/fvm/issues/587",
+  "notes": "Set TAR_OPTIONS=--no-same-owner when launching flutter so tar extractions succeed on container volumes that forbid chown; document the change and manual workaround."
+}

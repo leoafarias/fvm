@@ -1,0 +1,10 @@
+{
+  "number": 421,
+  "title": "[Feature Request] fvm install 2: infer the latest minor/patch version when supplying the major version",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-421.md",
+  "url": "https://github.com/leoafarias/fvm/issues/421",
+  "notes": "Detect partial semver input (e.g., 2 or 2.10[@channel]), resolve it via release metadata to the newest matching Flutter release, and pass the concrete version through the existing install workflow."
+}

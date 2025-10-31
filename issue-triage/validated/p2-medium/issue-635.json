@@ -1,0 +1,10 @@
+{
+  "number": 635,
+  "title": "[BUG] `fvm use` makes unrelated changes to settings.json.",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-635.md",
+  "url": "https://github.com/leoafarias/fvm/issues/635",
+  "notes": "Stop rewriting VS Code settings with JsonEncoder; update only the dart.flutterSdkPath property while preserving existing comments, indentation, and tabs."
+}

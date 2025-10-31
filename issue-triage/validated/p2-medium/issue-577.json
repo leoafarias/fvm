@@ -1,0 +1,10 @@
+{
+  "number": 577,
+  "title": "[Feature Request] Use the flutter version defined in pubspec.yaml when running `fvm install`",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-577.md",
+  "url": "https://github.com/leoafarias/fvm/issues/577",
+  "notes": "Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically."
+}

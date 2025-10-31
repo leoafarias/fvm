@@ -1,0 +1,10 @@
+{
+  "number": 681,
+  "title": "[Enhancement] Maintain project reference to cache versions after switch",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-681.md",
+  "url": "https://github.com/leoafarias/fvm/issues/681",
+  "notes": "Stop deleting .fvm/versions on each switch; preserve per-version symlinks so branch checkouts keep working, add cleanup tooling, and update docs."
+}

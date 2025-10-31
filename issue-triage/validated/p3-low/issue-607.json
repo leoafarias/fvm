@@ -1,0 +1,10 @@
+{
+  "number": 607,
+  "title": "Support flatpak or snaps on Linux.",
+  "triagedAt": "2025-10-31",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-607.md",
+  "url": "https://github.com/leoafarias/fvm/issues/607",
+  "notes": "Package FVM as a Snap (classic confinement) and evaluate Flatpak viability; update release automation and installation docs accordingly."
+}

@@ -1,0 +1,9 @@
+{
+  "number": 388,
+  "title": "[BUG] Intellij IDEA (Android Studio) with multiple flutter packages: cannot configure fvm",
+  "triagedAt": "2025-10-31",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-388.md",
+  "url": "https://github.com/leoafarias/fvm/issues/388",
+  "notes": "Android Studio currently exposes a single Flutter SDK path per project, so per-module versions aren’t supported; document the limitation and workarounds."
+}

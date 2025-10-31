@@ -1,0 +1,10 @@
+{
+  "number": 600,
+  "title": "[Feature Request] Improve docs for configuration Android Studio",
+  "triagedAt": "2025-10-31",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-600.md",
+  "url": "https://github.com/leoafarias/fvm/issues/600",
+  "notes": "Expand Android Studio/IntelliJ docs with step-by-step guidance, screenshots, and troubleshooting so users point to `.fvm/flutter_sdk` and understand how dynamic updates work."
+}

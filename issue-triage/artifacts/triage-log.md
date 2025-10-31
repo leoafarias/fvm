@@ -19,6 +19,11 @@
 - [x] #881 – SSH URLs rejected by fork/config validation (triaged 2025-10-30)
 - [x] #801 – FVM fish shell Ctrl+C leaves terminal unusable (triaged 2025-10-30)
 - [x] #783 – Use full commit hashes in configs to avoid collisions (triaged 2025-10-30)
+- [x] #683 – Hosted dependency overrides without versions crash the parser (triaged 2025-10-31)
+- [x] #688 – Add archive install strategy honoring `FLUTTER_STORAGE_BASE_URL` mirrors (triaged 2025-10-31)
+- [x] #666 – Normalize cache vs requested versions to avoid false mismatch prompts (triaged 2025-10-31)
+- [x] #587 – Mirror Flutter’s TAR_OPTIONS so container installs succeed (triaged 2025-10-31)
+- [x] #581 – Publish multi-arch Docker images so installs succeed on arm64 (triaged 2025-10-31)
 
 ### P2 - Medium (Standard Bugs/Enhancements)
 - [x] #935 – Request RISC-V install support (triaged 2025-10-30)
@@ -38,6 +43,13 @@
 - [x] #702 – VS Code multi-root workspace should not collapse SDK paths (triaged 2025-10-31)
 - [x] #696 – Allow relocating `.fvm` via project config to keep SDK outside repo (triaged 2025-10-31)
 - [x] #689 – Provide plain CLI output mode to restore shell completions (triaged 2025-10-31)
+- [x] #681 – Preserve project `.fvm/versions` symlinks for branch switching (triaged 2025-10-31)
+- [x] #674 – Store command flags in context instead of threading parameters (triaged 2025-10-31)
+- [x] #648 – Resolve Flutter versions from Dart constraints and improve Dart fallback (triaged 2025-10-31)
+- [x] #635 – Update VS Code settings without stripping comments or tabs (triaged 2025-10-31)
+- [x] #583 – Provide an upgrade workflow for the global SDK (triaged 2025-10-31)
+- [x] #577 – Let `fvm install` resolve pubspec flutter constraints (triaged 2025-10-31)
+- [x] #421 – Resolve partial semver inputs like `fvm install 2` to latest releases (triaged 2025-10-31)
 
 ### P3 - Low (Minor Issues/Feature Requests)
 - [x] #933 – Chocolatey title should spell out Flutter Version Manager (triaged 2025-10-30)
@@ -48,6 +60,10 @@
 - [x] #784 – Provide temporary shell env command (triaged 2025-10-30)
 - [x] #761 – Surface unknown-command errors (triaged 2025-10-30)
 - [x] #751 – Evaluate semver range support (triaged 2025-10-30)
+- [x] #607 – Provide Snap/Flatpak distribution options for Linux (triaged 2025-10-31)
+- [x] #600 – Clarify Android Studio/IntelliJ FVM setup in docs (triaged 2025-10-31)
+- [x] #584 – Document custom Flutter Git remotes (`flutterUrl`) (triaged 2025-10-31)
+- [x] #578 – Publish a MacPorts port so macOS users have a Homebrew alternative (triaged 2025-10-31)
 
 ### Already Resolved
 - [x] #904 – Kotlin deprecation warning belongs to Flutter (no FVM change)
@@ -62,6 +78,8 @@
 - [x] #719 – Rerouting docs already published in “Running Flutter” guide (triaged 2025-10-31)
 - [x] #715 – Older Flutter versions need a system JDK; FVM works as designed (triaged 2025-10-31)
 - [x] #697 – Android Studio must target `.fvm/default`; document the global workflow (triaged 2025-10-31)
+- [x] #575 – `fvm flavor` already runs commands on flavor-defined SDKs (triaged 2025-10-31)
+- [x] #388 – IntelliJ supports only one Flutter SDK per project; document limitation (triaged 2025-10-31)
 
 ### Version Specific (v3.x only)
 - [ ] Needs triage
@@ -137,15 +155,32 @@
 - #697: Clarified that `fvm global` only manages the `.fvm/default` symlink and Android Studio must be pointed there; planned doc updates (`artifacts/issue-697.md`).
 - #696: Validated request to move `.fvm` outside the project and proposed honoring `.fvmrc cachePath` with docs/tests (`artifacts/issue-696.md`).
 - #689: Documented grid-table regression in CLI output and plan for configurable/plain mode to fix shell completions (`artifacts/issue-689.md`).
+- #688: Planned archive-based installs so mirrored storage URLs work without Git/GCS access (`artifacts/issue-688.md`).
+- #683: Identified `pubspec` parser bug for hosted overrides without versions and outlined sanitizer/upstream fix (`artifacts/issue-683.md`).
+- #681: Proposed keeping per-version project symlinks instead of deleting `.fvm/versions` so branch switching works seamlessly (`artifacts/issue-681.md`).
+- #674: Designed context-based command options to remove repetitive flag plumbing across workflows (`artifacts/issue-674.md`).
+- #666: Planned semantic normalization for version mismatch detection so non-numeric tags stop triggering repairs (`artifacts/issue-666.md`).
+- #648: Outlined constraint-aware tooling (resolve by Dart version, min/max exec, better dart fallback) (`artifacts/issue-648.md`).
+- #635: Proposed comment-preserving JSONC editor so `.vscode/settings.json` keeps user formatting (`artifacts/issue-635.md`).
+- #607: Planned Snap packaging (classic confinement) and evaluated Flatpak support for Linux users (`artifacts/issue-607.md`).
+- #600: Identified gaps in Android Studio docs and outlined clearer configuration steps with screenshots (`artifacts/issue-600.md`).
+- #587: Planned to set `TAR_OPTIONS=--no-same-owner` when running flutter to avoid tar ownership failures in containers (`artifacts/issue-587.md`).
+- #584: Will document how to override the Flutter Git remote via config/env (`artifacts/issue-584.md`).
+- #583: Designed an `fvm upgrade` command (plus `--force` removal) to streamline global updates (`artifacts/issue-583.md`).
+- #581: Migrate Docker image to glibc base and build multi-arch variants to fix arm64 installs (`artifacts/issue-581.md`).
+- #578: Planned creation of a MacPorts Portfile and documentation updates (`artifacts/issue-578.md`).
+- #577: Planned pubspec constraint resolution for `fvm install --pubspec` (`artifacts/issue-577.md`).
+- #421: Planned partial-version resolution so `fvm install 2` picks the newest Flutter 2 release (`artifacts/issue-421.md`).
+- #388: Documented Android Studio’s single-SDK limitation and suggested workarounds (`artifacts/issue-388.md`).
 
 ---
 
 ## Summary Statistics
-- **Total Triaged**: 63/81
+- **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 8
-- **P2 Medium**: 17
-- **P3 Low**: 9
-- **Resolved**: 19
+- **P1 High**: 13
+- **P2 Medium**: 24
+- **P3 Low**: 13
+- **Resolved**: 21
 - **Version Specific**: 0
 - **Needs Info**: 8

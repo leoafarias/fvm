@@ -1,0 +1,10 @@
+{
+  "number": 666,
+  "title": "[BUG] False positive: \"Version mismatch detected\" for non-numeric flutter versions",
+  "triagedAt": "2025-10-31",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-666.md",
+  "url": "https://github.com/leoafarias/fvm/issues/666",
+  "notes": "Normalize cached vs configured version strings (strip leading v, compare base semver, fall back to Version.parse) so dev/prerelease names don’t trigger false mismatch prompts."
+}

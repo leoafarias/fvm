@@ -1,0 +1,9 @@
+{
+  "number": 575,
+  "title": "[Feature Request] Spawn on a flavor",
+  "triagedAt": "2025-10-31",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-575.md",
+  "url": "https://github.com/leoafarias/fvm/issues/575",
+  "notes": "`fvm flavor <name> <command>` already proxies Flutter commands with the flavor’s version without switching; document usage and close."
+}

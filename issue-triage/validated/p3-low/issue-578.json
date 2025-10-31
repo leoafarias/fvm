@@ -1,0 +1,10 @@
+{
+  "number": 578,
+  "title": "[Feature Request] Add MacPorts as an installation method",
+  "triagedAt": "2025-10-31",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-578.md",
+  "url": "https://github.com/leoafarias/fvm/issues/578",
+  "notes": "Create a MacPorts Portfile that installs FVM from GitHub releases, submit it to the MacPorts ports tree, and update docs so macOS users have a Homebrew alternative."
+}

@@ -1,0 +1,10 @@
+{
+  "number": 581,
+  "title": "[BUG] Cannot install flutter into the fvm alpine Docker container",
+  "triagedAt": "2025-10-31",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-581.md",
+  "url": "https://github.com/leoafarias/fvm/issues/581",
+  "notes": "Rebuild the Docker image on a glibc base with multi-arch support, pulling the correct FVM binary per architecture and testing installs so arm64 hosts (Apple Silicon) work."
+}

@@ -1,0 +1,10 @@
+{
+  "number": 648,
+  "title": "Dart Version management improvements",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-648.md",
+  "url": "https://github.com/leoafarias/fvm/issues/648",
+  "notes": "Add constraint-aware tooling: resolve Flutter versions from Dart SDK ranges, run commands against min/max pubspec constraints, and make `fvm dart` fall back to Flutter’s bundled Dart instead of a standalone PATH binary."
+}

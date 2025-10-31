@@ -1,0 +1,10 @@
+{
+  "number": 683,
+  "title": "[BUG] dependency overrides cause malfunction in fvm commands",
+  "triagedAt": "2025-10-31",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-683.md",
+  "url": "https://github.com/leoafarias/fvm/issues/683",
+  "notes": "Upstream pubspec parser requires a version for hosted overrides; add local sanitizer/guard and push fix upstream so overrides without explicit versions stop crashing FVM."
+}

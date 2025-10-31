@@ -1,0 +1,10 @@
+{
+  "number": 674,
+  "title": "Pass global level flags and options",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-674.md",
+  "url": "https://github.com/leoafarias/fvm/issues/674",
+  "notes": "Introduce command-scoped options in FvmContext so flags like --force/--skip-setup don't need to be threaded through every workflow; add helpers, reset per command, and update docs/tests."
+}

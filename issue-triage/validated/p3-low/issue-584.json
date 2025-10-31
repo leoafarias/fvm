@@ -1,0 +1,10 @@
+{
+  "number": 584,
+  "title": "[BUG] Unable to change the `context.flutterUrl`",
+  "triagedAt": "2025-10-31",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-584.md",
+  "url": "https://github.com/leoafarias/fvm/issues/584",
+  "notes": "Document the custom Flutter remote feature (`fvm config --flutter-url`, `FVM_FLUTTER_URL`, `FLUTTER_GIT_URL`) and enhance CLI help so users know how to override the clone source."
+}
