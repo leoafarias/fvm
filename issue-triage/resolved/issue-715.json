@@ -1,0 +1,9 @@
+{
+  "number": 715,
+  "title": "[BUG] Cannot change versions to use Dart<3.0 compatible projects",
+  "triagedAt": "2025-10-31",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-715.md",
+  "url": "https://github.com/leoafarias/fvm/issues/715",
+  "notes": "Switching to Flutter 3.7.x requires a system JDK; FVM only proxies Flutter and leaves JAVA_HOME unchanged. Document fix and respond with guidance."
+}

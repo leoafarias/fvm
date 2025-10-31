@@ -35,6 +35,9 @@
 - [x] #762 – Build multi-arch Docker images (triaged 2025-10-30)
 - [x] #743 – Simplify VS Code Flutter SDK path management (triaged 2025-10-30)
 - [x] #738 – Provide Codespaces devcontainer / Marketplace Docker (`triaged 2025-10-30`)
+- [x] #702 – VS Code multi-root workspace should not collapse SDK paths (triaged 2025-10-31)
+- [x] #696 – Allow relocating `.fvm` via project config to keep SDK outside repo (triaged 2025-10-31)
+- [x] #689 – Provide plain CLI output mode to restore shell completions (triaged 2025-10-31)
 
 ### P3 - Low (Minor Issues/Feature Requests)
 - [x] #933 – Chocolatey title should spell out Flutter Version Manager (triaged 2025-10-30)
@@ -56,6 +59,9 @@
 - [x] #805 – Auto hot reload is out of FVM scope
 - [x] #799 – Duplicate of shell profile permission issue (#897)
 - [x] #791 – Fork versions already namespaced via alias/version
+- [x] #719 – Rerouting docs already published in “Running Flutter” guide (triaged 2025-10-31)
+- [x] #715 – Older Flutter versions need a system JDK; FVM works as designed (triaged 2025-10-31)
+- [x] #697 – Android Studio must target `.fvm/default`; document the global workflow (triaged 2025-10-31)
 
 ### Version Specific (v3.x only)
 - [ ] Needs triage
@@ -124,14 +130,22 @@
 - #754: Provide install.sh workaround for outdated Xcode (`artifacts/issue-754.md`).
 - #724: Clarify Android Studio SDK path configuration (`artifacts/issue-724.md`).
 
+### Session 2: 2025-10-31
+- #719: Verified the “Running Flutter” guide documents rerouting bare `flutter`/`dart` commands through FVM; issue can be closed as resolved (`artifacts/issue-719.md`).
+- #715: Determined Java toolchain errors stem from missing system JDK when using Flutter 3.7.x; documented workaround and marked as environment issue (`artifacts/issue-715.md`).
+- #702: Confirmed multi-root VS Code workspaces get a single `dart.flutterSdkPath`; outlined fix to skip workspace override and document the workflow (`artifacts/issue-702.md`).
+- #697: Clarified that `fvm global` only manages the `.fvm/default` symlink and Android Studio must be pointed there; planned doc updates (`artifacts/issue-697.md`).
+- #696: Validated request to move `.fvm` outside the project and proposed honoring `.fvmrc cachePath` with docs/tests (`artifacts/issue-696.md`).
+- #689: Documented grid-table regression in CLI output and plan for configurable/plain mode to fix shell completions (`artifacts/issue-689.md`).
+
 ---
 
 ## Summary Statistics
-- **Total Triaged**: 57/81
+- **Total Triaged**: 63/81
 - **P0 Critical**: 2
 - **P1 High**: 8
-- **P2 Medium**: 14
+- **P2 Medium**: 17
 - **P3 Low**: 9
-- **Resolved**: 16
+- **Resolved**: 19
 - **Version Specific**: 0
 - **Needs Info**: 8

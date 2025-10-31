@@ -1,0 +1,10 @@
+{
+  "number": 702,
+  "title": "[Feature Request] Manage Workspace with multiple projects in VSCode",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-702.md",
+  "url": "https://github.com/leoafarias/fvm/issues/702",
+  "notes": "Workspace-level dart.flutterSdkPath overrides folder-specific settings. Skip writing it when multi-root, rely on per-folder configs, and update docs."
+}

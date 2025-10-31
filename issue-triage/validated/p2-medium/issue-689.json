@@ -1,0 +1,10 @@
+{
+  "number": 689,
+  "title": "[BUG] Version 3.0 broke shell completion and is less readable",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-689.md",
+  "url": "https://github.com/leoafarias/fvm/issues/689",
+  "notes": "Rich table output lacks a plain/text mode. Add console style toggle (config + CLI flag), auto-fallback for non-TTY, and update docs/tests."
+}

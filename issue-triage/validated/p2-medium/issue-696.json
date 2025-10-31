@@ -1,0 +1,10 @@
+{
+  "number": 696,
+  "title": "[Feature Request] Specify path for .fvm directory",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-696.md",
+  "url": "https://github.com/leoafarias/fvm/issues/696",
+  "notes": "Project.localFvmPath ignores .fvmrc cachePath overrides. Add support for relative/absolute overrides, update docs, and test multi-project scenarios."
+}
