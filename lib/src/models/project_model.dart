@@ -144,7 +144,7 @@ class Project with ProjectMappable {
   /// Retrieves the Flutter SDK constraint from the pubspec.yaml file.
   ///
   /// Returns `null` if the constraint is not defined.
-  VersionConstraint? get sdkConstraint => pubspec?.environment?['sdk'];
+  VersionConstraint? get sdkConstraint => pubspec?.environment['sdk'];
 }
 
 String _fvmPath(String path) {
@@ -191,8 +191,8 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
     if (pubspec.description != null) map['description'] = pubspec.description;
 
     // SDK and dependency constraints
-    if (pubspec.environment != null && pubspec.environment!.isNotEmpty) {
-      map['environment'] = pubspec.environment!.map(
+    if (pubspec.environment.isNotEmpty) {
+      map['environment'] = pubspec.environment.map(
         (key, value) => MapEntry(key, value?.toString()),
       );
     }
