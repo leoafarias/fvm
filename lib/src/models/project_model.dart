@@ -182,71 +182,32 @@ class PubspecMapper extends SimpleMapper<Pubspec> {
   const PubspecMapper();
 
   /// Converts a Pubspec object to a JSON-compatible Map
-  /// Converts all pubspec fields to JSON-compatible Map
+  /// Only includes essential fields for serialization compatibility
   Map<String, dynamic> _pubspecToJsonMap(Pubspec pubspec) {
     final map = <String, dynamic>{'name': pubspec.name};
 
-    // Add optional fields only if they exist
+    // Core metadata
     if (pubspec.version != null) map['version'] = pubspec.version?.toString();
     if (pubspec.description != null) map['description'] = pubspec.description;
-    if (pubspec.homepage != null) map['homepage'] = pubspec.homepage;
-    if (pubspec.repository != null) {
-      map['repository'] = pubspec.repository?.toString();
-    }
-    if (pubspec.issueTracker != null) {
-      map['issue_tracker'] = pubspec.issueTracker?.toString();
-    }
-    if (pubspec.documentation != null) {
-      map['documentation'] = pubspec.documentation;
-    }
-    if (pubspec.publishTo != null) map['publish_to'] = pubspec.publishTo;
 
-    // Handle environment constraints
+    // SDK and dependency constraints
     if (pubspec.environment.isNotEmpty) {
       map['environment'] = pubspec.environment.map(
         (key, value) => MapEntry(key, value?.toString()),
       );
     }
 
-    // Handle dependencies
+    // Dependencies
     if (pubspec.dependencies.isNotEmpty) {
       map['dependencies'] = _dependenciesToJsonMap(pubspec.dependencies);
     }
     if (pubspec.devDependencies.isNotEmpty) {
       map['dev_dependencies'] = _dependenciesToJsonMap(pubspec.devDependencies);
     }
-    if (pubspec.dependencyOverrides.isNotEmpty) {
-      map['dependency_overrides'] = _dependenciesToJsonMap(
-        pubspec.dependencyOverrides,
-      );
-    }
 
-    // Handle Flutter configuration
+    // Flutter configuration
     if (pubspec.flutter != null && pubspec.flutter!.isNotEmpty) {
       map['flutter'] = pubspec.flutter;
-    }
-
-    // Handle executables
-    if (pubspec.executables.isNotEmpty) {
-      map['executables'] = pubspec.executables;
-    }
-
-    // Handle additional fields for completeness
-    if (pubspec.funding != null && pubspec.funding!.isNotEmpty) {
-      map['funding'] = pubspec.funding!.map((uri) => uri.toString()).toList();
-    }
-    if (pubspec.topics != null && pubspec.topics!.isNotEmpty) {
-      map['topics'] = pubspec.topics;
-    }
-    if (pubspec.screenshots != null && pubspec.screenshots!.isNotEmpty) {
-      map['screenshots'] = pubspec.screenshots!
-          .map(
-            (screenshot) => {
-              'description': screenshot.description,
-              'path': screenshot.path,
-            },
-          )
-          .toList();
     }
 
     return map;
