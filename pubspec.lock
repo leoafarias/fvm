@@ -181,10 +181,10 @@ packages:
     dependency: "direct dev"
     description:
       name: cli_pkg
-      sha256: f812467b5d6a5f26ad0fba5dcfc95133df02edbae47dfa4ade3df5d2b5afdcf2
+      sha256: da207d78c602f97fad700975282ea516dcb6bab97d20836287eac8fac563f3a5
       url: "https://pub.dev"
     source: hosted
-    version: "2.10.0"
+    version: "2.14.0"
   cli_util:
     dependency: transitive
     description:
