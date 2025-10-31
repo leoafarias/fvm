@@ -1,8 +1,0 @@
-{
-  "number": 782,
-  "title": "`Bad substitution` in when calling global packages",
-  "triagedAt": "2025-10-30",
-  "status": "resolved",
-  "artifact": "../artifacts/issue-782.md",
-  "url": "https://github.com/leoafarias/fvm/issues/782",
-  "notes": "Docs should use \"$@\" instead of bash-specific \"${@:1}\"."}

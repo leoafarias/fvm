@@ -1,0 +1,10 @@
+{
+  "number": 774,
+  "title": "dart: command not found error while using rps package",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-774.md",
+  "url": "https://github.com/leoafarias/fvm/issues/774",
+  "notes": "Docs need a PATH section showing how to expose ~/.fvm/default/bin so global commands like rps can find Dart; update guides before closing."
+}

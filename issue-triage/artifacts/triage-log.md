@@ -171,16 +171,42 @@
 - #578: Planned creation of a MacPorts Portfile and documentation updates (`artifacts/issue-578.md`).
 - #577: Planned pubspec constraint resolution for `fvm install --pubspec` (`artifacts/issue-577.md`).
 - #421: Planned partial-version resolution so `fvm install 2` picks the newest Flutter 2 release (`artifacts/issue-421.md`).
-- #388: Documented Android Studio’s single-SDK limitation and suggested workarounds (`artifacts/issue-388.md`).
+- #388: Documented Android Studio's single-SDK limitation and suggested workarounds (`artifacts/issue-388.md`).
+
+### Session 3: 2025-10-31 (Closure Session)
+- #884: Closed as resolved in v4.0.0 - `.gitignore` auto-update now built-in and working with `--force` and `--skip-setup` flags.
+- #807: Closed as already supported - `FVM_CACHE_PATH` (primary) and `FVM_HOME` (legacy) environment variables documented.
+- #805: Closed as out of scope - hot reload functionality belongs to Flutter/IDEs, not version management tools.
+- #812: Closed with comprehensive answer - FVM automatically uses project `.fvmrc` versions when in project, global otherwise.
+- #904: Closed as upstream Flutter issue - Kotlin deprecation warning originates from Flutter's `flutter_tools`, not FVM code.
+- #719: Already closed (merged docs) - rerouting `flutter`/`dart` commands documented in running-flutter guide.
+- #768: Already closed - external AI badge not aligned with FVM roadmap.
+- #769: Already closed - ancestor directory `.fvmrc` lookup is intentional design (monorepo/workspace support).
+
+**Android Studio Research Findings Updated**: Consolidated guidance and action plan for IDE automation now lives at `artifacts/android-studio-research.md`.
+
+### Session 4: 2025-10-31 (Resolved Audit)
+- #388: Re-validated Android Studio multi-module limitation; prepared closure guidance and left issue in `resolved/` (`artifacts/issue-388.md`).
+- #575: Confirmed `fvm flavor` already proxies flavor-specific SDKs; ready to close with usage examples (`artifacts/issue-575.md`).
+- #697: Verified global symlink behavior and doc updates; closure comment drafted to direct Android Studio to `~/.fvm/default` (`artifacts/issue-697.md`).
+- #724: Checked IDE workflow docs now highlight `.fvm/flutter_sdk`; closure reply drafted (`artifacts/issue-724.md`).
+- #754: Homebrew/Xcode constraint documented with install script workaround; safe to close (`artifacts/issue-754.md`).
+- #757: Custom Flutter repository support confirmed via `--flutter-url` / fork workflow; closure reply drafted (`artifacts/issue-757.md`).
+- #774: Documentation gap on exporting `~/.fvm/default/bin` persists—moved to `validated/p2-medium` with doc update plan (`artifacts/issue-774.md`).
+- #782: `Bad substitution` doc bug still reproducible—moved to `validated/p2-medium` with fix plan (`artifacts/issue-782.md`).
+- #801: Fish shell Ctrl+C issue fixed in v4.0.0; ready to close with upgrade guidance (`artifacts/issue-801.md`).
+- #791: Fork namespace handling already implemented; closure comment ready (`artifacts/issue-791.md`).
+- #799: Duplicate of #897; closure note prepared pointing users to canonical bug (`artifacts/issue-799.md`).
 
 ---
 
 ## Summary Statistics
 - **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 13
-- **P2 Medium**: 24
+- **P1 High**: 11
+- **P2 Medium**: 26
 - **P3 Low**: 13
-- **Resolved**: 21
+- **Closed on GitHub**: 16
+- **Resolved (not yet closed)**: 9
 - **Version Specific**: 0
 - **Needs Info**: 8

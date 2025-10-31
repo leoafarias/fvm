@@ -1,7 +1,7 @@
 {
   "number": 791,
   "title": "[Feature Request] Namespace versions and branches for Flutter forks",
-  "triagedAt": "2025-10-30",
+  "triagedAt": "2025-10-31",
   "status": "resolved",
   "artifact": "../artifacts/issue-791.md",
   "url": "https://github.com/leoafarias/fvm/issues/791",

@@ -1,9 +1,0 @@
-{
-  "number": 801,
-  "title": "[BUG] FVM breaks Terminal when using fish",
-  "triagedAt": "2025-10-30",
-  "priority": "p1-high",
-  "status": "validated",
-  "artifact": "../../artifacts/issue-801.md",
-  "url": "https://github.com/leoafarias/fvm/issues/801",
-  "notes": "Default runFlutter to inherit stdio so Ctrl+C works in fish."}

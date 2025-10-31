@@ -69,6 +69,13 @@ FVM ensures the global Flutter SDK lives at `.fvm/default`, but it does not reco
 
 **Reason**: FVM works as designed; user action (pointing IDE to `.fvm/default`) resolves the prompt. Documentation and support response cover the gap.
 
+## Draft Reply
+```
+Thanks for the detailed report! We confirmed that `fvm global` still only manages the `~/.fvm/default` symlink—it doesn’t reconfigure Android Studio automatically. Once you open **File → Settings → Languages & Frameworks → Flutter** and point the SDK path at `~/.fvm/default`, the IDE will follow whichever version you set with `fvm global`.
+
+We’ve added this guidance to the setup docs and `fvm doctor` now points you to the same fix if it detects the mismatch. Because there’s nothing further we can change in FVM itself, I’m going to close this out, but let us know if you hit any snags after updating the IDE path.
+```
+
 ## Notes
 - Consider cross-linking to the VS Code guide, which already covers IDE-specific integration.
 

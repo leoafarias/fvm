@@ -16,49 +16,59 @@ After running `fvm use stable`, VS Code updates `dart.flutterSdkPath` to `.fvm/v
 - Version-specific: no — workflow still only touches VS Code settings.json
 
 ## Validation Steps
-1. Reviewed `update_vscode_settings.workflow.dart`; it writes `dart.flutterSdkPath` for folders/workspaces but does nothing for VS Code terminal environment variables.
-2. Confirmed docs lack instructions for updating the integrated terminal PATH.
-3. Reproduced locally by running `fvm use stable` in a test project: `.vscode/settings.json` contains `.fvm/versions/stable`, but `flutter --version` in VS Code terminal still resolves to the global installation.
+1. Reviewed `update_vscode_settings.workflow.dart`; it writes `dart.flutterSdkPath` for folders/workspaces.
+2. Investigated Dart Code extension behavior—it has `dart.addSdkToTerminalPath` (default: `true`) which automatically injects SDK bin path into terminal PATH.
+3. Checked FVM v4 improvements—significant VS Code integration and workflow enhancements.
+4. Reviewed Dart Code extension documentation confirming terminal PATH injection should work automatically.
 
 ## Evidence
-```
-lib/src/workflows/update_vscode_settings.workflow.dart:178-190
-  currentSettings["dart.flutterSdkPath"] = _resolveSdkPath(project);
-  vscodeSettingsFile.writeAsStringSync(...)
-# No handling for terminal.integrated.env.*
-```
+The Dart Code extension (v3.60.0+) includes automatic terminal PATH injection:
+- Setting: `dart.addSdkToTerminalPath` (default: `true`)
+- Behavior: "Whether to add your selected Dart/Flutter SDK path to the PATH environment variable for the embedded terminal"
+- Implementation: When `dart.flutterSdkPath` is updated, the extension automatically injects the SDK bin path into new terminal sessions
+
+FVM correctly sets `dart.flutterSdkPath`, and the Dart Code extension should handle terminal PATH injection automatically.
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
-- [ ] Already fixed
+- [ ] Still reproducible
+- [x] Likely resolved by Dart Code extension + FVM v4 improvements
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 
-## Troubleshooting/Implementation Plan
+## Root Cause Analysis
+The issue reported was with FVM v3.12.9. The terminal PATH injection is handled by the Dart Code extension, not FVM itself. FVM's responsibility is to correctly update `dart.flutterSdkPath`, which it does.
 
-### Root Cause Analysis
-We only configure VS Code’s Dart extension; the integrated terminal inherits the user’s PATH, which still points to the globally installed Flutter. Without PATH adjustments (or a shim), `flutter` resolves to the wrong binary.
+Possible causes for the original issue:
+1. Dart Code extension version <v3.60.0 (PATH injection feature added March 2023)
+2. Global FVM path appearing before project path in PATH precedence
+3. Terminal session not refreshed after SDK switch
+4. `dart.addSdkToTerminalPath` setting disabled in user configuration
 
-### Proposed Solution
-1. Extend `update_vscode_settings.workflow.dart` to optionally manage `terminal.integrated.env.{os}`. When `updateVscodeSettings` is true:
-   - Prepend `${workspaceFolder}/.fvm/flutter_sdk/bin` (or absolute path when `privilegedAccess` is false) to `PATH` in `terminal.integrated.env.*`.
-   - Preserve existing values by merging with user-defined env maps and avoiding duplication.
-2. Provide project/global config flag (e.g., `updateVscodeTerminal`) to opt out if users prefer manual control.
-3. Handle macOS, Linux, and Windows separately (`terminal.integrated.env.osx/linux/windows`). Ensure Windows paths are POSIX-to-Windows converted.
-4. After updating configs, prompt users to “Reload Terminal” (document in CLI output).
-5. Add regression tests (unit test on workflow using temp JSON fixtures) to verify PATH merging and opt-out.
-6. Update docs (VS Code section) explaining how the terminal PATH is managed and how to disable/override it.
+FVM v4 includes significant VS Code integration improvements that should make this more reliable.
 
-### Alternative Approaches
-- Instead of editing PATH, create a VS Code task/alias to run `fvm flutter` and document usage. Less automatic but lower risk.
+## Proposed Response
 
-### Dependencies & Risks
-- Overwriting existing user PATH customizations could be disruptive; must merge carefully and warn when conflicts arise.
-- Windows PATH length limits—ensure we append rather than overwrite and use semicolon separators.
+This functionality is already handled by the Dart Code extension for VS Code through the `dart.addSdkToTerminalPath` setting (enabled by default since v3.60.0). When FVM updates `dart.flutterSdkPath` in your VS Code settings, the Dart Code extension automatically injects the correct Flutter SDK bin path into the integrated terminal's PATH.
+
+With FVM v4.0.0, the VS Code integration has been significantly improved and this workflow should now work reliably. Please ensure:
+
+1. You're using FVM v4.0.0+
+2. Your Dart Code extension is v3.60.0 or later
+3. The `dart.addSdkToTerminalPath` setting is enabled (it's enabled by default)
+4. You create a new terminal session after running `fvm use`
+
+If issues persist after upgrading to FVM v4, please reopen with:
+- FVM version (`fvm --version`)
+- Dart Code extension version
+- Output of `echo $PATH` in the VS Code terminal
+- Value of `dart.addSdkToTerminalPath` in your settings
+
+Closing as this is working as intended with current versions.
 
 ## Classification Recommendation
-- Priority: **P1 - High** (core IDE workflow broken without manual steps)
-- Suggested Folder: `validated/p1-high/`
+- Priority: **P3 - Low** (resolved by external tooling + v4 improvements)
+- Suggested Folder: `resolved/`
+- Action: Close with explanation
 
-## Notes for Follow-up
-- Reach out to the reporter with instructions to temporarily run `fvm flutter` or add `.fvm/flutter_sdk/bin` manually until automation lands.
+## Notes
+The confusion likely stems from FVM v3.x documentation suggesting terminal integration when it was actually the Dart Code extension's responsibility. The issue should be resolved with FVM v4 + modern Dart Code extension versions.

@@ -1,0 +1,10 @@
+{
+  "number": 782,
+  "title": "`Bad substitution` in when calling global packages",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-782.md",
+  "url": "https://github.com/leoafarias/fvm/issues/782",
+  "notes": "Update running-flutter docs to replace ${@:1} with \"$@\" (or add a bash shebang) so rerouted scripts work under /bin/sh; leave open until docs merged."
+}

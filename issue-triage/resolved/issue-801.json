@@ -1,0 +1,9 @@
+{
+  "number": 801,
+  "title": "[BUG] FVM breaks Terminal when using fish",
+  "triagedAt": "2025-10-31",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-801.md",
+  "url": "https://github.com/leoafarias/fvm/issues/801",
+  "notes": "As of v4.0.0, VersionRunner defaults to echoOutput=true so ProcessService uses inheritStdio; Ctrl+C now propagates correctly in fish."
+}
