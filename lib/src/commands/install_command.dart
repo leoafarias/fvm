@@ -29,11 +29,6 @@ class InstallCommand extends BaseFvmCommand {
         negatable: true,
       )
       ..addFlag(
-        'skip-setup',
-        help: 'Skips downloading SDK dependencies (backwards compatibility)',
-        negatable: false,
-      )
-      ..addFlag(
         'skip-pub-get',
         help: 'Skip resolving dependencies after switching Flutter SDK',
         defaultsTo: false,
@@ -43,9 +38,7 @@ class InstallCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    // Handle both --no-setup and --skip-setup (backwards compatibility)
-    final skipSetup = boolArg('skip-setup');
-    final setup = boolArg('setup') && !skipSetup;
+    final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
 
     final ensureCache = EnsureCacheWorkflow(context);
