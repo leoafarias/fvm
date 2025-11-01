@@ -89,7 +89,7 @@ class IntegrationTestRunner {
   // - 3.22.0: Setup test (test 8 - validates explicit setup flag, removed in test 14)
   //
   // Note: Install tests use --no-setup to speed up tests
-  // Only test 8 and test 34 run setup explicitly
+  // Only test 8 and test 35 run setup explicitly
   // Flutter SDK validation happens once in test 16
   static final testChannelVersion = FlutterVersion.parse('stable');
   static final testReleaseVersion = FlutterVersion.parse('3.19.0');
