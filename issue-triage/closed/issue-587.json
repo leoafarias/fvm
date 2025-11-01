@@ -1,0 +1,11 @@
+{
+  "number": 587,
+  "title": "[Question] Cannot change ownership to uid 397546, gid 5000: Invalid argument",
+  "triagedAt": "2025-10-31",
+  "closedAt": "2025-11-01",
+  "status": "closed",
+  "resolution": "working_as_intended",
+  "artifact": "../../artifacts/issue-587.md",
+  "url": "https://github.com/leoafarias/fvm/issues/587",
+  "notes": "Flutter exhibits the same tar ownership errors on read-only filesystems. Maintainer closed as not planned; recommend setting TAR_OPTIONS=--no-same-owner when running in containers."
+}

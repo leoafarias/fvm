@@ -32,36 +32,14 @@ lib/src/workflows/ensure_cache.workflow.dart:84-88  // same validator for config
 ```
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
-- [ ] Already fixed
+- [ ] Still reproducible
+- [x] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 
-## Troubleshooting/Implementation Plan
+## Resolution
+PR #954 (“Support SSH fork URLs”, merged 2025-11-01) relaxed `isValidGitUrl` to accept scp-style and `ssh://` remotes, and the CLI now allows those URLs in both `fvm fork add` and `fvm config --flutter-url`. Unit tests were added with the new formats, and the reporter-confirmed validation passes.
 
-### Root Cause Analysis
-The URL validator only accepts absolute URIs with explicit schemes and `/path/.../.git`. SSH/scp-style URLs (`git@host:group/project.git`) and many enterprise Git URLs are rejected even though `git` handles them.
-
-### Proposed Solution
-1. Update `isValidGitUrl` to support:
-   - Standard URI schemes (`git`, `ssh`, `https`, `http`, `file` etc.) when `.git` suffix present.
-   - SCP shorthand (`user@host:path/to/repo.git`).
-   - `ssh://` URIs where the segment after host immediately uses a colon as namespace (treat as valid rather than enforcing numeric port).
-2. Optionally add a dedicated parser utility that returns normalized URL (so we can pass through unchanged to git but still validate). Consider using regex similar to Git’s own doc.
-3. Add unit tests covering the accepted formats (https, git, ssh with port, ssh with namespace colon, scp shorthand).
-4. Update error messages to be more helpful (e.g., suggest ensuring `.git` suffix) but don’t reject valid SSH combos.
-5. Ensure `EnsureCacheWorkflow` uses the new validator to avoid regression when users set `fvm config --flutter-url` to an SSH value.
-
-### Alternative Approaches
-- Instead of strict validation, attempt a lightweight `git ls-remote <url>` and catch failures; this delegates validation to git itself.
-
-### Dependencies & Risks
-- Avoid false positives: ensure we don’t accept obviously invalid strings (e.g., missing host). Keep `.git` requirement.
-- On Windows, colon in path may be tricky; tests should run cross-platform.
-
-## Classification Recommendation
-- Priority: **P1 - High** (blocks private fork workflows relying on SSH)
-- Suggested Folder: `validated/p1-high/`
-
-## Notes for Follow-up
-- After fix, respond to reporter and mention the new release containing support. Document SSH examples in the forks section of the docs.
+## Recommendation
+**Action**: closed  
+**Reason**: SSH/scp Git URLs are accepted as of PR #954.

@@ -3,7 +3,9 @@
   "title": "[BUG]Because pubspec_parse 1.5.0 requires SDK version ^3.6.0 and no versions of pubspec_parse match >1.5.0",
   "triagedAt": "2025-10-30",
   "priority": "p1-high",
-  "status": "validated",
+  "status": "closed",
+  "closedAt": "2025-11-01",
+  "resolution": "fixed",
   "artifact": "../../artifacts/issue-940.md",
   "url": "https://github.com/leoafarias/fvm/issues/940",
-  "notes": "Homebrew tap bundles Dart 3.2.6 but FVM now requires >=3.6.0 due to pubspec_parse 1.5.0. Update SDK constraint & formula."}
+  "notes": "Homebrew tap PR #22 now bundles Dart 3.6.0 alongside FVM 4.0.0; reinstall after `brew update` to resolve the solver error."}

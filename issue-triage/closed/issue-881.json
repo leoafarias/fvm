@@ -3,7 +3,9 @@
   "title": "[BUG] ssh url is not supported when running fvm fork add command",
   "triagedAt": "2025-10-30",
   "priority": "p1-high",
-  "status": "validated",
+  "status": "closed",
+  "closedAt": "2025-11-01",
+  "resolution": "fixed",
   "artifact": "../../artifacts/issue-881.md",
   "url": "https://github.com/leoafarias/fvm/issues/881",
-  "notes": "Broaden git URL validation to accept SSH/scp syntax and reuse in EnsureCacheWorkflow."}
+  "notes": "Fixed by PR #954 (Support SSH fork URLs); `fvm fork add` and `fvm config --flutter-url` now accept scp-style and ssh:// remotes."}

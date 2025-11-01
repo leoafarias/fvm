@@ -200,16 +200,21 @@
 
 ### Session 5: 2025-10-31 (Investigation & Closure)
 - #893: Investigated VS Code terminal PATH integration with FVM. Confirmed that Dart Code extension v3.60.0+ handles terminal PATH injection automatically via `dart.addSdkToTerminalPath` setting (enabled by default). FVM correctly updates `dart.flutterSdkPath`, and terminal integration should work with FVM v4 + modern Dart Code versions. Reclassified from P1-High to resolved/working-as-intended. **Closed on GitHub** with upgrade guidance (`artifacts/issue-893.md`).
+- #587: Determined tar ownership errors stem from upstream Flutter behavior on restricted filesystems. Documented TAR_OPTIONS workaround and marked as not planned for FVM changes. **Closed on GitHub** with maintainer comment (`artifacts/issue-587.md`).
+
+### Session 6: 2025-11-01 (Post-Release Sync)
+- #940: Homebrew tap now ships Dart 3.6.0 via PR #22; reinstalling from the tap resolves the solver failure. **Closed on GitHub** (`artifacts/issue-940.md`).
+- #881: PR #954 loosens git URL validation so SSH/scp remotes work in `fvm fork add` and `fvm config`. **Closed on GitHub** (`artifacts/issue-881.md`).
 
 ---
 
 ## Summary Statistics
 - **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 10
+- **P1 High**: 7
 - **P2 Medium**: 26
 - **P3 Low**: 13
-- **Closed on GitHub**: 17
+- **Closed on GitHub**: 20
 - **Resolved (not yet closed)**: 9
 - **Version Specific**: 0
 - **Needs Info**: 8

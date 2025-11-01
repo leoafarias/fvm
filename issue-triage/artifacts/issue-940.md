@@ -35,36 +35,22 @@ sdks:
 ```
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
-- [ ] Already fixed
+- [ ] Still reproducible
+- [x] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 
-## Troubleshooting/Implementation Plan
+## Resolution
+Homebrew tap PR #22 (merged 2025-11-01) now bundles Dart SDK 3.6.0 alongside FVM 4.0.0. After running `brew update`, reinstalling from the tap succeeds:
 
-### Root Cause Analysis
-The Homebrew formula bundles Dart SDK 3.2.6, but FVM’s dependency graph (via `pubspec_parse 1.5.0`) requires Dart >=3.6.0. Our own `environment.sdk` constraint does not communicate the new minimum, so the formula continues to vend the older runtime and compilation fails during `pub get`.
+```
+brew reinstall --build-from-source leoafarias/fvm/fvm
+$(brew --prefix fvm)/libexec/bin/dart --version  # reports 3.6.0
+fvm --version                                   # reports 4.0.0
+```
 
-### Proposed Solution
-1. **Update SDK constraints**: Change `environment.sdk` in `pubspec.yaml` to `">=3.6.0 <4.0.0"` so tooling enforces the new minimum. Regenerate `pubspec.lock` and update `CHANGELOG.md` / docs to document the Dart requirement.
-2. **Fix Homebrew formula**:
-   - Bump the vendored Dart SDK URLs in `homebrew-fvm/fvm.rb` (and any versioned formulae such as `fvm@4.0.0-beta.2.rb`) to at least Dart 3.6.0 (ideally current stable 3.9.x).
-   - Adjust the formula’s test block to validate `fvm --version` so future regressions surface immediately.
-3. **Release artifacts**: Ensure CI builds ship precompiled binaries targeting the updated SDK so other installers (install.sh, GitHub releases) remain unaffected.
-4. **Verification**:
-   - Run `dart pub get` and `dart compile exe` locally with Dart 3.6.x after updating the constraint.
-   - In the Homebrew tap, run `brew install --build-from-source ./fvm.rb` on macOS Intel and ARM to confirm the build succeeds.
+For future maintenance, keep the tap’s Dart version aligned with the SDK minimum noted in `pubspec.lock`.
 
-### Alternative Approaches
-- Downgrade to `pubspec_parse 1.4.x` to keep the older SDK floor. This avoids the immediate breakage but forfeits upstream fixes and pushes technical debt forward.
-
-### Dependencies & Risks
-- Requires coordination with the `homebrew-fvm` tap (separate repo) and possibly the main Homebrew/core maintainers.
-- Users on older Dart SDKs will no longer be able to build from source; communicate the requirement clearly.
-
-## Classification Recommendation
-- Priority: **P1 - High** (installer failure)
-- Suggested Folder: `validated/p1-high/`
-
-## Notes for Follow-up
-- Once formula is updated, prompt users in the GitHub issue to `brew update && brew upgrade fvm` and confirm fix.
+## Recommendation
+**Action**: closed  
+**Reason**: Homebrew formula now ships Dart 3.6.0+, eliminating the solver error.

@@ -40,40 +40,22 @@ $ sed -n '348,384p' lib/src/services/flutter_service.dart
 - Error logs from the reporter confirm tar ownership failures inside `/tmp/flutter-fvm/...`.
 
 ## Current Status in v4.0.0
-- [x] Still reproducible (containers / read-only mounts)
+- [ ] Still reproducible
 - [ ] Already fixed
-- [ ] Not applicable to v4.0.0
+- [x] Not applicable to v4.0.0 (upstream tooling limitation)
 - [ ] Needs more information
 - [ ] Cannot reproduce
 
-## Troubleshooting/Implementation Plan
-
-### Root Cause Analysis
-FVM relies on the host environment, so it doesn’t propagate Flutter’s `TAR_OPTIONS=--no-same-owner`. When the filesystem disallows `chown`, tar fails.
-
-### Proposed Solution
-1. Update `FlutterService._updateEnvironmentVariables` to set `TAR_OPTIONS=--no-same-owner` (and possibly append to existing value) unless the user already defines it.
-2. Add an integration test (Docker-based if possible) or at least a unit test verifying the environment map contains the override.
-3. Document the behavior in troubleshooting docs, mentioning containers and mounted volumes; provide manual override instructions for older versions.
-
-### Alternative Approaches (if applicable)
-- Detect the environment using heuristics (e.g., when running inside Docker) before setting the variable. However, applying the flag universally matches Flutter’s upstream scripts and is low risk.
-
-### Dependencies & Risks
-- Minimal: `--no-same-owner` is harmless on filesystems that support ownership changes.
-- Ensure we don’t overwrite user-defined `TAR_OPTIONS`; append if necessary.
-
-### Related Code Locations
-- [lib/src/services/process_service.dart](../lib/src/services/process_service.dart) – Runs the command; no change needed if environment map already contains the flag.
-- Docs: `docs/pages/documentation/guides/workflows.mdx` or FAQ should mention the new default and how to override.
+## Resolution
+On 2025-11-01 the maintainer closed the issue as “not planned,” noting that the same ownership errors appear when running the upstream Flutter tool directly. Because FVM simply launches Flutter with the caller’s environment, no additional change will be made in FVM. Recommended workaround: set `TAR_OPTIONS=--no-same-owner` (for example `ENV TAR_OPTIONS="--no-same-owner"` in Docker) before invoking Flutter/FVM.
 
 ## Recommendation
-**Action**: validate-p1
+**Action**: closed (working as intended)
 
-**Reason**: Breaks common Docker workflows; automatic environment fix restores parity with the official Flutter tool.
+**Reason**: Behavior matches the upstream Flutter tool; users should configure `TAR_OPTIONS` when their filesystem disallows `chown`.
 
 ## Notes
-- After releasing the fix, close the issue with instructions for users still on older versions (export `TAR_OPTIONS=--no-same-owner` before invoking FVM).
+- Documentation could still mention the workaround, but no code change is planned.
 
 ---
 **Validated by**: Code Agent
