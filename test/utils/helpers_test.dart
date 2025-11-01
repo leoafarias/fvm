@@ -45,6 +45,51 @@ void main() {
     expect('100.0.0', assignVersionWeight('dev'));
   });
 
+  group('isValidGitUrl', () {
+    test('accepts common git transports with .git suffix', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('git://example.com/repo.git'), isTrue);
+      expect(
+        isValidGitUrl('ssh://git@github.com/flutter/flutter.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('file:///Users/test/projects/flutter.git'),
+        isTrue,
+      );
+    });
+
+    test('accepts scp-style git urls including ipv6 hosts', () {
+      expect(
+        isValidGitUrl('git@github.com:flutter/flutter.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('git@[2001:db8::1]:owner/project.git'),
+        isTrue,
+      );
+    });
+
+    test('accepts ssh urls that use scp-like namespace syntax', () {
+      expect(
+        isValidGitUrl('ssh://git@gitlab.com:group/project.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('ssh://git@gitlab.com:7999/group/project.git'),
+        isTrue,
+      );
+    });
+
+    test('rejects malformed git urls', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter'), isFalse);
+      expect(isValidGitUrl('git@github.com:flutter/flutter'), isFalse);
+      expect(isValidGitUrl('ssh://git@gitlab.com'), isFalse);
+      expect(isValidGitUrl('not a url'), isFalse);
+      expect(isValidGitUrl(''), isFalse);
+    });
+  });
+
   group('extractFlutterVersionOutput', () {
     test('should correctly parse the EXAMPLE:1', () {
       final content =

@@ -192,15 +192,73 @@ String extractDartVersionOutput(String input) {
 
 /// Validates if a URL is a valid Git repository URL.
 bool isValidGitUrl(String url) {
-  try {
-    final uri = Uri.parse(url);
+  final trimmed = url.trim();
 
-    return uri.scheme.isNotEmpty &&
-        (uri.host.isNotEmpty || uri.path.isNotEmpty) &&
-        uri.path.endsWith('.git');
-  } catch (e) {
+  if (trimmed.isEmpty) {
     return false;
   }
+
+  // Accept scp-like syntax such as git@host:group/repo.git.
+  if (_isScpLikeGitUrl(trimmed)) {
+    return _hasGitExtension(_extractScpPath(trimmed));
+  }
+
+  // Accept ssh:// urls that use scp shorthand after the scheme.
+  const sshScheme = 'ssh://';
+  if (trimmed.startsWith(sshScheme)) {
+    final remainder = trimmed.substring(sshScheme.length);
+    if (_isScpLikeGitUrl(remainder)) {
+      return _hasGitExtension(_extractScpPath(remainder));
+    }
+  }
+
+  try {
+    final uri = Uri.parse(trimmed);
+
+    if (!uri.hasScheme) {
+      return false;
+    }
+
+    if (uri.host.isEmpty && uri.authority.isEmpty && uri.scheme != 'file') {
+      return false;
+    }
+
+    final path = uri.path;
+
+    return _hasGitExtension(path);
+  } on FormatException {
+    return false;
+  }
+}
+
+bool _hasGitExtension(String? path) {
+  return path != null && path.isNotEmpty && path.endsWith('.git');
+}
+
+bool _isScpLikeGitUrl(String url) {
+  // Matches [user@]host:path where host may be an IPv6 literal in brackets.
+  final scpPattern = RegExp(
+    r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$',
+  );
+
+  return scpPattern.hasMatch(url);
+}
+
+String? _extractScpPath(String url) {
+  if (url.startsWith('[')) {
+    final closeBracket = url.indexOf(']');
+    if (closeBracket == -1) {
+      return null;
+    }
+
+    final ipv6Separator = url.indexOf(':', closeBracket);
+
+    return ipv6Separator == -1 ? null : url.substring(ipv6Separator + 1);
+  }
+
+  final separator = url.indexOf(':');
+
+  return separator == -1 ? null : url.substring(separator + 1);
 }
 
 /// Converts string to boolean. Returns null for invalid values.
