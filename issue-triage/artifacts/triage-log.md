@@ -15,7 +15,6 @@
 - [x] #938 – `fvm doctor` crashes resolving missing symlink (triaged 2025-10-30)
 - [x] #914 – Windows git safe.directory error surfaced as “git not found” (triaged 2025-10-30)
 - [x] #897 – Nix/Home Manager read-only shell profile triggers PathAccessException (triaged 2025-10-30)
-- [x] #893 – VS Code terminal still resolves global Flutter (triaged 2025-10-30)
 - [x] #881 – SSH URLs rejected by fork/config validation (triaged 2025-10-30)
 - [x] #801 – FVM fish shell Ctrl+C leaves terminal unusable (triaged 2025-10-30)
 - [x] #783 – Use full commit hashes in configs to avoid collisions (triaged 2025-10-30)
@@ -68,6 +67,7 @@
 ### Already Resolved
 - [x] #904 – Kotlin deprecation warning belongs to Flutter (no FVM change)
 - [x] #895 – 4.0.0 release now live across package managers
+- [x] #893 – VS Code terminal PATH handled by Dart Code extension (working as intended)
 - [x] #884 – `.gitignore` now updated automatically by v4.0.0
 - [x] #841 – `fvm global` requires PATH update; working as intended
 - [x] #812 – Guidance provided for global vs project configuration
@@ -198,15 +198,18 @@
 - #791: Fork namespace handling already implemented; closure comment ready (`artifacts/issue-791.md`).
 - #799: Duplicate of #897; closure note prepared pointing users to canonical bug (`artifacts/issue-799.md`).
 
+### Session 5: 2025-10-31 (Investigation & Closure)
+- #893: Investigated VS Code terminal PATH integration with FVM. Confirmed that Dart Code extension v3.60.0+ handles terminal PATH injection automatically via `dart.addSdkToTerminalPath` setting (enabled by default). FVM correctly updates `dart.flutterSdkPath`, and terminal integration should work with FVM v4 + modern Dart Code versions. Reclassified from P1-High to resolved/working-as-intended. **Closed on GitHub** with upgrade guidance (`artifacts/issue-893.md`).
+
 ---
 
 ## Summary Statistics
 - **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 11
+- **P1 High**: 10
 - **P2 Medium**: 26
 - **P3 Low**: 13
-- **Closed on GitHub**: 16
+- **Closed on GitHub**: 17
 - **Resolved (not yet closed)**: 9
 - **Version Specific**: 0
 - **Needs Info**: 8

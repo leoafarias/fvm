@@ -1,9 +1,0 @@
-{
-  "number": 893,
-  "title": "[BUG] Visual Studio Code terminal is not using the configured Flutter version",
-  "triagedAt": "2025-10-30",
-  "priority": "p1-high",
-  "status": "validated",
-  "artifact": "../../artifacts/issue-893.md",
-  "url": "https://github.com/leoafarias/fvm/issues/893",
-  "notes": "Update VS Code workflow to inject terminal.integrated.env PATH so `flutter` resolves to .fvm SDK."}

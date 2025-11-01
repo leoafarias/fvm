@@ -20,6 +20,7 @@ After running `fvm use stable`, VS Code updates `dart.flutterSdkPath` to `.fvm/v
 2. Investigated Dart Code extension behavior—it has `dart.addSdkToTerminalPath` (default: `true`) which automatically injects SDK bin path into terminal PATH.
 3. Checked FVM v4 improvements—significant VS Code integration and workflow enhancements.
 4. Reviewed Dart Code extension documentation confirming terminal PATH injection should work automatically.
+5. Confirmed GitHub issue closed by maintainer on 2025-10-31 with guidance to upgrade to FVM 4.0.0+ and recent Dart Code extension versions.
 
 ## Evidence
 The Dart Code extension (v3.60.0+) includes automatic terminal PATH injection:
@@ -31,7 +32,7 @@ FVM correctly sets `dart.flutterSdkPath`, and the Dart Code extension should han
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
-- [x] Likely resolved by Dart Code extension + FVM v4 improvements
+- [x] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 
@@ -63,12 +64,12 @@ If issues persist after upgrading to FVM v4, please reopen with:
 - Output of `echo $PATH` in the VS Code terminal
 - Value of `dart.addSdkToTerminalPath` in your settings
 
-Closing as this is working as intended with current versions.
+Closing as this is working as intended with current versions (maintainer comment on 2025-10-31).
 
 ## Classification Recommendation
 - Priority: **P3 - Low** (resolved by external tooling + v4 improvements)
-- Suggested Folder: `resolved/`
-- Action: Close with explanation
+- Suggested Folder: `closed/`
+- Action: Closed on GitHub with upgrade guidance
 
 ## Notes
 The confusion likely stems from FVM v3.x documentation suggesting terminal integration when it was actually the Dart Code extension's responsibility. The issue should be resolved with FVM v4 + modern Dart Code extension versions.

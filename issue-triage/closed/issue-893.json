@@ -1,0 +1,9 @@
+{
+  "number": 893,
+  "title": "[BUG] Visual Studio Code terminal is not using the configured Flutter version",
+  "triagedAt": "2025-10-31",
+  "closedAt": "2025-10-31",
+  "status": "closed",
+  "artifact": "../../artifacts/issue-893.md",
+  "url": "https://github.com/leoafarias/fvm/issues/893",
+  "notes": "Terminal PATH injection handled by Dart Code extension (dart.addSdkToTerminalPath). Maintainer closed issue on 2025-10-31 advising upgrade to FVM 4.0.0+ and recent Dart Code extension."}
