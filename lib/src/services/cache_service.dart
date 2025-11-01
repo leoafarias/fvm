@@ -1,7 +1,9 @@
 import 'dart:io';
 
 import 'package:io/io.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
@@ -36,9 +38,10 @@ class CacheService extends ContextualService {
     // If its a channel return true
     if (version.isChannel) return true;
     // If sdkVersion is not available return true
-    if (version.flutterSdkVersion == null) return true;
+    final cached = version.flutterSdkVersion;
+    if (cached == null) return true;
 
-    return version.flutterSdkVersion == version.version;
+    return versionsMatch(version.version, cached);
   }
 
   Link get _globalCacheLink => Link(context.globalCacheLink);
@@ -244,5 +247,47 @@ class CacheService extends ContextualService {
     if (versionDir.existsSync()) {
       versionDir.renameSync(newDir.path);
     }
+  }
+}
+
+@visibleForTesting
+String normalizeVersion(String value) {
+  if (value.startsWith('v') || value.startsWith('V')) {
+    return value.substring(1);
+  }
+  return value;
+}
+
+@visibleForTesting
+bool versionsMatch(String configured, String cached) {
+  if (configured == cached) return true;
+
+  final normConfigured = normalizeVersion(configured);
+  final normCached = normalizeVersion(cached);
+
+  if (normConfigured == normCached) return true;
+
+  try {
+    final configVer = Version.parse(normConfigured);
+    final cachedVer = Version.parse(normCached);
+
+    if (configVer.build.isNotEmpty || cachedVer.build.isNotEmpty) {
+      return configVer == cachedVer;
+    }
+
+    if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isNotEmpty) {
+      return configVer == cachedVer;
+    }
+
+    if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isEmpty) {
+      return configVer.major == cachedVer.major &&
+          configVer.minor == cachedVer.minor &&
+          configVer.patch == cachedVer.patch;
+    }
+
+    // All other cases require exact semantic equality.
+    return configVer == cachedVer;
+  } on FormatException {
+    return normConfigured == normCached;
   }
 }
