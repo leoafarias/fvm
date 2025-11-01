@@ -86,10 +86,10 @@ class IntegrationTestRunner {
   // - stable: Used for most tests (tests 5, 9, 11, etc.)
   // - 3.19.0: Release version test (test 6)
   // - fb57da5f94: Git commit test (test 7, removed in test 33)
-  // - 3.22.0: Setup test (test 8 - validates default setup behavior, removed in test 14)
+  // - 3.22.0: Setup test (test 8 - validates explicit setup flag, removed in test 14)
   //
-  // Note: Setup doesn't run by default to speed up tests
-  // Only test 8 runs setup to validate the default behavior
+  // Note: Install tests use --no-setup to speed up tests
+  // Only test 8 and test 35 run setup explicitly
   // Flutter SDK validation happens once in test 16
   static final testChannelVersion = FlutterVersion.parse('stable');
   static final testReleaseVersion = FlutterVersion.parse('3.19.0');
@@ -181,17 +181,17 @@ class IntegrationTestRunner {
     logger.info('=== Phase 2: Installation Workflow Tests ===');
 
     _logTest('5. Testing channel installation...');
-    await _runFvmCommand(['install', testChannelVersion.name]);
+    await _runFvmCommand(['install', testChannelVersion.name, '--no-setup']);
     await _verifyInstallation(testChannelVersion);
     _logSuccess('Channel installation works');
 
     _logTest('6. Testing release installation...');
-    await _runFvmCommand(['install', testReleaseVersion.name]);
+    await _runFvmCommand(['install', testReleaseVersion.name, '--no-setup']);
     await _verifyInstallation(testReleaseVersion);
     _logSuccess('Release installation works');
 
     _logTest('7. Testing Git commit installation...');
-    await _runFvmCommand(['install', testCommitVersion.name]);
+    await _runFvmCommand(['install', testCommitVersion.name, '--no-setup']);
     await _verifyInstallation(testCommitVersion);
     _logSuccess('Git commit installation works');
 

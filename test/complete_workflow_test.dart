@@ -17,8 +17,8 @@ void main() {
   group('Complete flow', () {
     test('Full project workflow', () async {
       final channel = 'stable';
-      // Install the Flutter channel
-      await testRunner.runOrThrow(['fvm', 'install', channel]);
+      // Install the Flutter channel without setup
+      await testRunner.runOrThrow(['fvm', 'install', channel, '--no-setup']);
 
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {
