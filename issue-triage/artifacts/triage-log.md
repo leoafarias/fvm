@@ -205,16 +205,18 @@
 ### Session 6: 2025-11-01 (Post-Release Sync)
 - #940: Homebrew tap now ships Dart 3.6.0 via PR #22; reinstalling from the tap resolves the solver failure. **Closed on GitHub** (`artifacts/issue-940.md`).
 - #881: PR #954 loosens git URL validation so SSH/scp remotes work in `fvm fork add` and `fvm config`. **Closed on GitHub** (`artifacts/issue-881.md`).
+- #666: Cache integrity check now normalizes version labels (PR #955). **Closed on GitHub** (`artifacts/issue-666.md`).
+- #683: Upstream pubspec fix allows hosted overrides without version; FVM no longer crashes. **Closed on GitHub** (`artifacts/issue-683.md`).
 
 ---
 
 ## Summary Statistics
 - **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 7
+- **P1 High**: 5
 - **P2 Medium**: 26
 - **P3 Low**: 13
-- **Closed on GitHub**: 20
+- **Closed on GitHub**: 22
 - **Resolved (not yet closed)**: 9
 - **Version Specific**: 0
 - **Needs Info**: 8

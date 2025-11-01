@@ -3,8 +3,10 @@
   "title": "[BUG] False positive: \"Version mismatch detected\" for non-numeric flutter versions",
   "triagedAt": "2025-10-31",
   "priority": "p1-high",
-  "status": "validated",
+  "status": "closed",
+  "closedAt": "2025-11-01",
+  "resolution": "fixed",
   "artifact": "../../artifacts/issue-666.md",
   "url": "https://github.com/leoafarias/fvm/issues/666",
-  "notes": "Normalize cached vs configured version strings (strip leading v, compare base semver, fall back to Version.parse) so dev/prerelease names don’t trigger false mismatch prompts."
+  "notes": "Resolved by PR #955 (Improve cache version matching), which semantically compares cached and configured versions and eliminates false mismatch prompts."
 }
