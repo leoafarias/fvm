@@ -255,6 +255,7 @@ String normalizeVersion(String value) {
   if (value.startsWith('v') || value.startsWith('V')) {
     return value.substring(1);
   }
+
   return value;
 }
 
