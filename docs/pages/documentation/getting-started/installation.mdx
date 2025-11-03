@@ -7,7 +7,7 @@ import { Tabs, Callout } from "nextra/components";
 
 # Installation
 
-There are a few ways to install FVM, and we are working on other ways to make it even simpler.
+There are several ways to install FVM. Choose the method that best fits your development environment.
 
 ## Recommendation
 
@@ -17,26 +17,36 @@ Use FVM to manage the Flutter SDK version for your projects.
 
 You can download the standalone packages from the GitHub repo [here](https://github.com/leoafarias/fvm/releases).
 
-<Tabs items={['MacOS', 'Windows', 'Linux', 'Pub']}>
+<Tabs items={['macOS', 'Windows', 'Linux', 'Pub']}>
   <Tabs.Tab>
-### Install.sh
+## Install Script (Recommended)
+
+Install the latest version:
 
 ```bash
 curl -fsSL https://fvm.app/install.sh | bash
 ```
 
-### Homebrew
+Install a specific version:
 
-Install
-
+```bash
+curl -fsSL https://fvm.app/install.sh | bash -s <version>
 ```
+
+*Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
+
+## Homebrew
+
+Install:
+
+```bash
 brew tap leoafarias/fvm
 brew install fvm
 ```
 
-Uninstall
+Uninstall:
 
-```
+```bash
 brew uninstall fvm
 brew untap leoafarias/fvm
 ```
@@ -44,43 +54,47 @@ brew untap leoafarias/fvm
   </Tabs.Tab>
   <Tabs.Tab>
 
-To install FVM (Install), run the following command from the command line or from PowerShell:
+## Chocolatey
+
+Install FVM using Chocolatey from the command line or PowerShell:
 
 ```bash
 choco install fvm
 ```
 
+Uninstall:
+
+```bash
+choco uninstall fvm
+```
+
   </Tabs.Tab>
 
   <Tabs.Tab>
-### Install.sh
+## Install Script (Recommended)
+
+Install the latest version:
 
 ```bash
 curl -fsSL https://fvm.app/install.sh | bash
 ```
 
-### Homebrew
+Install a specific version:
 
-Install
-
-```
-brew tap leoafarias/fvm
-brew install fvm
+```bash
+curl -fsSL https://fvm.app/install.sh | bash -s <version>
 ```
 
-Uninstall
+*Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
 
-```
-brew uninstall fvm
-brew untap leoafarias/fvm
-```
+## Alternative Installation
+
+For alternative installation methods, see the [GitHub Releases](https://github.com/leoafarias/fvm/releases/latest) page.
 
 </Tabs.Tab>
 
 <Tabs.Tab>
-You are also able to install FVM as a [pub package](https://pub.dev/packages/fvm).
-
-However, if you plan on using FVM to manage your [global Flutter install](/docs/guides/global_version), we recommend installing it as a standalone.
+You can also install FVM as a [pub package](https://pub.dev/packages/fvm).
 
 <Callout type="warning">
   This is not recommended if you plan on using FVM to manage your global Flutter install.
@@ -90,5 +104,99 @@ However, if you plan on using FVM to manage your [global Flutter install](/docs/
 dart pub global activate fvm
 ```
 
+Uninstall:
+
+```bash
+dart pub global deactivate fvm
+```
+
 </Tabs.Tab>
 </Tabs>
+
+## Installation Options
+
+### Install Script Features
+
+The install script (`install.sh`) supports several options:
+
+- **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
+- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s <version>` (replace `<version>` with desired FVM version)
+- **Container/CI support**: Set `FVM_ALLOW_ROOT=true` for Docker/CI environments
+- **Help**: `./install.sh --help`
+- **Version info**: `./install.sh --version`
+
+### Supported Platforms
+
+| Platform | Architecture | Support |
+|----------|-------------|---------|
+| macOS | x64, arm64 | ✅ |
+| Linux | x64, arm64, riscv64 | ✅ |
+| Windows | x64 | ✅ (via PowerShell/Chocolatey) |
+
+### Requirements
+
+- **macOS/Linux**: `curl`, `tar`, and `sudo` or `doas`
+- **Windows**: PowerShell (for script) or Chocolatey
+
+## PATH Configuration
+
+The install script automatically configures your shell PATH. For manual installations, add FVM to your PATH:
+
+<Tabs items={['macOS/Linux (Install Script)', 'macOS/Linux (Pub)', 'Windows']}>
+  <Tabs.Tab>
+The install script automatically adds FVM to your PATH by updating your shell configuration:
+
+- **Bash**: `~/.bashrc` or `~/.bash_profile`
+- **Zsh**: `~/.zshrc`
+- **Fish**: `~/.config/fish/config.fish`
+
+The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
+
+To apply changes immediately: `source ~/.zshrc` (or your shell config file)
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+For pub installations, add to your shell profile:
+
+```bash
+export PATH="$PATH:$HOME/.pub-cache/bin"
+```
+
+  </Tabs.Tab>
+  <Tabs.Tab>
+Add to your PATH environment variable:
+
+```
+%USERPROFILE%\AppData\Local\Pub\Cache\bin
+```
+
+  </Tabs.Tab>
+</Tabs>
+
+## Uninstallation
+
+**Install Script:**
+```bash
+./install.sh --uninstall
+```
+
+**Homebrew:**
+```bash
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+**Chocolatey:**
+```bash
+choco uninstall fvm
+```
+
+**Pub:**
+```bash
+dart pub global deactivate fvm
+```
+
+**Remove cached Flutter versions (optional):**
+```bash
+fvm destroy
+```

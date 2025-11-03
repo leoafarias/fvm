@@ -1,84 +1,131 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
-import 'package:mason_logger/mason_logger.dart';
+import 'package:mason_logger/mason_logger.dart' as mason;
+import 'package:stack_trace/stack_trace.dart';
 import 'package:tint/tint.dart';
 
-import '../utils/context.dart';
+import '../models/cache_flutter_version_model.dart';
+import '../models/log_level_model.dart';
+import '../utils/exceptions.dart';
 import 'base_service.dart';
 
-/// Sets default logger mode
-LoggerService get logger => getProvider();
+mason.Level _toMasonLevel(Level level) {
+  return mason.Level.values.firstWhere((e) => e.name == level.name);
+}
 
-class LoggerService extends ContextService {
-  final Logger _logger;
+Level _toLogLevel(mason.Level level) {
+  return Level.values.firstWhere((e) => e.name == level.name);
+}
 
-  /// Constructor
-  LoggerService({Level? level, FVMContext? context})
-      : _logger = Logger(level: level ?? Level.info),
-        super(context);
+class Logger extends ContextualService {
+  final mason.Logger _logger;
+  final bool _isCI;
+  final bool _skipInput;
+  final List<String> _outputs = [];
 
-  void get spacer => _logger.info('');
+  Logger(super.context)
+      : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
+        _isCI = context.isCI,
+        _skipInput = context.skipInput;
 
-  bool get isVerbose => _logger.level == Level.verbose;
+  bool get isVerbose => level == Level.verbose;
 
-  Level get level => _logger.level;
+  Level get level => _toLogLevel(_logger.level);
 
-  String get stdout {
-    return logger.stdout;
+  List<String> get outputs => _outputs;
+
+  set level(Level level) => _logger.level = _toMasonLevel(level);
+
+  void logTrace(StackTrace stackTrace) {
+    final trace = Trace.from(stackTrace).toString();
+    debug('');
+    debug(trace);
+
+    if (level != Level.verbose) {
+      debug('');
+      debug('Please run command with  --verbose if you want more information');
+    }
   }
 
-  void get divider {
-    _logger.info(
-      '------------------------------------------------------------',
-    );
+  void info([String message = '']) {
+    _logger.info(message);
+    _outputs.add(message);
   }
-
-  set level(Level level) => _logger.level = level;
 
   void success(String message) {
-    _logger.info('${Icons.success.green()} $message');
+    info('${Icons.success.green()} $message');
   }
 
   void fail(String message) {
-    _logger.info('${Icons.failure.red()} $message');
+    info('${Icons.failure.red()} $message');
   }
 
-  void warn(String message) => _logger.warn(message);
-  void info(String message) => _logger.info(message);
-  void err(String message) => _logger.err(message);
-  void detail(String message) => _logger.detail(message);
+  void warn([String message = '']) {
+    _logger.warn(message);
+    _outputs.add(message);
+  }
 
-  void write(String message) => _logger.write(message);
-  Progress progress(String message) {
+  void err([String message = '']) {
+    _logger.err(message);
+    _outputs.add(message);
+  }
+
+  void debug([String message = '']) {
+    _logger.detail(message);
+    _outputs.add(message);
+  }
+
+  void write(String message) {
+    _logger.write(message);
+    _outputs.add(message);
+  }
+
+  mason.Progress progress(String message) {
     final progress = _logger.progress(message);
     if (isVerbose) {
       // if verbose then cancel for other data been displayed and overlapping
       progress.cancel();
       // Replace for a normal log
-      logger.info(message);
+      info(message);
     }
 
     return progress;
   }
 
-  bool confirm(String? message, {required bool defaultValue}) {
-    // When running tests, always return true.
-    if (context.isTest) return true;
+  // Allows to select from cached sdks.
+  String cacheVersionSelector(List<CacheFlutterVersion> versions) {
+    // Return message if no cached versions
+    if (versions.isEmpty) {
+      throw const AppException(
+        'No versions installed. Please install'
+        ' a version. "fvm install {version}". ',
+      );
+    }
 
-    if (context.isCI || context.skipInput) {
-      logger.info(message ?? '');
-      logger
-        ..warn('Skipping input confirmation')
-        ..warn('Using default value of $defaultValue');
+    /// Ask which version to select
+
+    final versionsList = versions.map((version) => version.name).toList();
+
+    final choice = select('Select a version: ', options: versionsList);
+
+    return choice;
+  }
+
+  bool confirm(String? message, {required bool defaultValue}) {
+    if (_isCI || _skipInput) {
+      info(message ?? '');
+      warn('Skipping input confirmation');
+      warn('Using default value of $defaultValue');
 
       return defaultValue;
     }
 
-    return interact.Confirm(prompt: message ?? '', defaultValue: defaultValue)
-        .interact();
+    return interact.Confirm(
+      prompt: message ?? '',
+      defaultValue: defaultValue,
+    ).interact();
   }
 
   String select(
@@ -86,11 +133,11 @@ class LoggerService extends ContextService {
     required List<String> options,
     int? defaultSelection,
   }) {
-    if (context.skipInput) {
+    if (_skipInput) {
       if (defaultSelection != null) {
         return options[defaultSelection];
       }
-      exit(ExitCode.usage.code);
+      exit(mason.ExitCode.usage.code);
     }
 
     final selection = interact.Select(
@@ -113,7 +160,7 @@ class LoggerService extends ContextService {
       ..borderType = BorderType.outline
       ..borderStyle = BorderStyle.square;
 
-    _logger.write(table.toString());
+    write(table.toString());
   }
 
   void important(String message) {
@@ -129,32 +176,6 @@ class LoggerService extends ContextService {
 
     _logger.write(table.toString());
   }
-}
-
-final dot = '\u{25CF}'; // ●
-final rightArrow = '\u{2192}'; // →
-
-final consoleController = ConsoleController();
-
-/// Console Controller
-class ConsoleController {
-  /// stdout stream
-  final stdout = StreamController<List<int>>();
-
-  /// sderr stream
-  final stderr = StreamController<List<int>>();
-
-  /// warning stream
-  final warning = StreamController<List<int>>();
-
-  /// fine stream
-  final fine = StreamController<List<int>>();
-
-  /// info streamm
-  final info = StreamController<List<int>>();
-
-  /// error stream
-  final error = StreamController<List<int>>();
 }
 
 class Icons {

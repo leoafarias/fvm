@@ -20,10 +20,10 @@ This contains the version linked to the project. This file is automatically crea
 
 ```json
 {
-  "flutter": "3.19.1",
+  "flutter": "3.19.0",
   "flavors": {
     "development": "beta",
-    "production": "3.19.1"
+    "production": "3.19.0"
   },
   "updateVscodeSettings": true,
   "updateGitIgnore": true,
@@ -40,30 +40,26 @@ This contains the version linked to the project. This file is automatically crea
 -  `flavors`: A map defining custom project flavors for different configurations.
 -  `updateVscodeSettings`: (default: true) Flags whether to auto-update VS Code settings on configuration changes.
 -  `updateGitIgnore`: (default: true) Indicates whether to auto-update the .gitignore file based on project configurations.
+-  `updateMelosSettings`: (default: true) Indicates whether to auto-update Melos configuration files.
 -  `runPubGetOnSdkChanges`: (default: true) Triggers flutter pub get automatically upon Flutter SDK version changes.
 
 ### .fvm Directory
 
-Inside the directory, you will find the following files and directories:
+Inside the directory, you will find the following files and symlinks:
 
 <FileTree>
   <FileTree.Folder name=".fvm" defaultOpen>
-    <FileTree.Folder name="versions" defaultOpen>
-      <FileTree.File name="stable" />
-      <FileTree.File name="beta" />
-      <FileTree.File name="3.19.1" />
-    </FileTree.Folder>
-    <FileTree.Folder name="flutter_sdk" />
+    <FileTree.File name="flutter_sdk" />
+    <FileTree.File name="fvm_config.json" />
     <FileTree.File name="release" />
     <FileTree.File name="version" />
   </FileTree.Folder>
 </FileTree>
 
--  **flutter_sdk** - Symlink to the Flutter SDK version linked to the project.
--  **versions** - Directory containing the Flutter SDK versions. This is similar to flutter_sdk but is used for better VS Code compatibility.
--  **fvm_config.json** - (deprecated) This is a legacy configuration file.
+-  **flutter_sdk** - Symlink to the Flutter SDK version linked to the project (points to the cached version).
+-  **fvm_config.json** - (deprecated) Legacy configuration file for backward compatibility.
 -  **release** - (internal use only) File containing the release version of FVM.
--  **version** - (internal use only) File containing the version of FVM.
+-  **version** - (internal use only) File containing the version of FVM that created this configuration.
 
 <Callout type="info">
   Starting with version 3.0 and above, it is recommended to add the `.fvm` directory
@@ -81,4 +77,8 @@ Set environment variables at the system level to apply configurations globally. 
 -  `FVM_USE_GIT_CACHE`: Enables/disables the git cache globally (`true`/`false`).
 -  `FVM_GIT_CACHE_PATH`: Sets the path for the local git reference cache.
 -  `FVM_FLUTTER_URL`: Defines the Flutter repository git URL.
--  `FVM_PRIVILEGED_ACCESS`: Enables/disables privileged access for FVM (`true`/`false`).
+
+### Legacy and Deprecated Variables:
+
+-  `FVM_HOME`: ⚠️ **Legacy** - Use `FVM_CACHE_PATH` instead. Still supported as fallback for backward compatibility.
+-  `FVM_GIT_CACHE`: ❌ **Deprecated** - Use `FVM_FLUTTER_URL` instead. No longer supported.

@@ -1,63 +1,74 @@
 import 'dart:io';
 
+import '../../models/flutter_version_model.dart';
 import '../../utils/exceptions.dart';
 import '../../utils/http.dart';
-import '../logger_service.dart';
-import 'models/channels_model.dart';
+import '../base_service.dart';
 import 'models/flutter_releases_model.dart';
 import 'models/version_model.dart';
 
-final _envVars = Platform.environment;
-final _defaultStorageUrl = 'https://storage.googleapis.com';
+class FlutterReleaseClient extends ContextualService {
+  // Constants
+  static const String _defaultStorageUrl = 'https://storage.googleapis.com';
+  static const String _githubRawUrl =
+      'https://raw.githubusercontent.com/leoafarias/fvm/main';
 
-/// Returns Google's storage url for releases
-String get storageUrl {
-  /// Uses environment variable if configured.
-  return _envVars['FLUTTER_STORAGE_BASE_URL'] ?? _defaultStorageUrl;
-}
+  // Instance-level cache instead of static
+  FlutterReleasesResponse? _cachedReleases;
 
-/// Gets platform specific release URL for a [platform]
-String _getFlutterReleasesUrl(String platform) =>
-    '$storageUrl/flutter_infra_release/releases/releases_$platform.json';
+  FlutterReleaseClient(super.context);
 
-/// Returns a CDN cached version of the releaes per platform
-String _getGithubCacheUrl(String platform) {
-  return _envVars['FLUTTER_RELEASES_URL'] ??
-      'https://raw.githubusercontent.com/leoafarias/fvm/main/releases_$platform.json';
-}
+  /// Gets platform-specific release URL
+  String _getFlutterReleasesUrl(String platform) {
+    return '$storageUrl/flutter_infra_release/releases/releases_$platform.json';
+  }
 
-class FlutterReleasesClient {
-  static FlutterReleasesResponse? _cacheReleasesRes;
-  const FlutterReleasesClient._();
+  /// Returns a CDN cached version of the releases
+  String _getGithubCacheUrl(String platform) {
+    return Platform.environment['FLUTTER_RELEASES_URL'] ??
+        '$_githubRawUrl/releases_$platform.json';
+  }
 
-  /// Gets Flutter SDK Releases
-  /// Can use memory [cache] if it exists.
-  static Future<FlutterReleasesResponse> getReleases({
-    bool cache = true,
+  /// Gets the storage URL from environment variables or default
+  static String get storageUrl {
+    return Platform.environment['FLUTTER_STORAGE_BASE_URL'] ??
+        _defaultStorageUrl;
+  }
+
+  /// Fetches Flutter SDK Releases with optional caching
+  Future<FlutterReleasesResponse> fetchReleases({
+    bool useCache = true,
     String? platform,
   }) async {
-    platform ??= Platform.operatingSystem;
-    final releasesUrl = _getGithubCacheUrl(platform);
+    // Return cached data if available and requested
+    if (useCache && _cachedReleases != null) {
+      return _cachedReleases!;
+    }
+
+    final targetPlatform = platform ?? Platform.operatingSystem;
+    final githubUrl = _getGithubCacheUrl(targetPlatform);
+    final googleUrl = _getFlutterReleasesUrl(targetPlatform);
+
     try {
-      // If has been cached return
-      if (_cacheReleasesRes != null && cache) {
-        return await Future.value(_cacheReleasesRes);
-      }
+      // Try GitHub cache first
+      final response = await httpRequest(githubUrl);
+      _cachedReleases = FlutterReleasesResponse.fromJson(response);
 
-      final response = await fetch(releasesUrl);
-
-      return _cacheReleasesRes = FlutterReleasesResponse.fromJson(response);
+      return _cachedReleases!;
     } catch (err) {
-      logger.detail(err.toString());
+      logger.debug('GitHub cache request failed: ${err.toString()}');
+
       try {
-        return _cacheReleasesRes = await getReleasesFromGoogle(platform);
-      } catch (_, stackTrace) {
+        // Fallback to Google storage
+        final response = await httpRequest(googleUrl);
+        _cachedReleases = FlutterReleasesResponse.fromJson(response);
+
+        return _cachedReleases!;
+      } catch (e, stackTrace) {
         Error.throwWithStackTrace(
           AppException(
-            'Failed to retrieve the Flutter SDK from: ${_getFlutterReleasesUrl(platform)}\n'
-            'Fvm will use the value set on '
-            'env FLUTTER_STORAGE_BASE_URL to check versions\n'
-            'if you are located in China, please see this page: https://flutter.dev/community/china',
+            'Failed to retrieve Flutter SDK releases. '
+            'If you are in China, please see: https://flutter.dev/community/china',
           ),
           stackTrace,
         );
@@ -65,50 +76,42 @@ class FlutterReleasesClient {
     }
   }
 
-  static Future<FlutterReleasesResponse> getReleasesFromGoogle(
-    String platform,
-  ) async {
-    final response = await fetch(_getFlutterReleasesUrl(platform));
-
-    return FlutterReleasesResponse.fromJson(response);
-  }
-
-  // Function to filter releases based on channel
-  static Future<List<FlutterSdkRelease>> getReleasesFilteredByChannel(
-    String channelName,
-  ) async {
-    if (!FlutterChannel.values.any((element) => element.name == channelName)) {
-      throw Exception('Invalid channel name: $channelName');
+  /// Gets releases filtered by channel name
+  Future<List<FlutterSdkRelease>> getChannelReleases(String channelName) async {
+    if (!FlutterChannel.values.any((channel) => channel.name == channelName)) {
+      throw ArgumentError('Invalid channel name: $channelName');
     }
 
-    final response = await getReleases();
+    final response = await fetchReleases();
 
     return response.versions
         .where((release) => release.channel.name == channelName)
         .toList();
   }
 
-  static Future<bool> isVersionValid(String version) async {
-    final releases = await getReleases();
+  /// Checks if a version is valid
+  Future<bool> isVersionValid(String version) async {
+    final releases = await fetchReleases();
 
     return releases.containsVersion(version);
   }
 
-  /// Returns a [FlutterSdkRelease]  channel [version]
-  static Future<FlutterSdkRelease> getLatestReleaseOfChannel(
-    FlutterChannel channel,
-  ) async {
-    final releases = await getReleases();
+  /// Gets the latest release for a specific channel
+  Future<FlutterSdkRelease> getLatestChannelRelease(String channel) async {
+    final response = await fetchReleases();
 
-    return releases.getLatestChannelRelease(channel.name);
+    return response.latestChannelRelease(channel);
   }
 
-  /// Returns a [FlutterChannel] from a [version]
-  static Future<FlutterSdkRelease?> getReleaseFromVersion(
-    String version,
-  ) async {
-    final releases = await getReleases();
+  /// Gets a specific release by version string
+  Future<FlutterSdkRelease?> getReleaseByVersion(String version) async {
+    final response = await fetchReleases();
 
-    return releases.getReleaseFromVersion(version);
+    return response.fromVersion(version);
+  }
+
+  /// Clears the internal cache
+  void clearCache() {
+    _cachedReleases = null;
   }
 }

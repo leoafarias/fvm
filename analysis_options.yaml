@@ -1,10 +1,9 @@
 include: package:lints/recommended.yaml
-analyzer:
+
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.
 linter:
   rules:
-    # TODO: Turn this to true when all public apis are documented 
     public_member_api_docs: false
     prefer_relative_imports: true
 
@@ -17,7 +16,6 @@ dart_code_metrics:
   rules-exclude:
     - test/**
   rules:
-    # avoid-collection-mutating-methods: true
     newline-before-return: true
     avoid-importing-entrypoint-exports:
         only-in-src: true
@@ -35,8 +33,6 @@ dart_code_metrics:
     prefer-prefixed-global-constants: false
     avoid-nullable-interpolation: false
     avoid-returning-widgets: false
-    arguments-ordering:
-      child-last: true
     avoid-nested-conditional-expressions:
         acceptable-level: 3
     member-ordering:

@@ -1,46 +1,28 @@
 import 'package:args/args.dart';
 
-import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
-import '../utils/commands.dart';
-import '../utils/constants.dart';
-import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/run_configured_flutter.workflow.dart';
 import 'base_command.dart';
 
 /// Proxies Dart Commands
-class DartCommand extends BaseCommand {
+class DartCommand extends BaseFvmCommand {
   @override
   final name = 'dart';
   @override
-  final description = 'Proxies Dart Commands';
+  final description =
+      'Runs Dart commands using the project\'s configured Flutter SDK';
   @override
   final argParser = ArgParser.allowAnything();
 
-  DartCommand();
+  DartCommand(super.context);
 
   @override
   Future<int> run() async {
-    final version = ProjectService.fromContext.findVersion();
     final args = argResults!.arguments;
 
-    CacheFlutterVersion? cacheVersion;
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
 
-    if (version != null) {
-      // Will install version if not already instaled
-      cacheVersion = await ensureCacheWorkflow(version);
+    final result = await runConfiguredFlutterWorkflow('dart', args: args);
 
-      logger
-        ..detail('$kPackageName: running Dart from Flutter SDK "$version"')
-        ..detail('');
-    } else {
-      logger
-        ..detail('$kPackageName: Running Dart version configured in PATH.')
-        ..detail('');
-    }
-    // Running null will default to dart version on path
-    final results = await runDart(args, version: cacheVersion);
-
-    return results.exitCode;
+    return result.exitCode;
   }
 }

@@ -7,7 +7,28 @@ title: FAQ
 
 ## Upgrade Flutter Channel
 
-As described in our [Principles](../getting-started/#principles), FVM does not override standard Flutter behavior. Therefore, to upgrade a channel, you will have to use the standard `flutter upgrade`. You can find more about it in the [Running Flutter](../guides/running-flutter) section.
+As described in our [Principles](https://fvm.app/#principles), FVM does not override standard Flutter behavior. Therefore, to upgrade a channel, you will have to use the standard `flutter upgrade`. You can find more about it in the [Running Flutter](../guides/running-flutter) section.
+
+---
+
+## flutter and dart commands not found
+
+If `fvm flutter` or `fvm dart` commands are not working:
+
+1. Make sure FVM is properly installed and in your PATH
+2. Ensure you have a Flutter version configured in your project (`fvm use <version>`)
+3. Check that the `.fvm` directory exists in your project
+
+---
+
+## How does FVM find the Flutter version to use?
+
+FVM searches for the Flutter SDK in this order:
+
+1. Project `.fvmrc` file
+2. Ancestor directory `.fvmrc` files
+3. Global version (set with `fvm global`)
+4. System PATH Flutter installation
 
 ---
 
@@ -19,8 +40,31 @@ When running `dart pub global activate fvm`, pub will grab the latest FVM versio
 
 ## How to uninstall FVM
 
-Run the command `fvm destroy` to remove FVM from your system.
-If you installed using pub, run `dart pub global deactivate fvm`. If you used a standalone installation, please follow its instructions.
+**Install script (macOS/Linux):**
+```bash
+./install.sh --uninstall
+```
+
+**Homebrew:**
+```bash
+brew uninstall fvm
+brew untap leoafarias/fvm
+```
+
+**Pub:**
+```bash
+dart pub global deactivate fvm
+```
+
+**Chocolatey (Windows):**
+```bash
+choco uninstall fvm
+```
+
+**Remove cached Flutter versions (optional):**
+```bash
+fvm destroy
+```
 
 ---
 

@@ -6,9 +6,24 @@ import { Callout } from "nextra/components";
 
 # Custom Flutter Version (Forks)
 
-In case you need to have a custom version of the Flutter SDK (a fork), referenced within a project, and you want to continue to use FVM, you can do so by following the steps below.
+FVM supports using custom Flutter SDK versions from forked repositories. This is useful when you need a modified version of Flutter.
 
-There are two ways to use a custom version of the Flutter SDK:
+## Using the Fork Command (Recommended)
+
+The simplest way is to use the `fork` command:
+
+```bash
+# Add a fork
+fvm fork add mycompany https://github.com/mycompany/flutter.git
+
+# Use it like any version
+fvm install mycompany/stable
+fvm use mycompany/3.19.0
+```
+
+For more details, see the [fork command documentation](/documentation/guides/basic-commands#fork).
+
+## Alternative Methods
 
 ## **Clone the fork within the FVM cache**
 
@@ -105,6 +120,6 @@ Keep in mind that for each project, the releases and channels need to be differe
 
 ```json filename=".fvmrc"
 {
-  "flutter_url": "https://github.com/org/custom-flutter.git"
+  "flutterUrl": "https://github.com/org/custom-flutter.git"
 }
 ```

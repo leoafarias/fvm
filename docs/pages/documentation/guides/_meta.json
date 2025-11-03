@@ -1,6 +1,12 @@
 {
+  "quick-reference": {
+    "title": "Quick Reference"
+  },
+  "workflows": {
+    "title": "Common Workflows"
+  },
   "basic-commands": {
-    "title": "Basic Commands"
+    "title": "Commands Reference"
   },
   "running-flutter": {
     "title": "Running Flutter"

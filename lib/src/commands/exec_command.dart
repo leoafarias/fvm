@@ -1,30 +1,24 @@
 import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
-import '../models/cache_flutter_version_model.dart';
-import '../services/logger_service.dart';
-import '../services/project_service.dart';
-import '../utils/commands.dart';
-import '../utils/constants.dart';
-import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/run_configured_flutter.workflow.dart';
 import 'base_command.dart';
 
 /// Executes scripts with the configured Flutter SDK
-class ExecCommand extends BaseCommand {
+class ExecCommand extends BaseFvmCommand {
   @override
   final name = 'exec';
   @override
-  final description = 'Executes scripts with the configured Flutter SDK';
+  final description =
+      'Executes commands with the project\'s configured Flutter SDK in the environment';
   @override
   final argParser = ArgParser.allowAnything();
 
   /// Constructor
-  ExecCommand();
+  ExecCommand(super.context);
 
   @override
   Future<int> run() async {
-    final version = ProjectService.fromContext.findVersion();
-
     if (argResults!.rest.isEmpty) {
       throw UsageException('No command was provided to be executed', usage);
     }
@@ -34,20 +28,10 @@ class ExecCommand extends BaseCommand {
     // Removes version from first arg
     final execArgs = [...?argResults?.rest]..removeAt(0);
 
-    // If no version is provided try to use global
-    CacheFlutterVersion? cacheVersion;
+    final runConfiguredFlutterWorkflow = RunConfiguredFlutterWorkflow(context);
 
-    if (version != null) {
-      // Will install version if not already instaled
-      cacheVersion = await ensureCacheWorkflow(version);
-      logger
-        ..info('$kPackageName: Running version: "$version"')
-        ..spacer;
-    }
+    final result = await runConfiguredFlutterWorkflow(cmd, args: execArgs);
 
-    // Runs exec command with pinned version
-    final results = await execCmd(cmd, execArgs, cacheVersion);
-
-    return results.exitCode;
+    return result.exitCode;
   }
 }

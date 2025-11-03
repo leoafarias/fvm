@@ -3,32 +3,29 @@ import 'dart:io';
 import 'package:dart_console/dart_console.dart';
 import 'package:io/io.dart';
 import 'package:jsonc/jsonc.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 
 import '../models/config_model.dart';
 import '../models/project_model.dart';
-import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
-import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/which.dart';
 import 'base_command.dart';
 
 /// Information about fvm environment
-class DoctorCommand extends BaseCommand {
+class DoctorCommand extends BaseFvmCommand {
   @override
   final name = 'doctor';
 
   @override
-  final description = 'Shows information about environment, '
-      'and project configuration.';
+  final description =
+      'Shows detailed information about the FVM environment and project configuration';
 
   final console = Console();
 
-  /// Constructor
-  DoctorCommand();
+  DoctorCommand(super.context);
 
   void _printProject(Project project) {
     logger.info('Project:');
@@ -46,31 +43,31 @@ class DoctorCommand extends BaseCommand {
       ['.gitignore Present', project.gitIgnoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
       ['Pinned Version', project.pinnedVersion ?? 'None'],
-      ['Config path', relative(project.configPath, from: project.path)],
+      ['Config path', p.relative(project.configPath, from: project.path)],
       [
         'Local cache dir',
-        relative(project.localVersionsCachePath, from: project.path),
+        p.relative(project.localVersionsCachePath, from: project.path),
       ],
       [
         'Version symlink',
-        relative(project.localVersionSymlinkPath, from: project.path),
+        p.relative(project.localVersionSymlinkPath, from: project.path),
       ],
     ]);
 
     logger.write(table.toString());
-    logger.spacer;
+    logger.info();
   }
 
   void _printIdeLinks(Project project) {
     logger
-      ..spacer
+      ..info()
       ..info('IDEs:');
     final table = createTable(['IDEs', 'Value']);
 
     table.insertRow([kVsCode]);
     // Check for .vscode directory
-    final vscodeDir = Directory(join(project.path, '.vscode'));
-    final settingsPath = join(vscodeDir.path, 'settings.json');
+    final vscodeDir = Directory(p.join(project.path, '.vscode'));
+    final settingsPath = p.join(vscodeDir.path, 'settings.json');
     final settingsFile = File(settingsPath);
 
     if (vscodeDir.existsSync()) {
@@ -78,7 +75,7 @@ class DoctorCommand extends BaseCommand {
         try {
           final settings = jsonc.decode(settingsFile.readAsStringSync());
 
-          final relativeSymlinkPath = relative(
+          final relativeSymlinkPath = p.relative(
             project.localVersionSymlinkPath,
             from: project.path,
           );
@@ -86,9 +83,10 @@ class DoctorCommand extends BaseCommand {
           final sdkPath = settings['dart.flutterSdkPath'];
 
           table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
-          table.insertRow(
-            ['Matches pinned version:', sdkPath == relativeSymlinkPath],
-          );
+          table.insertRow([
+            'Matches pinned version:',
+            sdkPath == relativeSymlinkPath,
+          ]);
         } on FormatException catch (_, stackTrace) {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
@@ -111,20 +109,56 @@ class DoctorCommand extends BaseCommand {
 
     table.insertRow([kIntelliJ]);
 
-    // Get localproperties file within flutter project
-    final localPropertiesFile =
-        File(join(project.path, 'android', 'local.properties'));
+    // Get local properties file within flutter project
+    final localPropertiesFile = File(
+      p.join(project.path, 'android', 'local.properties'),
+    );
 
     if (localPropertiesFile.existsSync()) {
       final localProperties = localPropertiesFile.readAsLinesSync();
-      final sdkPath = localProperties
-          .firstWhere((line) => line.startsWith('flutter.sdk'))
-          .split('=')[1];
-      final cacheVersionLink = Link(project.localVersionSymlinkPath);
-      final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
+      final sdkLines = localProperties.where(
+        (line) => line.startsWith('flutter.sdk'),
+      );
 
-      table.insertRow(['flutter.sdk', sdkPath]);
-      table.insertRow(['Matches pinned version:', sdkPath == resolvedLink]);
+      if (sdkLines.isEmpty) {
+        table.insertRow([
+          kIntelliJ,
+          'flutter.sdk not found in local.properties',
+        ]);
+      } else {
+        final sdkPath = sdkLines.first.split('=')[1];
+        table.insertRow(['flutter.sdk', sdkPath]);
+
+        // Only attempt to resolve symlink if version is pinned
+        if (project.pinnedVersion == null) {
+          table.insertRow([
+            'Matches pinned version:',
+            'No version pinned - run "fvm use <version>"',
+          ]);
+        } else {
+          final cacheVersionLink = Link(project.localVersionSymlinkPath);
+
+          if (!cacheVersionLink.existsSync()) {
+            table.insertRow([
+              'Matches pinned version:',
+              'Version symlink missing - run "fvm use ${project.pinnedVersion?.name}"',
+            ]);
+          } else {
+            try {
+              final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
+              table.insertRow([
+                'Matches pinned version:',
+                sdkPath == resolvedLink,
+              ]);
+            } on FileSystemException catch (_) {
+              table.insertRow([
+                'Matches pinned version:',
+                'Cannot resolve symlink - run "fvm use ${project.pinnedVersion?.name}"',
+              ]);
+            }
+          }
+        }
+      }
     } else {
       table.insertRow([
         kIntelliJ,
@@ -132,8 +166,9 @@ class DoctorCommand extends BaseCommand {
       ]);
     }
 
-    final dartSdkFile =
-        File(join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'));
+    final dartSdkFile = File(
+      p.join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'),
+    );
 
     if (dartSdkFile.existsSync()) {
       final dartSdk = dartSdkFile.readAsStringSync();
@@ -168,7 +203,7 @@ class DoctorCommand extends BaseCommand {
 
   void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
     logger
-      ..spacer
+      ..info()
       ..info('Environment:');
 
     var table = createTable(['Environment Variables', 'Value']);
@@ -178,8 +213,8 @@ class DoctorCommand extends BaseCommand {
       ['Dart PATH', dartWhich ?? 'Not found'],
     ]);
 
-    for (var key in ConfigKeys.values) {
-      table.insertRow([key.envKey, ctx.environment[key.envKey] ?? 'N/A']);
+    for (var key in ConfigOptions.values) {
+      table.insertRow([key.envKey, context.environment[key.envKey] ?? 'N/A']);
     }
 
     table.insertRows([
@@ -202,7 +237,7 @@ class DoctorCommand extends BaseCommand {
 
   @override
   Future<int> run() async {
-    final project = ProjectService.fromContext.findAncestor();
+    final project = get<ProjectService>().findAncestor();
     final flutterWhich = which('flutter');
     final dartWhich = which('dart');
 

@@ -1,15 +1,63 @@
----
-id: json-api
-title: JSON API
----
-
 # JSON API
 
-FVM CLI provides a set of JSON API endpoints to manage Flutter SDK versions effectively. This documentation outlines the available commands, their options, and the JSON structure of responses returned by each endpoint.
+FVM provides JSON API endpoints for integrating with other tools. All commands support the `--compress` option for compact output.
 
 ## Commands
 
-All commands are executed using the `fvm api` prefix, followed by the command name. The available commands are:
+### list
+
+Lists installed Flutter SDK versions.
+
+```bash
+fvm api list [--compress] [--skip-size-calculation]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--skip-size-calculation` - Skip cache size calculation
+
+### releases
+
+Shows available Flutter releases.
+
+```bash
+fvm api releases [--compress] [--limit <n>] [--filter-channel <channel>]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--limit` - Number of releases to return
+- `--filter-channel` - Filter by channel (stable, beta, dev)
+
+### context
+
+Returns FVM environment information.
+
+```bash
+fvm api context [--compress]
+```
+
+### project
+
+Returns project configuration.
+
+```bash
+fvm api project [--compress] [--path <path>]
+```
+
+**Options:**
+- `--compress` - Compact JSON output
+- `--path` - Project directory path
+
+## Integration Example
+
+```bash
+# Get current project version
+fvm api project --compress | jq -r '.project.pinnedVersion'
+
+# List installed versions
+fvm api list --compress | jq -r '.versions[].name'
+```
 
 ### `list`
 
@@ -33,17 +81,17 @@ fvm api list [options]
   "size": "922.50 MB",
   "versions": [
     {
-      "name": "3.19.2",
-      "directory": "/path/to/fvm/versions/3.19.2",
+      "name": "3.19.0",
+      "directory": "/path/to/fvm/versions/3.19.0",
       "releaseFromChannel": null,
       "type": "release",
-      "binPath": "/path/to/fvm/versions/3.19.2/bin",
+      "binPath": "/path/to/fvm/versions/3.19.0/bin",
       "hasOldBinPath": false,
-      "dartBinPath": "/path/to/fvm/versions/3.19.2/bin",
-      "dartExec": "/path/to/fvm/versions/3.19.2/bin/dart",
-      "flutterExec": "/path/to/fvm/versions/3.19.2/bin/flutter",
-      "flutterSdkVersion": "3.19.2",
-      "dartSdkVersion": "3.3.0",
+      "dartBinPath": "/path/to/fvm/versions/3.19.0/bin",
+      "dartExec": "/path/to/fvm/versions/3.19.0/bin/dart",
+      "flutterExec": "/path/to/fvm/versions/3.19.0/bin/flutter",
+      "flutterSdkVersion": "3.19.0",
+      "dartSdkVersion": "3.5.1",
       "isSetup": true
     },
     ...
@@ -160,29 +208,29 @@ fvm api project [options]
   "project": {
     "name": "my_project",
     "config": {
-      "flutter": "3.19.2",
+      "flutter": "3.19.0",
       "flavors": {
-        "production": "3.19.2",
+        "production": "3.19.0",
         "development": "stable"
       }
     },
     "path": "/path/to/project",
     "pinnedVersion": {
-      "name": "3.19.2",
+      "name": "3.19.0",
       "releaseFromChannel": null,
       "type": "release"
     },
     "activeFlavor": "production",
     "flavors": {
-      "production": "3.19.2",
+      "production": "3.19.0",
       "development": "stable"
     },
     "dartToolGeneratorVersion": "3.3.0",
-    "dartToolVersion": "3.19.2",
+    "dartToolVersion": "3.19.0",
     "isFlutter": true,
     "localFvmPath": "/path/to/project/.fvm",
     "localVersionsCachePath": "/path/to/project/.fvm/versions",
-    "localVersionSymlinkPath": "/path/to/project/.fvm/versions/3.19.2",
+    "localVersionSymlinkPath": "/path/to/project/.fvm/versions/3.19.0",
     "gitIgnorePath": "/path/to/project/.gitignore",
     "pubspecPath": "/path/to/project/pubspec.yaml",
     "configPath": "/path/to/project/.fvmrc",

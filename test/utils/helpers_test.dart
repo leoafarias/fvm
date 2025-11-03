@@ -21,8 +21,10 @@ void main() {
     final envName = 'PATH';
     final fakePath = 'FAKE_PATH';
 
-    final newEnvVar =
-        updateEnvironmentVariables(['FAKE_PATH', 'ANOTHER_FAKE_PATH'], envVars);
+    final newEnvVar = updateEnvironmentVariables([
+      'FAKE_PATH',
+      'ANOTHER_FAKE_PATH',
+    ], envVars);
 
     // expect(newEnvVar[envName], envVars[envName]);
     expect(newEnvVar[envName]!.contains(fakePath), true);
@@ -41,6 +43,51 @@ void main() {
     expect('300.0.0', assignVersionWeight('stable'));
     expect('200.0.0', assignVersionWeight('beta'));
     expect('100.0.0', assignVersionWeight('dev'));
+  });
+
+  group('isValidGitUrl', () {
+    test('accepts common git transports with .git suffix', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('git://example.com/repo.git'), isTrue);
+      expect(
+        isValidGitUrl('ssh://git@github.com/flutter/flutter.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('file:///Users/test/projects/flutter.git'),
+        isTrue,
+      );
+    });
+
+    test('accepts scp-style git urls including ipv6 hosts', () {
+      expect(
+        isValidGitUrl('git@github.com:flutter/flutter.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('git@[2001:db8::1]:owner/project.git'),
+        isTrue,
+      );
+    });
+
+    test('accepts ssh urls that use scp-like namespace syntax', () {
+      expect(
+        isValidGitUrl('ssh://git@gitlab.com:group/project.git'),
+        isTrue,
+      );
+      expect(
+        isValidGitUrl('ssh://git@gitlab.com:7999/group/project.git'),
+        isTrue,
+      );
+    });
+
+    test('rejects malformed git urls', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter'), isFalse);
+      expect(isValidGitUrl('git@github.com:flutter/flutter'), isFalse);
+      expect(isValidGitUrl('ssh://git@gitlab.com'), isFalse);
+      expect(isValidGitUrl('not a url'), isFalse);
+      expect(isValidGitUrl(''), isFalse);
+    });
   });
 
   group('extractFlutterVersionOutput', () {
@@ -93,7 +140,7 @@ Tools • Dart 2.13.0''';
       final content =
           '''  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
-    
+
       0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
      27  203M   27 56.1M    0     0  61.8M      0  0:00:03 --:--:--  0:00:03 61.8M
      88  203M   88  180M    0     0  94.9M      0  0:00:02  0:00:01  0:00:01 94.9M
@@ -213,5 +260,17 @@ Tools â€¢ Dart 3.2.0 (build 3.2.0-134.1.beta) â€¢ DevTools 2.27.0
     expect(result.channel, 'beta');
     expect(result.dartVersion, '3.2.0');
     expect(result.dartBuildVersion, '3.2.0-134.1.beta');
+  });
+
+  test('formatFriendlyBytes', () {
+    expect(formatFriendlyBytes(1024), '1.00 KB');
+    expect(formatFriendlyBytes(1024 * 1024), '1.00 MB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024), '1.00 GB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024), '1.00 TB');
+    expect(formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024), '1.00 PB');
+    expect(
+      formatFriendlyBytes(1024 * 1024 * 1024 * 1024 * 1024 * 1024),
+      '1.00 EB',
+    );
   });
 }
