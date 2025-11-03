@@ -41,7 +41,11 @@ class CacheService extends ContextualService {
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
 
-    return versionsMatch(version.version, cached);
+    return versionsMatch(
+      version.version,
+      cached,
+      onWarn: (message) => logger.warn(message),
+    );
   }
 
   Link get _globalCacheLink => Link(context.globalCacheLink);
@@ -147,7 +151,7 @@ class CacheService extends ContextualService {
       return Directory(
         path.join(context.versionsCachePath, version.fork!, version.version),
       );
-    } // Standard path (unchanged): versionsCachePath/versionName
+    } // Standard path: versionsCachePath/version.name
 
     return Directory(path.join(context.versionsCachePath, version.name));
   }
@@ -259,8 +263,27 @@ String normalizeVersion(String value) {
   return value;
 }
 
+/// Determines if [configured] and [cached] versions should be considered
+/// matching.
+///
+/// Matching rules:
+/// 1. Exact string match (after normalizing leading 'v'/'V' prefix)
+/// 2. If either has build metadata (+xxx), both must match exactly
+/// 3. If both have pre-release identifiers (-xxx), both must match exactly
+/// 4. If [configured] has pre-release but [cached] does not, match on
+///    `major.minor.patch` (allows dev builds to match stable SDKs)
+/// 5. If [cached] has pre-release but [configured] does not, require exact match
+/// 6. For non-semver versions (e.g., git refs), fall back to normalized string
+///    equality
+///
+/// This handles Flutter SDK naming where the cached SDK may strip pre-release
+/// suffixes from the configured version.
 @visibleForTesting
-bool versionsMatch(String configured, String cached) {
+bool versionsMatch(
+  String configured,
+  String cached, {
+  void Function(String message)? onWarn,
+}) {
   if (configured == cached) return true;
 
   final normConfigured = normalizeVersion(configured);
@@ -286,9 +309,16 @@ bool versionsMatch(String configured, String cached) {
           configVer.patch == cachedVer.patch;
     }
 
-    // All other cases require exact semantic equality.
+    // Remaining case: configured has no pre-release but cached does;
+    // require exact match (which will fail because of differing pre-release).
     return configVer == cachedVer;
-  } on FormatException {
+  } on FormatException catch (e) {
+    onWarn?.call(
+      'Unable to parse versions as semantic versions: '
+      'configured="$configured", cached="$cached". '
+      'Falling back to string comparison. Error: $e',
+    );
+
     return normConfigured == normCached;
   }
 }

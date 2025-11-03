@@ -8,7 +8,7 @@ case "$OS" in
 Linux*) OS='linux' ;;
 Darwin*) OS='macos' ;;
 *)
-    log_message "Unsupported OS"
+    echo "Unsupported OS" >&2
     exit 1
     ;;
 esac

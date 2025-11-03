@@ -8,17 +8,23 @@ Future<String> httpRequest(String url, {Map<String, String>? headers}) async {
   try {
     final request = await client.getUrl(Uri.parse(url));
 
-    if (headers != null) {
-      headers.forEach((key, value) {
-        request.headers.set(key, value);
-      });
-    }
+    headers?.forEach(request.headers.set);
 
     final response = await request.close();
 
     if (response.statusCode >= 400) {
+      var guidance = '';
+      if (response.statusCode == HttpStatus.unauthorized ||
+          response.statusCode == HttpStatus.forbidden) {
+        guidance = ' Check your authentication credentials.';
+      } else if (response.statusCode == HttpStatus.notFound) {
+        guidance = ' The requested resource was not found.';
+      } else if (response.statusCode >= HttpStatus.internalServerError) {
+        guidance = ' The server encountered an error. Try again later.';
+      }
+
       throw HttpException(
-        'HTTP ${response.statusCode}: ${response.reasonPhrase} - URL: $url',
+        'HTTP ${response.statusCode}: ${response.reasonPhrase} - URL: $url.$guidance',
       );
     }
 
