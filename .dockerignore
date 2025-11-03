@@ -1,0 +1,33 @@
+# Development files
+.git
+.dart_tool
+build
+coverage
+test
+
+# Documentation
+docs
+*.md
+README*
+CHANGELOG*
+LICENSE
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# CI/CD files
+.github
+.dockerignore
+Dockerfile*
+
+# Temporary files
+*.log
+*.tmp
+temp

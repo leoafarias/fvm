@@ -7,25 +7,26 @@ import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
 import '../workflows/use_version.workflow.dart';
+import '../workflows/validate_flutter_version.workflow.dart';
 import 'base_command.dart';
 
 /// Installs Flutter SDK
-class InstallCommand extends BaseCommand {
+class InstallCommand extends BaseFvmCommand {
   @override
   final name = 'install';
 
   @override
-  final description = 'Installs Flutter SDK Version';
+  final description =
+      'Installs a Flutter SDK version and caches it for future use';
 
-  /// Constructor
-  InstallCommand() {
+  InstallCommand(super.context) {
     argParser
       ..addFlag(
         'setup',
         abbr: 's',
-        help: 'Builds SDK after install',
-        defaultsTo: false,
-        negatable: false,
+        help: 'Downloads SDK dependencies after install (default: true)',
+        defaultsTo: true,
+        negatable: true,
       )
       ..addFlag(
         'skip-pub-get',
@@ -39,11 +40,15 @@ class InstallCommand extends BaseCommand {
   Future<int> run() async {
     final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
-    String? version;
+
+    final ensureCache = EnsureCacheWorkflow(context);
+    final useVersion = UseVersionWorkflow(context);
+    final setupFlutter = SetupFlutterWorkflow(context);
+    final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      final project = ProjectService.fromContext.findAncestor();
+      final project = get<ProjectService>().findAncestor();
 
       final version = project.pinnedVersion;
 
@@ -55,30 +60,26 @@ class InstallCommand extends BaseCommand {
         );
       }
 
-      final cacheVersion = await ensureCacheWorkflow(
-        version.name,
-        shouldInstall: true,
-      );
+      final cacheVersion = await ensureCache(version, shouldInstall: true);
 
-      await useVersionWorkflow(
+      await useVersion(
         version: cacheVersion,
         project: project,
         force: true,
         skipSetup: !setup,
-        runPubGetOnSdkChange: !skipPubGet,
+        skipPubGet: skipPubGet,
       );
 
       return ExitCode.success.code;
     }
-    version ??= argResults!.rest[0];
+    final version = firstRestArg!;
 
-    final cacheVersion = await ensureCacheWorkflow(
-      version,
-      shouldInstall: true,
-    );
+    final flutterVersion = validateFlutterVersion(version);
+
+    final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
 
     if (setup) {
-      await setupFlutterWorkflow(cacheVersion);
+      await setupFlutter(cacheVersion);
     }
 
     return ExitCode.success.code;

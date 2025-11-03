@@ -11,7 +11,7 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  
+
   test:
     name: Test
     uses: ./.github/workflows/test.yml
@@ -27,6 +27,9 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Deploy Github
         run: dart run grinder pkg-github-release
 
@@ -37,7 +40,7 @@ jobs:
         run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
-        name: Deploy (Windows)
+        name: Deploy Windows
         runs-on: windows-latest
         needs: release
         env:
@@ -46,29 +49,35 @@ jobs:
         steps:
           - name: Checkout
             uses: actions/checkout@v4
-    
+
           - name: Prepare environment
             uses: ./.github/actions/prepare
-    
+
+          - name: Generate code with build_runner
+            run: dart run build_runner build --delete-conflicting-outputs
+
           - name: Deploy Github Windows
             run: dart run grinder pkg-github-windows
-    
-          - name: Deploy Chocolatey (Windows)
+
+          - name: Deploy Chocolatey
             run: dart run grinder pkg-chocolatey-deploy
 
   deploy-macos:
-      name: Deploy (Macos)
+      name: Deploy macOS
       runs-on: macos-latest
       needs: release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
+
       steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Deploy Github Mac
         run: dart run grinder pkg-github-macos
@@ -82,9 +91,9 @@ jobs:
         run: dart run grinder pkg-homebrew-update
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-          
+
   deploy-docker:
-    name: Docker Deploy (latest)
+    name: Deploy Docker
     runs-on: ubuntu-latest
     needs: release
     steps:
@@ -94,23 +103,26 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
 
+      - name: Generate code with build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
+
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Get and modify tag name
         id: get_tag_name
         run: |
           # Extract the tag name from the GitHub ref
           TAG_NAME=${{ github.ref_name }}
-          
+
           # Remove leading 'v' from the tag name, if present
           MODIFIED_TAG_NAME=$(echo "$TAG_NAME" | sed 's/^v//')
-          
+
           # Set the modified tag name as an environment variable
           echo "MODIFIED_TAG_NAME=$MODIFIED_TAG_NAME" >> $GITHUB_ENV
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
         uses: docker/login-action@v3
@@ -118,10 +130,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push (latest)
-        id: docker_build_latest
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           file: ./.docker/Dockerfile
           push: true
-          tags: leoafarias/fvm:{{ steps.get_tag_name.outputs.modified_tag_name}}
+          tags: leoafarias/fvm:${{ env.MODIFIED_TAG_NAME }}
+          build-args: |
+            FVM_VERSION=${{ env.MODIFIED_TAG_NAME }}

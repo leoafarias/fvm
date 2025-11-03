@@ -27,8 +27,8 @@ class ProjectMapper extends ClassMapperBase<Project> {
       Field('config', _$config);
   static String _$path(Project v) => v.path;
   static const Field<Project, String> _f$path = Field('path', _$path);
-  static PubSpec? _$pubspec(Project v) => v.pubspec;
-  static const Field<Project, PubSpec> _f$pubspec = Field('pubspec', _$pubspec);
+  static Pubspec? _$pubspec(Project v) => v.pubspec;
+  static const Field<Project, Pubspec> _f$pubspec = Field('pubspec', _$pubspec);
   static String _$name(Project v) => v.name;
   static const Field<Project, String> _f$name = Field('name', _$name);
   static FlutterVersion? _$pinnedVersion(Project v) => v.pinnedVersion;
@@ -133,7 +133,8 @@ mixin ProjectMappable {
   }
 
   ProjectCopyWith<Project, Project, Project> get copyWith =>
-      _ProjectCopyWithImpl(this as Project, $identity, $identity);
+      _ProjectCopyWithImpl<Project, Project>(
+          this as Project, $identity, $identity);
   @override
   String toString() {
     return ProjectMapper.ensureInitialized().stringifyValue(this as Project);
@@ -153,13 +154,13 @@ mixin ProjectMappable {
 
 extension ProjectValueCopy<$R, $Out> on ObjectCopyWith<$R, Project, $Out> {
   ProjectCopyWith<$R, Project, $Out> get $asProject =>
-      $base.as((v, t, t2) => _ProjectCopyWithImpl(v, t, t2));
+      $base.as((v, t, t2) => _ProjectCopyWithImpl<$R, $Out>(v, t, t2));
 }
 
 abstract class ProjectCopyWith<$R, $In extends Project, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   ProjectConfigCopyWith<$R, ProjectConfig, ProjectConfig>? get config;
-  $R call({ProjectConfig? config, String? path, PubSpec? pubspec});
+  $R call({ProjectConfig? config, String? path, Pubspec? pubspec});
   ProjectCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
 }
 
@@ -189,5 +190,5 @@ class _ProjectCopyWithImpl<$R, $Out>
 
   @override
   ProjectCopyWith<$R2, Project, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _ProjectCopyWithImpl($value, $cast, t);
+      _ProjectCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

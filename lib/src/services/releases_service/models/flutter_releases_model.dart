@@ -3,11 +3,12 @@ import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
 
+import '../../../models/flutter_version_model.dart';
 import 'version_model.dart';
 
 part 'flutter_releases_model.mapper.dart';
 
-const _flutterChannels = ['stable', 'beta', 'dev', 'master'];
+const _flutterChannels = ['stable', 'beta', 'dev'];
 
 /// Flutter Releases
 @MappableClass()
@@ -44,19 +45,16 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
   }
 
   /// Returns a [FlutterVersion] release from channel [version]
-  FlutterSdkRelease getLatestChannelRelease(String channelName) {
-    if (!_flutterChannels.contains(channelName)) {
+  FlutterSdkRelease latestChannelRelease(String channel) {
+    if (!_flutterChannels.contains(channel)) {
       throw Exception('Can only infer release on valid channel');
     }
 
-    final channelRelease = channels[channelName];
-
-    // Returns valid version
-    return channelRelease;
+    return channels[channel];
   }
 
   /// Retrieves version information
-  FlutterSdkRelease? getReleaseFromVersion(String version) {
+  FlutterSdkRelease? fromVersion(String version) {
     return _versionReleaseMap[version];
   }
 
@@ -102,8 +100,9 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    final releaseItem =
-        FlutterSdkRelease.fromMap(release as Map<String, dynamic>);
+    final releaseItem = FlutterSdkRelease.fromMap(
+      release as Map<String, dynamic>,
+    );
 
     /// Add to releases
     releasesList.add(releaseItem);

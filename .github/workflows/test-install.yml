@@ -1,0 +1,117 @@
+name: Test Install Script
+
+on:
+  push:
+    paths:
+      - 'scripts/install.sh'
+      - '.github/workflows/test-install.yml'
+  pull_request:
+    paths:
+      - 'scripts/install.sh'
+      - '.github/workflows/test-install.yml'
+  workflow_dispatch:
+
+jobs:
+  # Basic validation
+  validate:
+    name: Validate Script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: |
+          # Only install if not already available (for act compatibility)
+          if ! command -v shellcheck &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y shellcheck
+          fi
+      - name: Run shellcheck
+        run: shellcheck scripts/install.sh
+
+  # Test on major platforms
+  test-install:
+    name: Test - ${{ matrix.os }}
+    needs: validate
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test installation
+        run: |
+          ./scripts/install.sh
+          fvm --version
+      
+      - name: Test reinstall (idempotency)
+        run: |
+          ./scripts/install.sh
+          fvm --version
+      
+      - name: Test uninstall
+        run: |
+          # First ensure FVM is installed
+          which fvm
+          ls -la ~/.fvm_flutter/bin/
+          
+          # Run uninstall
+          ./scripts/install.sh --uninstall
+          
+          # Verify uninstall
+          if command -v fvm &>/dev/null; then
+            echo "❌ FVM command still exists after uninstall"
+            exit 1
+          fi
+          
+          if [[ -d ~/.fvm_flutter ]]; then
+            echo "❌ FVM directory still exists after uninstall"
+            exit 1
+          fi
+          
+          echo "✅ FVM successfully uninstalled"
+      
+      - name: Test uninstall on clean system (idempotency)
+        run: |
+          # Run uninstall again - should handle gracefully
+          ./scripts/install.sh --uninstall
+
+  # Test container detection and root permissions
+  test-container:
+    name: Test Container
+    needs: validate
+    runs-on: ubuntu-latest
+    container: ubuntu:latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install dependencies
+        run: |
+          apt-get update && apt-get install -y curl tar gzip
+      
+      - name: Test container root allowed
+        run: |
+          ./scripts/install.sh
+          /usr/local/bin/fvm --version
+
+  # Test root blocking on non-container
+  test-permissions:
+    name: Test Permissions
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Test root blocked
+        run: |
+          # Should fail when run as root without container
+          if sudo ./scripts/install.sh 2>&1 | grep -q "should not be run as root"; then
+            echo "✅ Root correctly blocked"
+          else
+            echo "❌ Root should have been blocked"
+            exit 1
+          fi
+      
+      - name: Test with override
+        run: |
+          sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
+          sudo /usr/local/bin/fvm --version

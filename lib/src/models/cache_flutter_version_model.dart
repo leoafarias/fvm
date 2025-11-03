@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
-import '../utils/commands.dart';
 import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
@@ -21,27 +19,26 @@ class CacheFlutterVersion extends FlutterVersion
 
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
-  // static final fromJson = CacheFlutterVersion.fromJson;
 
-  const CacheFlutterVersion.raw(
+  @protected
+  @MappableConstructor()
+  const CacheFlutterVersion(
     super.name, {
-    required this.directory,
-    required super.releaseFromChannel,
+    super.releaseChannel,
     required super.type,
+    super.fork,
+    required this.directory,
   });
 
-  /// Constructor
-  factory CacheFlutterVersion(
+  CacheFlutterVersion.fromVersion(
     FlutterVersion version, {
-    required String directory,
-  }) {
-    return CacheFlutterVersion.raw(
-      version.name,
-      directory: directory,
-      releaseFromChannel: version.releaseFromChannel,
-      type: version.type,
-    );
-  }
+    required this.directory,
+  }) : super(
+          version.name,
+          releaseChannel: version.releaseChannel,
+          type: version.type,
+          fork: version.fork,
+        );
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
@@ -96,16 +93,6 @@ class CacheFlutterVersion extends FlutterVersion
   @MappableField()
   bool get isSetup => flutterSdkVersion != null;
 
-  Future<ProcessResult> run(
-    String command, {
-    bool echoOutput = false,
-    bool? throwOnError,
-  }) {
-    return runFlutter(
-      command.split(' '),
-      version: this,
-      echoOutput: echoOutput,
-      throwOnError: throwOnError,
-    );
-  }
+  FlutterVersion toFlutterVersion() =>
+      FlutterVersion(name, releaseChannel: releaseChannel, type: type);
 }

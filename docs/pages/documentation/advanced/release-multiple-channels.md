@@ -5,16 +5,22 @@ title: Release In Multiple Channels
 
 # Release In Multiple Channels
 
-In some cases a Flutter release can show up on multiple channels. FVM will prioritize the channel by stability. Stable > Beta > Dev. Which means any version number will resolve to the most "stable" channel if exists in multiple channels.
+Sometimes a Flutter version exists in multiple channels. FVM prioritizes the most stable channel: **stable > beta > dev**.
 
-For example version `2.2.2` exists in both stable, and beta channels. That means the feature flags they use are different.
+## Example
+
+Version `3.16.0` exists in both stable and beta channels:
 
 ```bash
-fvm use 2.2.2 # Installs 2.2.2 from stable
+# Installs from stable channel (default)
+fvm use 3.16.0
 ```
 
-However if you want to force a version to be installed from a specific channel you can do `fvm install VERSION@CHANNEL`. This looks like the following.
+## Force Specific Channel
+
+To install from a specific channel, use `@channel`:
 
 ```bash
-fvm use 2.2.2@beta # Installs 2.2.2 from beta
+# Install from beta channel
+fvm use 3.16.0@beta
 ```

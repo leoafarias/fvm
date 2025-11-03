@@ -1,32 +1,45 @@
 import 'package:io/io.dart';
 
-import '../services/logger_service.dart';
-import '../utils/context.dart';
 import '../utils/extensions.dart';
 import 'base_command.dart';
 
 /// Destroy FVM cache by deleting all Flutter SDK versions
-class DestroyCommand extends BaseCommand {
+class DestroyCommand extends BaseFvmCommand {
   @override
   final name = 'destroy';
 
   @override
-  final description = 'Destroy FVM cache by deleting FVM directory';
+  final description =
+      'Completely removes the FVM cache and all cached Flutter SDK versions';
 
   /// Constructor
-  DestroyCommand();
+  DestroyCommand(super.context) {
+    argParser.addFlag(
+      'force',
+      abbr: 'f',
+      help: 'Bypass confirmation prompt (use with caution)',
+      negatable: false,
+    );
+  }
 
   @override
   Future<int> run() async {
-    if (logger.confirm(
-      'Are you sure you want to destroy the FVM cache directory and references?\n'
-      'This action cannot be undone. Do you want to proceed?',
-      defaultValue: false,
-    )) {
-      if (ctx.versionsCachePath.dir.existsSync()) {
-        ctx.versionsCachePath.dir.deleteSync(recursive: true);
+    final force = boolArg('force');
+
+    // Proceed if force flag is used OR user confirms
+    // When skipInput is true, default to false (safe default for destructive operation)
+    final shouldProceed = force ||
+        logger.confirm(
+          'Are you sure you want to destroy the FVM cache directory and references?\n'
+          'This action cannot be undone. Do you want to proceed?',
+          defaultValue: false,
+        );
+
+    if (shouldProceed) {
+      if (context.versionsCachePath.dir.existsSync()) {
+        context.versionsCachePath.dir.deleteSync(recursive: true);
         logger.success(
-          'FVM Directory ${ctx.versionsCachePath}\n has been deleted',
+          'FVM Directory ${context.versionsCachePath} has been deleted',
         );
       }
     }

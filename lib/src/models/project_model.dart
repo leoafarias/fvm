@@ -4,9 +4,8 @@ import 'dart:io';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:pubspec/pubspec.dart';
+import 'package:pubspec_parse/pubspec_parse.dart';
 
-import '../services/logger_service.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import 'config_model.dart';
@@ -27,10 +26,7 @@ class Project with ProjectMappable {
   /// The configuration of the project, if available.
   final ProjectConfig? config;
 
-  final PubSpec? pubspec;
-
-  static final fromMap = ProjectMapper.fromMap;
-  static final fromJson = ProjectMapper.fromJson;
+  final Pubspec? pubspec;
 
   /// Creates a new instance of [Project].
   ///
@@ -46,48 +42,20 @@ class Project with ProjectMappable {
   /// Loads the Flutter project from the given [path].
   ///
   /// The project is loaded by locating the FVM config file and the pubspec.yaml file.
-  static Project loadFromPath(String path) {
-    final configFile = _fvmConfigPath(path);
-    final legacyConfigFile = _legacyFvmConfigPath(path);
+  static Project loadFromDirectory(Directory directory) {
+    final config = ProjectConfig.loadFromDirectory(directory);
 
-    ProjectConfig? config = ProjectConfig.loadFromPath(configFile);
-
-    // Used for migration of config files
-    final legacyConfig = ProjectConfig.loadFromPath(legacyConfigFile);
-
-    if (legacyConfig != null && config != null) {
-      final legacyVersion = legacyConfig.flutter;
-      final version = config.flutter;
-
-      if (legacyVersion != version) {
-        logger
-          ..warn(
-            'Found fvm_config.json with SDK version different than .fvmrc\n'
-            'fvm_config.json is deprecated and will be removed in future versions.\n'
-            'Please do not modify this file manually.',
-          )
-          ..spacer
-          ..warn('Ignoring fvm_config.json');
-      }
-    }
-
-    if (config == null && legacyConfig != null) {
-      legacyConfig.save(configFile);
-    }
-
-    config = ProjectConfig.loadFromPath(configFile);
-
-    final pubspecFile = File(join(path, 'pubspec.yaml'));
+    final pubspecFile = File(join(directory.path, 'pubspec.yaml'));
     final pubspec = pubspecFile.existsSync()
-        ? PubSpec.fromYamlString(pubspecFile.readAsStringSync())
+        ? Pubspec.parse(pubspecFile.readAsStringSync())
         : null;
 
-    return Project(config: config, path: path, pubspec: pubspec);
+    return Project(config: config, path: directory.path, pubspec: pubspec);
   }
 
   /// Retrieves the name of the project.
   @MappableField()
-  String get name => basename(path);
+  String get name => pubspec?.name ?? basename(path);
 
   /// Retrieves the pinned Flutter SDK version within the project.
   ///
@@ -95,11 +63,8 @@ class Project with ProjectMappable {
   @MappableField()
   FlutterVersion? get pinnedVersion {
     final sdkVersion = config?.flutter;
-    if (sdkVersion != null) {
-      return FlutterVersion.parse(sdkVersion);
-    }
 
-    return null;
+    return sdkVersion != null ? FlutterVersion.parse(sdkVersion) : null;
   }
 
   /// Retrieves the active configured flavor of the project.
@@ -179,7 +144,7 @@ class Project with ProjectMappable {
   /// Retrieves the Flutter SDK constraint from the pubspec.yaml file.
   ///
   /// Returns `null` if the constraint is not defined.
-  VersionConstraint? get sdkConstraint => pubspec?.environment?.sdkConstraint;
+  VersionConstraint? get sdkConstraint => pubspec?.environment['sdk'];
 }
 
 String _fvmPath(String path) {
@@ -213,16 +178,119 @@ String? _dartToolVersion(String projectPath) {
   return file.existsSync() ? file.readAsStringSync() : null;
 }
 
-class PubspecMapper extends SimpleMapper<PubSpec> {
+class PubspecMapper extends SimpleMapper<Pubspec> {
   const PubspecMapper();
 
-  @override
-  // ignore: avoid-dynamic
-  PubSpec decode(dynamic value) {
-    return PubSpec.fromJson(jsonDecode(value as String));
+  /// Converts a Pubspec object to a JSON-compatible Map
+  /// Converts all pubspec fields to JSON-compatible Map
+  Map<String, dynamic> _pubspecToJsonMap(Pubspec pubspec) {
+    final map = <String, dynamic>{'name': pubspec.name};
+
+    // Add optional fields only if they exist
+    if (pubspec.version != null) map['version'] = pubspec.version?.toString();
+    if (pubspec.description != null) map['description'] = pubspec.description;
+    if (pubspec.homepage != null) map['homepage'] = pubspec.homepage;
+    if (pubspec.repository != null) {
+      map['repository'] = pubspec.repository?.toString();
+    }
+    if (pubspec.issueTracker != null) {
+      map['issue_tracker'] = pubspec.issueTracker?.toString();
+    }
+    if (pubspec.documentation != null) {
+      map['documentation'] = pubspec.documentation;
+    }
+    if (pubspec.publishTo != null) map['publish_to'] = pubspec.publishTo;
+
+    // Handle environment constraints
+    if (pubspec.environment.isNotEmpty) {
+      map['environment'] = pubspec.environment.map(
+        (key, value) => MapEntry(key, value?.toString()),
+      );
+    }
+
+    // Handle dependencies
+    if (pubspec.dependencies.isNotEmpty) {
+      map['dependencies'] = _dependenciesToJsonMap(pubspec.dependencies);
+    }
+    if (pubspec.devDependencies.isNotEmpty) {
+      map['dev_dependencies'] = _dependenciesToJsonMap(pubspec.devDependencies);
+    }
+    if (pubspec.dependencyOverrides.isNotEmpty) {
+      map['dependency_overrides'] = _dependenciesToJsonMap(
+        pubspec.dependencyOverrides,
+      );
+    }
+
+    // Handle Flutter configuration
+    if (pubspec.flutter != null && pubspec.flutter!.isNotEmpty) {
+      map['flutter'] = pubspec.flutter;
+    }
+
+    // Handle executables
+    if (pubspec.executables.isNotEmpty) {
+      map['executables'] = pubspec.executables;
+    }
+
+    // Handle additional fields for completeness
+    if (pubspec.funding != null && pubspec.funding!.isNotEmpty) {
+      map['funding'] = pubspec.funding!.map((uri) => uri.toString()).toList();
+    }
+    if (pubspec.topics != null && pubspec.topics!.isNotEmpty) {
+      map['topics'] = pubspec.topics;
+    }
+    if (pubspec.screenshots != null && pubspec.screenshots!.isNotEmpty) {
+      map['screenshots'] = pubspec.screenshots!
+          .map(
+            (screenshot) => {
+              'description': screenshot.description,
+              'path': screenshot.path,
+            },
+          )
+          .toList();
+    }
+
+    return map;
+  }
+
+  /// Converts dependency map to JSON-compatible format
+  /// Handles all dependency types properly
+  Map<String, dynamic> _dependenciesToJsonMap(
+    Map<String, Dependency> dependencies,
+  ) {
+    return dependencies.map((key, value) {
+      if (value is HostedDependency) {
+        return MapEntry(key, value.version.toString());
+      } else if (value is GitDependency) {
+        final gitMap = <String, dynamic>{'url': value.url.toString()};
+        if (value.ref != null) gitMap['ref'] = value.ref;
+        if (value.path != null) gitMap['path'] = value.path;
+
+        return MapEntry(key, {'git': gitMap});
+      } else if (value is PathDependency) {
+        return MapEntry(key, {'path': value.path});
+      } else if (value is SdkDependency) {
+        return MapEntry(key, {'sdk': value.sdk});
+      }
+
+      // Fallback for unknown dependency types
+      return MapEntry(key, value.toString());
+    });
   }
 
   @override
   // ignore: avoid-dynamic
-  dynamic encode(PubSpec self) => self.toJson();
+  Pubspec decode(dynamic value) {
+    return Pubspec.parse(value as String);
+  }
+
+  @override
+  // ignore: avoid-dynamic
+  dynamic encode(Pubspec self) {
+    // Use Pubspec.fromJson() for round-trip compatibility
+    // This leverages the package's built-in JSON deserialization
+    final jsonMap = _pubspecToJsonMap(self);
+
+    // Convert to JSON string for dart_mappable compatibility
+    return jsonEncode(jsonMap);
+  }
 }
