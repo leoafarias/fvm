@@ -1,3 +1,9 @@
+## Unreleased
+
+### Packaging
+
+* choco: Rename Chocolatey listing to "Flutter Version Management (FVM)" for improved discoverability.
+
 ## 4.0.0
 
 * add: Manage Flutter SDKs from custom or forked repositories
