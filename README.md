@@ -20,7 +20,7 @@ FVM manages Flutter SDK versions per project. Switch between Flutter versions in
 - Flutter's major updates demand total app migration.
 - Inconsistencies occur in development environments within teams.
 
-For more information, read [FVM documentation](https://fvm.app).
+For more information, read the [Getting Started guide](https://fvm.app/documentation/getting-started).
 
 ## Release Process (For Maintainers)
 
@@ -69,7 +69,7 @@ Checkout Flutter Sidekick. [Read more about it here.](https://github.com/leoafar
 
 ## Troubleshooting
 
-Please view our [FAQ](https://www.fvm.app/documentation/getting-started/faq).
+Please view our [FAQ](https://fvm.app/documentation/getting-started/faq).
 
 ## License
 
