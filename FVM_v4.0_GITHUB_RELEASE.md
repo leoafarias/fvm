@@ -118,9 +118,9 @@ This release was made possible by contributions from the Flutter community. Spec
 
 ## 📚 Documentation
 
-- Full documentation: [fvm.app](https://fvm.app)
-- Fork management guide: [fvm.app/docs/guides/fork-management](https://fvm.app/docs/guides/fork-management)
-- API reference: [fvm.app/docs/api](https://fvm.app/docs/api)
+- Full documentation: [fvm.app/documentation](https://fvm.app/documentation)
+- Fork management guide: [fvm.app/documentation/advanced/custom-version](https://fvm.app/documentation/advanced/custom-version)
+- API reference: [fvm.app/documentation/advanced/json-api](https://fvm.app/documentation/advanced/json-api)
 
 ## 🐛 Bug Reports
 
