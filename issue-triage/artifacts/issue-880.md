@@ -35,6 +35,9 @@ lib/src/commands/spawn_command.dart:31-44
 
 ## Troubleshooting/Implementation Plan
 
+### Root Cause Analysis
+`SpawnCommand` never exposes a non-interactive path, so when `EnsureCacheWorkflow` detects missing cache data it prompts, halting CI jobs. The flag already exists in the workflow but is unused by the command.
+
 ### Proposed Solution
 1. Update `SpawnCommand` to add a boolean `--force` flag (consistent with `use`/`install`).
 2. Parse the flag and pass it to `ensureCache(flutterVersion, force: forceFlag)`.

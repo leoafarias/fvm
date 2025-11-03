@@ -35,49 +35,23 @@ $ sed -n '1,60p' .docker/alpine/Dockerfile
 - Flutter install log in the report – shows arm64 download.
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
-- [ ] Already fixed
+- [ ] Still reproducible
+- [x] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 - [ ] Cannot reproduce
 
-## Troubleshooting/Implementation Plan
+## Resolution
 
-### Root Cause Analysis
-The container image assumes x86_64 and Alpine’s glibc compatibility layer. On Apple Silicon (or any arm64 host), Docker runs an arm64 variant of the base image, but we still install x86_64 artifacts, breaking the toolchain.
-
-### Proposed Solution
-1. **Migrate to a glibc-based base image** (e.g., `debian:bookworm-slim`):
-   - Avoid the sgerrand glibc shim entirely.
-   - Install required packages (`curl`, `git`, `unzip`, `xz-utils`, etc.).
-2. **Publish multi-arch images (amd64 + arm64):**
-   - Use `docker buildx build --platform linux/amd64,linux/arm64`.
-   - Ensure we download the matching FVM binary (`fvm-<ver>-linux-x64` or `-linux-arm64`) for each architecture.
-   - Update release automation to build and push to GHCR/Docker Hub on every tag.
-3. **Verify Flutter install in both variants:**
-   - Run `fvm install stable` in the container during CI to catch regressions.
-4. **Update documentation:**
-   - Mention the new image name/location and provide sample usage (`docker run --rm ghcr.io/leoafarias/fvm:latest fvm install stable`).
-
-### Alternative Approaches
-- Keep Alpine but add `qemu-user-static` to emulate x86_64. Adds complexity/performance cost; switching to Debian is simpler.
-
-### Dependencies & Risks
-- Need to produce and host arm64 FVM binaries (ensure release pipeline already does this or add build step).
-- Multi-arch build increases CI runtime; cache layers appropriately.
-
-### Related Code Locations
-- `.github/workflows/release.yml` (or equivalent) – extend to build/publish Docker images.
-- `docs/pages/documentation/getting-started/installation.mdx` – update Docker instructions.
+Maintainers accepted the limitation and provide an alternate multi-arch image (`ghcr.io/rodrigodornelles/sdkman`) that installs Flutter successfully on Apple Silicon. Official FVM Docker images remain x86_64-only for now; users are encouraged to leverage community multi-arch builds or install via `install.sh`. The issue was closed with workaround guidance.
 
 ## Recommendation
-**Action**: validate-p1
-
-**Reason**: The official Docker image is broken on Apple Silicon (increasingly common); fixing/publishing multi-arch images restores expected functionality.
+**Action**: closed  
+**Reason**: Documented workaround and community image cover the use case; official Alpine image will remain x86_64-only for now.
 
 ## Notes
-- Consider adding a minimal Alpine-based image later if size matters, but ensure both architectures are supported.
+- Track future docker roadmap if official multi-arch support is revisited.
 
 ---
 **Validated by**: Code Agent
-**Date**: 2025-10-31
+**Date**: 2025-11-01

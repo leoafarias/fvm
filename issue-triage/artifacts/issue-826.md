@@ -23,7 +23,12 @@ FVM currently distributes Windows packages via Chocolatey. The reporter notes Ch
 .github/workflows/release.yml  // no winget step
 ```
 
-## Proposed Implementation Plan
+## Troubleshooting/Implementation Plan
+
+### Root Cause Analysis
+The release automation only targets Pub, Homebrew, Chocolatey, and Docker, so Windows users who prefer Winget cannot install or update FVM through their native package manager. Chocolatey delays prompted the request.
+
+### Proposed Implementation Plan
 1. Create Winget manifest(s) under a new `.winget` directory or integrate into release automation.
 2. Use `wingetcreate` or the official Winget YAML schema. Manifests reside in `manifests/f/Fvm/Fvm/`. Define installer (portable .zip or MSI) referencing GitHub release assets.
 3. Add GitHub Action step (Windows runner) after Chocolatey deploy to:

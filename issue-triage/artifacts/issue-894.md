@@ -34,6 +34,9 @@ Cache files inherit default 644/755 permissions, preventing cross-user writes.
 
 ## Troubleshooting/Implementation Plan
 
+### Root Cause Analysis
+The cache is cloned with default Git permissions that mirror the invoking user’s umask. No post-clone permission adjustments or shared repository settings exist, so subsequent users lack write access and the cache cannot be reused across accounts.
+
 ### Proposed Solution
 1. **Config option**: introduce `fvm config --shared-cache <mode>` (or env `FVM_SHARED_CACHE=group`) enabling group-writable behavior.
 2. **Git clone adjustments**: when shared mode is enabled, clone with `git clone --config core.sharedRepository=group` (and/or `--config receive.denyCurrentBranch=ignore`). For archives downloaded from storage, run `chmod -R g+rwX` after extraction.

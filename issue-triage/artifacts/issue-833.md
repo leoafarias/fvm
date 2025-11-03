@@ -29,6 +29,11 @@ lib/src/commands/remove_command.dart
 - [x] Still valid feature gap
 
 ## Troubleshooting/Implementation Plan
+
+### Root Cause Analysis
+The CLI only parses explicit version arguments and lacks any pattern-expansion logic. As a result, bulk removal requires scripting around FVM rather than using the command itself.
+
+### Proposed Solution
 1. Extend `RemoveCommand` to detect version patterns containing `*` and expand them against installed cache versions (`CacheService.getAllVersions`).
 2. Support `major.*`, `major.minor.*`, and channel names? Clarify expected scope; start with semver segments.
 3. Update command help to document wildcard usage (include escaping instructions for shells).

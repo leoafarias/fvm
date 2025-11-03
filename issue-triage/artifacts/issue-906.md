@@ -18,7 +18,7 @@ Android Studio’s integrated terminal allegedly takes “very long” to open a
 ## Validation Steps
 1. Reviewed `scripts/install.sh` and shell integration docs; no known blocking operations execute automatically when a terminal opens beyond PATH exports.
 2. Searched the repository for recent changes affecting Android Studio terminals; no obvious regressions found.
-3. Attempted to reproduce locally (macOS + Android Studio 2024.2) by running `fvm use stable`; the terminal opens instantly (no slowdown observed). (Inference—document assumption; if we can't actually test, maybe we note we couldn't reproduce due to environment? But we should be accurate: we didn't actually test. It's better to note we lack ability. Instead, we can note inability to reproduce because environment not available). We'll adjust to say reproduction pending.
+3. Attempted to line up a repro environment, but we don’t currently have access to the reporter’s Android Studio configuration or shell profile; reproduction remains pending until we can mirror their setup.
 
 ## Evidence
 _No repro logs available; issue only contains screenshots._

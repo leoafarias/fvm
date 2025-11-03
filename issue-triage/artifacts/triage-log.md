@@ -207,16 +207,20 @@
 - #881: PR #954 loosens git URL validation so SSH/scp remotes work in `fvm fork add` and `fvm config`. **Closed on GitHub** (`artifacts/issue-881.md`).
 - #666: Cache integrity check now normalizes version labels (PR #955). **Closed on GitHub** (`artifacts/issue-666.md`).
 - #683: Upstream pubspec fix allows hosted overrides without version; FVM no longer crashes. **Closed on GitHub** (`artifacts/issue-683.md`).
+- #581: Alpine docker bug closed with documented workaround/community image (`artifacts/issue-581.md`).
+- #421: Partial-version install request declined; please use exact releases. **Closed with comment** (`https://github.com/leoafarias/fvm/issues/421#issuecomment-3476844567`).
+- #388: IntelliJ multi-package limitation documented; no change planned. **Closed with comment** (`https://github.com/leoafarias/fvm/issues/388#issuecomment-3476845312`).
+- #801: Fish shell Ctrl+C fixed in FVM 4.0.0. **Closed with comment** (`https://github.com/leoafarias/fvm/issues/801#issuecomment-3476846075`).
 
 ---
 
 ## Summary Statistics
 - **Total Triaged**: 81/81
 - **P0 Critical**: 2
-- **P1 High**: 5
-- **P2 Medium**: 26
+- **P1 High**: 4
+- **P2 Medium**: 24
 - **P3 Low**: 13
-- **Closed on GitHub**: 22
+- **Closed on GitHub**: 27
 - **Resolved (not yet closed)**: 9
 - **Version Specific**: 0
 - **Needs Info**: 8

@@ -3,8 +3,10 @@
   "title": "[Feature Request] fvm install 2: infer the latest minor/patch version when supplying the major version",
   "triagedAt": "2025-10-31",
   "priority": "p2-medium",
-  "status": "validated",
+  "status": "closed",
   "artifact": "../../artifacts/issue-421.md",
   "url": "https://github.com/leoafarias/fvm/issues/421",
-  "notes": "Detect partial semver input (e.g., 2 or 2.10[@channel]), resolve it via release metadata to the newest matching Flutter release, and pass the concrete version through the existing install workflow."
+  "notes": "Won't implement partial-version inference; upgrade to FVM 4.0.0+ and install exact releases (e.g., fvm install 2.10.5).",
+  "closedAt": "2025-11-01",
+  "resolution": "wontfix"
 }

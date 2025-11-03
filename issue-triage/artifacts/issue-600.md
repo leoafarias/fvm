@@ -41,6 +41,9 @@ $ sed -n '198,210p' docs/pages/documentation/guides/workflows.mdx
 
 ## Troubleshooting/Implementation Plan
 
+### Root Cause Analysis
+Android Studio users rely on `.fvm/flutter_sdk`, but the docs only list a terse three-step checklist without explaining the symlink behavior or how to refresh the IDE. The lack of guidance causes users to point at version-specific folders and lose the automatic switching FVM provides.
+
 ### Proposed Documentation Updates
 1. Expand the Android Studio section to include:
    - Explanation that `.fvm/flutter_sdk` is created/updated by `fvm use` (no manual path changes per branch).
