@@ -123,8 +123,7 @@ void main() {
       androidDir.createSync();
       final localPropertiesFile =
           File(p.join(androidDir.path, 'local.properties'));
-      localPropertiesFile
-          .writeAsStringSync('some.other.property=value\n');
+      localPropertiesFile.writeAsStringSync('some.other.property=value\n');
 
       // Create runner with working directory
       final context = FvmContext.create(
