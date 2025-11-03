@@ -26,17 +26,26 @@ jobs:
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+        with:
+          sdk-version: "3.10.0"
 
       - name: Generate code with build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Get release tool dependencies
+        working-directory: tool/release_tool
+        run: dart pub get
+
       - name: Deploy Github
+        working-directory: tool/release_tool
         run: dart run grinder pkg-github-release
 
       - name: Deploy Github Linux
+        working-directory: tool/release_tool
         run: dart run grinder pkg-github-linux
 
       - name: Deploy to Pub
+        working-directory: tool/release_tool
         run: dart run grinder pkg-pub-deploy
 
   deploy-windows:
@@ -52,14 +61,22 @@ jobs:
 
           - name: Prepare environment
             uses: ./.github/actions/prepare
+            with:
+              sdk-version: "3.10.0"
 
           - name: Generate code with build_runner
             run: dart run build_runner build --delete-conflicting-outputs
 
+          - name: Get release tool dependencies
+            working-directory: tool/release_tool
+            run: dart pub get
+
           - name: Deploy Github Windows
+            working-directory: tool/release_tool
             run: dart run grinder pkg-github-windows
 
           - name: Deploy Chocolatey
+            working-directory: tool/release_tool
             run: dart run grinder pkg-chocolatey-deploy
 
   deploy-macos:
@@ -75,19 +92,28 @@ jobs:
 
       - name: Prepare environment
         uses: ./.github/actions/prepare
+        with:
+          sdk-version: "3.10.0"
 
       - name: Generate code with build_runner
         run: dart run build_runner build --delete-conflicting-outputs
 
+      - name: Get release tool dependencies
+        working-directory: tool/release_tool
+        run: dart pub get
+
       - name: Deploy Github Mac
+        working-directory: tool/release_tool
         run: dart run grinder pkg-github-macos
 
       - name: Deploy versioned formula
+        working-directory: tool/release_tool
         run: dart run grinder pkg-homebrew-update --versioned-formula
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
 
       - name: Deploy Homebrew
+        working-directory: tool/release_tool
         run: dart run grinder pkg-homebrew-update
         env:
           GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
