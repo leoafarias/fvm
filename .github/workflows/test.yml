@@ -76,6 +76,18 @@ jobs:
         with:
           with-coverage: 'true'
 
+      - name: Release tool | Install dependencies
+        working-directory: tool/release_tool
+        run: dart pub get
+
+      - name: Release tool | Analyze
+        working-directory: tool/release_tool
+        run: dart analyze
+
+      - name: Release tool | Tests
+        working-directory: tool/release_tool
+        run: dart test
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
         env:
