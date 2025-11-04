@@ -18,6 +18,9 @@ class GitService extends ContextualService {
   late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
 
+  /// Regex pattern for validating 40-character hexadecimal SHA-1 hashes
+  static final _sha1HashRegex = RegExp(r'^[0-9a-fA-F]+$');
+
   GitService(super.context) {
     _updatingCacheLock = context.createLock(
       'updating-cache',
@@ -214,7 +217,20 @@ class GitService extends ContextualService {
   }
 
   /// Resolves a commit reference (short or long hash) to its full 40-character SHA
-  /// Returns null if the reference cannot be resolved
+  ///
+  /// This method is critical for security - it ensures that all commit hashes
+  /// stored in configuration files are full 40-character SHA-1 hashes, preventing
+  /// potential DOS attacks from hash collisions between different repositories.
+  ///
+  /// Uses `git rev-parse` to expand the commit reference to its full hash.
+  ///
+  /// [commitRef] The commit reference to resolve (can be short hash, long hash, branch, etc.)
+  /// [version] The FlutterVersion object containing the version directory path
+  ///
+  /// Returns the full 40-character SHA-1 hash if successful, or `null` if:
+  /// - The directory is not a git repository
+  /// - The commit reference is invalid or not found
+  /// - The returned hash is malformed
   Future<String?> resolveCommitHash(
     String commitRef,
     FlutterVersion version,
@@ -241,8 +257,7 @@ class GitService extends ContextualService {
       final fullHash = (pr.stdout as String).trim();
 
       // Validate that we got a proper 40-character SHA
-      if (fullHash.length == 40 &&
-          RegExp(r'^[0-9a-fA-F]+$').hasMatch(fullHash)) {
+      if (fullHash.length == 40 && _sha1HashRegex.hasMatch(fullHash)) {
         return fullHash;
       }
 

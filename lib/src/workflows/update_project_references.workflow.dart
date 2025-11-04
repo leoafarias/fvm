@@ -144,6 +144,8 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       // Resolve commit hash to full SHA if this is an unknown ref (commit)
       String versionToStore = version.name;
       if (version.isUnknownRef) {
+        // Use version.version to get the version part without fork prefix
+        // This ensures we resolve the actual commit hash, not a fork-prefixed string
         final fullHash = await get<GitService>().resolveCommitHash(
           version.version,
           version,

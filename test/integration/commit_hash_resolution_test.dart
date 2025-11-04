@@ -77,10 +77,9 @@ void main() {
       final versionDir =
           runner.context.get<CacheService>().getVersionCacheDir(shortVersion);
 
-      // Copy test repo to version directory
+      // Create version directory and clone test repository
       versionDir.createSync(recursive: true);
 
-      // Use git clone instead of manual copy
       await runGit(
         ['clone', testGitRepoDir.path, versionDir.path],
       );
@@ -119,10 +118,9 @@ void main() {
       final versionDir =
           runner.context.get<CacheService>().getVersionCacheDir(fullVersion);
 
-      // Copy test repo to version directory
+      // Create version directory and clone test repository
       versionDir.createSync(recursive: true);
 
-      // Use git clone instead of manual copy
       await runGit(
         ['clone', testGitRepoDir.path, versionDir.path],
       );
