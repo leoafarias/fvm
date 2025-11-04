@@ -28,25 +28,18 @@ lib/src/commands/spawn_command.dart:31-44
 ```
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
+- [ ] Still reproducible
 - [ ] Already fixed
-- [ ] Not applicable to v4.0.0
+- [x] Not applicable to v4.0.0 (maintainer closed as won't implement)
 - [ ] Needs more information
 
 ## Troubleshooting/Implementation Plan
 
 ### Root Cause Analysis
-`SpawnCommand` never exposes a non-interactive path, so when `EnsureCacheWorkflow` detects missing cache data it prompts, halting CI jobs. The flag already exists in the workflow but is unused by the command.
+Originally filed because `SpawnCommand` didn't expose a non-interactive path, so cache-repair prompts would hang CI. On Aug 26, 2025 (@leoafarias) clarified that adding `--force` to `spawn` would complicate the pass-through command; instead FVM now detects CI via `context.skipInput`, and users can append `--fvm-skip-input` if needed.
 
 ### Proposed Solution
-1. Update `SpawnCommand` to add a boolean `--force` flag (consistent with `use`/`install`).
-2. Parse the flag and pass it to `ensureCache(flutterVersion, force: forceFlag)`.
-3. Consider adding `--skip-setup` and `--skip-pub-get` equivalents if we want parity, but primary request is `force`.
-4. Add tests in `test/commands/spawn_command_test.dart` (create new test file if absent) verifying that:
-   - Without `--force`, the workflow is invoked with `force: false`.
-   - With `--force`, `EnsureCacheWorkflow.call` receives `force: true`.
-   Use mocks similar to existing command tests.
-5. Update documentation (`docs/pages/documentation/guides/workflows.mdx`) to mention the new flag.
+No additional engineering planned; rely on CI auto-detect + `--fvm-skip-input` guidance.
 
 ### Alternative Approaches
 - Allow environment variable `FVM_FORCE=true` to make all commands non-interactive, but command-line flag is straightforward.
@@ -59,4 +52,4 @@ lib/src/commands/spawn_command.dart:31-44
 - Suggested Folder: `validated/p2-medium/`
 
 ## Notes for Follow-up
-- After implementation, respond to reporter with release link showing the new flag.
+- Issue closed on 2025-11-04 as "not planned"; if demand resurfaces, reassess the trade-offs outlined above.

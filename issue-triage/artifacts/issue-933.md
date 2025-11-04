@@ -31,8 +31,8 @@ $ nl -ba fvm.nuspec | sed -n '20,60p'
 ```
 
 ## Current Status in v4.0.0
-- [x] Still reproducible
-- [ ] Already fixed
+- [ ] Still reproducible
+- [x] Already fixed (issue closed on 2025-11-03 after updating `fvm.nuspec`)
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 

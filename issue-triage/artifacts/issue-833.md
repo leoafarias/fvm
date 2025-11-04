@@ -26,22 +26,18 @@ lib/src/commands/remove_command.dart
 ```
 
 ## Current Status in v4.0.0
-- [x] Still valid feature gap
+- [ ] Still reproducible
+- [ ] Already fixed
+- [x] Not applicable to v4.0.0
+- [ ] Needs more information
+- [ ] Cannot reproduce
 
-## Troubleshooting/Implementation Plan
+## Resolution
+- Outcome: **Won't implement** — keeping `fvm remove` narrowly scoped avoids wildcard edge cases and keeps maintenance surface small.
+- GitHub comment drafted on 2025-11-03 to explain the decision and close the issue.
 
-### Root Cause Analysis
-The CLI only parses explicit version arguments and lacks any pattern-expansion logic. As a result, bulk removal requires scripting around FVM rather than using the command itself.
-
-### Proposed Solution
-1. Extend `RemoveCommand` to detect version patterns containing `*` and expand them against installed cache versions (`CacheService.getAllVersions`).
-2. Support `major.*`, `major.minor.*`, and channel names? Clarify expected scope; start with semver segments.
-3. Update command help to document wildcard usage (include escaping instructions for shells).
-4. Add tests covering pattern expansion and verifying that nonexistent patterns result in no action (with warning).
-
-## Classification Recommendation
-- Priority: **P3 - Low** (quality-of-life enhancement)
-- Suggested Folder: `validated/p3-low/`
+## Recommendation
+**Action**: resolved (won't implement)
 
 ## Notes for Follow-up
-- Consider reusing semver parsing from `FlutterVersion` to avoid manual globbing.
+- If demand resurfaces with stronger justification, reopen with concrete requirements and coverage plan for wildcard matching.

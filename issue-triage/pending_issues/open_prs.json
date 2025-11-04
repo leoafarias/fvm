@@ -1,0 +1,138 @@
+[
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n- fix the pre-push PATH hook so it auto-detects Flutter/Dart\n- harden uninstall script, git service logging, and HTTP helper guidance\n- add regression coverage for httpRequest and GitService failure paths\n\n## Testing\n- dart analyze --fatal-infos\n- dcm analyze lib\n- dart test test/services/git_service_test.dart test/utils/http_test.dart",
+    "createdAt": "2025-11-03T16:29:43Z",
+    "headRefName": "fix-critical-issues",
+    "labels": [],
+    "number": 960,
+    "title": "Fix critical review feedback",
+    "updatedAt": "2025-11-04T17:32:48Z",
+    "url": "https://github.com/leoafarias/fvm/pull/960"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\nThis PR refactors the release tooling into a dedicated package structure to improve maintainability and separation of concerns.\n\n- Move release build logic into separate `release_tool` package\n- Update CI/CD workflows to use new release tool structure\n- Add `scripts/uninstall.sh` for application cleanup\n- Refactor `tool/grind.dart` to separate main CLI from release tool concerns\n- Update dependencies to align with new structure\n\n## Test plan\n- [ ] Run `fvm install` and verify it still works correctly\n- [ ] Run release workflow and verify release process completes\n- [ ] Verify uninstall script removes all application files\n- [ ] Check that all tests pass with new structure",
+    "createdAt": "2025-11-03T14:54:48Z",
+    "headRefName": "release-tool-migration",
+    "labels": [],
+    "number": 956,
+    "title": "refactor: migrate release tooling to dedicated package structure",
+    "updatedAt": "2025-11-04T17:15:46Z",
+    "url": "https://github.com/leoafarias/fvm/pull/956"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\nResolves Homebrew build failures caused by `pubspec_parse ^1.5.0` requiring Dart SDK >=3.6.0. The Homebrew formula currently bundles Dart SDK 3.2.6, which is incompatible with the newer constraint.\n\n## Changes Made\n\n### Core Fix\n- Pin `pubspec_parse` to `\">=1.2.0 <1.5.0\"` to support Dart SDK 3.2.0+\n- Simplifies pubspec serialization in `project_model.dart` to essential fields only\n- Removes newer `pubspec_parse` features not available in older versions:\n  - `executables`, `funding`, `topics`, `screenshots`\n  - `homepage`, `repository`, `issueTracker`, `documentation`, `publishTo`\n  - `dependencyOverrides`\n\n### Compatibility Improvements  \n- Fix ExitCode import conflicts by using `hide ExitCode` from `mason_logger`\n- Add null-safe environment access for compatibility with older `pubspec_parse` versions\n- Regenerate all mapper files with `build_runner`\n\n### CI/Testing\n- Add `test-min-sdk` job to automatically test with minimum SDK version\n- Add `scripts/get_min_sdk_version.sh` helper script\n- Prevents future SDK compatibility regressions\n\n## Impact\n- ✅ Works with Dart SDK 3.2.0+ (Homebrew's 3.2.6)\n- ✅ Works with Dart SDK 3.9.0+ (current stable)\n- ✅ All analyzer checks pass (warnings are false positives)\n- ✅ CI will catch future minimum SDK compatibility issues\n\n## Test Plan\n- [x] Run `dart pub get` with minimum SDK (3.2.0)\n- [x] Run `dart pub downgrade` to test minimum dependencies\n- [x] Run `dart analyze --fatal-infos` with both min and max dependencies\n- [x] Run `dart run build_runner build` to regenerate mappers\n- [x] Verify Homebrew compatibility (SDK constraint matches 3.2.6)\n\nFixes #940",
+    "createdAt": "2025-10-31T14:57:47Z",
+    "headRefName": "update-dart-sdk-constraint",
+    "labels": [],
+    "number": 948,
+    "title": "fix: maintain compatibility with Dart SDK 3.2.0+ for Homebrew builds",
+    "updatedAt": "2025-10-31T15:47:10Z",
+    "url": "https://github.com/leoafarias/fvm/pull/948"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n\nThis PR introduces comprehensive improvements to the testing infrastructure, focusing on parallel execution capabilities and CI optimization:\n\n• **Enhanced test configuration** with categorized timeouts and parallel execution support\n• **Fast integration tests** designed for efficient CI pipeline execution  \n• **Performance validation suite** for monitoring system performance metrics\n• **Optimized GitHub Actions workflow** with parallel job execution and caching improvements\n• **Comprehensive documentation** including migration guide and testing best practices\n\n## Key Features\n\n- Test categorization (parallel, serial, fast, slow, performance) with appropriate timeouts\n- Structured test reporting with JSON output and GitHub annotations\n- Parallel integration test runner for faster CI execution\n- Performance benchmarking capabilities\n- Enhanced caching strategies for dependencies and build artifacts\n\n## Test Plan\n\n- [ ] Verify new test categories run within expected timeouts\n- [ ] Confirm parallel integration tests execute correctly\n- [ ] Validate GitHub Actions workflow optimization\n- [ ] Check performance test baseline establishment\n- [ ] Review migration guide completeness",
+    "createdAt": "2025-09-25T19:04:13Z",
+    "headRefName": "cache-imrpovements",
+    "labels": [],
+    "number": 923,
+    "title": "feat: enhance testing infrastructure with parallel execution and CI optimization",
+    "updatedAt": "2025-09-25T19:05:04Z",
+    "url": "https://github.com/leoafarias/fvm/pull/923"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n\nThis PR improves the natural readability and professional tone of documentation and code comments by removing overly formal AI-generated language patterns.\n\n### Changes Made\n\n- **README.md**: Simplified main project description to use direct, natural language\n- **Monorepo guide**: Removed corporate jargon like \"streamlining\" and \"crucial for avoiding\"\n- **Getting-started guide**: Simplified verbose AI-generated explanations  \n- **Integration test command**: Replaced \"comprehensive\" with \"complete\" (4 instances)\n- **Project model**: Improved method documentation clarity\n- **Release document**: Removed marketing language from introduction\n- **Integration test README**: Enhanced natural tone\n\n### Benefits\n\n✅ **Improved readability** - More natural, human-friendly language\n✅ **Better user experience** - Clearer, more direct explanations  \n✅ **Enhanced professionalism** - Maintains technical accuracy with authentic tone\n✅ **Code quality** - Eliminates generic AI-generated patterns\n✅ **Consistency** - Unified voice across all documentation\n\n### Technical Details\n\n- 7 files modified with targeted text improvements\n- Zero functional code changes\n- Preserves all technical accuracy\n- Maintains existing code formatting\n\n## Review Notes\n\nAll changes are text-only improvements that enhance clarity without affecting functionality. The modifications create a more authentic, professional voice throughout the codebase while maintaining technical precision.",
+    "createdAt": "2025-09-25T17:44:32Z",
+    "headRefName": "repository-clean-up",
+    "labels": [],
+    "number": 920,
+    "title": "docs: improve language clarity and remove AI-generated patterns",
+    "updatedAt": "2025-09-25T17:53:51Z",
+    "url": "https://github.com/leoafarias/fvm/pull/920"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjc3ODExNDM=",
+      "is_bot": false,
+      "login": "AngeloAvv",
+      "name": "Angelo Cassano"
+    },
+    "baseRefName": "main",
+    "body": "Fixes #762\r\n\r\nBecause of the spreading of Arm64 machines (especially Ampere) on cloud platforms, it would be quite helpful to have a docker image targeting this architecture",
+    "createdAt": "2025-05-10T21:52:09Z",
+    "headRefName": "docker/add-support-to-arm64",
+    "labels": [],
+    "number": 845,
+    "title": "Added support to arm64 docker images",
+    "updatedAt": "2025-05-15T06:30:31Z",
+    "url": "https://github.com/leoafarias/fvm/pull/845"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjg3NDg5NzAx",
+      "is_bot": false,
+      "login": "filippo-signorini",
+      "name": "Filippo Signorini"
+    },
+    "baseRefName": "main",
+    "body": "In case no dart sdk is found, outputs `n/a`\n\n<!-- This is an auto-generated comment: release notes by coderabbit.ai -->\n\n## Summary by CodeRabbit\n\n- **New Features**\n  - The release details now include an additional \"Dart SDK\" column that displays the Dart SDK version for each release. If the version is not provided, it defaults to \"n/a\", enhancing the overall release information for users.\n\n<!-- end of auto-generated comment: release notes by coderabbit.ai -->",
+    "createdAt": "2025-03-10T11:23:12Z",
+    "headRefName": "feature/dart-sdk-in-releases",
+    "labels": [],
+    "number": 828,
+    "title": "Added Dart SDK column in releases command output table",
+    "updatedAt": "2025-03-10T11:24:15Z",
+    "url": "https://github.com/leoafarias/fvm/pull/828"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjcwMzg0NzI=",
+      "is_bot": false,
+      "login": "mikeborodin",
+      "name": "Mike Borodin"
+    },
+    "baseRefName": "main",
+    "body": "This PR adds nix \"flake\" configuration so that Nix users can easily use `fvm`\r\nWe use `devbox` which is an abstraction on top of nix to declaratively manage project dependencies. \r\nWith this adding `fvm` to the project dev environment is as easy as running `devbox add github:leoafarias/fvm`\r\nThis will result in the \"flake\" added to your `devbox.json` (where all the dependencies are declared): \r\n\r\n```json\r\n{\r\n  \"$schema\": \"https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json\",\r\n  \"packages\": [\r\n    \"github:leoafarias/fvm\",\r\n  ],\r\n  \"shell\": {\r\n    \"init_hook\": [\r\n       \"fvm flutter doctor\"\r\n    ]\r\n  }\r\n}\r\n```\r\n\r\nThe benefit is this file is checked into the source control and everyone on the team will have fvm installed once they are in this dev environment :) \r\n\r\n### Testing steps for this pr\r\n\r\n```\r\n# install devbox\r\ndevbox init\r\ndevbox add github:mikeborodin/fvm/1eccdd2b3235b5455c613241f9ae78c7f1de2ae6\r\ndevbox shell\r\nfvm list\r\n```\r\n\r\nThis is my first PR here so let me know if I missed something 😊\r\n\r\nthanks",
+    "createdAt": "2024-09-04T10:33:56Z",
+    "headRefName": "feature/add-nix-flake-installation-option",
+    "labels": [],
+    "number": 775,
+    "title": "feature: add Nix Flake support",
+    "updatedAt": "2025-11-03T16:16:42Z",
+    "url": "https://github.com/leoafarias/fvm/pull/775"
+  }
+]

@@ -1,27 +1,12 @@
 [
   {
-    "author": {
-      "id": "MDQ6VXNlcjEwNTg5Nzg=",
-      "is_bot": false,
-      "login": "AMDphreak",
-      "name": "Ryan Johnson"
-    },
-    "body": "fvm just calls itself \"fvm\", which is nondescript. Put its full name (Flutter Version Manager) in its package name field on chocolatey.\n\n<img width=\"1479\" height=\"875\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/91c46a52-c373-41a7-b117-bdd050b7757a\" />",
-    "createdAt": "2025-10-04T23:28:36Z",
-    "labels": [
+    "assignees": [
       {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
       }
     ],
-    "number": 933,
-    "title": "[Feature Request] give fvm a full name in package manager",
-    "updatedAt": "2025-10-04T23:28:54Z",
-    "url": "https://github.com/leoafarias/fvm/issues/933"
-  },
-  {
     "author": {
       "id": "MDQ6VXNlcjE4NDg4Mzg=",
       "is_bot": false,
@@ -40,10 +25,11 @@
     ],
     "number": 914,
     "title": "[BUG] Error: Unable to find git in your PATH.",
-    "updatedAt": "2025-09-18T22:30:32Z",
+    "updatedAt": "2025-11-04T15:36:00Z",
     "url": "https://github.com/leoafarias/fvm/issues/914"
   },
   {
+    "assignees": [],
     "author": {
       "id": "U_kgDOBdNltg",
       "is_bot": false,
@@ -66,6 +52,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/906"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjg2NjA3NTg5",
       "is_bot": false,
@@ -77,10 +64,11 @@
     "labels": [],
     "number": 897,
     "title": "How to avoid warning of access .bash_profile?",
-    "updatedAt": "2025-07-30T12:12:11Z",
+    "updatedAt": "2025-11-04T17:32:26Z",
     "url": "https://github.com/leoafarias/fvm/issues/897"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjExNTY3NzY=",
       "is_bot": false,
@@ -103,50 +91,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/894"
   },
   {
-    "author": {
-      "id": "MDQ6VXNlcjU0Mjc1NTA4",
-      "is_bot": false,
-      "login": "MobiliteDev",
-      "name": "Mobilite dev"
-    },
-    "body": "\n**Is your feature request related to a problem? Please describe.**\nIf you use `spawn` command, you can't today use the `force` flag.\n\n**Describe the solution you'd like**\nAdd a `force` flag to the `spawn` command to avoid question when you use fvm on CI.\n",
-    "createdAt": "2025-06-13T12:52:27Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
-      }
-    ],
-    "number": 880,
-    "title": "[Feature Request] Add force option to spawn command",
-    "updatedAt": "2025-08-26T20:27:09Z",
-    "url": "https://github.com/leoafarias/fvm/issues/880"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjM5NjkyNw==",
-      "is_bot": false,
-      "login": "shinriyo",
-      "name": "shinriyo"
-    },
-    "body": "## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/docs/#principles)\n\n**Is your feature request related to a problem? Please describe.**  \nManaging multiple Flutter versions manually can be a bit tedious. For example, when I want to remove all patch versions of a specific minor version like `3.27.x`, I have to list and remove them one by one.\n\n**Describe the solution you'd like**  \nI'd like to be able to use wildcards in the `fvm remove` command, such as: \n\n```\nfvm remove 3.27.*\n```\n\nThis would remove all installed versions that match `3.27.*` (e.g., `3.27.0`, `3.27.1`, etc.).\n\n**Describe alternatives you've considered**  \nCurrently, I use a shell script to list all versions and filter by pattern, then run `fvm remove` in a loop. But having this natively supported in `fvm` would be more intuitive and convenient.\n\n**Additional context**  \nThis feature would be especially useful when cleaning up older patch versions or managing disk space more efficiently.\n",
-    "createdAt": "2025-03-22T11:34:10Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
-      }
-    ],
-    "number": 833,
-    "title": "[Feature Request] wild card",
-    "updatedAt": "2025-03-22T11:34:10Z",
-    "url": "https://github.com/leoafarias/fvm/issues/833"
-  },
-  {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjEwNTg5Nzg=",
       "is_bot": false,
@@ -169,28 +114,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/826"
   },
   {
-    "author": {
-      "id": "MDQ6VXNlcjEwNTg5Nzg=",
-      "is_bot": false,
-      "login": "AMDphreak",
-      "name": "Ryan Johnson"
-    },
-    "body": "\nREADME.md\n\nFVM documentation Link\n- Links to: https://fvm.app\n- Should link to: https://fvm.app/documentation/getting-started\n\n![Image](https://github.com/user-attachments/assets/f2328e28-0e57-4771-b353-502394ea6c67)",
-    "createdAt": "2025-02-25T03:12:00Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 825,
-    "title": "[BUG] Link to documentation links to homepage, not documentation page.",
-    "updatedAt": "2025-07-31T07:58:27Z",
-    "url": "https://github.com/leoafarias/fvm/issues/825"
-  },
-  {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjE3NjU3MDE0",
       "is_bot": false,
@@ -213,6 +137,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/821"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjM1ODA3NA==",
       "is_bot": false,
@@ -235,6 +160,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/820"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI2MDk4Mw==",
       "is_bot": false,
@@ -257,6 +183,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/811"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjE4NTEyMjI0",
       "is_bot": false,
@@ -279,28 +206,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/809"
   },
   {
-    "author": {
-      "id": "MDQ6VXNlcjMyMzg4MzM5",
-      "is_bot": false,
-      "login": "iampato",
-      "name": "Patrick waweru"
-    },
-    "body": "**Before creating a bug report please make check the following**\r\n\r\n- [x ] You have read our [FAQ](https://fvm.app/docs/guides/faq)\r\n- [ ] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\r\n- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\r\n- [x] Run `fvm doctor` if possible and add the output to the issue.\r\n\r\n**Describe the bug**\r\nThere is an issue with my installation I did run the below commands:\r\n```\r\nbrew tap leoafarias/fvm\r\nbrew install fvm\r\n```\r\n\r\n```\r\nfvm\r\n```\r\n \r\n**output**\r\nPathAccessException: Cannot open file, path = '/Users/xxx/.zshrc' (OS Error: Permission denied, errno = 13)\r\n\r\n",
-    "createdAt": "2024-11-24T21:14:09Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 799,
-    "title": "[BUG]",
-    "updatedAt": "2025-06-10T07:28:27Z",
-    "url": "https://github.com/leoafarias/fvm/issues/799"
-  },
-  {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI5NzI4NDI5",
       "is_bot": false,
@@ -323,6 +229,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/797"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjIxMTcyODU1",
       "is_bot": false,
@@ -338,6 +245,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/794"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
@@ -360,6 +274,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/791"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjM1MzE5NDky",
       "is_bot": false,
@@ -382,21 +297,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/787"
   },
   {
-    "author": {
-      "id": "MDQ6VXNlcjI2MDI2NTM1",
-      "is_bot": false,
-      "login": "provokateurin",
-      "name": "Kate"
-    },
-    "body": "melos ^6.1.0 requires dart_console ^4.0.0 and I would like to update but the constraint on dart_console ^1.2.0 is holding it back.\r\nUnfortunately just bumping the version doesn't work because it then conflicts with the constraint from interact which hasn't seen a release in almost 2 years.",
-    "createdAt": "2024-10-08T07:17:48Z",
-    "labels": [],
-    "number": 786,
-    "title": "Please bump dart_console to ^4.0.0",
-    "updatedAt": "2024-11-05T15:47:40Z",
-    "url": "https://github.com/leoafarias/fvm/issues/786"
-  },
-  {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjE0ODE5OTc0",
       "is_bot": false,
@@ -419,6 +320,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/784"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjI1MjY2Mzg3",
       "is_bot": false,
@@ -441,6 +349,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/783"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjc1OTMxNDk5",
       "is_bot": false,
@@ -463,6 +372,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/782"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjM5NzI5ODI=",
       "is_bot": false,
@@ -485,6 +401,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/781"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjQ1MzM0OTMx",
       "is_bot": false,
@@ -500,6 +417,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/774"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjcyNTkwMzY=",
       "is_bot": false,
@@ -515,6 +439,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/771"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI1MDI5MzA5",
       "is_bot": false,
@@ -537,6 +462,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/767"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjEyMTE5MTA3",
       "is_bot": false,
@@ -559,6 +485,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/764"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjc3ODExNDM=",
       "is_bot": false,
@@ -581,6 +508,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/762"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjM5NjkyNw==",
       "is_bot": false,
@@ -603,6 +531,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/761"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjUxODg2NDgx",
       "is_bot": false,
@@ -625,6 +554,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/759"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjIyNzU3MTA4",
       "is_bot": false,
@@ -647,6 +577,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/757"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjUzNDA1ODEz",
       "is_bot": false,
@@ -662,6 +593,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/754"
   },
   {
+    "assignees": [],
     "author": {
       "id": "U_kgDOBkgZ_A",
       "is_bot": false,
@@ -690,6 +622,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/751"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjUxMjU3NTIw",
       "is_bot": false,
@@ -712,6 +645,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/748"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjEyMjEwMDY3",
       "is_bot": false,
@@ -734,6 +668,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/743"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjgwODI5ODU2",
       "is_bot": false,
@@ -756,6 +691,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/738"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjcwNzk5NzI=",
       "is_bot": false,
@@ -778,6 +714,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/731"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjQ5ODQyMDMx",
       "is_bot": false,
@@ -800,6 +737,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/724"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI1Njg2ODAz",
       "is_bot": false,
@@ -822,6 +760,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/720"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjU0Mjc1NTA4",
       "is_bot": false,
@@ -844,6 +783,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/702"
   },
   {
+    "assignees": [],
     "author": {
       "id": "U_kgDOB0esLw",
       "is_bot": false,
@@ -866,6 +806,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/697"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjYxNzA0Njk3",
       "is_bot": false,
@@ -888,6 +829,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/696"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjQwMzU3NTEx",
       "is_bot": false,
@@ -910,6 +852,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/689"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI5NzcxMg==",
       "is_bot": false,
@@ -932,6 +875,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/688"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjQ1ODA5OTcw",
       "is_bot": false,
@@ -954,6 +898,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/681"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
@@ -976,6 +927,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/674"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
@@ -998,6 +956,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/648"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjQ1ODA5OTcw",
       "is_bot": false,
@@ -1032,6 +997,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/635"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjEyODc2NDA0",
       "is_bot": false,
@@ -1054,6 +1020,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/607"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjc0MDc5MQ==",
+        "login": "ManuelRauber",
+        "name": "Manuel Rauber"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjIxMDExNjQx",
       "is_bot": false,
@@ -1076,6 +1049,13 @@
     "url": "https://github.com/leoafarias/fvm/issues/600"
   },
   {
+    "assignees": [
+      {
+        "id": "MDQ6VXNlcjQzNTgzMw==",
+        "login": "leoafarias",
+        "name": "Leo Farias"
+      }
+    ],
     "author": {
       "id": "MDQ6VXNlcjI5NzcxMg==",
       "is_bot": false,
@@ -1098,6 +1078,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/584"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjM3OTMzOQ==",
       "is_bot": false,
@@ -1120,6 +1101,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/583"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI1NTE4Nzc=",
       "is_bot": false,
@@ -1148,6 +1130,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/578"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjQwNjU5NA==",
       "is_bot": false,
@@ -1170,6 +1153,7 @@
     "url": "https://github.com/leoafarias/fvm/issues/577"
   },
   {
+    "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjI0MjU5MjQ1",
       "is_bot": false,

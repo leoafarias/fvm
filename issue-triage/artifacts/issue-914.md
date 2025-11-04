@@ -41,20 +41,15 @@ $ rg "safe.directory" -n
 ### Root Cause Analysis
 Git 2.36+ flags FVM’s cache directory as “unsafe” because Flutter’s repository is cloned under a directory owned by a different SID (or outside the user’s profile). Without adding it to `safe.directory`, Git refuses to run and Flutter prints “Unable to find git in your PATH.” FVM currently leaves this to the user.
 
-### Proposed Solution
-1. **Detect Windows + Git version**: During cache creation (`GitService._createLocalMirror`) and updates, detect if we’re on Windows and Git ≥2.36 (parse `git --version`).
-2. **Auto-mark safe directories**:
-   - After cloning the cache (and when switching versions), run `git config --global --add safe.directory <path>` for `context.gitCachePath` and the derived version directories.
-   - Before writing, check whether the entry already exists (`git config --global --get safe.directory <path>`) to avoid duplicates.
-3. **Handle non-global configs**: Respect environments where users disable global config (e.g., corporate). Provide a `--no-git-safe-config` flag or env to opt out.
-4. **Improve messaging**: If git commands still fail with the same error, catch the exception and surface a clearer hint rather than propagating Flutter’s generic message.
-5. **Testing**:
-   - Add an integration test (PowerShell or unit with `ProcessManager`) that simulates a Windows environment by mocking `git` responses, verifying we call `git config --global --add safe.directory`.
-   - Manually validate on a Windows VM with Git 2.46 or later to ensure FVM installs without manual steps.
-6. **Docs**: Update the FAQ to note that FVM now auto-configures safe directories, while leaving manual instructions for edge cases.
+### Proposed Solution (updated after Nov 4, 2025 maintainer comment)
+Given the security implications of writing to users’ global Git config, the team would rather not auto-configure `safe.directory`. Instead:
+1. **Documentation**: Create a dedicated troubleshooting page and cross-link it from FAQ, install docs, and `fvm doctor` output so the workaround is easy to find (see action_item_914_docs_*).
+2. **Doctor Check**: Add a `fvm doctor` rule that detects the error string or failed Git commands and instructs users how to run `git config --global --add safe.directory <path>` themselves.
+3. **CLI Messaging**: When Git throws the PATH error, catch it and surface a targeted explanation with a link to the troubleshooting page.
+4. **Optional Prompt**: Consider offering an *opt-in* command (e.g., `fvm doctor --fix-safe-directory`) that runs the Git command only when explicitly requested, to avoid silent modifications.
 
 ### Alternative Approaches
-- Prompt the user the first time the error occurs, offering to run the `git config` command automatically. Less intrusive but adds interactive flow.
+- If we later decide to offer automation, keep it behind an explicit opt-in flag/command to avoid surprising users or violating security policies.
 
 ### Dependencies & Risks
 - Running `git config --global` modifies user settings; obtain consent via release notes and ensure we don’t override existing values.
@@ -65,4 +60,4 @@ Git 2.36+ flags FVM’s cache directory as “unsafe” because Flutter’s repo
 - Suggested Folder: `validated/p1-high/`
 
 ## Notes for Follow-up
-- Reconcile with docs once automation lands and close the linked historical issues (#789/#589/#569) as resolved.
+- Update docs + doctor messaging first, then re-evaluate whether the issue can be closed or reframed as “documentation/troubleshooting available.”

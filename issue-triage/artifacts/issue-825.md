@@ -43,4 +43,4 @@ The README predates the docs site restructure and still points to the marketing 
 - Suggested Folder: `validated/p3-low/`
 
 ## Notes for Follow-up
-- After updating README, close issue with reference to commit.
+- PR opened to update the README link; close the issue once it merges and confirm the rendered README shows the docs URL.
