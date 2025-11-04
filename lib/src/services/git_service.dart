@@ -241,7 +241,8 @@ class GitService extends ContextualService {
       final fullHash = (pr.stdout as String).trim();
 
       // Validate that we got a proper 40-character SHA
-      if (fullHash.length == 40 && RegExp(r'^[0-9a-f]+$').hasMatch(fullHash)) {
+      if (fullHash.length == 40 &&
+          RegExp(r'^[0-9a-fA-F]+$').hasMatch(fullHash)) {
         return fullHash;
       }
 

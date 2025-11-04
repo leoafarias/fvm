@@ -111,10 +111,6 @@ void main() {
       expect(config['flutter'], isNotNull);
       expect(config['flutter'], fullCommitHash);
       expect((config['flutter'] as String).length, 40);
-
-      print(
-        'Short hash $shortCommitHash was correctly expanded to full hash $fullCommitHash in config',
-      );
     });
 
     test('should keep full commit hash as-is in config', () async {
