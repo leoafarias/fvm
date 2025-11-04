@@ -22,5 +22,13 @@
   "advanced": {
     "title": "Advanced",
     "display": "children"
+  },
+  "-- Troubleshooting": {
+    "type": "separator",
+    "title": "Troubleshooting"
+  },
+  "troubleshooting": {
+    "title": "Troubleshooting",
+    "display": "children"
   }
 }
