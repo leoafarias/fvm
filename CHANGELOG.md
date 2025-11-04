@@ -1,8 +1,25 @@
 ## Unreleased
 
-### Packaging
+## 4.0.1
 
-* choco: Rename Chocolatey listing to "Flutter Version Management (FVM)" for improved discoverability.
+* add: `fvm install` now runs setup by default for improved UX (use `--no-setup` to skip, `--setup` flag still works for explicit opt-in)
+* add: RISC-V (riscv64) architecture support for Linux systems
+* add: Support for SSH and scp-style git URLs when configuring forks
+* add: 32-bit ARM support (armv7l, armv6l) for Raspberry Pi devices
+* add: Standalone executables when targeting compile host platform
+* fix: Prevent `fvm doctor` crash when version not pinned or symlink missing
+* fix: Alpine/musl libc detection and support in install script
+* fix: Handle version prefix (`v`) normalization in install script
+* fix: Pre-push PATH hook now auto-detects Flutter/Dart
+* fix: Improved cache version matching logic
+* fix: Hardened uninstall script, git service logging, and HTTP error handling
+* fix: Resolve code quality issues and analysis warnings
+* docs: Add Git safe directory troubleshooting guide for Windows users (Git 2.35.2+)
+* docs: Update PATH configuration for global version setup
+* docs: Fix broken links in Getting Started and documentation pages
+* chore: Rename Chocolatey listing to "Flutter Version Management (FVM)" for improved discoverability
+* chore: Regenerate build_runner files and apply formatting fixes
+* refactor: Migrate release tooling to dedicated package structure
 
 ## 4.0.0
 
