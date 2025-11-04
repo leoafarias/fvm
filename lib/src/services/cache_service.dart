@@ -267,8 +267,8 @@ class CacheService extends ContextualService {
   /// 4. If [configured] has pre-release but [cached] does not, match on
   ///    `major.minor.patch` (allows dev builds to match stable SDKs)
   /// 5. If [cached] has pre-release but [configured] does not, require exact match
-  /// 6. For non-semver versions (e.g., git refs), fall back to normalized string
-  ///    equality
+  /// 6. For non-semver versions (e.g., git refs), catches [FormatException] and
+  ///    falls back to normalized string equality with a warning logged
   ///
   /// This handles Flutter SDK naming where the cached SDK may strip pre-release
   /// suffixes from the configured version.
