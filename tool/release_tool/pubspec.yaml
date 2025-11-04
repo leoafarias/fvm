@@ -1,0 +1,17 @@
+name: fvm_release_tool
+description: Release automation package for the FVM project.
+version: 0.0.1
+
+environment:
+  # Release tooling relies on Dart >=3.8 for cli_pkg and related features.
+  sdk: ">=3.8.0 <4.0.0"
+
+dependencies:
+  cli_pkg: 2.14.0
+  grinder: ^0.9.5
+  path: ^1.9.0
+  meta: ^1.10.0
+
+dev_dependencies:
+  lints: ^2.1.1
+  test: ^1.24.6
