@@ -217,11 +217,6 @@ class DoctorCommand extends BaseFvmCommand {
       table.insertRow([key.envKey, context.environment[key.envKey] ?? 'N/A']);
     }
 
-    table.insertRows([
-      ['Flutter PATH', flutterWhich ?? 'Not found'],
-      ['Dart PATH', dartWhich ?? 'Not found'],
-    ]);
-
     logger.write(table.toString());
 
     table = createTable(['Platform', 'Value']);
