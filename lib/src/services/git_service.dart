@@ -154,11 +154,16 @@ class GitService extends ContextualService {
           // Only recreate the mirror if it's a critical git error that indicates
           // the repository is unrecoverable. Other errors (network, permissions, etc.)
           // are re-thrown so callers can handle them appropriately.
-          // Known critical error patterns: "not a git repository", "corrupt", "damaged"
+          // Known critical error patterns: "not a git repository", "corrupt", "damaged",
+          // "hash mismatch", "object file...empty"
+          final messageLower = message.toLowerCase();
           if (e is ProcessException &&
-              (message.contains('not a git repository') ||
-                  message.contains('corrupt') ||
-                  message.contains('damaged'))) {
+              (messageLower.contains('not a git repository') ||
+                  messageLower.contains('corrupt') ||
+                  messageLower.contains('damaged') ||
+                  messageLower.contains('hash mismatch') ||
+                  (messageLower.contains('object file') &&
+                      messageLower.contains('empty')))) {
             logger.warn(
               'Local mirror appears to be corrupted (${e.message}). '
               'Recreating mirror...',
