@@ -9,6 +9,7 @@ on:
 env:
   PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  RELEASE_DART_SDK: "3.9.0" # Release tool requires Dart >=3.8; pinned for reproducibility
 
 jobs:
 
@@ -27,7 +28,7 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: "3.10.0"
+          sdk-version: ${{ env.RELEASE_DART_SDK }}
 
       - name: Generate code with build_runner
         run: dart run build_runner build --delete-conflicting-outputs
@@ -62,7 +63,7 @@ jobs:
           - name: Prepare environment
             uses: ./.github/actions/prepare
             with:
-              sdk-version: "3.10.0"
+              sdk-version: ${{ env.RELEASE_DART_SDK }}
 
           - name: Generate code with build_runner
             run: dart run build_runner build --delete-conflicting-outputs
@@ -93,7 +94,7 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: "3.10.0"
+          sdk-version: ${{ env.RELEASE_DART_SDK }}
 
       - name: Generate code with build_runner
         run: dart run build_runner build --delete-conflicting-outputs
