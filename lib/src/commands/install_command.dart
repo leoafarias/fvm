@@ -29,6 +29,13 @@ class InstallCommand extends BaseFvmCommand {
         negatable: true,
       )
       ..addFlag(
+        'skip-setup',
+        help: 'Deprecated alias for --no-setup',
+        defaultsTo: false,
+        negatable: false,
+        hide: true,
+      )
+      ..addFlag(
         'skip-pub-get',
         help: 'Skip resolving dependencies after switching Flutter SDK',
         defaultsTo: false,
@@ -38,7 +45,10 @@ class InstallCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    final setup = boolArg('setup');
+    var setup = boolArg('setup');
+    if (boolArg('skip-setup')) {
+      setup = false;
+    }
     final skipPubGet = boolArg('skip-pub-get');
 
     final ensureCache = EnsureCacheWorkflow(context);
