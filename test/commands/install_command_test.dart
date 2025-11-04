@@ -1,6 +1,5 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/commands/install_command.dart';
-import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 

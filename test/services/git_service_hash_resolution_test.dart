@@ -1,8 +1,6 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
-import 'package:git/git.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
