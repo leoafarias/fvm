@@ -7,6 +7,14 @@
     "title": "Getting Started",
     "display": "children"
   },
+  "-- Troubleshooting": {
+    "type": "separator",
+    "title": "Troubleshooting"
+  },
+  "troubleshooting": {
+    "title": "Troubleshooting",
+    "display": "children"
+  },
   "-- Guides": {
     "type": "separator",
     "title": "Guides"

@@ -35,3 +35,4 @@ fvm flutter doctor
 1. [Install FVM](/documentation/getting-started/installation) on your system
 2. [Configure](/documentation/getting-started/configuration) your first project
 3. Check the [FAQ](/documentation/getting-started/faq) for common questions
+4. Keep the [Git Safe Directory guide](/documentation/troubleshooting/git-safe-directory-windows) handy if you work on Windows
