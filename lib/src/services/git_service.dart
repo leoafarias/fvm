@@ -148,33 +148,33 @@ class GitService extends ContextualService {
 
           logger.debug('Local mirror updated successfully');
         } catch (e) {
-          final message = e is ProcessException ? e.message : e.toString();
-
           // Only recreate the mirror if it's a critical git error that indicates
           // the repository is unrecoverable. Other errors (network, permissions, etc.)
           // are re-thrown so callers can handle them appropriately.
           // Known critical error patterns: "not a git repository", "corrupt", "damaged",
           // "hash mismatch", "object file...empty"
-          final messageLower = message.toLowerCase();
-          if (e is ProcessException &&
-              (messageLower.contains('not a git repository') ||
-                  messageLower.contains('corrupt') ||
-                  messageLower.contains('damaged') ||
-                  messageLower.contains('hash mismatch') ||
-                  (messageLower.contains('object file') &&
-                      messageLower.contains('empty')))) {
-            logger.warn(
-              'Local mirror appears to be corrupted ($message). '
-              'Recreating mirror...',
-            );
-            await _createLocalMirror();
-          } else {
-            logger.err(
-              'Failed to update local mirror: $e. '
-              'Try running "fvm doctor" to diagnose issues.',
-            );
-            rethrow;
+          if (e is ProcessException) {
+            final messageLower = e.message.toLowerCase();
+            if (messageLower.contains('not a git repository') ||
+                messageLower.contains('corrupt') ||
+                messageLower.contains('damaged') ||
+                messageLower.contains('hash mismatch') ||
+                (messageLower.contains('object file') &&
+                    messageLower.contains('empty'))) {
+              logger.warn(
+                'Local mirror appears to be corrupted (${e.message}). '
+                'Recreating mirror...',
+              );
+              await _createLocalMirror();
+              return;
+            }
           }
+
+          logger.err(
+            'Failed to update local mirror: $e. '
+            'Try running "fvm doctor" to diagnose issues.',
+          );
+          rethrow;
         }
       } else {
         await _createLocalMirror();
