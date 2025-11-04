@@ -148,8 +148,7 @@ class GitService extends ContextualService {
 
           logger.debug('Local mirror updated successfully');
         } catch (e) {
-          final message =
-              e is ProcessException ? e.message : e.toString();
+          final message = e is ProcessException ? e.message : e.toString();
 
           // Only recreate the mirror if it's a critical git error that indicates
           // the repository is unrecoverable. Other errors (network, permissions, etc.)
@@ -165,7 +164,7 @@ class GitService extends ContextualService {
                   (messageLower.contains('object file') &&
                       messageLower.contains('empty')))) {
             logger.warn(
-              'Local mirror appears to be corrupted (${e.message}). '
+              'Local mirror appears to be corrupted ($message). '
               'Recreating mirror...',
             );
             await _createLocalMirror();

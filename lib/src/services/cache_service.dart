@@ -25,6 +25,14 @@ enum CacheIntegrity {
 class CacheService extends ContextualService {
   const CacheService(super.context);
 
+  static String _normalizeVersion(String value) {
+    if (value.startsWith('v') || value.startsWith('V')) {
+      return value.substring(1);
+    }
+
+    return value;
+  }
+
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
@@ -268,8 +276,8 @@ class CacheService extends ContextualService {
   bool versionsMatch(String configured, String cached) {
     if (configured == cached) return true;
 
-    final normConfigured = normalizeVersion(configured);
-    final normCached = normalizeVersion(cached);
+    final normConfigured = _normalizeVersion(configured);
+    final normCached = _normalizeVersion(cached);
 
     if (normConfigured == normCached) return true;
 
@@ -304,13 +312,4 @@ class CacheService extends ContextualService {
       return normConfigured == normCached;
     }
   }
-}
-
-@visibleForTesting
-String normalizeVersion(String value) {
-  if (value.startsWith('v') || value.startsWith('V')) {
-    return value.substring(1);
-  }
-
-  return value;
 }

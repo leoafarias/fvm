@@ -1,13 +1,25 @@
+import 'dart:io';
+
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
 
 void main() {
   late CacheService cacheService;
+  late FvmContext context;
 
   setUp(() {
-    cacheService = CacheService(TestFactory.context());
+    context = TestFactory.context();
+    cacheService = CacheService(context);
+  });
+
+  tearDown(() {
+    final dir = Directory(context.fvmDir);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
   });
 
   group('versionsMatch', () {

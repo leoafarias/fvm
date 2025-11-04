@@ -13,18 +13,18 @@ Future<String> httpRequest(String url, {Map<String, String>? headers}) async {
     final response = await request.close();
 
     if (response.statusCode >= 400) {
-      var guidance = '';
+      var guidance = '.';
       if (response.statusCode == HttpStatus.unauthorized ||
           response.statusCode == HttpStatus.forbidden) {
-        guidance = ' Check your authentication credentials.';
+        guidance = '. Check your authentication credentials.';
       } else if (response.statusCode == HttpStatus.notFound) {
-        guidance = ' The requested resource was not found.';
+        guidance = '. The requested resource was not found.';
       } else if (response.statusCode >= HttpStatus.internalServerError) {
-        guidance = ' The server encountered an error. Try again later.';
+        guidance = '. The server encountered an error. Try again later.';
       }
 
       throw HttpException(
-        'HTTP ${response.statusCode}: ${response.reasonPhrase} - URL: $url.$guidance',
+        'HTTP ${response.statusCode}: ${response.reasonPhrase} - URL: $url$guidance',
       );
     }
 
