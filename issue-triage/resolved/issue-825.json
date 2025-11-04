@@ -3,7 +3,8 @@
   "title": "[BUG] Link to documentation links to homepage, not documentation page.",
   "triagedAt": "2025-10-30",
   "priority": "p3-low",
-  "status": "validated",
-  "artifact": "../../artifacts/issue-825.md",
+  "status": "resolved",
+  "artifact": "../artifacts/issue-825.md",
   "url": "https://github.com/leoafarias/fvm/issues/825",
-  "notes": "Update README link to documentation/getting-started."}
+  "notes": "Update README link to documentation/getting-started."
+}

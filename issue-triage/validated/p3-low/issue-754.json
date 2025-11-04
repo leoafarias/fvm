@@ -1,0 +1,10 @@
+{
+  "number": 754,
+  "title": "Feedback for \u201cInstalling FVM in Mac Issue\u201d",
+  "triagedAt": "2025-10-31",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-754.md",
+  "url": "https://github.com/leoafarias/fvm/issues/754",
+  "notes": "Use install.sh or GitHub release binaries when Homebrew requires newer Xcode.",
+  "priority": "p3-low"
+}

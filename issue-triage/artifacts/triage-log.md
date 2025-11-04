@@ -2,97 +2,69 @@
 
 **Started**: 2025-10-30
 **Current Version**: v4.0.0
-**Total Issues**: 81
+**Total Open Issues**: 48
+**Historical Issues Triaged**: 81
 
 ## Progress Tracker
 
 ### P0 - Critical (Documentation/Setup Blockers)
-- [x] #944 – Documentation install link 404 (triaged 2025-10-30)
-- [x] #915 – Getting Started links 404 / Quick Start guidance (triaged 2025-10-30)
+- _No open issues_
 
 ### P1 - High (Installation/Major Issues)
-- [x] #940 – Homebrew build fails with Dart 3.2.6 (triaged 2025-10-30)
-- [x] #938 – `fvm doctor` crashes resolving missing symlink (triaged 2025-10-30)
-- [x] #914 – Windows git safe.directory error surfaced as “git not found” (triaged 2025-10-30)
-- [x] #897 – Nix/Home Manager read-only shell profile triggers PathAccessException (triaged 2025-10-30)
-- [x] #881 – SSH URLs rejected by fork/config validation (triaged 2025-10-30)
-- [x] #801 – FVM fish shell Ctrl+C leaves terminal unusable (triaged 2025-10-30)
-- [x] #783 – Use full commit hashes in configs to avoid collisions (triaged 2025-10-30)
-- [x] #683 – Hosted dependency overrides without versions crash the parser (triaged 2025-10-31)
-- [x] #688 – Add archive install strategy honoring `FLUTTER_STORAGE_BASE_URL` mirrors (triaged 2025-10-31)
-- [x] #666 – Normalize cache vs requested versions to avoid false mismatch prompts (triaged 2025-10-31)
-- [x] #587 – Mirror Flutter’s TAR_OPTIONS so container installs succeed (triaged 2025-10-31)
-- [x] #581 – Publish multi-arch Docker images so installs succeed on arm64 (triaged 2025-10-31)
+- [ ] #688 - FVM still performs Git installs; need archive-based strategy honoring FLUTTER_STORAGE_BASE_URL/FLUTTER_RELEASES_URL mirrors with checksum validation and docs.
+- [ ] #783 - Store full 40-char commit hashes in configs; add regression tests.
+- [ ] #897 - Home Manager makes ~/.bash_profile read-only; add guards/skip flag so FVM doesn't throw PathAccessException.
+- [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
 
 ### P2 - Medium (Standard Bugs/Enhancements)
-- [x] #935 – Request RISC-V install support (triaged 2025-10-30)
-- [x] #894 – Shared cache permissions for multi-user hosts (triaged 2025-10-30)
-- [x] #880 – Add `--force` to spawn for CI support (triaged 2025-10-30)
-- [x] #826 – Publish Winget package (triaged 2025-10-30)
-- [x] #821 – VS Code `getFlutterSdkCommand` integration (triaged 2025-10-30)
-- [x] #820 – Publish a reusable GitHub Action (`setup-flutter-fvm`) (triaged 2025-10-30)
-- [x] #811 – Provide official Nix package support (triaged 2025-10-30)
-- [x] #794 – Raspberry Pi installation support (triaged 2025-10-30)
-- [x] #786 – Upgrade `dart_console` after removing `interact` (triaged 2025-10-30)
-- [x] #771 – Suppress semver warnings for fork/custom names (triaged 2025-10-30)
-- [x] #764 – Preserve .fvm/versions symlinks for branch switching (triaged 2025-10-30)
-- [x] #762 – Build multi-arch Docker images (triaged 2025-10-30)
-- [x] #743 – Simplify VS Code Flutter SDK path management (triaged 2025-10-30)
-- [x] #738 – Provide Codespaces devcontainer / Marketplace Docker (`triaged 2025-10-30`)
-- [x] #702 – VS Code multi-root workspace should not collapse SDK paths (triaged 2025-10-31)
-- [x] #696 – Allow relocating `.fvm` via project config to keep SDK outside repo (triaged 2025-10-31)
-- [x] #689 – Provide plain CLI output mode to restore shell completions (triaged 2025-10-31)
-- [x] #681 – Preserve project `.fvm/versions` symlinks for branch switching (triaged 2025-10-31)
-- [x] #674 – Store command flags in context instead of threading parameters (triaged 2025-10-31)
-- [x] #648 – Resolve Flutter versions from Dart constraints and improve Dart fallback (triaged 2025-10-31)
-- [x] #635 – Update VS Code settings without stripping comments or tabs (triaged 2025-10-31)
-- [x] #583 – Provide an upgrade workflow for the global SDK (triaged 2025-10-31)
-- [x] #577 – Let `fvm install` resolve pubspec flutter constraints (triaged 2025-10-31)
-- [x] #421 – Resolve partial semver inputs like `fvm install 2` to latest releases (triaged 2025-10-31)
+- [ ] #577 - Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically.
+- [ ] #583 - Add an `fvm upgrade` workflow (with `--force`/`--remove-old`) that resolves the latest channel release, installs it, and switches the global SDK without manual remove/global steps.
+- [ ] #635 - Stop rewriting VS Code settings with JsonEncoder; update only the dart.flutterSdkPath property while preserving existing comments, indentation, and tabs.
+- [ ] #648 - Add constraint-aware tooling: resolve Flutter versions from Dart SDK ranges, run commands against min/max pubspec constraints, and make `fvm dart` fall back to Flutter's bundled Dart instead of a standalone PATH binary.
+- [ ] #674 - Introduce command-scoped options in FvmContext so flags like --force/--skip-setup don't need to be threaded through every workflow; add helpers, reset per command, and update docs/tests.
+- [ ] #681 - Stop deleting .fvm/versions on each switch; preserve per-version symlinks so branch checkouts keep working, add cleanup tooling, and update docs.
+- [ ] #689 - Rich table output lacks a plain/text mode. Add console style toggle (config + CLI flag), auto-fallback for non-TTY, and update docs/tests.
+- [ ] #696 - Project.localFvmPath ignores .fvmrc cachePath overrides. Add support for relative/absolute overrides, update docs, and test multi-project scenarios.
+- [ ] #697 - Android Studio must be pointed at .fvm/default; FVM already creates the global symlink and does not manage IDE settings.
+- [ ] #702 - Workspace-level dart.flutterSdkPath overrides folder-specific settings. Skip writing it when multi-root, rely on per-folder configs, and update docs.
+- [ ] #724 - Set Android Studio Flutter SDK path to .fvm/flutter_sdk or rely on FVM automation.
+- [ ] #738 - Provide Codespaces devcontainer leveraging existing Docker image.
+- [ ] #743 - Consider pointing VS Code to .fvm/flutter_sdk or using getFlutterSdkCommand.
+- [ ] #762 - Build Docker image for linux/amd64 and linux/arm64 via Buildx.
+- [ ] #764 - Retain per-project version symlinks instead of wiping .fvm/versions.
+- [ ] #774 - Docs need a PATH section showing how to expose ~/.fvm/default/bin so global commands like rps can find Dart; update guides before closing.
+- [ ] #782 - Update running-flutter docs to replace ${@:1} with "$@" (or add a bash shebang) so rerouted scripts work under /bin/sh; leave open until docs merged.
+- [ ] #794 - Add Linux ARM artifacts and update install script to detect Pi architectures.
+- [ ] #811 - Create official Nix derivation/flake and upstream to nixpkgs.
+- [ ] #820 - Create reusable GitHub Action to install FVM/Flutter with arm support.
+- [ ] #821 - Add fvm path command + configure dart.getFlutterSdkCommand / dart.getDartSdkCommand in VS Code workflow.
+- [ ] #826 - Add Winget manifests and release automation to mirror Windows binaries.
+- [ ] #894 - Add group-shared cache support (git core.sharedRepository, chmod g+rwX, optional cache group config).
 
 ### P3 - Low (Minor Issues/Feature Requests)
-- [x] #933 – Chocolatey title should spell out Flutter Version Manager (triaged 2025-10-30)
-- [x] #839 – `.gitignore` entry missing trailing newline (triaged 2025-10-30)
-- [x] #833 – Wildcard support for `fvm remove` (triaged 2025-10-30)
-- [x] #825 – README doc link should point to getting-started (triaged 2025-10-30)
-- [x] #787 – Optional wrapper scripts for direct `flutter` usage (triaged 2025-10-30)
-- [x] #784 – Provide temporary shell env command (triaged 2025-10-30)
-- [x] #761 – Surface unknown-command errors (triaged 2025-10-30)
-- [x] #751 – Evaluate semver range support (triaged 2025-10-30)
-- [x] #607 – Provide Snap/Flatpak distribution options for Linux (triaged 2025-10-31)
-- [x] #600 – Clarify Android Studio/IntelliJ FVM setup in docs (triaged 2025-10-31)
-- [x] #584 – Document custom Flutter Git remotes (`flutterUrl`) (triaged 2025-10-31)
-- [x] #578 – Publish a MacPorts port so macOS users have a Homebrew alternative (triaged 2025-10-31)
-
-### Already Resolved
-- [x] #904 – Kotlin deprecation warning belongs to Flutter (no FVM change)
-- [x] #895 – 4.0.0 release now live across package managers
-- [x] #893 – VS Code terminal PATH handled by Dart Code extension (working as intended)
-- [x] #884 – `.gitignore` now updated automatically by v4.0.0
-- [x] #841 – `fvm global` requires PATH update; working as intended
-- [x] #812 – Guidance provided for global vs project configuration
-- [x] #807 – FVM cache directory configurable via env vars
-- [x] #805 – Auto hot reload is out of FVM scope
-- [x] #799 – Duplicate of shell profile permission issue (#897)
-- [x] #791 – Fork versions already namespaced via alias/version
-- [x] #719 – Rerouting docs already published in “Running Flutter” guide (triaged 2025-10-31)
-- [x] #715 – Older Flutter versions need a system JDK; FVM works as designed (triaged 2025-10-31)
-- [x] #697 – Android Studio must target `.fvm/default`; document the global workflow (triaged 2025-10-31)
-- [x] #575 – `fvm flavor` already runs commands on flavor-defined SDKs (triaged 2025-10-31)
-- [x] #388 – IntelliJ supports only one Flutter SDK per project; document limitation (triaged 2025-10-31)
-
-### Version Specific (v3.x only)
-- [ ] Needs triage
+- [ ] #575 - `fvm flavor <name> <command>` already proxies Flutter commands with the flavor's version without switching; document usage and close.
+- [ ] #578 - Create a MacPorts Portfile that installs FVM from GitHub releases, submit it to the MacPorts ports tree, and update docs so macOS users have a Homebrew alternative.
+- [ ] #584 - Document the custom Flutter remote feature (`fvm config --flutter-url`, `FVM_FLUTTER_URL`, `FLUTTER_GIT_URL`) and enhance CLI help so users know how to override the clone source.
+- [ ] #600 - Expand Android Studio/IntelliJ docs with step-by-step guidance, screenshots, and troubleshooting so users point to `.fvm/flutter_sdk` and understand how dynamic updates work.
+- [ ] #607 - Package FVM as a Snap (classic confinement) and evaluate Flatpak viability; update release automation and installation docs accordingly.
+- [ ] #720 - Consider `fvm sync` command to auto-install missing versions.
+- [ ] #751 - Explore semver constraint parsing for version ranges.
+- [ ] #754 - Use install.sh or GitHub release binaries when Homebrew requires newer Xcode.
+- [ ] #757 - Use fvm config --flutter-url or fvm fork add to point to Shorebird repo.
+- [ ] #761 - Detect leftover args and show unknown command usage error.
+- [ ] #784 - Consider `fvm env` command to print PATH exports for temporary sessions.
+- [ ] #787 - Assess packaging wrapper scripts; document current PATH-based workflow.
+- [ ] #791 - Fork names already namespace versions (alias/version syntax).
 
 ### Needs More Info
-- [x] #906 – Android Studio terminal slow after `fvm use` (awaiting logs)
-- [x] #809 – Sidekick upgrade blocked by alleged local changes (awaiting reproduction)
-- [x] #797 – Investigate `env: bash\r` error & IDE PATH warning
-- [x] #781 – Chocolatey install missing fvm.exe (awaiting verbose logs)
-- [x] #767 – Windows Android Studio path keeps reverting (awaiting details)
-- [x] #759 – Need VSCode settings when global Flutter conflicts (`needs_info`)
-- [x] #748 – Screenshot-only Windows issue (awaiting details)
-- [x] #731 – Screenshot-only cache.git error (awaiting details)
+- [ ] #731 - Screenshot only; request commands and logs.
+- [ ] #748 - Screenshot only; request steps and error text.
+- [ ] #759 - Need VSCode settings and error output.
+- [ ] #767 - Request .idea config and symlink info for Windows.
+- [ ] #781 - Request Chocolatey verbose logs and directory listing.
+- [ ] #797 - Suspect CRLF line endings in Flutter script; awaiting diagnostics.
+- [ ] #809 - Request verbose logs and reproduction outside Sidekick.
+- [ ] #906 - Unable to reproduce without timing/log data; need shell config and measurements.
 
 ---
 
@@ -212,15 +184,19 @@
 - #388: IntelliJ multi-package limitation documented; no change planned. **Closed with comment** (`https://github.com/leoafarias/fvm/issues/388#issuecomment-3476845312`).
 - #801: Fish shell Ctrl+C fixed in FVM 4.0.0. **Closed with comment** (`https://github.com/leoafarias/fvm/issues/801#issuecomment-3476846075`).
 
+### Session 7: 2025-11-04 (Open Issue Sync)
+- Re-ran `gh issue list --state open` (48 issues) and removed closed #771 from the pending queue.
+- Regenerated `pending_issues/open_issues.json` via GraphQL so titles/bodies/labels reflect the latest GitHub data.
+- Moved reopened items (#575, #697, #724, #754, #757, #791) back into the validated folders and archived closed ones (#771, #786, #825, #833, #880, #933).
+- Rebuilt the Progress Tracker and Summary Statistics so action items only list currently open issues.
+
 ---
 
 ## Summary Statistics
-- **Total Triaged**: 81/81
-- **P0 Critical**: 2
+- **Open Issues**: 48
+- **P0 Critical**: 0
 - **P1 High**: 4
-- **P2 Medium**: 24
+- **P2 Medium**: 23
 - **P3 Low**: 13
-- **Closed on GitHub**: 27
-- **Resolved (not yet closed)**: 9
-- **Version Specific**: 0
 - **Needs Info**: 8
+- **Resolved/Archived**: 9

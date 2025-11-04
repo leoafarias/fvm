@@ -1,0 +1,10 @@
+{
+  "number": 697,
+  "title": "[BUG] Could not find a Flutter SDK. Please download, or, if already downloaded, click 'Locate SDK'.",
+  "triagedAt": "2025-10-31",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-697.md",
+  "url": "https://github.com/leoafarias/fvm/issues/697",
+  "notes": "Android Studio must be pointed at .fvm/default; FVM already creates the global symlink and does not manage IDE settings.",
+  "priority": "p2-medium"
+}

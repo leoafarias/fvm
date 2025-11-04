@@ -1,0 +1,10 @@
+{
+  "number": 757,
+  "title": "[Feature Request] Add support to shorebird",
+  "triagedAt": "2025-10-31",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-757.md",
+  "url": "https://github.com/leoafarias/fvm/issues/757",
+  "notes": "Use fvm config --flutter-url or fvm fork add to point to Shorebird repo.",
+  "priority": "p3-low"
+}
