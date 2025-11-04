@@ -4,6 +4,7 @@ import 'package:path/path.dart' as p;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
+import '../services/git_service.dart';
 import '../services/project_service.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
@@ -140,10 +141,23 @@ class UpdateProjectReferencesWorkflow extends Workflow {
         ..debug('Flutter version: ${version.name}')
         ..debug('');
 
+      // Resolve commit hash to full SHA if this is an unknown ref (commit)
+      String versionToStore = version.name;
+      if (version.isUnknownRef) {
+        final fullHash = await get<GitService>().resolveCommitHash(
+          version.version,
+          version,
+        );
+        if (fullHash != null) {
+          versionToStore = fullHash;
+          logger.debug('Resolved commit hash: ${version.name} -> $fullHash');
+        }
+      }
+
       final updatedProject = get<ProjectService>().update(
         project,
-        flavors: {if (flavor != null) flavor: version.name},
-        flutterSdkVersion: version.name,
+        flavors: {if (flavor != null) flavor: versionToStore},
+        flutterSdkVersion: versionToStore,
       );
 
       _updateLocalSdkReference(updatedProject, version);

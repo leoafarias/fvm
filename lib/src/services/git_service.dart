@@ -212,4 +212,46 @@ class GitService extends ContextualService {
       return null;
     }
   }
+
+  /// Resolves a commit reference (short or long hash) to its full 40-character SHA
+  /// Returns null if the reference cannot be resolved
+  Future<String?> resolveCommitHash(
+    String commitRef,
+    FlutterVersion version,
+  ) async {
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
+
+    final isGitDir = await GitDir.isGitDir(versionDir.path);
+
+    if (!isGitDir) {
+      logger.debug('Directory is not a git repository: ${versionDir.path}');
+
+      return null;
+    }
+
+    final gitDir = await GitDir.fromExisting(versionDir.path);
+
+    try {
+      // Use rev-parse to get the full commit hash
+      final pr = await gitDir.runCommand([
+        'rev-parse',
+        commitRef,
+      ]);
+
+      final fullHash = (pr.stdout as String).trim();
+
+      // Validate that we got a proper 40-character SHA
+      if (fullHash.length == 40 && RegExp(r'^[0-9a-f]+$').hasMatch(fullHash)) {
+        return fullHash;
+      }
+
+      logger.debug('Invalid hash format returned: $fullHash');
+
+      return null;
+    } catch (e) {
+      logger.debug('Failed to resolve commit hash: $e');
+
+      return null;
+    }
+  }
 }
