@@ -309,6 +309,9 @@ void main() {
 
       when(() => cacheVersion.directory).thenReturn(tempDirs.create().path);
 
+      // Stub isUnknownRef - this is not a commit, it's a release version
+      when(() => cacheVersion.isUnknownRef).thenReturn(false);
+
       final project = runner.context.get<ProjectService>().findAncestor(
             directory: testDir,
           );
