@@ -121,13 +121,15 @@ void moveScripts() {
     _fail('Public directory does not exist at ${publicDir.path}');
   }
 
-  final installScript = File(p.join(scriptsDir.path, 'install.sh'));
-  if (!installScript.existsSync()) {
-    _fail('install.sh does not exist in ${scriptsDir.path}');
-  }
+  for (final scriptName in ['install.sh', 'uninstall.sh']) {
+    final source = File(p.join(scriptsDir.path, scriptName));
+    if (!source.existsSync()) {
+      _fail('$scriptName does not exist in ${scriptsDir.path}');
+    }
 
-  installScript.copySync(p.join(publicDir.path, 'install.sh'));
-  log('Moved install.sh to ${publicDir.path}');
+    source.copySync(p.join(publicDir.path, scriptName));
+    log('Moved $scriptName to ${publicDir.path}');
+  }
 }
 
 Future<String> _githubRequest(Uri uri) async {

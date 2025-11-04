@@ -3,6 +3,7 @@ description: Release automation package for the FVM project.
 version: 0.0.1
 
 environment:
+  # Release tooling relies on Dart >=3.8 for cli_pkg and related features.
   sdk: ">=3.8.0 <4.0.0"
 
 dependencies:
