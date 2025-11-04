@@ -57,15 +57,7 @@ Future<void> getReleases() async {
       ),
     );
 
-    final dynamic decoded;
-    try {
-      decoded = jsonDecode(response);
-    } on FormatException catch (error) {
-      _fail(
-        'Failed to parse GitHub release response as JSON. '
-        'Error: $error',
-      );
-    }
+    final dynamic decoded = jsonDecode(response);
 
     if (decoded is! List) {
       _fail(
@@ -102,6 +94,11 @@ Future<void> getReleases() async {
 
     final file = File(p.join(_effectiveRepoRoot.path, 'releases.txt'));
     file.writeAsStringSync(buffer.toString());
+  } on FormatException catch (error) {
+    _fail(
+      'Failed to parse GitHub release response as JSON. '
+      'Error: $error',
+    );
   } on GrinderException {
     rethrow;
   } catch (error, stackTrace) {
