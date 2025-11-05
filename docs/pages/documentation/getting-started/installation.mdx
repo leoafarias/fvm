@@ -150,12 +150,14 @@ The install script automatically adds FVM to your PATH by updating your shell co
 - **Zsh**: `~/.zshrc`
 - **Fish**: `~/.config/fish/config.fish`
 
+Bash installations try `~/.bashrc` first, then `~/.bash_profile`, and fall back to manual instructions if neither can be updated automatically.
+
 The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
 
 <Callout type="info">
-  On read-only setups (Nix/Home Manager), the installer may warn `Skipping ~/.bash_profile; could not update file (likely read-only). Add PATH manually.` Just paste the shown PATH export into a writable rc file yourself.
+  If the installer can't update a shell config—because the file is missing, unreadable, or read-only—you'll see warnings such as `Skipping ~/.bashrc; file not found.` or `Skipping ~/.bash_profile; failed to write changes (file may be read-only).` Copy the PATH export the script prints and paste it into any writable rc file for your shell.
 </Callout>
 
   </Tabs.Tab>

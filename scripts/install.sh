@@ -438,6 +438,11 @@ update_shell_config() {
     return 1
   fi
 
+  if [[ ! -r "$config_file" ]]; then
+    warn "Skipping $tilde_config; cannot read file (permission denied)."
+    return 1
+  fi
+
   if grep -q "$FVM_DIR_BIN" "$config_file" 2>/dev/null; then
     info "[$tilde_config] already references $tilde_fvm_dir; skipping."
     return 0
@@ -447,7 +452,7 @@ update_shell_config() {
     printf '\n# FVM\n'
     printf '%s\n' "$export_command"
   } >> "$config_file" 2>/dev/null; then
-    warn "Skipping $tilde_config; could not update file (likely read-only). Add PATH manually."
+    warn "Skipping $tilde_config; failed to write changes (file may be read-only). Add PATH manually."
     return 1
   fi
 
@@ -486,7 +491,7 @@ case "$(basename "$SHELL")" in
     bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
-    local bash_candidate_found=false
+    bash_candidate_found=false
     for bash_config in "${bash_configs[@]}"; do
       if [[ -e "$bash_config" ]]; then
         bash_candidate_found=true
