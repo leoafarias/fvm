@@ -11,6 +11,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
+import 'archive_service.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
@@ -134,9 +135,18 @@ class FlutterService extends ContextualService {
     return run('flutter', args, version);
   }
 
-  Future<void> install(FlutterVersion version) async {
-    // Get the version-specific cache directory using the FlutterVersion object
-    final versionDir = get<CacheService>().getVersionCacheDir(version);
+  Future<void> install(
+    FlutterVersion version, {
+    bool useArchive = false,
+  }) async {
+    final cacheService = get<CacheService>();
+    final versionDir = cacheService.getVersionCacheDir(version);
+
+    if (useArchive) {
+      final archiveService = get<ArchiveService>();
+      await archiveService.install(version, versionDir);
+      return;
+    }
 
     // For fork versions, ensure the parent directory exists
     if (version.fromFork) {
