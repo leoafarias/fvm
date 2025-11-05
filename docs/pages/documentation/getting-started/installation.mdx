@@ -154,6 +154,10 @@ The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
 
+<Callout type="info">
+  On read-only setups (Nix/Home Manager), the installer may warn `Skipping ~/.bash_profile; could not update file (likely read-only). Add PATH manually.` Just paste the shown PATH export into a writable rc file yourself.
+</Callout>
+
   </Tabs.Tab>
   <Tabs.Tab>
 For pub installations, add to your shell profile:

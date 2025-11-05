@@ -433,21 +433,27 @@ update_shell_config() {
   local tilde_config="${config_file/#$HOME/\~}"
   local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
-  if [[ -w "$config_file" ]]; then
-    if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
-      {
-        echo -e "\n# FVM"
-        echo "$export_command"
-      } >> "$config_file"
-      info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
-      refresh_command="source $config_file"
-    else
-      info "[$tilde_config] already references $tilde_fvm_dir; skipping."
-    fi
-    return 0
-  else
+  if [[ ! -e "$config_file" && ! -L "$config_file" ]]; then
+    warn "Skipping $tilde_config; file not found."
     return 1
   fi
+
+  if grep -q "$FVM_DIR_BIN" "$config_file" 2>/dev/null; then
+    info "[$tilde_config] already references $tilde_fvm_dir; skipping."
+    return 0
+  fi
+
+  if ! {
+    printf '\n# FVM\n'
+    printf '%s\n' "$export_command"
+  } >> "$config_file" 2>/dev/null; then
+    warn "Skipping $tilde_config; could not update file (likely read-only). Add PATH manually."
+    return 1
+  fi
+
+  info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
+  refresh_command="source $config_file"
+  return 0
 }
 
 # Configure shell PATH (skip for root in non-container environments)
@@ -480,7 +486,14 @@ case "$(basename "$SHELL")" in
     bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
+    local bash_candidate_found=false
     for bash_config in "${bash_configs[@]}"; do
+      if [[ -e "$bash_config" ]]; then
+        bash_candidate_found=true
+      else
+        continue
+      fi
+
       if update_shell_config "$bash_config" "$(get_path_export bash)"; then
         set_manually=false
         break
@@ -488,6 +501,9 @@ case "$(basename "$SHELL")" in
     done
 
     if [[ "$set_manually" == true ]]; then
+      if [[ "$bash_candidate_found" == false ]]; then
+        warn "Skipping automatic bash PATH updates; ~/.bashrc and ~/.bash_profile were not found."
+      fi
       log "Manually add the following line to your bash config (e.g., ~/.bashrc):"
       info "  $(get_path_export bash)"
     fi
