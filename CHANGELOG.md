@@ -1,5 +1,3 @@
-## Unreleased
-
 ## 4.0.1
 
 * add: `fvm install` now runs setup by default
