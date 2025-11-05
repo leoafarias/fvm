@@ -220,5 +220,5 @@ FVM automatically configures VS Code settings. To manually configure:
 ### Performance tips
 
 - Enable git cache for faster installs
-- Use `--skip-setup` when switching versions frequently
+- Use `fvm install --no-setup` when you only need to cache SDKs (run `--setup` later via `fvm use`)
 - Run `fvm install` in CI before build steps

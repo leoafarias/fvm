@@ -31,6 +31,9 @@ fvm.nuspec
 # Build directory - contains compiled binaries for GitHub releases
 build/
 
+# Release automation package (not published to pub.dev)
+tool/release_tool/
+
 # Keep these files (they're useful for pub.dev users):
 # README.md - main project documentation
 # CHANGELOG.md - required for pub.dev
