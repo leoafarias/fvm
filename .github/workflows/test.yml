@@ -7,7 +7,7 @@ on:
         description: "Dart SDK version"
         type: string
         required: false
-        default: "3.6.0"
+        default: "3.10.0"
 
   pull_request:
     paths-ignore:
@@ -40,6 +40,9 @@ on:
 
   workflow_dispatch:
 
+env:
+  SDK_VERSION: "3.10.0"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -56,7 +59,7 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: ${{ github.event.inputs.sdk-version }}
+          sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
       - uses: invertase/github-action-dart-analyzer@v1
         with:
@@ -113,7 +116,7 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: ${{ github.event.inputs.sdk-version }}
+          sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
       - name: Tests
         uses: ./.github/actions/test
@@ -136,7 +139,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
       - name: Install dependencies
         run: dart pub get
