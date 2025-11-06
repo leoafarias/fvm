@@ -8,8 +8,8 @@ This directory contains installation and testing scripts for FVM.
 The main FVM installation script for Linux/macOS that:
 - Detects OS and architecture
 - Downloads the appropriate FVM binary
-- Creates a system-wide symlink
 - Configures shell PATH
+- Optionally copies the binary into /usr/local/bin via `--system`
 - Supports container environments (Docker, Podman, CI)
 - **Now includes uninstall functionality via `--uninstall` flag**
 

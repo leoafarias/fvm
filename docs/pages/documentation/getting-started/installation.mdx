@@ -152,6 +152,8 @@ The install script automatically adds FVM to your PATH by updating your shell co
 
 Bash installations try `~/.bashrc` first, then `~/.bash_profile`, and fall back to manual instructions if neither can be updated automatically.
 
+Need a system-wide binary? Run the installer with `--system` to copy `fvm` into `/usr/local/bin` (you'll be prompted for sudo), otherwise everything stays in your home directory.
+
 The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
