@@ -75,6 +75,23 @@ jobs:
           # Run uninstall again - should handle gracefully
           ./scripts/install.sh --uninstall
 
+      - name: Test user install (v2 default behavior)
+        run: |
+          # v2 default: user install without sudo
+          ./scripts/install.sh
+
+          # Verify user install
+          test -f ~/.fvm_flutter/bin/fvm || { echo "❌ User install failed"; exit 1; }
+          ~/.fvm_flutter/bin/fvm --version || { echo "❌ Binary not working"; exit 1; }
+
+          # Verify no system install
+          test ! -f /usr/local/bin/fvm || { echo "❌ Unexpected system install"; exit 1; }
+
+          echo "✅ User install successful"
+
+          # Cleanup
+          ./scripts/install.sh --uninstall
+
   # Test container detection and root permissions
   test-container:
     name: Test Container
@@ -90,7 +107,8 @@ jobs:
       
       - name: Test container root allowed
         run: |
-          ./scripts/install.sh
+          # v2 installer: use --system flag for system-wide install in containers
+          ./scripts/install.sh --system
           /usr/local/bin/fvm --version
 
   # Test root blocking on non-container
@@ -104,7 +122,7 @@ jobs:
       - name: Test root blocked
         run: |
           # Should fail when run as root without container
-          if sudo ./scripts/install.sh 2>&1 | grep -q "should not be run as root"; then
+          if sudo ./scripts/install.sh 2>&1 | grep -q "refusing to run as root"; then
             echo "✅ Root correctly blocked"
           else
             echo "❌ Root should have been blocked"
@@ -113,5 +131,6 @@ jobs:
       
       - name: Test with override
         run: |
-          sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
+          # v2 installer: use --system for system-wide install
+          sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh --system
           sudo /usr/local/bin/fvm --version
