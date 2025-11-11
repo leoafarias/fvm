@@ -1,0 +1,46 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjQzNTgzMw==",
+    "is_bot": false,
+    "login": "leoafarias",
+    "name": "Leo Farias"
+  },
+  "body": "## Summary\n- Upgraded install.sh script to v3.0.0 with major improvements\n- Added comprehensive uninstall script with proper cleanup\n- Enhanced CI/CD pipeline for installation testing\n\n## Changes\n\n### Installation Script v3.0.0\n- **Enhanced environment detection**: Improved terminal color support, container/CI detection\n- **Better architecture support**: Rosetta detection on macOS, musl libc support for Alpine Linux\n- **Multi-shell configuration**: Automatic PATH setup for bash, zsh, and fish shells\n- **Robust download handling**: TLS enforcement, retry logic, better error messages\n- **Environment variables**: Added FVM_DIR and FVM_NO_PATH for customization\n- **Temp file management**: Proper cleanup with trap handlers\n\n### New Uninstall Script\n- Comprehensive cleanup of FVM installation\n- PATH cleanup instructions for multiple shells\n- Graceful handling of partial installations\n- Color output support for better UX\n\n### CI/CD Improvements\n- Added tests for Alpine Linux (musl libc)\n- Expanded platform matrix (Ubuntu x64, macOS Intel, macOS ARM64)\n- Environment variable testing (FVM_NO_PATH, FVM_DIR)\n- Container detection and root permission validation\n- Uninstall functionality testing\n\n### Script Management\n- Updated grinder task to sync both install.sh and uninstall.sh to docs/public\n- Added validation script for testing installations\n- Ensures scripts stay synchronized between directories\n\n## Test Plan\n- [x] Shellcheck validation passes for all scripts\n- [x] Install/uninstall scripts match between scripts/ and docs/public/\n- [x] Grinder move-scripts task works correctly\n- [x] All shell scripts have executable permissions\n- [x] Help command displays correctly\n- [x] Version detection works (v3.0.0)\n- [x] CI workflow tests pass on multiple platforms\n\n## Breaking Changes\nNone - maintains backward compatibility while adding new features\n\n## Related Issues\nImproves installation experience and addresses common installation issues reported by users",
+  "closedAt": "2025-10-28T15:30:59Z",
+  "comments": [
+    {
+      "id": "IC_kwDOCkCuKM7HqxoO",
+      "author": { "login": "vercel" },
+      "authorAssociation": "NONE",
+      "body": "[vc]: #e0EX/9LiJ5Ww/5xWEcQ2hfw1ppIVDS7EoNPLqAwjln0=:eyJpc01vbm9yZXBvIjp0cnVlLCJ0eXBlIjoiZ2l0aHViIiwicHJvamVjdHMiOlt7Im5hbWUiOiJmdm0iLCJpbnNwZWN0b3JVcmwiOiJodHRwczovL3ZlcmNlbC5jb20vZmx1dHRlcnRvb2xzL2Z2bS8xM0tobWRNRTlDQlR4Z2pRSDdSaFF1ZmFVZ2ZjIiwicHJldmlld1VybCI6ImZ2bS1naXQtdXBkYXRlLWluc3RhbGwtc2NyaXB0LXYzLWZsdXR0ZXJ0b29scy52ZXJjZWwuYXBwIiwibmV4dENvbW1pdFN0YXR1cyI6IkRFUExPWUVEIiwibGl2ZUZlZWRiYWNrIjp7InJlc29sdmVkIjowLCJ1bnJlc29sdmVkIjowLCJ0b3RhbCI6MCwibGluayI6ImZ2bS1naXQtdXBkYXRlLWluc3RhbGwtc2NyaXB0LXYzLWZsdXR0ZXJ0b29scy52ZXJjZWwuYXBwIn0sInJvb3REaXJlY3RvcnkiOiJkb2NzIn1dfQ==\nThe latest updates on your projects. Learn more about [Vercel for GitHub](https://vercel.link/github-learn-more).\n\n| Project | Deployment | Preview | Comments | Updated (UTC) |\n| :--- | :----- | :------ | :------- | :------ |\n| [fvm](https://vercel.com/fluttertools/fvm) | ![Ready](https://vercel.com/static/status/ready.svg) [Ready](https://vercel.com/fluttertools/fvm/13KhmdME9CBTxgjQH7RhQufaUgfc) | [Preview](https://fvm-git-update-install-script-v3-fluttertools.vercel.app) | [Comment](https://vercel.live/open-feedback/fvm-git-update-install-script-v3-fluttertools.vercel.app?via=pr-comment-feedback-link) | Oct 15, 2025 1:18pm |\n\n",
+      "createdAt": "2025-09-30T04:11:16Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/leoafarias/fvm/pull/932#issuecomment-3349879310",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOCkCuKM7Hq4je",
+      "author": { "login": "codecov-commenter" },
+      "authorAssociation": "NONE",
+      "body": "## [Codecov](https://app.codecov.io/gh/leoafarias/fvm/pull/932?dropdown=coverage&src=pr&el=h1&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Leo+Farias) Report\n:white_check_mark: All modified and coverable lines are covered by tests.\n:white_check_mark: Project coverage is 38.75%. Comparing base ([`cb81daa`](https://app.codecov.io/gh/leoafarias/fvm/commit/cb81daa1b6186284599af22227b90bc2a262af40?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Leo+Farias)) to head ([`7c97a76`](https://app.codecov.io/gh/leoafarias/fvm/commit/7c97a769d092a01a081b26c01f141aab99cfad28?dropdown=coverage&el=desc&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Leo+Farias)).\n:warning: Report is 7 commits behind head on main.\n\n<details><summary>Additional details and impacted files</summary>\n\n\n\n```diff\n@@           Coverage Diff           @@\n##             main     #932   +/-   ##\n=======================================\n  Coverage   38.75%   38.75%           \n=======================================\n  Files          75       75           \n  Lines        4283     4283           \n=======================================\n  Hits         1660     1660           \n  Misses       2623     2623           \n```\n</details>\n\n[:umbrella: View full report in Codecov by Sentry](https://app.codecov.io/gh/leoafarias/fvm/pull/932?dropdown=coverage&src=pr&el=continue&utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Leo+Farias).   \n:loudspeaker: Have feedback on the report? [Share it here](https://about.codecov.io/codecov-pr-comment-feedback/?utm_medium=referral&utm_source=github&utm_content=comment&utm_campaign=pr+comments&utm_term=Leo+Farias).\n<details><summary> :rocket: New features to boost your workflow: </summary>\n\n- :snowflake: [Test Analytics](https://docs.codecov.com/docs/test-analytics): Detect flaky tests, report on failures, and find test suite problems.\n</details>",
+      "createdAt": "2025-09-30T04:21:58Z",
+      "includesCreatedEdit": true,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/leoafarias/fvm/pull/932#issuecomment-3349907678",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2025-09-30T04:11:10Z",
+  "labels": [],
+  "number": 932,
+  "state": "CLOSED",
+  "title": "feat: upgrade installation scripts to v3.0.0",
+  "updatedAt": "2025-10-28T15:30:59Z",
+  "url": "https://github.com/leoafarias/fvm/pull/932"
+}

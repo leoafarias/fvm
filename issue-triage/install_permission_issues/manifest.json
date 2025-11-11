@@ -1,0 +1,223 @@
+[
+  {
+    "number": 699,
+    "title": "[BUG] The `install.sh` script uses `/usr/local/bin/fvm` as a link target which requires sudo privileges",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/699",
+    "createdAt": "2024-03-22T14:05:54Z",
+    "updatedAt": "2025-05-06T15:06:59Z",
+    "closedAt": "2024-10-01T17:15:26Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-699.json"
+  },
+  {
+    "number": 700,
+    "title": "feat: automatically add `~/.fvm_flutter/bin` to the PATH var in `install.sh` and introduce `update.sh`",
+    "state": "MERGED",
+    "url": "https://github.com/leoafarias/fvm/pull/700",
+    "createdAt": "2024-03-22T18:11:35Z",
+    "updatedAt": "2024-10-01T17:15:25Z",
+    "closedAt": "2024-10-01T17:15:25Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-700.json"
+  },
+  {
+    "number": 785,
+    "title": "Update install.sh",
+    "state": "MERGED",
+    "url": "https://github.com/leoafarias/fvm/pull/785",
+    "createdAt": "2024-09-30T19:26:50Z",
+    "updatedAt": "2024-10-02T05:33:55Z",
+    "closedAt": "2024-10-01T17:08:37Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-785.json"
+  },
+  {
+    "number": 796,
+    "title": "[BUG] Failed to create symlink.",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/796",
+    "createdAt": "2024-11-10T10:52:53Z",
+    "updatedAt": "2025-05-06T14:57:50Z",
+    "closedAt": "2024-12-31T04:01:47Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-796.json"
+  },
+  {
+    "number": 816,
+    "title": "[BUG] MacOs installation with install.sh throws \"error: Failed to create symlink.\"",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/816",
+    "createdAt": "2025-01-28T16:31:20Z",
+    "updatedAt": "2025-06-08T23:48:51Z",
+    "closedAt": "2025-06-08T23:48:51Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-816.json"
+  },
+  {
+    "number": 818,
+    "title": "[BUG] error: Failed to fetch latest FVM version.",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/818",
+    "createdAt": "2025-02-05T06:49:31Z",
+    "updatedAt": "2025-06-08T23:48:58Z",
+    "closedAt": "2025-06-08T23:48:58Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-818.json"
+  },
+  {
+    "number": 830,
+    "title": "feat: accept bin dir as variable to installation script",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/830",
+    "createdAt": "2025-03-13T12:29:13Z",
+    "updatedAt": "2025-06-08T23:52:46Z",
+    "closedAt": "2025-06-08T23:52:46Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-830.json"
+  },
+  {
+    "number": 832,
+    "title": "[BUG] fails to install on linux",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/832",
+    "createdAt": "2025-03-21T10:32:13Z",
+    "updatedAt": "2025-06-08T23:49:11Z",
+    "closedAt": "2025-06-08T23:49:11Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-832.json"
+  },
+  {
+    "number": 857,
+    "title": "Add upgrade logic to install.sh",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/857",
+    "createdAt": "2025-06-06T17:22:40Z",
+    "updatedAt": "2025-06-06T21:23:03Z",
+    "closedAt": "2025-06-06T21:23:03Z",
+    "labelNames": [
+      "codex"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-857.json"
+  },
+  {
+    "number": 862,
+    "title": "feat: enhance install script with comprehensive improvements and testing",
+    "state": "MERGED",
+    "url": "https://github.com/leoafarias/fvm/pull/862",
+    "createdAt": "2025-06-06T21:17:29Z",
+    "updatedAt": "2025-06-07T18:30:26Z",
+    "closedAt": "2025-06-07T18:30:25Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-862.json"
+  },
+  {
+    "number": 864,
+    "title": "[BUG] install.sh now fails in docker images that run as root",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/issues/864",
+    "createdAt": "2025-06-07T07:00:29Z",
+    "updatedAt": "2025-06-09T00:06:57Z",
+    "closedAt": "2025-06-09T00:06:57Z",
+    "labelNames": [
+      "bug"
+    ],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-864.json"
+  },
+  {
+    "number": 907,
+    "title": "[WIP] Improve install.sh robustness (version tag normalization, musl support, symlink dir creation, precise uninstall) + add Alpine CI validation",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/907",
+    "createdAt": "2025-09-12T14:25:05Z",
+    "updatedAt": "2025-09-12T15:08:46Z",
+    "closedAt": "2025-09-12T15:08:46Z",
+    "labelNames": [],
+    "assignees": [
+      "leoafarias",
+      "Copilot"
+    ],
+    "file": "issue-triage/install_permission_issues/issue-907.json"
+  },
+  {
+    "number": 908,
+    "title": "Improve install.sh robustness and compatibility",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/908",
+    "createdAt": "2025-09-12T15:24:45Z",
+    "updatedAt": "2025-09-12T17:55:29Z",
+    "closedAt": "2025-09-12T17:55:29Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-908.json"
+  },
+  {
+    "number": 909,
+    "title": "Fix essential install.sh issues",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/909",
+    "createdAt": "2025-09-12T17:55:14Z",
+    "updatedAt": "2025-09-30T01:29:27Z",
+    "closedAt": "2025-09-30T01:29:23Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-909.json"
+  },
+  {
+    "number": 932,
+    "title": "feat: upgrade installation scripts to v3.0.0",
+    "state": "CLOSED",
+    "url": "https://github.com/leoafarias/fvm/pull/932",
+    "createdAt": "2025-09-30T04:11:10Z",
+    "updatedAt": "2025-10-28T15:30:59Z",
+    "closedAt": "2025-10-28T15:30:59Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-932.json"
+  },
+  {
+    "number": 946,
+    "title": "Add RISC-V (riscv64) architecture support",
+    "state": "MERGED",
+    "url": "https://github.com/leoafarias/fvm/pull/946",
+    "createdAt": "2025-10-30T23:14:03Z",
+    "updatedAt": "2025-10-30T23:18:11Z",
+    "closedAt": "2025-10-30T23:18:10Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-946.json"
+  },
+  {
+    "number": 949,
+    "title": "fix: Enhance install.sh with Alpine/musl support and better error handling",
+    "state": "MERGED",
+    "url": "https://github.com/leoafarias/fvm/pull/949",
+    "createdAt": "2025-10-31T15:03:01Z",
+    "updatedAt": "2025-10-31T15:10:52Z",
+    "closedAt": "2025-10-31T15:10:50Z",
+    "labelNames": [],
+    "assignees": [],
+    "file": "issue-triage/install_permission_issues/issue-949.json"
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "assignees": [],
+  "author": {
+    "id": "MDQ6VXNlcjMwNTU5MzY=",
+    "is_bot": false,
+    "login": "victorteokw",
+    "name": "Victor Teo"
+  },
+  "body": "When run `curl -fsSL https://fvm.app/install.sh | bash` on Mac, just see this.",
+  "closedAt": "2025-06-08T23:48:58Z",
+  "comments": [
+    {
+      "id": "IC_kwDOCkCuKM6dw00C",
+      "author": { "login": "erlangparasu" },
+      "authorAssociation": "NONE",
+      "body": "temporary solution i just use download links from github releases page\n\n```bash\nwget https://github.com/leoafarias/fvm/releases/download/3.2.1/fvm-3.2.1-linux-x64.tar.gz\ntar -x -z -f fvm-3.2.1-linux-x64.tar.gz\nls -laF .\nls -laF fvm/fvm\n\nexport PATH=\"$PWD/fvm:$PATH\"\nfvm --version\n```",
+      "createdAt": "2025-02-10T03:09:18Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [],
+      "url": "https://github.com/leoafarias/fvm/issues/818#issuecomment-2646822146",
+      "viewerDidAuthor": false
+    },
+    {
+      "id": "IC_kwDOCkCuKM6kgk6c",
+      "author": { "login": "krokyze" },
+      "authorAssociation": "NONE",
+      "body": "I’m encountering this issue in GitHub Actions, likely due to IP rate limiting. Specifying the version seems to resolve it:\n`curl -fsSL https://fvm.app/install.sh | bash -s -- 3.2.1`",
+      "createdAt": "2025-03-28T02:18:17Z",
+      "includesCreatedEdit": false,
+      "isMinimized": false,
+      "minimizedReason": "",
+      "reactionGroups": [
+        { "content": "THUMBS_UP", "users": { "totalCount": 1 } }
+      ],
+      "url": "https://github.com/leoafarias/fvm/issues/818#issuecomment-2760003228",
+      "viewerDidAuthor": false
+    }
+  ],
+  "createdAt": "2025-02-05T06:49:31Z",
+  "labels": [
+    {
+      "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    }
+  ],
+  "number": 818,
+  "state": "CLOSED",
+  "title": "[BUG] error: Failed to fetch latest FVM version.",
+  "updatedAt": "2025-06-08T23:48:58Z",
+  "url": "https://github.com/leoafarias/fvm/issues/818"
+}
