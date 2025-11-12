@@ -175,8 +175,10 @@ class EnsureCacheWorkflow extends Workflow {
     if (useGitCache && !version.fromFork) {
       try {
         await gitService.updateLocalMirror();
-      } on Exception {
+      } on Exception catch (e, stackTrace) {
         logger.warn('Failed to setup local cache. Falling back to git clone.');
+        logger.debug('Error details: $e');
+        logger.debug('Stack trace: $stackTrace');
         // Do not rethrow, allow to fallback to clone
       }
     }
@@ -190,9 +192,9 @@ class EnsureCacheWorkflow extends Workflow {
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
       );
-    } on Exception {
+    } on Exception catch (e, stackTrace) {
       progress.fail('Failed to install ${version.name}');
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
 
     final newCacheVersion = cacheService.getVersion(version);

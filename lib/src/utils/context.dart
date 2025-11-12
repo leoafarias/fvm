@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../api/api_service.dart';
@@ -227,6 +228,20 @@ class FvmContext with FvmContextMappable {
       return _dependencies[T];
     }
     throw Exception('Generator for $T not found');
+  }
+
+  /// Clears a specific dependency from the cache.
+  /// This is useful for testing scenarios where you need to reset state.
+  @visibleForTesting
+  void clearDependency<T>() {
+    _dependencies.remove(T);
+  }
+
+  /// Clears all cached dependencies.
+  /// This is useful for testing scenarios where you need to reset all state.
+  @visibleForTesting
+  void clearAllDependencies() {
+    _dependencies.clear();
   }
 
   /// Gets the Flutter URL to use for a specific fork

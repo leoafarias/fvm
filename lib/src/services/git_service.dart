@@ -46,22 +46,26 @@ class GitService extends ContextualService {
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
 
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stderr.transform(utf8.decoder).listen((line) {
+    final stderrSubscription = process.stderr.transform(utf8.decoder).listen((line) {
       progressTracker.processLine(line);
       processLogs.add(line);
     });
 
-    // ignore: avoid-unassigned-stream-subscriptions
-    process.stdout.transform(utf8.decoder).listen((line) {
+    final stdoutSubscription = process.stdout.transform(utf8.decoder).listen((line) {
       logger.info(line);
     });
 
     final exitCode = await process.exitCode;
+
+    await stderrSubscription.cancel();
+    await stdoutSubscription.cancel();
     if (exitCode != 0) {
       logger.err(processLogs.join('\n'));
       gitCacheDir.deleteSync(recursive: true);
-      throw Exception('Git clone failed');
+      throw AppException(
+        'Git clone failed with exit code $exitCode. '
+        'Check your network connection and ensure git is properly configured.',
+      );
     }
 
     progressTracker.complete();
@@ -94,6 +98,12 @@ class GitService extends ContextualService {
     }
   }
 
+  /// Clears the cached git references.
+  /// Should be called after updating the local mirror to ensure fresh data.
+  void clearCache() {
+    _referencesCache = null;
+  }
+
   Future<bool> isGitReference(String version) async {
     final references = await _fetchGitReferences();
 
@@ -107,7 +117,9 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
-    final unlock = await _updatingCacheLock.getLock();
+    final unlock = await _updatingCacheLock.getLock(
+      timeout: const Duration(minutes: 15),
+    );
 
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
@@ -147,6 +159,8 @@ class GitService extends ContextualService {
           }
 
           logger.debug('Local mirror updated successfully');
+          // Clear cached references after successful update
+          clearCache();
         } catch (e) {
           // Only recreate the mirror if it's a critical git error that indicates
           // the repository is unrecoverable. Other errors (network, permissions, etc.)
@@ -193,7 +207,12 @@ class GitService extends ContextualService {
 
     final isGitDir = await GitDir.isGitDir(versionDir.path);
 
-    if (!isGitDir) throw Exception('Not a git directory');
+    if (!isGitDir) {
+      throw AppException(
+        'Version directory is not a valid git repository: ${versionDir.path}. '
+        'The cached version may be corrupted. Try running "fvm install $version" to reinstall.',
+      );
+    }
 
     final gitDir = await GitDir.fromExisting(versionDir.path);
 
@@ -211,7 +230,12 @@ class GitService extends ContextualService {
 
     final isGitDir = await GitDir.isGitDir(versionDir.path);
 
-    if (!isGitDir) throw Exception('Not a git directory');
+    if (!isGitDir) {
+      throw AppException(
+        'Version directory is not a valid git repository: ${versionDir.path}. '
+        'The cached version may be corrupted. Try running "fvm install $version" to reinstall.',
+      );
+    }
 
     final gitDir = await GitDir.fromExisting(versionDir.path);
 

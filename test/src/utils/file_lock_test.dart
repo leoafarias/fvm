@@ -149,7 +149,7 @@ void main() {
     test('should return false if lock is older than threshold', () async {
       // Write an old timestamp directly to the file instead of using setLastModifiedSync
       final oldTime = DateTime.now().subtract(Duration(seconds: 2));
-      final oldTimestamp = oldTime.millisecondsSinceEpoch.toString();
+      final oldTimestamp = oldTime.microsecondsSinceEpoch.toString();
 
       // Ensure parent directory exists and create the file with old timestamp
       final parent = File(lockFilePath).parent;
@@ -196,7 +196,7 @@ void main() {
         Duration(milliseconds: 90),
       );
       final almostExpiredTimestamp =
-          almostExpiredTime.millisecondsSinceEpoch.toString();
+          almostExpiredTime.microsecondsSinceEpoch.toString();
 
       // Create the file with almost expired timestamp
       final parent = File(lockFilePath).parent;
@@ -315,7 +315,7 @@ void main() {
       await Future.delayed(Duration(milliseconds: 20));
       final oldTimestamp = DateTime.now()
           .subtract(lockExpiration * 2)
-          .millisecondsSinceEpoch
+          .microsecondsSinceEpoch
           .toString();
       File(fileLocker.path).writeAsStringSync(oldTimestamp);
 
@@ -340,6 +340,65 @@ void main() {
       // Now the file should contain a valid timestamp
       final content = File(fileLocker.path).readAsStringSync();
       expect(int.tryParse(content.trim()), isNotNull);
+    });
+
+    test('should timeout if lock cannot be acquired within specified time', () async {
+      fileLocker.lock();
+
+      // Keep the lock fresh
+      var keepUpdating = true;
+      Timer.periodic(Duration(milliseconds: 10), (timer) {
+        if (!keepUpdating) {
+          timer.cancel();
+          return;
+        }
+        try {
+          if (File(fileLocker.path).existsSync()) {
+            fileLocker.lock(); // Keep refreshing the lock
+          }
+        } catch (e) {
+          // Ignore errors
+        }
+      });
+
+      try {
+        // Try to get the lock with a short timeout
+        await fileLocker.getLock(
+          timeout: Duration(milliseconds: 100),
+        );
+        fail('Should have thrown TimeoutException');
+      } on TimeoutException catch (e) {
+        // Expected
+        expect(e.duration, equals(Duration(milliseconds: 100)));
+        expect(e.message, contains('Failed to acquire lock'));
+      } finally {
+        keepUpdating = false;
+        // Wait a bit for the timer to stop
+        await Future.delayed(Duration(milliseconds: 50));
+      }
+    });
+
+    test('should successfully acquire lock before timeout expires', () async {
+      // Create a lock that will expire soon
+      final almostExpiredTime = DateTime.now().subtract(
+        Duration(milliseconds: 90),
+      );
+      final almostExpiredTimestamp =
+          almostExpiredTime.microsecondsSinceEpoch.toString();
+
+      final parent = File(fileLocker.path).parent;
+      if (!parent.existsSync()) {
+        parent.createSync(recursive: true);
+      }
+      File(fileLocker.path).writeAsStringSync(almostExpiredTimestamp);
+
+      // Should get lock before timeout
+      final unlock = await fileLocker.getLock(
+        timeout: Duration(seconds: 5),
+      );
+
+      expect(fileLocker.isLocked, isTrue);
+      unlock();
     });
 
     test('should handle lock file being repeatedly refreshed', () async {
@@ -493,7 +552,7 @@ void main() {
       // Create lock file with a very old timestamp
       final oldTimestamp = DateTime.now()
           .subtract(Duration(days: 2))
-          .millisecondsSinceEpoch
+          .microsecondsSinceEpoch
           .toString();
       final parent = File(lockFilePath).parent;
       if (!parent.existsSync()) {

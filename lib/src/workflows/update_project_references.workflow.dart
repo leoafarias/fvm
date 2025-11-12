@@ -25,14 +25,12 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   /// that are no longer needed.
   void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
     try {
-      // Only create the directory if it doesn't exist
-      if (!project.localFvmPath.dir.existsSync()) {
-        project.localFvmPath.dir.createSync(recursive: true);
-      }
-    } on Exception catch (_) {
+      // Ensure the directory exists
+      project.localFvmPath.dir.ensureExists();
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to create local FVM path');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
 
     final sdkVersionFile = p.join(project.localFvmPath, versionFile);
@@ -40,18 +38,18 @@ class UpdateProjectReferencesWorkflow extends Workflow {
 
     try {
       sdkVersionFile.file.write(project.dartToolVersion ?? '');
-    } on Exception catch (_) {
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to write to version file');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
 
     try {
       sdkReleaseFile.file.write(version.name);
-    } on Exception catch (_) {
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to write to release file');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
 
     if (!context.privilegedAccess) {
@@ -63,11 +61,11 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     try {
       project.localVersionsCachePath.dir
         ..deleteIfExists()
-        ..createSync(recursive: true);
-    } on Exception catch (_) {
+        ..ensureExists();
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to prepare versions cache directory');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
 
     try {
@@ -75,10 +73,10 @@ class UpdateProjectReferencesWorkflow extends Workflow {
         project.localVersionSymlinkPath.link.deleteSync();
       }
       project.localVersionSymlinkPath.link.createLink(version.directory);
-    } on Exception catch (_) {
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to create version symlink');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
   }
 
@@ -96,10 +94,10 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     if (currentSdkLink.link.existsSync()) {
       try {
         currentSdkLink.link.deleteSync();
-      } on Exception catch (_) {
+      } on Exception catch (e, stackTrace) {
         logger.err('Failed to delete existing flutter_sdk symlink');
 
-        rethrow;
+        Error.throwWithStackTrace(e, stackTrace);
       }
     }
 
@@ -111,10 +109,10 @@ class UpdateProjectReferencesWorkflow extends Workflow {
 
     try {
       currentSdkLink.link.createLink(version.directory);
-    } on Exception catch (_) {
+    } on Exception catch (e, stackTrace) {
       logger.err('Failed to create flutter_sdk symlink');
 
-      rethrow;
+      Error.throwWithStackTrace(e, stackTrace);
     }
   }
 
