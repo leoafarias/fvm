@@ -114,7 +114,7 @@ jobs:
         run: |
           # v3 installer: user-local install works as root in containers
           ./scripts/install-next.sh
-          /root/.fvm_flutter/bin/fvm --version
+          $HOME/.fvm_flutter/bin/fvm --version
           echo "✅ Container install as root successful"
 
   # Test root permissions (allowed with warning)
@@ -128,13 +128,13 @@ jobs:
       - name: Test root allowed with warning
         run: |
           # v3 installer: root is allowed but warns
-          if sudo ./scripts/install-next.sh 2>&1 | grep -q "Running as root"; then
+          if sudo -H ./scripts/install-next.sh 2>&1 | grep -q "Running as root"; then
             echo "✅ Root warning displayed"
           else
             echo "❌ Root warning should be displayed"
             exit 1
           fi
 
-          # Verify install succeeded
-          sudo /root/.fvm_flutter/bin/fvm --version || { echo "❌ Install failed"; exit 1; }
+          # Verify install succeeded (use -H to set HOME to /root)
+          sudo -H /root/.fvm_flutter/bin/fvm --version || { echo "❌ Install failed"; exit 1; }
           echo "✅ Root install successful"
