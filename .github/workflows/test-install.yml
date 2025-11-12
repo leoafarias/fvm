@@ -128,7 +128,12 @@ jobs:
       - name: Test root allowed with warning
         run: |
           # v3 installer: root is allowed but warns
-          if sudo -H ./scripts/install-next.sh 2>&1 | grep -q "Running as root"; then
+          # Run installation and capture output
+          output=$(sudo -H ./scripts/install-next.sh 2>&1)
+          echo "$output"
+
+          # Check for root warning
+          if echo "$output" | grep -q "Running as root"; then
             echo "✅ Root warning displayed"
           else
             echo "❌ Root warning should be displayed"
