@@ -53,57 +53,28 @@ extension DirectoryExtensions on Directory {
 }
 
 extension LinkExtensions on Link {
-  /// Creates a symlink from [source] to the [target] with atomic operations.
-  /// Handles race conditions where the link might be modified by another process.
+  /// Creates a symlink from [source] to the [target].
+  ///
+  /// If the link already points to the correct target, does nothing.
+  /// Handles broken symlinks that may result from interrupted operations.
   void createLink(String targetPath) {
     final target = Directory(targetPath);
 
-    try {
-      // Check if link already points to the correct target
-      if (existsSync()) {
-        try {
-          final currentTarget = targetSync();
-          if (currentTarget == target.path) {
-            // Already pointing to correct target, nothing to do
-            return;
-          }
-          // Link exists but points to wrong target, delete it
-          deleteSync();
-        } on FileSystemException {
-          // Link was deleted/modified by another process between existsSync() and targetSync()
-          // Continue to create the new link
-        }
-      }
-
-      // Create the new link
-      // Use try-catch to handle race where another process creates a link first
+    // Check if link already exists and points to correct target
+    if (existsSync()) {
       try {
-        createSync(target.path, recursive: true);
-      } on FileSystemException catch (e) {
-        // If link already exists (created by another process), verify it points to correct target
-        if (existsSync()) {
-          try {
-            final currentTarget = targetSync();
-            if (currentTarget == target.path) {
-              // Another process created the correct link, we're done
-              return;
-            }
-            // Link points to wrong target, try to delete and recreate
-            deleteSync();
-            createSync(target.path, recursive: true);
-          } on FileSystemException {
-            // Race condition: link was modified again, rethrow original error
-            rethrow;
-          }
-        } else {
-          // Link doesn't exist, rethrow original error
-          rethrow;
+        if (targetSync() == target.path) {
+          return; // Already correct, nothing to do
         }
+      } on FileSystemException {
+        // Broken symlink, will recreate below
       }
-    } on FileSystemException {
-      // Final attempt failed, rethrow to caller
-      rethrow;
+      // Link exists but is wrong/broken, delete it
+      deleteSync();
     }
+
+    // Create the new link
+    createSync(target.path, recursive: true);
   }
 }
 

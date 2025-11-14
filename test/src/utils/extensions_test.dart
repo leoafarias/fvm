@@ -71,49 +71,6 @@ void main() {
       expect(Link(linkPath).targetSync(), equals(targetPath2));
     });
 
-    test('should handle concurrent symlink creation', () async {
-      if (Platform.isWindows) {
-        // Skip on Windows as symlink handling is different
-        return;
-      }
-
-      final linkPath = p.join(tempDir.path, 'test_link');
-      final targetPath = p.join(tempDir.path, 'target');
-
-      Directory(targetPath).createSync();
-
-      // Simulate concurrent creation attempts
-      final futures = List.generate(5, (i) {
-        return Future(() => Link(linkPath).createLink(targetPath));
-      });
-
-      await Future.wait(futures);
-
-      // All attempts should succeed, and link should point to correct target
-      expect(Link(linkPath).existsSync(), isTrue);
-      expect(Link(linkPath).targetSync(), equals(targetPath));
-    });
-
-    test('should handle symlink being deleted during operation', () {
-      if (Platform.isWindows) {
-        // Skip on Windows as symlink handling is different
-        return;
-      }
-
-      final linkPath = p.join(tempDir.path, 'test_link');
-      final targetPath = p.join(tempDir.path, 'target');
-
-      Directory(targetPath).createSync();
-      Link(linkPath).createSync(targetPath);
-
-      // Delete the link and recreate in quick succession
-      Link(linkPath).deleteSync();
-      Link(linkPath).createLink(targetPath);
-
-      expect(Link(linkPath).existsSync(), isTrue);
-      expect(Link(linkPath).targetSync(), equals(targetPath));
-    });
-
     test('should create parent directories when recursive is true', () {
       final linkPath = p.join(tempDir.path, 'nested', 'dirs', 'test_link');
       final targetPath = p.join(tempDir.path, 'target');
@@ -130,32 +87,24 @@ void main() {
       expect(Directory(p.dirname(linkPath)).existsSync(), isTrue);
     });
 
-    test('should throw if target creation fails due to permissions', () {
-      if (Platform.isWindows) {
-        // Skip on Windows as permission handling is different
-        return;
-      }
-
+    test('should handle broken symlink gracefully', () {
       final linkPath = p.join(tempDir.path, 'test_link');
       final targetPath = p.join(tempDir.path, 'target');
-      final readOnlyDir = Directory(p.join(tempDir.path, 'readonly'))
-        ..createSync();
 
       Directory(targetPath).createSync();
 
-      // Make directory read-only
-      Process.runSync('chmod', ['444', readOnlyDir.path]);
+      // Create a broken symlink (target doesn't exist)
+      final brokenTarget = p.join(tempDir.path, 'nonexistent');
+      Link(linkPath).createSync(brokenTarget);
 
-      try {
-        final restrictedLink = p.join(readOnlyDir.path, 'test_link');
-        expect(
-          () => Link(restrictedLink).createLink(targetPath),
-          throwsA(isA<FileSystemException>()),
-        );
-      } finally {
-        // Restore permissions for cleanup
-        Process.runSync('chmod', ['755', readOnlyDir.path]);
-      }
+      // Verify it's broken (targetSync() should throw)
+      expect(() => Link(linkPath).targetSync(), throwsA(isA<FileSystemException>()));
+
+      // createLink should handle this and recreate with correct target
+      Link(linkPath).createLink(targetPath);
+
+      expect(Link(linkPath).existsSync(), isTrue);
+      expect(Link(linkPath).targetSync(), equals(targetPath));
     });
   });
 

@@ -117,8 +117,10 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
+    // Wait up to 3 minutes for another process to finish updating the cache.
+    // If a process crashes, the lock auto-expires after 10 minutes.
     final unlock = await _updatingCacheLock.getLock(
-      timeout: const Duration(minutes: 15),
+      timeout: const Duration(minutes: 3),
     );
 
     final gitCacheDir = Directory(context.gitCachePath);

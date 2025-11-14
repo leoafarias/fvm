@@ -99,11 +99,9 @@ class EnsureCacheWorkflow extends Workflow {
       if (!isGitInstalled) {
         throw const AppException('Git is not installed');
       }
-    } on ProcessException catch (_, stackTrace) {
-      Error.throwWithStackTrace(
-        const AppException('Git is not installed'),
-        stackTrace,
-      );
+    } on ProcessException {
+      // Git executable not found
+      throw const AppException('Git is not installed');
     }
   }
 
@@ -192,9 +190,9 @@ class EnsureCacheWorkflow extends Workflow {
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
       );
-    } on Exception catch (e, stackTrace) {
+    } on Exception {
       progress.fail('Failed to install ${version.name}');
-      Error.throwWithStackTrace(e, stackTrace);
+      rethrow;
     }
 
     final newCacheVersion = cacheService.getVersion(version);
