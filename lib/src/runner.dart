@@ -99,11 +99,17 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   }
 
   /// Records timestamp of successful update check
-  void _recordSuccessfulCheck() {
+  Future<void> _recordSuccessfulCheck() async {
     try {
-      LocalAppConfig.read()
-        ..lastUpdateCheck = DateTime.now()
-        ..save();
+      final lock = context.createLock('update-check-timestamp');
+      final unlock = await lock.getLock();
+      try {
+        LocalAppConfig.read()
+          ..lastUpdateCheck = DateTime.now()
+          ..save();
+      } finally {
+        unlock();
+      }
     } catch (e) {
       logger.debug('Failed to record update check timestamp: $e');
     }
@@ -115,17 +121,25 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   Future<Function()?> _checkForUpdates() async {
     try {
       // Check if disabled first
-      if (context.updateCheckDisabled) return null;
+      if (context.updateCheckDisabled) {
+        logger.debug('Update checks are disabled via config');
+        return null;
+      }
 
       final lastUpdateCheck = context.lastUpdateCheck;
 
-      // On first run (null), allow check to proceed
-      if (lastUpdateCheck != null) {
+      // Safeguard: if timestamp is in the future (clock changed), treat as null
+      if (lastUpdateCheck != null && lastUpdateCheck.isAfter(DateTime.now())) {
+        logger.debug('Last update check timestamp is in the future, ignoring');
+        // Treat as first run - allow check to proceed
+      } else if (lastUpdateCheck != null) {
+        // On normal run, check if 24 hours have passed
         final oneDay = lastUpdateCheck.add(_updateCheckInterval);
         if (DateTime.now().isBefore(oneDay)) {
           return null; // Too soon since last check
         }
       }
+      // If lastUpdateCheck is null (first run), allow check to proceed
 
       // Perform update check with timeout
       final isUpToDate = await _checkWithTimeout(
@@ -138,7 +152,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       if (isUpToDate) {
         // Successful check, no update available
-        _recordSuccessfulCheck();
+        await _recordSuccessfulCheck();
         return null;
       }
 
@@ -148,7 +162,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       );
 
       // Successful check, update available
-      _recordSuccessfulCheck();
+      await _recordSuccessfulCheck();
 
       return () {
         final updateAvailableLabel = lightYellow.wrap('Update available!');
@@ -305,6 +319,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..debug('')
       ..debug('Argument information:');
 
+    // Skip update checks for meta-commands that don't require version management
+    final skipUpdateCheckCommands = {'completion', 'api', 'config'};
+    final shouldSkipUpdateCheck = skipUpdateCheckCommands.contains(topLevelResults.command?.name);
+
     if (topLevelResults.command?.name == 'completion') {
       super.runCommand(topLevelResults);
 
@@ -355,7 +373,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Check for deprecated environment variables
     _checkDeprecatedEnvironmentVariables();
 
-    final checkingForUpdate = _checkForUpdates();
+    // Skip update checks for meta-commands
+    final checkingForUpdate = shouldSkipUpdateCheck
+        ? Future.value(null)
+        : _checkForUpdates();
 
     // Run the command or show version
     final int? exitCode;

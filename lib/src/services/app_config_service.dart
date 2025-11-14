@@ -135,6 +135,10 @@ class AppConfigService {
       }
     }
 
+    // Note: disableUpdateCheck is intentionally NOT loaded from environment
+    // variables as it's an app-level setting that should only be configured
+    // via the config file using 'fvm config --[no-]disable-update-check'
+
     return config;
   }
 }
