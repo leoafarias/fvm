@@ -20,7 +20,10 @@ enum ConfigOptions {
         'Enable/Disable git cache globally, which is used for faster version installs.',
   ),
   gitCachePath(description: 'Path where local Git reference cache is stored'),
-  flutterUrl(description: 'Flutter repository Git URL to clone from');
+  flutterUrl(description: 'Flutter repository Git URL to clone from'),
+  disableUpdateCheck(
+    description: 'Enable/Disable automatic update checking for FVM',
+  );
 
   const ConfigOptions({required this.description});
 
@@ -60,6 +63,14 @@ enum ConfigOptions {
         argParser.addOption(
           ConfigOptions.flutterUrl.paramKey,
           help: ConfigOptions.flutterUrl.description,
+        );
+      },
+      ConfigOptions.disableUpdateCheck: () {
+        argParser.addFlag(
+          ConfigOptions.disableUpdateCheck.paramKey,
+          help: ConfigOptions.disableUpdateCheck.description,
+          defaultsTo: false,
+          negatable: true,
         );
       },
     };
