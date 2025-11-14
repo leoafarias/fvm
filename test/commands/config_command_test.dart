@@ -154,10 +154,6 @@ void main() {
     });
 
     test('handles config file creation when it does not exist', () async {
-      // Remove config file if it exists
-      final configFile = LocalAppConfig.read();
-      final configPath = configFile.location;
-
       // Ensure we can write to a fresh config
       LocalAppConfig().save();
 

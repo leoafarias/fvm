@@ -37,7 +37,7 @@ void main() {
   group('Update Check Logic', () {
     test('performs check on first run (null timestamp)', () async {
       // Setup: Clear timestamp to simulate first run
-      final config = LocalAppConfig.read()
+      LocalAppConfig.read()
         ..lastUpdateCheck = null
         ..disableUpdateCheck = false
         ..save();
@@ -298,9 +298,9 @@ void main() {
 
       // Verify update check was not executed
       verifyNever(() => mockPubUpdater.isUpToDate(
-        packageName: any(named: 'packageName'),
-        currentVersion: any(named: 'currentVersion'),
-      ));
+            packageName: any(named: 'packageName'),
+            currentVersion: any(named: 'currentVersion'),
+          ));
     });
   });
 }

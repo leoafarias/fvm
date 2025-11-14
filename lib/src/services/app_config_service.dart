@@ -131,6 +131,10 @@ class AppConfigService {
           case ConfigOptions.cachePath:
             // Already handled above
             break;
+          case ConfigOptions.disableUpdateCheck:
+            // Intentionally not loaded from environment variables
+            // (see comment below)
+            break;
         }
       }
     }
