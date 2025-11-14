@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -72,11 +74,29 @@ class CacheFlutterVersion extends FlutterVersion
   String get flutterExec => join(binPath, flutterExecFileName);
 
   /// Gets Flutter SDK version from CacheVersion sync
+  /// Falls back to git tags if version file doesn't exist (matches Flutter's behavior)
   @MappableField()
   String? get flutterSdkVersion {
+    // Check legacy version file first
     final versionFile = join(directory, 'version');
+    final versionFromFile = versionFile.file.read()?.trim();
+    if (versionFromFile != null) return versionFromFile;
 
-    return versionFile.file.read()?.trim();
+    // Fallback to git tags (what Flutter itself does)
+    try {
+      final result = Process.runSync(
+        'git',
+        ['describe', '--tags'],
+        workingDirectory: directory,
+      );
+      if (result.exitCode == 0) {
+        return (result.stdout as String).trim();
+      }
+    } catch (_) {
+      // Git command failed, return null
+    }
+
+    return null;
   }
 
   @MappableField()
@@ -87,11 +107,12 @@ class CacheFlutterVersion extends FlutterVersion
   }
 
   /// Verifies that cacheVersion has been setup
-  bool get isNotSetup => flutterSdkVersion == null;
+  /// Setup means dependencies (Dart SDK cache) have been downloaded
+  bool get isNotSetup => dartSdkVersion == null;
 
   /// Returns bool if version is setup
   @MappableField()
-  bool get isSetup => flutterSdkVersion != null;
+  bool get isSetup => dartSdkVersion != null;
 
   FlutterVersion toFlutterVersion() =>
       FlutterVersion(name, releaseChannel: releaseChannel, type: type);
