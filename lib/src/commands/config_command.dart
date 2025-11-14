@@ -15,12 +15,6 @@ class ConfigCommand extends BaseFvmCommand {
 
   ConfigCommand(super.context) {
     ConfigOptions.injectArgParser(argParser);
-    argParser.addFlag(
-      'update-check',
-      help: 'Enables or disables automatic update checking for FVM',
-      defaultsTo: true,
-      negatable: true,
-    );
   }
 
   @override
@@ -42,8 +36,13 @@ class ConfigCommand extends BaseFvmCommand {
       }
     }
 
+    final results = argResults;
+    if (results == null) {
+      throw StateError('argResults should not be null in config command');
+    }
+
     for (var key in ConfigOptions.values) {
-      updateConfigKey(key, argResults![key.paramKey]);
+      updateConfigKey(key, results[key.paramKey]);
     }
 
     // Save
