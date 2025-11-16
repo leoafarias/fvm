@@ -150,9 +150,17 @@ The install script automatically adds FVM to your PATH by updating your shell co
 - **Zsh**: `~/.zshrc`
 - **Fish**: `~/.config/fish/config.fish`
 
+Bash installations try `~/.bashrc` first, then `~/.bash_profile`, and fall back to manual instructions if neither can be updated automatically.
+
+Need a system-wide binary? Run the installer with `--system` to copy `fvm` into `/usr/local/bin` (you'll be prompted for sudo), otherwise everything stays in your home directory.
+
 The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
+
+<Callout type="info">
+  If the installer can't update a shell config—because the file is missing, unreadable, or read-only—you'll see warnings such as `Skipping ~/.bashrc; file not found.` or `Skipping ~/.bash_profile; failed to write changes (file may be read-only).` Copy the PATH export the script prints and paste it into any writable rc file for your shell.
+</Callout>
 
   </Tabs.Tab>
   <Tabs.Tab>

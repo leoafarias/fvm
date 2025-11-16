@@ -23,7 +23,8 @@ SCRIPT_VERSION="1.1.0"
 # Installation paths
 FVM_DIR="$HOME/.fvm_flutter"
 FVM_DIR_BIN="$FVM_DIR/bin"
-SYMLINK_TARGET="/usr/local/bin/fvm"
+SYSTEM_BIN_TARGET="/usr/local/bin/fvm"
+SYSTEM_INSTALL=false
 
 # Colors for output
 Color_Off='\033[0m'
@@ -70,6 +71,7 @@ OPTIONS:
     -h, --help        Show this help message
     -v, --version     Show script version
     -u, --uninstall   Uninstall FVM
+        --system      Copy fvm into /usr/local/bin (requires sudo)
 
 ARGUMENTS:
     VERSION         Specific FVM version to install (e.g., 3.2.1)
@@ -116,26 +118,77 @@ if [[ "$IS_ROOT" != "true" ]]; then
   done
 fi
 
-# Helper to create symlinks
-create_symlink() {
-  local source="$1"
-  local target="$2"
-
+# Escalation helper
+require_escalation_tool() {
   if [[ "$IS_ROOT" == "true" ]]; then
-    ln -sf "$source" "$target" || error "Failed to create symlink: $target"
-  else
-    "$ESCALATION_TOOL" ln -sf "$source" "$target" || error "Failed to create symlink: $target"
+    return 0
+  fi
+
+  if [[ -z "$ESCALATION_TOOL" ]]; then
+    error "Cannot find sudo or doas. Install one or rerun without --system."
   fi
 }
 
-# Helper to remove symlinks
+# Helper to remove legacy symlinks from older installs
 remove_symlink() {
   local target="$1"
-  
+
   if [[ "$IS_ROOT" == "true" ]]; then
     rm -f "$target" || error "Failed to remove symlink: $target"
-  else
+  elif [[ -n "$ESCALATION_TOOL" ]]; then
     "$ESCALATION_TOOL" rm -f "$target" || error "Failed to remove symlink: $target"
+  else
+    warn "Cannot remove $target without sudo/doas. Remove it manually if needed."
+    return 1
+  fi
+}
+
+install_system_binary() {
+  local source="$1"
+  local target="$2"
+  local target_dir
+  target_dir="$(dirname "$target")"
+
+  require_escalation_tool
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    mkdir -p "$target_dir" || error "Failed to create directory: $target_dir"
+  else
+    "$ESCALATION_TOOL" mkdir -p "$target_dir" || error "Failed to create directory: $target_dir"
+  fi
+
+  if [[ -d "$target" ]]; then
+    error "Cannot install system binary: $target exists and is a directory."
+  fi
+
+  if [[ -L "$target" ]]; then
+    info "Removing legacy symlink at $target"
+    remove_symlink "$target"
+  fi
+
+  if [[ -e "$target" && ! -L "$target" ]]; then
+    error "Refusing to overwrite existing $target. Remove it manually, then rerun with --system."
+  fi
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    cp "$source" "$target" || error "Failed to copy binary to $target"
+    chmod 755 "$target" || error "Failed to set permissions on $target"
+  else
+    "$ESCALATION_TOOL" cp "$source" "$target" || error "Failed to copy binary to $target"
+    "$ESCALATION_TOOL" chmod 755 "$target" || error "Failed to set permissions on $target"
+  fi
+}
+
+remove_system_binary() {
+  local target="$1"
+
+  if [[ "$IS_ROOT" == "true" ]]; then
+    rm -f "$target" || error "Failed to remove system binary: $target"
+  elif [[ -n "$ESCALATION_TOOL" ]]; then
+    "$ESCALATION_TOOL" rm -f "$target" || error "Failed to remove system binary: $target"
+  else
+    warn "Cannot remove $target without sudo/doas. Remove it manually if needed."
+    return 1
   fi
 }
 
@@ -152,10 +205,16 @@ uninstall_fvm() {
     info "Found FVM directory: $FVM_DIR"
   fi
   
-  # Check for symlink
-  if [[ -L "$SYMLINK_TARGET" ]] && [[ "$(readlink "$SYMLINK_TARGET")" == *"fvm"* ]]; then
+  # Check for legacy symlink
+  if [[ -L "$SYSTEM_BIN_TARGET" ]] && [[ "$(readlink "$SYSTEM_BIN_TARGET")" == *"fvm"* ]]; then
     fvm_found=true
-    info "Found FVM symlink: $SYMLINK_TARGET"
+    info "Found legacy FVM symlink: $SYSTEM_BIN_TARGET"
+  fi
+
+  # Check for system binary copy
+  if [[ -f "$SYSTEM_BIN_TARGET" && ! -L "$SYSTEM_BIN_TARGET" ]]; then
+    fvm_found=true
+    info "Found FVM binary at: $SYSTEM_BIN_TARGET"
   fi
   
   if [[ "$fvm_found" == false ]]; then
@@ -170,11 +229,15 @@ uninstall_fvm() {
     success "Removed $FVM_DIR"
   fi
   
-  # Remove symlink
-  if [[ -L "$SYMLINK_TARGET" ]]; then
-    info "Removing FVM symlink..."
-    remove_symlink "$SYMLINK_TARGET"
-    success "Removed $SYMLINK_TARGET"
+  # Remove system-level binaries (new copy or legacy symlink)
+  if [[ -f "$SYSTEM_BIN_TARGET" && ! -L "$SYSTEM_BIN_TARGET" ]]; then
+    info "Removing system FVM binary..."
+    remove_system_binary "$SYSTEM_BIN_TARGET"
+    success "Removed $SYSTEM_BIN_TARGET"
+  elif [[ -L "$SYSTEM_BIN_TARGET" ]]; then
+    info "Removing legacy FVM symlink..."
+    remove_symlink "$SYSTEM_BIN_TARGET"
+    success "Removed $SYSTEM_BIN_TARGET"
   fi
   
   # Notify about PATH cleanup
@@ -204,6 +267,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     -u|--uninstall)
       UNINSTALL_MODE=true
+      ;;
+    --system)
+      SYSTEM_INSTALL=true
       ;;
     -*)
       error "Unknown option: $1. Use --help for usage."
@@ -291,13 +357,6 @@ if ! command -v curl &>/dev/null; then
   error "curl is required but not installed. Install it manually and re-run."
 fi
 
-# Only check for escalation tools if not running as root
-if [[ "$IS_ROOT" != "true" ]]; then
-  if [[ -z "$ESCALATION_TOOL" ]]; then
-    error "Cannot find sudo or doas. Install one or run as root."
-  fi
-fi
-
 # Check for existing installation
 if command -v fvm &>/dev/null; then
   info "Existing FVM installation detected. It will be replaced."
@@ -332,18 +391,6 @@ FVM_VERSION="${FVM_VERSION#v}"
 
 info "Preparing to install FVM version: $FVM_VERSION"
 
-# Ensure symlink directory exists
-SYMLINK_DIR="$(dirname "$SYMLINK_TARGET")"
-if [[ ! -d "$SYMLINK_DIR" ]]; then
-  if [[ "$IS_ROOT" == "true" ]]; then
-    mkdir -p "$SYMLINK_DIR" || error "Failed to create directory: $SYMLINK_DIR"
-    info "Created directory: $SYMLINK_DIR"
-  else
-    error "Symlink target directory does not exist: $SYMLINK_DIR
-    
-Please create it with: sudo mkdir -p $SYMLINK_DIR"
-  fi
-fi
 
 # Clean existing installation
 if [[ -d "$FVM_DIR_BIN" ]]; then
@@ -410,9 +457,13 @@ fi
 # Cleanup
 rm -f fvm.tar.gz || error "Failed to remove the downloaded fvm.tar.gz"
 
-# Create system symlink
-info "Creating symlink: $SYMLINK_TARGET -> $FVM_DIR_BIN/fvm"
-create_symlink "$FVM_DIR_BIN/fvm" "$SYMLINK_TARGET"
+# Optional system-wide install
+if [[ "$SYSTEM_INSTALL" == "true" ]]; then
+  info "Copying fvm to $SYSTEM_BIN_TARGET (requires sudo)"
+  install_system_binary "$FVM_DIR_BIN/fvm" "$SYSTEM_BIN_TARGET"
+else
+  info "System-wide install skipped (run with --system to copy fvm into /usr/local/bin)."
+fi
 
 # Shell configuration helpers
 get_path_export() {
@@ -433,21 +484,32 @@ update_shell_config() {
   local tilde_config="${config_file/#$HOME/\~}"
   local tilde_fvm_dir="${FVM_DIR_BIN/#$HOME/\~}"
 
-  if [[ -w "$config_file" ]]; then
-    if ! grep -q "$FVM_DIR_BIN" "$config_file"; then
-      {
-        echo -e "\n# FVM"
-        echo "$export_command"
-      } >> "$config_file"
-      info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
-      refresh_command="source $config_file"
-    else
-      info "[$tilde_config] already references $tilde_fvm_dir; skipping."
-    fi
-    return 0
-  else
+  if [[ ! -e "$config_file" && ! -L "$config_file" ]]; then
+    warn "Skipping $tilde_config; file not found."
     return 1
   fi
+
+  if [[ ! -r "$config_file" ]]; then
+    warn "Skipping $tilde_config; cannot read file (permission denied)."
+    return 1
+  fi
+
+  if grep -q "$FVM_DIR_BIN" "$config_file" 2>/dev/null; then
+    info "[$tilde_config] already references $tilde_fvm_dir; skipping."
+    return 0
+  fi
+
+  if ! {
+    printf '\n# FVM\n'
+    printf '%s\n' "$export_command"
+  } >> "$config_file" 2>/dev/null; then
+    warn "Skipping $tilde_config; failed to write changes (file may be read-only). Add PATH manually."
+    return 1
+  fi
+
+  info "Added [$tilde_fvm_dir] to \$PATH in [$tilde_config]"
+  refresh_command="source $config_file"
+  return 0
 }
 
 # Configure shell PATH (skip for root in non-container environments)
@@ -480,7 +542,14 @@ case "$(basename "$SHELL")" in
     bash_configs=("$HOME/.bashrc" "$HOME/.bash_profile")
 
     set_manually=true
+    bash_candidate_found=false
     for bash_config in "${bash_configs[@]}"; do
+      if [[ -e "$bash_config" ]]; then
+        bash_candidate_found=true
+      else
+        continue
+      fi
+
       if update_shell_config "$bash_config" "$(get_path_export bash)"; then
         set_manually=false
         break
@@ -488,6 +557,9 @@ case "$(basename "$SHELL")" in
     done
 
     if [[ "$set_manually" == true ]]; then
+      if [[ "$bash_candidate_found" == false ]]; then
+        warn "Skipping automatic bash PATH updates; ~/.bashrc and ~/.bash_profile were not found."
+      fi
       log "Manually add the following line to your bash config (e.g., ~/.bashrc):"
       info "  $(get_path_export bash)"
     fi
