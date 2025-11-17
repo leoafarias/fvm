@@ -9,6 +9,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
+import '../utils/helpers.dart';
 import 'base_service.dart';
 
 enum CacheIntegrity {

@@ -17,6 +17,32 @@ bool isFlutterChannel(String name) {
   return kFlutterChannels.contains(name);
 }
 
+/// Checks if a file at [path] is executable.
+/// On Windows, checks if file exists (all executables work).
+/// On Unix-like systems, checks the executable permission bit.
+Future<bool> isExecutable(String path) async {
+  final file = File(path);
+
+  if (!await file.exists()) {
+    return false;
+  }
+
+  // On Windows, all existing .exe/.bat/.cmd files are executable
+  if (Platform.isWindows) {
+    return true;
+  }
+
+  // On Unix-like systems, check the executable permission bit
+  try {
+    final stat = await file.stat();
+    // Check if owner has execute permission (mode & 0x0040 != 0)
+    // FileStat.mode contains the permission bits
+    return (stat.mode & 0x0040) != 0;
+  } catch (e) {
+    return false;
+  }
+}
+
 /// Converts Flutter versions and channels to comparable semver strings.
 /// Assigns weights: git commits (500.0.0), master (400.0.0), stable (300.0.0),
 /// beta (200.0.0), dev (100.0.0), invalid (0.0.0).

@@ -25,6 +25,17 @@ class GitService extends ContextualService {
     );
   }
 
+  /// Checks if a ProcessException indicates critical git repository corruption
+  bool _isCriticalGitError(ProcessException e) {
+    final messageLower = e.message.toLowerCase();
+    // Critical errors that require mirror recreation
+    return messageLower.contains('not a git repository') ||
+        messageLower.contains('corrupt') ||
+        messageLower.contains('damaged') ||
+        messageLower.contains('hash mismatch') ||
+        (messageLower.contains('object file') && messageLower.contains('empty'));
+  }
+
   // Create a custom Process.start, that prints using the progress bar
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
@@ -106,7 +117,49 @@ class GitService extends ContextualService {
     await gitDir.runCommand(['reset', '--hard', reference]);
   }
 
-  Future<void> updateLocalMirror() async {
+  /// Adds a fork as a remote to the local mirror for efficient object sharing
+  Future<void> addForkRemote(String forkName, String forkUrl) async {
+    final gitCacheDir = Directory(context.gitCachePath);
+    final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
+
+    if (!isGitDir) {
+      logger.warn(
+        'Git cache not initialized. Fork remote will be added after first cache update.',
+      );
+      return;
+    }
+
+    try {
+      final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+      final remoteName = 'fork/$forkName';
+
+      // Check if remote already exists
+      final listRemotesResult = await gitDir.runCommand(['remote']);
+      final remotes = (listRemotesResult.stdout as String)
+          .split('\n')
+          .map((e) => e.trim())
+          .where((e) => e.isNotEmpty)
+          .toList();
+
+      if (remotes.contains(remoteName)) {
+        // Update existing remote URL
+        logger.debug('Updating fork remote: $remoteName');
+        await gitDir.runCommand(['remote', 'set-url', remoteName, forkUrl]);
+      } else {
+        // Add new remote
+        logger.debug('Adding fork remote: $remoteName -> $forkUrl');
+        await gitDir.runCommand(['remote', 'add', remoteName, forkUrl]);
+      }
+
+      logger.info('Fork remote configured: $remoteName');
+    } catch (e) {
+      logger.warn('Failed to add fork remote: $e');
+      rethrow;
+    }
+  }
+
+  /// Updates the local mirror, optionally fetching a specific fork
+  Future<void> updateLocalMirror({String? forkName}) async {
     final unlock = await _updatingCacheLock.getLock();
 
     final gitCacheDir = Directory(context.gitCachePath);
@@ -125,12 +178,29 @@ class GitService extends ContextualService {
           await gitDir.runCommand(['clean', '-fd']);
 
           // First, prune any stale references
-          logger.debug('Pruning stale references...');
-          await gitDir.runCommand(['remote', 'prune', 'origin']);
+          if (forkName != null) {
+            final remoteName = 'fork/$forkName';
+            logger.debug('Pruning stale references for $remoteName...');
+            await gitDir.runCommand(['remote', 'prune', remoteName]);
+          } else {
+            logger.debug('Pruning stale references...');
+            await gitDir.runCommand(['remote', 'prune', 'origin']);
+          }
 
-          // Then fetch all refs including tags
-          logger.debug('Fetching all refs...');
-          await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+          // Then fetch refs including tags
+          if (forkName != null) {
+            final remoteName = 'fork/$forkName';
+            logger.debug('Fetching refs for $remoteName...');
+            await gitDir.runCommand([
+              'fetch',
+              remoteName,
+              '--tags',
+              '--prune',
+            ]);
+          } else {
+            logger.debug('Fetching all refs...');
+            await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+          }
 
           // Check if there are any uncommitted changes
           logger.debug('Checking for uncommitted changes...');
@@ -151,23 +221,13 @@ class GitService extends ContextualService {
           // Only recreate the mirror if it's a critical git error that indicates
           // the repository is unrecoverable. Other errors (network, permissions, etc.)
           // are re-thrown so callers can handle them appropriately.
-          // Known critical error patterns: "not a git repository", "corrupt", "damaged",
-          // "hash mismatch", "object file...empty"
-          if (e is ProcessException) {
-            final messageLower = e.message.toLowerCase();
-            if (messageLower.contains('not a git repository') ||
-                messageLower.contains('corrupt') ||
-                messageLower.contains('damaged') ||
-                messageLower.contains('hash mismatch') ||
-                (messageLower.contains('object file') &&
-                    messageLower.contains('empty'))) {
-              logger.warn(
-                'Local mirror appears to be corrupted (${e.message}). '
-                'Recreating mirror...',
-              );
-              await _createLocalMirror();
-              return;
-            }
+          if (e is ProcessException && _isCriticalGitError(e)) {
+            logger.warn(
+              'Local mirror appears to be corrupted (${e.message}). '
+              'Recreating mirror...',
+            );
+            await _createLocalMirror();
+            return;
           }
 
           logger.err(

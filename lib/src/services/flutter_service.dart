@@ -43,35 +43,21 @@ class FlutterService extends ContextualService {
 
     final echoOutput = !(context.isTest || !logger.isVerbose);
 
-    // Try with --reference first if git cache is enabled
-    if (context.gitCache) {
-      try {
-        return await runGit(
-          [
-            ...args,
-            '--reference',
+    // Use --reference-if-able for efficient object sharing with graceful fallback
+    final referenceArgs = context.gitCache
+        ? [
+            '--reference-if-able',
             context.gitCachePath,
-            repoUrl,
-            versionDir.path,
-          ],
-          echoOutput: echoOutput,
-        );
-      } on ProcessException catch (e) {
-        if (isReferenceError(e.toString())) {
-          logger.warn(
-            'Git clone with --reference failed, falling back to normal clone',
-          );
-          _cleanupPartialClone(versionDir);
-          // Fall through to normal clone
-        } else {
-          rethrow;
-        }
-      }
+          ]
+        : <String>[];
+
+    if (context.gitCache) {
+      logger.debug('Using git cache reference: ${context.gitCachePath}');
     }
 
-    // Normal clone without --reference
-    return await runGit(
-      [...args, repoUrl, versionDir.path],
+    return await get<ProcessService>().run(
+      'git',
+      args: [...args, ...referenceArgs, repoUrl, versionDir.path],
       echoOutput: echoOutput,
     );
   }
@@ -321,17 +307,12 @@ class FlutterService extends ContextualService {
   @visibleForTesting
   bool isReferenceError(String errorMessage) {
     final lowerMessage = errorMessage.toLowerCase();
-
-    const referenceErrorPatterns = [
-      'reference repository',
-      'reference not found',
-      'unable to read reference',
-      'bad object',
-    ];
-
-    return referenceErrorPatterns.any(lowerMessage.contains) ||
-        (lowerMessage.contains('corrupt') &&
-            lowerMessage.contains('reference'));
+    // Match common reference error patterns using a single regex
+    return lowerMessage.contains(
+      RegExp(
+        r'reference.*(repository|not found|corrupt|unable to read)|bad object',
+      ),
+    );
   }
 }
 
