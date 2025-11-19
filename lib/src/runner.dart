@@ -89,11 +89,11 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       final isUpToDate = await _pubUpdater.isUpToDate(
         packageName: kPackageName,
         currentVersion: packageVersion,
-      );
+      ).timeout(const Duration(seconds: 3));
 
       if (isUpToDate) return null;
 
-      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
+      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName).timeout(const Duration(seconds: 3));
 
       return () {
         final updateAvailableLabel = lightYellow.wrap('Update available!');
@@ -106,6 +106,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
             '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
           )
           ..info();
+      };
+    } on TimeoutException {
+      return () {
+        logger.debug("Update check timed out.");
       };
     } catch (_) {
       return () {
