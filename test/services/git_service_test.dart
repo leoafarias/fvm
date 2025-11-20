@@ -11,6 +11,9 @@ class _FakeProcessService extends ProcessService {
   _FakeProcessService(super.context);
 
   ProcessException? exception;
+  String? lastCommand;
+  List<String>? lastArgs;
+  String? lastWorkingDirectory;
 
   @override
   Future<ProcessResult> run(
@@ -22,6 +25,10 @@ class _FakeProcessService extends ProcessService {
     bool echoOutput = false,
     bool runInShell = true,
   }) async {
+    lastCommand = command;
+    lastArgs = args;
+    lastWorkingDirectory = workingDirectory;
+
     if (exception != null) {
       throw exception!;
     }
@@ -92,6 +99,24 @@ void main() {
           ),
         ),
       );
+    });
+
+    test('setOriginUrl delegates to ProcessService', () async {
+      context.get<ProcessService>();
+      const repoPath = '/tmp/fvm-test-repo';
+      const url = 'https://example.com/flutter.git';
+
+      await gitService.setOriginUrl(
+        repositoryPath: repoPath,
+        url: url,
+      );
+
+      expect(processService.lastCommand, equals('git'));
+      expect(
+        processService.lastArgs,
+        equals(['remote', 'set-url', 'origin', url]),
+      );
+      expect(processService.lastWorkingDirectory, equals(repoPath));
     });
   });
 }

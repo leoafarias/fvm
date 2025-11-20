@@ -60,10 +60,9 @@ class FlutterService extends ContextualService {
   }
 
   Future<void> _updateOriginToFlutter(Directory versionDir) async {
-    await get<ProcessService>().run(
-      'git',
-      args: ['remote', 'set-url', 'origin', context.flutterUrl],
-      workingDirectory: versionDir.path,
+    await get<GitService>().setOriginUrl(
+      repositoryPath: versionDir.path,
+      url: context.flutterUrl,
     );
   }
 
