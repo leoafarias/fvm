@@ -2,7 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:path/path.dart' as path;
 
+import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/exceptions.dart';
@@ -11,6 +13,13 @@ import 'base_service.dart';
 import 'cache_service.dart';
 import 'process_service.dart';
 
+enum _GitCacheState { missing, invalid, legacy, ready }
+
+typedef _VersionWithAlternates = ({
+  CacheFlutterVersion version,
+  File alternatesFile,
+});
+
 /// Service for Git operations
 /// Handles git cache management and repository operations
 class GitService extends ContextualService {
@@ -18,20 +27,86 @@ class GitService extends ContextualService {
 
   GitService(super.context);
 
-  // Create a custom Process.start, that prints using the progress bar
-  Future<void> _createLocalMirror() async {
+  Future<void> _createLocalMirror({
+    Directory? backupDir,
+    bool deleteBackupWhenDone = true,
+  }) async {
     final gitCacheDir = Directory(context.gitCachePath);
+
+    // If the path exists as a file/symlink, remove it so the directory swap
+    // below does not fail with a rename error.
+    final cachePathType = FileSystemEntity.typeSync(
+      gitCacheDir.path,
+      followLinks: false,
+    );
+    if (cachePathType == FileSystemEntityType.file ||
+        cachePathType == FileSystemEntityType.link) {
+      File(gitCacheDir.path).deleteSync();
+    }
+
+    final tempDir = await _cloneMirrorToTemp(gitCacheDir);
+
+    Directory? renamedDir;
+    if (gitCacheDir.existsSync()) {
+      final Directory targetDir = backupDir ??
+          Directory(
+            '${gitCacheDir.path}.old-${DateTime.now().millisecondsSinceEpoch}',
+          );
+
+      if (!targetDir.parent.existsSync()) {
+        targetDir.parent.createSync(recursive: true);
+      }
+
+      if (targetDir.existsSync()) {
+        await _deleteDirectoryWithRetry(targetDir);
+      }
+
+      logger.debug('Renaming existing git cache to ${targetDir.path}');
+      renamedDir = gitCacheDir.renameSync(targetDir.path);
+    }
+
+    try {
+      tempDir.renameSync(gitCacheDir.path);
+    } catch (error) {
+      logger.err('Failed to swap new git cache into place: $error');
+      if (renamedDir != null && !gitCacheDir.existsSync()) {
+        renamedDir.renameSync(gitCacheDir.path);
+      }
+      if (tempDir.existsSync()) {
+        await _deleteDirectoryWithRetry(tempDir);
+      }
+      rethrow;
+    }
+
+    if (renamedDir != null && deleteBackupWhenDone) {
+      await _deleteDirectoryWithRetry(renamedDir);
+    }
+
+    logger.info('Local mirror created successfully!');
+  }
+
+  Future<Directory> _cloneMirrorToTemp(Directory gitCacheDir) async {
+    final parentDir = gitCacheDir.parent;
+    if (!parentDir.existsSync()) {
+      parentDir.createSync(recursive: true);
+    }
+
+    final tempDir = Directory('${gitCacheDir.path}.tmp');
+    if (tempDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempDir);
+    }
+
     logger.info('Creating local mirror...');
     final process = await Process.start(
       'git',
       [
         'clone',
+        '--mirror',
         '--progress',
-        // Enable long paths on Windows to prevent checkout failures
         if (Platform.isWindows) '-c',
         if (Platform.isWindows) 'core.longpaths=true',
         context.flutterUrl,
-        gitCacheDir.path,
+        tempDir.path,
       ],
       runInShell: true,
     );
@@ -46,19 +121,39 @@ class GitService extends ContextualService {
     });
 
     // ignore: avoid-unassigned-stream-subscriptions
-    process.stdout.transform(utf8.decoder).listen((line) {
-      logger.info(line);
-    });
+    process.stdout.transform(utf8.decoder).listen(logger.info);
 
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
+      progressTracker.complete();
       logger.err(processLogs.join('\n'));
-      gitCacheDir.deleteSync(recursive: true);
+      if (tempDir.existsSync()) {
+        await _deleteDirectoryWithRetry(tempDir);
+      }
       throw Exception('Git clone failed');
     }
 
     progressTracker.complete();
-    logger.info('Local mirror created successfully!');
+    try {
+      await _validateMirror(tempDir, strict: true);
+    } catch (error) {
+      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+      rethrow;
+    }
+
+    return tempDir;
+  }
+
+  Future<void> _validateMirror(Directory directory, {bool strict = true}) {
+    final args = strict
+        ? ['fsck', '--strict', '--no-dangling']
+        : ['fsck', '--connectivity-only'];
+
+    return get<ProcessService>().run(
+      'git',
+      args: args,
+      workingDirectory: directory.path,
+    );
   }
 
   /// Helper method to run git ls-remote commands against the remote repository
@@ -99,76 +194,221 @@ class GitService extends ContextualService {
     await gitDir.runCommand(['reset', '--hard', reference]);
   }
 
-  Future<void> updateLocalMirror() async {
-    final gitCacheDir = Directory(context.gitCachePath);
-    final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
+  Future<void> _deleteDirectoryWithRetry(
+    Directory directory, {
+    bool requireSuccess = true,
+  }) async {
+    if (!directory.existsSync()) return;
 
-    if (isGitDir) {
+    final attempts = Platform.isWindows ? 5 : 1;
+    for (var attempt = 1; attempt <= attempts; attempt++) {
       try {
-        logger.debug('Updating local mirror...');
-        final gitDir = await GitDir.fromExisting(gitCacheDir.path);
-
-        // Ensure clean working directory before fetch operations
-        // This prevents merge conflicts during fetch (fixes #819)
-        logger.debug('Ensuring clean working directory...');
-        await gitDir.runCommand(['reset', '--hard', 'HEAD']);
-        await gitDir.runCommand(['clean', '-fd']);
-
-        // First, prune any stale references
-        logger.debug('Pruning stale references...');
-        await gitDir.runCommand(['remote', 'prune', 'origin']);
-
-        // Then fetch all refs including tags
-        logger.debug('Fetching all refs...');
-        await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
-
-        // Check if there are any uncommitted changes
-        logger.debug('Checking for uncommitted changes...');
-        final statusResult = await gitDir.runCommand([
-          'status',
-          '--porcelain',
-        ]);
-
-        final output = (statusResult.stdout as String).trim();
-        if (output.isEmpty) {
-          logger.debug('No uncommitted changes. Working directory is clean.');
-        } else {
-          await _createLocalMirror();
-        }
-
-        logger.debug('Local mirror updated successfully');
-      } catch (e) {
-        // Only recreate the mirror if it's a critical git error that indicates
-        // the repository is unrecoverable. Other errors (network, permissions, etc.)
-        // are re-thrown so callers can handle them appropriately.
-        // Known critical error patterns: "not a git repository", "corrupt", "damaged",
-        // "hash mismatch", "object file...empty"
-        if (e is ProcessException) {
-          final messageLower = e.message.toLowerCase();
-          if (messageLower.contains('not a git repository') ||
-              messageLower.contains('corrupt') ||
-              messageLower.contains('damaged') ||
-              messageLower.contains('hash mismatch') ||
-              (messageLower.contains('object file') &&
-                  messageLower.contains('empty'))) {
-            logger.warn(
-              'Local mirror appears to be corrupted (${e.message}). '
-              'Recreating mirror...',
-            );
-            await _createLocalMirror();
-
-            return;
+        directory.deleteSync(recursive: true);
+        return;
+      } on FileSystemException catch (error) {
+        if (!Platform.isWindows || attempt == attempts) {
+          if (requireSuccess) {
+            rethrow;
           }
+          logger.warn(
+            'Unable to delete ${directory.path}: ${error.message}',
+          );
+          return;
         }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
+    }
+  }
 
-        logger.err(
-          'Failed to update local mirror: $e. '
-          'Try running "fvm doctor" to diagnose issues.',
-        );
-        rethrow;
+  Future<void> updateLocalMirror() async {
+    final unlock = await _updatingCacheLock.getLock();
+    final gitCacheDir = Directory(context.gitCachePath);
+
+    try {
+      final cacheState = await _determineCacheState(gitCacheDir);
+
+      switch (cacheState) {
+        case _GitCacheState.ready:
+          await _refreshExistingMirror(gitCacheDir);
+          break;
+        case _GitCacheState.legacy:
+        case _GitCacheState.invalid:
+          await _migrateLegacyCache(gitCacheDir);
+          break;
+        case _GitCacheState.missing:
+          logger.debug('Git cache not found. Creating mirror...');
+          await _createLocalMirror();
+          break;
       }
     } else {
       await _createLocalMirror();
+    }
+  }
+
+  Future<_GitCacheState> _determineCacheState(Directory gitCacheDir) async {
+    if (!gitCacheDir.existsSync()) {
+      return _GitCacheState.missing;
+    }
+
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--is-bare-repository'],
+        workingDirectory: gitCacheDir.path,
+      );
+
+      final output = (result.stdout ?? '').toString().trim().toLowerCase();
+      if (output == 'true') {
+        return _GitCacheState.ready;
+      }
+
+      return _GitCacheState.legacy;
+    } on ProcessException catch (error) {
+      logger.debug(
+        'Git cache at ${gitCacheDir.path} is invalid (${error.message}).',
+      );
+      return _GitCacheState.invalid;
+    }
+  }
+
+  Future<void> _refreshExistingMirror(Directory gitCacheDir) async {
+    try {
+      await _validateMirror(gitCacheDir);
+    } on ProcessException catch (error) {
+      logger.warn(
+        'Local mirror validation failed (${error.message}). Recreating...',
+      );
+      await _createLocalMirror();
+      return;
+    }
+
+    await _syncMirrorWithRemote(gitCacheDir);
+    logger.debug('Local mirror updated successfully');
+  }
+
+  Future<void> _syncMirrorWithRemote(Directory gitCacheDir) async {
+    logger.debug('Updating local mirror from ${context.flutterUrl}');
+    await get<ProcessService>().run(
+      'git',
+      args: ['remote', 'set-url', 'origin', context.flutterUrl],
+      workingDirectory: gitCacheDir.path,
+    );
+
+    await get<ProcessService>().run(
+      'git',
+      args: ['remote', 'update', '--prune', 'origin'],
+      workingDirectory: gitCacheDir.path,
+    );
+  }
+
+  Future<void> _migrateLegacyCache(Directory gitCacheDir) async {
+    logger.warn(
+      'Detected legacy git cache at ${gitCacheDir.path}. Starting migration...',
+    );
+
+    final versionsNeedingDetach = await _versionsWithAlternates();
+    if (versionsNeedingDetach.isNotEmpty) {
+      logger.info(
+        'Detaching git cache alternates for '
+        '${versionsNeedingDetach.length} installed SDK(s)...',
+      );
+      await _detachAlternates(versionsNeedingDetach);
+
+      final remaining = await _versionsWithAlternates();
+      if (remaining.isNotEmpty) {
+        final stuckVersions =
+            remaining.map((entry) => entry.version.name).join(', ');
+        throw AppException(
+          'Unable to detach git cache from: $stuckVersions. '
+          'Resolve the errors above and rerun the command.',
+        );
+      }
+    } else {
+      logger.debug('No SDK alternates referencing the git cache were found.');
+    }
+
+    final timestamp =
+        DateTime.now().toUtc().toIso8601String().replaceAll(':', '-');
+    final legacyDir = Directory('${gitCacheDir.path}.legacy-$timestamp');
+
+    await _createLocalMirror(
+      backupDir: legacyDir,
+      deleteBackupWhenDone: false,
+    );
+
+    logger.debug('Removing legacy git cache at ${legacyDir.path}');
+    await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
+    logger.info('Git cache migration complete.');
+  }
+
+  Future<List<_VersionWithAlternates>> _versionsWithAlternates() async {
+    final cacheVersions = await get<CacheService>().getAllVersions();
+    final versionsWithAlternates = <_VersionWithAlternates>[];
+
+    for (final version in cacheVersions) {
+      final alternatesFile = _alternatesFileFor(version);
+      if (alternatesFile.existsSync()) {
+        versionsWithAlternates.add((
+          version: version,
+          alternatesFile: alternatesFile,
+        ));
+      }
+    }
+
+    return versionsWithAlternates;
+  }
+
+  File _alternatesFileFor(CacheFlutterVersion version) {
+    return File(
+      path.join(version.directory, '.git', 'objects', 'info', 'alternates'),
+    );
+  }
+
+  Future<void> _detachAlternates(
+    List<_VersionWithAlternates> versions,
+  ) async {
+    for (final entry in versions) {
+      final version = entry.version;
+      final alternatesFile = entry.alternatesFile;
+
+      if (!alternatesFile.existsSync()) {
+        continue;
+      }
+
+      final backupFile = File('${alternatesFile.path}.backup');
+      final progress =
+          logger.progress('Detaching cache for ${version.printFriendlyName}');
+
+      try {
+        backupFile.writeAsStringSync(alternatesFile.readAsStringSync());
+
+        final gitDir = await GitDir.fromExisting(version.directory);
+        await gitDir.runCommand(['repack', '-ad', '--quiet']);
+        await gitDir.runCommand(['fsck', '--connectivity-only']);
+
+        alternatesFile.deleteSync();
+        if (backupFile.existsSync()) {
+          backupFile.deleteSync();
+        }
+
+        progress.complete(
+          'Detached cache for ${version.printFriendlyName}',
+        );
+      } catch (error, stackTrace) {
+        progress.fail('Failed to detach ${version.printFriendlyName}');
+        if (backupFile.existsSync()) {
+          backupFile.copySync(alternatesFile.path);
+          backupFile.deleteSync();
+        }
+
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to detach git cache for ${version.printFriendlyName}: '
+            '$error',
+          ),
+          stackTrace,
+        );
+      }
     }
   }
 
