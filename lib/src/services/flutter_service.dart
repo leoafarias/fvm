@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
