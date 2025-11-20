@@ -1,18 +1,6 @@
-## 4.0.4
-
-* fix: remove leading newline from fvm dart/flutter output
-* fix: read or write cache with fork version by @huanghui1998hhh
-
-## 4.0.3
-
-* fix: preserve all project settings on fvm install
-
 ## 4.0.2
 
-* fix: version detection for Flutter 3.38+ (version file removal)
-* fix: filter hidden directories from cache version listing
-* fix: route conflict in documentation site navigation
-* docs: improve Android Studio/IntelliJ IDE configuration guide
+* change: Git cache is now recreated as a bare mirror; FVM automatically detaches installed SDKs on upgrade so the cache can be deleted, moved, or pruned without breaking installs (expect a one-time repack when upgrading).
 
 ## 4.0.1
 
