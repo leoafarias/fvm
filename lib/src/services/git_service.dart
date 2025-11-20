@@ -123,6 +123,18 @@ class GitService extends ContextualService {
     );
   }
 
+  /// Sets the repository origin URL for the given git directory.
+  Future<void> setOriginUrl({
+    required String repositoryPath,
+    required String url,
+  }) {
+    return get<ProcessService>().run(
+      'git',
+      args: ['remote', 'set-url', 'origin', url],
+      workingDirectory: repositoryPath,
+    );
+  }
+
   /// Helper method to run git ls-remote commands against the remote repository
   Future<List<GitReference>> _fetchGitReferences() async {
     if (_referencesCache != null) return _referencesCache!;
@@ -257,10 +269,9 @@ class GitService extends ContextualService {
 
   Future<void> _syncMirrorWithRemote(Directory gitCacheDir) async {
     logger.debug('Updating local mirror from ${context.flutterUrl}');
-    await get<ProcessService>().run(
-      'git',
-      args: ['remote', 'set-url', 'origin', context.flutterUrl],
-      workingDirectory: gitCacheDir.path,
+    await setOriginUrl(
+      repositoryPath: gitCacheDir.path,
+      url: context.flutterUrl,
     );
 
     await get<ProcessService>().run(
