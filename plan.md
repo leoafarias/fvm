@@ -14,8 +14,8 @@
 ## Proposed Changes & Rationale
 
 ### 1. Rebuild cache creation as a bare mirror
-- **Change:** Update `GitService._createLocalMirror` to clone into a temporary directory via `git clone --mirror --progress <flutterUrl> <gitCachePath>.tmp` (keep `core.longpaths=true` on Windows), run `git fsck --strict --no-dangling` to validate, then atomically swap the directories (e.g., rename old cache to `.legacy` and rename `.tmp` into place). Keep using `git remote update --prune origin` for refreshes.
-- **Reason:** Cloning to a temp dir plus `fsck --strict` ensures we never replace the cache with a corrupt mirror. Pruning maintains a true mirror while minimizing churn.
+- **Change:** Update `GitService._createLocalMirror` to delete any existing cache directory and clone directly into `<gitCachePath>` via `git clone --mirror --progress <flutterUrl> <gitCachePath>` (keep `core.longpaths=true` on Windows), then run `git fsck --strict --no-dangling` to validate. Keep using `git remote update --prune origin` for refreshes.
+- **Reason:** Direct creation keeps the flow simple while still validating the mirror before use. Pruning maintains a true mirror while minimizing churn.
 
 ### 2. Auto-migrate legacy caches
 - **Change:** When `updateLocalMirror` runs, detect whether `gitCachePath` is missing, non-git, or a non-bare repo. If so, move it to `<path>.legacy-<timestamp>` (leave it in place until SDK detachment is complete), clone/validate a new mirror in a temp dir, and only then swap it in. Provide Windows-specific delete helpers that retry on sharing violations when finally removing `.legacy`.
@@ -68,9 +68,8 @@ When `updateLocalMirror` runs:
    - Use Windows-aware retry helper for locked files
 
 5. **Recreate cache as bare mirror**
-   - Clone into temp directory: `git clone --mirror --progress <flutterUrl> <gitCachePath>.tmp`
+   - Clone directly: `git clone --mirror --progress <flutterUrl> <gitCachePath>`
    - Validate with `git fsck --strict --no-dangling`
-   - Atomically swap into place
 
 ### Why This Order
 
