@@ -74,7 +74,15 @@ class CacheService extends ContextualService {
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
       final versionFile = File(path.join(dir.path, 'version'));
-      if (versionFile.existsSync()) {
+      final gitDir = Directory(path.join(dir.path, '.git'));
+      final flutterBin = File(
+        path.join(dir.path, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter'),
+      );
+
+      final looksLikeSdk =
+          versionFile.existsSync() || (gitDir.existsSync() && flutterBin.existsSync());
+
+      if (looksLikeSdk) {
         // This is a version directory
         final name = path.basename(dir.path);
 
