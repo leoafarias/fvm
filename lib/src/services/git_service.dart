@@ -29,13 +29,34 @@ class GitService extends ContextualService {
 
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
+    final tempDir = Directory(
+      path.join(
+        gitCacheDir.parent.path,
+        '${path.basename(gitCacheDir.path)}.tmp',
+      ),
+    );
 
     // Ensure the parent exists
     if (!gitCacheDir.parent.existsSync()) {
       gitCacheDir.parent.createSync(recursive: true);
     }
 
-    // Remove any existing cache (dir/file/symlink) before cloning
+    // Clean any previous temp clone
+    if (tempDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+    }
+
+    try {
+      await _cloneMirrorInto(tempDir);
+    } catch (error) {
+      // Ensure we don't leave a partial temp clone behind on failure
+      if (tempDir.existsSync()) {
+        await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+      }
+      rethrow;
+    }
+
+    // Remove any existing cache (dir/file/symlink) before moving the temp clone
     final cachePathType = FileSystemEntity.typeSync(
       gitCacheDir.path,
       followLinks: false,
@@ -47,7 +68,7 @@ class GitService extends ContextualService {
       await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
     }
 
-    await _cloneMirrorInto(gitCacheDir);
+    tempDir.renameSync(gitCacheDir.path);
 
     logger.info('Local mirror created successfully!');
   }
@@ -98,11 +119,37 @@ class GitService extends ContextualService {
     progressTracker.complete();
     try {
       await _validateMirror(gitCacheDir);
+      // Ensure the mirror is actually bare; a non-bare clone here would
+      // break later operations and should be treated as invalid.
+      final bareCheck = await get<ProcessService>().run(
+        'git',
+        args: ['config', '--bool', 'core.bare'],
+        workingDirectory: gitCacheDir.path,
+      );
+      if ((bareCheck.stdout as String?)?.trim().toLowerCase() != 'true') {
+        throw const ProcessException(
+          'git',
+          ['config', '--bool', 'core.bare'],
+          'Mirror is not bare after clone',
+          1,
+        );
+      }
     } on ProcessException {
       // Only ProcessException expected from ProcessService.run()
       // Cleanup corrupted mirror before rethrowing
       await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
       rethrow;
+    }
+
+    // On success, clean up any temp directories left behind from previous runs
+    final tempDir = Directory(
+      path.join(
+        gitCacheDir.parent.path,
+        '${path.basename(gitCacheDir.path)}.tmp',
+      ),
+    );
+    if (tempDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
     }
 
     return gitCacheDir;
@@ -228,6 +275,18 @@ class GitService extends ContextualService {
   }
 
   Future<void> _migrateLegacyCache(Directory gitCacheDir) async {
+    // If everything already looks migrated, skip.
+    final cacheState = await _determineCacheState(gitCacheDir);
+    final remainingAlternates = await _versionsWithAlternates();
+    if (cacheState == _GitCacheState.ready && remainingAlternates.isEmpty) {
+      logger.debug(
+        'Legacy cache migration skipped: cache already bare and no alternates.',
+      );
+
+      return;
+    }
+
+    final stopwatch = Stopwatch()..start();
     logger.warn(
       'Detected legacy git cache at ${gitCacheDir.path}. Starting migration...',
     );
@@ -254,7 +313,10 @@ class GitService extends ContextualService {
     }
 
     await _createLocalMirror();
-    logger.info('Git cache migration complete.');
+    stopwatch.stop();
+    logger.info(
+      'Git cache migration complete. Elapsed: ${stopwatch.elapsed.inSeconds}s',
+    );
   }
 
   Future<List<_VersionWithAlternates>> _versionsWithAlternates() async {
@@ -300,7 +362,6 @@ class GitService extends ContextualService {
 
         final gitDir = await GitDir.fromExisting(version.directory);
         await gitDir.runCommand(['repack', '-ad', '--quiet']);
-        await gitDir.runCommand(['fsck', '--connectivity-only']);
 
         alternatesFile.deleteSync();
         if (backupFile.existsSync()) {
@@ -378,6 +439,15 @@ class GitService extends ContextualService {
           break;
         case _GitCacheState.missing:
           logger.debug('Git cache not found. Creating mirror...');
+          final versionsWithAlternates = await _versionsWithAlternates();
+          if (versionsWithAlternates.isNotEmpty) {
+            logger.warn(
+              'Git cache is missing but ${versionsWithAlternates.length} '
+              'SDK(s) still reference it. Detaching alternates before '
+              'recreating the mirror...',
+            );
+            await _detachAlternates(versionsWithAlternates);
+          }
           await _createLocalMirror();
           break;
       }

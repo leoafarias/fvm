@@ -175,6 +175,18 @@ class EnsureCacheWorkflow extends Workflow {
         );
       }
 
+      // Even when already installed, ensure the local mirror is current/migrated
+      final useGitCache = context.gitCache;
+      if (useGitCache && !version.fromFork) {
+        try {
+          await gitService.updateLocalMirror();
+        } on Exception {
+          logger.warn(
+            'Failed to setup local cache. Falling back to git clone.',
+          );
+        }
+      }
+
       return cacheVersion;
     }
 
