@@ -105,11 +105,12 @@ class CacheService extends ContextualService {
       final versionFile = File(path.join(dir.path, 'version'));
       final gitDir = Directory(path.join(dir.path, '.git'));
       final flutterBin = File(
-        path.join(dir.path, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter'),
+        path.join(
+            dir.path, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter'),
       );
 
-      final looksLikeSdk =
-          versionFile.existsSync() || (gitDir.existsSync() && flutterBin.existsSync());
+      final looksLikeSdk = versionFile.existsSync() ||
+          (gitDir.existsSync() && flutterBin.existsSync());
 
       if (looksLikeSdk) {
         // This is a version directory
@@ -124,8 +125,10 @@ class CacheService extends ContextualService {
           if (cacheVersion != null) {
             cacheVersions.add(cacheVersion);
           }
+        } on FormatException {
+          // Expected: skip directories that aren't valid version names
         } catch (e) {
-          // Skip if we can't parse as a version
+          logger.warn('Error processing ${dir.path}: $e');
         }
       } else {
         // This might be a fork directory containing version directories
