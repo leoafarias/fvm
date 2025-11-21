@@ -114,9 +114,12 @@ class EnsureCacheWorkflow extends Workflow {
     FlutterVersion version, {
     bool shouldInstall = false,
     bool force = false,
+    bool useArchive = false,
   }) async {
-    _validateContext();
-    _validateGit();
+    if (!useArchive) {
+      _validateContext();
+      _validateGit();
+    }
     // Get valid flutter version
     final cacheService = get<CacheService>();
     final flutterService = get<FlutterService>();
@@ -169,7 +172,7 @@ class EnsureCacheWorkflow extends Workflow {
       logger.info('Installing Flutter SDK automatically...');
     }
 
-    bool useGitCache = context.gitCache;
+    bool useGitCache = context.gitCache && !useArchive;
 
     // Only update local mirror if not a fork and git cache is enabled
     if (useGitCache && !version.fromFork) {
@@ -185,7 +188,10 @@ class EnsureCacheWorkflow extends Workflow {
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
     try {
-      await flutterService.install(version);
+      await flutterService.install(
+        version,
+        useArchive: useArchive,
+      );
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
