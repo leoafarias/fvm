@@ -7,14 +7,14 @@
       "name": "Leo Farias"
     },
     "baseRefName": "main",
-    "body": "## Summary\n- fix the pre-push PATH hook so it auto-detects Flutter/Dart\n- harden uninstall script, git service logging, and HTTP helper guidance\n- add regression coverage for httpRequest and GitService failure paths\n\n## Testing\n- dart analyze --fatal-infos\n- dcm analyze lib\n- dart test test/services/git_service_test.dart test/utils/http_test.dart",
-    "createdAt": "2025-11-03T16:29:43Z",
-    "headRefName": "fix-critical-issues",
+    "body": "## Summary\n\nAdds timeout protection to prevent update checks from hanging indefinitely. Update checks now complete within 3 seconds or fail gracefully with specific logging for timeout vs other failures.\n\n## Changes\n\n- Wrap both `isUpToDate()` and `getLatestVersion()` calls with 3-second timeouts\n- Add specific `TimeoutException` handler with debug logging\n- Preserve existing error handling for other failures\n\n## Impact\n\nUpdate check no longer blocks command execution indefinitely if network is slow or unreachable. Users on slow connections will see debug logs on timeout instead of hanging.",
+    "createdAt": "2025-11-17T15:47:03Z",
+    "headRefName": "conductor/update-check-timeout",
     "labels": [],
-    "number": 960,
-    "title": "Fix critical review feedback",
-    "updatedAt": "2025-11-04T17:32:48Z",
-    "url": "https://github.com/leoafarias/fvm/pull/960"
+    "number": 975,
+    "title": "Add 3-second timeout for update checks",
+    "updatedAt": "2025-11-19T18:33:45Z",
+    "url": "https://github.com/leoafarias/fvm/pull/975"
   },
   {
     "author": {
@@ -24,14 +24,114 @@
       "name": "Leo Farias"
     },
     "baseRefName": "main",
-    "body": "## Summary\nThis PR refactors the release tooling into a dedicated package structure to improve maintainability and separation of concerns.\n\n- Move release build logic into separate `release_tool` package\n- Update CI/CD workflows to use new release tool structure\n- Add `scripts/uninstall.sh` for application cleanup\n- Refactor `tool/grind.dart` to separate main CLI from release tool concerns\n- Update dependencies to align with new structure\n\n## Test plan\n- [ ] Run `fvm install` and verify it still works correctly\n- [ ] Run release workflow and verify release process completes\n- [ ] Verify uninstall script removes all application files\n- [ ] Check that all tests pass with new structure",
-    "createdAt": "2025-11-03T14:54:48Z",
-    "headRefName": "release-tool-migration",
+    "body": "## Summary\n\nThis PR implements comprehensive improvements to FVM's update check mechanism to enhance reliability, responsiveness, and user control.\n\n### Key Improvements\n\n- **Configurable Update Checks**: Users can now disable update checks via `fvm config --disable-update-check`\n- **Enhanced Reliability**: Network operations now have proper timeouts (10s) and graceful error handling\n- **Fixed First-Run Behavior**: Null timestamps now correctly trigger update checks on first run\n- **Smart Retry Logic**: Failed checks no longer block retries for 24 hours\n- **Race Condition Prevention**: File locking prevents config corruption in parallel execution scenarios\n- **Clock Change Safeguards**: Handles system clock changes gracefully\n- **Meta-Command Optimization**: Update checks are skipped for config, API, and completion commands\n\n### Changes\n\n#### Configuration\n- Added `disableUpdateCheck` to ConfigOptions enum\n- Removed redundant manual flag definition from config_command.dart\n- Flag now properly integrated into config processing loop\n\n#### Update Check Logic\n- Implemented 10-second timeout for network operations\n- Enhanced error handling with specific catch blocks for TimeoutException, SocketException, and FormatException\n- Timestamp recording moved to AFTER successful network validation\n- Added helper methods for better code organization\n\n#### Reliability & Safety\n- Race condition prevention with file locking using `context.createLock()`\n- Detection and handling of future timestamps (clock moved backward)\n- Debug logging when update checks are disabled\n\n#### Test Coverage\n- **runner_test.dart**: 9 comprehensive tests covering first-run detection, 24-hour caching, timeout handling, and error scenarios\n- **config_command_test.dart**: 11 tests for flag parsing, persistence, and integration with other settings\n\n### Technical Details\n\n- Non-breaking changes: existing configs continue to work\n- Backward compatible: maintains existing behavior\n- All dart analyze issues resolved\n- Constants added for timeout (10s) and check interval (1 day)\n\n## Test Plan\n\n- [x] Run dart analyze (all issues resolved)\n- [ ] Run test suite\n- [ ] Manual testing of update check scenarios\n- [ ] Verify config flag behavior\n- [ ] Test timeout and error handling",
+    "createdAt": "2025-11-14T22:35:18Z",
+    "headRefName": "feat/update-check-improvements",
     "labels": [],
-    "number": 956,
-    "title": "refactor: migrate release tooling to dedicated package structure",
-    "updatedAt": "2025-11-04T17:15:46Z",
-    "url": "https://github.com/leoafarias/fvm/pull/956"
+    "number": 973,
+    "title": "feat: improve update check reliability and responsiveness",
+    "updatedAt": "2025-11-14T22:35:48Z",
+    "url": "https://github.com/leoafarias/fvm/pull/973"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\nFixes version detection issues in the `fvm list` command where hidden directories were incorrectly shown as Flutter SDK versions and the \"Need setup\" status was inaccurate.\n\n## Changes\n- **Skip hidden directories**: Filter out directories starting with `.` (like `.dart_tool`, `.DS_Store`) when scanning for Flutter SDK versions\n- **Enhanced Flutter SDK detection**: Detect valid Flutter SDKs by checking for `bin/flutter` in addition to the `version` file\n- **Git fallback for version detection**: Use `git describe --tags` as fallback when the `version` file doesn't exist (Flutter 3.38+ no longer creates this file)\n- **Accurate setup status**: Changed `isNotSetup` to only check `dartSdkVersion` (Dart SDK cache presence) instead of `flutterSdkVersion`\n- **Test coverage**: Added test to verify hidden directories are properly filtered\n\n## Test Results\n```\n✅ All 21 cache service tests passing\n✅ No hidden directories appearing in list output\n✅ All Flutter versions detected correctly (including 3.38+)\n✅ \"Need setup\" only shows for SDKs without downloaded dependencies\n```\n\n## Before\n- Hidden directories like `.dart_tool` appeared as broken versions\n- \"Need setup\" showed incorrectly for functional SDKs\n- Flutter 3.38+ versions showed as needing setup\n\n## After\n- Only valid Flutter SDK versions are shown\n- Accurate setup status based on Dart SDK cache\n- All versions detected correctly regardless of Flutter version",
+    "createdAt": "2025-11-14T22:12:26Z",
+    "headRefName": "fix/list-command-version-detection",
+    "labels": [],
+    "number": 972,
+    "title": "fix: improve version detection and filtering in list command",
+    "updatedAt": "2025-11-16T12:09:13Z",
+    "url": "https://github.com/leoafarias/fvm/pull/972"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n\nMigrates the installation script to v2 with user-local installation as the default, improving security and user experience by removing the sudo requirement for basic installations.\n\n## Breaking Changes\n\n⚠️ **Default installation is now user-local instead of system-wide**\n\n- Default install location: `~/.fvm_flutter/bin` (was `/usr/local/bin`)\n- No sudo required for default install\n- For system-wide install, use: `--system` flag\n\n## Changes\n\n### Installation Behavior\n- ✅ User-local install by default (no sudo needed)\n- ✅ System install via `--system` flag (requires sudo)\n- ✅ New `--no-modify-path` flag to skip shell config updates\n- ✅ System install now uses binary copy (more robust than symlink)\n\n### Migration Compatibility\n- ✅ Detects existing v1 system installations\n- ✅ Interactive prompts for migration (with non-interactive mode for CI)\n- ✅ Auto-cleanup of obsolete symlinks\n- ✅ Legacy installer preserved as `install-legacy.sh`\n\n### Improvements\n- ✅ Enhanced CI/container detection (10+ CI systems)\n- ✅ Musl/glibc fallback for Alpine Linux\n- ✅ Fixed fish shell marker to prevent duplicate PATH entries\n- ✅ Trap-based cleanup on errors\n- ✅ Post-install verification\n- ✅ Better error messages\n\n### Documentation\n- 📄 `MIGRATION_PLAN.md` - Detailed migration strategy\n- 📄 `MIGRATION_SUMMARY.md` - Changes summary and impacts  \n- 📄 `TESTING_CHECKLIST.md` - Comprehensive test scenarios\n\n## Migration Guide\n\n### For Individual Users\nNo action needed. Next install will be user-local (better UX, no sudo).\n\n### For System-Wide Installations\nUse the `--system` flag:\n```bash\ncurl -fsSL https://fvm.app/install.sh | bash -s -- --system\n```\n\n### For CI/CD Pipelines\nIf your pipeline expects `/usr/local/bin/fvm`:\n- **Option 1**: Add `--system` flag\n- **Option 2**: Use `~/.fvm_flutter/bin/fvm` directly\n- **Option 3**: Ensure PATH includes `~/.fvm_flutter/bin`\n\n### Legacy Installer\nAvailable at `install-legacy.sh` if needed.\n\n## Testing\n\nPlease review `TESTING_CHECKLIST.md` for comprehensive test scenarios.\n\n### CI Tests\nThe automated tests will verify:\n- ✅ Fresh user install (default)\n- ✅ System install with `--system` flag\n- ✅ Container detection and root permissions\n- ✅ Uninstall (idempotency)\n- ✅ Shellcheck validation\n\n## Files Changed\n\n```\nModified:\n  scripts/install.sh           - v2 installer with migration logic\n  docs/public/install.sh       - Synced copy\n\nCreated:\n  scripts/install-legacy.sh    - v1 backup\n  docs/public/install-legacy.sh - v1 public backup\n  MIGRATION_PLAN.md            - Strategy document\n  MIGRATION_SUMMARY.md         - Summary and FAQ\n  TESTING_CHECKLIST.md         - Test scenarios\n```\n\n## Related Issues\n\nFixes: Better install UX, removes sudo requirement\nImproves: Security (principle of least privilege)\nMaintains: Backwards compatibility via legacy script\n\n## Checklist\n\n- [x] Shellcheck passes (0 errors, 0 warnings)\n- [x] Scripts synced (scripts/ ↔ docs/public/)\n- [x] Migration logic tested locally\n- [x] Legacy script preserved\n- [x] Documentation added\n- [ ] CI tests pass (waiting for PR checks)\n- [ ] Manual testing completed\n\n---\n\n**Note**: This PR is ready for CI testing. The workflow changes were intentionally excluded to test against current CI setup first.",
+    "createdAt": "2025-11-06T22:09:09Z",
+    "headRefName": "feat/install-script-v2",
+    "labels": [],
+    "number": 967,
+    "title": "feat: migrate install script to v2 with user-local default install",
+    "updatedAt": "2025-11-12T16:12:03Z",
+    "url": "https://github.com/leoafarias/fvm/pull/967"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n\nAdds support for installing Flutter SDKs from pre-compiled archives using the `--archive` flag. This provides 2-3x faster installations compared to git clones and enables support for corporate mirrors behind firewalls.\n\n## Changes\n\n### New Features\n- ✨ New `--archive` flag for `fvm install` and `fvm use` commands\n- 📦 Archive download with progress tracking\n- 🔒 SHA256 checksum verification for security\n- 🌐 Support for `FLUTTER_STORAGE_BASE_URL` environment variable\n- 🚀 Cross-platform extraction (zip for Windows/macOS, tar.xz for Linux)\n\n### Implementation Details\n- **ArchiveService**: New service handling download, verification, and extraction\n- **Commands**: Updated `install_command` and `use_command` to accept `--archive` flag\n- **Workflow**: Modified `ensure_cache.workflow` to pass archive flag through\n- **Validation**: Clear error messages for unsupported scenarios (forks, commits, custom versions)\n\n### Supported Usage\n```bash\nfvm install stable --archive      # Install latest stable via archive\nfvm install 3.16.0 --archive      # Install specific version via archive\nfvm use stable --archive          # Switch to stable via archive (in project)\n```\n\n### Unsupported Scenarios\n- Fork versions (requires git clone)\n- Commit references (requires git clone)\n- Custom local versions\n- Master channel (only stable/beta/dev supported)\n\n## Testing\n\n- ✅ Unit tests for archive installation flow\n- ✅ Tests for unsupported version validation\n- ✅ Mock implementations for test isolation\n- ⏳ Manual testing across platforms (pending)\n\n## Benefits\n\n- **Speed**: 2-3x faster than git clone (no history download)\n- **Corporate Networks**: Works behind firewalls without GitHub access\n- **Reliability**: Single HTTP request with atomic download\n- **Security**: Mandatory SHA256 verification\n- **Disk I/O**: Less intensive than git operations\n\n## Migration Guide\n\n### Current (Git-based)\n```bash\nexport FVM_FLUTTER_URL=https://internal-mirror.corp/flutter.git\nfvm install stable\n```\n\n### New (Archive-based)\n```bash\nexport FLUTTER_STORAGE_BASE_URL=https://internal-mirror.corp/storage\nfvm install stable --archive\n```\n\n## Remaining Work\n\n- [ ] Additional manual testing on all platforms\n- [ ] Performance benchmarking documentation\n- [ ] Update README with archive installation examples\n- [ ] Consider making archive the default in future releases\n\n## Related\n\nResolves #688\n\n---\n\n**Note**: This PR is marked as draft while additional testing and validation is completed.",
+    "createdAt": "2025-11-05T15:43:30Z",
+    "headRefName": "issue-688",
+    "labels": [],
+    "number": 966,
+    "title": "feat: add archive-based installation support",
+    "updatedAt": "2025-11-05T15:54:17Z",
+    "url": "https://github.com/leoafarias/fvm/pull/966"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "Adds the new fvm_mcp package that exposes FVM as MCP tools over stdio. Includes server implementation, process runner, and helper utilities plus README and CI workflow. Adds fake FVM shim with tests covering arg helpers, version gates, and process behavior. Sets the stage for embedding this server behind an fvm mcp subcommand.",
+    "createdAt": "2025-11-05T15:28:42Z",
+    "headRefName": "fvm-mcp",
+    "labels": [],
+    "number": 965,
+    "title": "Add fvm MCP server package",
+    "updatedAt": "2025-11-06T14:26:52Z",
+    "url": "https://github.com/leoafarias/fvm/pull/965"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
+    "body": "Handle read-only shell profiles in the installer and docs.\nAdd friendly warnings when rc files are missing or read-only so users can add PATH manually.\nFixes #897.",
+    "createdAt": "2025-11-05T14:33:17Z",
+    "headRefName": "installer-readonly-fix",
+    "labels": [],
+    "number": 964,
+    "title": "Handle read-only shell profiles",
+    "updatedAt": "2025-11-06T16:53:37Z",
+    "url": "https://github.com/leoafarias/fvm/pull/964"
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/copilot-swe-agent"
+    },
+    "baseRefName": "main",
+    "body": "Short commit hashes (10 chars) in `.fvmrc` create a security vulnerability: they can collide across repository forks, enabling [DOS attacks](https://blog.teddykatz.com/2019/11/12/github-actions-dos.html). An attacker could craft a malicious commit with a colliding short hash and trick projects into using it.\n\n## Changes\n\n- **GitService**: Added `resolveCommitHash()` using `git rev-parse` to expand commit references to full 40-character SHA-1 hashes\n- **UpdateProjectReferencesWorkflow**: Resolve commit hashes before writing to `.fvmrc` when `version.isUnknownRef` is true\n- **Exports**: Made `GitService` public for testing\n\n## Behavior\n\n```dart\n// User input (short or full hash accepted)\n$ fvm use 6d04a16210\n\n// Stored in .fvmrc (always full hash)\n{\n  \"flutter\": \"6d04a162109d07876230709adf4013db113b16a3\"\n}\n```\n\nOnly commit-based versions are affected. Semantic versions (`3.10.0`) and channels (`stable`, `beta`) remain unchanged.\n\n## Testing\n\nAdded unit and integration tests validating:\n- Short hash → full hash expansion\n- Full hash preservation\n- Non-commit version handling\n- Error cases (non-git directories, invalid refs)\n\n## Documentation\n\nSee `docs/security-fix-full-commit-hash.md` for security context and implementation details.\n\n## Backward Compatibility\n\nExisting `.fvmrc` files with short hashes continue to work. They'll be upgraded to full hashes on next `fvm use`.\n\n> [!WARNING]\n>\n> <details>\n> <summary>Firewall rules blocked me from connecting to one or more addresses (expand for details)</summary>\n>\n> #### I tried to connect to the following addresses, but was blocked by firewall rules:\n>\n> - `dl-ssl.google.com`\n>   - Triggering command: `wget -qO- REDACTED` (dns block)\n> - `esm.ubuntu.com`\n>   - Triggering command: `/usr/lib/apt/methods/https` (dns block)\n>\n> If you need me to access, download, or install something from one of these locations, you can either:\n>\n> - Configure [Actions setup steps](https://gh.io/copilot/actions-setup-steps) to set up my environment, which run before the firewall is enabled\n> - Add the appropriate URLs or hosts to the custom allowlist in this repository's [Copilot coding agent settings](https://github.com/leoafarias/fvm/settings/copilot/coding_agent) (admins only)\n>\n> </details>\n\n<!-- START COPILOT CODING AGENT SUFFIX -->\n\n\n\n<details>\n\n<summary>Original prompt</summary>\n\n> \n> ----\n> \n> *This section details on the original issue you should resolve*\n> \n> <issue_title>[BUG] DO NOT use short hash for commit versions (DOS attack)</issue_title>\n> <issue_description>**Before creating a bug report please make check the following**\r\n> \r\n> - [x] You have read our [FAQ](https://fvm.app/docs/guides/faq)\r\n> - [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\r\n> - [x] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\r\n> - [x] Run `fvm doctor` if possible and add the output to the issue.\r\n> \r\n> **Describe the bug**\r\n> Using a commit version of flutter will specify the short hash in the `.fvmrc` (and vscode config) files.\r\n> This can easily be DOSed as commit hashes are shared between forks of the repo.\r\n> You can read more about it in: https://blog.teddykatz.com/2019/11/12/github-actions-dos.html\r\n> \r\n> **To Reproduce**\r\n> run `fvm use 6d04a162109d07876230709adf4013db113b16a3`\r\n> see the content of `.fvmrc`\r\n> ```json\r\n> {\r\n>   \"flutter\": \"6d04a16210\"\r\n> }\r\n> ```\r\n> \r\n> **Expected behavior**\r\n> The full commit hash is used in the config file.\r\n> Also when just the short commit was specified in the first place\r\n> \r\n> **Logs**\r\n> N.A.\r\n> \r\n> **Desktop (please complete the following information):**\r\n> N.A.\r\n> \r\n> **Additional context**\r\n> Short hashes should only ever be used to display a nice version to the user.\r\n> Never to refer to any particular commit (especially on GitHub).\r\n> </issue_description>\n> \n> <agent_instructions>Go ahead and eiw this we ahve version 4.0.0 which si differnt but might be good but can you amke rsure you udnerand the root fo the problem and try toi udnersand the change and see if this owrks or not? or even if this is currenlty hapens on version 4</agent_instructions>\n> \n> ## Comments on the Issue (you are @copilot in this section)\n> \n> <comments>\n> <comment_new><author>@leoafarias</author><body>\n> @Leptopoda, thank you for opening this issue. Do you think you would be able to create a PR addressing this? I believe this should be fairly straightforward, but I am still trying to catch up on the issues and PRs in fvm.</body></comment_new>\n> </comments>\n> \n\n\n</details>\n\n- Fixes leoafarias/fvm#783\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💡 You can make Copilot smarter by setting up custom instructions, customizing its development environment and configuring Model Context Protocol (MCP) servers. Learn more [Copilot coding agent tips](https://gh.io/copilot-coding-agent-tips) in the docs.",
+    "createdAt": "2025-11-04T17:36:05Z",
+    "headRefName": "copilot/fix-short-hash-commit-versions",
+    "labels": [],
+    "number": 962,
+    "title": "Security: Store full commit hashes in config to prevent DOS attacks",
+    "updatedAt": "2025-11-04T18:29:01Z",
+    "url": "https://github.com/leoafarias/fvm/pull/962"
   },
   {
     "author": {
