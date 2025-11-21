@@ -110,7 +110,7 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
+  Directory get _lockDir => Directory(join(fvmDir, '.locks'));
 
   /// Directory where FVM is stored
   @MappableField()
@@ -208,6 +208,16 @@ class FvmContext with FvmContextMappable {
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
+    }
+    // Clean up legacy visible lock directory if present
+    final legacyLockDir = Directory(join(fvmDir, 'locks'));
+    if (legacyLockDir.existsSync()) {
+      for (final entry in legacyLockDir.listSync()) {
+        if (entry is File && entry.path.endsWith('.lock')) {
+          entry.deleteSync();
+        }
+      }
+      legacyLockDir.deleteSync(recursive: true);
     }
 
     return FileLocker(
