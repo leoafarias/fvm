@@ -54,8 +54,12 @@ class FlutterService extends ContextualService {
       if (versionDir.existsSync()) {
         versionDir.deleteSync(recursive: true);
       }
-    } catch (_) {
-      // Ignore cleanup failures - main operation should continue
+    } on FileSystemException catch (e) {
+      // Error level since this leaves orphaned directories that consume disk space
+      logger.err(
+        'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
+        'You may need to manually delete this directory.',
+      );
     }
   }
 
@@ -187,10 +191,27 @@ class FlutterService extends ContextualService {
           );
           await _updateOriginToFlutter(versionDir);
         } on ProcessException catch (error) {
-          logger.warn(
-            'Cloning from local git cache failed (${error.message}). '
-            'Falling back to remote clone.',
-          );
+          // Git corruption typically returns exit code 128
+          // Also check message for corruption indicators
+          final messageLower = error.message.toLowerCase();
+          final isLikelyCorruption = error.errorCode == 128 ||
+              messageLower.contains('corrupt') ||
+              messageLower.contains('damaged') ||
+              messageLower.contains('bad object');
+
+          if (isLikelyCorruption) {
+            logger.err(
+              'Local git cache appears corrupted '
+              '(exit ${error.errorCode}: ${error.message}). '
+              'Consider running "fvm doctor" to diagnose. '
+              'Falling back to remote clone.',
+            );
+          } else {
+            logger.warn(
+              'Cloning from local git cache failed (${error.message}). '
+              'Falling back to remote clone.',
+            );
+          }
           _cleanupPartialClone(versionDir);
           result = await _cloneSdk(
             source: repoUrl,

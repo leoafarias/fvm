@@ -44,10 +44,7 @@ class GitService extends ContextualService {
         cachePathType == FileSystemEntityType.link) {
       File(gitCacheDir.path).deleteSync();
     } else if (cachePathType == FileSystemEntityType.directory) {
-      await _deleteDirectoryWithRetry(
-        gitCacheDir,
-        requireSuccess: false,
-      );
+      await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
     }
 
     await _cloneMirrorInto(gitCacheDir);
@@ -90,13 +87,20 @@ class GitService extends ContextualService {
       if (gitCacheDir.existsSync()) {
         await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
       }
-      throw Exception('Git clone failed');
+      throw AppException(
+        'Unable to create the local Flutter git mirror. '
+        'Exit code: $exitCode. '
+        'Rerun with --verbose for more details.\n'
+        '${processLogs.isNotEmpty ? processLogs.join('\n') : 'No output captured.'}',
+      );
     }
 
     progressTracker.complete();
     try {
-      await _validateMirror(gitCacheDir, strict: true);
-    } catch (error) {
+      await _validateMirror(gitCacheDir);
+    } on ProcessException {
+      // Only ProcessException expected from ProcessService.run()
+      // Cleanup corrupted mirror before rethrowing
       await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
       rethrow;
     }
@@ -104,27 +108,11 @@ class GitService extends ContextualService {
     return gitCacheDir;
   }
 
-  Future<void> _validateMirror(Directory directory, {bool strict = true}) {
-    final args = strict
-        ? ['fsck', '--strict', '--no-dangling']
-        : ['fsck', '--connectivity-only'];
-
+  Future<void> _validateMirror(Directory directory) {
     return get<ProcessService>().run(
       'git',
-      args: args,
+      args: ['fsck', '--connectivity-only'],
       workingDirectory: directory.path,
-    );
-  }
-
-  /// Sets the repository origin URL for the given git directory.
-  Future<void> setOriginUrl({
-    required String repositoryPath,
-    required String url,
-  }) {
-    return get<ProcessService>().run(
-      'git',
-      args: ['remote', 'set-url', 'origin', url],
-      workingDirectory: repositoryPath,
     );
   }
 
@@ -154,18 +142,6 @@ class GitService extends ContextualService {
     }
   }
 
-  Future<bool> isGitReference(String version) async {
-    final references = await _fetchGitReferences();
-
-    return references.any((reference) => reference.name == version);
-  }
-
-  /// Resets to specific reference
-  Future<void> resetHard(String path, String reference) async {
-    final gitDir = await GitDir.fromExisting(path);
-    await gitDir.runCommand(['reset', '--hard', reference]);
-  }
-
   Future<void> _deleteDirectoryWithRetry(
     Directory directory, {
     bool requireSuccess = true,
@@ -176,6 +152,7 @@ class GitService extends ContextualService {
     for (var attempt = 1; attempt <= attempts; attempt++) {
       try {
         directory.deleteSync(recursive: true);
+
         return;
       } on FileSystemException catch (error) {
         if (!Platform.isWindows || attempt == attempts) {
@@ -185,35 +162,11 @@ class GitService extends ContextualService {
           logger.warn(
             'Unable to delete ${directory.path}: ${error.message}',
           );
+
           return;
         }
         await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
       }
-    }
-  }
-
-  Future<void> updateLocalMirror() async {
-    final unlock = await _updatingCacheLock.getLock();
-    final gitCacheDir = Directory(context.gitCachePath);
-
-    try {
-      final cacheState = await _determineCacheState(gitCacheDir);
-
-      switch (cacheState) {
-        case _GitCacheState.ready:
-          await _refreshExistingMirror(gitCacheDir);
-          break;
-        case _GitCacheState.legacy:
-        case _GitCacheState.invalid:
-          await _migrateLegacyCache(gitCacheDir);
-          break;
-        case _GitCacheState.missing:
-          logger.debug('Git cache not found. Creating mirror...');
-          await _createLocalMirror();
-          break;
-      }
-    } else {
-      await _createLocalMirror();
     }
   }
 
@@ -239,20 +192,20 @@ class GitService extends ContextualService {
       logger.debug(
         'Git cache at ${gitCacheDir.path} is invalid (${error.message}).',
       );
+
       return _GitCacheState.invalid;
     }
   }
 
   Future<void> _refreshExistingMirror(Directory gitCacheDir) async {
     try {
-      // Use the faster connectivity check during routine refresh; strict fsck is
-      // still run when creating/recreating the mirror.
-      await _validateMirror(gitCacheDir, strict: false);
+      await _validateMirror(gitCacheDir);
     } on ProcessException catch (error) {
       logger.warn(
         'Local mirror validation failed (${error.message}). Recreating...',
       );
       await _createLocalMirror();
+
       return;
     }
 
@@ -354,14 +307,23 @@ class GitService extends ContextualService {
           backupFile.deleteSync();
         }
 
-        progress.complete(
-          'Detached cache for ${version.printFriendlyName}',
-        );
+        progress.complete('Detached cache for ${version.printFriendlyName}');
       } catch (error, stackTrace) {
         progress.fail('Failed to detach ${version.printFriendlyName}');
         if (backupFile.existsSync()) {
-          backupFile.copySync(alternatesFile.path);
-          backupFile.deleteSync();
+          try {
+            if (alternatesFile.existsSync()) {
+              alternatesFile.deleteSync();
+            }
+            backupFile.renameSync(alternatesFile.path);
+          } catch (e) {
+            // Critical: we may have deleted alternates but can't restore backup
+            logger.err(
+              'CRITICAL: Failed to restore alternates backup for '
+              '${version.printFriendlyName}: $e. '
+              'Backup file remains at: ${backupFile.path}',
+            );
+          }
         }
 
         Error.throwWithStackTrace(
@@ -372,6 +334,55 @@ class GitService extends ContextualService {
           stackTrace,
         );
       }
+    }
+  }
+
+  /// Sets the repository origin URL for the given git directory.
+  Future<void> setOriginUrl({
+    required String repositoryPath,
+    required String url,
+  }) {
+    return get<ProcessService>().run(
+      'git',
+      args: ['remote', 'set-url', 'origin', url],
+      workingDirectory: repositoryPath,
+    );
+  }
+
+  Future<bool> isGitReference(String version) async {
+    final references = await _fetchGitReferences();
+
+    return references.any((reference) => reference.name == version);
+  }
+
+  /// Resets to specific reference
+  Future<void> resetHard(String path, String reference) async {
+    final gitDir = await GitDir.fromExisting(path);
+    await gitDir.runCommand(['reset', '--hard', reference]);
+  }
+
+  Future<void> updateLocalMirror() async {
+    final unlock = await _updatingCacheLock.getLock();
+    final gitCacheDir = Directory(context.gitCachePath);
+
+    try {
+      final cacheState = await _determineCacheState(gitCacheDir);
+
+      switch (cacheState) {
+        case _GitCacheState.ready:
+          await _refreshExistingMirror(gitCacheDir);
+          break;
+        case _GitCacheState.legacy:
+        case _GitCacheState.invalid:
+          await _migrateLegacyCache(gitCacheDir);
+          break;
+        case _GitCacheState.missing:
+          logger.debug('Git cache not found. Creating mirror...');
+          await _createLocalMirror();
+          break;
+      }
+    } finally {
+      unlock();
     }
   }
 
