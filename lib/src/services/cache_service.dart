@@ -71,10 +71,19 @@ class CacheService extends ContextualService {
 
     final cacheVersions = <CacheFlutterVersion>[];
 
+    // Check if a directory is a Flutter SDK by looking for bin/flutter
+    bool isFlutterSdk(Directory dir) {
+      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+      return flutterBin.existsSync();
+    }
+
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
       final versionFile = File(path.join(dir.path, 'version'));
-      if (versionFile.existsSync()) {
+      final hasVersionFile = versionFile.existsSync();
+      final isFlutterSdkDir = isFlutterSdk(dir);
+
+      if (hasVersionFile || isFlutterSdkDir) {
         // This is a version directory
         final name = path.basename(dir.path);
 
@@ -102,6 +111,9 @@ class CacheService extends ContextualService {
           final entries = await dir.list().toList();
           for (var entry in entries) {
             if (entry.path.isDir()) {
+              final subDirName = path.basename(entry.path);
+              // Skip hidden directories (starting with .)
+              if (subDirName.startsWith('.')) continue;
               // Check subdirectories with this directory as the fork
               await processDirectory(
                 Directory(entry.path),
@@ -113,10 +125,13 @@ class CacheService extends ContextualService {
       }
     }
 
-    // Scan all top-level directories
+    // Scan all top-level directories, skipping hidden directories
     final topLevelEntries = await versionsDir.list().toList();
     for (var entry in topLevelEntries) {
       if (entry.path.isDir()) {
+        final dirName = path.basename(entry.path);
+        // Skip hidden directories (starting with .)
+        if (dirName.startsWith('.')) continue;
         await processDirectory(Directory(entry.path));
       }
     }
