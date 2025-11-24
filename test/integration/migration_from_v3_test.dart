@@ -9,13 +9,18 @@ Future<ProcessResult> _run(
   required Map<String, String> env,
   String? cwd,
 }) async {
-  final result = await Process.run(cmd.first, cmd.sublist(1),
-      environment: env, workingDirectory: cwd);
+  final result = await Process.run(
+    cmd.first,
+    cmd.sublist(1),
+    environment: env,
+    workingDirectory: cwd,
+  );
   if (result.exitCode != 0) {
     throw Exception(
       'Command failed: ${cmd.join(' ')}\nExit: ${result.exitCode}\nSTDOUT:\n${result.stdout}\nSTDERR:\n${result.stderr}',
     );
   }
+
   return result;
 }
 
@@ -23,9 +28,14 @@ void main() {
   final shouldRun = Platform.environment['RUN_MIGRATION_IT'] == 'true';
 
   if (!shouldRun) {
-    test('migration integration (skipped)', () {
-      expect(true, isTrue);
-    }, skip: 'Set RUN_MIGRATION_IT=true to run migration integration test');
+    test(
+      'migration integration (skipped)',
+      () {
+        expect(true, isTrue);
+      },
+      skip: 'Set RUN_MIGRATION_IT=true to run migration integration test',
+    );
+
     return;
   }
 
@@ -67,7 +77,7 @@ void main() {
     }
   });
 
-  tearDownAll(() async {
+  tearDownAll(() {
     if (tempHome.existsSync()) {
       tempHome.deleteSync(recursive: true);
     }
@@ -93,15 +103,6 @@ void main() {
     await legacyInstall('3.10.0');
 
     // Legacy cache should be non-bare
-    final legacyBare = await Process.run(
-      'git',
-      ['rev-parse', '--is-bare-repository'],
-      environment: env,
-      workingDirectory: p.join(tempHome.path, 'cache.git'),
-    );
-    expect((legacyBare.stdout as String?)?.trim().toLowerCase(), isNot('true'));
-
-    // Verify legacy cache is non-bare (expected)
     final legacyBare = await Process.run(
       'git',
       ['rev-parse', '--is-bare-repository'],
@@ -141,8 +142,17 @@ void main() {
 
     // 5) Check alternates point to bare path
     for (final v in ['stable', 'beta', '3.10.0']) {
-      final altFile = File(p.join(tempHome.path, 'versions', v, '.git',
-          'objects', 'info', 'alternates'));
+      final altFile = File(
+        p.join(
+          tempHome.path,
+          'versions',
+          v,
+          '.git',
+          'objects',
+          'info',
+          'alternates',
+        ),
+      );
       expect(altFile.existsSync(), isTrue, reason: 'alternates missing for $v');
       final alt = altFile.readAsStringSync().trim();
       expect(p.normalize(alt), p.normalize(objectsRealPath));
@@ -156,7 +166,7 @@ void main() {
           '-C',
           p.join(tempHome.path, 'versions', v),
           'status',
-          '--short'
+          '--short',
         ],
         env: env,
       );
