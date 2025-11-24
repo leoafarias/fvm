@@ -118,9 +118,16 @@ class FvmContext with FvmContextMappable {
   /// Flag to determine if should use git cache
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
+    // Respect explicit opt-in/opt-out even on CI. Default behaviour keeps the
+    // git cache disabled on CI to avoid large fetches in ephemeral runners,
+    // but allows forcing it via config/ENV (e.g., FVM_USE_GIT_CACHE=true) so
+    // migration tests and power users can exercise the mirror path.
+    final bool? explicit = config.useGitCache;
 
-    return useGitCache && !isCI;
+    if (explicit != null) return explicit;
+
+    // Default: enable locally, disable on CI.
+    return !isCI;
   }
 
   /// Run pub get on sdk changes
