@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
@@ -22,13 +21,13 @@ import 'releases_service/releases_client.dart';
 class FlutterService extends ContextualService {
   const FlutterService(super.context);
 
-  /// Attempts to clone with --reference flag for optimization, falls back to normal clone on failure
-  Future<ProcessResult> _cloneWithFallback({
-    required String repoUrl,
+  Future<ProcessResult> _cloneSdk({
+    required String source,
     required Directory versionDir,
     required FlutterVersion version,
     required String? channel,
-  }) async {
+    required bool echoOutput,
+  }) {
     final args = [
       'clone',
       '--progress',
@@ -39,52 +38,36 @@ class FlutterService extends ContextualService {
         '-b',
         channel,
       ],
+      source,
+      versionDir.path,
     ];
 
-    final echoOutput = !(context.isTest || !logger.isVerbose);
-
-    // Try with --reference first if git cache is enabled
-    if (context.gitCache) {
-      try {
-        return await runGit(
-          [
-            ...args,
-            '--reference',
-            context.gitCachePath,
-            repoUrl,
-            versionDir.path,
-          ],
-          echoOutput: echoOutput,
-        );
-      } on ProcessException catch (e) {
-        if (isReferenceError(e.toString())) {
-          logger.warn(
-            'Git clone with --reference failed, falling back to normal clone',
-          );
-          _cleanupPartialClone(versionDir);
-          // Fall through to normal clone
-        } else {
-          rethrow;
-        }
-      }
-    }
-
-    // Normal clone without --reference
-    return await runGit(
-      [...args, repoUrl, versionDir.path],
-      echoOutput: echoOutput,
-    );
+    return runGit(args, echoOutput: echoOutput);
   }
 
-  /// Cleans up partial clone state when --reference fails
+  bool _shouldUseLocalMirror(FlutterVersion version) {
+    return context.gitCache && !version.fromFork;
+  }
+
   void _cleanupPartialClone(Directory versionDir) {
     try {
       if (versionDir.existsSync()) {
         versionDir.deleteSync(recursive: true);
       }
-    } catch (_) {
-      // Ignore cleanup failures - main operation should continue
+    } on FileSystemException catch (e) {
+      // Error level since this leaves orphaned directories that consume disk space
+      logger.err(
+        'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
+        'You may need to manually delete this directory.',
+      );
     }
+  }
+
+  Future<void> _updateOriginToFlutter(Directory versionDir) async {
+    await get<GitService>().setOriginUrl(
+      repositoryPath: versionDir.path,
+      url: context.flutterUrl,
+    );
   }
 
   Future<ProcessResult> run(
@@ -191,13 +174,62 @@ class FlutterService extends ContextualService {
       }
     }
 
+    final bool useLocalMirror = _shouldUseLocalMirror(version);
+    final echoOutput = !(context.isTest || !logger.isVerbose);
+
+    ProcessResult result;
+
     try {
-      final result = await _cloneWithFallback(
-        repoUrl: repoUrl,
-        versionDir: versionDir,
-        version: version,
-        channel: channel,
-      );
+      if (useLocalMirror) {
+        try {
+          result = await _cloneSdk(
+            source: context.gitCachePath,
+            versionDir: versionDir,
+            version: version,
+            channel: channel,
+            echoOutput: echoOutput,
+          );
+          await _updateOriginToFlutter(versionDir);
+        } on ProcessException catch (error) {
+          // Git corruption typically returns exit code 128
+          // Also check message for corruption indicators
+          final messageLower = error.message.toLowerCase();
+          final isLikelyCorruption = error.errorCode == 128 ||
+              messageLower.contains('corrupt') ||
+              messageLower.contains('damaged') ||
+              messageLower.contains('bad object');
+
+          if (isLikelyCorruption) {
+            logger.err(
+              'Local git cache appears corrupted '
+              '(exit ${error.errorCode}: ${error.message}). '
+              'Consider running "fvm doctor" to diagnose. '
+              'Falling back to remote clone.',
+            );
+          } else {
+            logger.warn(
+              'Cloning from local git cache failed (${error.message}). '
+              'Falling back to remote clone.',
+            );
+          }
+          _cleanupPartialClone(versionDir);
+          result = await _cloneSdk(
+            source: repoUrl,
+            versionDir: versionDir,
+            version: version,
+            channel: channel,
+            echoOutput: echoOutput,
+          );
+        }
+      } else {
+        result = await _cloneSdk(
+          source: repoUrl,
+          versionDir: versionDir,
+          version: version,
+          channel: channel,
+          echoOutput: echoOutput,
+        );
+      }
 
       // Use FlutterVersion object with getVersionCacheDir
       final gitVersionDir = get<CacheService>().getVersionCacheDir(version);
@@ -315,23 +347,6 @@ class FlutterService extends ContextualService {
       get<CacheService>().remove(version);
       rethrow;
     }
-  }
-
-  /// Checks if the error is related to --reference flag failures
-  @visibleForTesting
-  bool isReferenceError(String errorMessage) {
-    final lowerMessage = errorMessage.toLowerCase();
-
-    const referenceErrorPatterns = [
-      'reference repository',
-      'reference not found',
-      'unable to read reference',
-      'bad object',
-    ];
-
-    return referenceErrorPatterns.any(lowerMessage.contains) ||
-        (lowerMessage.contains('corrupt') &&
-            lowerMessage.contains('reference'));
   }
 }
 

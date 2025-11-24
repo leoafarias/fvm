@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
@@ -11,6 +12,8 @@ import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'process_service.dart';
+
+enum _GitCacheState { missing, invalid, legacy, ready }
 
 /// Service for Git operations
 /// Handles git cache management and repository operations
@@ -25,16 +28,64 @@ class GitService extends ContextualService {
     );
   }
 
-  // Create a custom Process.start, that prints using the progress bar
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
+    final tempDir = Directory(
+      path.join(
+        gitCacheDir.parent.path,
+        '${path.basename(gitCacheDir.path)}.tmp',
+      ),
+    );
+
+    // Ensure the parent exists
+    if (!gitCacheDir.parent.existsSync()) {
+      gitCacheDir.parent.createSync(recursive: true);
+    }
+
+    // Clean any previous temp clone
+    if (tempDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+    }
+
+    try {
+      await _cloneMirrorInto(tempDir);
+    } catch (error) {
+      // Ensure we don't leave a partial temp clone behind on failure
+      if (tempDir.existsSync()) {
+        await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+      }
+      rethrow;
+    }
+
+    // Remove any existing cache (dir/file/symlink) before moving the temp clone
+    final cachePathType = FileSystemEntity.typeSync(
+      gitCacheDir.path,
+      followLinks: false,
+    );
+    if (cachePathType == FileSystemEntityType.file ||
+        cachePathType == FileSystemEntityType.link) {
+      File(gitCacheDir.path).deleteSync();
+    } else if (cachePathType == FileSystemEntityType.directory) {
+      await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
+    }
+
+    tempDir.renameSync(gitCacheDir.path);
+
+    logger.info('Local mirror created successfully!');
+
+    // After rebuilding the mirror, ensure all installed SDKs point their
+    // alternates to the new bare path (cache.git/objects).
+    await _rewriteAlternatesToBarePath();
+  }
+
+  Future<Directory> _cloneMirrorInto(Directory gitCacheDir) async {
     logger.info('Creating local mirror...');
     final process = await Process.start(
       'git',
       [
         'clone',
+        '--mirror',
         '--progress',
-        // Enable long paths on Windows to prevent checkout failures
         if (Platform.isWindows) '-c',
         if (Platform.isWindows) 'core.longpaths=true',
         context.flutterUrl,
@@ -53,19 +104,68 @@ class GitService extends ContextualService {
     });
 
     // ignore: avoid-unassigned-stream-subscriptions
-    process.stdout.transform(utf8.decoder).listen((line) {
-      logger.info(line);
-    });
+    process.stdout.transform(utf8.decoder).listen(logger.info);
 
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
+      progressTracker.complete();
       logger.err(processLogs.join('\n'));
-      gitCacheDir.deleteSync(recursive: true);
-      throw Exception('Git clone failed');
+      if (gitCacheDir.existsSync()) {
+        await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
+      }
+      throw AppException(
+        'Unable to create the local Flutter git mirror. '
+        'Exit code: $exitCode. '
+        'Rerun with --verbose for more details.\n'
+        '${processLogs.isNotEmpty ? processLogs.join('\n') : 'No output captured.'}',
+      );
     }
 
     progressTracker.complete();
-    logger.info('Local mirror created successfully!');
+    try {
+      await _validateMirror(gitCacheDir);
+      // Ensure the mirror is actually bare; a non-bare clone here would
+      // break later operations and should be treated as invalid.
+      final bareCheck = await get<ProcessService>().run(
+        'git',
+        args: ['config', '--bool', 'core.bare'],
+        workingDirectory: gitCacheDir.path,
+      );
+      if ((bareCheck.stdout as String?)?.trim().toLowerCase() != 'true') {
+        throw const ProcessException(
+          'git',
+          ['config', '--bool', 'core.bare'],
+          'Mirror is not bare after clone',
+          1,
+        );
+      }
+    } on ProcessException {
+      // Only ProcessException expected from ProcessService.run()
+      // Cleanup corrupted mirror before rethrowing
+      await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
+      rethrow;
+    }
+
+    // On success, clean up any temp directories left behind from previous runs
+    final tempDir = Directory(
+      path.join(
+        gitCacheDir.parent.path,
+        '${path.basename(gitCacheDir.path)}.tmp',
+      ),
+    );
+    if (tempDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
+    }
+
+    return gitCacheDir;
+  }
+
+  Future<void> _validateMirror(Directory directory) {
+    return get<ProcessService>().run(
+      'git',
+      args: ['fsck', '--connectivity-only'],
+      workingDirectory: directory.path,
+    );
   }
 
   /// Helper method to run git ls-remote commands against the remote repository
@@ -94,6 +194,295 @@ class GitService extends ContextualService {
     }
   }
 
+  Future<void> _deleteDirectoryWithRetry(
+    Directory directory, {
+    bool requireSuccess = true,
+  }) async {
+    if (!directory.existsSync()) return;
+
+    final attempts = Platform.isWindows ? 5 : 1;
+    for (var attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        directory.deleteSync(recursive: true);
+
+        return;
+      } on FileSystemException catch (error) {
+        if (!Platform.isWindows || attempt == attempts) {
+          if (requireSuccess) {
+            rethrow;
+          }
+          logger.warn(
+            'Unable to delete ${directory.path}: ${error.message}',
+          );
+
+          return;
+        }
+        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
+    }
+  }
+
+  Future<_GitCacheState> _determineCacheState(Directory gitCacheDir) async {
+    if (!gitCacheDir.existsSync()) {
+      return _GitCacheState.missing;
+    }
+
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--is-bare-repository'],
+        workingDirectory: gitCacheDir.path,
+      );
+
+      final output = (result.stdout ?? '').toString().trim().toLowerCase();
+      if (output == 'true') {
+        return _GitCacheState.ready;
+      }
+
+      return _GitCacheState.legacy;
+    } on ProcessException catch (error) {
+      logger.debug(
+        'Git cache at ${gitCacheDir.path} is invalid (${error.message}).',
+      );
+
+      return _GitCacheState.invalid;
+    }
+  }
+
+  Future<void> _refreshExistingMirror(Directory gitCacheDir) async {
+    try {
+      await _validateMirror(gitCacheDir);
+    } on ProcessException catch (error) {
+      logger.warn(
+        'Local mirror validation failed (${error.message}). Attempting repair...',
+      );
+      // Try to repair by fetching from remote - this can fix missing objects
+      try {
+        await _syncMirrorWithRemote(gitCacheDir);
+        await _validateMirror(gitCacheDir);
+        logger.info('Mirror repaired successfully via fetch');
+
+        return;
+      } on ProcessException {
+        // Repair failed, need full recreate
+        logger.warn('Repair failed, recreating mirror from scratch...');
+        await _createLocalMirror();
+
+        return;
+      }
+    }
+
+    await _syncMirrorWithRemote(gitCacheDir);
+    logger.debug('Local mirror updated successfully');
+  }
+
+  /// Rewrites alternates files from legacy non-bare path to the bare mirror.
+  /// Safe to run multiple times; it only updates entries that point at the
+  /// current cache path but still include the legacy `/.git/objects` suffix or
+  /// any other mismatched subpath.
+  Future<void> _rewriteAlternatesToBarePath() async {
+    final cacheService = get<CacheService>();
+    final versions = await cacheService.getAllVersions();
+    if (versions.isEmpty) return;
+
+    final desiredPath = path.normalize(
+      path.join(context.gitCachePath, 'objects'),
+    );
+    final desiredParent = path.normalize(path.join(context.gitCachePath));
+
+    for (final version in versions) {
+      final alternatesFile = File(
+        path.join(version.directory, '.git', 'objects', 'info', 'alternates'),
+      );
+
+      if (!alternatesFile.existsSync()) continue;
+
+      try {
+        final current = alternatesFile.readAsStringSync().trim();
+
+        final currentNorm = path.normalize(path.absolute(current));
+
+        // Only fix alternates that reference our cache path (not backups, etc.)
+        if (!currentNorm.startsWith(desiredParent)) {
+          continue;
+        }
+
+        if (currentNorm == desiredPath) {
+          continue; // already correct
+        }
+
+        alternatesFile.writeAsStringSync('$desiredPath\n');
+        logger.info(
+          'Updated alternates for ${version.name} -> $desiredPath',
+        );
+      } on FileSystemException catch (error) {
+        logger.warn(
+          'Unable to update alternates for ${version.name}: ${error.message}',
+        );
+      }
+    }
+  }
+
+  Future<void> _syncMirrorWithRemote(Directory gitCacheDir) async {
+    logger.debug('Updating local mirror from ${context.flutterUrl}');
+    await setOriginUrl(
+      repositoryPath: gitCacheDir.path,
+      url: context.flutterUrl,
+    );
+
+    await get<ProcessService>().run(
+      'git',
+      args: ['remote', 'update', '--prune', 'origin'],
+      workingDirectory: gitCacheDir.path,
+    );
+  }
+
+  /// Migrates an existing non-bare cache clone to a bare mirror without
+  /// re-downloading. This reuses local objects and only fetches deltas.
+  Future<void> _migrateCacheCloneToMirror(Directory legacyDir) async {
+    logger.info('Migrating cache clone to bare mirror...');
+
+    final processService = get<ProcessService>();
+
+    // Step 1: Clean the legacy clone to ensure no file locks or weird state
+    logger.debug('Cleaning legacy clone...');
+    try {
+      await processService.run(
+        'git',
+        args: ['reset', '--hard', 'HEAD'],
+        workingDirectory: legacyDir.path,
+      );
+    } on ProcessException catch (e) {
+      // Continue even if reset fails (e.g., detached HEAD edge cases)
+      logger.debug('Reset failed (${e.message}), continuing...');
+    }
+
+    try {
+      await processService.run(
+        'git',
+        args: ['clean', '-fdx'],
+        workingDirectory: legacyDir.path,
+      );
+    } on ProcessException catch (e) {
+      logger.debug('Clean failed (${e.message}), continuing...');
+    }
+
+    // Step 2: Create bare mirror from local clone (fast - no network)
+    final tempBareDir = Directory(
+      path.join(
+        legacyDir.parent.path,
+        '${path.basename(legacyDir.path)}.bare-tmp',
+      ),
+    );
+
+    // Clean any previous temp directory
+    if (tempBareDir.existsSync()) {
+      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+    }
+
+    logger.info('Creating bare mirror from local clone...');
+    try {
+      await processService.run(
+        'git',
+        args: [
+          'clone',
+          '--mirror',
+          if (Platform.isWindows) '-c',
+          if (Platform.isWindows) 'core.longpaths=true',
+          legacyDir.path,
+          tempBareDir.path,
+        ],
+      );
+    } catch (error) {
+      // Clean up on failure
+      if (tempBareDir.existsSync()) {
+        await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+      }
+      rethrow;
+    }
+
+    // Step 3: Set the correct remote URL (currently points to local path)
+    logger.debug('Setting remote URL to ${context.flutterUrl}');
+    try {
+      await processService.run(
+        'git',
+        args: ['remote', 'set-url', 'origin', context.flutterUrl],
+        workingDirectory: tempBareDir.path,
+      );
+    } catch (error) {
+      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+      rethrow;
+    }
+
+    // Step 4: Fetch latest from remote (only delta - fast)
+    logger.info('Fetching latest from remote...');
+    try {
+      await processService.run(
+        'git',
+        args: ['remote', 'update', '--prune', 'origin'],
+        workingDirectory: tempBareDir.path,
+      );
+    } catch (error) {
+      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+      rethrow;
+    }
+
+    // Step 5: Validate the new mirror
+    logger.debug('Validating new mirror...');
+    try {
+      await _validateMirror(tempBareDir);
+
+      // Verify it's actually bare
+      final bareCheck = await processService.run(
+        'git',
+        args: ['config', '--bool', 'core.bare'],
+        workingDirectory: tempBareDir.path,
+      );
+      if ((bareCheck.stdout as String?)?.trim().toLowerCase() != 'true') {
+        throw AppException('Migration resulted in non-bare repository');
+      }
+    } catch (error) {
+      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+      rethrow;
+    }
+
+    // Step 6: Swap directories - remove legacy and rename temp
+    logger.debug('Swapping directories...');
+    await _deleteDirectoryWithRetry(legacyDir);
+    tempBareDir.renameSync(legacyDir.path);
+
+    logger.info('Legacy cache migrated to bare mirror successfully!');
+
+    // Step 7: Update alternates in installed SDKs to point to new bare path
+    await _rewriteAlternatesToBarePath();
+
+    // Final safeguard: verify resulting cache is bare; otherwise recreate
+    // from scratch to avoid leaving legacy worktree layouts behind.
+    final verify = await processService.run(
+      'git',
+      args: ['config', '--bool', 'core.bare'],
+      workingDirectory: legacyDir.path,
+    );
+    final bare = (verify.stdout as String?)?.trim().toLowerCase() == 'true';
+    if (!bare) {
+      logger.warn('Migration yielded non-bare cache, recreating mirror...');
+      await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
+      await _createLocalMirror();
+    }
+  }
+
+  /// Sets the repository origin URL for the given git directory.
+  Future<void> setOriginUrl({
+    required String repositoryPath,
+    required String url,
+  }) {
+    return get<ProcessService>().run(
+      'git',
+      args: ['remote', 'set-url', 'origin', url],
+      workingDirectory: repositoryPath,
+    );
+  }
+
   Future<bool> isGitReference(String version) async {
     final references = await _fetchGitReferences();
 
@@ -108,76 +497,33 @@ class GitService extends ContextualService {
 
   Future<void> updateLocalMirror() async {
     final unlock = await _updatingCacheLock.getLock();
-
     final gitCacheDir = Directory(context.gitCachePath);
-    final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
 
     try {
-      if (isGitDir) {
-        try {
-          logger.debug('Updating local mirror...');
-          final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+      final cacheState = await _determineCacheState(gitCacheDir);
 
-          // Ensure clean working directory before fetch operations
-          // This prevents merge conflicts during fetch (fixes #819)
-          logger.debug('Ensuring clean working directory...');
-          await gitDir.runCommand(['reset', '--hard', 'HEAD']);
-          await gitDir.runCommand(['clean', '-fd']);
-
-          // First, prune any stale references
-          logger.debug('Pruning stale references...');
-          await gitDir.runCommand(['remote', 'prune', 'origin']);
-
-          // Then fetch all refs including tags
-          logger.debug('Fetching all refs...');
-          await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
-
-          // Check if there are any uncommitted changes
-          logger.debug('Checking for uncommitted changes...');
-          final statusResult = await gitDir.runCommand([
-            'status',
-            '--porcelain',
-          ]);
-
-          final output = (statusResult.stdout as String).trim();
-          if (output.isEmpty) {
-            logger.debug('No uncommitted changes. Working directory is clean.');
-          } else {
+      switch (cacheState) {
+        case _GitCacheState.ready:
+          await _refreshExistingMirror(gitCacheDir);
+          break;
+        case _GitCacheState.legacy:
+          // Migrate existing clone to bare mirror (fast - uses local objects)
+          await _migrateCacheCloneToMirror(gitCacheDir);
+          break;
+        case _GitCacheState.invalid:
+          // Try migration first - may have usable objects even if repo state is bad
+          logger.debug('Attempting to salvage invalid cache...');
+          try {
+            await _migrateCacheCloneToMirror(gitCacheDir);
+          } catch (e) {
+            logger.warn('Migration failed ($e), recreating from scratch...');
             await _createLocalMirror();
           }
-
-          logger.debug('Local mirror updated successfully');
-        } catch (e) {
-          // Only recreate the mirror if it's a critical git error that indicates
-          // the repository is unrecoverable. Other errors (network, permissions, etc.)
-          // are re-thrown so callers can handle them appropriately.
-          // Known critical error patterns: "not a git repository", "corrupt", "damaged",
-          // "hash mismatch", "object file...empty"
-          if (e is ProcessException) {
-            final messageLower = e.message.toLowerCase();
-            if (messageLower.contains('not a git repository') ||
-                messageLower.contains('corrupt') ||
-                messageLower.contains('damaged') ||
-                messageLower.contains('hash mismatch') ||
-                (messageLower.contains('object file') &&
-                    messageLower.contains('empty'))) {
-              logger.warn(
-                'Local mirror appears to be corrupted (${e.message}). '
-                'Recreating mirror...',
-              );
-              await _createLocalMirror();
-              return;
-            }
-          }
-
-          logger.err(
-            'Failed to update local mirror: $e. '
-            'Try running "fvm doctor" to diagnose issues.',
-          );
-          rethrow;
-        }
-      } else {
-        await _createLocalMirror();
+          break;
+        case _GitCacheState.missing:
+          logger.debug('Git cache not found. Creating mirror...');
+          await _createLocalMirror();
+          break;
       }
     } finally {
       unlock();

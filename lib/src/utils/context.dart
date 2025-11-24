@@ -110,7 +110,7 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
+  Directory get _lockDir => Directory(join(fvmDir, '.locks'));
 
   /// Directory where FVM is stored
   @MappableField()
@@ -119,9 +119,16 @@ class FvmContext with FvmContextMappable {
   /// Flag to determine if should use git cache
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
+    // Respect explicit opt-in/opt-out even on CI. Default behaviour keeps the
+    // git cache disabled on CI to avoid large fetches in ephemeral runners,
+    // but allows forcing it via config/ENV (e.g., FVM_USE_GIT_CACHE=true) so
+    // migration tests and power users can exercise the mirror path.
+    final bool? explicit = config.useGitCache;
 
-    return useGitCache && !isCI;
+    if (explicit != null) return explicit;
+
+    // Default: enable locally, disable on CI.
+    return !isCI;
   }
 
   /// Run pub get on sdk changes
@@ -208,6 +215,16 @@ class FvmContext with FvmContextMappable {
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
+    }
+    // Clean up legacy visible lock directory if present
+    final legacyLockDir = Directory(join(fvmDir, 'locks'));
+    if (legacyLockDir.existsSync()) {
+      for (final entry in legacyLockDir.listSync()) {
+        if (entry is File && entry.path.endsWith('.lock')) {
+          entry.deleteSync();
+        }
+      }
+      legacyLockDir.deleteSync(recursive: true);
     }
 
     return FileLocker(

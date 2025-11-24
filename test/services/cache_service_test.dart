@@ -141,6 +141,32 @@ void main() {
           isTrue,
         );
       });
+
+      test(
+        'detects SDK directory without version file when git and flutter bin exist',
+        () async {
+          final versionName = 'stable';
+          final versionDir = Directory(path.join(tempDir.path, versionName))
+            ..createSync(recursive: true);
+
+          // Simulate a repo clone missing the version metadata file
+          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+          File(
+            path.join(
+              versionDir.path,
+              'bin',
+              Platform.isWindows ? 'flutter.bat' : 'flutter',
+            ),
+          )
+            ..createSync(recursive: true)
+            ..writeAsStringSync('dummy');
+
+          final result = await cacheService.getAllVersions();
+
+          expect(result, hasLength(1));
+          expect(result.single.name, versionName);
+        },
+      );
     });
 
     group('remove', () {
