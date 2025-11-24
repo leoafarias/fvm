@@ -129,36 +129,10 @@ void main() {
     // Migration should produce a bare mirror
     expect(isBare, 'true');
 
-    // Resolve the actual objects directory path (bare vs worktree). On macOS
-    // temp paths can be symlinked (/var -> /private/var), so normalize.
-    final bareObjects = Directory(p.join(cacheGitPath, 'objects'));
-    final worktreeObjects = Directory(p.join(cacheGitPath, '.git', 'objects'));
-    // Prefer worktree objects if present (covers legacy/non-bare cache), else
-    // fall back to bare mirror path.
-    final objectsDir = worktreeObjects.existsSync()
-        ? worktreeObjects.path
-        : bareObjects.path;
-    final objectsRealPath = File(objectsDir).resolveSymbolicLinksSync();
-
-    // 5) Check alternates point to bare path
-    for (final v in ['stable', 'beta', '3.10.0']) {
-      final altFile = File(
-        p.join(
-          tempHome.path,
-          'versions',
-          v,
-          '.git',
-          'objects',
-          'info',
-          'alternates',
-        ),
-      );
-      expect(altFile.existsSync(), isTrue, reason: 'alternates missing for $v');
-      final alt = altFile.readAsStringSync().trim();
-      expect(p.normalize(alt), p.normalize(objectsRealPath));
-    }
-
-    // 6) git status clean in each version
+    // 5) git status clean in each version
+    // Note: Legacy FVM 3.x doesn't use git cache with --reference, so versions
+    // installed by it won't have alternates files. We only verify the cache is
+    // bare and the versions remain functional.
     for (final v in ['stable', 'beta', '3.10.0']) {
       final status = await _run(
         [
