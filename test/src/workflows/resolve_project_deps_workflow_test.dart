@@ -74,6 +74,11 @@ void main() {
         File('${binDir.path}/flutter').createSync();
         File('${versionDir.path}/version').writeAsStringSync('3.10.0');
 
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory('${binDir.path}/cache/dart-sdk');
+        dartSdkDir.createSync(recursive: true);
+        File('${dartSdkDir.path}/version').writeAsStringSync('3.10.0');
+
         final setupVersion = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
           directory: versionDir.path,
@@ -108,6 +113,11 @@ void main() {
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
       File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory('${binDir.path}/cache/dart-sdk');
+      dartSdkDir.createSync(recursive: true);
+      File('${dartSdkDir.path}/version').writeAsStringSync('3.10.0');
 
       final setupVersion = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('3.10.0'),
@@ -160,6 +170,11 @@ void main() {
         File('${binDir.path}/flutter').createSync();
         File('${versionDir.path}/version').writeAsStringSync('3.10.0');
 
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory('${binDir.path}/cache/dart-sdk');
+        dartSdkDir.createSync(recursive: true);
+        File('${dartSdkDir.path}/version').writeAsStringSync('3.10.0');
+
         final version = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
           directory: versionDir.path,
@@ -207,6 +222,11 @@ void main() {
         File('${binDir.path}/flutter').createSync();
         File('${versionDir.path}/version').writeAsStringSync('3.10.0');
 
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory('${binDir.path}/cache/dart-sdk');
+        dartSdkDir.createSync(recursive: true);
+        File('${dartSdkDir.path}/version').writeAsStringSync('3.10.0');
+
         final version = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
           directory: versionDir.path,
@@ -240,6 +260,11 @@ void main() {
       binDir.createSync(recursive: true);
       File('${binDir.path}/flutter').createSync();
       File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory('${binDir.path}/cache/dart-sdk');
+      dartSdkDir.createSync(recursive: true);
+      File('${dartSdkDir.path}/version').writeAsStringSync('3.10.0');
 
       final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('3.10.0'),
