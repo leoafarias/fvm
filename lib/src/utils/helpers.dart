@@ -236,7 +236,12 @@ bool _hasGitExtension(String? path) {
 }
 
 bool _isScpLikeGitUrl(String url) {
-  // Matches [user@]host:path where host may be an IPv6 literal in brackets.
+  // Matches scp-like syntax: [user@]host:path
+  // - user@: optional username with @ separator
+  // - host: hostname or IPv6 literal in brackets [::1]
+  // - : required colon separator (distinguishes from file paths)
+  // - path: required path component
+  // Examples: git@github.com:user/repo.git, [::1]:path/to/repo.git
   final scpPattern = RegExp(
     r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$',
   );
@@ -244,6 +249,13 @@ bool _isScpLikeGitUrl(String url) {
   return scpPattern.hasMatch(url);
 }
 
+/// Extracts the path portion from an scp-like Git URL.
+///
+/// Handles two formats:
+/// 1. IPv6 host in brackets: [2001:db8::1]:path/to/repo -> path/to/repo
+/// 2. Regular host: user@host.com:path/to/repo -> path/to/repo
+///
+/// Returns null if the URL format is invalid (missing colon separator).
 String? _extractScpPath(String url) {
   if (url.startsWith('[')) {
     final closeBracket = url.indexOf(']');
@@ -316,6 +328,12 @@ Future<int> getFullDirectorySize(
       versions.map((version) async {
         try {
           return await getDirectorySize(version.directory.dir);
+        } on FileSystemException catch (e) {
+          logger.debug(
+            'Cannot access ${version.name} for size calculation: $e',
+          );
+
+          return 0;
         } catch (e) {
           // Log error but continue with zero for this directory
           logger.warn('Error calculating size for ${version.name}: $e');
@@ -329,7 +347,9 @@ Future<int> getFullDirectorySize(
     return sizes.fold<int>(0, (sum, size) => sum + size);
   } catch (e) {
     // Fallback if parallel execution fails
-    logger.warn('Error calculating full directory size: $e');
+    logger.err(
+      'Failed to calculate total directory size due to internal error: $e',
+    );
 
     return 0;
   }

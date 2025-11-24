@@ -2,7 +2,15 @@
 . "$(dirname -- "$0")/_/husky.sh"
 
 # Add Flutter/Dart to PATH for GUI apps
-export PATH="/Users/leofarias/flutter/bin/cache/dart-sdk/bin:/Users/leofarias/flutter/bin:$PATH"
+if command -v flutter >/dev/null 2>&1; then
+  FLUTTER_BIN="$(command -v flutter)"
+  FLUTTER_DIR="$(dirname "$FLUTTER_BIN")"
+  export PATH="$FLUTTER_DIR/cache/dart-sdk/bin:$FLUTTER_DIR:$PATH"
+elif command -v dart >/dev/null 2>&1; then
+  DART_BIN="$(command -v dart)"
+  DART_DIR="$(dirname "$DART_BIN")"
+  export PATH="$DART_DIR:$PATH"
+fi
 
 # Run dart analyze before pushing
 echo "Running dart analyze..."

@@ -80,37 +80,35 @@ void main() {
       );
     });
 
-    test('Grinder task moves scripts to correct location', () async {
-      // This is more of a smoke test to ensure the grinder task is properly defined
-      final grinderFile = File('tool/grind.dart');
+    test('Release grinder task moves scripts to correct location', () async {
+      final grinderFile = File('tool/release_tool/tool/grind.dart');
       expect(
         grinderFile.existsSync(),
         true,
-        reason: 'Grinder file should exist',
+        reason: 'Release grinder file should exist',
       );
 
       final grinderContent = await grinderFile.readAsString();
 
-      // Check that the moveScripts task is defined
       expect(
         grinderContent.contains(
-          'Move install.sh and uninstall.sh to public directory',
+          "@Task('Move install scripts to public directory')",
         ),
         true,
         reason:
-            'Grinder should have a task to move scripts to public directory',
+            'Release grinder should define a task for moving install scripts',
       );
 
       expect(
-        grinderContent.contains("File('scripts/install.sh')"),
+        grinderContent.contains("install.sh"),
         true,
-        reason: 'Grinder should reference the local install script',
+        reason: 'Release grinder should reference install.sh',
       );
 
       expect(
-        grinderContent.contains("path.join(publicDir.path, 'install.sh')"),
+        grinderContent.contains("docs/public"),
         true,
-        reason: 'Grinder should copy to the public directory',
+        reason: 'Release grinder should target the docs/public directory',
       );
     });
   });

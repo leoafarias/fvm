@@ -4,21 +4,30 @@ on:
     workflow_dispatch:
 
 jobs:
-    deploy-homebrew:
-        name: Update Homebrew
-        runs-on: macos-latest
-        env:
-            PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-            GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
-        steps:
-          - name: Checkout
-            uses: actions/checkout@v4
-  
-          - name: Prepare environment
-            uses: ./.github/actions/prepare
+  deploy-homebrew:
+    name: Update Homebrew
+    runs-on: macos-latest
+    env:
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      GITHUB_TOKEN: ${{ secrets.HOMEBREW_FVM_GH_TOKEN }}
+      RELEASE_DART_SDK: "3.9.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-          - name: Deploy versioned formula
-            run: dart run grinder pkg-homebrew-update --versioned-formula
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ env.RELEASE_DART_SDK }}
 
-          - name: Deploy homebrew
-            run: dart run grinder pkg-homebrew-update
+      - name: Get release tool dependencies
+        working-directory: tool/release_tool
+        run: dart pub get
+
+      - name: Deploy versioned formula
+        working-directory: tool/release_tool
+        run: dart run grinder pkg-homebrew-update --versioned-formula
+
+      - name: Deploy homebrew
+        working-directory: tool/release_tool
+        run: dart run grinder pkg-homebrew-update
