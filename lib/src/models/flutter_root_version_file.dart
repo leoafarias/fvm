@@ -50,9 +50,9 @@ class FlutterRootVersionFile with FlutterRootVersionFileMappable {
   /// Attempts to load and parse the version file from a known Flutter SDK root.
   ///
   /// Returns `null` if the file doesn't exist or can't be parsed.
-  static FlutterRootVersionFile? tryLoadFromRoot(String flutterRoot) {
+  static FlutterRootVersionFile? tryLoadFromRoot(Directory flutterRoot) {
     final file =
-        File(join(flutterRoot, 'bin', 'cache', 'flutter.version.json'));
+        File(join(flutterRoot.path, 'bin', 'cache', 'flutter.version.json'));
 
     return tryLoadFromFile(file);
   }

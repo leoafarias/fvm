@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -21,9 +23,13 @@ class CacheFlutterVersion extends FlutterVersion
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
 
+  // Cached metadata to avoid repeated file reads
+  FlutterRootVersionFile? _cachedMetadata;
+  bool _metadataLoaded = false;
+
   @protected
   @MappableConstructor()
-  const CacheFlutterVersion(
+  CacheFlutterVersion(
     super.name, {
     super.releaseChannel,
     required super.type,
@@ -43,8 +49,16 @@ class CacheFlutterVersion extends FlutterVersion
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
-  FlutterRootVersionFile? get _rootMetadata =>
-      FlutterRootVersionFile.tryLoadFromRoot(directory);
+  /// Lazily loads and caches the JSON metadata file.
+  FlutterRootVersionFile? get _rootMetadata {
+    if (!_metadataLoaded) {
+      _cachedMetadata =
+          FlutterRootVersionFile.tryLoadFromRoot(Directory(directory));
+      _metadataLoaded = true;
+    }
+
+    return _cachedMetadata;
+  }
 
   /// Get version bin path
   @MappableField()
