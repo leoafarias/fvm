@@ -45,6 +45,9 @@ void main() {
       'PUB_CACHE': p.join(tempHome.path, '.pub-cache'),
     };
     final binDir = p.join(env['PUB_CACHE']!, 'bin');
+    final fvmLegacyExe = Platform.isWindows
+        ? p.join(binDir, 'fvm.bat')
+        : p.join(binDir, 'fvm');
     env['PATH'] =
         '$binDir${Platform.isWindows ? ';' : ':'}${Platform.environment['PATH'] ?? ''}';
   });
@@ -64,7 +67,9 @@ void main() {
 
     // helper to run the legacy fvm binary
     Future<void> legacyInstall(String target) async {
-      await _run(['fvm', 'install', target], env: env);
+      // Use the fully-qualified legacy fvm path to avoid PATH resolution
+      // issues on Windows runners where .bat lookup can be flaky.
+      await _run([fvmLegacyExe, 'install', target], env: env);
     }
 
     // 2) Install a channel and a numbered release with legacy fvm
