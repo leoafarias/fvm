@@ -42,6 +42,7 @@ void main() {
       // this sandbox.
       'FVM_HOME': tempHome.path,
       'FVM_CACHE_PATH': tempHome.path,
+      'FVM_USE_GIT_CACHE': 'true',
       // Ensure pub cache bin is in path for activated fvm
       'PUB_CACHE': p.join(tempHome.path, '.pub-cache'),
     };
@@ -91,6 +92,15 @@ void main() {
     await legacyInstall('beta');
     await legacyInstall('3.10.0');
 
+    // Legacy cache should be non-bare
+    final legacyBare = await Process.run(
+      'git',
+      ['rev-parse', '--is-bare-repository'],
+      environment: env,
+      workingDirectory: p.join(tempHome.path, 'cache.git'),
+    );
+    expect((legacyBare.stdout as String?)?.trim().toLowerCase(), isNot('true'));
+
     // Verify legacy cache is non-bare (expected)
     final legacyBare = await Process.run(
       'git',
@@ -115,10 +125,8 @@ void main() {
       cwd: cacheGitPath,
     );
     final isBare = (newBare.stdout as String?)?.trim().toLowerCase();
-    // Migration should produce a bare mirror, but accept worktree caches as
-    // long as the repository is healthy (covers CI environments that may
-    // preserve legacy layout).
-    expect(isBare, anyOf('true', 'false'));
+    // Migration should produce a bare mirror
+    expect(isBare, 'true');
 
     // Resolve the actual objects directory path (bare vs worktree). On macOS
     // temp paths can be symlinked (/var -> /private/var), so normalize.
