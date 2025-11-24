@@ -448,6 +448,20 @@ class GitService extends ContextualService {
 
     // Step 7: Update alternates in installed SDKs to point to new bare path
     await _rewriteAlternatesToBarePath();
+
+    // Final safeguard: verify resulting cache is bare; otherwise recreate
+    // from scratch to avoid leaving legacy worktree layouts behind.
+    final verify = await processService.run(
+      'git',
+      args: ['config', '--bool', 'core.bare'],
+      workingDirectory: legacyDir.path,
+    );
+    final bare = (verify.stdout as String?)?.trim().toLowerCase() == 'true';
+    if (!bare) {
+      logger.warn('Migration yielded non-bare cache, recreating mirror...');
+      await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
+      await _createLocalMirror();
+    }
   }
 
   /// Sets the repository origin URL for the given git directory.
