@@ -243,5 +243,5 @@ FVM keeps a project-scoped symlink at `.fvm/flutter_sdk`. Running `fvm use <vers
 ### Performance tips
 
 - Enable git cache for faster installs
-- Use `--skip-setup` when switching versions frequently
+- Use `fvm install --no-setup` when you only need to cache SDKs (run `--setup` later via `fvm use`)
 - Run `fvm install` in CI before build steps

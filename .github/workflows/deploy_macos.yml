@@ -4,20 +4,27 @@ on:
     workflow_dispatch:
 
 jobs:
-    deploy-macos:
-        name: Deploy (Macos)
-        runs-on: macos-latest
-        env:
-            PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy-macos:
+    name: Deploy (Macos)
+    runs-on: macos-latest
+    env:
+      PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      RELEASE_DART_SDK: "3.9.0"
 
-        steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - name: Prepare environment
-          uses: ./.github/actions/prepare
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ env.RELEASE_DART_SDK }}
 
-        - name: Deploy Github Mac
-          run: dart run grinder pkg-github-macos
-          
+      - name: Get release tool dependencies
+        working-directory: tool/release_tool
+        run: dart pub get
+
+      - name: Deploy Github Mac
+        working-directory: tool/release_tool
+        run: dart run grinder pkg-github-macos

@@ -8,11 +8,7 @@ Future<String> httpRequest(String url, {Map<String, String>? headers}) async {
   try {
     final request = await client.getUrl(Uri.parse(url));
 
-    if (headers != null) {
-      headers.forEach((key, value) {
-        request.headers.set(key, value);
-      });
-    }
+    headers?.forEach(request.headers.set);
 
     final response = await request.close();
 

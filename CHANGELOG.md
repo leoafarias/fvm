@@ -1,3 +1,20 @@
+## 4.0.1
+
+* add: `fvm install` now runs setup by default
+* add: RISC-V and 32-bit ARM architecture support
+* add: SSH and scp-style git URL support for forks
+* add: Standalone executables for host platform
+* fix: `fvm doctor` crash when version not pinned
+* fix: Alpine/musl libc detection in install script
+* fix: Version prefix normalization in install script
+* fix: Pre-push PATH hook auto-detects Flutter/Dart
+* fix: Cache version matching logic
+* fix: Uninstall script, git logging, and HTTP error handling
+* fix: Code quality and analysis warnings
+* docs: Git safe directory troubleshooting for Windows
+* docs: PATH configuration for global version
+* refactor: Migrate release tooling to dedicated package
+
 ## 4.0.0
 
 * add: Manage Flutter SDKs from custom or forked repositories
