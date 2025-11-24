@@ -121,7 +121,6 @@ jobs:
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, test-os]  # Wait for all unit tests before integration
     timeout-minutes: 45
 
     strategy:
