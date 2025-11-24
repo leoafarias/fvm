@@ -36,7 +36,11 @@ void main() {
     tempHome = Directory.systemTemp.createTempSync('fvm_migration_it');
     env = {
       ...Platform.environment,
+      // FVM v3 reads FVM_HOME; newer versions use FVM_CACHE_PATH. Keep both
+      // pointed to the same temp directory so the migration operates within
+      // this sandbox.
       'FVM_HOME': tempHome.path,
+      'FVM_CACHE_PATH': tempHome.path,
       // Ensure pub cache bin is in path for activated fvm
       'PUB_CACHE': p.join(tempHome.path, '.pub-cache'),
     };
@@ -60,7 +64,7 @@ void main() {
 
     // helper to run the legacy fvm binary
     Future<void> legacyInstall(String target) async {
-      await _run(['fvm', 'install', target, '--no-setup'], env: env);
+      await _run(['fvm', 'install', target], env: env);
     }
 
     // 2) Install a channel and a numbered release with legacy fvm
@@ -79,7 +83,7 @@ void main() {
 
     // 3) Run current fvm (repo code) to trigger migration
     await _run(
-      ['dart', 'run', 'bin/fvm.dart', 'install', 'stable', '--no-setup'],
+      ['dart', 'run', 'bin/fvm.dart', 'install', 'stable'],
       env: env,
       cwd: Directory.current.path,
     );
