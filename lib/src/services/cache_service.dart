@@ -106,7 +106,10 @@ class CacheService extends ContextualService {
       final gitDir = Directory(path.join(dir.path, '.git'));
       final flutterBin = File(
         path.join(
-            dir.path, 'bin', Platform.isWindows ? 'flutter.bat' : 'flutter'),
+          dir.path,
+          'bin',
+          Platform.isWindows ? 'flutter.bat' : 'flutter',
+        ),
       );
 
       final looksLikeSdk = versionFile.existsSync() ||

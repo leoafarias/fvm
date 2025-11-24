@@ -146,6 +146,11 @@ jobs:
           git config --global user.name "FVM Integration Test"
           git config --global user.email "test@fvm.app"
 
+      - name: Migration from v3 integration test
+        env:
+          RUN_MIGRATION_IT: "true"
+        run: dart test test/integration/migration_from_v3_test.dart
+
       - name: Run Integration Tests
         shell: bash
         run: dart run grinder integration-test
