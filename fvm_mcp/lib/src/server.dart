@@ -58,8 +58,12 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         name: 'fvm.api.list',
         desc: 'JSON: list cached Flutter SDKs',
         schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(),
-          'skip_size_calculation': BooleanSchema(),
+          'compress': BooleanSchema(
+            description: 'Return minified JSON without formatting',
+          ),
+          'skip_size_calculation': BooleanSchema(
+            description: 'Skip calculating SDK disk sizes for faster response',
+          ),
         }, additionalProperties: false),
         run: (call) => _runner.runJsonApi(
           [
@@ -76,7 +80,9 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         name: 'fvm.api.releases',
         desc: 'JSON: available Flutter releases',
         schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(),
+          'compress': BooleanSchema(
+            description: 'Return minified JSON without formatting',
+          ),
           'limit': IntegerSchema(minimum: 1),
           'filter_channel': StringSchema(
             description: 'Optional channel filter: stable|beta|dev',
@@ -96,9 +102,11 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
 
       _tool(
         name: 'fvm.api.context',
-        desc: 'JSON: FVM environment/context',
+        desc: 'JSON: FVM configuration, cache paths, and environment info',
         schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(),
+          'compress': BooleanSchema(
+            description: 'Return minified JSON without formatting',
+          ),
         }, additionalProperties: false),
         run: (call) => _runner.runJsonApi(
           [
@@ -114,8 +122,10 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         name: 'fvm.api.project',
         desc: 'JSON: project config',
         schema: ObjectSchema(properties: {
-          'path': StringSchema(),
-          'compress': BooleanSchema(),
+          'path': StringSchema(description: 'Path to the Flutter project'),
+          'compress': BooleanSchema(
+            description: 'Return minified JSON without formatting',
+          ),
         }, additionalProperties: false),
         run: (call) => _runner.runJsonApi(
           [
@@ -189,12 +199,18 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       schema: ObjectSchema(properties: {
         'version': StringSchema(),
         'force': BooleanSchema(),
-        'pin': BooleanSchema(),
-        'flavor': StringSchema(),
-        'env': StringSchema(),
+        'pin': BooleanSchema(
+          description: 'Pin to exact version, preventing automatic upgrades',
+        ),
+        'flavor': StringSchema(
+          description: 'Named SDK configuration variant for the project',
+        ),
+        'env': StringSchema(
+          description: 'Environment name for multi-environment project setups',
+        ),
         'skip_setup': BooleanSchema(),
         'skip_pub_get': BooleanSchema(),
-        'cwd': StringSchema(),
+        'cwd': StringSchema(description: 'Working directory for the command'),
       }, additionalProperties: false),
       run: (call) => _runner.run(
         [
