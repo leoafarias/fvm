@@ -45,10 +45,42 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  migration-test:
+    name: Migration Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Integration Test"
+          git config --global user.email "test@fvm.app"
+
+      - name: Migration from v3 integration test
+        env:
+          RUN_MIGRATION_IT: "true"
+        run: dart test test/integration/migration_from_v3_test.dart
+
   test:
     name: Test
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    needs: migration-test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -100,6 +132,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
+    needs: migration-test
     # needs: test  # Allow parallel execution - optimization
     strategy:
       fail-fast: true
@@ -121,6 +154,7 @@ jobs:
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: migration-test
     timeout-minutes: 45
 
     strategy:
@@ -144,11 +178,6 @@ jobs:
         run: |
           git config --global user.name "FVM Integration Test"
           git config --global user.email "test@fvm.app"
-
-      - name: Migration from v3 integration test
-        env:
-          RUN_MIGRATION_IT: "true"
-        run: dart test test/integration/migration_from_v3_test.dart
 
       - name: Run Integration Tests
         shell: bash
