@@ -96,7 +96,8 @@ class ArchiveService extends ContextualService {
         sink.add(chunk);
         downloaded += chunk.length;
 
-        if (totalBytes > 0) {
+        // contentLength returns -1 when unknown, not 0
+        if (totalBytes != -1) {
           final percent = (downloaded / totalBytes * 100).clamp(0, 100);
           progress.update(
             'Downloading Flutter SDK archive (${percent.toStringAsFixed(1)}%)',
@@ -111,7 +112,7 @@ class ArchiveService extends ContextualService {
       await sink.close();
 
       final description =
-          totalBytes > 0 ? _formatBytes(totalBytes) : _formatBytes(downloaded);
+          totalBytes != -1 ? _formatBytes(totalBytes) : _formatBytes(downloaded);
       progress.complete('Downloaded Flutter SDK archive ($description)');
 
       return _DownloadedArchive(file: archiveFile, tempDir: tempDir);
