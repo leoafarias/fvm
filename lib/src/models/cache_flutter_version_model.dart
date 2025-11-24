@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -8,6 +6,7 @@ import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
 import '../utils/extensions.dart';
 import '../utils/helpers.dart';
+import 'flutter_root_version_file.dart';
 import 'flutter_version_model.dart';
 
 part 'cache_flutter_version_model.mapper.dart';
@@ -44,6 +43,9 @@ class CacheFlutterVersion extends FlutterVersion
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
+  FlutterRootVersionFile? get _rootMetadata =>
+      FlutterRootVersionFile.tryLoadFromRoot(directory);
+
   /// Get version bin path
   @MappableField()
   String get binPath => join(directory, 'bin');
@@ -73,34 +75,30 @@ class CacheFlutterVersion extends FlutterVersion
   @MappableField()
   String get flutterExec => join(binPath, flutterExecFileName);
 
-  /// Gets Flutter SDK version from CacheVersion sync
-  /// Falls back to git tags if version file doesn't exist (matches Flutter's behavior)
+  /// Gets Flutter SDK version from CacheVersion sync.
+  ///
+  /// Checks JSON metadata file first (available since Flutter 3.13), then falls
+  /// back to legacy version file. Returns null if neither exists.
   @MappableField()
   String? get flutterSdkVersion {
-    // Check legacy version file first
+    // Prefer JSON metadata file (introduced in Flutter 3.13, required in 3.33+)
+    final jsonVersion = _rootMetadata?.primaryVersion;
+    if (jsonVersion != null) return jsonVersion;
+
+    // Fall back to legacy version file
     final versionFile = join(directory, 'version');
     final versionFromFile = versionFile.file.read()?.trim();
     if (versionFromFile != null) return versionFromFile;
-
-    // Fallback to git tags (what Flutter itself does)
-    try {
-      final result = Process.runSync(
-        'git',
-        ['describe', '--tags'],
-        workingDirectory: directory,
-      );
-      if (result.exitCode == 0) {
-        return (result.stdout as String).trim();
-      }
-    } catch (_) {
-      // Git command failed, return null
-    }
 
     return null;
   }
 
   @MappableField()
   String? get dartSdkVersion {
+    // Prefer new JSON metadata file when present
+    final jsonVersion = _rootMetadata?.dartSdkVersion?.trim();
+    if (jsonVersion != null && jsonVersion.isNotEmpty) return jsonVersion;
+
     final versionFile = join(_dartSdkCache, 'version');
 
     return versionFile.file.read()?.trim();
