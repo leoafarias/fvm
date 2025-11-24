@@ -77,13 +77,24 @@ void main() {
     }
   });
 
-  tearDownAll(() {
+  tearDownAll(() async {
     if (tempHome.existsSync()) {
-      tempHome.deleteSync(recursive: true);
+      // Windows may have file locking issues; retry deletion a few times
+      for (var i = 0; i < 5; i++) {
+        try {
+          tempHome.deleteSync(recursive: true);
+          break;
+        } on FileSystemException {
+          if (i == 4) rethrow;
+          await Future<void>.delayed(Duration(seconds: 2));
+        }
+      }
     }
   });
 
-  test('migrates cache from fvm 3.x to current', () async {
+  test(
+    'migrates cache from fvm 3.x to current',
+    () async {
     // 1) Install legacy fvm 3.x
     await _run(
       ['dart', 'pub', 'global', 'activate', 'fvm', '3.2.1'],
@@ -146,5 +157,8 @@ void main() {
       );
       expect((status.stdout as String?)?.trim(), isEmpty);
     }
-  });
+  },
+    // Windows CI is significantly slower for git operations and Flutter cloning
+    timeout: Timeout(Duration(minutes: 45)),
+  );
 }
