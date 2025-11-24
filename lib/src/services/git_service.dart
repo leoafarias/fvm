@@ -281,6 +281,7 @@ class GitService extends ContextualService {
     final desiredPath = path.normalize(
       path.join(context.gitCachePath, 'objects'),
     );
+    final desiredParent = path.normalize(path.join(context.gitCachePath));
 
     for (final version in versions) {
       final alternatesFile = File(
@@ -292,14 +293,14 @@ class GitService extends ContextualService {
       try {
         final current = alternatesFile.readAsStringSync().trim();
 
-        // Only fix alternates that reference our cache path.
-        if (!path.normalize(current).contains(
-              path.normalize(context.gitCachePath),
-            )) {
+        final currentNorm = path.normalize(path.absolute(current));
+
+        // Only fix alternates that reference our cache path (not backups, etc.)
+        if (!currentNorm.startsWith(desiredParent)) {
           continue;
         }
 
-        if (path.normalize(current) == desiredPath) {
+        if (currentNorm == desiredPath) {
           continue; // already correct
         }
 
