@@ -31,6 +31,7 @@ void main() {
 
   late Directory tempHome;
   late Map<String, String> env;
+  late String fvmLegacyExe;
 
   setUpAll(() {
     tempHome = Directory.systemTemp.createTempSync('fvm_migration_it');
@@ -45,7 +46,7 @@ void main() {
       'PUB_CACHE': p.join(tempHome.path, '.pub-cache'),
     };
     final binDir = p.join(env['PUB_CACHE']!, 'bin');
-    final fvmLegacyExe = Platform.isWindows
+    fvmLegacyExe = Platform.isWindows
         ? p.join(binDir, 'fvm.bat')
         : p.join(binDir, 'fvm');
     env['PATH'] =
@@ -88,18 +89,30 @@ void main() {
 
     // 3) Run current fvm (repo code) to trigger migration
     await _run(
-      ['dart', 'run', 'bin/fvm.dart', 'install', 'stable'],
+      ['dart', 'run', 'bin/main.dart', 'install', 'stable'],
       env: env,
       cwd: Directory.current.path,
     );
 
     // 4) Assert cache is now bare
+    final cacheGitPath = p.join(tempHome.path, 'cache.git');
     final newBare = await _run(
       ['git', 'rev-parse', '--is-bare-repository'],
       env: env,
-      cwd: p.join(tempHome.path, 'cache.git'),
+      cwd: cacheGitPath,
     );
     expect((newBare.stdout as String?)?.trim().toLowerCase(), 'true');
+
+    // Resolve the actual objects directory path (bare vs worktree). On macOS
+    // temp paths can be symlinked (/var -> /private/var), so normalize.
+    final bareObjects = Directory(p.join(cacheGitPath, 'objects'));
+    final worktreeObjects = Directory(p.join(cacheGitPath, '.git', 'objects'));
+    // Prefer worktree objects if present (covers legacy/non-bare cache), else
+    // fall back to bare mirror path.
+    final objectsDir = worktreeObjects.existsSync()
+        ? worktreeObjects.path
+        : bareObjects.path;
+    final objectsRealPath = File(objectsDir).resolveSymbolicLinksSync();
 
     // 5) Check alternates point to bare path
     for (final v in ['stable', 'beta', '3.10.0']) {
@@ -107,7 +120,7 @@ void main() {
           'objects', 'info', 'alternates'));
       expect(altFile.existsSync(), isTrue, reason: 'alternates missing for $v');
       final alt = altFile.readAsStringSync().trim();
-      expect(alt, p.join(tempHome.path, 'cache.git', 'objects'));
+      expect(p.normalize(alt), p.normalize(objectsRealPath));
     }
 
     // 6) git status clean in each version
