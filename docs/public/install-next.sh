@@ -103,12 +103,14 @@ migrate_from_v1() {
     echo "Migrating to user-local install..."
 
     # Try to remove without sudo first
-    if rm -f "$OLD_SYSTEM_PATH" 2>/dev/null; then
+    rm "$OLD_SYSTEM_PATH" 2>/dev/null
+    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
       echo "✓ Removed old system install"
     else
       # Try with sudo if available
       if command -v sudo >/dev/null 2>&1; then
-        if sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null; then
+        sudo rm "$OLD_SYSTEM_PATH" 2>/dev/null
+        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
           echo "✓ Removed old system install (required sudo)"
         else
           echo "⚠ Could not remove $OLD_SYSTEM_PATH"
@@ -137,13 +139,19 @@ do_uninstall() {
 
   # Remove old system install if present (from v1/v2)
   if [ -L "$OLD_SYSTEM_PATH" ] || [ -f "$OLD_SYSTEM_PATH" ]; then
-    if rm -f "$OLD_SYSTEM_PATH" 2>/dev/null; then
+    rm "$OLD_SYSTEM_PATH" 2>/dev/null
+    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
       echo "✓ Removed old system install: $OLD_SYSTEM_PATH"
       removed_any=1
     else
-      if command -v sudo >/dev/null 2>&1 && sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null; then
-        echo "✓ Removed old system install: $OLD_SYSTEM_PATH"
-        removed_any=1
+      if command -v sudo >/dev/null 2>&1; then
+        sudo rm "$OLD_SYSTEM_PATH" 2>/dev/null
+        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+          echo "✓ Removed old system install: $OLD_SYSTEM_PATH"
+          removed_any=1
+        else
+          echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)"
+        fi
       else
         echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)"
       fi
@@ -222,6 +230,10 @@ LIBC_SUFFIX=""
 if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; then
   if (ldd --version 2>&1 | grep -qi musl) || grep -qi musl /proc/self/maps 2>/dev/null; then
     LIBC_SUFFIX="-musl"
+    echo ""
+    echo "Note: Detected musl libc (Alpine Linux)."
+    echo "      Flutter SDK requires glibc. You may need: apk add gcompat"
+    echo ""
   fi
 fi
 
