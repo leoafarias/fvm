@@ -111,10 +111,10 @@ void main() {
             path.join(tempDir.path, version),
           ).createSync(recursive: true);
 
-          // Add the "version" file that marks this as a Flutter SDK directory
-          File(
-            path.join(tempDir.path, version, 'version'),
-          ).writeAsStringSync('$version (test)');
+          // Add bin/flutter to mark this as a Flutter SDK directory
+          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
+          binDir.createSync(recursive: true);
+          File(path.join(binDir.path, 'flutter')).createSync();
         }
 
         // Create a non-directory file that should be ignored
@@ -150,20 +150,20 @@ void main() {
             path.join(tempDir.path, version),
           ).createSync(recursive: true);
 
-          // Add the "version" file that marks this as a Flutter SDK directory
-          File(
-            path.join(tempDir.path, version, 'version'),
-          ).writeAsStringSync('$version (test)');
+          // Add bin/flutter to mark this as a Flutter SDK directory
+          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
+          binDir.createSync(recursive: true);
+          File(path.join(binDir.path, 'flutter')).createSync();
         }
 
-        // Create a hidden directory (.dart_tool) with a version file
+        // Create a hidden directory (.dart_tool) with bin/flutter
         // This simulates the bug where .dart_tool was being picked up
         final dartToolDir = Directory(
           path.join(tempDir.path, '.dart_tool'),
         )..createSync(recursive: true);
-        File(
-          path.join(dartToolDir.path, 'version'),
-        ).writeAsStringSync('2');
+        final dartToolBinDir = Directory(path.join(dartToolDir.path, 'bin'));
+        dartToolBinDir.createSync(recursive: true);
+        File(path.join(dartToolBinDir.path, 'flutter')).createSync();
 
         // Create another hidden directory (.DS_Store)
         Directory(
