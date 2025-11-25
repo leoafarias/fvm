@@ -47,6 +47,29 @@ class CacheFlutterVersion extends FlutterVersion
           fork: version.fork,
         );
 
+  /// Attempts to get version from git tags (for pre-setup SDKs).
+  ///
+  /// Uses `git describe --tags --abbrev=0` to find the nearest tag.
+  /// Returns null if git is unavailable or directory is not a git repo.
+  String? _getVersionFromGit() {
+    try {
+      final result = Process.runSync(
+        'git',
+        ['describe', '--tags', '--abbrev=0'],
+        workingDirectory: directory,
+      );
+      if (result.exitCode == 0) {
+        final tag = (result.stdout as String).trim();
+
+        return tag.isNotEmpty ? tag : null;
+      }
+    } catch (_) {
+      // Git not available or not a git directory - return null
+    }
+
+    return null;
+  }
+
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
   /// Lazily loads and caches the JSON metadata file.
@@ -91,20 +114,25 @@ class CacheFlutterVersion extends FlutterVersion
 
   /// Gets Flutter SDK version from CacheVersion sync.
   ///
-  /// Checks JSON metadata file first (available since Flutter 3.13), then falls
-  /// back to legacy version file. Returns null if neither exists.
+  /// Detection order:
+  /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
+  /// 2. Legacy version file (`version`) - Flutter <3.33
+  /// 3. Git tag via `git describe --tags` - For pre-setup SDKs
+  ///
+  /// Returns null if version cannot be determined.
   @MappableField()
   String? get flutterSdkVersion {
-    // Prefer JSON metadata file (introduced in Flutter 3.13, required in 3.33+)
+    // 1. Prefer JSON metadata file (introduced in Flutter 3.13, required in 3.33+)
     final jsonVersion = _rootMetadata?.primaryVersion;
     if (jsonVersion != null) return jsonVersion;
 
-    // Fall back to legacy version file
+    // 2. Fall back to legacy version file (Flutter <3.33)
     final versionFile = join(directory, 'version');
     final versionFromFile = versionFile.file.read()?.trim();
     if (versionFromFile != null) return versionFromFile;
 
-    return null;
+    // 3. Final fallback: git describe for pre-setup SDKs
+    return _getVersionFromGit();
   }
 
   @MappableField()
