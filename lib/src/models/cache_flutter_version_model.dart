@@ -83,43 +83,41 @@ class CacheFlutterVersion extends FlutterVersion
     return _cachedMetadata;
   }
 
-  /// Get version bin path
+  /// The bin directory path for this cached version.
   @MappableField()
   String get binPath => join(directory, 'bin');
 
-  /// Has old dart path structure
-  // Last version with the old dart path structure
+  /// Whether this version uses the old Dart path structure.
+  ///
+  /// Versions 1.17.5 and earlier stored the Dart SDK at `bin/cache/dart-sdk`.
   @MappableField()
   bool get hasOldBinPath {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
   }
 
-  /// Returns dart exec file for cache version
+  /// The Dart bin directory path for this cached version.
   @MappableField()
   String get dartBinPath {
-    /// Get old bin path
-    /// Before version 1.17.5 dart path was bin/cache/dart-sdk/bin
+    // Before version 1.17.5, the Dart path was bin/cache/dart-sdk/bin
     if (hasOldBinPath) return join(_dartSdkCache, 'bin');
 
     return binPath;
   }
 
-  /// Returns dart exec file for cache version
+  /// The Dart executable path for this cached version.
   @MappableField()
   String get dartExec => join(dartBinPath, dartExecFileName);
 
-  /// Returns flutter exec file for cache version
+  /// The Flutter executable path for this cached version.
   @MappableField()
   String get flutterExec => join(binPath, flutterExecFileName);
 
-  /// Gets Flutter SDK version from CacheVersion sync.
+  /// The Flutter SDK version string, or `null` if it cannot be determined.
   ///
   /// Detection order:
   /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
   /// 2. Legacy version file (`version`) - Flutter <3.33
-  /// 3. Git tag via `git describe --tags` - For pre-setup SDKs
-  ///
-  /// Returns null if version cannot be determined.
+  /// 3. Git tag via `git describe --tags` - for pre-setup SDKs
   @MappableField()
   String? get flutterSdkVersion {
     // 1. Prefer JSON metadata file (introduced in Flutter 3.13, required in 3.33+)
@@ -146,11 +144,12 @@ class CacheFlutterVersion extends FlutterVersion
     return versionFile.file.read()?.trim();
   }
 
-  /// Verifies that cacheVersion has been setup
-  /// Setup means dependencies (Dart SDK cache) have been downloaded
+  /// Whether this cached version has not been set up.
+  ///
+  /// A version is set up once the Dart SDK cache has been downloaded.
   bool get isNotSetup => dartSdkVersion == null;
 
-  /// Returns bool if version is setup
+  /// Whether this cached version has been set up.
   @MappableField()
   bool get isSetup => dartSdkVersion != null;
 

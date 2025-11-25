@@ -58,6 +58,8 @@ class FlutterRootVersionFile with FlutterRootVersionFileMappable {
   }
 
   /// Attempts to parse the given file as a Flutter root version file.
+  ///
+  /// Returns `null` if the file doesn't exist or can't be parsed.
   static FlutterRootVersionFile? tryLoadFromFile(File file) {
     if (!file.existsSync()) return null;
 
