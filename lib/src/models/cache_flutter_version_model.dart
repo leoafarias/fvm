@@ -12,7 +12,7 @@ import 'flutter_version_model.dart';
 
 part 'cache_flutter_version_model.mapper.dart';
 
-/// Cache Version model
+/// A cached Flutter SDK version with metadata loaded from disk.
 ///
 /// This class is immutable - all metadata is loaded once at construction time.
 /// Use [CacheFlutterVersion.fromVersion] factory for production code paths
@@ -20,7 +20,7 @@ part 'cache_flutter_version_model.mapper.dart';
 @MappableClass()
 class CacheFlutterVersion extends FlutterVersion
     with CacheFlutterVersionMappable {
-  /// Directory of the cache version
+  /// The directory path where this cached version is stored.
   final String directory;
 
   /// The Flutter SDK version string, or `null` if it cannot be determined.
@@ -51,9 +51,10 @@ class CacheFlutterVersion extends FlutterVersion
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
 
-  /// Primary constructor - used by mapper for deserialization.
+  /// Creates a [CacheFlutterVersion] from pre-loaded field values.
   ///
-  /// All fields are stored, no I/O happens here.
+  /// Used by the mapper for deserialization. All fields are stored directly;
+  /// no I/O operations happen here.
   @MappableConstructor()
   const CacheFlutterVersion(
     super.name, {
@@ -66,9 +67,10 @@ class CacheFlutterVersion extends FlutterVersion
     this.isSetup = false,
   });
 
-  /// Factory that loads metadata from disk - THE SINGLE PLACE for I/O.
+  /// Creates a [CacheFlutterVersion] by loading metadata from disk.
   ///
-  /// Production code should use this factory via [CacheService.getVersion].
+  /// This factory is the single point for I/O operations related to version
+  /// metadata. Production code should use this via [CacheService.getVersion].
   factory CacheFlutterVersion.fromVersion(
     FlutterVersion version, {
     required String directory,
@@ -86,7 +88,7 @@ class CacheFlutterVersion extends FlutterVersion
     );
   }
 
-  /// Centralized metadata loading - all I/O in one static method.
+  // Loads all version metadata from the given directory.
   static ({String? flutterVersion, String? dartVersion, bool isSetup})
       _loadMetadata(String directory) {
     // Load JSON metadata file: $FLUTTER_ROOT/bin/cache/flutter.version.json
@@ -135,7 +137,7 @@ class CacheFlutterVersion extends FlutterVersion
     );
   }
 
-  /// Attempts to get version from git tags (for pre-setup SDKs).
+  // Attempts to get version from git tags (for pre-setup SDKs).
   static String? _getVersionFromGit(String directory) {
     try {
       final result = Process.runSync(

@@ -18,18 +18,40 @@ class FlutterRootVersionFile with FlutterRootVersionFileMappable {
   static final fromMap = FlutterRootVersionFileMapper.fromMap;
   static final fromJson = FlutterRootVersionFileMapper.fromJson;
 
+  /// The framework version string (e.g., "3.19.0").
   final String? frameworkVersion;
 
+  /// The Flutter version string, may differ from [frameworkVersion] in some builds.
   final String? flutterVersion;
+
+  /// The release channel (e.g., "stable", "beta", "dev", "master").
   final String? channel;
+
+  /// The URL of the Flutter repository.
   final String? repositoryUrl;
+
+  /// The git commit hash of the framework.
   final String? frameworkRevision;
+
+  /// The commit date of the framework revision.
   final String? frameworkCommitDate;
+
+  /// The git commit hash of the Flutter engine.
   final String? engineRevision;
+
+  /// The commit date of the engine revision.
   final String? engineCommitDate;
+
+  /// The content hash of the engine artifacts.
   final String? engineContentHash;
+
+  /// The build date of the engine.
   final String? engineBuildDate;
+
+  /// The Dart SDK version bundled with this Flutter version.
   final String? dartSdkVersion;
+
+  /// The DevTools version bundled with this Flutter version.
   final String? devToolsVersion;
 
   const FlutterRootVersionFile({
