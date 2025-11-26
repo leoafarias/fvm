@@ -81,12 +81,15 @@ print_path_instructions() {
   echo "To use FVM, add it to your PATH:"
   echo ""
   echo "  # For bash (add to ~/.bashrc):"
+  # shellcheck disable=SC2016 # Single quotes intentional - users copy literal $HOME
   echo '  export PATH="$HOME/.fvm_flutter/bin:$PATH"'
   echo ""
   echo "  # For zsh (add to ~/.zshrc):"
+  # shellcheck disable=SC2016
   echo '  export PATH="$HOME/.fvm_flutter/bin:$PATH"'
   echo ""
   echo "  # For fish (run once):"
+  # shellcheck disable=SC2016
   echo '  fish_add_path "$HOME/.fvm_flutter/bin"'
   echo ""
   echo "Then restart your shell or run:"
@@ -174,6 +177,7 @@ do_uninstall() {
   echo "  - ~/.zshrc" >&2
   echo "  - ~/.config/fish/config.fish" >&2
   echo "" >&2
+  # shellcheck disable=SC2016
   echo 'Look for lines containing: $HOME/.fvm_flutter/bin' >&2
 
   exit 0
