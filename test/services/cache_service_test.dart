@@ -111,10 +111,10 @@ void main() {
             path.join(tempDir.path, version),
           ).createSync(recursive: true);
 
-          // Add the "version" file that marks this as a Flutter SDK directory
-          File(
-            path.join(tempDir.path, version, 'version'),
-          ).writeAsStringSync('$version (test)');
+          // Add bin/flutter to mark this as a Flutter SDK directory
+          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
+          binDir.createSync(recursive: true);
+          File(path.join(binDir.path, 'flutter')).createSync();
         }
 
         // Create a non-directory file that should be ignored
@@ -140,6 +140,48 @@ void main() {
               lastVersionName == '1.0.0',
           isTrue,
         );
+      });
+
+      test('skips hidden directories like .dart_tool', () async {
+        // Given
+        final versions = ['stable', 'beta'];
+        for (final version in versions) {
+          Directory(
+            path.join(tempDir.path, version),
+          ).createSync(recursive: true);
+
+          // Add bin/flutter to mark this as a Flutter SDK directory
+          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
+          binDir.createSync(recursive: true);
+          File(path.join(binDir.path, 'flutter')).createSync();
+        }
+
+        // Create a hidden directory (.dart_tool) with bin/flutter
+        // This simulates the bug where .dart_tool was being picked up
+        final dartToolDir = Directory(
+          path.join(tempDir.path, '.dart_tool'),
+        )..createSync(recursive: true);
+        final dartToolBinDir = Directory(path.join(dartToolDir.path, 'bin'));
+        dartToolBinDir.createSync(recursive: true);
+        File(path.join(dartToolBinDir.path, 'flutter')).createSync();
+
+        // Create another hidden directory (.DS_Store)
+        Directory(
+          path.join(tempDir.path, '.hidden'),
+        ).createSync(recursive: true);
+
+        // When
+        final result = await cacheService.getAllVersions();
+
+        // Then - should only find the non-hidden directories
+        expect(result, hasLength(versions.length));
+        expect(result.map((v) => v.name).toList(), containsAll(versions));
+        // Ensure .dart_tool is not in the results
+        expect(
+          result.map((v) => v.name).toList(),
+          isNot(contains('.dart_tool')),
+        );
+        expect(result.map((v) => v.name).toList(), isNot(contains('.hidden')));
       });
     });
 
