@@ -33,6 +33,8 @@ class ConfigOptionsMapper extends EnumMapper<ConfigOptions> {
         return ConfigOptions.gitCachePath;
       case r'flutterUrl':
         return ConfigOptions.flutterUrl;
+      case r'disableUpdateCheck':
+        return ConfigOptions.disableUpdateCheck;
       default:
         throw MapperException.unknownEnumValue(value);
     }
@@ -49,6 +51,8 @@ class ConfigOptionsMapper extends EnumMapper<ConfigOptions> {
         return r'gitCachePath';
       case ConfigOptions.flutterUrl:
         return r'flutterUrl';
+      case ConfigOptions.disableUpdateCheck:
+        return r'disableUpdateCheck';
     }
   }
 }

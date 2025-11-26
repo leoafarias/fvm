@@ -38,6 +38,12 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   final FvmContext context;
   final PubUpdater _pubUpdater;
 
+  /// Timeout for update check network operations
+  static const _updateCheckTimeout = Duration(seconds: 10);
+
+  /// Minimum interval between update checks
+  static const _updateCheckInterval = Duration(days: 1);
+
   /// Constructor
   FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater(),
@@ -69,31 +75,94 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(IntegrationTestCommand(context));
   }
 
+  /// Wraps async operations with timeout and logging
+  Future<T> _checkWithTimeout<T>(
+    Future<T> Function() operation, {
+    String operationName = 'update check',
+  }) async {
+    try {
+      return await operation().timeout(
+        _updateCheckTimeout,
+        onTimeout: () {
+          throw TimeoutException(
+            'Update check timed out after ${_updateCheckTimeout.inSeconds}s',
+          );
+        },
+      );
+    } on TimeoutException catch (e) {
+      logger.debug('$operationName timed out: ${e.message}');
+      rethrow;
+    } catch (e) {
+      logger.debug('$operationName failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Records timestamp of successful update check
+  Future<void> _recordSuccessfulCheck() async {
+    try {
+      final lock = context.createLock('update-check-timestamp');
+      final unlock = await lock.getLock();
+      try {
+        LocalAppConfig.read()
+          ..lastUpdateCheck = DateTime.now()
+          ..save();
+      } finally {
+        unlock();
+      }
+    } catch (e) {
+      logger.debug('Failed to record update check timestamp: $e');
+    }
+  }
+
   /// Checks if the current version (set by the build runner on the
   /// version.dart file) is the most recent one. If not, show a prompt to the
   /// user.
   Future<Function()?> _checkForUpdates() async {
     try {
-      final lastUpdateCheck = context.lastUpdateCheck ?? DateTime.now();
-      if (context.updateCheckDisabled) return null;
-      final oneDay = lastUpdateCheck.add(const Duration(days: 1));
-
-      if (DateTime.now().isBefore(oneDay)) {
+      // Check if disabled first
+      if (context.updateCheckDisabled) {
+        logger.debug('Update checks are disabled via config');
         return null;
       }
 
-      LocalAppConfig.read()
-        ..lastUpdateCheck = DateTime.now()
-        ..save();
+      final lastUpdateCheck = context.lastUpdateCheck;
 
-      final isUpToDate = await _pubUpdater.isUpToDate(
-        packageName: kPackageName,
-        currentVersion: packageVersion,
+      // Safeguard: if timestamp is in the future (clock changed), treat as null
+      if (lastUpdateCheck != null && lastUpdateCheck.isAfter(DateTime.now())) {
+        logger.debug('Last update check timestamp is in the future, ignoring');
+        // Treat as first run - allow check to proceed
+      } else if (lastUpdateCheck != null) {
+        // On normal run, check if 24 hours have passed
+        final oneDay = lastUpdateCheck.add(_updateCheckInterval);
+        if (DateTime.now().isBefore(oneDay)) {
+          return null; // Too soon since last check
+        }
+      }
+      // If lastUpdateCheck is null (first run), allow check to proceed
+
+      // Perform update check with timeout
+      final isUpToDate = await _checkWithTimeout(
+        () => _pubUpdater.isUpToDate(
+          packageName: kPackageName,
+          currentVersion: packageVersion,
+        ),
+        operationName: 'version comparison',
       );
 
-      if (isUpToDate) return null;
+      if (isUpToDate) {
+        // Successful check, no update available
+        await _recordSuccessfulCheck();
+        return null;
+      }
 
-      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
+      final latestVersion = await _checkWithTimeout(
+        () => _pubUpdater.getLatestVersion(kPackageName),
+        operationName: 'latest version fetch',
+      );
+
+      // Successful check, update available
+      await _recordSuccessfulCheck();
 
       return () {
         final updateAvailableLabel = lightYellow.wrap('Update available!');
@@ -107,9 +176,21 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
           )
           ..info();
       };
-    } catch (_) {
+    } on TimeoutException catch (_) {
       return () {
-        logger.debug("Failed to check for updates.");
+        logger.debug('Update check timed out. Will retry next run.');
+      };
+    } on SocketException catch (_) {
+      return () {
+        logger.debug('No network connection for update check.');
+      };
+    } on FormatException catch (e) {
+      return () {
+        logger.debug('Update check failed: invalid response format. $e');
+      };
+    } catch (e) {
+      return () {
+        logger.debug('Update check failed: $e');
       };
     }
   }
@@ -238,6 +319,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..debug('')
       ..debug('Argument information:');
 
+    // Skip update checks for meta-commands that don't require version management
+    final skipUpdateCheckCommands = {'completion', 'api', 'config'};
+    final shouldSkipUpdateCheck = skipUpdateCheckCommands.contains(topLevelResults.command?.name);
+
     if (topLevelResults.command?.name == 'completion') {
       super.runCommand(topLevelResults);
 
@@ -288,7 +373,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Check for deprecated environment variables
     _checkDeprecatedEnvironmentVariables();
 
-    final checkingForUpdate = _checkForUpdates();
+    // Skip update checks for meta-commands
+    final checkingForUpdate = shouldSkipUpdateCheck
+        ? Future.value(null)
+        : _checkForUpdates();
 
     // Run the command or show version
     final int? exitCode;
