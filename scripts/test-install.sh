@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
-# Test root detection logic for FVM install script
-# 
-# This single test file replaces 589 lines of duplicated tests with 81 lines
-# following DRY, KISS, and YAGNI principles.
+# Test root detection logic for install.sh (v1 installer)
+#
+# This tests the root BLOCKING behavior in install.sh, which:
+# - Blocks root by default
+# - Allows root in containers (/.dockerenv, /.containerenv)
+# - Allows root in CI (CI environment variable)
+# - Allows root with FVM_ALLOW_ROOT=true override
+#
+# Note: install-next.sh (v3) has different behavior - it WARNS about
+# root but doesn't block. That behavior is tested in the GitHub workflow.
 #
 # Usage: ./test-install.sh (run as regular user)
 #        sudo ./test-install.sh (run as root to test all scenarios)
@@ -17,15 +23,28 @@ NC='\033[0m'
 pass() { echo -e "${GREEN}✅ $1${NC}"; }
 fail() { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
-echo "🧪 Testing FVM root detection logic"
-echo "=================================="
+echo "🧪 Testing install.sh (v1) root detection logic"
+echo "================================================"
+echo ""
+echo "This tests the root BLOCKING behavior in install.sh"
+echo "(install-next.sh has different behavior - warns only)"
+echo ""
 
-# Test the detection logic directly (DRY - one function)
+# Test the detection logic directly - mirrors install.sh logic
+# See install.sh lines 100-102 (is_container_env) and 277-287 (root check)
 test_detection() {
     local desc="$1"
     local expected="$2"
-    
-    # This mirrors the install.sh logic
+
+    # This mirrors the install.sh logic exactly:
+    # is_container_env() { [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]] }
+    # if [[ $(id -u) -eq 0 ]]; then
+    #   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
+    #     # allowed
+    #   else
+    #     # blocked
+    #   fi
+    # fi
     if [[ $(id -u) -eq 0 ]]; then
         if [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]] || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then
             result="ALLOWED"
@@ -35,7 +54,7 @@ test_detection() {
     else
         result="NOT_ROOT"
     fi
-    
+
     if [[ "$result" == "$expected" ]]; then
         pass "$desc: $result"
     else
@@ -53,36 +72,37 @@ trap cleanup EXIT
 # Run tests based on current user
 if [[ $(id -u) -eq 0 ]]; then
     echo "Running as root - testing root scenarios"
-    
+    echo ""
+
     # Test 1: Bare root (should block)
     cleanup
     test_detection "Root without flags" "BLOCKED"
-    
-    # Test 2: Docker
+
+    # Test 2: Docker container
     touch /.dockerenv
-    test_detection "Root + Docker" "ALLOWED"
+    test_detection "Root + Docker (/.dockerenv)" "ALLOWED"
     rm -f /.dockerenv
-    
-    # Test 3: Podman
+
+    # Test 3: Podman/other container
     touch /.containerenv
-    test_detection "Root + Podman" "ALLOWED"
+    test_detection "Root + Podman (/.containerenv)" "ALLOWED"
     rm -f /.containerenv
-    
-    # Test 4: CI
+
+    # Test 4: CI environment
     export CI=true
-    test_detection "Root + CI" "ALLOWED"
+    test_detection "Root + CI env var" "ALLOWED"
     unset CI
-    
+
     # Test 5: Manual override
     export FVM_ALLOW_ROOT=true
-    test_detection "Root + Override" "ALLOWED"
+    test_detection "Root + FVM_ALLOW_ROOT=true" "ALLOWED"
     unset FVM_ALLOW_ROOT
 else
     echo "Running as non-root"
     test_detection "Non-root user" "NOT_ROOT"
-    echo
+    echo ""
     echo "⚠️  To test root scenarios, run: sudo $0"
 fi
 
-echo
+echo ""
 echo "✅ All tests passed!"
