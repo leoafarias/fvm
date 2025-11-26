@@ -62,9 +62,9 @@ class CacheFlutterVersion extends FlutterVersion
     required super.type,
     super.fork,
     required this.directory,
-    this.flutterSdkVersion,
-    this.dartSdkVersion,
-    this.isSetup = false,
+    required this.flutterSdkVersion,
+    required this.dartSdkVersion,
+    required this.isSetup,
   });
 
   /// Creates a [CacheFlutterVersion] by loading metadata from disk.

@@ -42,13 +42,13 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   static String? _$flutterSdkVersion(CacheFlutterVersion v) =>
       v.flutterSdkVersion;
   static const Field<CacheFlutterVersion, String> _f$flutterSdkVersion =
-      Field('flutterSdkVersion', _$flutterSdkVersion, opt: true);
+      Field('flutterSdkVersion', _$flutterSdkVersion);
   static String? _$dartSdkVersion(CacheFlutterVersion v) => v.dartSdkVersion;
   static const Field<CacheFlutterVersion, String> _f$dartSdkVersion =
-      Field('dartSdkVersion', _$dartSdkVersion, opt: true);
+      Field('dartSdkVersion', _$dartSdkVersion);
   static bool _$isSetup(CacheFlutterVersion v) => v.isSetup;
   static const Field<CacheFlutterVersion, bool> _f$isSetup =
-      Field('isSetup', _$isSetup, opt: true, def: false);
+      Field('isSetup', _$isSetup);
   static String _$binPath(CacheFlutterVersion v) => v.binPath;
   static const Field<CacheFlutterVersion, String> _f$binPath =
       Field('binPath', _$binPath);
