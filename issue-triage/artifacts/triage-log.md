@@ -2,7 +2,7 @@
 
 **Started**: 2025-10-30
 **Current Version**: v4.0.0
-**Total Open Issues**: 48
+**Total Open Issues**: 54
 **Historical Issues Triaged**: 81
 
 ## Progress Tracker
@@ -190,10 +190,20 @@
 - Moved reopened items (#575, #697, #724, #754, #757, #791) back into the validated folders and archived closed ones (#771, #786, #825, #833, #880, #933).
 - Rebuilt the Progress Tracker and Summary Statistics so action items only list currently open issues.
 
+### Session 8: 2025-11-24 (Open Issue Sync)
+- Ran `issue-triage/scripts/sync_github.sh`; pending lists now show 54 open issues and 15 open PRs from GitHub.
+
+### Session 9: 2025-11-24 (PR Alignment)
+- PR #972 improves version detection and “Need setup” status; addresses open issue #970 (3.38.x not listed/flagged).
+- PR #967 (installer v2, user-local default) mitigates cross-user install/security concerns raised in #974; monitor until merged.
+- PR #966 (archive installs) explicitly resolves #688 once merged.
+- PR #964 adds read-only shell profile handling; fixes #897.
+- PR #962 forces full commit hashes; fixes #783 security concern.
+- PR #845 builds arm64 Docker images; fixes #762 multi-arch image gap.
 ---
 
 ## Summary Statistics
-- **Open Issues**: 48
+- **Open Issues**: 54
 - **P0 Critical**: 0
 - **P1 High**: 4
 - **P2 Medium**: 23

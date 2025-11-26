@@ -7,13 +7,30 @@
       "name": "Leo Farias"
     },
     "baseRefName": "main",
+    "body": "Refactors git cache handling to create a validated bare mirror and migrate legacy caches safely. Flutter installs now clone from the local mirror first, rewrite origin to flutter.git, and fall back cleanly to remote. Adds migration and cloning tests plus test helpers for local git fixtures. Updates the changelog with the 4.0.2 notes.",
+    "createdAt": "2025-11-20T15:58:47Z",
+    "headRefName": "conductor/git-cache-review",
+    "labels": [],
+    "number": 976,
+    "title": "Refactor git cache to mirrored architecture",
+    "updatedAt": "2025-11-24T19:16:59Z",
+    "url": "https://github.com/leoafarias/fvm/pull/976"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "baseRefName": "main",
     "body": "## Summary\n\nAdds timeout protection to prevent update checks from hanging indefinitely. Update checks now complete within 3 seconds or fail gracefully with specific logging for timeout vs other failures.\n\n## Changes\n\n- Wrap both `isUpToDate()` and `getLatestVersion()` calls with 3-second timeouts\n- Add specific `TimeoutException` handler with debug logging\n- Preserve existing error handling for other failures\n\n## Impact\n\nUpdate check no longer blocks command execution indefinitely if network is slow or unreachable. Users on slow connections will see debug logs on timeout instead of hanging.",
     "createdAt": "2025-11-17T15:47:03Z",
     "headRefName": "conductor/update-check-timeout",
     "labels": [],
     "number": 975,
     "title": "Add 3-second timeout for update checks",
-    "updatedAt": "2025-11-19T18:33:45Z",
+    "updatedAt": "2025-11-19T18:42:22Z",
     "url": "https://github.com/leoafarias/fvm/pull/975"
   },
   {
