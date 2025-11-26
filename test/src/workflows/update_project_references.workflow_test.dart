@@ -287,6 +287,138 @@ void main() {
       }
     });
 
+    test('should correctly handle fork version references', () async {
+      // Skip on Windows where symlinks require admin rights
+      if (Platform.isWindows) {
+        return;
+      }
+
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir, name: 'test_project');
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      // Create a fork version (e.g., my-fork/3.10.0)
+      const forkName = 'my-fork';
+      const versionName = '3.10.0';
+      final forkVersionDir = Directory(
+        p.join(cacheDir.path, 'versions', forkName, versionName),
+      );
+      forkVersionDir.createSync(recursive: true);
+
+      // Create bin directory
+      final binDir = Directory(p.join(forkVersionDir.path, 'bin'));
+      binDir.createSync(recursive: true);
+
+      // Create dart-sdk cache directory
+      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+      dartSdkDir.createSync(recursive: true);
+
+      // Create version files
+      File(p.join(forkVersionDir.path, 'version')).writeAsStringSync(versionName);
+      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('2.19.0');
+
+      // Create a fork FlutterVersion
+      final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
+      expect(flutterVersion.fromFork, isTrue);
+      expect(flutterVersion.fork, equals(forkName));
+      expect(flutterVersion.name, equals(versionName));
+      expect(flutterVersion.nameWithAlias, equals('$forkName/$versionName'));
+
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        flutterVersion,
+        directory: forkVersionDir.path,
+      );
+
+      // Ensure context has privilegedAccess set to true
+      final privilegedContext = TestFactory.context(privilegedAccess: true);
+      final workflow = UpdateProjectReferencesWorkflow(privilegedContext);
+
+      // Run workflow
+      final updatedProject = await workflow.call(
+        project,
+        cacheVersion,
+        force: true,
+      );
+
+      // Verify the project was updated with the correct fork version
+      expect(updatedProject.pinnedVersion?.fromFork, isTrue);
+      expect(updatedProject.pinnedVersion?.fork, equals(forkName));
+      expect(updatedProject.pinnedVersion?.name, equals(versionName));
+      expect(
+        updatedProject.pinnedVersion?.nameWithAlias,
+        equals('$forkName/$versionName'),
+      );
+
+      // Verify config file contains the full fork version string
+      final configFile = File(p.join(testDir.path, '.fvmrc'));
+      expect(configFile.existsSync(), isTrue);
+      final configContent = configFile.readAsStringSync();
+      expect(configContent, contains('$forkName/$versionName'));
+
+      // Verify symlink was created in the correct fork subdirectory
+      final versionSymlink = Link(
+        p.join(testDir.path, '.fvm', 'versions', forkName, versionName),
+      );
+      expect(versionSymlink.existsSync(), isTrue);
+      expect(versionSymlink.targetSync(), equals(cacheVersion.directory));
+
+      // Verify flutter_sdk symlink points to the fork version
+      final flutterSdkLink = Link(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.flutterSdkLink,
+        ),
+      );
+      expect(flutterSdkLink.existsSync(), isTrue);
+      expect(flutterSdkLink.targetSync(), equals(cacheVersion.directory));
+    });
+
+    test('should update flavor with fork version', () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      // Create a fork version
+      const forkName = 'my-fork';
+      const versionName = '3.10.0';
+      final forkVersionDir = Directory(
+        p.join(cacheDir.path, 'versions', forkName, versionName),
+      );
+      forkVersionDir.createSync(recursive: true);
+
+      // Create version file
+      File(p.join(forkVersionDir.path, 'version')).writeAsStringSync(versionName);
+
+      final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        flutterVersion,
+        directory: forkVersionDir.path,
+      );
+
+      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+
+      // Run workflow with flavor
+      final updatedProject = await workflow.call(
+        project,
+        cacheVersion,
+        flavor: 'staging',
+        force: true,
+      );
+
+      // Verify flavor contains the full fork version string
+      final flavor = updatedProject.flavors['staging'];
+      expect(flavor, equals('$forkName/$versionName'));
+    });
+
     test('should handle project constraints issues', () async {
       final testDir = tempDirs.create();
       createPubspecYaml(
@@ -304,6 +436,10 @@ void main() {
 
       // name
       when(() => cacheVersion.name).thenReturn('2.19.0');
+
+      when(() => cacheVersion.nameWithAlias).thenReturn('2.19.0');
+
+      when(() => cacheVersion.fromFork).thenReturn(false);
 
       when(() => cacheVersion.printFriendlyName).thenReturn('Mock version');
 

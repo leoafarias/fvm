@@ -71,7 +71,7 @@ class Project with ProjectMappable {
   @MappableField()
   String? get activeFlavor {
     return flavors.keys.firstWhereOrNull(
-      (key) => flavors[key] == pinnedVersion?.name,
+      (key) => flavors[key] == pinnedVersion?.nameWithAlias,
     );
   }
 
@@ -112,7 +112,7 @@ class Project with ProjectMappable {
   /// Returns the path of the Flutter SDK symlink within the project.
   @MappableField()
   String get localVersionSymlinkPath {
-    return join(localVersionsCachePath, pinnedVersion?.name);
+    return join(localVersionsCachePath, pinnedVersion?.nameWithAlias);
   }
 
   @MappableField()
