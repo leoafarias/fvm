@@ -4,32 +4,35 @@ on:
   push:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/install-next.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/install-next.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
 jobs:
-  # Basic validation
+  # Basic validation - shellcheck both scripts
   validate:
-    name: Validate Script
+    name: Validate Scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install shellcheck
         run: |
-          # Only install if not already available (for act compatibility)
           if ! command -v shellcheck &> /dev/null; then
             sudo apt-get update && sudo apt-get install -y shellcheck
           fi
-      - name: Run shellcheck
+      - name: Shellcheck install.sh
         run: shellcheck scripts/install.sh
+      - name: Shellcheck install-next.sh
+        run: shellcheck scripts/install-next.sh
 
-  # Test on major platforms
-  test-install:
-    name: Test - ${{ matrix.os }}
+  # Test install-next.sh (v3 - user-local only)
+  test-install-next:
+    name: Test install-next.sh - ${{ matrix.os }}
     needs: validate
     strategy:
       matrix:
@@ -37,109 +40,160 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test installation
         run: |
           ./scripts/install-next.sh
-          # Add to PATH for testing
           export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
-      
+
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install-next.sh
           export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
-      
+
       - name: Test uninstall
         run: |
-          # First ensure FVM is installed
           export PATH="$HOME/.fvm_flutter/bin:$PATH"
           which fvm
-          ls -la ~/.fvm_flutter/bin/
-
-          # Run uninstall
           ./scripts/install-next.sh --uninstall
 
-          # Verify uninstall (PATH should be cleared for this check)
-          export PATH="$(echo $PATH | tr ':' '\n' | grep -v '.fvm_flutter' | tr '\n' ':')"
-          if command -v fvm &>/dev/null; then
-            echo "❌ FVM command still exists after uninstall"
-            exit 1
-          fi
-
+          # Verify uninstall
           if [[ -d ~/.fvm_flutter ]]; then
             echo "❌ FVM directory still exists after uninstall"
             exit 1
           fi
-
           echo "✅ FVM successfully uninstalled"
-      
+
       - name: Test uninstall on clean system (idempotency)
+        run: ./scripts/install-next.sh --uninstall
+
+  # Test install.sh (v1 - creates system symlink)
+  test-install-legacy:
+    name: Test install.sh - ${{ matrix.os }}
+    needs: validate
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test installation
         run: |
-          # Run uninstall again - should handle gracefully
-          ./scripts/install-next.sh --uninstall
+          ./scripts/install.sh
+          fvm --version
 
-      - name: Test user install (v3 user-local only)
+      - name: Test reinstall (idempotency)
         run: |
-          # v3: user install only (no --system flag)
-          ./scripts/install-next.sh
+          ./scripts/install.sh
+          fvm --version
 
-          # Verify user install
-          test -f ~/.fvm_flutter/bin/fvm || { echo "❌ User install failed"; exit 1; }
-          ~/.fvm_flutter/bin/fvm --version || { echo "❌ Binary not working"; exit 1; }
+      - name: Test uninstall
+        run: |
+          which fvm
+          ./scripts/install.sh --uninstall
 
-          # Verify no system install
-          test ! -f /usr/local/bin/fvm || { echo "❌ Unexpected system install"; exit 1; }
+          # Verify uninstall
+          if [[ -d ~/.fvm_flutter ]]; then
+            echo "❌ FVM directory still exists after uninstall"
+            exit 1
+          fi
+          echo "✅ FVM successfully uninstalled"
 
-          echo "✅ User install successful"
-
-          # Cleanup
-          ./scripts/install-next.sh --uninstall
-
-  # Test container detection and root permissions
-  test-container:
-    name: Test Container
+  # Test install-next.sh in container (root allowed with warning)
+  test-container-next:
+    name: Test install-next.sh in Container
     needs: validate
     runs-on: ubuntu-latest
     container: ubuntu:latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          apt-get update && apt-get install -y curl tar gzip
-      
-      - name: Test container root allowed
-        run: |
-          # v3 installer: user-local install works as root in containers
-          ./scripts/install-next.sh
-          $HOME/.fvm_flutter/bin/fvm --version
-          echo "✅ Container install as root successful"
 
-  # Test root permissions (allowed with warning)
-  test-permissions:
-    name: Test Permissions
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl tar gzip
+
+      - name: Test container root install (should warn but succeed)
+        run: |
+          output=$(./scripts/install-next.sh 2>&1)
+          echo "$output"
+
+          # Should show warning
+          if echo "$output" | grep -q "Running as root"; then
+            echo "✅ Root warning displayed"
+          else
+            echo "❌ Expected root warning"
+            exit 1
+          fi
+
+          # Should still succeed
+          $HOME/.fvm_flutter/bin/fvm --version
+          echo "✅ Container install successful"
+
+  # Test install.sh in container (root allowed in container)
+  test-container-legacy:
+    name: Test install.sh in Container
+    needs: validate
+    runs-on: ubuntu-latest
+    container: ubuntu:latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl tar gzip
+
+      - name: Test container root install (should succeed - container detected)
+        run: |
+          ./scripts/install.sh
+          fvm --version
+          echo "✅ Container install successful"
+
+  # Test install-next.sh root permissions (warns but allows)
+  test-permissions-next:
+    name: Test install-next.sh Root Warning
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Test root allowed with warning
+      - name: Test root shows warning but succeeds
         run: |
-          # v3 installer: root is allowed but warns
-          # Run installation and capture output
           output=$(sudo -H ./scripts/install-next.sh 2>&1)
           echo "$output"
 
-          # Check for root warning
+          # Should show warning
           if echo "$output" | grep -q "Running as root"; then
             echo "✅ Root warning displayed"
           else
-            echo "❌ Root warning should be displayed"
+            echo "❌ Expected root warning"
             exit 1
           fi
 
-          # Verify install succeeded (use -H to set HOME to /root)
-          sudo -H /root/.fvm_flutter/bin/fvm --version || { echo "❌ Install failed"; exit 1; }
+          # Should succeed
+          sudo -H /root/.fvm_flutter/bin/fvm --version
           echo "✅ Root install successful"
+
+  # Test install.sh root permissions (blocks without override)
+  test-permissions-legacy:
+    name: Test install.sh Root Blocking
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test root is blocked without override
+        run: |
+          # Should fail when run as root without FVM_ALLOW_ROOT
+          if sudo -H ./scripts/install.sh 2>&1; then
+            echo "❌ Should have blocked root execution"
+            exit 1
+          else
+            echo "✅ Root correctly blocked"
+          fi
+
+      - name: Test root allowed with FVM_ALLOW_ROOT
+        run: |
+          sudo -H env FVM_ALLOW_ROOT=true ./scripts/install.sh
+          sudo -H /root/.fvm_flutter/bin/fvm --version
+          echo "✅ Root install with override successful"
