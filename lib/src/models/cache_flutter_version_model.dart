@@ -76,6 +76,7 @@ class CacheFlutterVersion extends FlutterVersion
     required String directory,
   }) {
     final metadata = _loadMetadata(directory);
+
     return CacheFlutterVersion(
       version.name,
       releaseChannel: version.releaseChannel,
@@ -108,16 +109,10 @@ class CacheFlutterVersion extends FlutterVersion
     // Priority: JSON → legacy version file → git describe
     String? flutterVersion = rootMetadata?.primaryVersion;
 
-    if (flutterVersion == null) {
-      // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
-      final versionFile = join(directory, 'version');
-      flutterVersion = versionFile.file.read()?.trim();
-    }
+    // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
+    flutterVersion ??= join(directory, 'version').file.read()?.trim();
 
-    if (flutterVersion == null) {
-      // Fallback: git describe for pre-setup SDKs
-      flutterVersion = _getVersionFromGit(directory);
-    }
+    flutterVersion ??= _getVersionFromGit(directory);
 
     // --- Dart SDK version detection ---
     // Priority: JSON → dart-sdk version file
@@ -133,7 +128,7 @@ class CacheFlutterVersion extends FlutterVersion
     return (
       flutterVersion: flutterVersion,
       dartVersion: dartVersion,
-      isSetup: isSetup
+      isSetup: isSetup,
     );
   }
 
@@ -147,11 +142,13 @@ class CacheFlutterVersion extends FlutterVersion
       );
       if (result.exitCode == 0) {
         final tag = (result.stdout as String).trim();
+
         return tag.isNotEmpty ? tag : null;
       }
     } catch (_) {
       // Git not available or not a git directory - return null
     }
+
     return null;
   }
 
