@@ -243,5 +243,19 @@ void main() {
       // Clean up the temporary directory
       tempDir.deleteSync(recursive: true);
     });
+
+    test('flutterSdkVersion is null when no version sources available', () {
+      final tempDir = Directory.systemTemp.createTempSync('no_version_');
+
+      final version = CacheFlutterVersion.fromVersion(
+        FlutterVersion.parse('test'),
+        directory: tempDir.path,
+      );
+
+      expect(version.flutterSdkVersion, isNull);
+      expect(version.isSetup, isFalse);
+
+      tempDir.deleteSync(recursive: true);
+    });
   });
 }

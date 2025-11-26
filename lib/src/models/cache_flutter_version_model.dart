@@ -70,7 +70,7 @@ class CacheFlutterVersion extends FlutterVersion
   /// Creates a [CacheFlutterVersion] by loading metadata from disk.
   ///
   /// This factory is the single point for I/O operations related to version
-  /// metadata. Production code should use this via [CacheService.getVersion].
+  /// metadata. Production code should use this via `CacheService.getVersion`.
   factory CacheFlutterVersion.fromVersion(
     FlutterVersion version, {
     required String directory,
@@ -145,14 +145,16 @@ class CacheFlutterVersion extends FlutterVersion
 
         return tag.isNotEmpty ? tag : null;
       }
-    } catch (_) {
-      // Git not available or not a git directory - return null
+    } on ProcessException {
+      // Git not available or command execution failed
+      return null;
+    } on FileSystemException {
+      // Working directory missing or permission denied
+      return null;
     }
 
     return null;
   }
-
-  String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
 
   /// The bin directory path for this cached version.
   @MappableField()
@@ -160,8 +162,8 @@ class CacheFlutterVersion extends FlutterVersion
 
   /// Whether this version uses the old Dart path structure.
   ///
-  /// Versions 1.17.5 and earlier had Dart executables in `bin/cache/dart-sdk/bin`.
-  /// Later versions moved them to `bin` for easier access.
+  /// Versions 1.17.5 and earlier required using `bin/cache/dart-sdk/bin` to access
+  /// Dart executables. Later versions added Dart wrappers to `bin` for convenience.
   @MappableField()
   bool get hasOldBinPath {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
@@ -170,8 +172,7 @@ class CacheFlutterVersion extends FlutterVersion
   /// The Dart bin directory path for this cached version.
   @MappableField()
   String get dartBinPath {
-    // Before version 1.17.5, the Dart path was bin/cache/dart-sdk/bin
-    if (hasOldBinPath) return join(_dartSdkCache, 'bin');
+    if (hasOldBinPath) return join(binPath, 'cache', 'dart-sdk', 'bin');
 
     return binPath;
   }

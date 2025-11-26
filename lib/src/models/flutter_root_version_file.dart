@@ -89,7 +89,14 @@ class FlutterRootVersionFile with FlutterRootVersionFileMappable {
       final json = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
 
       return FlutterRootVersionFile.fromMap(json);
-    } catch (_) {
+    } on FormatException {
+      // Invalid JSON syntax
+      return null;
+    } on FileSystemException {
+      // File read error (permissions, I/O issues)
+      return null;
+    } on TypeError {
+      // JSON decoded but not a Map<String, dynamic>
       return null;
     }
   }

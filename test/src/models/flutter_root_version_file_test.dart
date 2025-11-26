@@ -33,5 +33,35 @@ void main() {
 
       expect(missing, isNull);
     });
+
+    test('returns null for malformed JSON', () {
+      final tempDir = Directory.systemTemp.createTempSync('malformed_');
+      final file = File(path.join(tempDir.path, 'flutter.version.json'));
+      file.writeAsStringSync('{ invalid json }');
+
+      expect(FlutterRootVersionFile.tryLoadFromFile(file), isNull);
+
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('returns null for JSON array instead of object', () {
+      final tempDir = Directory.systemTemp.createTempSync('array_');
+      final file = File(path.join(tempDir.path, 'flutter.version.json'));
+      file.writeAsStringSync('["3.0.0"]');
+
+      expect(FlutterRootVersionFile.tryLoadFromFile(file), isNull);
+
+      tempDir.deleteSync(recursive: true);
+    });
+
+    test('returns null for empty file', () {
+      final tempDir = Directory.systemTemp.createTempSync('empty_');
+      final file = File(path.join(tempDir.path, 'flutter.version.json'));
+      file.writeAsStringSync('');
+
+      expect(FlutterRootVersionFile.tryLoadFromFile(file), isNull);
+
+      tempDir.deleteSync(recursive: true);
+    });
   });
 }
