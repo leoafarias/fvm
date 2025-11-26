@@ -78,6 +78,8 @@ void main() {
         // Create Dart SDK cache version file (required for isSetup to be true)
         final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
         dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final setupVersion = CacheFlutterVersion.fromVersion(
@@ -118,6 +120,8 @@ void main() {
       // Create Dart SDK cache version file (required for isSetup to be true)
       final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
       dartSdkDir.createSync(recursive: true);
+      // Create bin directory as it is used to check if isSetup
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
       final setupVersion = CacheFlutterVersion.fromVersion(
@@ -174,6 +178,8 @@ void main() {
         // Create Dart SDK cache version file (required for isSetup to be true)
         final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
         dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final version = CacheFlutterVersion.fromVersion(
@@ -226,6 +232,8 @@ void main() {
         // Create Dart SDK cache version file (required for isSetup to be true)
         final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
         dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final version = CacheFlutterVersion.fromVersion(
@@ -265,6 +273,8 @@ void main() {
       // Create Dart SDK cache version file (required for isSetup to be true)
       final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
       dartSdkDir.createSync(recursive: true);
+      // Create bin directory as it is used to check if isSetup
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
       final version = CacheFlutterVersion.fromVersion(

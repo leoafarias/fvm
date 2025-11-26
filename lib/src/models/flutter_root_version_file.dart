@@ -9,7 +9,7 @@ part 'flutter_root_version_file.mapper.dart';
 /// Represents the contents of `$FLUTTER_ROOT/bin/cache/flutter.version.json`.
 ///
 /// This file was introduced in Flutter 3.13 and becomes the sole version source
-/// in Flutter 3.33+ (replacing the legacy `$FLUTTER_ROOT/version` file).
+/// in Flutter 3.38+ (replacing the legacy `$FLUTTER_ROOT/version` file).
 ///
 /// Fields are optional because the file format can evolve over time and custom
 /// builds might omit values.

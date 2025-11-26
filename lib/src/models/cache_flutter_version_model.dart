@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
 import '../utils/compare_semver.dart';
@@ -14,44 +13,130 @@ import 'flutter_version_model.dart';
 part 'cache_flutter_version_model.mapper.dart';
 
 /// Cache Version model
+///
+/// This class is immutable - all metadata is loaded once at construction time.
+/// Use [CacheFlutterVersion.fromVersion] factory for production code paths
+/// that need to load metadata from disk.
 @MappableClass()
 class CacheFlutterVersion extends FlutterVersion
     with CacheFlutterVersionMappable {
   /// Directory of the cache version
   final String directory;
 
+  /// The Flutter SDK version string, or `null` if it cannot be determined.
+  ///
+  /// Detection order (at construction time):
+  /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
+  /// 2. Legacy version file (`version`) - Flutter <3.38
+  /// 3. Git tag via `git describe --tags` - for pre-setup SDKs
+  @MappableField()
+  final String? flutterSdkVersion;
+
+  /// The Dart SDK version string, or `null` if not available.
+  ///
+  /// Detection order (at construction time):
+  /// 1. JSON metadata file (`bin/cache/flutter.version.json`)
+  /// 2. Dart SDK version file (`bin/cache/dart-sdk/version`)
+  @MappableField()
+  final String? dartSdkVersion;
+
+  /// Whether this cached version has been set up.
+  ///
+  /// A version is considered set up when the `dart-sdk/bin` directory exists,
+  /// indicating the Dart SDK has been downloaded. This is more robust than
+  /// checking version files which could be removed in future Flutter versions.
+  @MappableField()
+  final bool isSetup;
+
   static final fromMap = CacheFlutterVersionMapper.fromMap;
   static final fromJson = CacheFlutterVersionMapper.fromJson;
 
-  // Cached metadata to avoid repeated file reads
-  FlutterRootVersionFile? _cachedMetadata;
-  bool _metadataLoaded = false;
-
-  @protected
+  /// Primary constructor - used by mapper for deserialization.
+  ///
+  /// All fields are stored, no I/O happens here.
   @MappableConstructor()
-  CacheFlutterVersion(
+  const CacheFlutterVersion(
     super.name, {
     super.releaseChannel,
     required super.type,
     super.fork,
     required this.directory,
+    this.flutterSdkVersion,
+    this.dartSdkVersion,
+    this.isSetup = false,
   });
 
-  CacheFlutterVersion.fromVersion(
+  /// Factory that loads metadata from disk - THE SINGLE PLACE for I/O.
+  ///
+  /// Production code should use this factory via [CacheService.getVersion].
+  factory CacheFlutterVersion.fromVersion(
     FlutterVersion version, {
-    required this.directory,
-  }) : super(
-          version.name,
-          releaseChannel: version.releaseChannel,
-          type: version.type,
-          fork: version.fork,
-        );
+    required String directory,
+  }) {
+    final metadata = _loadMetadata(directory);
+    return CacheFlutterVersion(
+      version.name,
+      releaseChannel: version.releaseChannel,
+      type: version.type,
+      fork: version.fork,
+      directory: directory,
+      flutterSdkVersion: metadata.flutterVersion,
+      dartSdkVersion: metadata.dartVersion,
+      isSetup: metadata.isSetup,
+    );
+  }
+
+  /// Centralized metadata loading - all I/O in one static method.
+  static ({String? flutterVersion, String? dartVersion, bool isSetup})
+      _loadMetadata(String directory) {
+    // Load JSON metadata file: $FLUTTER_ROOT/bin/cache/flutter.version.json
+    // This file exists after setup on Flutter 3.13+
+    final rootMetadata =
+        FlutterRootVersionFile.tryLoadFromRoot(Directory(directory));
+
+    final dartSdkCache = join(directory, 'bin', 'cache', 'dart-sdk');
+
+    // --- Setup detection ---
+    // Check if dart-sdk/bin/ directory exists (most reliable indicator)
+    // This is more robust than checking version files which could be removed
+    final dartSdkBinDir = Directory(join(dartSdkCache, 'bin'));
+    final isSetup = dartSdkBinDir.existsSync();
+
+    // --- Flutter SDK version detection ---
+    // Priority: JSON → legacy version file → git describe
+    String? flutterVersion = rootMetadata?.primaryVersion;
+
+    if (flutterVersion == null) {
+      // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
+      final versionFile = join(directory, 'version');
+      flutterVersion = versionFile.file.read()?.trim();
+    }
+
+    if (flutterVersion == null) {
+      // Fallback: git describe for pre-setup SDKs
+      flutterVersion = _getVersionFromGit(directory);
+    }
+
+    // --- Dart SDK version detection ---
+    // Priority: JSON → dart-sdk version file
+    // Note: Can be null even if isSetup=true (if version files are removed)
+    String? dartVersion = rootMetadata?.dartSdkVersion?.trim();
+
+    if (dartVersion == null || dartVersion.isEmpty) {
+      // Dart SDK version file: $FLUTTER_ROOT/bin/cache/dart-sdk/version
+      final versionFile = join(dartSdkCache, 'version');
+      dartVersion = versionFile.file.read()?.trim();
+    }
+
+    return (
+      flutterVersion: flutterVersion,
+      dartVersion: dartVersion,
+      isSetup: isSetup
+    );
+  }
 
   /// Attempts to get version from git tags (for pre-setup SDKs).
-  ///
-  /// Uses `git describe --tags --abbrev=0` to find the nearest tag.
-  /// Returns null if git is unavailable or directory is not a git repo.
-  String? _getVersionFromGit() {
+  static String? _getVersionFromGit(String directory) {
     try {
       final result = Process.runSync(
         'git',
@@ -60,28 +145,15 @@ class CacheFlutterVersion extends FlutterVersion
       );
       if (result.exitCode == 0) {
         final tag = (result.stdout as String).trim();
-
         return tag.isNotEmpty ? tag : null;
       }
     } catch (_) {
       // Git not available or not a git directory - return null
     }
-
     return null;
   }
 
   String get _dartSdkCache => join(binPath, 'cache', 'dart-sdk');
-
-  /// Lazily loads and caches the JSON metadata file.
-  FlutterRootVersionFile? get _rootMetadata {
-    if (!_metadataLoaded) {
-      _cachedMetadata =
-          FlutterRootVersionFile.tryLoadFromRoot(Directory(directory));
-      _metadataLoaded = true;
-    }
-
-    return _cachedMetadata;
-  }
 
   /// The bin directory path for this cached version.
   @MappableField()
@@ -89,7 +161,8 @@ class CacheFlutterVersion extends FlutterVersion
 
   /// Whether this version uses the old Dart path structure.
   ///
-  /// Versions 1.17.5 and earlier stored the Dart SDK at `bin/cache/dart-sdk`.
+  /// Versions 1.17.5 and earlier had Dart executables in `bin/cache/dart-sdk/bin`.
+  /// Later versions moved them to `bin` for easier access.
   @MappableField()
   bool get hasOldBinPath {
     return compareSemver(assignVersionWeight(version), '1.17.5') <= 0;
@@ -112,46 +185,8 @@ class CacheFlutterVersion extends FlutterVersion
   @MappableField()
   String get flutterExec => join(binPath, flutterExecFileName);
 
-  /// The Flutter SDK version string, or `null` if it cannot be determined.
-  ///
-  /// Detection order:
-  /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
-  /// 2. Legacy version file (`version`) - Flutter <3.33
-  /// 3. Git tag via `git describe --tags` - for pre-setup SDKs
-  @MappableField()
-  String? get flutterSdkVersion {
-    // 1. Prefer JSON metadata file (introduced in Flutter 3.13, required in 3.33+)
-    final jsonVersion = _rootMetadata?.primaryVersion;
-    if (jsonVersion != null) return jsonVersion;
-
-    // 2. Fall back to legacy version file (Flutter <3.33)
-    final versionFile = join(directory, 'version');
-    final versionFromFile = versionFile.file.read()?.trim();
-    if (versionFromFile != null) return versionFromFile;
-
-    // 3. Final fallback: git describe for pre-setup SDKs
-    return _getVersionFromGit();
-  }
-
-  @MappableField()
-  String? get dartSdkVersion {
-    // Prefer new JSON metadata file when present
-    final jsonVersion = _rootMetadata?.dartSdkVersion?.trim();
-    if (jsonVersion != null && jsonVersion.isNotEmpty) return jsonVersion;
-
-    final versionFile = join(_dartSdkCache, 'version');
-
-    return versionFile.file.read()?.trim();
-  }
-
   /// Whether this cached version has not been set up.
-  ///
-  /// A version is set up once the Dart SDK cache has been downloaded.
-  bool get isNotSetup => dartSdkVersion == null;
-
-  /// Whether this cached version has been set up.
-  @MappableField()
-  bool get isSetup => dartSdkVersion != null;
+  bool get isNotSetup => !isSetup;
 
   FlutterVersion toFlutterVersion() =>
       FlutterVersion(name, releaseChannel: releaseChannel, type: type);
