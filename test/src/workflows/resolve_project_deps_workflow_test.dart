@@ -6,6 +6,7 @@ import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/resolve_project_deps.workflow.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -62,17 +63,24 @@ void main() {
             );
 
         // Create .dart_tool/version file in the PROJECT path (not testDir)
-        final dartToolDir = Directory('${project.path}/.dart_tool');
+        final dartToolDir = Directory(p.join(project.path, '.dart_tool'));
         dartToolDir.createSync();
-        final versionFile = File('${dartToolDir.path}/version');
+        final versionFile = File(p.join(dartToolDir.path, 'version'));
         versionFile.writeAsStringSync('3.10.0');
 
         // Create a properly setup version
         final versionDir = tempDirs.create();
-        final binDir = Directory('${versionDir.path}/bin');
+        final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        File('${binDir.path}/flutter').createSync();
-        File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+        File(p.join(binDir.path, 'flutter')).createSync();
+        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+        dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final setupVersion = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
@@ -104,10 +112,17 @@ void main() {
 
       // Create a properly setup version
       final versionDir = tempDirs.create();
-      final binDir = Directory('${versionDir.path}/bin');
+      final binDir = Directory(p.join(versionDir.path, 'bin'));
       binDir.createSync(recursive: true);
-      File('${binDir.path}/flutter').createSync();
-      File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+      File(p.join(binDir.path, 'flutter')).createSync();
+      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+      dartSdkDir.createSync(recursive: true);
+      // Create bin directory as it is used to check if isSetup
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
       final setupVersion = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('3.10.0'),
@@ -155,10 +170,17 @@ void main() {
         // Create a minimal setup version - in real test env without Flutter,
         // pub get will fail which is what we want
         final versionDir = tempDirs.create();
-        final binDir = Directory('${versionDir.path}/bin');
+        final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        File('${binDir.path}/flutter').createSync();
-        File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+        File(p.join(binDir.path, 'flutter')).createSync();
+        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+        dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final version = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
@@ -202,10 +224,17 @@ void main() {
             );
 
         final versionDir = tempDirs.create();
-        final binDir = Directory('${versionDir.path}/bin');
+        final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        File('${binDir.path}/flutter').createSync();
-        File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+        File(p.join(binDir.path, 'flutter')).createSync();
+        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+        // Create Dart SDK cache version file (required for isSetup to be true)
+        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+        dartSdkDir.createSync(recursive: true);
+        // Create bin directory as it is used to check if isSetup
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
         final version = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),
@@ -236,10 +265,17 @@ void main() {
           );
 
       final versionDir = tempDirs.create();
-      final binDir = Directory('${versionDir.path}/bin');
+      final binDir = Directory(p.join(versionDir.path, 'bin'));
       binDir.createSync(recursive: true);
-      File('${binDir.path}/flutter').createSync();
-      File('${versionDir.path}/version').writeAsStringSync('3.10.0');
+      File(p.join(binDir.path, 'flutter')).createSync();
+      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+      dartSdkDir.createSync(recursive: true);
+      // Create bin directory as it is used to check if isSetup
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
       final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('3.10.0'),

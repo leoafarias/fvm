@@ -39,6 +39,16 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   static String _$directory(CacheFlutterVersion v) => v.directory;
   static const Field<CacheFlutterVersion, String> _f$directory =
       Field('directory', _$directory);
+  static String? _$flutterSdkVersion(CacheFlutterVersion v) =>
+      v.flutterSdkVersion;
+  static const Field<CacheFlutterVersion, String> _f$flutterSdkVersion =
+      Field('flutterSdkVersion', _$flutterSdkVersion);
+  static String? _$dartSdkVersion(CacheFlutterVersion v) => v.dartSdkVersion;
+  static const Field<CacheFlutterVersion, String> _f$dartSdkVersion =
+      Field('dartSdkVersion', _$dartSdkVersion);
+  static bool _$isSetup(CacheFlutterVersion v) => v.isSetup;
+  static const Field<CacheFlutterVersion, bool> _f$isSetup =
+      Field('isSetup', _$isSetup);
   static String _$binPath(CacheFlutterVersion v) => v.binPath;
   static const Field<CacheFlutterVersion, String> _f$binPath =
       Field('binPath', _$binPath);
@@ -54,16 +64,6 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   static String _$flutterExec(CacheFlutterVersion v) => v.flutterExec;
   static const Field<CacheFlutterVersion, String> _f$flutterExec =
       Field('flutterExec', _$flutterExec);
-  static String? _$flutterSdkVersion(CacheFlutterVersion v) =>
-      v.flutterSdkVersion;
-  static const Field<CacheFlutterVersion, String> _f$flutterSdkVersion =
-      Field('flutterSdkVersion', _$flutterSdkVersion);
-  static String? _$dartSdkVersion(CacheFlutterVersion v) => v.dartSdkVersion;
-  static const Field<CacheFlutterVersion, String> _f$dartSdkVersion =
-      Field('dartSdkVersion', _$dartSdkVersion);
-  static bool _$isSetup(CacheFlutterVersion v) => v.isSetup;
-  static const Field<CacheFlutterVersion, bool> _f$isSetup =
-      Field('isSetup', _$isSetup);
 
   @override
   final MappableFields<CacheFlutterVersion> fields = const {
@@ -72,14 +72,14 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
     #type: _f$type,
     #fork: _f$fork,
     #directory: _f$directory,
+    #flutterSdkVersion: _f$flutterSdkVersion,
+    #dartSdkVersion: _f$dartSdkVersion,
+    #isSetup: _f$isSetup,
     #binPath: _f$binPath,
     #hasOldBinPath: _f$hasOldBinPath,
     #dartBinPath: _f$dartBinPath,
     #dartExec: _f$dartExec,
     #flutterExec: _f$flutterExec,
-    #flutterSdkVersion: _f$flutterSdkVersion,
-    #dartSdkVersion: _f$dartSdkVersion,
-    #isSetup: _f$isSetup,
   };
   @override
   final bool ignoreNull = true;
@@ -89,7 +89,10 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
         releaseChannel: data.dec(_f$releaseChannel),
         type: data.dec(_f$type),
         fork: data.dec(_f$fork),
-        directory: data.dec(_f$directory));
+        directory: data.dec(_f$directory),
+        flutterSdkVersion: data.dec(_f$flutterSdkVersion),
+        dartSdkVersion: data.dec(_f$dartSdkVersion),
+        isSetup: data.dec(_f$isSetup));
   }
 
   @override
@@ -153,7 +156,10 @@ abstract class CacheFlutterVersionCopyWith<$R, $In extends CacheFlutterVersion,
       FlutterChannel? releaseChannel,
       VersionType? type,
       String? fork,
-      String? directory});
+      String? directory,
+      String? flutterSdkVersion,
+      String? dartSdkVersion,
+      bool? isSetup});
   CacheFlutterVersionCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -172,13 +178,19 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
           Object? releaseChannel = $none,
           VersionType? type,
           Object? fork = $none,
-          String? directory}) =>
+          String? directory,
+          Object? flutterSdkVersion = $none,
+          Object? dartSdkVersion = $none,
+          bool? isSetup}) =>
       $apply(FieldCopyWithData({
         if (name != null) #name: name,
         if (releaseChannel != $none) #releaseChannel: releaseChannel,
         if (type != null) #type: type,
         if (fork != $none) #fork: fork,
-        if (directory != null) #directory: directory
+        if (directory != null) #directory: directory,
+        if (flutterSdkVersion != $none) #flutterSdkVersion: flutterSdkVersion,
+        if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
+        if (isSetup != null) #isSetup: isSetup
       }));
   @override
   CacheFlutterVersion $make(CopyWithData data) =>
@@ -186,7 +198,11 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
           releaseChannel: data.get(#releaseChannel, or: $value.releaseChannel),
           type: data.get(#type, or: $value.type),
           fork: data.get(#fork, or: $value.fork),
-          directory: data.get(#directory, or: $value.directory));
+          directory: data.get(#directory, or: $value.directory),
+          flutterSdkVersion:
+              data.get(#flutterSdkVersion, or: $value.flutterSdkVersion),
+          dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
+          isSetup: data.get(#isSetup, or: $value.isSetup));
 
   @override
   CacheFlutterVersionCopyWith<$R2, CacheFlutterVersion, $Out2>
