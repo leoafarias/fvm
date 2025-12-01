@@ -43,8 +43,10 @@ class CacheService extends ContextualService {
 
   // Verifies that the cache version name matches the flutter version
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If its a channel return true
+    // If it's a channel return true
     if (version.isChannel) return true;
+    // If it's a git commit, return true (commit hash won't match SDK version)
+    if (version.isUnknownRef) return true;
     // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
@@ -71,10 +73,20 @@ class CacheService extends ContextualService {
 
     final cacheVersions = <CacheFlutterVersion>[];
 
+    // Checks if a directory is a Flutter SDK.
+    //
+    // Uses bin/flutter existence as the indicator since it's always present
+    // in Flutter SDK directories (part of the git repository), regardless of
+    // whether setup has been run or which Flutter version is installed.
+    bool isFlutterSdkDirectory(Directory dir) {
+      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+
+      return flutterBin.existsSync();
+    }
+
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
-      final versionFile = File(path.join(dir.path, 'version'));
-      if (versionFile.existsSync()) {
+      if (isFlutterSdkDirectory(dir)) {
         // This is a version directory
         final name = path.basename(dir.path);
 
@@ -102,6 +114,9 @@ class CacheService extends ContextualService {
           final entries = await dir.list().toList();
           for (var entry in entries) {
             if (entry.path.isDir()) {
+              final subDirName = path.basename(entry.path);
+              // Skip hidden directories (starting with .)
+              if (subDirName.startsWith('.')) continue;
               // Check subdirectories with this directory as the fork
               await processDirectory(
                 Directory(entry.path),
@@ -113,10 +128,13 @@ class CacheService extends ContextualService {
       }
     }
 
-    // Scan all top-level directories
+    // Scan all top-level directories, skipping hidden directories
     final topLevelEntries = await versionsDir.list().toList();
     for (var entry in topLevelEntries) {
       if (entry.path.isDir()) {
+        final dirName = path.basename(entry.path);
+        // Skip hidden directories (starting with .)
+        if (dirName.startsWith('.')) continue;
         await processDirectory(Directory(entry.path));
       }
     }
