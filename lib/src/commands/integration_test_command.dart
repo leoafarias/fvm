@@ -860,7 +860,7 @@ class IntegrationTestRunner {
     if (installedVersions.isEmpty && cacheDir.existsSync()) {
       final dirs = cacheDir.listSync().whereType<Directory>().toList();
       final validDirs = dirs
-          .where((d) => File(p.join(d.path, 'version')).existsSync())
+          .where((d) => File(p.join(d.path, 'bin', 'flutter')).existsSync())
           .toList();
 
       if (validDirs.isNotEmpty) {

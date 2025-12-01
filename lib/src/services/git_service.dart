@@ -166,6 +166,7 @@ class GitService extends ContextualService {
                 'Recreating mirror...',
               );
               await _createLocalMirror();
+
               return;
             }
           }
