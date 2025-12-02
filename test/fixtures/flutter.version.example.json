@@ -1,0 +1,14 @@
+{
+  "frameworkVersion": "3.33.0-1.0.pre-1070",
+  "channel": "master",
+  "repositoryUrl": "unknown source",
+  "frameworkRevision": "be9526fbaaaab9474e95d196b70c41297eeda2d0",
+  "frameworkCommitDate": "2025-07-22 11:34:11 -0700",
+  "engineRevision": "be9526fbaaaab9474e95d196b70c41297eeda2d0",
+  "engineCommitDate": "2025-07-22 18:34:11.000Z",
+  "engineContentHash": "70fb28dde094789120421d4e807a9c37a0131296",
+  "engineBuildDate": "2025-07-22 11:47:42.829",
+  "dartSdkVersion": "3.10.0 (build 3.10.0-15.0.dev)",
+  "devToolsVersion": "2.48.0",
+  "flutterVersion": "3.33.0-1.0.pre-1070"
+}
