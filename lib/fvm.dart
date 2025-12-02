@@ -1,5 +1,6 @@
 export 'package:fvm/src/models/cache_flutter_version_model.dart';
 export 'package:fvm/src/models/config_model.dart';
+export 'package:fvm/src/models/flutter_root_version_file.dart';
 export 'package:fvm/src/models/flutter_version_model.dart';
 export 'package:fvm/src/models/log_level_model.dart';
 export 'package:fvm/src/models/project_model.dart';
