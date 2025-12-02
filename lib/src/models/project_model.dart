@@ -112,7 +112,12 @@ class Project with ProjectMappable {
   /// Returns the path of the Flutter SDK symlink within the project.
   @MappableField()
   String get localVersionSymlinkPath {
-    return join(localVersionsCachePath, pinnedVersion?.nameWithAlias);
+    final fork = pinnedVersion?.fork;
+    if (fork != null) {
+      return join(localVersionsCachePath, fork, pinnedVersion?.name);
+    }
+
+    return join(localVersionsCachePath, pinnedVersion?.name);
   }
 
   @MappableField()
