@@ -49,15 +49,17 @@ void main() {
         true,
         reason: 'Version should be channel',
       );
+      // flutterSdkVersion can be detected via git tags even before setup
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNull,
-        reason: 'Version should not have flutter sdk version',
+        isNotNull,
+        reason: 'Version should have flutter sdk version from git tags',
       );
+      // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(
         cacheVersion?.dartSdkVersion,
         isNull,
-        reason: 'Version should not have dart sdk version',
+        reason: 'Version should not have dart sdk version before setup',
       );
 
       // Verify project has no pinned version yet
@@ -91,15 +93,17 @@ void main() {
         true,
         reason: 'Version should be channel',
       );
+      // flutterSdkVersion can be detected via git tags even before setup
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNull,
-        reason: 'Version should not have flutter sdk version',
+        isNotNull,
+        reason: 'Version should have flutter sdk version from git tags',
       );
+      // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(
         cacheVersion?.dartSdkVersion,
         isNull,
-        reason: 'Version should not have dart sdk version',
+        reason: 'Version should not have dart sdk version before setup',
       );
     });
   });

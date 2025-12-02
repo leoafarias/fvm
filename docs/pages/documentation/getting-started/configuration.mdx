@@ -61,6 +61,14 @@ Inside the directory, you will find the following files and symlinks:
 -  **release** - (internal use only) File containing the release version of FVM.
 -  **version** - (internal use only) File containing the version of FVM that created this configuration.
 
+<Callout type="tip">
+  Need IDE-specific steps? Follow the [Android Studio and IntelliJ workflow guide](/documentation/guides/workflows#android-studio--intellij) to point the IDE at the project's `.fvm/flutter_sdk` symlink and refresh caches after switching versions.
+</Callout>
+
+<Callout type="warning">
+  If `.fvm/flutter_sdk` is missing, run `fvm use <version>` in the project root to recreate the symlink before reopening the IDE.
+</Callout>
+
 <Callout type="info">
   Starting with version 3.0 and above, it is recommended to add the `.fvm` directory
   to your `.gitignore` file. FVM will automatically add it to .gitignore when
