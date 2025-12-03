@@ -78,6 +78,20 @@ class ArchiveService extends ContextualService {
     final client = HttpClient();
     final progress = logger.progress('Downloading Flutter SDK archive');
 
+    Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
+      progress.fail('Failed to download Flutter SDK archive');
+      tempDir.deleteSync(recursive: true);
+
+      if (error is AppException) {
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+
+      Error.throwWithStackTrace(
+        AppException('Failed to download Flutter SDK archive: $error'),
+        stackTrace,
+      );
+    }
+
     try {
       final request = await client.getUrl(Uri.parse(release.archiveUrl));
       final response = await request.close();
@@ -111,31 +125,23 @@ class ArchiveService extends ContextualService {
 
       await sink.close();
 
-      final description =
-          totalBytes != -1 ? _formatBytes(totalBytes) : _formatBytes(downloaded);
+      final description = totalBytes != -1
+          ? _formatBytes(totalBytes)
+          : _formatBytes(downloaded);
       progress.complete('Downloaded Flutter SDK archive ($description)');
 
       return _DownloadedArchive(file: archiveFile, tempDir: tempDir);
     } on SocketException catch (error, stackTrace) {
-      progress.fail('Failed to download Flutter SDK archive');
-      tempDir.deleteSync(recursive: true);
-      Error.throwWithStackTrace(
+      cleanupAndRethrow(
         AppException(
           'Network error while downloading Flutter SDK archive: ${error.message}',
         ),
         stackTrace,
       );
-    } on AppException {
-      progress.fail('Failed to download Flutter SDK archive');
-      tempDir.deleteSync(recursive: true);
-      rethrow;
+    } on AppException catch (error, stackTrace) {
+      cleanupAndRethrow(error, stackTrace);
     } catch (error, stackTrace) {
-      progress.fail('Failed to download Flutter SDK archive');
-      tempDir.deleteSync(recursive: true);
-      Error.throwWithStackTrace(
-        AppException('Failed to download Flutter SDK archive: $error'),
-        stackTrace,
-      );
+      cleanupAndRethrow(error, stackTrace);
     } finally {
       client.close(force: true);
     }
