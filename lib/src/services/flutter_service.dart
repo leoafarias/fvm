@@ -81,9 +81,22 @@ class FlutterService extends ContextualService {
         logger.err(
           'Local git cache appears corrupted '
           '(exit ${error.errorCode}: ${error.message}). '
-          'Consider running "fvm doctor" to diagnose. '
           'Falling back to remote clone.',
         );
+
+        // Delete corrupted mirror - will be recreated on next install
+        final cacheDir = Directory(context.gitCachePath);
+        if (cacheDir.existsSync()) {
+          try {
+            cacheDir.deleteSync(recursive: true);
+            logger.info('Removed corrupted cache. It will be recreated on next install.');
+          } on FileSystemException catch (e) {
+            logger.warn(
+              'Could not remove corrupted cache: ${e.message}. '
+              'You may need to manually delete ${context.gitCachePath}',
+            );
+          }
+        }
       } else {
         logger.warn(
           'Cloning from local git cache failed (${error.message}). '
