@@ -354,7 +354,7 @@ void main() {
         }
 
         try {
-          if (File(lockFilePath).existsSync()) {
+          if (File(fileLocker.path).existsSync()) {
             fileLocker.lock(); // Keep refreshing the lock
           }
         } catch (e) {
