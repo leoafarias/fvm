@@ -155,6 +155,88 @@ void main() {
           }
         }
       });
+
+      test('retries with remote clone when mirror is missing reference',
+          () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_retry_',
+        );
+
+        try {
+          // Create remote and seed mirror before the new branch exists
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final gitCachePath = p.join(tempDir.path, 'mirror.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand([
+            'clone',
+            '--mirror',
+            remoteDir.path,
+            gitCachePath,
+          ]);
+
+          // Add a new branch to the remote after the mirror was created so the
+          // mirror does not contain the reference.
+          final workDir = Directory(p.join(tempDir.path, 'work'))..createSync();
+          await runGitCommand(['clone', remoteDir.path, workDir.path]);
+          await runGitCommand(
+            ['config', 'user.email', 'tests@fvm.app'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['config', 'user.name', 'FVM Tests'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['checkout', '-b', 'feature'],
+            workingDirectory: workDir.path,
+          );
+          File(p.join(workDir.path, 'FEATURE.md')).writeAsStringSync('feature');
+          await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+          await runGitCommand(
+            ['commit', '-m', 'Add feature branch'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['push', 'origin', 'feature'],
+            workingDirectory: workDir.path,
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('feature');
+
+          await service.install(version);
+
+          final cacheService = context.get<CacheService>();
+          final versionDir = cacheService.getVersionCacheDir(version);
+
+          final headResult = await runGitCommand(
+            ['rev-parse', '--abbrev-ref', 'HEAD'],
+            workingDirectory: versionDir.path,
+          );
+
+          expect(headResult.stdout.toString().trim(), 'feature');
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
     });
 
     test('returns expected error for reset to non-existent version', () {
