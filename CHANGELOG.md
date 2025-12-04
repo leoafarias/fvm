@@ -1,3 +1,10 @@
+## 4.0.2
+
+* fix: version detection for Flutter 3.38+ (version file removal)
+* fix: filter hidden directories from cache version listing
+* fix: route conflict in documentation site navigation
+* docs: improve Android Studio/IntelliJ IDE configuration guide
+
 ## 4.0.1
 
 * add: `fvm install` now runs setup by default
