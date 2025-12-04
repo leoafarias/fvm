@@ -126,12 +126,7 @@ class GitService extends ContextualService {
       await _validateMirror(gitCacheDir);
       // Ensure the mirror is actually bare; a non-bare clone here would
       // break later operations and should be treated as invalid.
-      final bareCheck = await get<ProcessService>().run(
-        'git',
-        args: ['config', '--bool', 'core.bare'],
-        workingDirectory: gitCacheDir.path,
-      );
-      if ((bareCheck.stdout as String?)?.trim().toLowerCase() != 'true') {
+      if (!await _isBareRepository(gitCacheDir.path)) {
         throw const ProcessException(
           'git',
           ['config', '--bool', 'core.bare'],
@@ -166,6 +161,16 @@ class GitService extends ContextualService {
       args: ['fsck', '--connectivity-only'],
       workingDirectory: directory.path,
     );
+  }
+
+  /// Returns true if the repository at [path] is a bare repository.
+  Future<bool> _isBareRepository(String path) async {
+    final result = await get<ProcessService>().run(
+      'git',
+      args: ['config', '--bool', 'core.bare'],
+      workingDirectory: path,
+    );
+    return (result.stdout as String?)?.trim().toLowerCase() == 'true';
   }
 
   /// Helper method to run git ls-remote commands against the remote repository
@@ -228,14 +233,7 @@ class GitService extends ContextualService {
     }
 
     try {
-      final result = await get<ProcessService>().run(
-        'git',
-        args: ['rev-parse', '--is-bare-repository'],
-        workingDirectory: gitCacheDir.path,
-      );
-
-      final output = (result.stdout ?? '').toString().trim().toLowerCase();
-      if (output == 'true') {
+      if (await _isBareRepository(gitCacheDir.path)) {
         return _GitCacheState.ready;
       }
 
@@ -433,12 +431,7 @@ class GitService extends ContextualService {
       await _validateMirror(tempBareDir);
 
       // Verify it's actually bare
-      final bareCheck = await processService.run(
-        'git',
-        args: ['config', '--bool', 'core.bare'],
-        workingDirectory: tempBareDir.path,
-      );
-      if ((bareCheck.stdout as String?)?.trim().toLowerCase() != 'true') {
+      if (!await _isBareRepository(tempBareDir.path)) {
         throw AppException('Migration resulted in non-bare repository');
       }
     } catch (error) {
@@ -458,13 +451,7 @@ class GitService extends ContextualService {
 
     // Final safeguard: verify resulting cache is bare; otherwise recreate
     // from scratch to avoid leaving legacy worktree layouts behind.
-    final verify = await processService.run(
-      'git',
-      args: ['config', '--bool', 'core.bare'],
-      workingDirectory: legacyDir.path,
-    );
-    final bare = (verify.stdout as String?)?.trim().toLowerCase() == 'true';
-    if (!bare) {
+    if (!await _isBareRepository(legacyDir.path)) {
       logger.warn('Migration yielded non-bare cache, recreating mirror...');
       await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
       await _createLocalMirror();
