@@ -133,11 +133,7 @@ class FvmContext with FvmContextMappable {
 
   /// Run pub get on sdk changes
   @MappableField()
-  bool get runPubGetOnSdkChanges {
-    return config.runPubGetOnSdkChanges != null
-        ? config.runPubGetOnSdkChanges!
-        : true;
-  }
+  bool get runPubGetOnSdkChanges => config.runPubGetOnSdkChanges ?? true;
 
   /// FVM Version
   @MappableField()
@@ -161,17 +157,11 @@ class FvmContext with FvmContextMappable {
 
   /// Flutter SDK Path
   @MappableField()
-  bool get updateCheckDisabled {
-    return config.disableUpdateCheck != null
-        ? config.disableUpdateCheck!
-        : false;
-  }
+  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
 
   /// Privileged access
   @MappableField()
-  bool get privilegedAccess {
-    return config.privilegedAccess != null ? config.privilegedAccess! : true;
-  }
+  bool get privilegedAccess => config.privilegedAccess ?? true;
 
   /// Where Default Flutter SDK is stored
   @MappableField()
@@ -198,7 +188,7 @@ class FvmContext with FvmContextMappable {
   /// Creates a file-based lock for cross-process synchronization.
   ///
   /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
-  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
+  /// Locks are stored in `~/.fvm/.locks/{name}.lock`.
   ///
   /// Usage:
   /// ```dart
@@ -216,7 +206,8 @@ class FvmContext with FvmContextMappable {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
     }
-    // Clean up legacy visible lock directory if present
+
+    // Migrate from visible 'locks/' (4.0.0) to hidden '.locks/'
     final legacyLockDir = Directory(join(fvmDir, 'locks'));
     if (legacyLockDir.existsSync()) {
       for (final entry in legacyLockDir.listSync()) {
