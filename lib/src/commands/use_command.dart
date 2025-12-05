@@ -70,7 +70,7 @@ class UseCommand extends BaseFvmCommand {
 
     // If no version was passed as argument check project config.
     if (argResults!.rest.isEmpty) {
-      version = project.pinnedVersion?.name;
+      version = project.pinnedVersion?.nameWithAlias;
       final versions = await get<CacheService>().getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);

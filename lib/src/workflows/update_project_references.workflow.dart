@@ -64,6 +64,13 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       project.localVersionsCachePath.dir
         ..deleteIfExists()
         ..createSync(recursive: true);
+
+      if (version.fromFork) {
+        final forkDir = p.join(project.localVersionsCachePath, version.fork!);
+        if (!forkDir.dir.existsSync()) {
+          forkDir.dir.createSync(recursive: true);
+        }
+      }
     } on Exception catch (_) {
       logger.err('Failed to prepare versions cache directory');
 
@@ -137,13 +144,13 @@ class UpdateProjectReferencesWorkflow extends Workflow {
         ..debug('Updating project config')
         ..debug('Project name: ${project.name}')
         ..debug('Project path: ${project.path}')
-        ..debug('Flutter version: ${version.name}')
+        ..debug('Flutter version: ${version.nameWithAlias}')
         ..debug('');
 
       final updatedProject = get<ProjectService>().update(
         project,
-        flavors: {if (flavor != null) flavor: version.name},
-        flutterSdkVersion: version.name,
+        flavors: {if (flavor != null) flavor: version.nameWithAlias},
+        flutterSdkVersion: version.nameWithAlias,
       );
 
       _updateLocalSdkReference(updatedProject, version);
