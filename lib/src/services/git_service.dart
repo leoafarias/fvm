@@ -12,6 +12,11 @@ import 'base_service.dart';
 import 'cache_service.dart';
 import 'process_service.dart';
 
+/// Cache state for migration decisions.
+/// - missing: no cache directory
+/// - invalid: exists but not a git repo
+/// - legacy: non-bare clone (needs migration)
+/// - ready: bare mirror, ready for use
 enum _GitCacheState { missing, invalid, legacy, ready }
 
 /// Service for Git operations
@@ -19,7 +24,16 @@ enum _GitCacheState { missing, invalid, legacy, ready }
 class GitService extends ContextualService {
   List<GitReference>? _referencesCache;
 
-  GitService(super.context);
+  GitService(super.context) {
+    // Create lock based on gitCachePath so all processes using the same
+    // git cache share the same lock, even if they have different cachePath.
+    // This prevents race conditions when tests share a git cache but have
+    // isolated FVM cache directories.
+    _updatingCacheLock = FileLocker(
+      '${context.gitCachePath}.lock',
+      lockExpiration: const Duration(minutes: 10),
+    );
+  }
 
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
@@ -67,11 +81,18 @@ class GitService extends ContextualService {
 
     tempDir.renameSync(gitCacheDir.path);
 
+    // Clean up orphaned temp directories from previous runs (after rename completes)
+    await _cleanupOrphanedTempDirs(gitCacheDir.parent);
+
     logger.info('Local mirror created successfully!');
 
     // After rebuilding the mirror, ensure all installed SDKs point their
     // alternates to the new bare path (cache.git/objects).
-    await _rewriteAlternatesToBarePath();
+    try {
+      await _rewriteAlternatesToBarePath();
+    } catch (e) {
+      logger.warn('Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+    }
   }
 
   Future<Directory> _cloneMirrorInto(Directory gitCacheDir) async {
@@ -136,9 +157,6 @@ class GitService extends ContextualService {
       await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
       rethrow;
     }
-
-    // On success, clean up any orphaned temp directories from previous runs
-    await _cleanupOrphanedTempDirs(gitCacheDir.parent);
 
     return gitCacheDir;
   }
@@ -456,7 +474,11 @@ class GitService extends ContextualService {
     logger.info('Legacy cache migrated to bare mirror successfully!');
 
     // Step 7: Update alternates in installed SDKs to point to new bare path
-    await _rewriteAlternatesToBarePath();
+    try {
+      await _rewriteAlternatesToBarePath();
+    } catch (e) {
+      logger.warn('Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+    }
 
     // Final safeguard: verify resulting cache is bare; otherwise recreate
     // from scratch to avoid leaving legacy worktree layouts behind.
