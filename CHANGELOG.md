@@ -1,3 +1,8 @@
+## 4.0.4
+
+* fix: remove leading newline from fvm dart/flutter output
+* fix: read or write cache with fork version by @huanghui1998hhh
+
 ## 4.0.3
 
 * fix: preserve all project settings on fvm install
