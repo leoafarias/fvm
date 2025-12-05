@@ -87,14 +87,22 @@ class FlutterService extends ContextualService {
         // Delete corrupted mirror - will be recreated on next install
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          try {
-            cacheDir.deleteSync(recursive: true);
-            logger.info('Removed corrupted cache. It will be recreated on next install.');
-          } on FileSystemException catch (e) {
-            logger.warn(
-              'Could not remove corrupted cache: ${e.message}. '
-              'You may need to manually delete ${context.gitCachePath}',
-            );
+          final attempts = Platform.isWindows ? 5 : 1;
+          for (var attempt = 1; attempt <= attempts; attempt++) {
+            try {
+              cacheDir.deleteSync(recursive: true);
+              logger.info('Removed corrupted cache. It will be recreated on next install.');
+              break;
+            } on FileSystemException catch (e) {
+              if (!Platform.isWindows || attempt == attempts) {
+                logger.warn(
+                  'Could not remove corrupted cache: ${e.message}. '
+                  'You may need to manually delete ${cacheDir.path}',
+                );
+                break;
+              }
+              await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+            }
           }
         }
       } else {
@@ -110,17 +118,21 @@ class FlutterService extends ContextualService {
     }
   }
 
-  void _cleanupPartialClone(Directory versionDir) {
+  bool _cleanupPartialClone(Directory versionDir) {
     try {
       if (versionDir.existsSync()) {
         versionDir.deleteSync(recursive: true);
       }
+
+      return true;
     } on FileSystemException catch (e) {
       // Error level since this leaves orphaned directories that consume disk space
       logger.err(
         'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
         'You may need to manually delete this directory.',
       );
+
+      return false;
     }
   }
 
@@ -131,6 +143,8 @@ class FlutterService extends ContextualService {
     );
   }
 
+  /// Detects git errors indicating a reference (branch/tag/commit) doesn't exist.
+  /// Used to determine if retry from remote is warranted.
   bool _isReferenceLookupError(String errorMessage) {
     final lower = errorMessage.toLowerCase();
 

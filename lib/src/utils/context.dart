@@ -208,13 +208,13 @@ class FvmContext with FvmContextMappable {
 
     // Migrate from visible 'locks/' (4.0.0) to hidden '.locks/'
     final legacyLockDir = Directory(join(fvmDir, 'locks'));
-    if (legacyLockDir.existsSync()) {
-      for (final entry in legacyLockDir.listSync()) {
-        if (entry is File && entry.path.endsWith('.lock')) {
-          entry.deleteSync();
-        }
+    try {
+      if (legacyLockDir.existsSync()) {
+        // Atomic delete - if another process beats us, the exception is caught
+        legacyLockDir.deleteSync(recursive: true);
       }
-      legacyLockDir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // Another process already migrated - safe to ignore
     }
 
     return FileLocker(

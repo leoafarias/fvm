@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/process_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -117,6 +118,94 @@ void main() {
         equals(['remote', 'set-url', 'origin', url]),
       );
       expect(processService.lastWorkingDirectory, equals(repoPath));
+    });
+  });
+
+  group('GitService cache state detection', () {
+    late Directory tempDir;
+    late Directory remoteDir;
+
+    setUp(() async {
+      tempDir = Directory.systemTemp.createTempSync('fvm_cache_state_test_');
+      remoteDir = await createLocalRemoteRepository(
+        root: tempDir,
+        name: 'flutter_remote',
+      );
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('creates mirror when cache directory is missing', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      expect(Directory(gitCachePath).existsSync(), isFalse);
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+
+      expect(Directory(gitCachePath).existsSync(), isTrue);
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('skips recreation when cache is already bare mirror', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create a bare mirror first
+      await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+
+      // Should still be bare (not recreated)
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('recreates mirror when cache directory is invalid', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create invalid cache (just an empty directory, not a git repo)
+      Directory(gitCachePath).createSync(recursive: true);
+      expect(Directory(gitCachePath).existsSync(), isTrue);
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+
+      // Should now be a valid bare mirror
+      expect(await isBareGitRepository(gitCachePath), isTrue);
     });
   });
 }
