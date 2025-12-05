@@ -23,10 +23,13 @@ class GitService extends ContextualService {
 
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
+    // Use timestamp for unique temp dir names to avoid conflicts when
+    // previous temp dirs can't be deleted (Windows file locking)
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
     final tempDir = Directory(
       path.join(
         gitCacheDir.parent.path,
-        '${path.basename(gitCacheDir.path)}.tmp',
+        '${path.basename(gitCacheDir.path)}.tmp.$timestamp',
       ),
     );
 
@@ -134,16 +137,8 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // On success, clean up any temp directories left behind from previous runs
-    final tempDir = Directory(
-      path.join(
-        gitCacheDir.parent.path,
-        '${path.basename(gitCacheDir.path)}.tmp',
-      ),
-    );
-    if (tempDir.existsSync()) {
-      await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
-    }
+    // On success, clean up any orphaned temp directories from previous runs
+    await _cleanupOrphanedTempDirs(gitCacheDir.parent);
 
     return gitCacheDir;
   }
@@ -216,6 +211,24 @@ class GitService extends ContextualService {
           return;
         }
         await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+      }
+    }
+  }
+
+  /// Cleans up orphaned temp directories from previous failed operations.
+  /// These can accumulate when Windows file locking prevents deletion.
+  Future<void> _cleanupOrphanedTempDirs(Directory parentDir) async {
+    if (!parentDir.existsSync()) return;
+
+    final baseName = path.basename(context.gitCachePath);
+    for (final entity in parentDir.listSync()) {
+      if (entity is! Directory) continue;
+      final name = path.basename(entity.path);
+      // Match patterns: cache.git.tmp.*, cache.git.bare-tmp.*
+      if ((name.startsWith('$baseName.tmp.') ||
+              name.startsWith('$baseName.bare-tmp.')) &&
+          RegExp(r'\.\d+$').hasMatch(name)) {
+        await _deleteDirectoryWithRetry(entity, requireSuccess: false);
       }
     }
   }
@@ -359,10 +372,13 @@ class GitService extends ContextualService {
     }
 
     // Step 2: Create bare mirror from local clone (fast - no network)
+    // Use timestamp for unique temp dir names to avoid conflicts when
+    // previous temp dirs can't be deleted (Windows file locking)
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
     final tempBareDir = Directory(
       path.join(
         legacyDir.parent.path,
-        '${path.basename(legacyDir.path)}.bare-tmp',
+        '${path.basename(legacyDir.path)}.bare-tmp.$timestamp',
       ),
     );
 
