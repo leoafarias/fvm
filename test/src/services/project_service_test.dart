@@ -120,5 +120,38 @@ void main() {
       expect(project.hasConfig, isFalse);
       expect(project.path, isNotNull);
     });
+
+    test('update preserves updateVscodeSettings when not specified', () {
+      final tempDir = tempDirs.create();
+
+      // Create initial config with updateVscodeSettings: false
+      final config = ProjectConfig(
+        flutter: '3.10.0',
+        updateVscodeSettings: false,
+      );
+      createProjectConfig(config, tempDir);
+
+      // Create pubspec.yaml
+      final pubspecFile = File(p.join(tempDir.path, 'pubspec.yaml'));
+      pubspecFile.writeAsStringSync('name: test_project');
+
+      // Load the project
+      final project = Project.loadFromDirectory(tempDir);
+
+      // Update without specifying updateVscodeSettings (should preserve false)
+      projectService.update(
+        project,
+        flutterSdkVersion: '3.16.0',
+      );
+
+      // Read back the updated configuration
+      final updatedProject = projectService.findAncestor(directory: tempDir);
+      final updatedConfig = updatedProject.config;
+
+      expect(updatedConfig, isNotNull);
+      expect(updatedConfig!.flutter, equals('3.16.0'));
+      // This is the key assertion: updateVscodeSettings should be preserved
+      expect(updatedConfig.updateVscodeSettings, isFalse);
+    });
   });
 }
