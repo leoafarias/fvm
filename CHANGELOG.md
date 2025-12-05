@@ -1,3 +1,7 @@
+## 4.0.3
+
+* fix: preserve all project settings on fvm install
+
 ## 4.0.2
 
 * fix: version detection for Flutter 3.38+ (version file removal)
