@@ -120,7 +120,7 @@ void main() {
       environment: env,
       workingDirectory: p.join(tempHome.path, 'cache.git'),
     );
-    expect((legacyBare.stdout as String?)?.trim().toLowerCase(), isNot('true'));
+    expect((legacyBare.stdout as String?)?.trim().toLowerCase(), equals('false'));
 
     // 3) Run current fvm (repo code) to trigger migration
     await _run(

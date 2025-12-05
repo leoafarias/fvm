@@ -242,7 +242,8 @@ class GitService extends ContextualService {
     for (final entity in parentDir.listSync()) {
       if (entity is! Directory) continue;
       final name = path.basename(entity.path);
-      // Match patterns: cache.git.tmp.*, cache.git.bare-tmp.*
+      // Match temp dir patterns: {baseName}.tmp.{timestamp}, {baseName}.bare-tmp.{timestamp}
+      // e.g., cache.git.tmp.1234567890, cache.git.bare-tmp.1234567890
       if ((name.startsWith('$baseName.tmp.') ||
               name.startsWith('$baseName.bare-tmp.')) &&
           RegExp(r'\.\d+$').hasMatch(name)) {
@@ -322,7 +323,12 @@ class GitService extends ContextualService {
       try {
         final current = alternatesFile.readAsStringSync().trim();
 
-        final currentNorm = path.normalize(path.absolute(current));
+        // Resolve relative paths from the alternates file's directory, not cwd
+        final currentNorm = path.normalize(
+          path.isAbsolute(current)
+              ? current
+              : path.join(alternatesFile.parent.path, current),
+        );
 
         // Only fix alternates that reference our cache path (not backups, etc.)
         if (!currentNorm.startsWith(desiredParent)) {
@@ -535,6 +541,10 @@ class GitService extends ContextualService {
             await _migrateCacheCloneToMirror(gitCacheDir);
           } catch (e) {
             logger.warn('Migration failed ($e), recreating from scratch...');
+            // Ensure clean slate before full recreation
+            if (gitCacheDir.existsSync()) {
+              await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
+            }
             await _createLocalMirror();
           }
           break;

@@ -118,21 +118,17 @@ class FlutterService extends ContextualService {
     }
   }
 
-  bool _cleanupPartialClone(Directory versionDir) {
+  void _cleanupPartialClone(Directory versionDir) {
     try {
       if (versionDir.existsSync()) {
         versionDir.deleteSync(recursive: true);
       }
-
-      return true;
     } on FileSystemException catch (e) {
       // Error level since this leaves orphaned directories that consume disk space
       logger.err(
         'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
         'You may need to manually delete this directory.',
       );
-
-      return false;
     }
   }
 
