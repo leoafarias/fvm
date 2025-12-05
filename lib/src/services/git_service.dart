@@ -18,6 +18,9 @@ class GitService extends ContextualService {
   late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
 
+  /// Regex pattern for validating 40-character hexadecimal SHA-1 hashes
+  static final _sha1HashRegex = RegExp(r'^[0-9a-fA-F]+$');
+
   GitService(super.context) {
     _updatingCacheLock = context.createLock(
       'updating-cache',
@@ -238,6 +241,61 @@ class GitService extends ContextualService {
     } catch (e) {
       logger.err('Unexpected error getting tag for version "$version": $e');
       rethrow;
+    }
+  }
+
+  /// Resolves a commit reference (short or long hash) to its full 40-character SHA
+  ///
+  /// This method is critical for security - it ensures that all commit hashes
+  /// stored in configuration files are full 40-character SHA-1 hashes, preventing
+  /// potential DOS attacks from hash collisions between different repositories.
+  ///
+  /// Uses `git rev-parse` to expand the commit reference to its full hash.
+  ///
+  /// [commitRef] The commit reference to resolve (can be short hash, long hash, branch, etc.)
+  /// [version] The FlutterVersion object containing the version directory path
+  ///
+  /// Returns the full 40-character SHA-1 hash if successful, or `null` if:
+  /// - The directory is not a git repository
+  /// - The commit reference is invalid or not found
+  /// - The returned hash is malformed
+  Future<String?> resolveCommitHash(
+    String commitRef,
+    FlutterVersion version,
+  ) async {
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
+
+    final isGitDir = await GitDir.isGitDir(versionDir.path);
+
+    if (!isGitDir) {
+      logger.debug('Directory is not a git repository: ${versionDir.path}');
+
+      return null;
+    }
+
+    final gitDir = await GitDir.fromExisting(versionDir.path);
+
+    try {
+      // Use rev-parse to get the full commit hash
+      final pr = await gitDir.runCommand([
+        'rev-parse',
+        commitRef,
+      ]);
+
+      final fullHash = (pr.stdout as String).trim();
+
+      // Validate that we got a proper 40-character SHA
+      if (fullHash.length == 40 && _sha1HashRegex.hasMatch(fullHash)) {
+        return fullHash;
+      }
+
+      logger.debug('Invalid hash format returned: $fullHash');
+
+      return null;
+    } catch (e) {
+      logger.debug('Failed to resolve commit hash: $e');
+
+      return null;
     }
   }
 }
