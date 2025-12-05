@@ -128,8 +128,8 @@ class CacheService extends ContextualService {
           if (cacheVersion != null) {
             cacheVersions.add(cacheVersion);
           }
-        } on FormatException {
-          // Expected: skip directories that aren't valid version names
+        } on FormatException catch (e) {
+          logger.debug('Skipping invalid version directory ${dir.path}: $e');
         } catch (e) {
           logger.warn('Error processing ${dir.path}: $e');
         }
