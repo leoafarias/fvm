@@ -26,6 +26,7 @@ void testSetup() {
 
   // Create the git cache at the location tests expect (~/fvm_test_cache/gitcache)
   // This prevents tests from having to create it from scratch (which takes 10+ minutes)
+  // FVM_USE_GIT_CACHE is required because gitCache defaults to false on CI
   run(
     'dart',
     arguments: ['bin/main.dart', 'install', 'stable'],
@@ -33,6 +34,7 @@ void testSetup() {
       environment: {
         'FVM_CACHE_PATH': _sharedTestFvmDir,
         'FVM_GIT_CACHE_PATH': _sharedGitCacheDir,
+        'FVM_USE_GIT_CACHE': 'true',
       },
     ),
   );
