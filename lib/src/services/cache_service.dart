@@ -129,8 +129,10 @@ class CacheService extends ContextualService {
             cacheVersions.add(cacheVersion);
           }
         } on FormatException catch (e) {
+          // FormatException is expected for non-version directories (e.g., forks, .dart_tool)
           logger.debug('Skipping invalid version directory ${dir.path}: $e');
         } catch (e) {
+          // Unexpected errors warrant warning level
           logger.warn('Error processing ${dir.path}: $e');
         }
       } else {
