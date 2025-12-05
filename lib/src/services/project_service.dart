@@ -72,10 +72,12 @@ class ProjectService extends ContextualService {
         ? {...?currentConfig.flavors, ...flavors}
         : currentConfig.flavors;
 
-    final config = currentConfig.copyWith(
-      flutter: flutterSdkVersion,
-      flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,
-      updateVscodeSettings: updateVscodeSettings,
+    final config = currentConfig.copyWith.$merge(
+      ProjectConfig(
+        flutter: flutterSdkVersion,
+        flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,
+        updateVscodeSettings: updateVscodeSettings,
+      ),
     );
 
     // Update flavors

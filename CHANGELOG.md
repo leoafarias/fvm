@@ -1,6 +1,6 @@
-## Unreleased
+## 4.0.3
 
-* change: Git cache is now recreated as a bare mirror; FVM automatically detaches installed SDKs on upgrade so the cache can be deleted, moved, or pruned without breaking installs (expect a one-time repack when upgrading).
+* fix: preserve all project settings on fvm install
 
 ## 4.0.2
 
