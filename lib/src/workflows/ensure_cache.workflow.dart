@@ -19,6 +19,7 @@ class EnsureCacheWorkflow extends Workflow {
     CacheFlutterVersion version, {
     required bool shouldInstall,
     required bool force,
+    required bool useArchive,
     int retryCount = 0,
   }) {
     const maxRetries = 2;
@@ -49,13 +50,15 @@ class EnsureCacheWorkflow extends Workflow {
       shouldInstall: shouldInstall,
       force: force,
       retryCount: retryCount + 1,
+      useArchive: useArchive,
     );
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
   Future<CacheFlutterVersion> _handleVersionMismatch(
-    CacheFlutterVersion version,
-  ) {
+    CacheFlutterVersion version, {
+    required bool useArchive,
+  }) {
     logger
       ..notice(
         'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
@@ -94,7 +97,7 @@ class EnsureCacheWorkflow extends Workflow {
     logger.info('Removing incorrect SDK version...');
     get<CacheService>().remove(version);
 
-    return call(version, shouldInstall: true);
+    return call(version, shouldInstall: true, useArchive: useArchive);
   }
 
   void _validateContext() {
@@ -153,6 +156,7 @@ class EnsureCacheWorkflow extends Workflow {
           cacheVersion,
           shouldInstall: shouldInstall,
           force: force,
+          useArchive: useArchive,
           retryCount: retryCount,
         );
       }
@@ -160,7 +164,10 @@ class EnsureCacheWorkflow extends Workflow {
       if (integrity == CacheIntegrity.versionMismatch &&
           !force &&
           !version.isCustom) {
-        return await _handleVersionMismatch(cacheVersion);
+        return await _handleVersionMismatch(
+          cacheVersion,
+          useArchive: useArchive,
+        );
       } else if (force) {
         logger.warn(
           'Not checking for version mismatch as --force flag is set.',

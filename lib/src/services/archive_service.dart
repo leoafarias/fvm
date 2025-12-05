@@ -106,24 +106,30 @@ class ArchiveService extends ContextualService {
       final sink = archiveFile.openWrite();
       var downloaded = 0;
 
-      await for (final chunk in response) {
-        sink.add(chunk);
-        downloaded += chunk.length;
+      try {
+        await for (final chunk in response) {
+          sink.add(chunk);
+          downloaded += chunk.length;
 
-        // contentLength returns -1 when unknown, not 0
-        if (totalBytes != -1) {
-          final percent = (downloaded / totalBytes * 100).clamp(0, 100);
-          progress.update(
-            'Downloading Flutter SDK archive (${percent.toStringAsFixed(1)}%)',
-          );
-        } else {
-          progress.update(
-            'Downloading Flutter SDK archive (${_formatBytes(downloaded)})',
-          );
+          // contentLength returns -1 when unknown, not 0
+          if (totalBytes != -1) {
+            final percent = (downloaded / totalBytes * 100).clamp(0, 100);
+            progress.update(
+              'Downloading Flutter SDK archive (${percent.toStringAsFixed(1)}%)',
+            );
+          } else {
+            progress.update(
+              'Downloading Flutter SDK archive (${_formatBytes(downloaded)})',
+            );
+          }
         }
+        await sink.close();
+      } catch (e) {
+        // Ensure sink is closed before cleanup to release file handles
+        // Ignore close errors - we're already handling the original error
+        await sink.close().catchError((_) => null);
+        rethrow;
       }
-
-      await sink.close();
 
       final description = totalBytes != -1
           ? _formatBytes(totalBytes)
@@ -238,9 +244,16 @@ class ArchiveService extends ContextualService {
     }
   }
 
+  /// Escapes a path for use in PowerShell single-quoted strings.
+  String _escapePowerShellPath(String filePath) =>
+      filePath.replaceAll("'", "''");
+
   Future<void> _extractZipWindows(File archive, Directory targetDir) async {
+    // Use -LiteralPath with single quotes for proper path handling
+    final escapedArchive = _escapePowerShellPath(archive.path);
+    final escapedTarget = _escapePowerShellPath(targetDir.path);
     final command =
-        'Expand-Archive -Path "${archive.path}" -DestinationPath "${targetDir.path}" -Force';
+        "Expand-Archive -LiteralPath '$escapedArchive' -DestinationPath '$escapedTarget' -Force";
 
     try {
       await get<ProcessService>().run(
@@ -294,8 +307,9 @@ class ArchiveService extends ContextualService {
     if (metadataDir.existsSync()) {
       try {
         metadataDir.deleteSync(recursive: true);
-      } catch (_) {
-        // If we cannot delete the metadata directory, ignore silently.
+      } catch (e) {
+        // Log but don't fail - macOS metadata cleanup is non-critical
+        logger.debug('Failed to remove macOS metadata directory: $e');
       }
     }
   }
@@ -372,8 +386,10 @@ class _DownloadedArchive {
 
     try {
       tempDir.deleteSync(recursive: true);
-    } catch (_) {
-      // Ignore cleanup errors.
+    } catch (e) {
+      // Log cleanup failure to stderr for visibility without blocking
+      // Cannot use logger here since this is a simple data class
+      stderr.writeln('Warning: Could not clean up temp directory: $e');
     }
   }
 }
