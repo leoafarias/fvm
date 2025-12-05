@@ -1,10 +1,16 @@
 import 'dart:io';
 
+import 'package:fvm/src/utils/constants.dart';
 import 'package:grinder/grinder.dart';
+import 'package:path/path.dart' as p;
 
 import '../test/testing_helpers/prepare_test_environment.dart';
 
 void main(List<String> args) => grind(args);
+
+/// Shared test cache paths - must match test/testing_utils.dart
+final _sharedTestFvmDir = p.join(kUserHome, 'fvm_test_cache');
+final _sharedGitCacheDir = p.join(_sharedTestFvmDir, 'gitcache');
 
 @Task('Compile')
 void compile() {
@@ -18,7 +24,18 @@ void testSetup() {
     testDir.deleteSync(recursive: true);
   }
 
-  runDartScript('bin/main.dart', arguments: ['install', 'stable']);
+  // Create the git cache at the location tests expect (~/fvm_test_cache/gitcache)
+  // This prevents tests from having to create it from scratch (which takes 10+ minutes)
+  run(
+    'dart',
+    arguments: ['bin/main.dart', 'install', 'stable'],
+    runOptions: RunOptions(
+      environment: {
+        'FVM_CACHE_PATH': _sharedTestFvmDir,
+        'FVM_GIT_CACHE_PATH': _sharedGitCacheDir,
+      },
+    ),
+  );
 }
 
 @Task('Run tests')
