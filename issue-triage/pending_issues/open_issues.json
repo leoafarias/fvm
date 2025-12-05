@@ -2,52 +2,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjM1OTM4OTMw",
-      "is_bot": false,
-      "login": "nmhernandez10",
-      "name": "Nicolás Hernández"
-    },
-    "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [x] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [x] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\nReleases installed with version 3.38.0 or above are not detected properly with `fvm list`.\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Go to terminal..\n2. Run `fvm install 3.38.0`\n3. Once the \"installation\" has finished, check it running `fvm list`.\n4. You can see the version has not been installed, or it is shown as \"Need setup\".\n\n**Expected behavior**\n3.38.* versions should appear with `fvm list` properly.\n\n**Additional context**\n\nFlutter 3.38.0 has introduced a breaking change where the `version` file at the root of the SDK directory has been removed, and `fvm` apparently is relying on it...\n\n[See more info here](https://blog.flutter.dev/whats-new-in-flutter-3-38-3f7b258f7228#:~:text=The%20version%20file%20at%20the%20root%20of%20the%20Flutter%20SDK%20has%20been%20removed%20in%20favor%20of%20a%20new%20flutter.version.json%20file%20located%20in%20bin/cache%20(%23172793).%20Additionally%2C%20the%20AssetManifest.json%20file%20is%20no%20longer%20generated%20by%20default%20(%23172594))\n\n",
-    "createdAt": "2025-11-23T22:26:48Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 978,
-    "title": "[BUG] flutter 3.38.0 or above are not detected properly by fvm",
-    "updatedAt": "2025-11-24T06:41:57Z",
-    "url": "https://github.com/leoafarias/fvm/issues/978"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "U_kgDOC42tNQ",
-      "is_bot": false,
-      "login": "bitmorty",
-      "name": ""
-    },
-    "body": "This happend before with other versions, but now it's even more insistend.\nI was on Flutter 3.35.7 and tried to switch to 3.38.2.\nSo aftere checking fvm releases I ran fvm install 3.38.2 --setup. It did it's downloading and completed well.\nBut fvm list keeps saying \"Need setup\" for 3.38.2.\nAlso after fvm use 3.38.2, and fvm flutter doctor -v and also after building my app.\nThere are no issues listed in fvm doctor or fvm flutter doctor.\n\n```\n❯ fvm doctor --verbose\n\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: doctor\n\nSearching for project in /Users/me/app\nFound project config in /Users/me/app\nFVM Doctor:\n---------------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬──────────────────────────────────────────────────────────────┐\n│ Project                     │ app                                                          │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Directory                   │ /Users/me/app                                                │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Active Flavor               │ None                                                         │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Is Flutter Project          │ Yes                                                          │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Dart Tool Generator Version │ 3.10.0                                                       │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Dart tool version           │ 3.38.2                                                       │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ .gitignore Present          │ Yes                                                          │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Config Present              │ Yes                                                          │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Pinned Version              │ 3.38.2                                                       │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Config path                 │ .fvmrc                                                       │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Local cache dir             │ .fvm/versions                                                │\n├─────────────────────────────┼──────────────────────────────────────────────────────────────┤\n│ Version symlink             │ .fvm/versions/3.38.2                                         │\n└─────────────────────────────┴──────────────────────────────────────────────────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬──────────────────────────────────┐\n│ IDEs                           │ Value                            │\n├────────────────────────────────┼──────────────────────────────────┤\n│ VSCode                         │                                  │\n├────────────────────────────────┼──────────────────────────────────┤\n│ dart.flutterSdkPath            │ .fvm/versions/3.38.2             │\n├────────────────────────────────┼──────────────────────────────────┤\n│ Matches pinned version:        │ true                             │\n├────────────────────────────────┼──────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                  │\n├────────────────────────────────┼──────────────────────────────────┤\n│ flutter.sdk                    │ /Users/me/fvm/versions/3.38.2    │\n├────────────────────────────────┼──────────────────────────────────┤\n│ Matches pinned version:        │ true                             │\n├────────────────────────────────┼──────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No .idea folder found            │\n└────────────────────────────────┴──────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬────────────────────────┐\n│ Environment Variables │ Value                  │\n├───────────────────────┼────────────────────────┤\n│ Flutter PATH          │ /usr/local/bin/flutter │\n├───────────────────────┼────────────────────────┤\n│ Dart PATH             │ /usr/local/bin/dart    │\n├───────────────────────┼────────────────────────┤\n│ FVM_CACHE_PATH        │ N/A                    │\n├───────────────────────┼────────────────────────┤\n│ FVM_USE_GIT_CACHE     │ N/A                    │\n├───────────────────────┼────────────────────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A                    │\n├───────────────────────┼────────────────────────┤\n│ FVM_FLUTTER_URL       │ N/A                    │\n├───────────────────────┼────────────────────────┤\n│ FVM_PRIVILEGED_ACCESS │ N/A                    │\n├───────────────────────┼────────────────────────┤\n│ Flutter PATH          │ /usr/local/bin/flutter │\n├───────────────────────┼────────────────────────┤\n│ Dart PATH             │ /usr/local/bin/dart    │\n└───────────────────────┴────────────────────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ macos Version 15.7.1 (Build 24G231)                              │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ en-US                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.4.1 (stable) (Tue May 21 15:46:25 2024 +0000) on \"macos_arm64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\n```\n\n**Expected behavior**\nBefore with other versions the \"Need setup\" would change to the version number.\n\n\n",
-    "createdAt": "2025-11-21T08:39:59Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 977,
-    "title": "[BUG] fvm list \"Need setup\" not going away",
-    "updatedAt": "2025-11-24T02:30:32Z",
-    "url": "https://github.com/leoafarias/fvm/issues/977"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "MDQ6VXNlcjE3MzA5Nw==",
       "is_bot": false,
       "login": "zhengpenghou",
@@ -67,45 +21,6 @@
     "title": "[BUG] Put the binary in a user directory, then expose it via a system-wide symlink will create many issues",
     "updatedAt": "2025-11-15T20:25:17Z",
     "url": "https://github.com/leoafarias/fvm/issues/974"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjY0MTI=",
-      "is_bot": false,
-      "login": "mernen",
-      "name": "Daniel Luz"
-    },
-    "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [x] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\nRunning `fvm install` will erase the `updateVscodeSettings` setting, and destroy any formatting or comments in the `.vscode/settings.json` file in the process.\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Set up a project with `.vscode/settings.json` and FVM\n2. Add `\"updateVscodeSettings\": false` to `.fvmrc`\n3. Run `fvm install`\n4. Check `.fvmrc` and `.vscode/settings.json`\n\n**Expected behavior**\nThe setting should be preserved in `.fvmrc`, and `.vscode/settings.json` shouldn't be modified.\n\n**Logs**\n\n<details>\n<summary>Logs (unhelpful)</summary>\n\n```\n$ fvm install --no-setup --skip-pub-get --verbose\n\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: install\n  Command options:\n    - setup: false\n    - skip-pub-get: true\n\nLooking up directory: ...\nFound valid candidate: ...\n✓ Flutter SDK: SDK Version : 3.35.7 is already installed.\n\nUpdating project config\nProject name: ...\nProject path: ...\nFlutter version: 3.35.7\n\n✓ Updated VSCode folder Flutter SDK path setting.\nNo VSCode workspace files found.\nReached git root, no melos.yaml found\nNo melos.yaml file found in project hierarchy.\n✓ Project now uses Flutter SDK : SDK Version : 3.35.7\n```\n</details>\n\n**Desktop (please complete the following information):**\n\n- OS: macOS\n- FVM Version: 4.0.1\n\n**Additional context**\n\nI believe the culprit is this call chain:\n\n1. `InstallCommand` calls `UseVersionWorkflow`\n2. `UseVersionWorkflow` calls `UpdateProjectReferencesWorkflow`\n3. `UpdateProjectReferencesWorkflow` calls `ProjectService.update()` without specifying `updateVscodeSettings` (i.e. it's `null`):\n   https://github.com/leoafarias/fvm/blob/9a6acd06b5c14459c6ff7dda7089c844bc9857d3/lib/src/workflows/update_project_references.workflow.dart#L143-L147\n4. **`ProjectService` passes `null` to `ProjectConfig.copyWith()`:**\n   https://github.com/leoafarias/fvm/blob/9a6acd06b5c14459c6ff7dda7089c844bc9857d3/lib/src/services/project_service.dart#L75-L79\n5. **The generated `copyWith()` implementation actually sets the value of the setting to `null`, rather than ignoring it:**\n   https://github.com/leoafarias/fvm/blob/9a6acd06b5c14459c6ff7dda7089c844bc9857d3/lib/src/models/config_model.mapper.dart#L838-L839\n\nIf it is assumed one will never call `ProjectService.update()` to clear the vscode setting, it could be changed as such:\n\n```diff\n     final config = currentConfig.copyWith(\n       flutter: flutterSdkVersion,\n       flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,\n-      updateVscodeSettings: updateVscodeSettings,\n+      updateVscodeSettings: updateVscodeSettings ?? currentConfig.updateVscodeSettings,\n     );\n```\n",
-    "createdAt": "2025-11-14T16:38:48Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 971,
-    "title": "[BUG] `fvm install` erases `updateVscodeSettings`",
-    "updatedAt": "2025-11-14T16:39:37Z",
-    "url": "https://github.com/leoafarias/fvm/issues/971"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjI0Mjk3NzEy",
-      "is_bot": false,
-      "login": "Gigas002",
-      "name": ""
-    },
-    "body": "Installed fresh flutter release via `fvm install 3.38.0`/`fvm install 3.38.1`. Tried running project via:\n\n```sh\nfvm flutter pub get\nfvm flutter run -d chrome\n```\n\nand everything worked, so I wanted to make this my new global, however listings of `fvm list` and `fvm global` does not see `3.38` series.\n\nTried running `fvm use` in my current repo with `.fvmrc` file, no changes.\n\nfvm version is `4.0.1`, installed via `brew`",
-    "createdAt": "2025-11-14T01:23:50Z",
-    "labels": [],
-    "number": 970,
-    "title": "fvm list/fvm global doesn't list flutter 3.38.x series",
-    "updatedAt": "2025-11-24T03:02:07Z",
-    "url": "https://github.com/leoafarias/fvm/issues/970"
   },
   {
     "assignees": [],

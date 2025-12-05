@@ -1,6 +1,23 @@
 [
   {
     "author": {
+      "id": "MDQ6VXNlcjY1NzA5Njc2",
+      "is_bot": false,
+      "login": "huanghui1998hhh",
+      "name": "hhh"
+    },
+    "baseRefName": "main",
+    "body": "When using `fvm use fork/x.x.x` to set a fork version, running `fvm flutter xxxxx` was incorrectly using the official Flutter x.x.x version instead of the fork repository. This was caused by missing fork prefix handling in configuration read/write operations.",
+    "createdAt": "2025-11-26T10:48:43Z",
+    "headRefName": "fix/read-or-write-cache-fork-version",
+    "labels": [],
+    "number": 981,
+    "title": "fix: read or write cache with fork version",
+    "updatedAt": "2025-12-03T06:34:04Z",
+    "url": "https://github.com/leoafarias/fvm/pull/981"
+  },
+  {
+    "author": {
       "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
       "login": "leoafarias",
@@ -13,25 +30,8 @@
     "labels": [],
     "number": 976,
     "title": "Refactor git cache to mirrored architecture",
-    "updatedAt": "2025-11-24T19:16:59Z",
+    "updatedAt": "2025-12-05T19:49:22Z",
     "url": "https://github.com/leoafarias/fvm/pull/976"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\n\nAdds timeout protection to prevent update checks from hanging indefinitely. Update checks now complete within 3 seconds or fail gracefully with specific logging for timeout vs other failures.\n\n## Changes\n\n- Wrap both `isUpToDate()` and `getLatestVersion()` calls with 3-second timeouts\n- Add specific `TimeoutException` handler with debug logging\n- Preserve existing error handling for other failures\n\n## Impact\n\nUpdate check no longer blocks command execution indefinitely if network is slow or unreachable. Users on slow connections will see debug logs on timeout instead of hanging.",
-    "createdAt": "2025-11-17T15:47:03Z",
-    "headRefName": "conductor/update-check-timeout",
-    "labels": [],
-    "number": 975,
-    "title": "Add 3-second timeout for update checks",
-    "updatedAt": "2025-11-19T18:42:22Z",
-    "url": "https://github.com/leoafarias/fvm/pull/975"
   },
   {
     "author": {
@@ -58,30 +58,13 @@
       "name": "Leo Farias"
     },
     "baseRefName": "main",
-    "body": "## Summary\nFixes version detection issues in the `fvm list` command where hidden directories were incorrectly shown as Flutter SDK versions and the \"Need setup\" status was inaccurate.\n\n## Changes\n- **Skip hidden directories**: Filter out directories starting with `.` (like `.dart_tool`, `.DS_Store`) when scanning for Flutter SDK versions\n- **Enhanced Flutter SDK detection**: Detect valid Flutter SDKs by checking for `bin/flutter` in addition to the `version` file\n- **Git fallback for version detection**: Use `git describe --tags` as fallback when the `version` file doesn't exist (Flutter 3.38+ no longer creates this file)\n- **Accurate setup status**: Changed `isNotSetup` to only check `dartSdkVersion` (Dart SDK cache presence) instead of `flutterSdkVersion`\n- **Test coverage**: Added test to verify hidden directories are properly filtered\n\n## Test Results\n```\n✅ All 21 cache service tests passing\n✅ No hidden directories appearing in list output\n✅ All Flutter versions detected correctly (including 3.38+)\n✅ \"Need setup\" only shows for SDKs without downloaded dependencies\n```\n\n## Before\n- Hidden directories like `.dart_tool` appeared as broken versions\n- \"Need setup\" showed incorrectly for functional SDKs\n- Flutter 3.38+ versions showed as needing setup\n\n## After\n- Only valid Flutter SDK versions are shown\n- Accurate setup status based on Dart SDK cache\n- All versions detected correctly regardless of Flutter version",
-    "createdAt": "2025-11-14T22:12:26Z",
-    "headRefName": "fix/list-command-version-detection",
-    "labels": [],
-    "number": 972,
-    "title": "fix: improve version detection and filtering in list command",
-    "updatedAt": "2025-11-16T12:09:13Z",
-    "url": "https://github.com/leoafarias/fvm/pull/972"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
     "body": "## Summary\n\nMigrates the installation script to v2 with user-local installation as the default, improving security and user experience by removing the sudo requirement for basic installations.\n\n## Breaking Changes\n\n⚠️ **Default installation is now user-local instead of system-wide**\n\n- Default install location: `~/.fvm_flutter/bin` (was `/usr/local/bin`)\n- No sudo required for default install\n- For system-wide install, use: `--system` flag\n\n## Changes\n\n### Installation Behavior\n- ✅ User-local install by default (no sudo needed)\n- ✅ System install via `--system` flag (requires sudo)\n- ✅ New `--no-modify-path` flag to skip shell config updates\n- ✅ System install now uses binary copy (more robust than symlink)\n\n### Migration Compatibility\n- ✅ Detects existing v1 system installations\n- ✅ Interactive prompts for migration (with non-interactive mode for CI)\n- ✅ Auto-cleanup of obsolete symlinks\n- ✅ Legacy installer preserved as `install-legacy.sh`\n\n### Improvements\n- ✅ Enhanced CI/container detection (10+ CI systems)\n- ✅ Musl/glibc fallback for Alpine Linux\n- ✅ Fixed fish shell marker to prevent duplicate PATH entries\n- ✅ Trap-based cleanup on errors\n- ✅ Post-install verification\n- ✅ Better error messages\n\n### Documentation\n- 📄 `MIGRATION_PLAN.md` - Detailed migration strategy\n- 📄 `MIGRATION_SUMMARY.md` - Changes summary and impacts  \n- 📄 `TESTING_CHECKLIST.md` - Comprehensive test scenarios\n\n## Migration Guide\n\n### For Individual Users\nNo action needed. Next install will be user-local (better UX, no sudo).\n\n### For System-Wide Installations\nUse the `--system` flag:\n```bash\ncurl -fsSL https://fvm.app/install.sh | bash -s -- --system\n```\n\n### For CI/CD Pipelines\nIf your pipeline expects `/usr/local/bin/fvm`:\n- **Option 1**: Add `--system` flag\n- **Option 2**: Use `~/.fvm_flutter/bin/fvm` directly\n- **Option 3**: Ensure PATH includes `~/.fvm_flutter/bin`\n\n### Legacy Installer\nAvailable at `install-legacy.sh` if needed.\n\n## Testing\n\nPlease review `TESTING_CHECKLIST.md` for comprehensive test scenarios.\n\n### CI Tests\nThe automated tests will verify:\n- ✅ Fresh user install (default)\n- ✅ System install with `--system` flag\n- ✅ Container detection and root permissions\n- ✅ Uninstall (idempotency)\n- ✅ Shellcheck validation\n\n## Files Changed\n\n```\nModified:\n  scripts/install.sh           - v2 installer with migration logic\n  docs/public/install.sh       - Synced copy\n\nCreated:\n  scripts/install-legacy.sh    - v1 backup\n  docs/public/install-legacy.sh - v1 public backup\n  MIGRATION_PLAN.md            - Strategy document\n  MIGRATION_SUMMARY.md         - Summary and FAQ\n  TESTING_CHECKLIST.md         - Test scenarios\n```\n\n## Related Issues\n\nFixes: Better install UX, removes sudo requirement\nImproves: Security (principle of least privilege)\nMaintains: Backwards compatibility via legacy script\n\n## Checklist\n\n- [x] Shellcheck passes (0 errors, 0 warnings)\n- [x] Scripts synced (scripts/ ↔ docs/public/)\n- [x] Migration logic tested locally\n- [x] Legacy script preserved\n- [x] Documentation added\n- [ ] CI tests pass (waiting for PR checks)\n- [ ] Manual testing completed\n\n---\n\n**Note**: This PR is ready for CI testing. The workflow changes were intentionally excluded to test against current CI setup first.",
     "createdAt": "2025-11-06T22:09:09Z",
     "headRefName": "feat/install-script-v2",
     "labels": [],
     "number": 967,
     "title": "feat: migrate install script to v2 with user-local default install",
-    "updatedAt": "2025-11-12T16:12:03Z",
+    "updatedAt": "2025-12-02T14:40:19Z",
     "url": "https://github.com/leoafarias/fvm/pull/967"
   },
   {
@@ -98,7 +81,7 @@
     "labels": [],
     "number": 966,
     "title": "feat: add archive-based installation support",
-    "updatedAt": "2025-11-05T15:54:17Z",
+    "updatedAt": "2025-12-04T18:22:31Z",
     "url": "https://github.com/leoafarias/fvm/pull/966"
   },
   {
@@ -115,25 +98,8 @@
     "labels": [],
     "number": 965,
     "title": "Add fvm MCP server package",
-    "updatedAt": "2025-11-06T14:26:52Z",
+    "updatedAt": "2025-12-02T14:42:59Z",
     "url": "https://github.com/leoafarias/fvm/pull/965"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "Handle read-only shell profiles in the installer and docs.\nAdd friendly warnings when rc files are missing or read-only so users can add PATH manually.\nFixes #897.",
-    "createdAt": "2025-11-05T14:33:17Z",
-    "headRefName": "installer-readonly-fix",
-    "labels": [],
-    "number": 964,
-    "title": "Handle read-only shell profiles",
-    "updatedAt": "2025-11-06T16:53:37Z",
-    "url": "https://github.com/leoafarias/fvm/pull/964"
   },
   {
     "author": {
