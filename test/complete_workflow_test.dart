@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
@@ -15,7 +17,11 @@ void main() {
   });
 
   group('Complete flow', () {
-    test('Full project workflow', () async {
+    final isCi = Platform.environment['CI'] == 'true';
+
+    test(
+      'Full project workflow',
+      () async {
       final channel = 'stable';
       // Install the Flutter channel without setup
       await testRunner.runOrThrow(['fvm', 'install', channel, '--no-setup']);
@@ -105,6 +111,8 @@ void main() {
         isNull,
         reason: 'Version should not have dart sdk version before setup',
       );
-    });
+      },
+      skip: isCi ? 'Too slow for CI (performs real clone); covered by integration tests' : null,
+    );
   });
 }
