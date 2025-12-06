@@ -1,5 +1,10 @@
+import 'dart:io';
+
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -144,6 +149,69 @@ void main() {
 
       expect(ciContext.isCI, isTrue);
       expect(ciContext.skipInput, isTrue);
+    });
+  });
+
+  group('EnsureCache useArchive propagation', () {
+    test('useArchive is preserved through corrupted cache reinstall', () async {
+      final context = TestFactory.context(
+        debugLabel: 'archive-propagation-test',
+      );
+      runner = TestCommandRunner(context);
+      final flutterService =
+          context.get<FlutterService>() as MockFlutterService;
+
+      // First install using --archive
+      await runner.run(['fvm', 'install', 'stable', '--archive', '--no-setup']);
+
+      // Corrupt the cache by removing the flutter executable
+      final cacheService = context.get<CacheService>();
+      final version = FlutterVersion.parse('stable');
+      final cacheVersion = cacheService.getVersion(version);
+      expect(cacheVersion, isNotNull);
+
+      final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+      final flutterBin =
+          File(path.join(cacheVersion!.directory, 'bin', execName));
+      if (flutterBin.existsSync()) {
+        flutterBin.deleteSync();
+      }
+
+      // Reset markers before triggering reinstall
+      flutterService
+        ..lastUseArchive = null
+        ..lastInstallVersion = null;
+
+      final ensureCache = EnsureCacheWorkflow(context);
+      final result = await ensureCache(version, useArchive: true);
+
+      expect(result, isNotNull);
+      expect(flutterService.lastUseArchive, isTrue);
+      expect(flutterService.lastInstallVersion?.name, 'stable');
+    });
+
+    test('useArchive flag is forwarded in workflow call signature', () async {
+      final context = TestFactory.context();
+      final ensureCache = EnsureCacheWorkflow(context);
+
+      // This test verifies that the workflow accepts useArchive parameter
+      // The actual propagation through _handleNonExecutable and
+      // _handleVersionMismatch is tested via integration
+      final version = FlutterVersion.parse('stable');
+
+      // Call with useArchive=true - should not throw
+      final result = await ensureCache(
+        version,
+        shouldInstall: true,
+        useArchive: true,
+      );
+
+      expect(result, isNotNull);
+
+      // Verify the mock captured useArchive
+      final flutterService =
+          context.get<FlutterService>() as MockFlutterService;
+      expect(flutterService.lastUseArchive, isTrue);
     });
   });
 }
