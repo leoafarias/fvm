@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:path/path.dart' as p;
@@ -15,22 +17,6 @@ import '../testing_utils.dart';
 void throwGitError(String message, List<String> args) {
   final e = ProcessException('git', args, message, 128);
   throw e;
-}
-
-/// Creates an isolated test context with separate git cache to avoid conflicts
-FvmContext createIsolatedTestContext() {
-  final tempDir = Directory.systemTemp.createTempSync(
-    'fvm_flutter_service_test_',
-  );
-
-  return FvmContext.create(
-    isTest: true,
-    configOverrides: AppConfig(
-      cachePath: p.join(tempDir.path, 'cache'),
-      gitCachePath: p.join(tempDir.path, 'git_cache'),
-      useGitCache: true,
-    ),
-  );
 }
 
 void main() {
@@ -51,6 +37,205 @@ void main() {
             ),
           ),
         );
+      });
+
+      test('clones from local mirror and rewrites origin URL', () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_mirror_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+          final gitCachePath = p.join(tempDir.path, 'mirror.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand([
+            'clone',
+            '--mirror',
+            remoteDir.path,
+            gitCachePath,
+          ]);
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('master');
+
+          await service.install(version);
+
+          final cacheService = context.get<CacheService>();
+          final versionDir = cacheService.getVersionCacheDir(version);
+
+          final remoteResult = await runGitCommand(
+            ['remote', 'get-url', 'origin'],
+            workingDirectory: versionDir.path,
+          );
+
+          expect(remoteResult.stdout.toString().trim(), remoteDir.path);
+
+          final alternatesFile = File(
+            p.join(
+              versionDir.path,
+              '.git',
+              'objects',
+              'info',
+              'alternates',
+            ),
+          );
+          expect(alternatesFile.existsSync(), isFalse);
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
+      test('falls back to remote clone when local mirror is unavailable',
+          () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_fallback_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+          final gitCachePath = p.join(tempDir.path, 'missing', 'mirror.git');
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('master');
+
+          await service.install(version);
+
+          final cacheService = context.get<CacheService>();
+          final versionDir = cacheService.getVersionCacheDir(version);
+
+          final remoteResult = await runGitCommand(
+            ['remote', 'get-url', 'origin'],
+            workingDirectory: versionDir.path,
+          );
+
+          expect(remoteResult.stdout.toString().trim(), remoteDir.path);
+
+          final logger = context.get<Logger>();
+          expect(
+            logger.outputs.any(
+              (entry) => entry.contains('Falling back to remote clone'),
+            ),
+            isTrue,
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
+      test('retries with remote clone when mirror is missing reference',
+          () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_retry_',
+        );
+
+        try {
+          // Create remote and seed mirror before the new branch exists
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final gitCachePath = p.join(tempDir.path, 'mirror.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand([
+            'clone',
+            '--mirror',
+            remoteDir.path,
+            gitCachePath,
+          ]);
+
+          // Add a new branch to the remote after the mirror was created so the
+          // mirror does not contain the reference.
+          final workDir = Directory(p.join(tempDir.path, 'work'))..createSync();
+          await runGitCommand(['clone', remoteDir.path, workDir.path]);
+          await runGitCommand(
+            ['config', 'user.email', 'tests@fvm.app'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['config', 'user.name', 'FVM Tests'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['checkout', '-b', 'feature'],
+            workingDirectory: workDir.path,
+          );
+          File(p.join(workDir.path, 'FEATURE.md')).writeAsStringSync('feature');
+          await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+          await runGitCommand(
+            ['commit', '-m', 'Add feature branch'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['push', 'origin', 'feature'],
+            workingDirectory: workDir.path,
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('feature');
+
+          await service.install(version);
+
+          final cacheService = context.get<CacheService>();
+          final versionDir = cacheService.getVersionCacheDir(version);
+
+          final headResult = await runGitCommand(
+            ['rev-parse', '--abbrev-ref', 'HEAD'],
+            workingDirectory: versionDir.path,
+          );
+
+          expect(headResult.stdout.toString().trim(), 'feature');
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
       });
     });
 
@@ -141,49 +326,6 @@ void main() {
           ),
         ),
       );
-    });
-
-    group('isReferenceError method', () {
-      test('detects reference repository errors', () {
-        final context = createIsolatedTestContext();
-        final service = FlutterService(context);
-
-        // Test various reference error patterns
-        expect(
-          service.isReferenceError('fatal: reference repository not found'),
-          isTrue,
-        );
-        expect(
-          service.isReferenceError('error: unable to read reference'),
-          isTrue,
-        );
-        expect(
-          service.isReferenceError('fatal: bad object in reference'),
-          isTrue,
-        );
-        expect(
-          service.isReferenceError('error: corrupt reference repository'),
-          isTrue,
-        );
-        expect(service.isReferenceError('fatal: reference not found'), isTrue);
-      });
-
-      test('does not detect non-reference errors', () {
-        final context = createIsolatedTestContext();
-        final service = FlutterService(context);
-
-        // Test non-reference error patterns
-        expect(
-          service.isReferenceError('fatal: repository not found'),
-          isFalse,
-        );
-        expect(
-          service.isReferenceError('fatal: remote branch not found'),
-          isFalse,
-        );
-        expect(service.isReferenceError('error: unknown revision'), isFalse);
-        expect(service.isReferenceError('fatal: ambiguous argument'), isFalse);
-      });
     });
 
     group('setup method', () {

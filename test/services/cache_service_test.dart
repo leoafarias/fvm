@@ -142,6 +142,25 @@ void main() {
         );
       });
 
+      test(
+        'detects SDK directory when bin/flutter exists',
+        () async {
+          final versionName = 'stable';
+          final versionDir = Directory(path.join(tempDir.path, versionName))
+            ..createSync(recursive: true);
+
+          // SDK detection uses bin/flutter as the indicator
+          final binDir = Directory(path.join(versionDir.path, 'bin'));
+          binDir.createSync(recursive: true);
+          File(path.join(binDir.path, 'flutter')).writeAsStringSync('dummy');
+
+          final result = await cacheService.getAllVersions();
+
+          expect(result, hasLength(1));
+          expect(result.single.name, versionName);
+        },
+      );
+
       test('skips hidden directories like .dart_tool', () async {
         // Given
         final versions = ['stable', 'beta'];

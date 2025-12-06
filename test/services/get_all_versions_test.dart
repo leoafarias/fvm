@@ -39,25 +39,27 @@ void main() {
       final stableVersion = FlutterVersion.parse('stable');
       final stableDir = cacheService.getVersionCacheDir(stableVersion);
       stableDir.createSync(recursive: true);
-      File(path.join(stableDir.path, 'version'))
-        ..createSync()
-        ..writeAsStringSync('stable');
+      // Create bin/flutter to mark this as a Flutter SDK directory
+      final stableBinDir = Directory(path.join(stableDir.path, 'bin'));
+      stableBinDir.createSync(recursive: true);
+      File(path.join(stableBinDir.path, 'flutter')).createSync();
 
       // 2. Fork directory with a version inside
       final forkedVersion = FlutterVersion.parse('testfork/master');
       final forkedVersionDir = cacheService.getVersionCacheDir(forkedVersion);
       forkedVersionDir.createSync(recursive: true);
-      File(path.join(forkedVersionDir.path, 'version'))
-        ..createSync()
-        ..writeAsStringSync('master');
+      // Create bin/flutter to mark this as a Flutter SDK directory
+      final forkedBinDir = Directory(path.join(forkedVersionDir.path, 'bin'));
+      forkedBinDir.createSync(recursive: true);
+      File(path.join(forkedBinDir.path, 'flutter')).createSync();
 
       print('Directory structure:');
       print('- ${tempDir.path}/');
       print('  - stable/');
-      print('    - version (content: "stable")');
+      print('    - bin/flutter');
       print('  - testfork/');
       print('    - master/');
-      print('      - version (content: "master")');
+      print('      - bin/flutter');
 
       // When: Getting all versions
       final versions = await cacheService.getAllVersions();

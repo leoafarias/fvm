@@ -175,9 +175,9 @@ class EnsureCacheWorkflow extends Workflow {
     if (useGitCache && !version.fromFork) {
       try {
         await gitService.updateLocalMirror();
-      } on Exception {
+      } on Exception catch (e) {
+        logger.debug('Local cache setup exception: $e');
         logger.warn('Failed to setup local cache. Falling back to git clone.');
-        // Do not rethrow, allow to fallback to clone
       }
     }
 
