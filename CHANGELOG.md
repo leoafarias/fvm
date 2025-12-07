@@ -1,8 +1,35 @@
-## Unreleased
+## 4.0.4
 
-### Packaging
+* fix: remove leading newline from fvm dart/flutter output
+* fix: read or write cache with fork version by @huanghui1998hhh
 
-* choco: Rename Chocolatey listing to "Flutter Version Management (FVM)" for improved discoverability.
+## 4.0.3
+
+* fix: preserve all project settings on fvm install
+
+## 4.0.2
+
+* fix: version detection for Flutter 3.38+ (version file removal)
+* fix: filter hidden directories from cache version listing
+* fix: route conflict in documentation site navigation
+* docs: improve Android Studio/IntelliJ IDE configuration guide
+
+## 4.0.1
+
+* add: `fvm install` now runs setup by default
+* add: RISC-V and 32-bit ARM architecture support
+* add: SSH and scp-style git URL support for forks
+* add: Standalone executables for host platform
+* fix: `fvm doctor` crash when version not pinned
+* fix: Alpine/musl libc detection in install script
+* fix: Version prefix normalization in install script
+* fix: Pre-push PATH hook auto-detects Flutter/Dart
+* fix: Cache version matching logic
+* fix: Uninstall script, git logging, and HTTP error handling
+* fix: Code quality and analysis warnings
+* docs: Git safe directory troubleshooting for Windows
+* docs: PATH configuration for global version
+* refactor: Migrate release tooling to dedicated package
 
 ## 4.0.0
 

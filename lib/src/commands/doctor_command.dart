@@ -141,7 +141,7 @@ class DoctorCommand extends BaseFvmCommand {
           if (!cacheVersionLink.existsSync()) {
             table.insertRow([
               'Matches pinned version:',
-              'Version symlink missing - run "fvm use ${project.pinnedVersion?.name}"',
+              'Version symlink missing - run "fvm use ${project.pinnedVersion?.nameWithAlias}"',
             ]);
           } else {
             try {
@@ -153,7 +153,7 @@ class DoctorCommand extends BaseFvmCommand {
             } on FileSystemException catch (_) {
               table.insertRow([
                 'Matches pinned version:',
-                'Cannot resolve symlink - run "fvm use ${project.pinnedVersion?.name}"',
+                'Cannot resolve symlink - run "fvm use ${project.pinnedVersion?.nameWithAlias}"',
               ]);
             }
           }
@@ -216,11 +216,6 @@ class DoctorCommand extends BaseFvmCommand {
     for (var key in ConfigOptions.values) {
       table.insertRow([key.envKey, context.environment[key.envKey] ?? 'N/A']);
     }
-
-    table.insertRows([
-      ['Flutter PATH', flutterWhich ?? 'Not found'],
-      ['Dart PATH', dartWhich ?? 'Not found'],
-    ]);
 
     logger.write(table.toString());
 

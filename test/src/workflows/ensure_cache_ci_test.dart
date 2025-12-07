@@ -30,7 +30,7 @@ void main() {
       final ensureCache = EnsureCacheWorkflow(context);
 
       // First install the version
-      await runner.run(['fvm', 'install', '3.10.0', '--skip-setup']);
+      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
 
       // Create version mismatch by modifying SDK version file
       final cacheVersion = cacheService.getVersion(version);
@@ -57,7 +57,7 @@ void main() {
       final ensureCache = EnsureCacheWorkflow(context);
 
       // Setup version with mismatch
-      await runner.run(['fvm', 'install', '3.10.0', '--skip-setup']);
+      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
       final cacheVersion = cacheService.getVersion(version);
       if (cacheVersion != null) {
         forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
@@ -81,7 +81,7 @@ void main() {
       final ensureCache = EnsureCacheWorkflow(context);
 
       // Setup version with mismatch
-      await runner.run(['fvm', 'install', '3.10.0', '--skip-setup']);
+      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
       final cacheVersion = cacheService.getVersion(version);
       if (cacheVersion != null) {
         forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');

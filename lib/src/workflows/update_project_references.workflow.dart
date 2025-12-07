@@ -65,6 +65,13 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       project.localVersionsCachePath.dir
         ..deleteIfExists()
         ..createSync(recursive: true);
+
+      if (version.fromFork) {
+        final forkDir = p.join(project.localVersionsCachePath, version.fork!);
+        if (!forkDir.dir.existsSync()) {
+          forkDir.dir.createSync(recursive: true);
+        }
+      }
     } on Exception catch (_) {
       logger.err('Failed to prepare versions cache directory');
 
@@ -138,7 +145,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
         ..debug('Updating project config')
         ..debug('Project name: ${project.name}')
         ..debug('Project path: ${project.path}')
-        ..debug('Flutter version: ${version.name}')
+        ..debug('Flutter version: ${version.nameWithAlias}')
         ..debug('');
 
       // Resolve commit hash to full SHA if this is an unknown ref (commit)

@@ -322,6 +322,100 @@ void main() {
       expect(contents, contains('"editor.formatOnSave": true'));
     });
 
+    test('should correctly handle fork version in VS Code settings', () async {
+      final testDir = tempDirs.create();
+      // Create test project with fork version
+      const forkName = 'my-fork';
+      const versionName = '3.10.0';
+      createPubspecYaml(testDir, name: 'test_fork_project');
+      createProjectConfig(
+        ProjectConfig(flutter: '$forkName/$versionName'),
+        testDir,
+      );
+
+      // Create .vscode directory
+      final vscodeDir = Directory(p.join(testDir.path, '.vscode'));
+      vscodeDir.createSync();
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      // Verify the project correctly parsed the fork version
+      expect(project.pinnedVersion?.fromFork, isTrue);
+      expect(project.pinnedVersion?.fork, equals(forkName));
+      expect(project.pinnedVersion?.name, equals(versionName));
+      expect(
+        project.pinnedVersion?.nameWithAlias,
+        equals('$forkName/$versionName'),
+      );
+
+      // Verify localVersionSymlinkPath includes fork subdirectory
+      expect(
+        project.localVersionSymlinkPath,
+        equals(p.join(testDir.path, '.fvm', 'versions', forkName, versionName)),
+      );
+
+      final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
+
+      // Run workflow
+      await workflow(project);
+
+      // Verify settings.json contains the correct fork version path
+      final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
+      expect(settingsFile.existsSync(), isTrue);
+
+      final contents = settingsFile.readAsStringSync();
+      expect(contents, contains('dart.flutterSdkPath'));
+      // The path should include the fork subdirectory: .fvm/versions/my-fork/3.10.0
+      expect(contents, contains('.fvm/versions/$forkName/$versionName'));
+    });
+
+    test('should update workspace file with fork version path', () async {
+      final testDir = tempDirs.create();
+      // Create test project with fork version
+      const forkName = 'custom-fork';
+      const versionName = '3.9.0';
+      createPubspecYaml(testDir);
+      createProjectConfig(
+        ProjectConfig(flutter: '$forkName/$versionName'),
+        testDir,
+      );
+
+      // Create a workspace file
+      final workspaceFile = File(
+        p.join(testDir.path, 'project.code-workspace'),
+      );
+      workspaceFile.writeAsStringSync('''
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.formatOnSave": true
+  }
+}
+''');
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+      final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
+
+      // Run workflow
+      await workflow(project);
+
+      // Verify workspace file was updated with fork version path
+      final contents = workspaceFile.readAsStringSync();
+      expect(
+        contents,
+        contains('"dart.flutterSdkPath": ".fvm/versions/$forkName/$versionName"'),
+      );
+      expect(contents, contains('"editor.formatOnSave": true'));
+    });
+
     test('should handle non-existent parent directories correctly', () async {
       final testDir = tempDirs.create();
       // Create test project

@@ -151,18 +151,34 @@ class GitService extends ContextualService {
 
           logger.debug('Local mirror updated successfully');
         } catch (e) {
-          logger.err('Error updating local mirror: $e');
+          // Only recreate the mirror if it's a critical git error that indicates
+          // the repository is unrecoverable. Other errors (network, permissions, etc.)
+          // are re-thrown so callers can handle them appropriately.
+          // Known critical error patterns: "not a git repository", "corrupt", "damaged",
+          // "hash mismatch", "object file...empty"
+          if (e is ProcessException) {
+            final messageLower = e.message.toLowerCase();
+            if (messageLower.contains('not a git repository') ||
+                messageLower.contains('corrupt') ||
+                messageLower.contains('damaged') ||
+                messageLower.contains('hash mismatch') ||
+                (messageLower.contains('object file') &&
+                    messageLower.contains('empty'))) {
+              logger.warn(
+                'Local mirror appears to be corrupted (${e.message}). '
+                'Recreating mirror...',
+              );
+              await _createLocalMirror();
 
-          // Only recreate the mirror if it's a critical git error
-          if (e is ProcessException &&
-              (e.message.contains('not a git repository') ||
-                  e.message.contains('corrupt') ||
-                  e.message.contains('damaged'))) {
-            logger.warn('Local mirror appears to be corrupted, recreating...');
-            await _createLocalMirror();
-          } else {
-            rethrow;
+              return;
+            }
           }
+
+          logger.err(
+            'Failed to update local mirror: $e. '
+            'Try running "fvm doctor" to diagnose issues.',
+          );
+          rethrow;
         }
       } else {
         await _createLocalMirror();
@@ -211,8 +227,20 @@ class GitService extends ContextualService {
       ]);
 
       return (pr.stdout as String).trim();
+    } on ProcessException catch (e) {
+      final message = e.message.toLowerCase();
+
+      if (message.contains('no tag exactly matches')) {
+        logger.debug('No exact tag match for version "$version".');
+
+        return null;
+      }
+
+      logger.err('Failed to get tag for version "$version": ${e.message}');
+      rethrow;
     } catch (e) {
-      return null;
+      logger.err('Unexpected error getting tag for version "$version": $e');
+      rethrow;
     }
   }
 

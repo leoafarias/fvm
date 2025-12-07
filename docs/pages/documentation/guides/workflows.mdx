@@ -194,9 +194,32 @@ FVM automatically configures VS Code settings. To manually configure:
 
 ### Android Studio / IntelliJ
 
-1. Open **Project Structure** (Cmd/Ctrl + ;)
-2. Set **Flutter SDK path** to: `.fvm/flutter_sdk`
-3. Apply and restart IDE
+FVM keeps a project-scoped symlink at `.fvm/flutter_sdk`. Running `fvm use <version>` updates this symlink to point to the selected Flutter SDK version.
+
+> **Known limitation:** Android Studio and IntelliJ resolve symlinks to their absolute target path when saving settings ([flutter-intellij#6616](https://github.com/flutter/flutter-intellij/issues/6616)). This means the IDE stores the resolved path (e.g., `~/.fvm/versions/3.19.0`) rather than the symlink itself. After running `fvm use` to switch versions, you may need to re-select the SDK path in settings for the IDE to pick up the new version.
+
+**Point the IDE at FVM**
+- Open **File → Settings** (Windows/Linux) or **Android Studio → Preferences** (macOS).
+- Navigate to **Languages & Frameworks → Flutter**.
+- Set **Flutter SDK path** to the absolute path of `.fvm/flutter_sdk` in your project (e.g., `/path/to/project/.fvm/flutter_sdk`).
+- **Tip:** Paste the path directly into the text field instead of using the file browser—this may help preserve the symlink path in some IDE versions.
+- Click **Apply**. Restart the IDE if prompted.
+
+**After switching Flutter versions**
+- Run `fvm use <version>` in the project so `.fvm/flutter_sdk` points at the new cached SDK.
+- Re-open **Settings → Languages & Frameworks → Flutter** and re-select the `.fvm/flutter_sdk` path so the IDE resolves to the new target.
+- For Android projects: **File → Sync Project with Gradle Files** to refresh Gradle metadata. If this option isn't visible, press `Ctrl+Shift+A` (or `Cmd+Shift+A` on macOS) and search for "Sync Project with Gradle Files".
+- If Dart Analysis shows stale errors, open **View → Tool Windows → Dart Analysis** and click the restart icon in the toolbar.
+- Run `fvm doctor` to verify the IDE configuration is correct.
+
+**Troubleshooting stale paths**
+- Use **File → Invalidate Caches / Restart…** to clear cached SDK paths.
+- Confirm the symlink exists with `ls -l .fvm/flutter_sdk`. If missing, run `fvm use` to recreate it.
+
+**Multi-module or monorepo setups**
+- Each module should run `fvm use` within its directory so `.fvm/flutter_sdk` resolves locally.
+- Android Studio allows multiple Flutter SDK entries—ensure every module references its own `.fvm/flutter_sdk` rather than a shared global install.
+- When switching versions in one module, repeat the Gradle/Flutter sync steps within that module’s window.
 
 ## Best practices
 
@@ -220,5 +243,5 @@ FVM automatically configures VS Code settings. To manually configure:
 ### Performance tips
 
 - Enable git cache for faster installs
-- Use `--skip-setup` when switching versions frequently
+- Use `fvm install --no-setup` when you only need to cache SDKs (run `--setup` later via `fvm use`)
 - Run `fvm install` in CI before build steps

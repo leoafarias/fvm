@@ -25,6 +25,14 @@ enum CacheIntegrity {
 class CacheService extends ContextualService {
   const CacheService(super.context);
 
+  static String _normalizeVersion(String value) {
+    if (value.startsWith('v') || value.startsWith('V')) {
+      return value.substring(1);
+    }
+
+    return value;
+  }
+
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
@@ -35,8 +43,10 @@ class CacheService extends ContextualService {
 
   // Verifies that the cache version name matches the flutter version
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If its a channel return true
+    // If it's a channel return true
     if (version.isChannel) return true;
+    // If it's a git commit, return true (commit hash won't match SDK version)
+    if (version.isUnknownRef) return true;
     // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
@@ -63,10 +73,20 @@ class CacheService extends ContextualService {
 
     final cacheVersions = <CacheFlutterVersion>[];
 
+    // Checks if a directory is a Flutter SDK.
+    //
+    // Uses bin/flutter existence as the indicator since it's always present
+    // in Flutter SDK directories (part of the git repository), regardless of
+    // whether setup has been run or which Flutter version is installed.
+    bool isFlutterSdkDirectory(Directory dir) {
+      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+
+      return flutterBin.existsSync();
+    }
+
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
-      final versionFile = File(path.join(dir.path, 'version'));
-      if (versionFile.existsSync()) {
+      if (isFlutterSdkDirectory(dir)) {
         // This is a version directory
         final name = path.basename(dir.path);
 
@@ -94,6 +114,9 @@ class CacheService extends ContextualService {
           final entries = await dir.list().toList();
           for (var entry in entries) {
             if (entry.path.isDir()) {
+              final subDirName = path.basename(entry.path);
+              // Skip hidden directories (starting with .)
+              if (subDirName.startsWith('.')) continue;
               // Check subdirectories with this directory as the fork
               await processDirectory(
                 Directory(entry.path),
@@ -105,10 +128,13 @@ class CacheService extends ContextualService {
       }
     }
 
-    // Scan all top-level directories
+    // Scan all top-level directories, skipping hidden directories
     final topLevelEntries = await versionsDir.list().toList();
     for (var entry in topLevelEntries) {
       if (entry.path.isDir()) {
+        final dirName = path.basename(entry.path);
+        // Skip hidden directories (starting with .)
+        if (dirName.startsWith('.')) continue;
         await processDirectory(Directory(entry.path));
       }
     }
@@ -147,7 +173,7 @@ class CacheService extends ContextualService {
       return Directory(
         path.join(context.versionsCachePath, version.fork!, version.version),
       );
-    } // Standard path (unchanged): versionsCachePath/versionName
+    } // Standard path: versionsCachePath/version.name
 
     return Directory(path.join(context.versionsCachePath, version.name));
   }
@@ -248,47 +274,60 @@ class CacheService extends ContextualService {
       versionDir.renameSync(newDir.path);
     }
   }
-}
 
-@visibleForTesting
-String normalizeVersion(String value) {
-  if (value.startsWith('v') || value.startsWith('V')) {
-    return value.substring(1);
-  }
+  /// Determines if [configured] and [cached] versions should be considered
+  /// matching.
+  ///
+  /// Matching rules:
+  /// 1. Exact string match (after normalizing leading 'v'/'V' prefix)
+  /// 2. If either has build metadata (+xxx), both must match exactly
+  /// 3. If both have pre-release identifiers (-xxx), both must match exactly
+  /// 4. If [configured] has pre-release but [cached] does not, match on
+  ///    `major.minor.patch` (allows dev builds to match stable SDKs)
+  /// 5. If [cached] has pre-release but [configured] does not, require exact match
+  /// 6. For non-semver versions (e.g., git refs), catches [FormatException] and
+  ///    falls back to normalized string equality with a warning logged
+  ///
+  /// This handles Flutter SDK naming where the cached SDK may strip pre-release
+  /// suffixes from the configured version.
+  @visibleForTesting
+  bool versionsMatch(String configured, String cached) {
+    if (configured == cached) return true;
 
-  return value;
-}
+    final normConfigured = _normalizeVersion(configured);
+    final normCached = _normalizeVersion(cached);
 
-@visibleForTesting
-bool versionsMatch(String configured, String cached) {
-  if (configured == cached) return true;
+    if (normConfigured == normCached) return true;
 
-  final normConfigured = normalizeVersion(configured);
-  final normCached = normalizeVersion(cached);
+    try {
+      final configVer = Version.parse(normConfigured);
+      final cachedVer = Version.parse(normCached);
 
-  if (normConfigured == normCached) return true;
+      if (configVer.build.isNotEmpty || cachedVer.build.isNotEmpty) {
+        return configVer == cachedVer;
+      }
 
-  try {
-    final configVer = Version.parse(normConfigured);
-    final cachedVer = Version.parse(normCached);
+      if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isNotEmpty) {
+        return configVer == cachedVer;
+      }
 
-    if (configVer.build.isNotEmpty || cachedVer.build.isNotEmpty) {
+      if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isEmpty) {
+        return configVer.major == cachedVer.major &&
+            configVer.minor == cachedVer.minor &&
+            configVer.patch == cachedVer.patch;
+      }
+
+      // Remaining case: configured has no pre-release but cached does;
+      // require exact match (which will fail because of differing pre-release).
       return configVer == cachedVer;
-    }
+    } on FormatException catch (e) {
+      logger.warn(
+        'Unable to parse versions as semantic versions: '
+        'configured="$configured", cached="$cached". '
+        'Falling back to string comparison. Error: $e',
+      );
 
-    if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isNotEmpty) {
-      return configVer == cachedVer;
+      return normConfigured == normCached;
     }
-
-    if (configVer.preRelease.isNotEmpty && cachedVer.preRelease.isEmpty) {
-      return configVer.major == cachedVer.major &&
-          configVer.minor == cachedVer.minor &&
-          configVer.patch == cachedVer.patch;
-    }
-
-    // All other cases require exact semantic equality.
-    return configVer == cachedVer;
-  } on FormatException {
-    return normConfigured == normCached;
   }
 }
