@@ -25,9 +25,13 @@ class GitService extends ContextualService {
   List<GitReference>? _referencesCache;
 
   GitService(super.context) {
-    _updatingCacheLock = context.createLock(
-      'updating-cache',
-      expiresIn: const Duration(minutes: 10),
+    // Create lock based on gitCachePath so all processes using the same
+    // git cache share the same lock, even if they have different cachePath.
+    // This prevents race conditions when tests share a git cache but have
+    // isolated FVM cache directories.
+    _updatingCacheLock = FileLocker(
+      '${context.gitCachePath}.lock',
+      lockExpiration: const Duration(minutes: 10),
     );
   }
 

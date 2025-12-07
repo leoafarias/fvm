@@ -74,6 +74,9 @@ class CacheService extends ContextualService {
   bool _verifyVersionMatch(CacheFlutterVersion version) {
     // If its a channel return true
     if (version.isChannel) return true;
+    // If its a git reference (commit/tag/branch), skip version matching
+    // since the configured value is a git ref, not a semantic version
+    if (version.isUnknownRef) return true;
     // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
