@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install FVM to user-local directory ($HOME/.fvm_flutter/bin)
+# Install FVM to user-local directory ($HOME/fvm/bin)
 # No sudo required. Add to PATH after installation.
 set -euo pipefail
 umask 022
@@ -10,10 +10,10 @@ readonly INSTALLER_VERSION="3.0.0"  # v3: single behavior, user-local only
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
-readonly INSTALL_BASE="${HOME}/.fvm_flutter"
+readonly INSTALL_BASE="${FVM_HOME:-${HOME}/fvm}"
 readonly BIN_DIR="${INSTALL_BASE}/bin"
-readonly TMP_DIR="${INSTALL_BASE}/temp_extract"
 readonly OLD_SYSTEM_PATH="/usr/local/bin/fvm"
+readonly OLD_USER_PATH="${HOME}/.fvm_flutter"
 
 UNINSTALL_ONLY=0
 REQUESTED_VERSION=""
@@ -48,7 +48,7 @@ EXAMPLES:
 AFTER INSTALLATION:
   Add FVM to your PATH by adding this line to your shell config:
 
-    export PATH="$HOME/.fvm_flutter/bin:$PATH"
+    export PATH="$HOME/fvm/bin:$PATH"
 
   Then restart your shell or run: source ~/.bashrc
 
@@ -81,16 +81,13 @@ print_path_instructions() {
   echo "To use FVM, add it to your PATH:"
   echo ""
   echo "  # For bash (add to ~/.bashrc):"
-  # shellcheck disable=SC2016 # Single quotes intentional - users copy literal $HOME
-  echo '  export PATH="$HOME/.fvm_flutter/bin:$PATH"'
+  echo "  export PATH=\"$BIN_DIR:\$PATH\""
   echo ""
   echo "  # For zsh (add to ~/.zshrc):"
-  # shellcheck disable=SC2016
-  echo '  export PATH="$HOME/.fvm_flutter/bin:$PATH"'
+  echo "  export PATH=\"$BIN_DIR:\$PATH\""
   echo ""
   echo "  # For fish (run once):"
-  # shellcheck disable=SC2016
-  echo '  fish_add_path "$HOME/.fvm_flutter/bin"'
+  echo "  fish_add_path \"$BIN_DIR\""
   echo ""
   echo "Then restart your shell or run:"
   echo "  source ~/.bashrc  # or ~/.zshrc"
@@ -99,31 +96,63 @@ print_path_instructions() {
 }
 
 migrate_from_v1() {
-  # Automatically remove old system install (v1 or v2 --system)
+  local migrated=0
+
+  # 1. Remove old system symlink (v1 or v2 --system)
   if [ -L "$OLD_SYSTEM_PATH" ] || [ -f "$OLD_SYSTEM_PATH" ]; then
     echo "" >&2
-    echo "Detected old installation at $OLD_SYSTEM_PATH" >&2
-    echo "Migrating to user-local install..." >&2
+    echo "Detected old system installation at $OLD_SYSTEM_PATH" >&2
 
     # Try to remove without sudo first (|| true prevents set -e exit)
     rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
     if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system install" >&2
+      echo "✓ Removed old system symlink" >&2
+      migrated=1
     else
       # Try with sudo if available
       if command -v sudo >/dev/null 2>&1; then
         sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
         if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system install (required sudo)" >&2
+          echo "✓ Removed old system symlink (required sudo)" >&2
+          migrated=1
         else
           echo "⚠ Could not remove $OLD_SYSTEM_PATH" >&2
           echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
         fi
       else
         echo "⚠ Could not remove $OLD_SYSTEM_PATH (need sudo)" >&2
-        echo "  You may remove it manually with: sudo rm $OLD_SYSTEM_PATH" >&2
+        echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
       fi
     fi
+  fi
+
+  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
+  if [ -d "$OLD_USER_PATH" ]; then
+    echo "" >&2
+    echo "Detected old installation at $OLD_USER_PATH" >&2
+
+    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
+    if [ ! -d "$OLD_USER_PATH" ]; then
+      echo "✓ Removed old user directory" >&2
+      migrated=1
+    else
+      echo "⚠ Could not remove $OLD_USER_PATH" >&2
+      echo "  You may remove it manually: rm -rf $OLD_USER_PATH" >&2
+    fi
+  fi
+
+  # 3. Print PATH update notice if migrated
+  if [ "$migrated" -eq 1 ]; then
+    echo "" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "⚠ ACTION REQUIRED: Update your shell PATH" >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "" >&2
+    echo "  Old: export PATH=\"\$HOME/.fvm_flutter/bin:\$PATH\"" >&2
+    echo "  New: export PATH=\"$BIN_DIR:\$PATH\"" >&2
+    echo "" >&2
+    echo "Your cached Flutter SDKs in $INSTALL_BASE/versions/ are preserved." >&2
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
   fi
 }
 
@@ -133,28 +162,39 @@ do_uninstall() {
   echo "Uninstalling FVM..." >&2
   echo "" >&2
 
-  # Remove user installation directory (|| true prevents set -e exit)
-  if [ -d "$INSTALL_BASE" ]; then
-    rm -rf "$INSTALL_BASE" 2>/dev/null || true
-    if [ ! -d "$INSTALL_BASE" ]; then
-      echo "✓ Removed user directory: $INSTALL_BASE" >&2
+  # 1. Remove binary directory only (NOT entire ~/fvm/ - preserve cached SDKs)
+  if [ -d "$BIN_DIR" ]; then
+    rm -rf "$BIN_DIR" 2>/dev/null || true
+    if [ ! -d "$BIN_DIR" ]; then
+      echo "✓ Removed binary directory: $BIN_DIR" >&2
       removed_any=1
     else
-      echo "⚠ Could not remove $INSTALL_BASE (check permissions)" >&2
+      echo "⚠ Could not remove $BIN_DIR (check permissions)" >&2
     fi
   fi
 
-  # Remove old system install if present (from v1/v2)
+  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
+  if [ -d "$OLD_USER_PATH" ]; then
+    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
+    if [ ! -d "$OLD_USER_PATH" ]; then
+      echo "✓ Removed old directory: $OLD_USER_PATH" >&2
+      removed_any=1
+    else
+      echo "⚠ Could not remove $OLD_USER_PATH" >&2
+    fi
+  fi
+
+  # 3. Remove old system symlink (from v1/v2)
   if [ -L "$OLD_SYSTEM_PATH" ] || [ -f "$OLD_SYSTEM_PATH" ]; then
     rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
     if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system install: $OLD_SYSTEM_PATH" >&2
+      echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
       removed_any=1
     else
       if command -v sudo >/dev/null 2>&1; then
         sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
         if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system install: $OLD_SYSTEM_PATH" >&2
+          echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
           removed_any=1
         else
           echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
@@ -170,15 +210,19 @@ do_uninstall() {
   fi
 
   echo "" >&2
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
   echo "Uninstall complete." >&2
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
   echo "" >&2
-  echo "Note: You may want to remove PATH entries from your shell config:" >&2
+  echo "Note: Cached Flutter SDKs remain in $INSTALL_BASE/versions/" >&2
+  echo "      To remove them: rm -rf $INSTALL_BASE/" >&2
+  echo "" >&2
+  echo "Remove PATH entries from your shell config:" >&2
   echo "  - ~/.bashrc" >&2
   echo "  - ~/.zshrc" >&2
   echo "  - ~/.config/fish/config.fish" >&2
   echo "" >&2
-  # shellcheck disable=SC2016
-  echo 'Look for lines containing: $HOME/.fvm_flutter/bin' >&2
+  echo "Look for lines containing: $BIN_DIR" >&2
 
   exit 0
 }
@@ -207,7 +251,7 @@ fi
 # ---- root user handling ----
 if [ "${EUID:-$(id -u)}" -eq 0 ]; then
   echo "⚠ Warning: Running as root" >&2
-  echo "  FVM will be installed to $HOME/.fvm_flutter/bin and likely won't be accessible to other users." >&2
+  echo "  FVM will be installed to $BIN_DIR and likely won't be accessible to other users." >&2
   echo "  It is recommended that each user install FVM individually in their own home directory." >&2
   echo "" >&2
 fi
@@ -280,10 +324,15 @@ if ! curl -fsSLI -o /dev/null "$URL"; then
 fi
 
 # ---- prep dirs and cleanup trap ----
-rm -rf "$TMP_DIR" 2>/dev/null || true  # Clear any stale content from previous runs
-mkdir -p "$BIN_DIR" "$TMP_DIR"
-cleanup() { rm -rf "$TMP_DIR" 2>/dev/null || true; }
+TMP_DIR=""  # Initialize for set -u (nounset)
+cleanup() { if [ -n "$TMP_DIR" ]; then rm -rf "$TMP_DIR" 2>/dev/null || true; fi; }
 trap cleanup EXIT
+
+TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
+  echo "error: failed to create temp directory" >&2
+  exit 1
+}
+mkdir -p "$BIN_DIR"
 
 # ---- download ----
 ARCHIVE="${TMP_DIR}/${TARBALL}"

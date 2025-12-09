@@ -4,15 +4,21 @@ on:
   push:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/uninstall.sh'
+      - 'docs/public/install.sh'
+      - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/uninstall.sh'
+      - 'docs/public/install.sh'
+      - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
 jobs:
-  # Basic validation - shellcheck
+  # Basic validation - shellcheck and parity
   validate:
     name: Validate Scripts
     runs-on: ubuntu-latest
@@ -25,6 +31,24 @@ jobs:
           fi
       - name: Shellcheck install.sh
         run: shellcheck scripts/install.sh
+      - name: Shellcheck uninstall.sh
+        run: shellcheck scripts/uninstall.sh
+
+      - name: Verify install.sh parity
+        run: |
+          diff scripts/install.sh docs/public/install.sh || {
+            echo "❌ scripts/install.sh and docs/public/install.sh differ!"
+            exit 1
+          }
+          echo "✅ install.sh files are in sync"
+
+      - name: Verify uninstall.sh parity
+        run: |
+          diff scripts/uninstall.sh docs/public/uninstall.sh || {
+            echo "❌ scripts/uninstall.sh and docs/public/uninstall.sh differ!"
+            exit 1
+          }
+          echo "✅ uninstall.sh files are in sync"
 
   # Test install.sh (v3 - user-local only)
   test-install:
@@ -40,30 +64,107 @@ jobs:
       - name: Test installation
         run: |
           ./scripts/install.sh
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
 
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
 
       - name: Test uninstall
         run: |
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
+          export PATH="$HOME/fvm/bin:$PATH"
           which fvm
           ./scripts/install.sh --uninstall
 
-          # Verify uninstall
-          if [[ -d ~/.fvm_flutter ]]; then
-            echo "❌ FVM directory still exists after uninstall"
+          # Verify uninstall - only bin/ should be removed
+          if [[ -d ~/fvm/bin ]]; then
+            echo "❌ FVM bin directory still exists after uninstall"
             exit 1
           fi
           echo "✅ FVM successfully uninstalled"
 
       - name: Test uninstall on clean system (idempotency)
         run: ./scripts/install.sh --uninstall
+
+  # Test v1 to v3 migration
+  test-migration:
+    name: Test v1 to v3 Migration
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Simulate v1 installation
+        run: |
+          # Create old v1 structure
+          mkdir -p ~/.fvm_flutter/bin
+          echo '#!/bin/bash' > ~/.fvm_flutter/bin/fvm
+          echo 'echo "fake v1 fvm"' >> ~/.fvm_flutter/bin/fvm
+          chmod +x ~/.fvm_flutter/bin/fvm
+
+          # Create old system symlink (if sudo available)
+          if command -v sudo >/dev/null 2>&1; then
+            sudo ln -sf ~/.fvm_flutter/bin/fvm /usr/local/bin/fvm
+            echo "SYSTEM_SYMLINK_CREATED=true" >> $GITHUB_ENV
+            echo "✅ Created system symlink"
+          else
+            echo "SYSTEM_SYMLINK_CREATED=false" >> $GITHUB_ENV
+            echo "ℹ️ Skipping system symlink (no sudo)"
+          fi
+
+          # Create some cached SDKs (should survive)
+          mkdir -p ~/fvm/versions/stable
+          echo "cached sdk" > ~/fvm/versions/stable/marker
+
+          echo "✅ v1 simulation ready"
+          ls -la ~/.fvm_flutter/bin/
+          ls -la ~/fvm/versions/
+
+      - name: Run v3 installer (triggers migration)
+        run: |
+          ./scripts/install.sh
+          echo "✅ Installation complete"
+
+      - name: Verify migration
+        run: |
+          # Old user directory should be removed
+          if [ -d ~/.fvm_flutter ]; then
+            echo "❌ Old ~/.fvm_flutter still exists"
+            exit 1
+          fi
+          echo "✅ Old user directory removed"
+
+          # Check system symlink only if it was created
+          if [ "$SYSTEM_SYMLINK_CREATED" = "true" ]; then
+            if [ -e /usr/local/bin/fvm ]; then
+              echo "⚠️ Old symlink still exists (may need sudo to remove)"
+            else
+              echo "✅ Old system symlink removed"
+            fi
+          else
+            echo "ℹ️ System symlink test skipped (wasn't created)"
+          fi
+
+          # New binary should exist
+          if [ ! -f ~/fvm/bin/fvm ]; then
+            echo "❌ New binary not found at ~/fvm/bin/fvm"
+            exit 1
+          fi
+          echo "✅ New binary installed at ~/fvm/bin/fvm"
+
+          # Cached SDKs should survive
+          if [ ! -f ~/fvm/versions/stable/marker ]; then
+            echo "❌ Cached SDKs were deleted!"
+            exit 1
+          fi
+          echo "✅ Cached SDKs preserved"
+
+          # Verify binary works
+          ~/fvm/bin/fvm --version
+          echo "✅ Migration test complete"
 
   # Test install.sh in container (root allowed with warning)
   test-container:
@@ -91,7 +192,7 @@ jobs:
           fi
 
           # Should still succeed
-          $HOME/.fvm_flutter/bin/fvm --version
+          $HOME/fvm/bin/fvm --version
           echo "✅ Container install successful"
 
   # Test install.sh root permissions (warns but allows)
@@ -116,5 +217,5 @@ jobs:
           fi
 
           # Should succeed
-          sudo -H /root/.fvm_flutter/bin/fvm --version
+          sudo -H /root/fvm/bin/fvm --version
           echo "✅ Root install successful"
