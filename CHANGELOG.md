@@ -1,3 +1,16 @@
+## Unreleased
+
+* fix: PathAccessException in Nix/Home Manager environments with read-only shell configs (#897, #799)
+
+## 4.0.4
+
+* fix: remove leading newline from fvm dart/flutter output
+* fix: read or write cache with fork version by @huanghui1998hhh
+
+## 4.0.3
+
+* fix: preserve all project settings on fvm install
+
 ## 4.0.2
 
 * change: Git cache is now recreated as a bare mirror; FVM automatically detaches installed SDKs on upgrade so the cache can be deleted, moved, or pruned without breaking installs (expect a one-time repack when upgrading).
