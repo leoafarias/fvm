@@ -161,20 +161,25 @@ class FlutterVersion with FlutterVersionMappable {
 
   bool get fromFork => fork != null;
 
+  /// Returns the qualified name including fork prefix if present.
+  ///
+  /// For example: `fork/3.35.4` or `3.35.4` if no fork.
+  String get nameWithAlias => fromFork ? '$fork/$name' : name;
+
   /// Provides a human readable version identifier for UI presentation.
   ///
   /// The return value varies based on the type of version:
-  /// * 'Channel: [name]' for channel versions.
-  /// * 'Commit: [name]' for commit versions.
-  /// * 'SDK Version: [name]' for standard versions.
+  /// * 'Channel: [nameWithAlias]' for channel versions.
+  /// * 'Commit: [nameWithAlias]' for commit versions.
+  /// * 'SDK Version: [nameWithAlias]' for standard versions.
   String get printFriendlyName {
     // Uppercase
 
-    if (isChannel) return 'Channel: ${name.capitalize}';
+    if (isChannel) return 'Channel: ${nameWithAlias.capitalize}';
 
-    if (isUnknownRef) return 'Commit : $name';
+    if (isUnknownRef) return 'Commit : $nameWithAlias';
 
-    return 'SDK Version : $name';
+    return 'SDK Version : $nameWithAlias';
   }
 
   /// Compares CacheVersion with [other]
@@ -186,7 +191,7 @@ class FlutterVersion with FlutterVersionMappable {
   }
 
   @override
-  String toString() => name;
+  String toString() => nameWithAlias;
 }
 
 // A small class for each fork's definition:

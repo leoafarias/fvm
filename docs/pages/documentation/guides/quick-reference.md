@@ -32,7 +32,8 @@ title: Quick Reference
 | `--force` | use, global | Skip validation |
 | `--pin` | use | Pin channel version |
 | `--flavor` | use | Set flavor version |
-| `--setup` | install | Run Flutter setup |
+| `--setup` | install | Run Flutter setup (default: ON) |
+| `--no-setup` | install, use | Skip setup for faster caching |
 | `--skip-pub-get` | use, install | Skip dependencies |
 
 ## Workflows
@@ -82,5 +83,5 @@ myproject/
 - Use `fvm doctor` to troubleshoot issues
 - Add `.fvm/flutter_sdk` to `.gitignore`
 - Commit `.fvmrc` for team consistency
-- Use `--skip-setup` for faster switching
+- Use `--no-setup` for faster caching
 - Enable git cache for faster installs

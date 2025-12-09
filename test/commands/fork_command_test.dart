@@ -49,6 +49,34 @@ void main() {
       expect(fork.url, testForkUrl);
     });
 
+    test('Add a fork with scp-style git URL', () async {
+      const alias = 'sshfork';
+      const scpUrl = 'git@github.com:flutter/flutter.git';
+
+      LocalAppConfig.read()
+        ..forks.removeWhere((f) => f.name == alias)
+        ..save();
+
+      final exitCode = await runner.runOrThrow([
+        'fvm',
+        'fork',
+        'add',
+        alias,
+        scpUrl,
+      ]);
+
+      expect(exitCode, ExitCode.success.code);
+
+      final config = LocalAppConfig.read();
+      final fork = config.forks.firstWhere(
+        (f) => f.name == alias,
+        orElse: () => const FlutterFork(name: '', url: ''),
+      );
+
+      expect(fork.name, alias);
+      expect(fork.url, scpUrl);
+    });
+
     test('Reject invalid fork URL', () async {
       final invalidUrl = 'invalid-url';
 

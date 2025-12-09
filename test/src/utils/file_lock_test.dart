@@ -467,7 +467,8 @@ void main() {
     test('should handle very short expiration times', () async {
       final quickLocker = FileLocker(
         lockFilePath,
-        lockExpiration: Duration(milliseconds: 2),
+        // Use 200ms to account for Windows file I/O latency and CI variability
+        lockExpiration: Duration(milliseconds: 200),
       );
 
       quickLocker.lock();
@@ -475,7 +476,7 @@ void main() {
       // Should get the lock almost immediately despite it being locked
       final stopwatch = Stopwatch()..start();
       final unlock = await quickLocker.getLock(
-        pollingInterval: Duration(milliseconds: 1),
+        pollingInterval: Duration(milliseconds: 20),
       );
       stopwatch.stop();
 

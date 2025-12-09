@@ -68,7 +68,7 @@ fvm use fa345b1
 
 ## install
 
-Downloads and caches a Flutter SDK version for future use.
+Downloads and caches a Flutter SDK version for future use. **Runs setup by default to ensure SDK is ready to use.**
 
 ```bash
 fvm install [version] [options]
@@ -81,7 +81,8 @@ fvm install [version] [options]
 
 ### Options
 
-- `-s, --setup` - Runs Flutter setup after installation
+- `-s, --setup` - Downloads SDK dependencies after install (default: true)
+- `--no-setup` - Skip downloading SDK dependencies for faster caching
 - `--skip-pub-get` - Skips dependency resolution
 
 ### Aliases
@@ -91,11 +92,11 @@ fvm install [version] [options]
 ### Examples
 
 ```bash
-# Install specific version
+# Install with setup (default behavior)
 fvm install 3.19.0
 
-# Install with setup
-fvm install 3.19.0 --setup
+# Skip setup for faster caching
+fvm install 3.19.0 --no-setup
 
 # Install from project config
 fvm install

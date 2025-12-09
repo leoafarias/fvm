@@ -24,9 +24,9 @@ class InstallCommand extends BaseFvmCommand {
       ..addFlag(
         'setup',
         abbr: 's',
-        help: 'Downloads SDK dependencies after install',
-        defaultsTo: false,
-        negatable: false,
+        help: 'Downloads SDK dependencies after install (default: true)',
+        defaultsTo: true,
+        negatable: true,
       )
       ..addFlag(
         'skip-pub-get',

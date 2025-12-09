@@ -39,8 +39,6 @@ class RunConfiguredFlutterWorkflow extends Workflow {
 
     // Execute using the selected version if available.
     if (selectedVersion != null) {
-      logger.info();
-
       return get<FlutterService>().run(cmd, args, selectedVersion);
     }
 

@@ -192,15 +192,85 @@ String extractDartVersionOutput(String input) {
 
 /// Validates if a URL is a valid Git repository URL.
 bool isValidGitUrl(String url) {
-  try {
-    final uri = Uri.parse(url);
+  final trimmed = url.trim();
 
-    return uri.scheme.isNotEmpty &&
-        (uri.host.isNotEmpty || uri.path.isNotEmpty) &&
-        uri.path.endsWith('.git');
-  } catch (e) {
+  if (trimmed.isEmpty) {
     return false;
   }
+
+  // Accept scp-like syntax such as git@host:group/repo.git.
+  if (_isScpLikeGitUrl(trimmed)) {
+    return _hasGitExtension(_extractScpPath(trimmed));
+  }
+
+  // Accept ssh:// urls that use scp shorthand after the scheme.
+  const sshScheme = 'ssh://';
+  if (trimmed.startsWith(sshScheme)) {
+    final remainder = trimmed.substring(sshScheme.length);
+    if (_isScpLikeGitUrl(remainder)) {
+      return _hasGitExtension(_extractScpPath(remainder));
+    }
+  }
+
+  try {
+    final uri = Uri.parse(trimmed);
+
+    if (!uri.hasScheme) {
+      return false;
+    }
+
+    if (uri.host.isEmpty && uri.authority.isEmpty && uri.scheme != 'file') {
+      return false;
+    }
+
+    final path = uri.path;
+
+    return _hasGitExtension(path);
+  } on FormatException {
+    return false;
+  }
+}
+
+bool _hasGitExtension(String? path) {
+  return path != null && path.isNotEmpty && path.endsWith('.git');
+}
+
+bool _isScpLikeGitUrl(String url) {
+  // Matches scp-like syntax: [user@]host:path
+  // - user@: optional username with @ separator
+  // - host: hostname or IPv6 literal in brackets [::1]
+  // - : required colon separator (distinguishes from file paths)
+  // - path: required path component
+  // Examples: git@github.com:user/repo.git, [::1]:path/to/repo.git
+  final scpPattern = RegExp(
+    r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$',
+  );
+
+  return scpPattern.hasMatch(url);
+}
+
+/// Extracts the path portion from an scp-like Git URL.
+///
+/// Handles two formats:
+/// 1. IPv6 host in brackets: [2001:db8::1]:path/to/repo -> path/to/repo
+/// 2. Regular host: user@host.com:path/to/repo -> path/to/repo
+///
+/// Returns null if the URL format is invalid (missing colon separator).
+String? _extractScpPath(String url) {
+  if (url.startsWith('[')) {
+    final closeBracket = url.indexOf(']');
+    if (closeBracket == -1) {
+      return null;
+    }
+
+    final ipv6Separator = url.indexOf(':', closeBracket);
+
+    return ipv6Separator == -1 ? null : url.substring(ipv6Separator + 1);
+  }
+
+  final separator = url.indexOf(':');
+
+  return separator == -1 ? null : url.substring(separator + 1);
 }
 
 /// Converts string to boolean. Returns null for invalid values.
@@ -258,6 +328,12 @@ Future<int> getFullDirectorySize(
       versions.map((version) async {
         try {
           return await getDirectorySize(version.directory.dir);
+        } on FileSystemException catch (e) {
+          logger.debug(
+            'Cannot access ${version.name} for size calculation: $e',
+          );
+
+          return 0;
         } catch (e) {
           // Log error but continue with zero for this directory
           logger.warn('Error calculating size for ${version.name}: $e');
@@ -271,7 +347,9 @@ Future<int> getFullDirectorySize(
     return sizes.fold<int>(0, (sum, size) => sum + size);
   } catch (e) {
     // Fallback if parallel execution fails
-    logger.warn('Error calculating full directory size: $e');
+    logger.err(
+      'Failed to calculate total directory size due to internal error: $e',
+    );
 
     return 0;
   }

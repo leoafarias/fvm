@@ -10,12 +10,22 @@ module.exports = withNextra({
     return [
       {
         source: "/docs",
-        destination: "/documentation/getting-started",
+        destination: "/documentation/getting-started/overview",
         permanent: true,
       },
       {
         source: "/documentation",
-        destination: "/documentation/getting-started",
+        destination: "/documentation/getting-started/overview",
+        permanent: true,
+      },
+      {
+        source: "/documentation/getting-started",
+        destination: "/documentation/getting-started/overview",
+        permanent: true,
+      },
+      {
+        source: "/documentation/troubleshooting",
+        destination: "/documentation/troubleshooting/overview",
         permanent: true,
       },
       {

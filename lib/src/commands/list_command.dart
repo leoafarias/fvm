@@ -38,7 +38,7 @@ class ListCommand extends BaseFvmCommand {
       ..insertColumn(header: 'Local', alignment: TextAlignment.left);
 
     for (var version in cacheVersions) {
-      var printVersion = version.name;
+      var printVersion = version.nameWithAlias;
       FlutterSdkRelease? latestRelease;
 
       // Get latest channel release for channels

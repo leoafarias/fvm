@@ -8,7 +8,7 @@ assignees: ""
 
 **Before creating a bug report please make check the following**
 
-- [ ] You have read our [FAQ](https://fvm.app/docs/guides/faq)
+- [ ] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)
 - [ ] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.
 - [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.
 - [ ] Run `fvm doctor` if possible and add the output to the issue.

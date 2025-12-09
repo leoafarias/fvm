@@ -70,10 +70,10 @@ void main() {
       final versionDir = cacheService.getVersionCacheDir(forkVersion);
       versionDir.createSync(recursive: true);
 
-      // Create a version file to make it look like a valid Flutter SDK
-      File(
-        path.join(versionDir.path, 'version'),
-      ).writeAsStringSync(versionName);
+      // Create bin/flutter to make it look like a valid Flutter SDK
+      final binDir = Directory(path.join(versionDir.path, 'bin'));
+      binDir.createSync(recursive: true);
+      File(path.join(binDir.path, 'flutter')).createSync();
 
       final forkDir = versionDir.parent;
 
@@ -99,15 +99,17 @@ void main() {
       // Create the version directories using cache service
       final versionDir1 = cacheService.getVersionCacheDir(forkVersion1);
       versionDir1.createSync(recursive: true);
-      File(
-        path.join(versionDir1.path, 'version'),
-      ).writeAsStringSync(versionName1);
+      // Create bin/flutter to make it look like a valid Flutter SDK
+      final binDir1 = Directory(path.join(versionDir1.path, 'bin'));
+      binDir1.createSync(recursive: true);
+      File(path.join(binDir1.path, 'flutter')).createSync();
 
       final versionDir2 = cacheService.getVersionCacheDir(forkVersion2);
       versionDir2.createSync(recursive: true);
-      File(
-        path.join(versionDir2.path, 'version'),
-      ).writeAsStringSync(versionName2);
+      // Create bin/flutter to make it look like a valid Flutter SDK
+      final binDir2 = Directory(path.join(versionDir2.path, 'bin'));
+      binDir2.createSync(recursive: true);
+      File(path.join(binDir2.path, 'flutter')).createSync();
 
       final forkDir = versionDir1.parent;
 
@@ -141,25 +143,27 @@ void main() {
       final forkDir = cacheService.getVersionCacheDir(forkVersion);
       forkDir.createSync(recursive: true);
 
-      // Creating version files is crucial for version detection
+      // Creating bin/flutter is crucial for version detection
       // For regular version
-      File(path.join(regularDir.path, 'version'))
-        ..createSync()
-        ..writeAsStringSync('stable');
+      final regularBinDir = Directory(path.join(regularDir.path, 'bin'));
+      regularBinDir.createSync(recursive: true);
+      File(path.join(regularBinDir.path, 'flutter')).createSync();
 
-      // For forked version - this is the key change
-      // Adding version file to forked version directory
-      File(path.join(forkDir.path, 'version'))
-        ..createSync()
-        ..writeAsStringSync('master');
+      // For forked version
+      final forkBinDir = Directory(path.join(forkDir.path, 'bin'));
+      forkBinDir.createSync(recursive: true);
+      File(path.join(forkBinDir.path, 'flutter')).createSync();
 
       // The key is to make the fork directory look like a non-version directory
-      // by ensuring it doesn't have a "version" file directly in it
+      // by ensuring it doesn't have a "bin/flutter" directly in it
       final forkParentDir = Directory(
         path.join(tempDir.path, forkVersion.fork!),
       );
-      if (File(path.join(forkParentDir.path, 'version')).existsSync()) {
-        File(path.join(forkParentDir.path, 'version')).deleteSync();
+      final forkParentBinFlutter = File(
+        path.join(forkParentDir.path, 'bin', 'flutter'),
+      );
+      if (forkParentBinFlutter.existsSync()) {
+        forkParentBinFlutter.deleteSync();
       }
 
       // Print directory structure for debugging

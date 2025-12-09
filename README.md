@@ -20,7 +20,7 @@ FVM manages Flutter SDK versions per project. Switch between Flutter versions in
 - Flutter's major updates demand total app migration.
 - Inconsistencies occur in development environments within teams.
 
-For more information, read [FVM documentation](https://fvm.app).
+For more information, read the [Getting Started guide](https://fvm.app/documentation/getting-started).
 
 ## Release Process (For Maintainers)
 
@@ -43,6 +43,14 @@ FVM uses GitHub releases to trigger automated deployments across all platforms:
    - [`release.yml`](.github/workflows/release.yml) triggers automatically
    - Deploys to: pub.dev, GitHub binaries, Homebrew, Chocolatey, Docker
    - Monitor progress in [Actions tab](https://github.com/leoafarias/fvm/actions)
+
+> **Dart SDK requirements:** Day-to-day development now targets the
+> repository SDK constraint (`>=3.6.0 <4.0.0`). Release automation lives under
+> `tool/release_tool/` and requires Dart SDK `>=3.8.0`. CI pins this higher tool
+> chain via the `RELEASE_DART_SDK` environment variable (currently `3.9.0`) so
+> it matches the versions packaged for Homebrew and other installers.
+> If you run release tasks locally, switch to a Dart SDK `3.8.0` or newer
+> before executing commands from `tool/release_tool/`.
 
 ### Emergency Releases
 
@@ -69,7 +77,7 @@ Checkout Flutter Sidekick. [Read more about it here.](https://github.com/leoafar
 
 ## Troubleshooting
 
-Please view our [FAQ](https://www.fvm.app/documentation/getting-started/faq).
+Please view our [FAQ](https://fvm.app/documentation/getting-started/faq).
 
 ## License
 

@@ -45,10 +45,11 @@ class ProjectService extends ContextualService {
   /// the current project. It uses the [findAncestor] method to find the project directory.
   ///
   /// Returns the pinned Flutter SDK version for the project, or `null` if no version is configured.
+  /// The returned string includes the fork prefix if present (e.g., `fork/3.35.4`).
   String? findVersion() {
     final project = findAncestor();
 
-    return project.pinnedVersion?.name;
+    return project.pinnedVersion?.nameWithAlias;
   }
 
   /// Update the project with new configurations
@@ -72,10 +73,12 @@ class ProjectService extends ContextualService {
         ? {...?currentConfig.flavors, ...flavors}
         : currentConfig.flavors;
 
-    final config = currentConfig.copyWith(
-      flutter: flutterSdkVersion,
-      flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,
-      updateVscodeSettings: updateVscodeSettings,
+    final config = currentConfig.copyWith.$merge(
+      ProjectConfig(
+        flutter: flutterSdkVersion,
+        flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,
+        updateVscodeSettings: updateVscodeSettings,
+      ),
     );
 
     // Update flavors
