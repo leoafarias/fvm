@@ -1,3 +1,7 @@
+## Unreleased
+
+* fix: PathAccessException in Nix/Home Manager environments with read-only shell configs (#897, #799)
+
 ## 4.0.4
 
 * fix: remove leading newline from fvm dart/flutter output
