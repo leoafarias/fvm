@@ -367,19 +367,21 @@ else
 fi
 chmod +x "${BIN_DIR}/fvm"
 
-# ---- verify binary works (non-fatal) ----
-if ! "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
-  echo "⚠ Installed, but running '${BIN_DIR}/fvm --version' failed." >&2
-  echo "  Ensure system libraries are present." >&2
-fi
-
 # ---- migrate from v1/v2 ----
 migrate_from_v1
 
-# ---- success ----
+# ---- verify and report ----
 echo ""
 echo "Installed to: ${BIN_DIR}/fvm"
-echo "FVM version: ${VERSION}"
 
-# ---- print PATH instructions ----
-print_path_instructions
+if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
+  echo "FVM version: ${VERSION}"
+  print_path_instructions
+else
+  echo ""
+  echo "⚠ Binary installed but cannot execute (missing libraries)."
+  echo "  On Alpine Linux: apk add gcompat"
+  echo "  Then verify: ${BIN_DIR}/fvm --version"
+  echo ""
+  echo "  PATH: export PATH=\"$BIN_DIR:\$PATH\""
+fi
