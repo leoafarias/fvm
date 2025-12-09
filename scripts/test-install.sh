@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Test root detection logic for install.sh (v1 installer)
+# Test root detection logic for install-legacy.sh (v1 installer)
 #
-# This tests the root BLOCKING behavior in install.sh, which:
+# This tests the root BLOCKING behavior in install-legacy.sh, which:
 # - Blocks root by default
 # - Allows root in containers (/.dockerenv, /.containerenv)
 # - Allows root in CI (CI environment variable)
 # - Allows root with FVM_ALLOW_ROOT=true override
 #
-# Note: install-next.sh (v3) has different behavior - it WARNS about
+# Note: install.sh (v3) has different behavior - it WARNS about
 # root but doesn't block. That behavior is tested in the GitHub workflow.
 #
 # Usage: ./test-install.sh (run as regular user)
@@ -23,20 +23,20 @@ NC='\033[0m'
 pass() { echo -e "${GREEN}✅ $1${NC}"; }
 fail() { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
-echo "🧪 Testing install.sh (v1) root detection logic"
-echo "================================================"
+echo "🧪 Testing install-legacy.sh (v1) root detection logic"
+echo "======================================================"
 echo ""
-echo "This tests the root BLOCKING behavior in install.sh"
-echo "(install-next.sh has different behavior - warns only)"
+echo "This tests the root BLOCKING behavior in install-legacy.sh"
+echo "(install.sh v3 has different behavior - warns only)"
 echo ""
 
-# Test the detection logic directly - mirrors install.sh logic
-# See install.sh lines 100-102 (is_container_env) and 277-287 (root check)
+# Test the detection logic directly - mirrors install-legacy.sh logic
+# See install-legacy.sh lines 100-102 (is_container_env) and 277-287 (root check)
 test_detection() {
     local desc="$1"
     local expected="$2"
 
-    # This mirrors the install.sh logic exactly:
+    # This mirrors the install-legacy.sh logic exactly:
     # is_container_env() { [[ -f /.dockerenv ]] || [[ -f /.containerenv ]] || [[ -n "${CI:-}" ]] }
     # if [[ $(id -u) -eq 0 ]]; then
     #   if is_container_env || [[ "${FVM_ALLOW_ROOT:-}" == "true" ]]; then

@@ -4,17 +4,15 @@ on:
   push:
     paths:
       - 'scripts/install.sh'
-      - 'scripts/install-next.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'scripts/install.sh'
-      - 'scripts/install-next.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
 jobs:
-  # Basic validation - shellcheck both scripts
+  # Basic validation - shellcheck
   validate:
     name: Validate Scripts
     runs-on: ubuntu-latest
@@ -27,50 +25,9 @@ jobs:
           fi
       - name: Shellcheck install.sh
         run: shellcheck scripts/install.sh
-      - name: Shellcheck install-next.sh
-        run: shellcheck scripts/install-next.sh
 
-  # Test install-next.sh (v3 - user-local only)
-  test-install-next:
-    name: Test install-next.sh - ${{ matrix.os }}
-    needs: validate
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Test installation
-        run: |
-          ./scripts/install-next.sh
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
-          fvm --version
-
-      - name: Test reinstall (idempotency)
-        run: |
-          ./scripts/install-next.sh
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
-          fvm --version
-
-      - name: Test uninstall
-        run: |
-          export PATH="$HOME/.fvm_flutter/bin:$PATH"
-          which fvm
-          ./scripts/install-next.sh --uninstall
-
-          # Verify uninstall
-          if [[ -d ~/.fvm_flutter ]]; then
-            echo "❌ FVM directory still exists after uninstall"
-            exit 1
-          fi
-          echo "✅ FVM successfully uninstalled"
-
-      - name: Test uninstall on clean system (idempotency)
-        run: ./scripts/install-next.sh --uninstall
-
-  # Test install.sh (v1 - creates system symlink)
-  test-install-legacy:
+  # Test install.sh (v3 - user-local only)
+  test-install:
     name: Test install.sh - ${{ matrix.os }}
     needs: validate
     strategy:
@@ -83,15 +40,18 @@ jobs:
       - name: Test installation
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
 
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           fvm --version
 
       - name: Test uninstall
         run: |
+          export PATH="$HOME/.fvm_flutter/bin:$PATH"
           which fvm
           ./scripts/install.sh --uninstall
 
@@ -102,9 +62,12 @@ jobs:
           fi
           echo "✅ FVM successfully uninstalled"
 
-  # Test install-next.sh in container (root allowed with warning)
-  test-container-next:
-    name: Test install-next.sh in Container
+      - name: Test uninstall on clean system (idempotency)
+        run: ./scripts/install.sh --uninstall
+
+  # Test install.sh in container (root allowed with warning)
+  test-container:
+    name: Test install.sh in Container
     needs: validate
     runs-on: ubuntu-latest
     container: ubuntu:latest
@@ -116,7 +79,7 @@ jobs:
 
       - name: Test container root install (should warn but succeed)
         run: |
-          output=$(./scripts/install-next.sh 2>&1)
+          output=$(./scripts/install.sh 2>&1)
           echo "$output"
 
           # Should show warning
@@ -131,27 +94,9 @@ jobs:
           $HOME/.fvm_flutter/bin/fvm --version
           echo "✅ Container install successful"
 
-  # Test install.sh in container (root allowed in container)
-  test-container-legacy:
-    name: Test install.sh in Container
-    needs: validate
-    runs-on: ubuntu-latest
-    container: ubuntu:latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: apt-get update && apt-get install -y curl tar gzip
-
-      - name: Test container root install (should succeed - container detected)
-        run: |
-          ./scripts/install.sh
-          fvm --version
-          echo "✅ Container install successful"
-
-  # Test install-next.sh root permissions (warns but allows)
-  test-permissions-next:
-    name: Test install-next.sh Root Warning
+  # Test install.sh root permissions (warns but allows)
+  test-permissions:
+    name: Test install.sh Root Warning
     needs: validate
     runs-on: ubuntu-latest
     steps:
@@ -159,7 +104,7 @@ jobs:
 
       - name: Test root shows warning but succeeds
         run: |
-          output=$(sudo -H ./scripts/install-next.sh 2>&1)
+          output=$(sudo -H ./scripts/install.sh 2>&1)
           echo "$output"
 
           # Should show warning
@@ -173,27 +118,3 @@ jobs:
           # Should succeed
           sudo -H /root/.fvm_flutter/bin/fvm --version
           echo "✅ Root install successful"
-
-  # Test install.sh root permissions (blocks without override)
-  test-permissions-legacy:
-    name: Test install.sh Root Blocking
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Test root is blocked without override
-        run: |
-          # Should fail when run as root without FVM_ALLOW_ROOT
-          if sudo -H ./scripts/install.sh 2>&1; then
-            echo "❌ Should have blocked root execution"
-            exit 1
-          else
-            echo "✅ Root correctly blocked"
-          fi
-
-      - name: Test root allowed with FVM_ALLOW_ROOT
-        run: |
-          sudo -H env FVM_ALLOW_ROOT=true ./scripts/install.sh
-          sudo -H /root/.fvm_flutter/bin/fvm --version
-          echo "✅ Root install with override successful"
