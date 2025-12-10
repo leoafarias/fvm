@@ -346,7 +346,7 @@ if ! tar -tzf "$ARCHIVE" >/dev/null 2>&1; then
 fi
 
 # ---- validate no path traversal ----
-if tar -tzf "$ARCHIVE" | grep -qE '^/|(\.\./)|(/\.\.)'; then
+if tar -tzf "$ARCHIVE" | grep -qE '^/|^\.\.$|^\.\./|/\.\.$|/\.\./'; then
   echo "error: archive contains unsafe paths (absolute or traversal)" >&2
   exit 1
 fi
