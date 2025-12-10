@@ -89,6 +89,23 @@ jobs:
       - name: Test uninstall on clean system (idempotency)
         run: ./scripts/install.sh --uninstall
 
+      - name: Test specific version installation
+        run: |
+          # Install specific version (use a known stable version)
+          ./scripts/install.sh 3.2.1
+
+          # Verify correct version installed
+          export PATH="$HOME/fvm/bin:$PATH"
+          fvm_version=$(fvm --version)
+          echo "Installed version: $fvm_version"
+
+          # Version should contain 3.2.1
+          echo "$fvm_version" | grep -q "3.2.1" || { echo "❌ Wrong version installed"; exit 1; }
+          echo "✅ Specific version installation successful"
+
+          # Clean up for next tests
+          ./scripts/install.sh --uninstall
+
   # Test v1 to v3 migration
   test-migration:
     name: Test v1 to v3 Migration
