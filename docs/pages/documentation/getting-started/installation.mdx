@@ -135,7 +135,7 @@ The install script (`install.sh`) supports several options:
 
 ### Requirements
 
-- **macOS/Linux**: `curl`, `tar`, and `sudo` or `doas`
+- **macOS/Linux**: `curl` and `tar`
 - **Windows**: PowerShell (for script) or Chocolatey
 
 ## PATH Configuration
@@ -144,13 +144,13 @@ The install script automatically configures your shell PATH. For manual installa
 
 <Tabs items={['macOS/Linux (Install Script)', 'macOS/Linux (Pub)', 'Windows']}>
   <Tabs.Tab>
-The install script automatically adds FVM to your PATH by updating your shell configuration:
+The install script prints instructions to add FVM to your PATH. Add the following to your shell configuration:
 
-- **Bash**: `~/.bashrc` or `~/.bash_profile`
-- **Zsh**: `~/.zshrc`
-- **Fish**: `~/.config/fish/config.fish`
+- **Bash**: Add to `~/.bashrc`
+- **Zsh**: Add to `~/.zshrc`
+- **Fish**: Run `fish_add_path "$HOME/fvm/bin"`
 
-The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
+Add this line: `export PATH="$HOME/fvm/bin:$PATH"`
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
 
