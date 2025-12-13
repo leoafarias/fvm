@@ -110,7 +110,7 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
+  Directory get _lockDir => Directory(join(fvmDir, '.locks'));
 
   /// Directory where FVM is stored
   @MappableField()
@@ -119,18 +119,21 @@ class FvmContext with FvmContextMappable {
   /// Flag to determine if should use git cache
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
+    // Respect explicit opt-in/opt-out even on CI. Default behaviour keeps the
+    // git cache disabled on CI to avoid large fetches in ephemeral runners,
+    // but allows forcing it via config/ENV (e.g., FVM_USE_GIT_CACHE=true) so
+    // migration tests and power users can exercise the mirror path.
+    final bool? explicit = config.useGitCache;
 
-    return useGitCache && !isCI;
+    if (explicit != null) return explicit;
+
+    // Default: enable locally, disable on CI.
+    return !isCI;
   }
 
   /// Run pub get on sdk changes
   @MappableField()
-  bool get runPubGetOnSdkChanges {
-    return config.runPubGetOnSdkChanges != null
-        ? config.runPubGetOnSdkChanges!
-        : true;
-  }
+  bool get runPubGetOnSdkChanges => config.runPubGetOnSdkChanges ?? true;
 
   /// FVM Version
   @MappableField()
@@ -154,17 +157,11 @@ class FvmContext with FvmContextMappable {
 
   /// Flutter SDK Path
   @MappableField()
-  bool get updateCheckDisabled {
-    return config.disableUpdateCheck != null
-        ? config.disableUpdateCheck!
-        : false;
-  }
+  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
 
   /// Privileged access
   @MappableField()
-  bool get privilegedAccess {
-    return config.privilegedAccess != null ? config.privilegedAccess! : true;
-  }
+  bool get privilegedAccess => config.privilegedAccess ?? true;
 
   /// Where Default Flutter SDK is stored
   @MappableField()
@@ -191,7 +188,7 @@ class FvmContext with FvmContextMappable {
   /// Creates a file-based lock for cross-process synchronization.
   ///
   /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
-  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
+  /// Locks are stored in `~/.fvm/.locks/{name}.lock`.
   ///
   /// Usage:
   /// ```dart
@@ -208,6 +205,17 @@ class FvmContext with FvmContextMappable {
   FileLocker createLock(String name, {Duration? expiresIn}) {
     if (!_lockDir.existsSync()) {
       _lockDir.createSync(recursive: true);
+    }
+
+    // Migrate from visible 'locks/' (4.0.0) to hidden '.locks/'
+    final legacyLockDir = Directory(join(fvmDir, 'locks'));
+    try {
+      if (legacyLockDir.existsSync()) {
+        // Atomic delete - if another process beats us, the exception is caught
+        legacyLockDir.deleteSync(recursive: true);
+      }
+    } on FileSystemException {
+      // Another process already migrated - safe to ignore
     }
 
     return FileLocker(
