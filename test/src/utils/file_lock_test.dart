@@ -342,13 +342,10 @@ void main() {
       expect(int.tryParse(content.trim()), isNotNull);
     });
 
-    test('should handle lock file being repeatedly refreshed', () async {
-      // Skip on Windows due to timing-sensitive behavior being unreliable on CI
-      if (Platform.isWindows) {
-        return;
-      }
-
-      fileLocker.lock();
+    test(
+      'should handle lock file being repeatedly refreshed',
+      () async {
+        fileLocker.lock();
 
       // Start a timer to keep updating the lock file
       var keepUpdating = true;
@@ -401,8 +398,12 @@ void main() {
       // Should now be able to get the lock
       unlock = await fileLocker.getLock();
       expect(fileLocker.isLocked, isTrue);
-      unlock();
-    });
+        unlock();
+      },
+      skip: Platform.isWindows
+          ? 'Timing-sensitive behavior is unreliable on Windows CI.'
+          : false,
+    );
   });
 
   group('Error handling', () {

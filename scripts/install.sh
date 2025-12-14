@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Install FVM to user-local directory ($HOME/fvm/bin)
+# Install FVM to a user-local directory (default: $HOME/fvm/bin)
+# Override install base with: FVM_INSTALL_DIR=/path
 # No sudo required. Add to PATH after installation.
 set -euo pipefail
 umask 022
@@ -10,8 +11,6 @@ readonly INSTALLER_VERSION="3.0.0"  # v3: single behavior, user-local only
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
-readonly INSTALL_BASE="${FVM_HOME:-${HOME}/fvm}"
-readonly BIN_DIR="${INSTALL_BASE}/bin"
 readonly OLD_SYSTEM_PATH="/usr/local/bin/fvm"
 readonly OLD_USER_PATH="${HOME}/.fvm_flutter"
 
@@ -19,9 +18,67 @@ UNINSTALL_ONLY=0
 REQUESTED_VERSION=""
 
 # ---- helpers ----
+resolve_install_base() {
+  local base="${FVM_INSTALL_DIR:-}"
+  if [ -z "$base" ]; then
+    base="${HOME}/fvm"
+  fi
+
+  case "$base" in
+    \~) base="$HOME" ;;
+    \~/*) base="$HOME/${base#\~/}" ;;
+  esac
+
+  printf '%s\n' "$base"
+}
+
+INSTALL_BASE="$(resolve_install_base)"
+readonly INSTALL_BASE
+readonly BIN_DIR="${INSTALL_BASE}/bin"
+
+validate_install_base() {
+  local base="$1"
+  local bin_dir="${base}/bin"
+
+  if [ -z "$base" ] || [ "$base" = "/" ]; then
+    echo "error: refusing to use unsafe install base: '${base:-<empty>}'" >&2
+    echo "       Set FVM_INSTALL_DIR to a directory under your HOME (default: \$HOME/fvm)" >&2
+    exit 1
+  fi
+
+  case "$base" in
+    /*) ;;
+    *)
+      echo "error: FVM_INSTALL_DIR must be an absolute path (got: $base)" >&2
+      exit 1
+      ;;
+  esac
+
+  if [ "$base" = "$HOME" ]; then
+    echo "error: refusing to use HOME as install base ($HOME). Use a subdirectory like \$HOME/fvm." >&2
+    exit 1
+  fi
+
+  case "$base" in
+    "$HOME"/*) ;;
+    *)
+      echo "error: refusing to install outside HOME: $base" >&2
+      echo "       Use a directory under $HOME (e.g. $HOME/fvm), or use a package manager for system-wide installs." >&2
+      exit 1
+      ;;
+  esac
+
+  case "$bin_dir" in
+    /bin|/usr/bin|/usr/local/bin|/sbin|/usr/sbin)
+      echo "error: refusing to use unsafe bin directory: $bin_dir" >&2
+      exit 1
+      ;;
+  esac
+}
+
 usage() {
-  cat <<'EOF'
-FVM Installer v3.0.0 - User-Local Installation
+  cat <<EOF
+FVM Installer v${INSTALLER_VERSION} - User-Local Installation
 
 USAGE:
   install.sh [FLAGS] [VERSION]
@@ -29,6 +86,9 @@ USAGE:
 ARGUMENTS:
   VERSION               Version to install (e.g., 4.0.1 or v4.0.1)
                         If omitted, installs the latest version
+
+ENVIRONMENT:
+  FVM_INSTALL_DIR        Install base directory (default: \$HOME/fvm)
 
 FLAGS:
   -h, --help            Show this help and exit
@@ -48,7 +108,7 @@ EXAMPLES:
 AFTER INSTALLATION:
   Add FVM to your PATH by adding this line to your shell config:
 
-    export PATH="$HOME/fvm/bin:$PATH"
+    export PATH="$BIN_DIR:\$PATH"
 
   Then restart your shell or run: source ~/.bashrc
 
@@ -99,7 +159,7 @@ migrate_from_v1() {
   local migrated=0
 
   # 1. Remove old system symlink (v1 or v2 --system)
-  if [ -L "$OLD_SYSTEM_PATH" ] || [ -f "$OLD_SYSTEM_PATH" ]; then
+  if [ -L "$OLD_SYSTEM_PATH" ]; then
     echo "" >&2
     echo "Detected old system installation at $OLD_SYSTEM_PATH" >&2
 
@@ -124,6 +184,10 @@ migrate_from_v1() {
         echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
       fi
     fi
+  elif [ -e "$OLD_SYSTEM_PATH" ]; then
+    echo "" >&2
+    echo "⚠ Detected existing non-symlink file at $OLD_SYSTEM_PATH" >&2
+    echo "  Not removing automatically. Remove it manually if it is an old FVM binary." >&2
   fi
 
   # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
@@ -162,7 +226,10 @@ do_uninstall() {
   echo "Uninstalling FVM..." >&2
   echo "" >&2
 
-  # 1. Remove binary directory only (NOT entire ~/fvm/ - preserve cached SDKs)
+  validate_install_base "$INSTALL_BASE"
+
+  # 1. Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
+  # Note: This removes the entire $BIN_DIR directory.
   if [ -d "$BIN_DIR" ]; then
     rm -rf "$BIN_DIR" 2>/dev/null || true
     if [ ! -d "$BIN_DIR" ]; then
@@ -185,7 +252,7 @@ do_uninstall() {
   fi
 
   # 3. Remove old system symlink (from v1/v2)
-  if [ -L "$OLD_SYSTEM_PATH" ] || [ -f "$OLD_SYSTEM_PATH" ]; then
+  if [ -L "$OLD_SYSTEM_PATH" ]; then
     rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
     if [ ! -e "$OLD_SYSTEM_PATH" ]; then
       echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
@@ -203,6 +270,8 @@ do_uninstall() {
         echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
       fi
     fi
+  elif [ -e "$OLD_SYSTEM_PATH" ]; then
+    echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
 
   if [ "$removed_any" -eq 0 ]; then
@@ -233,15 +302,28 @@ for arg in "$@"; do
     -h|--help) usage; exit 0 ;;
     -v|--version) print_installer_version; exit 0 ;;
     --uninstall) UNINSTALL_ONLY=1 ;;
-    v[0-9]*|[0-9]*.[0-9]*.[0-9]*) REQUESTED_VERSION="$arg" ;;
-    *)
-      echo "error: unknown argument: $arg" >&2
+    -*)
+      echo "error: unknown option: $arg" >&2
       echo ""
       usage
       exit 1
       ;;
+    *)
+      if [ -n "$REQUESTED_VERSION" ]; then
+        echo "error: multiple versions specified" >&2
+        exit 1
+      fi
+      REQUESTED_VERSION="$arg"
+      ;;
   esac
 done
+
+if [ -n "$REQUESTED_VERSION" ]; then
+  if ! [[ "$REQUESTED_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z._-]+)?$ ]]; then
+    echo "error: invalid version format: $REQUESTED_VERSION (expected X.Y.Z or vX.Y.Z)" >&2
+    exit 1
+  fi
+fi
 
 # ---- handle uninstall ----
 if [ "$UNINSTALL_ONLY" -eq 1 ]; then
@@ -255,6 +337,8 @@ if [ "${EUID:-$(id -u)}" -eq 0 ]; then
   echo "  It is recommended that each user install FVM individually in their own home directory." >&2
   echo "" >&2
 fi
+
+validate_install_base "$INSTALL_BASE"
 
 # ---- prereqs ----
 require curl

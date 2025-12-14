@@ -121,7 +121,7 @@ The install script (`install.sh`) supports several options:
 
 - **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
 - **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s <version>` (replace `<version>` with desired FVM version)
-- **Container/CI support**: Set `FVM_ALLOW_ROOT=true` for Docker/CI environments
+- **Custom install location**: `FVM_INSTALL_DIR=<path> curl -fsSL https://fvm.app/install.sh | bash` (absolute path under `$HOME`)
 - **Help**: `./install.sh --help`
 - **Version info**: `./install.sh --version`
 
@@ -140,7 +140,7 @@ The install script (`install.sh`) supports several options:
 
 ## PATH Configuration
 
-The install script automatically configures your shell PATH. For manual installations, add FVM to your PATH:
+The install script prints instructions to add FVM to your shell PATH. For manual installations, add FVM to your PATH:
 
 <Tabs items={['macOS/Linux (Install Script)', 'macOS/Linux (Pub)', 'Windows']}>
   <Tabs.Tab>
@@ -148,9 +148,9 @@ The install script prints instructions to add FVM to your PATH. Add the followin
 
 - **Bash**: Add to `~/.bashrc`
 - **Zsh**: Add to `~/.zshrc`
-- **Fish**: Run `fish_add_path "$HOME/fvm/bin"`
+- **Fish**: Run `fish_add_path "<install_dir>/bin"`
 
-Add this line: `export PATH="$HOME/fvm/bin:$PATH"`
+Add this line: `export PATH="<install_dir>/bin:$PATH"` (default install dir is `$HOME/fvm`)
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
 
@@ -177,7 +177,7 @@ Add to your PATH environment variable:
 
 **Install Script:**
 ```bash
-./install.sh --uninstall
+curl -fsSL https://fvm.app/install.sh | bash -s -- --uninstall
 ```
 
 **Homebrew:**

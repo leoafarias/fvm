@@ -106,6 +106,31 @@ jobs:
           # Clean up for next tests
           ./scripts/install.sh --uninstall
 
+      - name: Test custom install location (FVM_INSTALL_DIR)
+        run: |
+          export FVM_INSTALL_DIR="$HOME/fvm-install-test"
+          mkdir -p "$FVM_INSTALL_DIR/versions/stable"
+          echo "cached sdk" > "$FVM_INSTALL_DIR/versions/stable/marker"
+
+          ./scripts/install.sh
+          export PATH="$FVM_INSTALL_DIR/bin:$PATH"
+          fvm --version
+
+          ./scripts/install.sh --uninstall
+
+          # Verify uninstall - only bin/ should be removed
+          if [[ -d "$FVM_INSTALL_DIR/bin" ]]; then
+            echo "❌ FVM bin directory still exists after uninstall"
+            exit 1
+          fi
+
+          # Cached SDKs should survive
+          if [[ ! -f "$FVM_INSTALL_DIR/versions/stable/marker" ]]; then
+            echo "❌ Cached SDKs were deleted!"
+            exit 1
+          fi
+          echo "✅ Custom install location test successful"
+
   # Test v1 to v3 migration
   test-migration:
     name: Test v1 to v3 Migration
