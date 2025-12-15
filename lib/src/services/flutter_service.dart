@@ -70,12 +70,17 @@ class FlutterService extends ContextualService {
 
       return result;
     } on ProcessException catch (error) {
-      // Git corruption typically returns exit code 128; also check message.
       final messageLower = error.message.toLowerCase();
-      final isLikelyCorruption = error.errorCode == 128 ||
-          messageLower.contains('corrupt') ||
-          messageLower.contains('damaged') ||
-          messageLower.contains('bad object');
+      const corruptionMarkers = [
+        'corrupt',
+        'damaged',
+        'bad object',
+        'hash mismatch',
+        'loose object',
+        'object file',
+        'pack has bad object',
+      ];
+      final isLikelyCorruption = corruptionMarkers.any(messageLower.contains);
 
       if (isLikelyCorruption) {
         logger.err(
@@ -91,7 +96,8 @@ class FlutterService extends ContextualService {
           for (var attempt = 1; attempt <= attempts; attempt++) {
             try {
               cacheDir.deleteSync(recursive: true);
-              logger.info('Removed corrupted cache. It will be recreated on next install.');
+              logger.info(
+                  'Removed corrupted cache. It will be recreated on next install.');
               break;
             } on FileSystemException catch (e) {
               if (!Platform.isWindows || attempt == attempts) {

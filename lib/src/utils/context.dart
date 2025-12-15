@@ -206,17 +206,6 @@ class FvmContext with FvmContextMappable {
       _lockDir.createSync(recursive: true);
     }
 
-    // Migrate from visible 'locks/' (4.0.0) to hidden '.locks/'
-    final legacyLockDir = Directory(join(fvmDir, 'locks'));
-    try {
-      if (legacyLockDir.existsSync()) {
-        // Atomic delete - if another process beats us, the exception is caught
-        legacyLockDir.deleteSync(recursive: true);
-      }
-    } on FileSystemException {
-      // Another process already migrated - safe to ignore
-    }
-
     return FileLocker(
       join(_lockDir.path, '$name.lock'),
       lockExpiration: expiresIn ?? const Duration(seconds: 10),
