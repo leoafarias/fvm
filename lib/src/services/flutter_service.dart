@@ -10,6 +10,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
+import '../utils/file_lock.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
@@ -89,26 +90,39 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        // Delete corrupted mirror - will be recreated on next install
+        // Delete corrupted mirror under the same lock GitService uses to avoid
+        // concurrent installs touching the cache while it is being removed.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          final attempts = Platform.isWindows ? 5 : 1;
-          for (var attempt = 1; attempt <= attempts; attempt++) {
-            try {
-              cacheDir.deleteSync(recursive: true);
-              logger.info(
-                  'Removed corrupted cache. It will be recreated on next install.');
-              break;
-            } on FileSystemException catch (e) {
-              if (!Platform.isWindows || attempt == attempts) {
-                logger.warn(
-                  'Could not remove corrupted cache: ${e.message}. '
-                  'You may need to manually delete ${cacheDir.path}',
+          final lock = FileLocker(
+            '${context.gitCachePath}.lock',
+            lockExpiration: const Duration(minutes: 10),
+          );
+          final unlock = await lock.getLock();
+          try {
+            final attempts = Platform.isWindows ? 5 : 1;
+            for (var attempt = 1; attempt <= attempts; attempt++) {
+              try {
+                cacheDir.deleteSync(recursive: true);
+                logger.info(
+                  'Removed corrupted cache. It will be recreated on next install.',
                 );
                 break;
+              } on FileSystemException catch (e) {
+                if (!Platform.isWindows || attempt == attempts) {
+                  logger.warn(
+                    'Could not remove corrupted cache: ${e.message}. '
+                    'You may need to manually delete ${cacheDir.path}',
+                  );
+                  break;
+                }
+                await Future<void>.delayed(
+                  Duration(milliseconds: 200 * attempt),
+                );
               }
-              await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
             }
+          } finally {
+            unlock();
           }
         }
       } else {
@@ -203,6 +217,20 @@ class FlutterService extends ContextualService {
 
     // Validate reference in fresh clone (no retry this time)
     await _ensureReference(version: version, gitVersionDir: versionDir);
+
+    // Bring the shared mirror up to date so future installs can use it.
+    if (context.gitCache && !version.fromFork) {
+      try {
+        await get<GitService>().updateLocalMirror();
+      } catch (e, stackTrace) {
+        logger.debug('Mirror refresh after fallback failed: $e');
+        logger.warn(
+          'Failed to refresh local git mirror after remote clone; continuing. '
+          'This may cause the next install to fetch from remote again.',
+        );
+        logger.debug(stackTrace.toString());
+      }
+    }
   }
 
   Future<void> _ensureReference({
