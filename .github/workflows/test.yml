@@ -61,15 +61,19 @@ jobs:
         with:
           sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
+
       - uses: invertase/github-action-dart-analyzer@v1
         with:
           fatal-infos: false
-  
+
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Run DCM
         run: dcm analyze lib fvm_mcp/lib
       
@@ -80,10 +84,6 @@ jobs:
         uses: ./.github/actions/test
         with:
           with-coverage: 'true'
-
-      - name: fvm_mcp | Install dependencies
-        working-directory: fvm_mcp
-        run: dart pub get
 
       - name: fvm_mcp | Format check
         working-directory: fvm_mcp
