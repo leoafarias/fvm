@@ -15,7 +15,7 @@ class ProcessRunner {
     required this.hasSkipInput,
     ProcessStartMode? startMode,
     bool? runInShell,
-  })  : startMode = startMode ?? ProcessStartMode.detachedWithStdio,
+  })  : startMode = startMode ?? ProcessStartMode.normal,
         runInShell = runInShell ?? Platform.isWindows;
 
   void bindNotifier(void Function(ProgressNotification notification) notify) {
