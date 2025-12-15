@@ -8,12 +8,15 @@ class ProcessRunner {
   final String exe;
   final bool hasSkipInput;
   final ProcessStartMode startMode;
+  final bool runInShell;
 
   ProcessRunner({
     required this.exe,
     required this.hasSkipInput,
     ProcessStartMode? startMode,
-  }) : startMode = startMode ?? ProcessStartMode.detachedWithStdio;
+    bool? runInShell,
+  })  : startMode = startMode ?? ProcessStartMode.detachedWithStdio,
+        runInShell = runInShell ?? Platform.isWindows;
 
   void bindNotifier(void Function(ProgressNotification notification) notify) {
     _notify = notify;
@@ -45,8 +48,8 @@ class ProcessRunner {
     MetaWithProgressToken? meta,
   }) {
     final full = [
-      ...args,
       if (hasSkipInput) '--fvm-skip-input',
+      ...args,
     ];
     return _runCore(
       full,
@@ -69,15 +72,21 @@ class ProcessRunner {
       exe,
       args,
       workingDirectory: cwd,
-      runInShell: true,
+      runInShell: runInShell,
       mode: startMode,
     );
 
     final outBuf = StringBuffer();
     final errBuf = StringBuffer();
 
-    final outSub = proc.stdout.transform(utf8.decoder).listen(outBuf.write);
-    final errSub = proc.stderr.transform(utf8.decoder).listen(errBuf.write);
+    final outDone = proc.stdout
+        .transform(utf8.decoder)
+        .forEach(outBuf.write)
+        .catchError((_) {});
+    final errDone = proc.stderr
+        .transform(utf8.decoder)
+        .forEach(errBuf.write)
+        .catchError((_) {});
 
     if (meta?.progressToken != null && progressLabel != null) {
       _notify?.call(ProgressNotification(
@@ -94,13 +103,24 @@ class ProcessRunner {
       code = await proc.exitCode.timeout(timeout);
     } on TimeoutException {
       timedOut = true;
-      proc.kill(ProcessSignal.sigterm);
+      proc.kill(
+        Platform.isWindows ? ProcessSignal.sigkill : ProcessSignal.sigterm,
+      );
       await Future<void>.delayed(const Duration(seconds: 2));
       proc.kill(ProcessSignal.sigkill);
       code = -1;
     } finally {
-      await outSub.cancel();
-      await errSub.cancel();
+      // Let stdio drain after exit/kill; don't cancel streams early.
+      try {
+        final wait = Future.wait([outDone, errDone]);
+        if (timedOut) {
+          await wait.timeout(const Duration(seconds: 2));
+        } else {
+          await wait;
+        }
+      } catch (_) {
+        // Best-effort: if streams don't close, proceed with what we have.
+      }
     }
 
     final stdoutText = outBuf.toString().trimRight();

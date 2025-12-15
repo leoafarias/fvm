@@ -9,7 +9,11 @@ List<String> opt<T>(
     CallToolRequest call, String key, List<String> Function(T v) build) {
   final args = call.arguments ?? const {};
   if (args.containsKey(key) && args[key] != null) {
-    return build(args[key] as T);
+    final v = args[key];
+    if (v is T) {
+      return build(v);
+    }
+    throw ArgumentError.value(v, key, 'Expected $T');
   }
   return const <String>[];
 }
@@ -26,7 +30,11 @@ List<String> when<T>(
 ) {
   final args = call.arguments ?? const {};
   if (args.containsKey(key) && args[key] != null) {
-    return map(args[key] as T);
+    final v = args[key];
+    if (v is T) {
+      return map(v);
+    }
+    throw ArgumentError.value(v, key, 'Expected $T');
   }
   return const <String>[];
 }

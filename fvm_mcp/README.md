@@ -14,7 +14,7 @@ Your MCP client should launch this as a stdio server (`command: dart`, `args: ["
 ### Tools
 
 - Read-only JSON: `fvm.api.list`, `fvm.api.releases`, `fvm.api.context`, `fvm.api.project`.
-- Mutating: `fvm.install`, `fvm.remove`, `fvm.use`, `fvm.global`.
+- Mutating (FVM ≥ 3.2.0): `fvm.install`, `fvm.remove`, `fvm.use`, `fvm.global`.
 - Proxies: `fvm.flutter`, `fvm.dart`, `fvm.exec`, `fvm.spawn`.
 
 JSON API flags and response fields follow the FVM docs. Command flags and routing order follow the FVM commands reference.
@@ -22,7 +22,7 @@ JSON API flags and response fields follow the FVM docs. Command flags and routin
 ### Version Gates
 
 - JSON API available since 3.1.0; api context fix in 3.1.2 → gate at ≥ 3.1.2.
-- Non-interactive writes with `--fvm-skip-input` since 3.2.0.
+- Mutating tools require non-interactive support via `--fvm-skip-input` (≥ 3.2.0).
 
 ### Embed into FVM (`fvm mcp`)
 

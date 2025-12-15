@@ -9,6 +9,10 @@ import 'arg_utils.dart';
 import 'process_runner.dart';
 import 'version.dart';
 
+const String _serverName = 'fvm-mcp';
+const String _serverVersion =
+    String.fromEnvironment('FVM_MCP_VERSION', defaultValue: '0.1.0');
+
 /// MCP server exposing FVM as tools.
 /// Requires FVM on PATH. Tools are gated by detected version.
 base class FvmMcpServer extends MCPServer with ToolsSupport {
@@ -27,7 +31,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           instructions:
               'Use tools under the fvm.* namespace. Read-only JSON via fvm api; '
               'mutations are non-interactive where supported. '
-              'This server mirrors your installed FVM ${implementation.version}.',
+              'Server v${implementation.version}. Detected FVM: ${fvm.raw}.',
         );
 
   /// Create, detect FVM version, then return a ready server.
@@ -35,7 +39,10 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     required StreamChannel<String> channel,
   }) async {
     final detected = await detectFvmVersion();
-    final impl = Implementation(name: 'fvm-mcp', version: detected.raw);
+    if (detected.isUnknown) {
+      throw StateError('FVM not found on PATH (required to start fvm_mcp).');
+    }
+    final impl = Implementation(name: _serverName, version: _serverVersion);
     final server = FvmMcpServer._(
       implementation: impl,
       channel: channel,
@@ -139,119 +146,126 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       );
     }
 
-    // Mutating tools
-    _tool(
-      name: 'fvm.install',
-      desc: 'Install a Flutter SDK into cache (state-changing)',
-      schema: ObjectSchema(properties: {
-        'version': StringSchema(),
-        'setup': BooleanSchema(
-          description: 'true -> --setup, false -> --no-setup (if supported)',
-        ),
-        'skip_pub_get': BooleanSchema(),
-        'cwd': StringSchema(),
-      }, additionalProperties: false),
-      run: (call) => _runner.run(
-        [
-          'install',
-          ...maybeOne(call, 'version'),
-          ...when<bool>(call, 'setup', (s) => [s ? '--setup' : '--no-setup']),
-          ...flag(call, 'skip_pub_get', '--skip-pub-get'),
-        ],
-        cwd: stringArg(call, 'cwd'),
-        // installs can be long
-        timeout: const Duration(minutes: 15),
-        progressLabel: 'install',
-        meta: call.meta,
-      ),
-    );
-
-    _tool(
-      name: 'fvm.remove',
-      desc: 'Remove SDK(s) from cache (state-changing)',
-      schema: ObjectSchema(properties: {
-        'version': StringSchema(),
-        'all': BooleanSchema(),
-        'cwd': StringSchema(),
-      }, additionalProperties: false),
-      run: (call) {
-        final all = boolArg(call, 'all') ?? false;
-        final version = stringArg(call, 'version');
-        if (!all && (version == null || version.isEmpty)) {
-          return _error('Missing args: set "version" or "all=true".');
-        }
-        return _runner.run(
+    // Mutating tools (require non-interactive support in FVM >= 3.2.0)
+    if (fvm.supportsSkipInput) {
+      _tool(
+        name: 'fvm.install',
+        desc: 'Install a Flutter SDK into cache (state-changing)',
+        schema: ObjectSchema(properties: {
+          'version': StringSchema(),
+          'setup': BooleanSchema(
+            description: 'true -> --setup, false -> --no-setup (if supported)',
+          ),
+          'skip_pub_get': BooleanSchema(),
+          'cwd': StringSchema(),
+        }, additionalProperties: false),
+        run: (call) => _runner.run(
           [
-            'remove',
-            if (all) '--all' else ...[version!],
+            'install',
+            ...maybeOne(call, 'version'),
+            ...when<bool>(call, 'setup', (s) => [s ? '--setup' : '--no-setup']),
+            ...flag(call, 'skip_pub_get', '--skip-pub-get'),
           ],
           cwd: stringArg(call, 'cwd'),
-          timeout: const Duration(minutes: 5),
-          progressLabel: 'remove',
+          // installs can be long
+          timeout: const Duration(minutes: 15),
+          progressLabel: 'install',
           meta: call.meta,
-        );
-      },
-    );
+        ),
+      );
 
-    _tool(
-      name: 'fvm.use',
-      desc: 'Set SDK for current project (state-changing)',
-      schema: ObjectSchema(properties: {
-        'version': StringSchema(),
-        'force': BooleanSchema(),
-        'pin': BooleanSchema(
-          description: 'Pin to exact version, preventing automatic upgrades',
-        ),
-        'flavor': StringSchema(
-          description: 'Named SDK configuration variant for the project',
-        ),
-        'env': StringSchema(
-          description: 'Environment name for multi-environment project setups',
-        ),
-        'skip_setup': BooleanSchema(),
-        'skip_pub_get': BooleanSchema(),
-        'cwd': StringSchema(description: 'Working directory for the command'),
-      }, additionalProperties: false),
-      run: (call) => _runner.run(
-        [
-          'use',
-          ...maybeOne(call, 'version'),
-          ...flag(call, 'force', '--force'),
-          ...flag(call, 'pin', '--pin'),
-          ...opt(call, 'flavor', (v) => ['--flavor', '$v']),
-          ...opt(call, 'env', (v) => ['--env', '$v']),
-          ...flag(call, 'skip_setup', '--skip-setup'),
-          ...flag(call, 'skip_pub_get', '--skip-pub-get'),
-        ],
-        cwd: stringArg(call, 'cwd'),
-        timeout: const Duration(minutes: 10),
-        progressLabel: 'use',
-        meta: call.meta,
-      ),
-    );
+      _tool(
+        name: 'fvm.remove',
+        desc: 'Remove SDK(s) from cache (state-changing)',
+        schema: ObjectSchema(properties: {
+          'version': StringSchema(),
+          'all': BooleanSchema(),
+          'cwd': StringSchema(),
+        }, additionalProperties: false),
+        run: (call) {
+          final all = boolArg(call, 'all') ?? false;
+          final version = stringArg(call, 'version');
+          if (!all && (version == null || version.isEmpty)) {
+            return _error('Missing args: set "version" or "all=true".');
+          }
+          return _runner.run(
+            [
+              'remove',
+              if (all) '--all' else ...[version!],
+            ],
+            cwd: stringArg(call, 'cwd'),
+            timeout: const Duration(minutes: 5),
+            progressLabel: 'remove',
+            meta: call.meta,
+          );
+        },
+      );
 
-    _tool(
-      name: 'fvm.global',
-      desc: 'Set/unlink global SDK (state-changing)',
-      schema: ObjectSchema(properties: {
-        'version': StringSchema(),
-        'force': BooleanSchema(),
-        'unlink': BooleanSchema(),
-      }, additionalProperties: false),
-      run: (call) => _runner.run(
-        [
-          'global',
-          if (boolArg(call, 'unlink') == true)
-            '--unlink'
-          else
+      _tool(
+        name: 'fvm.use',
+        desc: 'Set SDK for current project (state-changing)',
+        schema: ObjectSchema(properties: {
+          'version': StringSchema(),
+          'force': BooleanSchema(),
+          'pin': BooleanSchema(
+            description: 'Pin to exact version, preventing automatic upgrades',
+          ),
+          'flavor': StringSchema(
+            description: 'Named SDK configuration variant for the project',
+          ),
+          'env': StringSchema(
+            description:
+                'Environment name for multi-environment project setups',
+          ),
+          'skip_setup': BooleanSchema(),
+          'skip_pub_get': BooleanSchema(),
+          'cwd': StringSchema(description: 'Working directory for the command'),
+        }, additionalProperties: false),
+        run: (call) => _runner.run(
+          [
+            'use',
             ...maybeOne(call, 'version'),
-          ...flag(call, 'force', '--force'),
-        ],
-        timeout: const Duration(minutes: 2),
-        progressLabel: 'global',
-        meta: call.meta,
-      ),
-    );
+            ...flag(call, 'force', '--force'),
+            ...flag(call, 'pin', '--pin'),
+            ...opt(call, 'flavor', (v) => ['--flavor', '$v']),
+            ...opt(call, 'env', (v) => ['--env', '$v']),
+            ...flag(call, 'skip_setup', '--skip-setup'),
+            ...flag(call, 'skip_pub_get', '--skip-pub-get'),
+          ],
+          cwd: stringArg(call, 'cwd'),
+          timeout: const Duration(minutes: 10),
+          progressLabel: 'use',
+          meta: call.meta,
+        ),
+      );
+
+      _tool(
+        name: 'fvm.global',
+        desc: 'Set/unlink global SDK (state-changing)',
+        schema: ObjectSchema(properties: {
+          'version': StringSchema(),
+          'force': BooleanSchema(),
+          'unlink': BooleanSchema(),
+        }, additionalProperties: false),
+        run: (call) {
+          final unlink = boolArg(call, 'unlink') == true;
+          final version = stringArg(call, 'version');
+          if (!unlink && (version == null || version.isEmpty)) {
+            return _error('Missing args: set "version" or "unlink=true".');
+          }
+          return _runner.run(
+            [
+              'global',
+              if (unlink) '--unlink' else version!,
+              ...flag(call, 'force', '--force'),
+            ],
+            timeout: const Duration(minutes: 2),
+            progressLabel: 'global',
+            meta: call.meta,
+          );
+        },
+      );
+    }
 
     // Proxies
     _tool(
@@ -298,13 +312,19 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         },
         additionalProperties: false,
       ),
-      run: (call) => _runner.run(
-        ['exec', stringArg(call, 'command')!, ...listArg(call, 'args')],
-        cwd: stringArg(call, 'cwd'),
-        timeout: const Duration(minutes: 10),
-        progressLabel: 'exec',
-        meta: call.meta,
-      ),
+      run: (call) {
+        final command = stringArg(call, 'command');
+        if (command == null || command.isEmpty) {
+          return _error('Missing required arg: "command".');
+        }
+        return _runner.run(
+          ['exec', command, ...listArg(call, 'args')],
+          cwd: stringArg(call, 'cwd'),
+          timeout: const Duration(minutes: 10),
+          progressLabel: 'exec',
+          meta: call.meta,
+        );
+      },
     );
 
     _tool(
@@ -319,17 +339,19 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         },
         additionalProperties: false,
       ),
-      run: (call) => _runner.run(
-        [
-          'spawn',
-          stringArg(call, 'version')!,
-          ...listArg(call, 'flutter_args')
-        ],
-        cwd: stringArg(call, 'cwd'),
-        timeout: const Duration(minutes: 10),
-        progressLabel: 'spawn',
-        meta: call.meta,
-      ),
+      run: (call) {
+        final version = stringArg(call, 'version');
+        if (version == null || version.isEmpty) {
+          return _error('Missing required arg: "version".');
+        }
+        return _runner.run(
+          ['spawn', version, ...listArg(call, 'flutter_args')],
+          cwd: stringArg(call, 'cwd'),
+          timeout: const Duration(minutes: 10),
+          progressLabel: 'spawn',
+          meta: call.meta,
+        );
+      },
     );
   }
 
@@ -345,6 +367,16 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       (call) async {
         try {
           return await run(call);
+        } on ArgumentError catch (e) {
+          return CallToolResult(
+            isError: true,
+            content: [TextContent(text: e.toString())],
+          );
+        } on TypeError catch (e) {
+          return CallToolResult(
+            isError: true,
+            content: [TextContent(text: 'Invalid arguments: $e')],
+          );
         } catch (e, s) {
           return CallToolResult(
             isError: true,
