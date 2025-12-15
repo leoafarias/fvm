@@ -34,8 +34,10 @@ Future<FvmVersion> detectFvmVersion() async {
       final major = int.parse(match.group(1)!);
       final minor = int.parse(match.group(2)!);
       final patch = int.parse(match.group(3)!);
+
       return FvmVersion(major, minor, patch, '$major.$minor.$patch');
     }
+
     // Fallback when version is not in semantic form.
     return FvmVersion(0, 0, 0, stdout.trim());
   } catch (_) {

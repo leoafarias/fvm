@@ -42,6 +42,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     if (detected.isUnknown) {
       throw StateError('FVM not found on PATH (required to start fvm_mcp).');
     }
+
     final impl = Implementation(name: _serverName, version: _serverVersion);
     final server = FvmMcpServer._(
       implementation: impl,
@@ -53,6 +54,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       ),
     );
     server._runner.bindNotifier(server.notifyProgress);
+
     return server.._registerTools();
   }
 
@@ -188,6 +190,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           if (!all && (version == null || version.isEmpty)) {
             return _error('Missing args: set "version" or "all=true".');
           }
+
           return _runner.run(
             [
               'remove',
@@ -253,6 +256,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           if (!unlink && (version == null || version.isEmpty)) {
             return _error('Missing args: set "version" or "unlink=true".');
           }
+
           return _runner.run(
             [
               'global',
@@ -317,6 +321,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         if (command == null || command.isEmpty) {
           return _error('Missing required arg: "command".');
         }
+
         return _runner.run(
           ['exec', command, ...listArg(call, 'args')],
           cwd: stringArg(call, 'cwd'),
@@ -344,6 +349,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         if (version == null || version.isEmpty) {
           return _error('Missing required arg: "version".');
         }
+
         return _runner.run(
           ['spawn', version, ...listArg(call, 'flutter_args')],
           cwd: stringArg(call, 'cwd'),

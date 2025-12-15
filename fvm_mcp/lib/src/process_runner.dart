@@ -10,6 +10,8 @@ class ProcessRunner {
   final ProcessStartMode startMode;
   final bool runInShell;
 
+  void Function(ProgressNotification notification)? _notify;
+
   ProcessRunner({
     required this.exe,
     required this.hasSkipInput,
@@ -17,48 +19,6 @@ class ProcessRunner {
     bool? runInShell,
   })  : startMode = startMode ?? ProcessStartMode.normal,
         runInShell = runInShell ?? Platform.isWindows;
-
-  void bindNotifier(void Function(ProgressNotification notification) notify) {
-    _notify = notify;
-  }
-
-  void Function(ProgressNotification notification)? _notify;
-
-  Future<CallToolResult> runJsonApi(
-    List<String> args, {
-    String? cwd,
-    Duration timeout = const Duration(minutes: 2),
-    String? progressLabel,
-    MetaWithProgressToken? meta,
-  }) =>
-      _runCore(
-        args,
-        cwd: cwd,
-        timeout: timeout,
-        jsonPassthrough: true,
-        progressLabel: progressLabel,
-        meta: meta,
-      );
-
-  Future<CallToolResult> run(
-    List<String> args, {
-    String? cwd,
-    Duration timeout = const Duration(minutes: 2),
-    String? progressLabel,
-    MetaWithProgressToken? meta,
-  }) {
-    final full = [
-      if (hasSkipInput) '--fvm-skip-input',
-      ...args,
-    ];
-    return _runCore(
-      full,
-      cwd: cwd,
-      timeout: timeout,
-      progressLabel: progressLabel,
-      meta: meta,
-    );
-  }
 
   Future<CallToolResult> _runCore(
     List<String> args, {
@@ -146,6 +106,7 @@ class ProcessRunner {
 
     if (code != 0) {
       final message = stderrText.isEmpty ? 'fvm exited with $code' : stderrText;
+
       return CallToolResult(
         isError: true,
         content: [TextContent(text: message)],
@@ -153,6 +114,48 @@ class ProcessRunner {
     }
 
     final text = stdoutText.isEmpty ? stderrText : stdoutText;
+
     return CallToolResult(content: [TextContent(text: text)]);
+  }
+
+  void bindNotifier(void Function(ProgressNotification notification) notify) {
+    _notify = notify;
+  }
+
+  Future<CallToolResult> runJsonApi(
+    List<String> args, {
+    String? cwd,
+    Duration timeout = const Duration(minutes: 2),
+    String? progressLabel,
+    MetaWithProgressToken? meta,
+  }) =>
+      _runCore(
+        args,
+        cwd: cwd,
+        timeout: timeout,
+        jsonPassthrough: true,
+        progressLabel: progressLabel,
+        meta: meta,
+      );
+
+  Future<CallToolResult> run(
+    List<String> args, {
+    String? cwd,
+    Duration timeout = const Duration(minutes: 2),
+    String? progressLabel,
+    MetaWithProgressToken? meta,
+  }) {
+    final full = [
+      if (hasSkipInput) '--fvm-skip-input',
+      ...args,
+    ];
+
+    return _runCore(
+      full,
+      cwd: cwd,
+      timeout: timeout,
+      progressLabel: progressLabel,
+      meta: meta,
+    );
   }
 }
