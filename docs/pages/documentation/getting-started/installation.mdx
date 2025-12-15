@@ -30,7 +30,7 @@ curl -fsSL https://fvm.app/install.sh | bash
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s <version>
+curl -fsSL https://fvm.app/install.sh | bash -s -- <version>
 ```
 
 *Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
@@ -82,7 +82,7 @@ curl -fsSL https://fvm.app/install.sh | bash
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s <version>
+curl -fsSL https://fvm.app/install.sh | bash -s -- <version>
 ```
 
 *Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
@@ -120,7 +120,7 @@ dart pub global deactivate fvm
 The install script (`install.sh`) supports several options:
 
 - **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
-- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s <version>` (replace `<version>` with desired FVM version)
+- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s -- <version>` (replace `<version>` with desired FVM version)
 - **Custom install location**: `FVM_INSTALL_DIR=<path> curl -fsSL https://fvm.app/install.sh | bash` (absolute path under `$HOME`)
 - **Help**: `./install.sh --help`
 - **Version info**: `./install.sh --version`
