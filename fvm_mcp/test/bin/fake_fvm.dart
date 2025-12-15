@@ -4,6 +4,8 @@ import 'dart:io';
 
 /// Fake FVM CLI used in tests to exercise [ProcessRunner].
 Future<void> main(List<String> args) async {
+  final hadSkipInput = args.isNotEmpty && args.first == '--fvm-skip-input';
+  if (hadSkipInput) args = args.skip(1).toList();
   if (args.isEmpty) {
     stderr.writeln('expected mode argument');
     exit(2);
@@ -17,7 +19,7 @@ Future<void> main(List<String> args) async {
       stdout.write(rest.join(' '));
       exit(0);
     case 'echo_args_json':
-      stdout.write(jsonEncode(rest));
+      stdout.write(jsonEncode({'hadSkipInput': hadSkipInput, 'args': rest}));
       exit(0);
     case 'stderr':
       stderr.write(rest.isEmpty ? 'error' : rest.join(' '));

@@ -10,6 +10,8 @@ class FvmVersion {
 
   const FvmVersion(this.major, this.minor, this.patch, this.raw);
 
+  bool get isUnknown => raw.trim().isEmpty || raw.trim() == 'unknown';
+
   bool get supportsJsonApi =>
       (major > 3) || (major == 3 && (minor > 1 || (minor == 1 && patch >= 2)));
   bool get supportsSkipInput => (major > 3) || (major == 3 && minor >= 2);
