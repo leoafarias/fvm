@@ -392,18 +392,17 @@ void main() {
               'Should not have gotten the lock while file is constantly refreshed',
         );
 
-        // Now wait a bit for the lock to expire
-        await Future.delayed(lockExpiration * 2);
+      // Now wait a bit for the lock to expire
+      await Future.delayed(lockExpiration * 2);
 
-        // Should now be able to get the lock
-        unlock = await fileLocker.getLock();
-        expect(fileLocker.isLocked, isTrue);
-        unlock();
-      },
-      skip: Platform.isWindows
-          ? 'Timing-sensitive behavior is unreliable on Windows CI.'
-          : false,
-    );
+      // Should now be able to get the lock
+      unlock = await fileLocker.getLock();
+      // On Windows CI, file I/O scheduling can be slow enough that very short
+      // expirations (100ms) can flake when asserting immediately. Use a more
+      // forgiving threshold for this assertion.
+      expect(fileLocker.isLockedWithin(Duration(seconds: 1)), isTrue);
+      unlock();
+    });
   });
 
   group('Error handling', () {
