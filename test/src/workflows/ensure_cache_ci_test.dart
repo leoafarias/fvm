@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
-import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';

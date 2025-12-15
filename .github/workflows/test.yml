@@ -78,6 +78,12 @@ jobs:
         with:
           with-coverage: 'true'
 
+      # Release tooling requires Dart >=3.8 (see tool/release_tool/pubspec.yaml)
+      - name: Switch to Dart 3.8 for release tool
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.8.0"
+
       - name: Release tool | Install dependencies
         working-directory: tool/release_tool
         run: dart pub get
@@ -92,6 +98,7 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
