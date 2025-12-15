@@ -126,6 +126,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: [test, test-os]  # Wait for all unit tests before integration
     timeout-minutes: 45
+    # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
 
     strategy:
       fail-fast: true
