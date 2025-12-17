@@ -2,6 +2,20 @@
 
 * fix: PathAccessException in Nix/Home Manager environments with read-only shell configs (#897, #799)
 
+### Install Script v3 (BREAKING CHANGES)
+
+The install script has been rewritten for simplicity and security. Key changes:
+
+* **BREAKING**: Install location changed from `~/.fvm_flutter/bin` to `~/fvm/bin`
+* **BREAKING**: System symlink `/usr/local/bin/fvm` no longer created - add `~/fvm/bin` to your PATH
+* **BREAKING**: Shell config files (`.bashrc`, `.zshrc`) no longer auto-modified - manual PATH setup required
+* **BREAKING**: `FVM_ALLOW_ROOT` environment variable removed (root now allowed with warning)
+* add: `FVM_INSTALL_DIR` environment variable for custom install locations
+* add: Automatic migration from v1 installer (removes old `~/.fvm_flutter` directory)
+* add: Path traversal security validation for downloaded archives
+* add: Binary execution verification after install
+* fix: No longer requires `sudo` for installation
+
 ## 4.0.4
 
 * fix: remove leading newline from fvm dart/flutter output

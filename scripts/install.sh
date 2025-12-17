@@ -93,7 +93,7 @@ ENVIRONMENT:
 FLAGS:
   -h, --help            Show this help and exit
   -v, --version         Show installer version and exit
-  --uninstall           Remove FVM installation
+  -u, --uninstall       Remove FVM installation
 
 EXAMPLES:
   # Install latest version
@@ -301,7 +301,7 @@ for arg in "$@"; do
   case "$arg" in
     -h|--help) usage; exit 0 ;;
     -v|--version) print_installer_version; exit 0 ;;
-    --uninstall) UNINSTALL_ONLY=1 ;;
+    -u|--uninstall) UNINSTALL_ONLY=1 ;;
     -*)
       echo "error: unknown option: $arg" >&2
       echo ""
