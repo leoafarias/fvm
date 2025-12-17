@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
-# Install FVM to a user-local directory (default: $HOME/fvm/bin)
-# Override install base with: FVM_INSTALL_DIR=/path
-# No sudo required. Add to PATH after installation.
+# =============================================================================
+# FVM Installer
+# =============================================================================
+# v2.0.0 (2025-12)
+#   - Install to ~/fvm/bin (no sudo required)
+#   - FVM_INSTALL_DIR for custom location
+#   - Auto-migrate from v1 (~/.fvm_flutter)
+#
+# v1.1.0
+#   - Install to ~/.fvm_flutter/bin with /usr/local/bin symlink
+#   - Auto-modify shell config
+# =============================================================================
 set -euo pipefail
 umask 022
 
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
-readonly INSTALLER_VERSION="3.0.0"  # v3: single behavior, user-local only
+readonly INSTALLER_VERSION="2.0.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
