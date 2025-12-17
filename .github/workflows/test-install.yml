@@ -50,7 +50,7 @@ jobs:
           }
           echo "✅ uninstall.sh files are in sync"
 
-  # Test install.sh (v3 - user-local only)
+  # Test install.sh (v2 - user-local only)
   test-install:
     name: Test install.sh - ${{ matrix.os }}
     needs: validate
@@ -131,9 +131,9 @@ jobs:
           fi
           echo "✅ Custom install location test successful"
 
-  # Test v1 to v3 migration
+  # Test v1 to v2 migration
   test-migration:
-    name: Test v1 to v3 Migration
+    name: Test v1 to v2 Migration
     needs: validate
     runs-on: ubuntu-latest
     steps:

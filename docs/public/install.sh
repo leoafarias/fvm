@@ -174,14 +174,14 @@ migrate_from_v1() {
 
     # Try to remove without sudo first (|| true prevents set -e exit)
     rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
       echo "✓ Removed old system symlink" >&2
       migrated=1
     else
       # Try with sudo if available
       if command -v sudo >/dev/null 2>&1; then
         sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
           echo "✓ Removed old system symlink (required sudo)" >&2
           migrated=1
         else
@@ -375,7 +375,16 @@ readonly ARCH
 # ---- detect libc (Linux only), musl suffix only for x64/arm64 ----
 LIBC_SUFFIX=""
 if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; then
-  if (ldd --version 2>&1 | grep -qi musl) || grep -qi musl /proc/self/maps 2>/dev/null; then
+  # Detect glibc positively via getconf; otherwise check for musl
+  if command -v getconf >/dev/null 2>&1 && getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
+    : # glibc detected
+  elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
+    LIBC_SUFFIX="-musl"
+    echo "" >&2
+    echo "Note: Detected musl libc (Alpine Linux)." >&2
+    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
+    echo "" >&2
+  elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
     LIBC_SUFFIX="-musl"
     echo "" >&2
     echo "Note: Detected musl libc (Alpine Linux)." >&2

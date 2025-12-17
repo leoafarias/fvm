@@ -94,12 +94,11 @@ fi
 
 # 3. Remove old system symlink
 if [ -L "$OLD_SYSTEM_PATH" ]; then
-  rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || {
-    if command -v sudo >/dev/null 2>&1; then
-      sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null
-    fi
-  } || true
-  if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+  rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
+  if [ -L "$OLD_SYSTEM_PATH" ] && command -v sudo >/dev/null 2>&1; then
+    sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
+  fi
+  if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
     echo "✓ Removed $OLD_SYSTEM_PATH"
     removed_any=1
   else
