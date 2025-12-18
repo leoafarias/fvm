@@ -4,32 +4,55 @@ on:
   push:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/uninstall.sh'
+      - 'docs/public/install.sh'
+      - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'scripts/install.sh'
+      - 'scripts/uninstall.sh'
+      - 'docs/public/install.sh'
+      - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
 jobs:
-  # Basic validation
+  # Basic validation - shellcheck and parity
   validate:
-    name: Validate Script
+    name: Validate Scripts
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install shellcheck
         run: |
-          # Only install if not already available (for act compatibility)
           if ! command -v shellcheck &> /dev/null; then
             sudo apt-get update && sudo apt-get install -y shellcheck
           fi
-      - name: Run shellcheck
+      - name: Shellcheck install.sh
         run: shellcheck scripts/install.sh
+      - name: Shellcheck uninstall.sh
+        run: shellcheck scripts/uninstall.sh
 
-  # Test on major platforms
+      - name: Verify install.sh parity
+        run: |
+          diff scripts/install.sh docs/public/install.sh || {
+            echo "❌ scripts/install.sh and docs/public/install.sh differ!"
+            exit 1
+          }
+          echo "✅ install.sh files are in sync"
+
+      - name: Verify uninstall.sh parity
+        run: |
+          diff scripts/uninstall.sh docs/public/uninstall.sh || {
+            echo "❌ scripts/uninstall.sh and docs/public/uninstall.sh differ!"
+            exit 1
+          }
+          echo "✅ uninstall.sh files are in sync"
+
+  # Test install.sh (v2 - user-local only)
   test-install:
-    name: Test - ${{ matrix.os }}
+    name: Test install.sh - ${{ matrix.os }}
     needs: validate
     strategy:
       matrix:
@@ -37,81 +60,204 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Test installation
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
-      
+
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
-      
+
       - name: Test uninstall
         run: |
-          # First ensure FVM is installed
+          export PATH="$HOME/fvm/bin:$PATH"
           which fvm
-          ls -la ~/.fvm_flutter/bin/
-          
-          # Run uninstall
-          ./scripts/install.sh --uninstall
-          
-          # Verify uninstall
-          if command -v fvm &>/dev/null; then
-            echo "❌ FVM command still exists after uninstall"
-            exit 1
-          fi
-          
-          if [[ -d ~/.fvm_flutter ]]; then
-            echo "❌ FVM directory still exists after uninstall"
-            exit 1
-          fi
-          
-          echo "✅ FVM successfully uninstalled"
-      
-      - name: Test uninstall on clean system (idempotency)
-        run: |
-          # Run uninstall again - should handle gracefully
           ./scripts/install.sh --uninstall
 
-  # Test container detection and root permissions
+          # Verify uninstall - only bin/ should be removed
+          if [[ -d ~/fvm/bin ]]; then
+            echo "❌ FVM bin directory still exists after uninstall"
+            exit 1
+          fi
+          echo "✅ FVM successfully uninstalled"
+
+      - name: Test uninstall on clean system (idempotency)
+        run: ./scripts/install.sh --uninstall
+
+      - name: Test specific version installation
+        run: |
+          # Install specific version (use a known stable version)
+          ./scripts/install.sh 3.2.1
+
+          # Verify correct version installed
+          export PATH="$HOME/fvm/bin:$PATH"
+          fvm_version=$(fvm --version)
+          echo "Installed version: $fvm_version"
+
+          # Version should contain 3.2.1
+          echo "$fvm_version" | grep -q "3.2.1" || { echo "❌ Wrong version installed"; exit 1; }
+          echo "✅ Specific version installation successful"
+
+          # Clean up for next tests
+          ./scripts/install.sh --uninstall
+
+      - name: Test custom install location (FVM_INSTALL_DIR)
+        run: |
+          export FVM_INSTALL_DIR="$HOME/fvm-install-test"
+          mkdir -p "$FVM_INSTALL_DIR/versions/stable"
+          echo "cached sdk" > "$FVM_INSTALL_DIR/versions/stable/marker"
+
+          ./scripts/install.sh
+          export PATH="$FVM_INSTALL_DIR/bin:$PATH"
+          fvm --version
+
+          ./scripts/install.sh --uninstall
+
+          # Verify uninstall - only bin/ should be removed
+          if [[ -d "$FVM_INSTALL_DIR/bin" ]]; then
+            echo "❌ FVM bin directory still exists after uninstall"
+            exit 1
+          fi
+
+          # Cached SDKs should survive
+          if [[ ! -f "$FVM_INSTALL_DIR/versions/stable/marker" ]]; then
+            echo "❌ Cached SDKs were deleted!"
+            exit 1
+          fi
+          echo "✅ Custom install location test successful"
+
+  # Test v1 to v2 migration
+  test-migration:
+    name: Test v1 to v2 Migration
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Simulate v1 installation
+        run: |
+          # Create old v1 structure
+          mkdir -p ~/.fvm_flutter/bin
+          echo '#!/bin/bash' > ~/.fvm_flutter/bin/fvm
+          echo 'echo "fake v1 fvm"' >> ~/.fvm_flutter/bin/fvm
+          chmod +x ~/.fvm_flutter/bin/fvm
+
+          # Create old system symlink (if sudo available)
+          if command -v sudo >/dev/null 2>&1; then
+            sudo ln -sf ~/.fvm_flutter/bin/fvm /usr/local/bin/fvm
+            echo "SYSTEM_SYMLINK_CREATED=true" >> $GITHUB_ENV
+            echo "✅ Created system symlink"
+          else
+            echo "SYSTEM_SYMLINK_CREATED=false" >> $GITHUB_ENV
+            echo "ℹ️ Skipping system symlink (no sudo)"
+          fi
+
+          # Create some cached SDKs (should survive)
+          mkdir -p ~/fvm/versions/stable
+          echo "cached sdk" > ~/fvm/versions/stable/marker
+
+          echo "✅ v1 simulation ready"
+          ls -la ~/.fvm_flutter/bin/
+          ls -la ~/fvm/versions/
+
+      - name: Run v3 installer (triggers migration)
+        run: |
+          ./scripts/install.sh
+          echo "✅ Installation complete"
+
+      - name: Verify migration
+        run: |
+          # Old user directory should be removed
+          if [ -d ~/.fvm_flutter ]; then
+            echo "❌ Old ~/.fvm_flutter still exists"
+            exit 1
+          fi
+          echo "✅ Old user directory removed"
+
+          # Check system symlink only if it was created
+          if [ "$SYSTEM_SYMLINK_CREATED" = "true" ]; then
+            if [ -e /usr/local/bin/fvm ]; then
+              echo "⚠️ Old symlink still exists (may need sudo to remove)"
+            else
+              echo "✅ Old system symlink removed"
+            fi
+          else
+            echo "ℹ️ System symlink test skipped (wasn't created)"
+          fi
+
+          # New binary should exist
+          if [ ! -f ~/fvm/bin/fvm ]; then
+            echo "❌ New binary not found at ~/fvm/bin/fvm"
+            exit 1
+          fi
+          echo "✅ New binary installed at ~/fvm/bin/fvm"
+
+          # Cached SDKs should survive
+          if [ ! -f ~/fvm/versions/stable/marker ]; then
+            echo "❌ Cached SDKs were deleted!"
+            exit 1
+          fi
+          echo "✅ Cached SDKs preserved"
+
+          # Verify binary works
+          ~/fvm/bin/fvm --version
+          echo "✅ Migration test complete"
+
+  # Test install.sh in container (root allowed with warning)
   test-container:
-    name: Test Container
+    name: Test install.sh in Container
     needs: validate
     runs-on: ubuntu-latest
     container: ubuntu:latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Install dependencies
-        run: |
-          apt-get update && apt-get install -y curl tar gzip
-      
-      - name: Test container root allowed
-        run: |
-          ./scripts/install.sh
-          /usr/local/bin/fvm --version
 
-  # Test root blocking on non-container
+      - name: Install dependencies
+        run: apt-get update && apt-get install -y curl tar gzip
+
+      - name: Test container root install (should warn but succeed)
+        run: |
+          output=$(./scripts/install.sh 2>&1)
+          echo "$output"
+
+          # Should show warning
+          if echo "$output" | grep -q "Running as root"; then
+            echo "✅ Root warning displayed"
+          else
+            echo "❌ Expected root warning"
+            exit 1
+          fi
+
+          # Should still succeed
+          $HOME/fvm/bin/fvm --version
+          echo "✅ Container install successful"
+
+  # Test install.sh root permissions (warns but allows)
   test-permissions:
-    name: Test Permissions
+    name: Test install.sh Root Warning
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Test root blocked
+
+      - name: Test root shows warning but succeeds
         run: |
-          # Should fail when run as root without container
-          if sudo ./scripts/install.sh 2>&1 | grep -q "should not be run as root"; then
-            echo "✅ Root correctly blocked"
+          output=$(sudo -H ./scripts/install.sh 2>&1)
+          echo "$output"
+
+          # Should show warning
+          if echo "$output" | grep -q "Running as root"; then
+            echo "✅ Root warning displayed"
           else
-            echo "❌ Root should have been blocked"
+            echo "❌ Expected root warning"
             exit 1
           fi
-      
-      - name: Test with override
-        run: |
-          sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
-          sudo /usr/local/bin/fvm --version
+
+          # Should succeed
+          sudo -H /root/fvm/bin/fvm --version
+          echo "✅ Root install successful"

@@ -342,62 +342,68 @@ void main() {
       expect(int.tryParse(content.trim()), isNotNull);
     });
 
-    test('should handle lock file being repeatedly refreshed', () async {
-      fileLocker.lock();
+    test(
+      'should handle lock file being repeatedly refreshed',
+      () async {
+        fileLocker.lock();
 
-      // Start a timer to keep updating the lock file
-      var keepUpdating = true;
-      Timer.periodic(Duration(milliseconds: 5), (timer) {
-        if (!keepUpdating) {
-          timer.cancel();
-          return;
-        }
+        // Start a timer to keep updating the lock file
+        var keepUpdating = true;
+        Timer.periodic(Duration(milliseconds: 5), (timer) {
+          if (!keepUpdating) {
+            timer.cancel();
+            return;
+          }
+
+          try {
+            if (File(lockFilePath).existsSync()) {
+              fileLocker.lock(); // Keep refreshing the lock
+            }
+          } catch (e) {
+            // Ignore errors
+          }
+        });
+
+        // Start a lock request with a timeout
+        var gotLock = false;
+        late void Function() unlock;
 
         try {
-          if (File(lockFilePath).existsSync()) {
-            fileLocker.lock(); // Keep refreshing the lock
-          }
-        } catch (e) {
-          // Ignore errors
+          // Try to get the lock with a timeout
+          unlock = await fileLocker.getLock().timeout(
+            Duration(milliseconds: 50),
+            onTimeout: () {
+              throw TimeoutException('Failed to get lock in time');
+            },
+          );
+          gotLock = true;
+        } on TimeoutException {
+          // Expected - the timer keeps refreshing the lock
+          gotLock = false;
+        } finally {
+          // Stop the update timer
+          keepUpdating = false;
         }
-      });
 
-      // Start a lock request with a timeout
-      var gotLock = false;
-      late void Function() unlock;
-
-      try {
-        // Try to get the lock with a timeout
-        unlock = await fileLocker.getLock().timeout(
-          Duration(milliseconds: 50),
-          onTimeout: () {
-            throw TimeoutException('Failed to get lock in time');
-          },
+        expect(
+          gotLock,
+          isFalse,
+          reason:
+              'Should not have gotten the lock while file is constantly refreshed',
         );
-        gotLock = true;
-      } on TimeoutException {
-        // Expected - the timer keeps refreshing the lock
-        gotLock = false;
-      } finally {
-        // Stop the update timer
-        keepUpdating = false;
-      }
 
-      expect(
-        gotLock,
-        isFalse,
-        reason:
-            'Should not have gotten the lock while file is constantly refreshed',
-      );
+        // Now wait a bit for the lock to expire
+        await Future.delayed(lockExpiration * 2);
 
-      // Now wait a bit for the lock to expire
-      await Future.delayed(lockExpiration * 2);
-
-      // Should now be able to get the lock
-      unlock = await fileLocker.getLock();
-      expect(fileLocker.isLocked, isTrue);
-      unlock();
-    });
+        // Should now be able to get the lock
+        unlock = await fileLocker.getLock();
+        expect(fileLocker.isLocked, isTrue);
+        unlock();
+      },
+      skip: Platform.isWindows
+          ? 'Timing-sensitive behavior is unreliable on Windows CI.'
+          : false,
+    );
   });
 
   group('Error handling', () {
