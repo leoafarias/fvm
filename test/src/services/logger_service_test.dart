@@ -1,8 +1,25 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
+
+class _SelectCaptureLogger extends Logger {
+  _SelectCaptureLogger(super.context);
+
+  List<String>? capturedOptions;
+
+  @override
+  String select(
+    String? message, {
+    required List<String> options,
+    int? defaultSelection,
+  }) {
+    capturedOptions = options;
+    return options.first;
+  }
+}
 
 void main() {
   late Logger logger;
@@ -120,6 +137,37 @@ void main() {
         () => logger.cacheVersionSelector([]),
         throwsA(isA<AppException>()),
       );
+    });
+  });
+
+  group('cacheVersionSelector', () {
+    test('includes fork aliases in options', () {
+      final context = TestFactory.context();
+      final logger = _SelectCaptureLogger(context);
+      final forkDir = path.join(
+        context.versionsCachePath,
+        'myfork',
+        'stable',
+      );
+      final stableDir = path.join(context.versionsCachePath, 'stable');
+      final versions = [
+        CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('myfork/stable'),
+          directory: forkDir,
+        ),
+        CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('stable'),
+          directory: stableDir,
+        ),
+      ];
+
+      final selected = logger.cacheVersionSelector(versions);
+
+      expect(
+        logger.capturedOptions,
+        equals(versions.map((version) => version.nameWithAlias).toList()),
+      );
+      expect(selected, equals(versions.first.nameWithAlias));
     });
   });
 }

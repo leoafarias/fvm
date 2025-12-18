@@ -331,6 +331,41 @@ void main() {
         expect(globalVersionName, equals('stable'));
       });
 
+      test('getGlobal preserves forked version names', () {
+        final version = createTestVersion('myfork/stable');
+        final versionDir = Directory(
+          path.join(tempDir.path, 'myfork', 'stable'),
+        )..createSync(recursive: true);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
+
+        cacheService.setGlobal(cacheVersion);
+        addTearDown(cacheService.unlinkGlobal);
+
+        final global = cacheService.getGlobal();
+        expect(global, isNotNull);
+        expect(global!.nameWithAlias, equals('myfork/stable'));
+
+        final globalVersionName = cacheService.getGlobalVersion();
+        expect(globalVersionName, equals('myfork/stable'));
+      });
+
+      test('getGlobalVersion falls back to basename for outside targets', () {
+        final outsideDir = Directory.systemTemp.createTempSync(
+          'fvm_outside_',
+        );
+        addTearDown(() => outsideDir.deleteSync(recursive: true));
+        addTearDown(cacheService.unlinkGlobal);
+
+        final globalLink = Link(context.globalCacheLink);
+        globalLink.createSync(outsideDir.path, recursive: true);
+
+        final globalVersionName = cacheService.getGlobalVersion();
+        expect(globalVersionName, equals(path.basename(outsideDir.path)));
+      });
+
       test('getGlobalVersion returns null when no global set', () {
         expect(cacheService.getGlobalVersion(), isNull);
       });

@@ -106,7 +106,8 @@ class Logger extends ContextualService {
 
     /// Ask which version to select
 
-    final versionsList = versions.map((version) => version.name).toList();
+    final versionsList =
+        versions.map((version) => version.nameWithAlias).toList();
 
     final choice = select('Select a version: ', options: versionsList);
 

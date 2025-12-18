@@ -211,9 +211,8 @@ class CacheService extends ContextualService {
 
   /// Returns a global [CacheFlutterVersion] if exists
   CacheFlutterVersion? getGlobal() {
-    if (!_globalCacheLink.existsSync()) return null;
-    // Get directory name
-    final version = path.basename(_globalCacheLink.targetSync());
+    final version = getGlobalVersion();
+    if (version == null) return null;
     // Make sure its a valid version
     final validVersion = FlutterVersion.parse(version);
 
@@ -232,8 +231,20 @@ class CacheService extends ContextualService {
   String? getGlobalVersion() {
     if (!_globalCacheLink.existsSync()) return null;
 
-    // Get directory name
-    return path.basename(_globalCacheLink.targetSync());
+    final targetPath = _globalCacheLink.targetSync();
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(targetPath);
+
+    if (path.isWithin(cacheRoot, normalizedTarget)) {
+      var relative = path.relative(normalizedTarget, from: cacheRoot);
+      if (relative.isNotEmpty && relative != '.') {
+        // Ensure fork/version format is POSIX-style for parsing.
+        relative = relative.replaceAll('\\', '/');
+        return relative;
+      }
+    }
+
+    return path.basename(normalizedTarget);
   }
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
