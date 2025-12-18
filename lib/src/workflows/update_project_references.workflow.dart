@@ -39,7 +39,13 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     final sdkReleaseFile = p.join(project.localFvmPath, releaseFile);
 
     try {
-      sdkVersionFile.file.write(project.dartToolVersion ?? '');
+      final flutterSdkVersion = version.flutterSdkVersion?.trim();
+      final versionFileContents =
+          (flutterSdkVersion == null || flutterSdkVersion.isEmpty)
+              ? version.nameWithAlias
+              : flutterSdkVersion;
+
+      sdkVersionFile.file.write(versionFileContents);
     } on Exception catch (_) {
       logger.err('Failed to write to version file');
 

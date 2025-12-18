@@ -53,7 +53,7 @@ void main() {
     });
 
     test(
-      'should return true when dart tool version matches SDK version',
+      'should return true when dart tool version matches Dart SDK version',
       () async {
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
@@ -66,7 +66,7 @@ void main() {
         final dartToolDir = Directory(p.join(project.path, '.dart_tool'));
         dartToolDir.createSync();
         final versionFile = File(p.join(dartToolDir.path, 'version'));
-        versionFile.writeAsStringSync('3.10.0');
+        versionFile.writeAsStringSync('3.1.0');
 
         // Create a properly setup version
         final versionDir = tempDirs.create();
@@ -80,7 +80,7 @@ void main() {
         dartSdkDir.createSync(recursive: true);
         // Create bin directory as it is used to check if isSetup
         Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
+        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.1.0');
 
         final setupVersion = CacheFlutterVersion.fromVersion(
           FlutterVersion.parse('3.10.0'),

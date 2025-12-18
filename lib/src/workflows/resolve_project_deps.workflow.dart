@@ -21,7 +21,7 @@ class ResolveProjectDependenciesWorkflow extends Workflow {
       return false;
     }
 
-    if (project.dartToolVersion == version.flutterSdkVersion) {
+    if (project.dartToolVersion == version.dartSdkVersion) {
       logger
         ..info('Dart tool version matches SDK version, skipping resolve.')
         ..info();

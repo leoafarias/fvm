@@ -88,6 +88,7 @@ void main() {
         ),
       );
       expect(versionFile.existsSync(), isTrue);
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.flutterSdkVersion));
 
       final releaseFile = File(
         p.join(
@@ -101,6 +102,41 @@ void main() {
 
       // Verify the project was updated with the correct version
       expect(updatedProject.pinnedVersion, cacheVersion.toFlutterVersion());
+    });
+
+    test('should fall back to nameWithAlias when flutter SDK version is absent',
+        () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir, name: 'test_project');
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      final versionDir = Directory(p.join(cacheDir.path, 'versions', 'stable'));
+      versionDir.createSync(recursive: true);
+
+      // No flutter.version.json or version file to ensure flutterSdkVersion is null.
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        FlutterVersion.parse('stable'),
+        directory: versionDir.path,
+      );
+
+      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+
+      await workflow.call(project, cacheVersion, force: true);
+
+      final versionFile = File(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.versionFile,
+        ),
+      );
+
+      expect(versionFile.existsSync(), isTrue);
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
     });
 
     test('should update with flavor when provided', () async {
