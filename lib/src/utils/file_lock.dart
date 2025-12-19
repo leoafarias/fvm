@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 /// File-based locking mechanism with automatic expiration.
@@ -61,15 +62,52 @@ class FileLocker {
       (lastModified!.isAfter(DateTime.now().subtract(threshold)));
 
   /// Polls until the file's timestamp is older than [lockExpiration].
+  /// Uses OS-level file locking to prevent race conditions between processes.
   Future<void Function()> getLock({Duration? pollingInterval}) async {
-    while (isLocked) {
-      await Future.delayed(
-        pollingInterval ?? const Duration(milliseconds: 100),
-      );
+    final interval = pollingInterval ?? const Duration(milliseconds: 100);
+
+    while (true) {
+      final parent = _file.parent;
+      if (!parent.existsSync()) {
+        parent.createSync(recursive: true);
+      }
+
+      RandomAccessFile? file;
+      try {
+        file = _file.openSync(mode: FileMode.append);
+        file.lockSync(FileLock.exclusive);
+
+        // Check if existing timestamp is expired
+        if (file.lengthSync() > 0) {
+          file.setPositionSync(0);
+          final content = utf8.decode(file.readSync(file.lengthSync()));
+          final timestamp = int.tryParse(content.trim());
+          if (timestamp != null) {
+            final lockTime = DateTime.fromMicrosecondsSinceEpoch(timestamp);
+            if (lockTime.isAfter(DateTime.now().subtract(lockExpiration))) {
+              // Lock is still valid - release and wait
+              file.unlockSync();
+              file.closeSync();
+              await Future.delayed(interval);
+              continue;
+            }
+          }
+        }
+
+        // Write new timestamp
+        file.setPositionSync(0);
+        file.truncateSync(0);
+        file.writeStringSync(DateTime.now().microsecondsSinceEpoch.toString());
+        file.flushSync();
+        file.unlockSync();
+        file.closeSync();
+
+        return () => unlock();
+      } on FileSystemException {
+        // Lock is held by another process
+        file?.closeSync();
+        await Future.delayed(interval);
+      }
     }
-
-    lock();
-
-    return () => unlock();
   }
 }

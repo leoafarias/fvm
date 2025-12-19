@@ -107,7 +107,7 @@ void main() {
       fileLocker.unlock();
       expect(fileLocker.isLocked, isFalse);
       expect(fileLocker.lastModified, isNull);
-      expect(File(lockFilePath).existsSync(), isFalse);
+      expect(File(fileLocker.path).existsSync(), isFalse);
     });
 
     test('unlock should do nothing if not locked', () {
@@ -149,14 +149,15 @@ void main() {
     test('should return false if lock is older than threshold', () async {
       // Write an old timestamp directly to the file instead of using setLastModifiedSync
       final oldTime = DateTime.now().subtract(Duration(seconds: 2));
-      final oldTimestamp = oldTime.millisecondsSinceEpoch.toString();
+      final oldTimestamp = oldTime.microsecondsSinceEpoch.toString();
 
       // Ensure parent directory exists and create the file with old timestamp
-      final parent = File(lockFilePath).parent;
+      final file = File(fileLocker.path);
+      final parent = file.parent;
       if (!parent.existsSync()) {
         parent.createSync(recursive: true);
       }
-      File(lockFilePath).writeAsStringSync(oldTimestamp);
+      file.writeAsStringSync(oldTimestamp);
 
       expect(fileLocker.isLockedWithin(Duration(seconds: 1)), isFalse);
     });
@@ -196,14 +197,15 @@ void main() {
         Duration(milliseconds: 90),
       );
       final almostExpiredTimestamp =
-          almostExpiredTime.millisecondsSinceEpoch.toString();
+          almostExpiredTime.microsecondsSinceEpoch.toString();
 
       // Create the file with almost expired timestamp
-      final parent = File(lockFilePath).parent;
+      final file = File(fileLocker.path);
+      final parent = file.parent;
       if (!parent.existsSync()) {
         parent.createSync(recursive: true);
       }
-      File(lockFilePath).writeAsStringSync(almostExpiredTimestamp);
+      file.writeAsStringSync(almostExpiredTimestamp);
 
       // Start a timer to measure waiting time
       final stopwatch = Stopwatch()..start();
@@ -356,7 +358,7 @@ void main() {
           }
 
           try {
-            if (File(lockFilePath).existsSync()) {
+            if (File(fileLocker.path).existsSync()) {
               fileLocker.lock(); // Keep refreshing the lock
             }
           } catch (e) {
@@ -493,7 +495,7 @@ void main() {
       // Create lock file with a very old timestamp
       final oldTimestamp = DateTime.now()
           .subtract(Duration(days: 2))
-          .millisecondsSinceEpoch
+          .microsecondsSinceEpoch
           .toString();
       final parent = File(lockFilePath).parent;
       if (!parent.existsSync()) {
