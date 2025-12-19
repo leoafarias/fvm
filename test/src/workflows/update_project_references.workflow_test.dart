@@ -139,6 +139,96 @@ void main() {
       expect(versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
     });
 
+    test(
+        'should fall back to nameWithAlias when flutter SDK version is empty string',
+        () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir, name: 'test_project');
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      final versionDir =
+          Directory(p.join(cacheDir.path, 'versions', '3.10.0'));
+      versionDir.createSync(recursive: true);
+
+      // Create an empty version file (whitespace only) to test empty string fallback
+      File(p.join(versionDir.path, 'version')).writeAsStringSync('   ');
+
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        FlutterVersion.parse('3.10.0'),
+        directory: versionDir.path,
+      );
+
+      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+
+      await workflow.call(project, cacheVersion, force: true);
+
+      final versionFile = File(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.versionFile,
+        ),
+      );
+
+      // Should fall back to nameWithAlias when version is empty/whitespace
+      expect(versionFile.existsSync(), isTrue);
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
+    });
+
+    test(
+        'should fall back to nameWithAlias for fork version when SDK version is absent',
+        () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir, name: 'test_project');
+      createProjectConfig(ProjectConfig(), testDir);
+
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      // Create a fork version directory without version files
+      const forkName = 'my-fork';
+      const versionName = 'stable';
+      final forkVersionDir = Directory(
+        p.join(cacheDir.path, 'versions', forkName, versionName),
+      );
+      forkVersionDir.createSync(recursive: true);
+
+      // No version files to ensure flutterSdkVersion is null
+      final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
+      final cacheVersion = CacheFlutterVersion.fromVersion(
+        flutterVersion,
+        directory: forkVersionDir.path,
+      );
+
+      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+
+      await workflow.call(project, cacheVersion, force: true);
+
+      final versionFile = File(
+        p.join(
+          testDir.path,
+          '.fvm',
+          UpdateProjectReferencesWorkflow.versionFile,
+        ),
+      );
+
+      // Should contain full fork/version string (nameWithAlias)
+      expect(versionFile.existsSync(), isTrue);
+      expect(
+        versionFile.readAsStringSync(),
+        equals('$forkName/$versionName'),
+      );
+      expect(
+        versionFile.readAsStringSync(),
+        equals(cacheVersion.nameWithAlias),
+      );
+    });
+
     test('should update with flavor when provided', () async {
       final testDir = tempDirs.create();
       createPubspecYaml(testDir);
@@ -159,9 +249,9 @@ void main() {
         force: true,
       );
 
-      // Verify flavor was added
+      // Verify flavor was added (uses nameWithAlias for fork support)
       final flavor = updatedProject.flavors['dev'];
-      expect(flavor, equals(cacheVersion.name));
+      expect(flavor, equals(cacheVersion.nameWithAlias));
     });
 
     test(
@@ -467,14 +557,10 @@ void main() {
 
       final cacheVersion = MockCacheFlutterVersion();
 
-      // when dartSdkVersion
       when(() => cacheVersion.dartSdkVersion).thenReturn('2.19.0');
-
-      // name
+      when(() => cacheVersion.flutterSdkVersion).thenReturn('2.19.0');
       when(() => cacheVersion.name).thenReturn('2.19.0');
-
       when(() => cacheVersion.nameWithAlias).thenReturn('2.19.0');
-
       when(() => cacheVersion.fromFork).thenReturn(false);
 
       when(() => cacheVersion.printFriendlyName).thenReturn('Mock version');
