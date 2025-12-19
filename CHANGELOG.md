@@ -1,6 +1,9 @@
-## Unreleased
+## 4.0.5
 
-* fix: PathAccessException in Nix/Home Manager environments with read-only shell configs (#897, #799)
+* feat: migrate install script to v2 with user-local default install (#967)
+* fix: disable auto-install of shell completions for Nix/Home Manager environments (#991)
+* fix: support legacy `.fvm/fvm_config.json` file loading (#996)
+* fix: improve PATH guidance for CI installs (#999)
 
 ## 4.0.4
 
