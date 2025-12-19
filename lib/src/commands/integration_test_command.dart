@@ -472,7 +472,7 @@ class IntegrationTestRunner {
       await _runFvmCommand(['config', '--no-update-check']);
       final modifiedConfig = await _runFvmCommandWithOutput(['config']);
 
-      if (!modifiedConfig.contains('updateCheck: false')) {
+      if (!modifiedConfig.contains('disableUpdateCheck: true')) {
         throw AppException('Update check setting not updated in config output');
       }
 
