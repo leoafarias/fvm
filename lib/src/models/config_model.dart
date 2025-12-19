@@ -250,9 +250,20 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
   static ProjectConfig? loadFromDirectory(Directory directory) {
     final configFile = File(p.join(directory.path, kFvmConfigFileName));
 
-    return configFile.existsSync()
-        ? ProjectConfig.fromJson(configFile.readAsStringSync())
-        : null;
+    if (configFile.existsSync()) {
+      return ProjectConfig.fromJson(configFile.readAsStringSync());
+    }
+
+    // Fall back to legacy config file
+    final legacyConfigFile = File(
+      p.join(directory.path, kFvmDirName, kFvmLegacyConfigFileName),
+    );
+
+    if (legacyConfigFile.existsSync()) {
+      return ProjectConfig.fromJson(legacyConfigFile.readAsStringSync());
+    }
+
+    return null;
   }
 
   static ProjectConfig fromJson(String json) {

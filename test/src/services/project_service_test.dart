@@ -4,6 +4,7 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/project_model.dart';
 // Import the service and model classes.
 // Adjust these imports based on your project structure.
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:path/path.dart' as p;
@@ -152,6 +153,83 @@ void main() {
       expect(updatedConfig!.flutter, equals('3.16.0'));
       // This is the key assertion: updateVscodeSettings should be preserved
       expect(updatedConfig.updateVscodeSettings, isFalse);
+    });
+
+    test('findAncestor loads legacy .fvm/fvm_config.json file', () {
+      final tempDir = tempDirs.create();
+
+      // Create the legacy config structure: .fvm/fvm_config.json
+      final fvmDir = Directory(p.join(tempDir.path, '.fvm'));
+      fvmDir.createSync(recursive: true);
+
+      final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
+      legacyConfigFile.writeAsStringSync(
+        '{"flutterSdkVersion": "3.38.3"}',
+      );
+
+      final project = projectService.findAncestor(directory: tempDir);
+
+      expect(project.hasConfig, isTrue);
+      expect(project.config, isNotNull);
+      expect(project.config!.flutter, equals('3.38.3'));
+      expect(project.pinnedVersion?.name, equals('3.38.3'));
+    });
+
+    test('findAncestor prefers .fvmrc over legacy config', () {
+      final tempDir = tempDirs.create();
+
+      // Create both new and legacy config files
+      final newConfigFile = File(p.join(tempDir.path, '.fvmrc'));
+      newConfigFile.writeAsStringSync(
+        '{"flutter": "3.16.0"}',
+      );
+
+      final fvmDir = Directory(p.join(tempDir.path, '.fvm'));
+      fvmDir.createSync(recursive: true);
+
+      final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
+      legacyConfigFile.writeAsStringSync(
+        '{"flutterSdkVersion": "3.38.3"}',
+      );
+
+      final project = projectService.findAncestor(directory: tempDir);
+
+      expect(project.hasConfig, isTrue);
+      expect(project.config, isNotNull);
+      // Should use the new config file (.fvmrc)
+      expect(project.config!.flutter, equals('3.16.0'));
+      expect(project.pinnedVersion?.name, equals('3.16.0'));
+    });
+
+    test('findAncestor warns when loading from legacy config', () {
+      final tempDir = tempDirs.create();
+
+      // Create only the legacy config (no .fvmrc)
+      final fvmDir = Directory(p.join(tempDir.path, '.fvm'));
+      fvmDir.createSync(recursive: true);
+
+      final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
+      legacyConfigFile.writeAsStringSync(
+        '{"flutterSdkVersion": "3.38.3"}',
+      );
+
+      // Get the logger to check outputs
+      final logger = context.get<Logger>();
+      final outputsBefore = logger.outputs.length;
+
+      final project = projectService.findAncestor(directory: tempDir);
+
+      // Verify config was loaded
+      expect(project.hasConfig, isTrue);
+      expect(project.config!.flutter, equals('3.38.3'));
+
+      // Verify warning was logged
+      final newOutputs = logger.outputs.sublist(outputsBefore);
+      expect(
+        newOutputs.any((msg) => msg.contains('legacy config')),
+        isTrue,
+        reason: 'Expected warning about legacy config to be logged',
+      );
     });
   });
 }
