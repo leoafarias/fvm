@@ -161,7 +161,29 @@ print_path_instructions() {
   echo "Then restart your shell or run:"
   echo "  source ~/.bashrc  # or ~/.zshrc"
   echo ""
+  if is_ci; then
+    echo "CI detected."
+    echo "To use FVM in this same step, run:"
+    echo "  export PATH=\"$BIN_DIR:\$PATH\""
+    echo "To persist for later steps, use your CI's env file mechanism"
+    echo "  (e.g., \$GITHUB_PATH on GitHub Actions, \$BASH_ENV on CircleCI)."
+    echo ""
+  else
+    echo "Note: If you ran this via curl | bash, run the export command"
+    echo "above in your current shell."
+    echo ""
+  fi
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+}
+
+is_ci() {
+  if [ -n "${CI:-}" ] && [ "${CI}" != "false" ]; then
+    return 0
+  fi
+  [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${GITLAB_CI:-}" ] || [ -n "${CIRCLECI:-}" ] || \
+  [ -n "${TRAVIS:-}" ] || [ -n "${BUILDKITE:-}" ] || [ -n "${DRONE:-}" ] || \
+  [ -n "${TF_BUILD:-}" ] || [ -n "${TEAMCITY_VERSION:-}" ] || \
+  [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
 }
 
 migrate_from_v1() {
