@@ -347,6 +347,8 @@ void main() {
         final global = cacheService.getGlobal();
         expect(global, isNotNull);
         expect(global!.nameWithAlias, equals('myfork/stable'));
+        expect(global.fork, equals('myfork'));
+        expect(global.name, equals('stable'));
 
         final globalVersionName = cacheService.getGlobalVersion();
         expect(globalVersionName, equals('myfork/stable'));

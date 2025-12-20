@@ -214,10 +214,17 @@ class CacheService extends ContextualService {
     final version = getGlobalVersion();
     if (version == null) return null;
     // Make sure its a valid version
-    final validVersion = FlutterVersion.parse(version);
-
-    // Verify version is cached
-    return getVersion(validVersion);
+    try {
+      final validVersion = FlutterVersion.parse(version);
+      // Verify version is cached
+      return getVersion(validVersion);
+    } on FormatException catch (e) {
+      logger.warn(
+        'Global version "$version" could not be parsed: $e. '
+        'The global symlink may be corrupted.',
+      );
+      return null;
+    }
   }
 
   /// Checks if a cached [version] is configured as global
@@ -242,6 +249,11 @@ class CacheService extends ContextualService {
         relative = relative.replaceAll('\\', '/');
         return relative;
       }
+    } else {
+      logger.debug(
+        'Global symlink target "$targetPath" is outside cache directory. '
+        'Fork information may not be preserved.',
+      );
     }
 
     return path.basename(normalizedTarget);

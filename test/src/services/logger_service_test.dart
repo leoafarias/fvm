@@ -9,6 +9,7 @@ class _SelectCaptureLogger extends Logger {
   _SelectCaptureLogger(super.context);
 
   List<String>? capturedOptions;
+  int selectionIndex = 0;
 
   @override
   String select(
@@ -17,7 +18,8 @@ class _SelectCaptureLogger extends Logger {
     int? defaultSelection,
   }) {
     capturedOptions = options;
-    return options.first;
+    final index = selectionIndex < options.length ? selectionIndex : 0;
+    return options[index];
   }
 }
 
@@ -168,6 +170,25 @@ void main() {
         equals(versions.map((version) => version.nameWithAlias).toList()),
       );
       expect(selected, equals(versions.first.nameWithAlias));
+    });
+
+    test('returns selected option from select()', () {
+      final context = TestFactory.context();
+      final logger = _SelectCaptureLogger(context)..selectionIndex = 1;
+      final versions = [
+        CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('stable'),
+          directory: path.join(context.versionsCachePath, 'stable'),
+        ),
+        CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('beta'),
+          directory: path.join(context.versionsCachePath, 'beta'),
+        ),
+      ];
+
+      final selected = logger.cacheVersionSelector(versions);
+
+      expect(selected, equals(versions[1].nameWithAlias));
     });
   });
 }
