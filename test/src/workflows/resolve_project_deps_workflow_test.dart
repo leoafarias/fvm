@@ -102,6 +102,62 @@ void main() {
       },
     );
 
+    test(
+      'should proceed to resolve when dart tool version does NOT match Dart SDK version',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+
+        final project = runner.context.get<ProjectService>().findAncestor(
+              directory: testDir,
+            );
+
+        // Create .dart_tool/version file with Dart SDK version 3.1.0
+        final dartToolDir = Directory(p.join(project.path, '.dart_tool'));
+        dartToolDir.createSync();
+        final versionFile = File(p.join(dartToolDir.path, 'version'));
+        versionFile.writeAsStringSync('3.1.0');
+
+        // Create a properly setup version
+        final versionDir = tempDirs.create();
+        final binDir = Directory(p.join(versionDir.path, 'bin'));
+        binDir.createSync(recursive: true);
+        File(p.join(binDir.path, 'flutter')).createSync();
+        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+        // Create Dart SDK cache with DIFFERENT version (3.2.0) to trigger mismatch
+        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+        dartSdkDir.createSync(recursive: true);
+        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+        // Different Dart SDK version than project's dart tool version
+        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.2.0');
+
+        final setupVersion = CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('3.10.0'),
+          directory: versionDir.path,
+        );
+
+        final workflow = ResolveProjectDependenciesWorkflow(runner.context);
+
+        try {
+          await workflow(project, setupVersion, force: false);
+        } catch (_) {
+          // Expected to fail without real Flutter - that's ok
+        }
+
+        final logger = runner.context.get<Logger>();
+        // Verify the version match skip message was NOT logged
+        expect(
+          logger.outputs.any(
+            (msg) => msg.contains('Dart tool version matches SDK version'),
+          ),
+          isFalse,
+          reason:
+              'Should not skip resolve when dart tool version (3.1.0) differs from SDK version (3.2.0)',
+        );
+      },
+    );
+
     test('should return true when no pubspec found', () async {
       final testDir = tempDirs.create();
       // Don't create pubspec.yaml
