@@ -219,13 +219,15 @@ void main() {
 
       // Should contain full fork/version string (nameWithAlias)
       expect(versionFile.existsSync(), isTrue);
+
+      final versionFileContents = versionFile.readAsStringSync();
       expect(
-        versionFile.readAsStringSync(),
+        versionFileContents,
         equals('$forkName/$versionName'),
       );
       expect(
-        versionFile.readAsStringSync(),
-        equals(cacheVersion.nameWithAlias),
+        cacheVersion.nameWithAlias,
+        equals('$forkName/$versionName'),
       );
     });
 
