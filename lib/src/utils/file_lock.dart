@@ -94,10 +94,14 @@ class FileLocker {
           }
         }
 
-        // Write new timestamp
+        // Write new timestamp - write first, then truncate to exact length
+        // This order is more reliable on Windows where truncate-then-write
+        // in append mode can have unexpected behavior
+        final timestampBytes =
+            utf8.encode(DateTime.now().microsecondsSinceEpoch.toString());
         file.setPositionSync(0);
-        file.truncateSync(0);
-        file.writeStringSync(DateTime.now().microsecondsSinceEpoch.toString());
+        file.writeFromSync(timestampBytes);
+        file.truncateSync(timestampBytes.length);
         file.flushSync();
         file.unlockSync();
         file.closeSync();
