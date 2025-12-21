@@ -61,7 +61,24 @@ Future<void> _deleteLooseGitObject({
     throw Exception('Expected loose git object at ${objectFile.path}');
   }
 
-  objectFile.deleteSync();
+  if (Platform.isWindows) {
+    await Process.run(
+      'attrib',
+      ['-R', objectFile.path],
+      runInShell: true,
+    );
+  }
+
+  final attempts = Platform.isWindows ? 3 : 1;
+  for (var attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      objectFile.deleteSync();
+      return;
+    } on FileSystemException {
+      if (!Platform.isWindows || attempt == attempts) rethrow;
+      await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
+    }
+  }
 }
 
 void main() {
