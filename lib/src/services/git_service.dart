@@ -331,7 +331,11 @@ class GitService extends ContextualService {
         );
 
         // Only fix alternates that reference our cache path (not backups, etc.)
-        if (!currentNorm.startsWith(desiredParent)) {
+        // Use case-insensitive comparison on Windows where paths are case-insensitive
+        final matchesParent = Platform.isWindows
+            ? currentNorm.toLowerCase().startsWith(desiredParent.toLowerCase())
+            : currentNorm.startsWith(desiredParent);
+        if (!matchesParent) {
           continue;
         }
 
