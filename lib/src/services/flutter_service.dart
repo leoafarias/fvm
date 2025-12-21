@@ -169,6 +169,25 @@ class FlutterService extends ContextualService {
         lower.contains('not found');
   }
 
+  /// Detects git errors that indicate missing or unreadable objects in the
+  /// local mirror. These should trigger a retry from the remote.
+  bool _isMissingObjectError(String errorMessage) {
+    final lower = errorMessage.toLowerCase();
+    const patterns = [
+      'bad object',
+      'reference is not a tree',
+      'unable to read tree',
+      'invalid object name',
+      'missing blob',
+      'missing tree',
+      'object file',
+      'loose object',
+      'pack has bad object',
+    ];
+
+    return patterns.any(lower.contains);
+  }
+
   Never _throwReferenceLookupError({
     required FlutterVersion version,
     required String repoUrl,
@@ -416,7 +435,10 @@ class FlutterService extends ContextualService {
             gitVersionDir: gitVersionDir,
           );
         } on ProcessException catch (e, stackTrace) {
-          if (clonedFromMirror && _isReferenceLookupError(e.message)) {
+          final isReferenceError = _isReferenceLookupError(e.message);
+          final isMissingObject = _isMissingObjectError(e.message);
+
+          if (clonedFromMirror && (isReferenceError || isMissingObject)) {
             await _retryInstallFromRemote(
               version: version,
               versionDir: versionDir,
@@ -425,7 +447,7 @@ class FlutterService extends ContextualService {
               echoOutput: echoOutput,
             );
             // Successfully retried, continue with setup
-          } else if (_isReferenceLookupError(e.message)) {
+          } else if (isReferenceError) {
             _throwReferenceLookupError(
               version: version,
               repoUrl: repoUrl,
