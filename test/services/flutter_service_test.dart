@@ -19,6 +19,51 @@ void throwGitError(String message, List<String> args) {
   throw e;
 }
 
+Future<void> _deleteLooseGitObject({
+  required String repoPath,
+  required String objectSha,
+}) async {
+  final objectFile = File(
+    p.join(
+      repoPath,
+      'objects',
+      objectSha.substring(0, 2),
+      objectSha.substring(2),
+    ),
+  );
+
+  if (!objectFile.existsSync()) {
+    final packDir = Directory(p.join(repoPath, 'objects', 'pack'));
+    if (packDir.existsSync()) {
+      final packFiles = packDir
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.pack'))
+          .toList();
+
+      for (final pack in packFiles) {
+        final process = await Process.start(
+          'git',
+          ['unpack-objects'],
+          workingDirectory: repoPath,
+          runInShell: true,
+        );
+        await pack.openRead().pipe(process.stdin);
+        final exitCode = await process.exitCode;
+        if (exitCode != 0) {
+          throw Exception('Failed to unpack git objects from ${pack.path}');
+        }
+      }
+    }
+  }
+
+  if (!objectFile.existsSync()) {
+    throw Exception('Expected loose git object at ${objectFile.path}');
+  }
+
+  objectFile.deleteSync();
+}
+
 void main() {
   group('FlutterService', () {
     group('install method', () {
@@ -225,6 +270,93 @@ void main() {
           final cacheService = context.get<CacheService>();
           final versionDir = cacheService.getVersionCacheDir(version);
 
+          final headResult = await runGitCommand(
+            ['rev-parse', '--abbrev-ref', 'HEAD'],
+            workingDirectory: versionDir.path,
+          );
+
+          expect(headResult.stdout.toString().trim(), 'feature');
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
+      test('falls back to remote when mirror has missing objects', () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_missing_objects_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          // Create a feature branch in the remote.
+          final workDir = Directory(p.join(tempDir.path, 'work'))..createSync();
+          await runGitCommand(['clone', remoteDir.path, workDir.path]);
+          await runGitCommand(
+            ['config', 'user.email', 'tests@fvm.app'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['config', 'user.name', 'FVM Tests'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['checkout', '-b', 'feature'],
+            workingDirectory: workDir.path,
+          );
+          File(p.join(workDir.path, 'FEATURE.md')).writeAsStringSync('feature');
+          await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+          await runGitCommand(
+            ['commit', '-m', 'Add feature branch'],
+            workingDirectory: workDir.path,
+          );
+          await runGitCommand(
+            ['push', 'origin', 'feature'],
+            workingDirectory: workDir.path,
+          );
+
+          final gitCachePath = p.join(tempDir.path, 'mirror.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand([
+            'clone',
+            '--mirror',
+            remoteDir.path,
+            gitCachePath,
+          ]);
+
+          final featureShaResult = await runGitCommand(
+            ['rev-parse', 'feature'],
+            workingDirectory: gitCachePath,
+          );
+          final featureSha = featureShaResult.stdout.toString().trim();
+          await _deleteLooseGitObject(
+            repoPath: gitCachePath,
+            objectSha: featureSha,
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('feature');
+
+          await service.install(version);
+
+          final cacheService = context.get<CacheService>();
+          final versionDir = cacheService.getVersionCacheDir(version);
           final headResult = await runGitCommand(
             ['rev-parse', '--abbrev-ref', 'HEAD'],
             workingDirectory: versionDir.path,
