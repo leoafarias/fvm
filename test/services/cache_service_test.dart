@@ -384,7 +384,7 @@ void main() {
 
       test('getGlobal returns null for unparseable version name', () {
         // Create a directory with a name that cannot be parsed as a version
-        // '@invalid' fails because version part cannot start with @
+        // '@invalid' fails because the version part is empty (nothing before @)
         final invalidDir = Directory(path.join(tempDir.path, '@invalid'))
           ..createSync(recursive: true);
         addTearDown(() {
