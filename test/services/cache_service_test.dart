@@ -381,6 +381,24 @@ void main() {
         // Should return null since the version doesn't exist in cache
         expect(cacheService.getGlobal(), isNull);
       });
+
+      test('getGlobal returns null for unparseable version name', () {
+        // Create a directory with a name that cannot be parsed as a version
+        // '@invalid' fails because version part cannot start with @
+        final invalidDir = Directory(path.join(tempDir.path, '@invalid'))
+          ..createSync(recursive: true);
+        addTearDown(() {
+          if (invalidDir.existsSync()) invalidDir.deleteSync(recursive: true);
+        });
+
+        final globalLink = Link(context.globalCacheLink);
+        globalLink.createSync(invalidDir.path, recursive: true);
+        addTearDown(cacheService.unlinkGlobal);
+
+        // Should return null gracefully, not throw
+        final global = cacheService.getGlobal();
+        expect(global, isNull);
+      });
     });
 
     group('Fork cleanup:', () {
