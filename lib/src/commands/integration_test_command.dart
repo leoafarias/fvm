@@ -467,24 +467,18 @@ class IntegrationTestRunner {
     );
 
     // Instead, test a different config option that won't affect the test flow
-    try {
-      // Test update check setting which is safe to modify
-      await _runFvmCommand(['config', '--no-update-check']);
-      final modifiedConfig = await _runFvmCommandWithOutput(['config']);
+    // Test update check setting which is safe to modify
+    await _runFvmCommand(['config', '--no-update-check']);
+    final modifiedConfig = await _runFvmCommandWithOutput(['config']);
 
-      if (!modifiedConfig.contains('disableUpdateCheck: true')) {
-        throw AppException('Update check setting not updated in config output');
-      }
-
-      // Restore the setting
-      await _runFvmCommand(['config', '--update-check']);
-
-      _logSuccess('Config modification works');
-    } catch (e) {
-      // If update-check flag isn't available, just skip this test
-      logger.info('Config test skipped: ${e.toString()}');
-      _logSuccess('Config modification test skipped');
+    if (!modifiedConfig.contains('disableUpdateCheck: true')) {
+      throw AppException('Update check setting not updated in config output');
     }
+
+    // Restore the setting
+    await _runFvmCommand(['config', '--update-check']);
+
+    _logSuccess('Config modification works');
   }
 
   /// Verify config command output (based on bash script lines 509-518)
