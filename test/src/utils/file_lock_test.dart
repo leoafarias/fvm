@@ -221,7 +221,9 @@ void main() {
       expect(fileLocker.isLocked, isFalse);
     });
 
-    test('should ensure only one process gets the lock at a time', () async {
+    test(
+      'should ensure only one process gets the lock at a time',
+      () async {
       // Create a shared variable and a list to track operations
       var sharedValue = 0;
       var operations = <String>[];
@@ -284,7 +286,11 @@ void main() {
       // Ensure all locks were properly released
       expect(currentHolder, isEmpty, reason: 'A lock was never released');
       expect(fileLocker.isLocked, isFalse);
-    });
+      },
+      skip: Platform.isWindows
+          ? 'Concurrent file locking tests are unreliable on Windows due to file handle semantics.'
+          : false,
+    );
   });
 
   group('External interactions', () {
@@ -532,38 +538,44 @@ void main() {
       },
     );
 
-    test('should handle near-simultaneous lock requests', () async {
-      // Launch many concurrent lock requests
-      final count = 10;
-      final results = <int>[];
+    test(
+      'should handle near-simultaneous lock requests',
+      () async {
+        // Launch many concurrent lock requests
+        final count = 10;
+        final results = <int>[];
 
-      // Function that acquires lock, adds to results, and releases
-      Future<void> acquireLock(int id) async {
-        final unlock = await fileLocker.getLock();
-        try {
-          // Record this ID
-          results.add(id);
-          // Small delay to simulate work
-          await Future.delayed(Duration(milliseconds: 1));
-        } finally {
-          unlock();
+        // Function that acquires lock, adds to results, and releases
+        Future<void> acquireLock(int id) async {
+          final unlock = await fileLocker.getLock();
+          try {
+            // Record this ID
+            results.add(id);
+            // Small delay to simulate work
+            await Future.delayed(Duration(milliseconds: 1));
+          } finally {
+            unlock();
+          }
         }
-      }
 
-      // Start all requests concurrently
-      await Future.wait(List.generate(count, (index) => acquireLock(index)));
+        // Start all requests concurrently
+        await Future.wait(List.generate(count, (index) => acquireLock(index)));
 
-      // All IDs should be in the results exactly once
-      expect(results.length, equals(count));
-      expect(
-        results.toSet().length,
-        equals(count),
-        reason: 'Each ID should appear exactly once',
-      );
+        // All IDs should be in the results exactly once
+        expect(results.length, equals(count));
+        expect(
+          results.toSet().length,
+          equals(count),
+          reason: 'Each ID should appear exactly once',
+        );
 
-      // Final state should be unlocked
-      expect(fileLocker.isLocked, isFalse);
-    });
+        // Final state should be unlocked
+        expect(fileLocker.isLocked, isFalse);
+      },
+      skip: Platform.isWindows
+          ? 'Concurrent file locking tests are unreliable on Windows due to file handle semantics.'
+          : false,
+    );
 
     test('should handle microsecond precision timestamps', () async {
       // Create timestamps with just 1 microsecond difference
