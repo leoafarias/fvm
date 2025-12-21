@@ -66,50 +66,52 @@ class FileLocker {
   Future<void Function()> getLock({Duration? pollingInterval}) async {
     final interval = pollingInterval ?? const Duration(milliseconds: 100);
 
-    while (true) {
-      final parent = _file.parent;
-      if (!parent.existsSync()) {
-        parent.createSync(recursive: true);
-      }
+    // Create parent directory once before the loop
+    final parent = _file.parent;
+    if (!parent.existsSync()) {
+      parent.createSync(recursive: true);
+    }
 
+    while (true) {
       RandomAccessFile? file;
       try {
         file = _file.openSync(mode: FileMode.append);
-        file.lockSync(FileLock.exclusive);
+        try {
+          file.lockSync(FileLock.exclusive);
 
-        // Check if existing timestamp is expired
-        if (file.lengthSync() > 0) {
-          file.setPositionSync(0);
-          final content = utf8.decode(file.readSync(file.lengthSync()));
-          final timestamp = int.tryParse(content.trim());
-          if (timestamp != null) {
-            final lockTime = DateTime.fromMicrosecondsSinceEpoch(timestamp);
-            if (lockTime.isAfter(DateTime.now().subtract(lockExpiration))) {
-              // Lock is still valid - release and wait
-              file.unlockSync();
-              file.closeSync();
-              await Future.delayed(interval);
-              continue;
+          // Check if existing timestamp is expired
+          if (file.lengthSync() > 0) {
+            file.setPositionSync(0);
+            final content = utf8.decode(file.readSync(file.lengthSync()));
+            final timestamp = int.tryParse(content.trim());
+            if (timestamp != null) {
+              final lockTime = DateTime.fromMicrosecondsSinceEpoch(timestamp);
+              if (lockTime.isAfter(DateTime.now().subtract(lockExpiration))) {
+                // Lock is still valid - release and wait
+                file.unlockSync();
+                await Future.delayed(interval);
+                continue;
+              }
             }
           }
+
+          // Write new timestamp - write first, then truncate to exact length
+          // This order is more reliable on Windows where truncate-then-write
+          // in append mode can have unexpected behavior
+          final timestampBytes =
+              utf8.encode(DateTime.now().microsecondsSinceEpoch.toString());
+          file.setPositionSync(0);
+          file.writeFromSync(timestampBytes);
+          file.truncateSync(timestampBytes.length);
+          file.flushSync();
+          file.unlockSync();
+
+          return () => unlock();
+        } finally {
+          file.closeSync();
         }
-
-        // Write new timestamp - write first, then truncate to exact length
-        // This order is more reliable on Windows where truncate-then-write
-        // in append mode can have unexpected behavior
-        final timestampBytes =
-            utf8.encode(DateTime.now().microsecondsSinceEpoch.toString());
-        file.setPositionSync(0);
-        file.writeFromSync(timestampBytes);
-        file.truncateSync(timestampBytes.length);
-        file.flushSync();
-        file.unlockSync();
-        file.closeSync();
-
-        return () => unlock();
       } on FileSystemException {
         // Lock is held by another process
-        file?.closeSync();
         await Future.delayed(interval);
       }
     }
