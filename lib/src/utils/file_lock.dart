@@ -18,6 +18,25 @@ class FileLocker {
 
   bool get _lockExists => _file.existsSync();
 
+  String _encodeTimestamp(DateTime now) => now.microsecondsSinceEpoch.toString();
+
+  DateTime? _parseTimestamp(String content) {
+    final timestamp = int.tryParse(content.trim());
+    return timestamp == null
+        ? null
+        : DateTime.fromMicrosecondsSinceEpoch(timestamp);
+  }
+
+  bool _isActive(DateTime? lockTime, Duration expiration, DateTime now) =>
+      lockTime != null && lockTime.isAfter(now.subtract(expiration));
+
+  void _ensureParentExists() {
+    final parent = _file.parent;
+    if (!parent.existsSync()) {
+      parent.createSync(recursive: true);
+    }
+  }
+
   /// Returns true if the lock is currently active and not expired.
   bool get isLocked => _lockExists && isLockedWithin(lockExpiration);
 
@@ -27,30 +46,23 @@ class FileLocker {
 
     try {
       final content = _file.readAsStringSync();
-      final timestamp = int.parse(content.trim());
-
-      return DateTime.fromMicrosecondsSinceEpoch(timestamp);
+      final parsed = _parseTimestamp(content);
+      if (parsed != null) {
+        return parsed;
+      }
     } catch (e) {
       // If there's an error reading/parsing the timestamp,
       // return the file system timestamp as a fallback
       return _file.lastModifiedSync();
     }
+
+    return _file.lastModifiedSync();
   }
 
   /// Create or update the lock by writing the current timestamp to the file.
   void lock() {
-    final timestamp = DateTime.now().microsecondsSinceEpoch.toString();
-
-    if (_lockExists) {
-      _file.writeAsStringSync(timestamp);
-    } else {
-      // Ensure parent directory exists
-      final parent = _file.parent;
-      if (!parent.existsSync()) {
-        parent.createSync(recursive: true);
-      }
-      _file.writeAsStringSync(timestamp);
-    }
+    _ensureParentExists();
+    _file.writeAsStringSync(_encodeTimestamp(DateTime.now()));
   }
 
   /// Remove the lock.
@@ -58,8 +70,7 @@ class FileLocker {
 
   /// Returns true if the file exists and its stored timestamp is within [threshold] from now.
   bool isLockedWithin(Duration threshold) =>
-      _lockExists &&
-      (lastModified!.isAfter(DateTime.now().subtract(threshold)));
+      _lockExists && _isActive(lastModified, threshold, DateTime.now());
 
   /// Polls until the file's timestamp is older than [lockExpiration].
   /// Uses OS-level file locking to prevent race conditions between processes.
@@ -67,10 +78,7 @@ class FileLocker {
     final interval = pollingInterval ?? const Duration(milliseconds: 100);
 
     // Create parent directory once before the loop
-    final parent = _file.parent;
-    if (!parent.existsSync()) {
-      parent.createSync(recursive: true);
-    }
+    _ensureParentExists();
 
     while (true) {
       RandomAccessFile? file;
@@ -83,15 +91,12 @@ class FileLocker {
           if (file.lengthSync() > 0) {
             file.setPositionSync(0);
             final content = utf8.decode(file.readSync(file.lengthSync()));
-            final timestamp = int.tryParse(content.trim());
-            if (timestamp != null) {
-              final lockTime = DateTime.fromMicrosecondsSinceEpoch(timestamp);
-              if (lockTime.isAfter(DateTime.now().subtract(lockExpiration))) {
-                // Lock is still valid - release and wait
-                file.unlockSync();
-                await Future.delayed(interval);
-                continue;
-              }
+            final lockTime = _parseTimestamp(content);
+            if (_isActive(lockTime, lockExpiration, DateTime.now())) {
+              // Lock is still valid - release and wait
+              file.unlockSync();
+              await Future.delayed(interval);
+              continue;
             }
           }
 
@@ -99,7 +104,7 @@ class FileLocker {
           // This order is more reliable on Windows where truncate-then-write
           // in append mode can have unexpected behavior
           final timestampBytes =
-              utf8.encode(DateTime.now().microsecondsSinceEpoch.toString());
+              utf8.encode(_encodeTimestamp(DateTime.now()));
           file.setPositionSync(0);
           file.writeFromSync(timestampBytes);
           file.truncateSync(timestampBytes.length);

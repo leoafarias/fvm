@@ -14,6 +14,15 @@ String _generateUniqueId() {
   return values.map((e) => e.toRadixString(16).padLeft(2, '0')).join();
 }
 
+void _writeTimestamp(String path, DateTime time) {
+  final file = File(path);
+  final parent = file.parent;
+  if (!parent.existsSync()) {
+    parent.createSync(recursive: true);
+  }
+  file.writeAsStringSync(time.microsecondsSinceEpoch.toString());
+}
+
 void main() {
   late Directory tempDir;
   late String lockFilePath;
@@ -149,15 +158,7 @@ void main() {
     test('should return false if lock is older than threshold', () async {
       // Write an old timestamp directly to the file instead of using setLastModifiedSync
       final oldTime = DateTime.now().subtract(Duration(seconds: 2));
-      final oldTimestamp = oldTime.microsecondsSinceEpoch.toString();
-
-      // Ensure parent directory exists and create the file with old timestamp
-      final file = File(fileLocker.path);
-      final parent = file.parent;
-      if (!parent.existsSync()) {
-        parent.createSync(recursive: true);
-      }
-      file.writeAsStringSync(oldTimestamp);
+      _writeTimestamp(fileLocker.path, oldTime);
 
       expect(fileLocker.isLockedWithin(Duration(seconds: 1)), isFalse);
     });
@@ -204,16 +205,8 @@ void main() {
         final almostExpiredTime = DateTime.now().subtract(
           Duration(milliseconds: 90),
         );
-        final almostExpiredTimestamp =
-            almostExpiredTime.microsecondsSinceEpoch.toString();
-
         // Create the file with almost expired timestamp
-        final file = File(fileLocker.path);
-        final parent = file.parent;
-        if (!parent.existsSync()) {
-          parent.createSync(recursive: true);
-        }
-        file.writeAsStringSync(almostExpiredTimestamp);
+        _writeTimestamp(fileLocker.path, almostExpiredTime);
 
         // Start a timer to measure waiting time
         final stopwatch = Stopwatch()..start();
@@ -352,8 +345,7 @@ void main() {
 
       // Externally modify the timestamp by writing an old time to the file.
       final oldTime = DateTime.now().subtract(testLocker.lockExpiration * 2);
-      final oldTimestamp = oldTime.microsecondsSinceEpoch.toString();
-      File(testLocker.path).writeAsStringSync(oldTimestamp);
+      _writeTimestamp(testLocker.path, oldTime);
 
       // Should now be able to acquire the lock.
       final unlock = await lockFuture;
@@ -529,15 +521,8 @@ void main() {
       );
 
       // Create lock file with a very old timestamp
-      final oldTimestamp = DateTime.now()
-          .subtract(Duration(days: 2))
-          .microsecondsSinceEpoch
-          .toString();
-      final parent = File(lockFilePath).parent;
-      if (!parent.existsSync()) {
-        parent.createSync(recursive: true);
-      }
-      File(lockFilePath).writeAsStringSync(oldTimestamp);
+      final oldTime = DateTime.now().subtract(Duration(days: 2));
+      _writeTimestamp(lockFilePath, oldTime);
 
       // Should get the lock immediately because the timestamp is old
       final unlock = await longLocker.getLock();
