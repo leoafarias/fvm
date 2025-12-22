@@ -24,6 +24,9 @@ enum _GitCacheState { missing, invalid, legacy, ready }
 /// Service for Git operations
 /// Handles git cache management and repository operations
 class GitService extends ContextualService {
+  static const _gitCacheLockTtl = Duration(minutes: 10);
+
+  late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
 
   GitService(super.context) {
@@ -31,9 +34,13 @@ class GitService extends ContextualService {
     // git cache share the same lock, even if they have different cachePath.
     // This prevents race conditions when tests share a git cache but have
     // isolated FVM cache directories.
-    _updatingCacheLock = FileLocker(
+    _updatingCacheLock = createGitCacheLock();
+  }
+
+  FileLocker createGitCacheLock() {
+    return FileLocker(
       '${context.gitCachePath}.lock',
-      lockExpiration: const Duration(minutes: 10),
+      lockExpiration: _gitCacheLockTtl,
     );
   }
 
@@ -429,27 +436,10 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // Step 3: Set the correct remote URL (currently points to local path)
-    logger.debug('Setting remote URL to ${context.flutterUrl}');
-    try {
-      await processService.run(
-        'git',
-        args: ['remote', 'set-url', 'origin', context.flutterUrl],
-        workingDirectory: tempBareDir.path,
-      );
-    } catch (error) {
-      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
-      rethrow;
-    }
-
-    // Step 4: Fetch latest from remote (only delta - fast)
+    // Step 3: Sync remote (set origin + fetch latest delta)
     logger.info('Fetching latest from remote...');
     try {
-      await processService.run(
-        'git',
-        args: ['remote', 'update', '--prune', 'origin'],
-        workingDirectory: tempBareDir.path,
-      );
+      await _syncMirrorWithRemote(tempBareDir);
     } catch (error) {
       await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
       rethrow;

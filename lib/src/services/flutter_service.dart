@@ -11,7 +11,6 @@ import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
-import '../utils/file_lock.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
@@ -22,6 +21,26 @@ import 'releases_service/releases_client.dart';
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
   const FlutterService(super.context);
+
+  static const List<String> _gitObjectCorruptionMarkers = [
+    'bad object',
+    'loose object',
+    'object file',
+    'pack has bad object',
+  ];
+
+  static const List<String> _gitMissingObjectMarkers = [
+    'reference is not a tree',
+    'unable to read tree',
+    'invalid object name',
+    'missing blob',
+    'missing tree',
+  ];
+
+  static const List<String> _gitObjectErrorPatterns = [
+    ..._gitObjectCorruptionMarkers,
+    ..._gitMissingObjectMarkers,
+  ];
 
   Future<ProcessResult> _cloneSdk({
     required String source,
@@ -72,17 +91,7 @@ class FlutterService extends ContextualService {
 
       return result;
     } on ProcessException catch (error) {
-      final messageLower = error.message.toLowerCase();
-      const corruptionMarkers = [
-        'corrupt',
-        'damaged',
-        'bad object',
-        'hash mismatch',
-        'loose object',
-        'object file',
-        'pack has bad object',
-      ];
-      final isLikelyCorruption = corruptionMarkers.any(messageLower.contains);
+      final isLikelyCorruption = _isMirrorCorruptionError(error.message);
 
       if (isLikelyCorruption) {
         logger.err(
@@ -95,10 +104,7 @@ class FlutterService extends ContextualService {
         // concurrent installs touching the cache while it is being removed.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          final lock = FileLocker(
-            '${context.gitCachePath}.lock',
-            lockExpiration: const Duration(minutes: 10),
-          );
+          final lock = get<GitService>().createGitCacheLock();
           final unlock = await lock.getLock();
           try {
             final deleted = await deleteDirectoryWithRetry(
@@ -168,19 +174,20 @@ class FlutterService extends ContextualService {
   /// local mirror. These should trigger a retry from the remote.
   bool _isMissingObjectError(String errorMessage) {
     final lower = errorMessage.toLowerCase();
-    const patterns = [
-      'bad object',
-      'reference is not a tree',
-      'unable to read tree',
-      'invalid object name',
-      'missing blob',
-      'missing tree',
-      'object file',
-      'loose object',
-      'pack has bad object',
-    ];
 
-    return patterns.any(lower.contains);
+    return _gitObjectErrorPatterns.any(lower.contains);
+  }
+
+  bool _isMirrorCorruptionError(String errorMessage) {
+    final lower = errorMessage.toLowerCase();
+
+    if (lower.contains('corrupt') ||
+        lower.contains('damaged') ||
+        lower.contains('hash mismatch')) {
+      return true;
+    }
+
+    return _gitObjectCorruptionMarkers.any(lower.contains);
   }
 
   Never _throwReferenceLookupError({
