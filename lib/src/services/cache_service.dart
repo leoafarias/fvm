@@ -33,6 +33,22 @@ class CacheService extends ContextualService {
     return value;
   }
 
+  String? _relativeVersionNameFromCachePath(String targetPath) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(targetPath);
+    if (!path.isWithin(cacheRoot, normalizedTarget)) {
+      return null;
+    }
+
+    final relative = path.relative(normalizedTarget, from: cacheRoot);
+    if (relative.isEmpty || relative == '.') {
+      return null;
+    }
+
+    // Ensure fork/version format is POSIX-style for parsing.
+    return relative.replaceAll('\\', '/');
+  }
+
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
@@ -87,18 +103,10 @@ class CacheService extends ContextualService {
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
       if (isFlutterSdkDirectory(dir)) {
-        // This is a version directory
-        final name = path.basename(dir.path);
-
         try {
-          FlutterVersion version;
-          if (forkName != null) {
-            // This is a forked version
-            version = FlutterVersion.parse('$forkName/$name');
-          } else {
-            // This is a regular version
-            version = FlutterVersion.parse(name);
-          }
+          final name = _relativeVersionNameFromCachePath(dir.path);
+          if (name == null) return;
+          final version = FlutterVersion.parse(name);
 
           final cacheVersion = getVersion(version);
           if (cacheVersion != null) {
@@ -239,24 +247,22 @@ class CacheService extends ContextualService {
     if (!_globalCacheLink.existsSync()) return null;
 
     final targetPath = _globalCacheLink.targetSync();
-    final cacheRoot = path.normalize(context.versionsCachePath);
-    final normalizedTarget = path.normalize(targetPath);
+    final relative = _relativeVersionNameFromCachePath(targetPath);
+    if (relative != null) {
+      return relative;
+    }
 
-    if (path.isWithin(cacheRoot, normalizedTarget)) {
-      var relative = path.relative(normalizedTarget, from: cacheRoot);
-      if (relative.isNotEmpty && relative != '.') {
-        // Ensure fork/version format is POSIX-style for parsing.
-        relative = relative.replaceAll('\\', '/');
-        return relative;
-      }
-    } else {
+    if (!path.isWithin(
+      path.normalize(context.versionsCachePath),
+      path.normalize(targetPath),
+    )) {
       logger.debug(
         'Global symlink target "$targetPath" is outside cache directory. '
         'Fork information may not be preserved.',
       );
     }
 
-    return path.basename(normalizedTarget);
+    return path.basename(path.normalize(targetPath));
   }
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
