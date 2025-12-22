@@ -6,6 +6,7 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:path/path.dart' as p;
@@ -13,12 +14,8 @@ import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
-// Custom exception handler to test error handling
-void throwGitError(String message, List<String> args) {
-  final e = ProcessException('git', args, message, 128);
-  throw e;
-}
-
+/// Deletes a loose git object to simulate corrupted mirrors in tests.
+/// If the object is packed, it unpacks first, then deletes the loose object.
 Future<void> _deleteLooseGitObject({
   required String repoPath,
   required String objectSha,
@@ -78,6 +75,42 @@ Future<void> _deleteLooseGitObject({
       if (!Platform.isWindows || attempt == attempts) rethrow;
       await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
     }
+  }
+}
+
+class _FakeProcessService extends ProcessService {
+  _FakeProcessService(super.context);
+
+  ProcessException? exception;
+  ProcessResult nextResult = ProcessResult(0, 0, '', '');
+  String? lastCommand;
+  List<String>? lastArgs;
+  String? lastWorkingDirectory;
+  Map<String, String>? lastEnvironment;
+  bool? lastThrowOnError;
+  bool? lastEchoOutput;
+
+  @override
+  Future<ProcessResult> run(
+    String command, {
+    List<String> args = const [],
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool throwOnError = true,
+    bool echoOutput = false,
+  }) async {
+    lastCommand = command;
+    lastArgs = args;
+    lastWorkingDirectory = workingDirectory;
+    lastEnvironment = environment;
+    lastThrowOnError = throwOnError;
+    lastEchoOutput = echoOutput;
+
+    if (exception != null) {
+      throw exception!;
+    }
+
+    return nextResult;
   }
 }
 
@@ -388,98 +421,17 @@ void main() {
       });
     });
 
-    test('returns expected error for reset to non-existent version', () {
-      // This test verifies the error handling when `resetHard` throws an exception
-      // for a non-existent version in a repository
-
-      // We verify that the correct error message patterns in our error handler
-      // will trigger the correct AppException with the expected error message
-
-      // Test for unknown revision error message
-      expect(
-        () => throwGitError(
-          'fatal: ambiguous argument \'non-existent-tag\': unknown revision',
-          ['reset', '--hard', 'non-existent-tag'],
-        ),
-        throwsA(
-          isA<ProcessException>().having(
-            (e) => e.message,
-            'message',
-            contains('unknown revision'),
-          ),
-        ),
-      );
-
-      // Test for ambiguous argument error message
-      expect(
-        () => throwGitError(
-          'fatal: ambiguous argument \'non-existent-branch\'',
-          ['reset', '--hard', 'non-existent-branch'],
-        ),
-        throwsA(
-          isA<ProcessException>().having(
-            (e) => e.message,
-            'message',
-            contains('ambiguous argument'),
-          ),
-        ),
-      );
-
-      // Test for not found error message
-      expect(
-        () => throwGitError(
-          'error: pathspec \'non-existent-ref\' did not match any file(s) known to git',
-          ['reset', '--hard', 'non-existent-ref'],
-        ),
-        throwsA(
-          isA<ProcessException>().having(
-            (e) => e.message,
-            'message',
-            contains('did not match any file'),
-          ),
-        ),
-      );
-    });
-
-    test('returns expected error for clone failures', () {
-      // This test verifies the error handling when the clone operation fails
-
-      // Test for repository not found error
-      expect(
-        () => throwGitError('fatal: remote: Repository not found.', [
-          'clone',
-          'https://example.com/fork.git',
-        ]),
-        throwsA(
-          isA<ProcessException>().having(
-            (e) => e.message,
-            'message',
-            contains('Repository not found'),
-          ),
-        ),
-      );
-
-      // Test for remote branch not found error
-      expect(
-        () => throwGitError(
-          'fatal: Remote branch branch-name not found in upstream origin',
-          ['clone', '-b', 'branch-name', 'https://example.com/repo.git'],
-        ),
-        throwsA(
-          isA<ProcessException>().having(
-            (e) => e.message,
-            'message',
-            (String msg) =>
-                msg.contains('Remote branch') &&
-                msg.contains('not found in upstream'),
-          ),
-        ),
-      );
-    });
-
     group('setup method', () {
       test('calls flutter --version command', () async {
-        final context = TestFactory.context();
+        late _FakeProcessService processService;
+        final context = TestFactory.context(
+          generators: {
+            ProcessService: (ctx) {
+              processService = _FakeProcessService(ctx);
+              return processService;
+            },
+          },
+        );
         final service = FlutterService(context);
 
         final flutterVersion = FlutterVersion.parse('stable');
@@ -488,15 +440,32 @@ void main() {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        // Since this simply passes through to run(), we can just verify
-        // that the method returns a Future that completes normally
-        expect(service.setup(mockCacheVersion), isA<Future<ProcessResult>>());
+        final result = await service.setup(mockCacheVersion);
+
+        expect(result.exitCode, equals(0));
+        expect(processService.lastCommand, equals('flutter'));
+        expect(processService.lastArgs, equals(['--version']));
+        expect(processService.lastWorkingDirectory, isNull);
+        expect(processService.lastThrowOnError, isFalse);
+        expect(processService.lastEchoOutput, isTrue);
+        final pathValue = processService.lastEnvironment?['PATH'];
+        expect(pathValue, isNotNull);
+        expect(pathValue, contains(mockCacheVersion.binPath));
+        expect(pathValue, contains(mockCacheVersion.dartBinPath));
       });
     });
 
     group('runFlutter method', () {
       test('executes flutter command with the specified args', () async {
-        final context = TestFactory.context();
+        late _FakeProcessService processService;
+        final context = TestFactory.context(
+          generators: {
+            ProcessService: (ctx) {
+              processService = _FakeProcessService(ctx);
+              return processService;
+            },
+          },
+        );
         final service = FlutterService(context);
 
         final flutterVersion = FlutterVersion.parse('stable');
@@ -505,16 +474,32 @@ void main() {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        expect(
-          service.runFlutter(['--help'], mockCacheVersion),
-          isA<Future<ProcessResult>>(),
-        );
+        final result = await service.runFlutter(['--help'], mockCacheVersion);
+
+        expect(result.exitCode, equals(0));
+        expect(processService.lastCommand, equals('flutter'));
+        expect(processService.lastArgs, equals(['--help']));
+        expect(processService.lastWorkingDirectory, isNull);
+        expect(processService.lastThrowOnError, isFalse);
+        expect(processService.lastEchoOutput, isTrue);
+        final pathValue = processService.lastEnvironment?['PATH'];
+        expect(pathValue, isNotNull);
+        expect(pathValue, contains(mockCacheVersion.binPath));
+        expect(pathValue, contains(mockCacheVersion.dartBinPath));
       });
     });
 
     group('pubGet method', () {
       test('executes flutter pub get command', () async {
-        final context = TestFactory.context();
+        late _FakeProcessService processService;
+        final context = TestFactory.context(
+          generators: {
+            ProcessService: (ctx) {
+              processService = _FakeProcessService(ctx);
+              return processService;
+            },
+          },
+        );
         final service = FlutterService(context);
 
         final flutterVersion = FlutterVersion.parse('stable');
@@ -523,11 +508,30 @@ void main() {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        expect(service.pubGet(mockCacheVersion), isA<Future<ProcessResult>>());
+        final result = await service.pubGet(mockCacheVersion);
+
+        expect(result.exitCode, equals(0));
+        expect(processService.lastCommand, equals('flutter'));
+        expect(processService.lastArgs, equals(['pub', 'get']));
+        expect(processService.lastWorkingDirectory, isNull);
+        expect(processService.lastThrowOnError, isFalse);
+        expect(processService.lastEchoOutput, isTrue);
+        final pathValue = processService.lastEnvironment?['PATH'];
+        expect(pathValue, isNotNull);
+        expect(pathValue, contains(mockCacheVersion.binPath));
+        expect(pathValue, contains(mockCacheVersion.dartBinPath));
       });
 
       test('adds --offline flag in offline mode', () async {
-        final context = TestFactory.context();
+        late _FakeProcessService processService;
+        final context = TestFactory.context(
+          generators: {
+            ProcessService: (ctx) {
+              processService = _FakeProcessService(ctx);
+              return processService;
+            },
+          },
+        );
         final service = FlutterService(context);
 
         final flutterVersion = FlutterVersion.parse('stable');
@@ -536,10 +540,21 @@ void main() {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        expect(
-          service.pubGet(mockCacheVersion, offline: true),
-          isA<Future<ProcessResult>>(),
+        final result = await service.pubGet(
+          mockCacheVersion,
+          offline: true,
         );
+
+        expect(result.exitCode, equals(0));
+        expect(processService.lastCommand, equals('flutter'));
+        expect(processService.lastArgs, equals(['pub', 'get', '--offline']));
+        expect(processService.lastWorkingDirectory, isNull);
+        expect(processService.lastThrowOnError, isFalse);
+        expect(processService.lastEchoOutput, isFalse);
+        final pathValue = processService.lastEnvironment?['PATH'];
+        expect(pathValue, isNotNull);
+        expect(pathValue, contains(mockCacheVersion.binPath));
+        expect(pathValue, contains(mockCacheVersion.dartBinPath));
       });
     });
 

@@ -70,14 +70,12 @@ class CacheService extends ContextualService {
     return binExists && await isExecutable(version.flutterExec);
   }
 
-  // Verifies that the cache version name matches the flutter version
+  /// Returns true when the cached version can be treated as a match.
+  /// Channels, git refs, and missing SDK metadata don't provide a reliable
+  /// semantic version to compare, so they are treated as matching.
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If it's a channel return true
     if (version.isChannel) return true;
-    // If it's a git reference (commit/tag/branch), skip version matching
-    // since the configured value is a git ref, not a semantic version
     if (version.isUnknownRef) return true;
-    // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
 
