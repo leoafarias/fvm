@@ -60,14 +60,14 @@ void main() {
         final runner = TestFactory.commandRunner();
 
         // Test install alias
-        expect(runner.commands.containsKey('i'), true);
-        expect(runner.commands.containsKey('install'), true);
-        expect(runner.commands['i']?.name, equals('install'));
+        expect(runner.commands, contains('i'));
+        expect(runner.commands, contains('install'));
+        expect(runner.commands['i']?.name, 'install');
 
         // Test list alias
-        expect(runner.commands.containsKey('ls'), true);
-        expect(runner.commands.containsKey('list'), true);
-        expect(runner.commands['ls']?.name, equals('list'));
+        expect(runner.commands, contains('ls'));
+        expect(runner.commands, contains('list'));
+        expect(runner.commands['ls']?.name, 'list');
       });
     });
   });

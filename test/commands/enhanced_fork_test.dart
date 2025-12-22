@@ -114,7 +114,7 @@ void main() {
         // Verify fork was removed
         final config = LocalAppConfig.read();
         final hasTestFork = config.forks.any((f) => f.name == testForkName);
-        expect(hasTestFork, false);
+        expect(hasTestFork, isFalse);
       });
     });
 

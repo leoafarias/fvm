@@ -27,8 +27,8 @@ void main() {
     ], envVars);
 
     // expect(newEnvVar[envName], envVars[envName]);
-    expect(newEnvVar[envName]!.contains(fakePath), true);
-    expect(newEnvVar[envName]!.contains('ANOTHER_FAKE_PATH'), true);
+    expect(newEnvVar[envName], contains(fakePath));
+    expect(newEnvVar[envName], contains('ANOTHER_FAKE_PATH'));
     expect(envVars, isNot(newEnvVar));
   });
 
