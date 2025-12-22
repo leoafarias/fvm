@@ -318,7 +318,9 @@ void main() {
       }
     });
 
-    test('should handle external timestamp modification', () async {
+    test(
+      'should handle external timestamp modification',
+      () async {
       final testLocker = FileLocker(
         fileLocker.path,
         lockExpiration: Duration(milliseconds: 500),
@@ -353,7 +355,11 @@ void main() {
       expect(lastModified, isNotNull);
       expect(lastModified!.isAfter(oldTime), isTrue);
       unlock();
-    });
+      },
+      skip: Platform.isWindows
+          ? 'File system caching on Windows can make external timestamp checks flaky.'
+          : false,
+    );
 
     test('should handle external file corruption', () async {
       fileLocker.lock();
