@@ -314,7 +314,7 @@ void main() {
         expect(() => cacheService.unlinkGlobal(), returnsNormally);
       });
 
-      test('deprecated getGlobalVersion returns version name', () {
+      test('getGlobalVersion returns version name', () {
         // Create and set a global version
         final version = createTestVersion('stable');
         final versionDir = Directory(path.join(tempDir.path, version.name))
