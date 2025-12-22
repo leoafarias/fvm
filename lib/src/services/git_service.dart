@@ -116,16 +116,17 @@ class GitService extends ContextualService {
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
 
-    // ignore: avoid-unassigned-stream-subscriptions - fire-and-forget for progress logging.
-    process.stderr.transform(utf8.decoder).listen((line) {
+    final stderrDone = process.stderr.transform(utf8.decoder).forEach((line) {
       progressTracker.processLine(line);
       processLogs.add(line);
     });
 
-    // ignore: avoid-unassigned-stream-subscriptions - fire-and-forget for progress logging.
-    process.stdout.transform(utf8.decoder).listen(logger.info);
+    final stdoutDone = process.stdout.transform(utf8.decoder).forEach(
+      logger.info,
+    );
 
     final exitCode = await process.exitCode;
+    await Future.wait([stderrDone, stdoutDone]);
     if (exitCode != 0) {
       progressTracker.complete();
       logger.err(processLogs.join('\n'));
@@ -178,6 +179,7 @@ class GitService extends ContextualService {
       args: ['config', '--bool', 'core.bare'],
       workingDirectory: path,
     );
+
     return (result.stdout as String?)?.trim().toLowerCase() == 'true';
   }
 

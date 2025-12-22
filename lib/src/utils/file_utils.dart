@@ -19,6 +19,7 @@ Future<bool> deleteDirectoryWithRetry(
   for (var attempt = 1; attempt <= attempts; attempt++) {
     try {
       directory.deleteSync(recursive: true);
+
       return true;
     } on FileSystemException catch (error) {
       final isLastAttempt = !Platform.isWindows || attempt == attempts;
@@ -27,6 +28,7 @@ Future<bool> deleteDirectoryWithRetry(
           rethrow;
         }
         onFinalError?.call(error);
+
         return false;
       }
       await Future<void>.delayed(
