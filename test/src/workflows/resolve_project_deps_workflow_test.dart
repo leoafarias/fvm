@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
@@ -11,6 +12,24 @@ import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
 import 'test_logger.dart';
+
+class FailingFlutterService extends FlutterService {
+  FailingFlutterService(super.context);
+
+  @override
+  Future<ProcessResult> pubGet(
+    CacheFlutterVersion version, {
+    bool throwOnError = false,
+    bool offline = false,
+  }) async {
+    return ProcessResult(
+      0,
+      1,
+      '',
+      'pub get failed (test)',
+    );
+  }
+}
 
 void main() {
   group('ResolveProjectDependenciesWorkflow', () {
@@ -204,7 +223,7 @@ void main() {
       'should allow user to confirm when pub get fails',
       () async {
         // This test validates the user confirmation flow when pub get fails.
-        // It requires pub get to actually fail, which happens when Flutter isn't installed.
+        // It uses a failing FlutterService to simulate pub get failure.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
 
@@ -215,6 +234,7 @@ void main() {
                 'continue pinning this version anyway?',
                 true,
               ),
+            FlutterService: (context) => FailingFlutterService(context),
           },
         );
 
@@ -249,14 +269,13 @@ void main() {
           isTrue,
         );
       },
-      skip: 'Integration test: requires pub get to fail (no Flutter SDK)',
     );
 
     test(
       'should throw when user declines after pub get fails',
       () async {
         // This test validates that declining confirmation throws AppException.
-        // It requires pub get to actually fail, which happens when Flutter isn't installed.
+        // It uses a failing FlutterService to simulate pub get failure.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
 
@@ -267,6 +286,7 @@ void main() {
                 'continue pinning this version anyway?',
                 false,
               ),
+            FlutterService: (context) => FailingFlutterService(context),
           },
         );
 
@@ -304,7 +324,6 @@ void main() {
           ),
         );
       },
-      skip: 'Integration test: requires pub get to fail (no Flutter SDK)',
     );
 
     test('should skip confirmation with force flag', () async {

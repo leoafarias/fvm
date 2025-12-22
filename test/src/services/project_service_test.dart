@@ -59,12 +59,6 @@ void main() {
       expect(project, isProjectMatcher(expectedDirectory: parentDir));
     });
 
-    test(
-      'findVersion returns pinned version if config exists',
-      () {},
-      skip: 'Requires workingDirectoryOverride which TestFactory does not support',
-    );
-
     test('update writes new configuration correctly', () {
       final tempDir = tempDirs.create();
 
