@@ -18,8 +18,8 @@ class SetupFlutterWorkflow extends Workflow {
       logger
         ..info()
         ..success('Flutter SDK: ${version.printFriendlyName} is setup');
-    } on Exception catch (_) {
-      logger.err('Failed to setup Flutter SDK');
+    } on Exception catch (e) {
+      logger.err('Failed to setup Flutter SDK: $e');
 
       rethrow;
     }

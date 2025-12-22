@@ -63,14 +63,7 @@ class ProjectService extends ContextualService {
     return project.pinnedVersion?.nameWithAlias;
   }
 
-  /// Update the project with new configurations
-  ///
-  /// The [project] parameter is the project to be updated. The optional parameters are:
-  /// - [flavors]: A map of flavor configurations.
-  /// - [pinnedVersion]: The new pinned version of the Flutter SDK.
-  ///
-  /// This method updates the project's configuration with the provided parameters. It creates
-  /// or updates the project's config file. The updated project is returned.
+  /// Updates the project configuration and saves it to disk.
   Project update(
     Project project, {
     Map<String, String>? flavors,

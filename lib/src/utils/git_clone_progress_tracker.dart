@@ -44,8 +44,9 @@ class GitCloneProgressTracker {
         _lastPercentage = percentage;
         _currentPhase = phase;
       }
-    } catch (_) {
-      // Ignore parsing errors - git clone continues
+    } catch (e) {
+      // Don't interrupt clone for display parsing issues.
+      _logger.debug('Progress parsing error: $e');
     }
   }
 

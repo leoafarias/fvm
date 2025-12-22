@@ -46,56 +46,45 @@ void main() {
     });
 
     test('Use Channel', () async {
-      try {
-        // Run force to test within fvm
-        await runner.runOrThrow([
-          'fvm',
-          'use',
-          channel,
-          '--force',
-          '--skip-setup',
-        ]);
+      // Run force to test within fvm
+      await runner.runOrThrow([
+        'fvm',
+        'use',
+        channel,
+        '--force',
+        '--skip-setup',
+      ]);
 
-        final project = context.get<ProjectService>().findAncestor();
+      final project = context.get<ProjectService>().findAncestor();
 
-        final link = Link(project.localVersionSymlinkPath);
+      final link = Link(project.localVersionSymlinkPath);
 
-        final linkExists = link.existsSync();
+      final linkExists = link.existsSync();
 
-        final targetBin = link.targetSync();
+      final targetBin = link.targetSync();
 
-        final channelBin = context.get<CacheService>().getVersionCacheDir(
-              FlutterVersion.parse(channel),
-            );
+      final channelBin = context.get<CacheService>().getVersionCacheDir(
+            FlutterVersion.parse(channel),
+          );
 
-        expect(targetBin, channelBin.path);
-        expect(linkExists, isTrue);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      expect(targetBin, channelBin.path);
+      expect(linkExists, isTrue);
     });
 
     test('Use Flutter SDK globally', () async {
-      try {
-        await runner.runOrThrow(['fvm', 'global', channel]);
-        final globalLink = Link(context.globalCacheLink);
-        final linkExists = globalLink.existsSync();
+      await runner.runOrThrow(['fvm', 'global', channel]);
+      final globalLink = Link(context.globalCacheLink);
+      final linkExists = globalLink.existsSync();
 
-        final targetVersion = basename(await globalLink.target());
+      final targetVersion = basename(await globalLink.target());
 
-        expect(targetVersion, channel);
-        expect(linkExists, isTrue);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      expect(targetVersion, channel);
+      expect(linkExists, isTrue);
     });
 
     test('Remove Channel Command', () async {
-      try {
-        await runner.runOrThrow(['fvm', 'remove', channel]);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      final exitCode = await runner.runOrThrow(['fvm', 'remove', channel]);
+      expect(exitCode, ExitCode.success.code);
     });
 
     test('Install Release', () async {

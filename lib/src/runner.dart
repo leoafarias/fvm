@@ -112,9 +112,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
           )
           ..info();
       };
-    } catch (_) {
+    } catch (e) {
       return () {
-        logger.debug("Failed to check for updates.");
+        logger.debug("Failed to check for updates: $e");
       };
     }
   }
