@@ -454,10 +454,8 @@ class MockFlutterService extends FlutterService {
   /// the fixture by creating the directory and a marker file. Finally, it copies
   /// the fixture repository into the version directory (configured via CacheService).
   @override
-  Future<void> install(FlutterVersion version) async {
-    try {
-      return super.install(version);
-    } finally {}
+  Future<void> install(FlutterVersion version) {
+    return super.install(version);
   }
 }
 

@@ -7,6 +7,8 @@ import 'package:path/path.dart' as path;
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/exceptions.dart';
+import '../utils/file_utils.dart';
+import '../utils/file_lock.dart';
 import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -114,13 +116,13 @@ class GitService extends ContextualService {
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
 
-    // ignore: avoid-unassigned-stream-subscriptions
+    // ignore: avoid-unassigned-stream-subscriptions - fire-and-forget for progress logging.
     process.stderr.transform(utf8.decoder).listen((line) {
       progressTracker.processLine(line);
       processLogs.add(line);
     });
 
-    // ignore: avoid-unassigned-stream-subscriptions
+    // ignore: avoid-unassigned-stream-subscriptions - fire-and-forget for progress logging.
     process.stdout.transform(utf8.decoder).listen(logger.info);
 
     final exitCode = await process.exitCode;
@@ -209,28 +211,17 @@ class GitService extends ContextualService {
     Directory directory, {
     bool requireSuccess = true,
   }) async {
-    if (!directory.existsSync()) return;
-
-    final attempts = Platform.isWindows ? 5 : 1;
-    for (var attempt = 1; attempt <= attempts; attempt++) {
-      try {
-        directory.deleteSync(recursive: true);
-
-        return;
-      } on FileSystemException catch (error) {
-        if (!Platform.isWindows || attempt == attempts) {
-          if (requireSuccess) {
-            rethrow;
-          }
-          logger.warn(
-            'Unable to delete ${directory.path}: ${error.message}',
-          );
-
-          return;
-        }
-        await Future<void>.delayed(Duration(milliseconds: 200 * attempt));
-      }
-    }
+    await deleteDirectoryWithRetry(
+      directory,
+      requireSuccess: requireSuccess,
+      onFinalError: requireSuccess
+          ? null
+          : (error) {
+              logger.warn(
+                'Unable to delete ${directory.path}: ${error.message}',
+              );
+            },
+    );
   }
 
   /// Cleans up orphaned temp directories from previous failed operations.
