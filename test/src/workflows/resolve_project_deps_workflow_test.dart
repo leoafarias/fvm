@@ -200,12 +200,11 @@ void main() {
       );
     });
 
-    test('should handle pub get failures with user confirmation', () async {
-      // This test group validates the user interaction flow when pub get fails
-      // It's difficult to test without actual Flutter installed, so we test the logic paths
-
-      // Test case 1: User confirms
-      {
+    test(
+      'should allow user to confirm when pub get fails',
+      () async {
+        // This test validates the user confirmation flow when pub get fails.
+        // It requires pub get to actually fail, which happens when Flutter isn't installed.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
 
@@ -223,18 +222,14 @@ void main() {
               directory: testDir,
             );
 
-        // Create a minimal setup version - in real test env without Flutter,
-        // pub get will fail which is what we want
         final versionDir = tempDirs.create();
         final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
         File(p.join(binDir.path, 'flutter')).createSync();
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
-        // Create Dart SDK cache version file (required for isSetup to be true)
         final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
         dartSdkDir.createSync(recursive: true);
-        // Create bin directory as it is used to check if isSetup
         Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
@@ -244,24 +239,24 @@ void main() {
         );
 
         final workflow = ResolveProjectDependenciesWorkflow(context);
+        final result = await workflow(project, version, force: false);
 
-        try {
-          final result = await workflow(project, version, force: false);
-          // If pub get fails and user confirms, result should be true
-          if (result) {
-            final logger = context.get<Logger>();
-            expect(
-              logger.outputs.any((msg) => msg.contains('User response: Yes')),
-              isTrue,
-            );
-          }
-        } catch (e) {
-          // If running in env without Flutter, it might throw - that's ok
-        }
-      }
+        // When user confirms, workflow should return true
+        expect(result, isTrue);
+        final logger = context.get<Logger>();
+        expect(
+          logger.outputs.any((msg) => msg.contains('User response: Yes')),
+          isTrue,
+        );
+      },
+      skip: 'Integration test: requires pub get to fail (no Flutter SDK)',
+    );
 
-      // Test case 2: User declines
-      {
+    test(
+      'should throw when user declines after pub get fails',
+      () async {
+        // This test validates that declining confirmation throws AppException.
+        // It requires pub get to actually fail, which happens when Flutter isn't installed.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
 
@@ -285,10 +280,8 @@ void main() {
         File(p.join(binDir.path, 'flutter')).createSync();
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
-        // Create Dart SDK cache version file (required for isSetup to be true)
         final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
         dartSdkDir.createSync(recursive: true);
-        // Create bin directory as it is used to check if isSetup
         Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
@@ -299,18 +292,20 @@ void main() {
 
         final workflow = ResolveProjectDependenciesWorkflow(context);
 
-        // When user declines, it should throw AppException
-        try {
-          await workflow(project, version, force: false);
-          // If we get here in a test env with Flutter, pub get succeeded
-          // which is not what we're testing
-        } catch (e) {
-          if (e is AppException) {
-            expect(e.message, contains('Dependencies not resolved'));
-          }
-        }
-      }
-    });
+        // When user declines, workflow should throw AppException
+        await expectLater(
+          () => workflow(project, version, force: false),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('Dependencies not resolved'),
+            ),
+          ),
+        );
+      },
+      skip: 'Integration test: requires pub get to fail (no Flutter SDK)',
+    );
 
     test('should skip confirmation with force flag', () async {
       final testDir = tempDirs.create();
