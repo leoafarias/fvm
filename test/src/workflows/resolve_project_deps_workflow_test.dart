@@ -5,6 +5,7 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/resolve_project_deps.workflow.dart';
@@ -29,6 +30,26 @@ class FailingFlutterService extends FlutterService {
       '',
       'pub get failed (test)',
     );
+  }
+}
+
+class FailingProcessService extends ProcessService {
+  FailingProcessService(super.context);
+
+  @override
+  Future<ProcessResult> run(
+    String command, {
+    List<String> args = const [],
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool throwOnError = true,
+    bool echoOutput = false,
+  }) async {
+    if (throwOnError) {
+      throw ProcessException(command, args, 'pub get failed (test)', 1);
+    }
+
+    return ProcessResult(0, 1, '', 'pub get failed (test)');
   }
 }
 
@@ -237,6 +258,7 @@ void main() {
                 true,
               ),
             FlutterService: (context) => FailingFlutterService(context),
+            ProcessService: (context) => FailingProcessService(context),
           },
         );
 
@@ -290,6 +312,7 @@ void main() {
                 false,
               ),
             FlutterService: (context) => FailingFlutterService(context),
+            ProcessService: (context) => FailingProcessService(context),
           },
         );
 
