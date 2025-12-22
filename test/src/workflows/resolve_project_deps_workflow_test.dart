@@ -251,6 +251,7 @@ void main() {
         createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
         final context = TestFactory.context(
+          environmentOverrides: {'PATH': ''},
           generators: {
             Logger: (context) => TestLogger(context)
               ..setConfirmResponse(
@@ -305,6 +306,7 @@ void main() {
         createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
         final context = TestFactory.context(
+          environmentOverrides: {'PATH': ''},
           generators: {
             Logger: (context) => TestLogger(context)
               ..setConfirmResponse(
