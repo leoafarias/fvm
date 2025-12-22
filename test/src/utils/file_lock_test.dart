@@ -326,22 +326,40 @@ void main() {
     });
 
     test('should handle external timestamp modification', () async {
-      fileLocker.lock();
+      final testLocker = FileLocker(
+        fileLocker.path,
+        lockExpiration: Duration(milliseconds: 500),
+      );
+      testLocker.lock();
 
-      // Start a lock request
-      final lockFuture = fileLocker.getLock();
+      final content = File(testLocker.path).readAsStringSync();
+      expect(int.tryParse(content.trim()), isNotNull);
 
-      // Externally modify the timestamp by writing an old time to the file
-      await Future.delayed(Duration(milliseconds: 20));
-      final oldTimestamp = DateTime.now()
-          .subtract(lockExpiration * 2)
-          .millisecondsSinceEpoch
-          .toString();
-      File(fileLocker.path).writeAsStringSync(oldTimestamp);
+      // Start a lock request and ensure it does not complete immediately
+      // while the lock is still valid.
+      final lockFuture = testLocker.getLock(
+        pollingInterval: Duration(milliseconds: 20),
+      );
+      final completedEarly = await Future.any([
+        lockFuture.then((_) => true),
+        Future.delayed(Duration(milliseconds: 50), () => false),
+      ]);
+      expect(
+        completedEarly,
+        isFalse,
+        reason: 'getLock should wait while lock is valid',
+      );
 
-      // Should now be able to acquire the lock
+      // Externally modify the timestamp by writing an old time to the file.
+      final oldTime = DateTime.now().subtract(testLocker.lockExpiration * 2);
+      final oldTimestamp = oldTime.microsecondsSinceEpoch.toString();
+      File(testLocker.path).writeAsStringSync(oldTimestamp);
+
+      // Should now be able to acquire the lock.
       final unlock = await lockFuture;
-      expect(fileLocker.isLocked, isTrue);
+      final lastModified = testLocker.lastModified;
+      expect(lastModified, isNotNull);
+      expect(lastModified!.isAfter(oldTime), isTrue);
       unlock();
     });
 
