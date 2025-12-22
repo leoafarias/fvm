@@ -387,8 +387,6 @@ class _DownloadedArchive {
     try {
       tempDir.deleteSync(recursive: true);
     } catch (e) {
-      // Log cleanup failure to stderr for visibility without blocking
-      // Cannot use logger here since this is a simple data class
       stderr.writeln('Warning: Could not clean up temp directory: $e');
     }
   }
