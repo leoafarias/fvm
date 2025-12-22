@@ -15,6 +15,7 @@ import 'package:test/test.dart';
 import '../../testing_utils.dart';
 import 'test_logger.dart';
 
+/// FlutterService that always fails pubGet for testing failure scenarios
 class FailingFlutterService extends FlutterService {
   FailingFlutterService(super.context);
 
@@ -24,46 +25,9 @@ class FailingFlutterService extends FlutterService {
     bool throwOnError = false,
     bool offline = false,
   }) async {
-    return ProcessResult(
-      0,
-      1,
-      '',
-      'pub get failed (test)',
-    );
+    // Return a failing ProcessResult (exit code 1)
+    return ProcessResult(0, 1, '', 'pub get failed (test mock)');
   }
-}
-
-class FailingProcessService extends ProcessService {
-  FailingProcessService(super.context);
-
-  @override
-  Future<ProcessResult> run(
-    String command, {
-    List<String> args = const [],
-    String? workingDirectory,
-    Map<String, String>? environment,
-    bool throwOnError = true,
-    bool echoOutput = false,
-    bool runInShell = true,
-  }) async {
-    if (throwOnError) {
-      throw ProcessException(command, args, 'pub get failed (test)', 1);
-    }
-
-    return ProcessResult(0, 1, '', 'pub get failed (test)');
-  }
-}
-
-void createFailingFlutterExecutable(Directory binDir) {
-  if (Platform.isWindows) {
-    final file = File(p.join(binDir.path, 'flutter.bat'));
-    file.writeAsStringSync('@echo off\r\nexit /b 1\r\n');
-    return;
-  }
-
-  final file = File(p.join(binDir.path, 'flutter'));
-  file.writeAsStringSync('#!/bin/sh\nexit 1\n');
-  Process.runSync('chmod', ['+x', file.path]);
 }
 
 void main() {
@@ -254,136 +218,23 @@ void main() {
       );
     });
 
-    test(
-      'should allow user to confirm when pub get fails',
-      () async {
-        // This test validates the user confirmation flow when pub get fails.
-        // It uses a failing FlutterService to simulate pub get failure.
-        final testDir = tempDirs.create();
-        createPubspecYaml(testDir);
-        createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
-
-        final context = TestFactory.context(
-          environmentOverrides: {'PATH': ''},
-          generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse(
-                'continue pinning this version anyway?',
-                true,
-              ),
-            FlutterService: (context) => FailingFlutterService(context),
-            ProcessService: (context) => FailingProcessService(context),
-          },
-        );
-
-        final project = context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
-
-        final versionDir = tempDirs.create();
-        final binDir = Directory(p.join(versionDir.path, 'bin'));
-        binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
-        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-        dartSdkDir.createSync(recursive: true);
-        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        // Use direct constructor to bypass filesystem checks
-        // This ensures isSetup=true regardless of CI filesystem behavior
-        final version = CacheFlutterVersion(
-          '3.10.0',
-          type: VersionType.release,
-          directory: versionDir.path,
-          flutterSdkVersion: '3.10.0',
-          dartSdkVersion: '3.10.0',
-          isSetup: true,
-        );
-
-        final workflow = ResolveProjectDependenciesWorkflow(context);
-        final result = await workflow(project, version, force: false);
-
-        // When user confirms, workflow should return true
-        expect(result, isTrue);
-        final logger = context.get<Logger>();
-        expect(
-          logger.outputs.any((msg) => msg.contains('User response: Yes')),
-          isTrue,
-        );
-      },
-    );
-
-    test(
-      'should throw when user declines after pub get fails',
-      () async {
-        // This test validates that declining confirmation throws AppException.
-        // It uses a failing FlutterService to simulate pub get failure.
-        final testDir = tempDirs.create();
-        createPubspecYaml(testDir);
-        createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
-
-        final context = TestFactory.context(
-          environmentOverrides: {'PATH': ''},
-          generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse(
-                'continue pinning this version anyway?',
-                false,
-              ),
-            FlutterService: (context) => FailingFlutterService(context),
-            ProcessService: (context) => FailingProcessService(context),
-          },
-        );
-
-        final project = context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
-
-        final versionDir = tempDirs.create();
-        final binDir = Directory(p.join(versionDir.path, 'bin'));
-        binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
-        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-        dartSdkDir.createSync(recursive: true);
-        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        // Use direct constructor to bypass filesystem checks
-        // This ensures isSetup=true regardless of CI filesystem behavior
-        final version = CacheFlutterVersion(
-          '3.10.0',
-          type: VersionType.release,
-          directory: versionDir.path,
-          flutterSdkVersion: '3.10.0',
-          dartSdkVersion: '3.10.0',
-          isSetup: true,
-        );
-
-        final workflow = ResolveProjectDependenciesWorkflow(context);
-
-        // When user declines, workflow should throw AppException
-        await expectLater(
-          () => workflow(project, version, force: false),
-          throwsA(
-            isA<AppException>().having(
-              (e) => e.message,
-              'message',
-              contains('Dependencies not resolved'),
-            ),
-          ),
-        );
-      },
-    );
-
-    test('should skip confirmation with force flag', () async {
+    test('should allow user to confirm when pub get fails', () async {
       final testDir = tempDirs.create();
       createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
-      final project = runner.context.get<ProjectService>().findAncestor(
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse(
+              'continue pinning this version anyway?',
+              true,
+            ),
+          FlutterService: (context) => FailingFlutterService(context),
+        },
+      );
+
+      final project = context.get<ProjectService>().findAncestor(
             directory: testDir,
           );
 
@@ -396,7 +247,6 @@ void main() {
       // Create Dart SDK cache version file (required for isSetup to be true)
       final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
       dartSdkDir.createSync(recursive: true);
-      // Create bin directory as it is used to check if isSetup
       Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
@@ -405,32 +255,123 @@ void main() {
         directory: versionDir.path,
       );
 
-      final workflow = ResolveProjectDependenciesWorkflow(runner.context);
+      final workflow = ResolveProjectDependenciesWorkflow(context);
+      final result = await workflow(project, version, force: false);
 
-      try {
-        final result = await workflow(project, version, force: true);
-        // With force flag, when pub get fails it should return false without prompting
-        if (!result) {
-          final logger = runner.context.get<Logger>();
-          expect(
-            logger.outputs.any(
-              (msg) => msg.contains('Force pinning due to --force flag'),
+      expect(result, isTrue);
+
+      final logger = context.get<Logger>();
+      expect(
+        logger.outputs.any((msg) => msg.contains('User response: Yes')),
+        isTrue,
+      );
+    });
+
+    test('should throw when user declines after pub get fails', () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
+
+      final context = TestFactory.context(
+        generators: {
+          Logger: (context) => TestLogger(context)
+            ..setConfirmResponse(
+              'continue pinning this version anyway?',
+              false,
             ),
-            isTrue,
+          FlutterService: (context) => FailingFlutterService(context),
+        },
+      );
+
+      final project = context.get<ProjectService>().findAncestor(
+            directory: testDir,
           );
-          // Should not see confirmation prompt
-          expect(
-            logger.outputs.any(
-              (msg) => msg.contains(
-                'Would you like to continue pinning this version anyway?',
-              ),
-            ),
-            isFalse,
+
+      final versionDir = tempDirs.create();
+      final binDir = Directory(p.join(versionDir.path, 'bin'));
+      binDir.createSync(recursive: true);
+      File(p.join(binDir.path, 'flutter')).createSync();
+      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+      dartSdkDir.createSync(recursive: true);
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      final version = CacheFlutterVersion.fromVersion(
+        FlutterVersion.parse('3.10.0'),
+        directory: versionDir.path,
+      );
+
+      final workflow = ResolveProjectDependenciesWorkflow(context);
+
+      await expectLater(
+        () => workflow(project, version, force: false),
+        throwsA(
+          isA<AppException>().having(
+            (e) => e.message,
+            'message',
+            contains('Dependencies not resolved'),
+          ),
+        ),
+      );
+    });
+
+    test('should skip confirmation with force flag', () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
+
+      final context = TestFactory.context(
+        generators: {
+          FlutterService: (context) => FailingFlutterService(context),
+        },
+      );
+
+      final project = context.get<ProjectService>().findAncestor(
+            directory: testDir,
           );
-        }
-      } catch (e) {
-        // Expected in test env without Flutter
-      }
+
+      final versionDir = tempDirs.create();
+      final binDir = Directory(p.join(versionDir.path, 'bin'));
+      binDir.createSync(recursive: true);
+      File(p.join(binDir.path, 'flutter')).createSync();
+      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      // Create Dart SDK cache version file (required for isSetup to be true)
+      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
+      dartSdkDir.createSync(recursive: true);
+      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
+      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
+
+      final version = CacheFlutterVersion.fromVersion(
+        FlutterVersion.parse('3.10.0'),
+        directory: versionDir.path,
+      );
+
+      final workflow = ResolveProjectDependenciesWorkflow(context);
+      final result = await workflow(project, version, force: true);
+
+      // With force flag, when pub get fails it should return false without prompting
+      expect(result, isFalse);
+
+      final logger = context.get<Logger>();
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains('Force pinning due to --force flag'),
+        ),
+        isTrue,
+      );
+      // Should not see confirmation prompt
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains(
+            'Would you like to continue pinning this version anyway?',
+          ),
+        ),
+        isFalse,
+      );
     });
   });
 }
