@@ -205,6 +205,9 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
           ? LocalAppConfig.fromJson(_configFile.readAsStringSync())
           : LocalAppConfig();
     } catch (e) {
+      // Log the error but return empty config to allow FVM to continue
+      // This handles corrupted config files gracefully while still alerting users
+      stderr.writeln('Warning: Failed to read config file: $e');
       return LocalAppConfig();
     }
   }

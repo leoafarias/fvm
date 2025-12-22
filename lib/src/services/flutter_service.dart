@@ -82,8 +82,9 @@ class FlutterService extends ContextualService {
       if (versionDir.existsSync()) {
         versionDir.deleteSync(recursive: true);
       }
-    } catch (_) {
-      // Ignore cleanup failures - main operation should continue
+    } catch (e) {
+      // Log but don't fail - cleanup is best-effort, main operation continues
+      logger.debug('Failed to cleanup partial clone at ${versionDir.path}: $e');
     }
   }
 

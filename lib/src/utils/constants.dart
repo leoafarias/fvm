@@ -2,86 +2,61 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-/// The package name for Flutter Version Management (FVM).
-/// This value is used to construct directory paths and identifiers for FVM.
+/// The package name for FVM.
 const kPackageName = 'fvm';
 
-/// A brief description of FVM.
-/// This description is used in help messages and documentation.
+/// CLI description shown in help messages.
 const kDescription =
     'Flutter Version Management: A cli to manage Flutter SDK versions.';
 
-/// The directory name used within projects to store FVM-related files.
-/// This directory is created in the root of a Flutter project.
+/// Directory name for FVM files within projects.
 const kFvmDirName = '.fvm';
 
-/// The URL to the FVM documentation website.
+/// FVM documentation URL.
 const kFvmDocsUrl = 'https://fvm.app';
 
-/// The URL to the configuration documentation for FVM.
-/// This helps users understand how to set up FVM in their projects.
+/// FVM configuration documentation URL.
 const kFvmDocsConfigUrl = '$kFvmDocsUrl/docs/config';
 
-/// The default Git URL for cloning the Flutter SDK.
-/// This URL is used when no alternative source is specified.
+/// Default Flutter SDK Git URL.
 const kDefaultFlutterUrl = 'https://github.com/flutter/flutter.git';
 
-/// The name of the FVM configuration file within a project.
-/// This file contains the configuration settings for FVM.
+/// FVM configuration file name.
 const kFvmConfigFileName = '.fvmrc';
 
-/// The legacy FVM configuration file name, used for backward compatibility.
+/// Legacy config file name for backward compatibility.
 const kFvmLegacyConfigFileName = 'fvm_config.json';
 
-/// Constant for the Visual Studio Code editor name.
-/// This is used when selecting an IDE in FVM configurations.
+/// Visual Studio Code editor constant.
 const kVsCode = 'VSCode';
 
-/// Constant for the IntelliJ (or Android Studio) editor name.
-/// This helps in identifying the IDE when configuring FVM.
+/// IntelliJ/Android Studio editor constant.
 const kIntelliJ = 'IntelliJ (Android Studio, ...)';
 
-/// A shortcut to the environment variables available on the current platform.
-/// This is used to retrieve paths and configuration settings from the system.
 final _env = Platform.environment;
 
-/// Determines the executable file extension based on the operating system.
-/// On Windows, command-line executables often have a '.bat' extension;
-/// on other platforms, no extension is used.
+/// Platform-specific executable extension (.bat on Windows, empty otherwise).
 final _execExtension = Platform.isWindows ? '.bat' : '';
 
-/// The file name of the Flutter executable, including the platform-specific extension.
-/// This is used to locate and invoke the Flutter command-line interface.
+/// Flutter executable file name with platform extension.
 final flutterExecFileName = 'flutter$_execExtension';
 
-/// The file name of the Dart executable, including the platform-specific extension.
-/// This is used to locate and invoke the Dart VM.
+/// Dart executable file name with platform extension.
 String dartExecFileName = 'dart$_execExtension';
 
-/// The current user's home directory.
-/// On Windows, it is taken from the 'USERPROFILE' environment variable,
-/// while on other platforms it is taken from the 'HOME' environment variable.
+/// User's home directory (USERPROFILE on Windows, HOME otherwise).
 final kUserHome = Platform.isWindows ? _env['USERPROFILE']! : _env['HOME']!;
 
-/// The FVM home directory, constructed by joining the user's home directory with the package name.
-/// This directory stores global FVM configuration and state files.
+/// FVM home directory (~/.fvm or equivalent).
 final kAppDirHome = join(kUserHome, kPackageName);
 
-/// The list of supported Flutter release channels.
-/// These channels (e.g. 'stable', 'dev', etc.) are used when selecting the version of Flutter to install.
+/// Supported Flutter release channels.
 const kFlutterChannels = ['main', 'master', 'stable', 'dev', 'beta'];
 
-/// The full path to the global FVM configuration file.
-/// It is located in the user's configuration home directory.
+/// Path to the global FVM configuration file.
 final kAppConfigFile = join(_configHome, kPackageName, kFvmConfigFileName);
 
-/// Retrieves the configuration home directory based on the current operating system.
-///
-/// On Windows, it uses the APPDATA environment variable.
-/// On macOS, it returns the 'Library/Application Support' directory.
-/// On Linux, it returns the XDG_CONFIG_HOME value if set; otherwise, it falls back to '$HOME/.config'.
-///
-/// If none of these conditions apply, it falls back to using '$HOME/.config'.
+/// Platform-specific configuration home directory.
 String get _configHome {
   if (Platform.isWindows) {
     final appdata = _env['APPDATA'];
@@ -110,9 +85,7 @@ String get _configHome {
   return join(kUserHome, '.config');
 }
 
-/// A list of common environment variable names used by Continuous Integration (CI) systems.
-/// These variables can be checked to determine if FVM is running in a CI environment,
-/// which might affect interactive prompts or logging.
+/// Environment variables indicating CI environment (disables interactive prompts).
 const kCiEnvironmentVariables = [
   // General indicator used by many CI providers.
   'CI',

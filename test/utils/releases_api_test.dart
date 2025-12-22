@@ -24,19 +24,5 @@ void main() {
       expect(versionsExists, true);
       expect(channels.length, 3);
     });
-
-    // test('Can fetch releases for all platforms', () async {
-    //   try {
-    //     await Future.wait([
-    //       fetch(getReleasesUrl('macos')),
-    //       fetch(getReleasesUrl('linux')),
-    //       fetch(getReleasesUrl('windows')),
-    //     ]);
-
-    //     expect(true, true);
-    //   } on Exception catch (err) {
-    //     fail('Could not resolve all platform releases \n $err');
-    //   }
-    // });
   });
 }

@@ -40,8 +40,6 @@ part 'context.mapper.dart';
 
 typedef Generator<T extends Contextual> = T Function(FvmContext context);
 
-// FVMContext get ctx => use(contextKey, withDefault: () => FVMContext.main);
-
 @MappableClass(includeCustomMappers: [GeneratorsMapper()])
 class FvmContext with FvmContextMappable {
   /// Name of the context
