@@ -31,7 +31,7 @@ void main() {
         final cacheVersion = runner.context.get<CacheService>().getVersion(
               FlutterVersion.parse(version),
             );
-        expect(cacheVersion != null, true, reason: 'Install with setup failed');
+        expect(cacheVersion, isNotNull, reason: 'Install with setup failed');
       });
 
       test('Install with --skip-pub-get flag', () async {
@@ -51,8 +51,8 @@ void main() {
               FlutterVersion.parse(version),
             );
         expect(
-          cacheVersion != null,
-          true,
+          cacheVersion,
+          isNotNull,
           reason: 'Install with skip-pub-get failed',
         );
       });
@@ -75,8 +75,8 @@ void main() {
               FlutterVersion.parse(version),
             );
         expect(
-          cacheVersion != null,
-          true,
+          cacheVersion,
+          isNotNull,
           reason: 'Install with multiple flags failed',
         );
       });

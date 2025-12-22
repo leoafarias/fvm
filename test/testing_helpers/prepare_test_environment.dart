@@ -65,18 +65,3 @@ Future<void> setUpContext(
 
   await prepareLocalProjects(projects.path);
 }
-
-void tearDownContext(FvmContext context) {
-  // final tempPath = getTempTestDir(context.id);
-
-  // final tempDir = Directory(tempPath);
-
-  // if (tempDir.existsSync()) {
-  //   try {
-  //     tempDir.deleteSync(recursive: true);
-  //   } on FileSystemException catch (e) {
-  //     // just log the error, as it can fail due to open files
-  //     logger.err(e.message);
-  //   }
-  // }
-}

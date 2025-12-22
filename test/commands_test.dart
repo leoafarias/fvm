@@ -34,7 +34,7 @@ void main() {
       final existingChannel = await context.get<GitService>().getBranch(
             channel,
           );
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion, isNotNull, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
     });
@@ -68,8 +68,8 @@ void main() {
               FlutterVersion.parse(channel),
             );
 
-        expect(targetBin == channelBin.path, true);
-        expect(linkExists, true);
+        expect(targetBin, channelBin.path);
+        expect(linkExists, isTrue);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -83,8 +83,8 @@ void main() {
 
         final targetVersion = basename(await globalLink.target());
 
-        expect(targetVersion == channel, true);
-        expect(linkExists, true);
+        expect(targetVersion, channel);
+        expect(linkExists, isTrue);
       } on Exception catch (e) {
         fail('Exception thrown, $e');
       }
@@ -107,7 +107,7 @@ void main() {
 
       final cacheVersion = context.get<CacheService>().getVersion(valid);
 
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion, isNotNull, reason: 'Install does not exist');
 
       expect(existingRelease, valid.name);
     });
@@ -123,8 +123,8 @@ void main() {
           );
 
       expect(
-        cacheVersionShort != null,
-        true,
+        cacheVersionShort,
+        isNotNull,
         reason: 'Install short does not exist',
       );
     });
@@ -146,8 +146,8 @@ void main() {
       final valid = FlutterVersion.parse(release);
       final versionDir = context.get<CacheService>().getVersionCacheDir(valid);
 
-      expect(targetPath == versionDir.path, true);
-      expect(linkExists, true);
+      expect(targetPath, versionDir.path);
+      expect(linkExists, isTrue);
       expect(exitCode, ExitCode.success.code);
     });
 

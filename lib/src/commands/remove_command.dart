@@ -24,8 +24,6 @@ class RemoveCommand extends BaseFvmCommand {
     );
   }
 
-  /// Constructor
-
   @override
   Future<int> run() async {
     final all = boolArg('all');

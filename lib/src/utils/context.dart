@@ -66,8 +66,6 @@ class FvmContext with FvmContextMappable {
   final Map<Type, Generator> _generators;
   final Map<Type, dynamic> _dependencies = {};
 
-  /// Constructor
-  /// If nothing is provided set default
   @MappableConstructor()
   FvmContext.raw({
     required this.debugLabel,

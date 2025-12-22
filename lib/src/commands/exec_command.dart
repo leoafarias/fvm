@@ -14,7 +14,6 @@ class ExecCommand extends BaseFvmCommand {
   @override
   final argParser = ArgParser.allowAnything();
 
-  /// Constructor
   ExecCommand(super.context);
 
   @override

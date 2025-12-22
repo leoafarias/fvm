@@ -84,7 +84,6 @@ abstract class Config {
   /// Directory where FVM is stored
   final String? cachePath;
 
-  /// Constructor
   const Config({
     this.cachePath,
     this.useGitCache,
@@ -100,7 +99,6 @@ abstract class FileConfig extends Config {
   final bool? updateGitIgnore;
   final bool? updateMelosSettings;
 
-  /// Constructor
   const FileConfig({
     required super.cachePath,
     required super.useGitCache,
@@ -181,7 +179,6 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   static final fromMap = LocalAppConfigMapper.fromMap;
   static final fromJson = LocalAppConfigMapper.fromJson;
 
-  /// Constructor
   LocalAppConfig({
     this.disableUpdateCheck,
     this.lastUpdateCheck,
@@ -235,7 +232,6 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
   final String? flutter;
   final Map<String, String>? flavors;
 
-  /// Constructor
   const ProjectConfig({
     this.flutter,
     this.flavors,

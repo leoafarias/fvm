@@ -38,7 +38,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   final FvmContext context;
   final PubUpdater _pubUpdater;
 
-  /// Constructor
   FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
       : _pubUpdater = pubUpdater ?? PubUpdater(),
         super(kPackageName, kDescription) {

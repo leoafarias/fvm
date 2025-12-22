@@ -24,7 +24,7 @@ void main() {
         final cacheVersion = runner.context.get<CacheService>().getVersion(
               FlutterVersion.parse(version),
             );
-        expect(cacheVersion != null, true, reason: 'Install via alias failed');
+        expect(cacheVersion, isNotNull, reason: 'Install via alias failed');
       });
 
       test('fvm i shows same help as fvm install', () async {

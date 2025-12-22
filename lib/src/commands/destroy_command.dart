@@ -12,7 +12,6 @@ class DestroyCommand extends BaseFvmCommand {
   final description =
       'Completely removes the FVM cache and all cached Flutter SDK versions';
 
-  /// Constructor
   DestroyCommand(super.context) {
     argParser.addFlag(
       'force',

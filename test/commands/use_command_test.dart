@@ -38,8 +38,8 @@ void main() {
             runner.context.get<CacheService>().getVersionCacheDir(valid);
 
         // Perform assertions
-        expect(targetPath == versionDir.path, true);
-        expect(linkExists, true);
+        expect(targetPath, versionDir.path);
+        expect(linkExists, isTrue);
         expect(project.pinnedVersion?.name, version);
         expect(exitCode, ExitCode.success.code);
       });

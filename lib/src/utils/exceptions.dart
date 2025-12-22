@@ -19,7 +19,6 @@ class AppException implements Exception {
 class AppDetailedException extends AppException {
   final String info;
 
-  /// Constructor
   const AppDetailedException(super.message, this.info);
 
   @override

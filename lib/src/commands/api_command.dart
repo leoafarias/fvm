@@ -121,7 +121,6 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
   @override
   final description = 'Returns installed Flutter SDK versions as JSON';
 
-  /// Constructor
   APIListCommand(super.controller) {
     argParser.addFlag(
       'skip-size-calculation',
@@ -149,7 +148,6 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
   @override
   final description = 'Returns available Flutter SDK releases as JSON';
 
-  /// Constructor
   APIReleasesCommand(super.controller) {
     argParser
       ..addOption(
