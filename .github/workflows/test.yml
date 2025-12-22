@@ -44,6 +44,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  RELEASE_DART_SDK: "3.9.0"
+
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   # Unit Tests - Run first for fast feedback
@@ -80,6 +83,11 @@ jobs:
         uses: ./.github/actions/test
         with:
           with-coverage: 'true'
+
+      - name: Setup Dart (release tool)
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ env.RELEASE_DART_SDK }}
 
       - name: Release tool | Install dependencies
         working-directory: tool/release_tool
