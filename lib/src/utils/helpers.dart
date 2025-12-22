@@ -363,7 +363,7 @@ Map<String, String> updateEnvironmentVariables(
   // Remove duplicates
   paths = paths.toSet().toList();
 
-  final updatedEnvironment = Map<String, String>.of(env);
+  final updatedEnvironment = Map.of(env);
   final envPath = env['PATH'] ?? '';
   final separator = Platform.isWindows ? ';' : ':';
 
