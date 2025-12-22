@@ -53,6 +53,18 @@ class FailingProcessService extends ProcessService {
   }
 }
 
+void createFailingFlutterExecutable(Directory binDir) {
+  if (Platform.isWindows) {
+    final file = File(p.join(binDir.path, 'flutter.bat'));
+    file.writeAsStringSync('@echo off\r\nexit /b 1\r\n');
+    return;
+  }
+
+  final file = File(p.join(binDir.path, 'flutter'));
+  file.writeAsStringSync('#!/bin/sh\nexit 1\n');
+  Process.runSync('chmod', ['+x', file.path]);
+}
+
 void main() {
   group('ResolveProjectDependenciesWorkflow', () {
     late TestCommandRunner runner;
@@ -113,7 +125,7 @@ void main() {
         final versionDir = tempDirs.create();
         final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
+        createFailingFlutterExecutable(binDir);
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
         // Create Dart SDK cache version file (required for isSetup to be true)
@@ -163,7 +175,7 @@ void main() {
         final versionDir = tempDirs.create();
         final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
+        createFailingFlutterExecutable(binDir);
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
         // Create Dart SDK cache with DIFFERENT version (3.2.0) to trigger mismatch
