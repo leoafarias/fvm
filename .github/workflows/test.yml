@@ -61,18 +61,10 @@ jobs:
           fatal-infos: false
   
       - name: Install DCM
-        id: setup_dcm
         uses: CQLabs/setup-dcm@v1
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Fallback install DCM (pub.dev)
-        if: steps.setup_dcm.outcome == 'failure'
-        run: |
-          dart pub global activate dart_code_metrics
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-
+  
       - name: Run DCM
         run: dcm analyze lib
       
