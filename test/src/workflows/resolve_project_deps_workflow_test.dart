@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
+import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
@@ -226,6 +227,7 @@ void main() {
         // It uses a failing FlutterService to simulate pub get failure.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
+        createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
         final context = TestFactory.context(
           generators: {
@@ -278,6 +280,7 @@ void main() {
         // It uses a failing FlutterService to simulate pub get failure.
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
+        createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
         final context = TestFactory.context(
           generators: {
