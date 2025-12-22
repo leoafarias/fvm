@@ -290,9 +290,15 @@ void main() {
         Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
-        final version = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
+        // Use direct constructor to bypass filesystem checks
+        // This ensures isSetup=true regardless of CI filesystem behavior
+        final version = CacheFlutterVersion(
+          '3.10.0',
+          type: VersionType.release,
           directory: versionDir.path,
+          flutterSdkVersion: '3.10.0',
+          dartSdkVersion: '3.10.0',
+          isSetup: true,
         );
 
         final workflow = ResolveProjectDependenciesWorkflow(context);
@@ -345,9 +351,15 @@ void main() {
         Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
         File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
-        final version = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
+        // Use direct constructor to bypass filesystem checks
+        // This ensures isSetup=true regardless of CI filesystem behavior
+        final version = CacheFlutterVersion(
+          '3.10.0',
+          type: VersionType.release,
           directory: versionDir.path,
+          flutterSdkVersion: '3.10.0',
+          dartSdkVersion: '3.10.0',
+          isSetup: true,
         );
 
         final workflow = ResolveProjectDependenciesWorkflow(context);
