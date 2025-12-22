@@ -10,6 +10,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
+import '../utils/file_utils.dart';
 import '../utils/file_lock.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -100,26 +101,20 @@ class FlutterService extends ContextualService {
           );
           final unlock = await lock.getLock();
           try {
-            final attempts = Platform.isWindows ? 5 : 1;
-            for (var attempt = 1; attempt <= attempts; attempt++) {
-              try {
-                cacheDir.deleteSync(recursive: true);
-                logger.info(
-                  'Removed corrupted cache. It will be recreated on next install.',
+            final deleted = await deleteDirectoryWithRetry(
+              cacheDir,
+              requireSuccess: false,
+              onFinalError: (error) {
+                logger.warn(
+                  'Could not remove corrupted cache: ${error.message}. '
+                  'You may need to manually delete ${cacheDir.path}',
                 );
-                break;
-              } on FileSystemException catch (e) {
-                if (!Platform.isWindows || attempt == attempts) {
-                  logger.warn(
-                    'Could not remove corrupted cache: ${e.message}. '
-                    'You may need to manually delete ${cacheDir.path}',
-                  );
-                  break;
-                }
-                await Future<void>.delayed(
-                  Duration(milliseconds: 200 * attempt),
-                );
-              }
+              },
+            );
+            if (deleted) {
+              logger.info(
+                'Removed corrupted cache. It will be recreated on next install.',
+              );
             }
           } finally {
             unlock();
