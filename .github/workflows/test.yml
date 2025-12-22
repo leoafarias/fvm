@@ -84,6 +84,9 @@ jobs:
         with:
           with-coverage: 'true'
 
+      - name: Clean Dart SDK temp files
+        run: rm -f ${{ runner.temp }}/dartsdk-*.zip
+
       - name: Setup Dart (release tool)
         uses: dart-lang/setup-dart@v1
         with:
