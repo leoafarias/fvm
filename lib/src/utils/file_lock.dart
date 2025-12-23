@@ -50,8 +50,8 @@ class FileLocker {
       if (parsed != null) {
         return parsed;
       }
-    } catch (e) {
-      // If there's an error reading/parsing the timestamp,
+    } on FileSystemException {
+      // If there's an error reading the file,
       // return the file system timestamp as a fallback
       return _file.lastModifiedSync();
     }
