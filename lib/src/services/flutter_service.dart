@@ -20,8 +20,6 @@ import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
-  const FlutterService(super.context);
-
   static const List<String> _gitObjectCorruptionMarkers = [
     'bad object',
     'loose object',
@@ -41,6 +39,8 @@ class FlutterService extends ContextualService {
     ..._gitObjectCorruptionMarkers,
     ..._gitMissingObjectMarkers,
   ];
+
+  const FlutterService(super.context);
 
   Future<ProcessResult> _cloneSdk({
     required String source,

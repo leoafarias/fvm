@@ -70,8 +70,16 @@ jobs:
   
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
+        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure DCM available
+        run: |
+          if ! command -v dcm >/dev/null 2>&1; then
+            dart pub global activate dart_code_metrics
+            echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+          fi
   
       - name: Run DCM
         run: dcm analyze lib
