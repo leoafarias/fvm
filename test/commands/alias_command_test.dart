@@ -24,7 +24,7 @@ void main() {
         final cacheVersion = runner.context.get<CacheService>().getVersion(
               FlutterVersion.parse(version),
             );
-        expect(cacheVersion != null, true, reason: 'Install via alias failed');
+        expect(cacheVersion, isNotNull, reason: 'Install via alias failed');
       });
 
       test('fvm i shows same help as fvm install', () async {
@@ -60,13 +60,13 @@ void main() {
         final runner = TestFactory.commandRunner();
 
         // Test install alias
-        expect(runner.commands.containsKey('i'), true);
-        expect(runner.commands.containsKey('install'), true);
+        expect(runner.commands.containsKey('i'), isTrue);
+        expect(runner.commands.containsKey('install'), isTrue);
         expect(runner.commands['i']?.name, equals('install'));
 
         // Test list alias
-        expect(runner.commands.containsKey('ls'), true);
-        expect(runner.commands.containsKey('list'), true);
+        expect(runner.commands.containsKey('ls'), isTrue);
+        expect(runner.commands.containsKey('list'), isTrue);
         expect(runner.commands['ls']?.name, equals('list'));
       });
     });

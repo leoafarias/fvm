@@ -34,7 +34,7 @@ void main() {
       final existingChannel = await context.get<GitService>().getBranch(
             channel,
           );
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion, isNotNull, reason: 'Install does not exist');
 
       expect(existingChannel, channel);
     });
@@ -46,56 +46,44 @@ void main() {
     });
 
     test('Use Channel', () async {
-      try {
-        // Run force to test within fvm
-        await runner.runOrThrow([
-          'fvm',
-          'use',
-          channel,
-          '--force',
-          '--skip-setup',
-        ]);
+      // Run force to test within fvm
+      await runner.runOrThrow([
+        'fvm',
+        'use',
+        channel,
+        '--force',
+        '--skip-setup',
+      ]);
 
-        final project = context.get<ProjectService>().findAncestor();
+      final project = context.get<ProjectService>().findAncestor();
 
-        final link = Link(project.localVersionSymlinkPath);
+      final link = Link(project.localVersionSymlinkPath);
 
-        final linkExists = link.existsSync();
+      final linkExists = link.existsSync();
 
-        final targetBin = link.targetSync();
+      final targetBin = link.targetSync();
 
-        final channelBin = context.get<CacheService>().getVersionCacheDir(
-              FlutterVersion.parse(channel),
-            );
+      final channelBin = context.get<CacheService>().getVersionCacheDir(
+            FlutterVersion.parse(channel),
+          );
 
-        expect(targetBin == channelBin.path, true);
-        expect(linkExists, true);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      expect(targetBin, equals(channelBin.path));
+      expect(linkExists, isTrue);
     });
 
     test('Use Flutter SDK globally', () async {
-      try {
-        await runner.runOrThrow(['fvm', 'global', channel]);
-        final globalLink = Link(context.globalCacheLink);
-        final linkExists = globalLink.existsSync();
+      await runner.runOrThrow(['fvm', 'global', channel]);
+      final globalLink = Link(context.globalCacheLink);
+      final linkExists = globalLink.existsSync();
 
-        final targetVersion = basename(await globalLink.target());
+      final targetVersion = basename(await globalLink.target());
 
-        expect(targetVersion == channel, true);
-        expect(linkExists, true);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      expect(targetVersion, equals(channel));
+      expect(linkExists, isTrue);
     });
 
     test('Remove Channel Command', () async {
-      try {
-        await runner.runOrThrow(['fvm', 'remove', channel]);
-      } on Exception catch (e) {
-        fail('Exception thrown, $e');
-      }
+      await runner.runOrThrow(['fvm', 'remove', channel]);
     });
 
     test('Install Release', () async {
@@ -107,7 +95,7 @@ void main() {
 
       final cacheVersion = context.get<CacheService>().getVersion(valid);
 
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion, isNotNull, reason: 'Install does not exist');
 
       expect(existingRelease, valid.name);
     });
@@ -123,8 +111,8 @@ void main() {
           );
 
       expect(
-        cacheVersionShort != null,
-        true,
+        cacheVersionShort,
+        isNotNull,
         reason: 'Install short does not exist',
       );
     });
@@ -146,8 +134,8 @@ void main() {
       final valid = FlutterVersion.parse(release);
       final versionDir = context.get<CacheService>().getVersionCacheDir(valid);
 
-      expect(targetPath == versionDir.path, true);
-      expect(linkExists, true);
+      expect(targetPath, equals(versionDir.path));
+      expect(linkExists, isTrue);
       expect(exitCode, ExitCode.success.code);
     });
 
