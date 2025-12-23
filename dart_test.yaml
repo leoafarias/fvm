@@ -1,8 +1,33 @@
 concurrency: 2
 timeout: 10m
+
+tags:
+  parallel:
+    timeout: 3m
+    
+  serial:
+    timeout: 8m
+    
+  fast:
+    timeout: 2m
+    
+  slow:
+    timeout: 10m
+  
+  performance:
+    timeout: 20m
+
+test_on: vm
+
+file_reporters:
+  json: build/test-results.json
+  github: build/test-annotations.txt
+
 paths:
   - test/utils
   - test/src
   - test/version_format_workflow_test.dart
   - test/complete_workflow_test.dart
+  - test/integration/parallel_integration_test.dart  # New optimized integration tests
+  - test/integration/performance_test.dart           # Performance validation tests
 # Do not include widget tests or sample/example app tests
