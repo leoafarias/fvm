@@ -107,14 +107,16 @@ void main() {
         // Given
         final versions = ['2.0.0', '1.0.0', 'stable', 'beta'];
         for (final version in versions) {
-          Directory(
-            path.join(tempDir.path, version),
-          ).createSync(recursive: true);
+          final versionDir = Directory(path.join(tempDir.path, version))
+            ..createSync(recursive: true);
 
-          // Add the "version" file that marks this as a Flutter SDK directory
-          File(
-            path.join(tempDir.path, version, 'version'),
-          ).writeAsStringSync('$version (test)');
+          // Add the "version" file
+          File(path.join(versionDir.path, 'version'))
+              .writeAsStringSync('$version (test)');
+
+          // Create bin/flutter to mark as valid SDK directory
+          File(path.join(versionDir.path, 'bin', 'flutter'))
+              .createSync(recursive: true);
         }
 
         // Create a non-directory file that should be ignored
