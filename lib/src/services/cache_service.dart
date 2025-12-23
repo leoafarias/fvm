@@ -45,8 +45,8 @@ class CacheService extends ContextualService {
       return null;
     }
 
-    // Ensure fork/version format is POSIX-style for parsing.
-    return relative.replaceAll('\\', '/');
+    // Convert to POSIX-style path for consistent fork/version parsing
+    return path.posix.joinAll(path.split(relative));
   }
 
   /// Verifies that cache is correct
