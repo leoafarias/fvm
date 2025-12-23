@@ -127,7 +127,7 @@ class FlutterVersion with FlutterVersionMappable {
         checkVersion = versionPart.substring(1);
       }
 
-      // Validate it's a proper semver
+      // Validate format - Version.parse throws FormatException on invalid input
       // ignore: avoid-unused-instances
       Version.parse(checkVersion);
 
