@@ -18,41 +18,45 @@ class UpdateProjectReferencesWorkflow extends Workflow {
 
   const UpdateProjectReferencesWorkflow(super.context);
 
+  void _withFsError(String message, void Function() action) {
+    try {
+      action();
+    } on Exception catch (e) {
+      logger.err(message);
+      logger.debug('$e');
+      rethrow;
+    }
+  }
+
   /// Updates the link to make sure it's always correct
   ///
   /// This method updates the .fvm symlink in the provided [project] to point to the cache
   /// directory of the currently pinned Flutter SDK version. It also cleans up legacy links
   /// that are no longer needed.
   void _updateLocalSdkReference(Project project, CacheFlutterVersion version) {
-    try {
+    _withFsError('Failed to create local FVM path', () {
       // Only create the directory if it doesn't exist
       if (!project.localFvmPath.dir.existsSync()) {
         project.localFvmPath.dir.createSync(recursive: true);
       }
-    } on Exception catch (_) {
-      logger.err('Failed to create local FVM path');
-
-      rethrow;
-    }
+    });
 
     final sdkVersionFile = p.join(project.localFvmPath, versionFile);
     final sdkReleaseFile = p.join(project.localFvmPath, releaseFile);
 
-    try {
-      sdkVersionFile.file.write(project.dartToolVersion ?? '');
-    } on Exception catch (_) {
-      logger.err('Failed to write to version file');
+    _withFsError('Failed to write to version file', () {
+      final flutterSdkVersion = version.flutterSdkVersion?.trim();
+      final versionFileContents =
+          (flutterSdkVersion == null || flutterSdkVersion.isEmpty)
+              ? version.nameWithAlias
+              : flutterSdkVersion;
 
-      rethrow;
-    }
+      sdkVersionFile.file.write(versionFileContents);
+    });
 
-    try {
+    _withFsError('Failed to write to release file', () {
       sdkReleaseFile.file.write(version.name);
-    } on Exception catch (_) {
-      logger.err('Failed to write to release file');
-
-      rethrow;
-    }
+    });
 
     if (!context.privilegedAccess) {
       logger.debug('Skipping symlink creation: no privileged access');
@@ -60,7 +64,7 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       return;
     }
 
-    try {
+    _withFsError('Failed to prepare versions cache directory', () {
       project.localVersionsCachePath.dir
         ..deleteIfExists()
         ..createSync(recursive: true);
@@ -71,22 +75,14 @@ class UpdateProjectReferencesWorkflow extends Workflow {
           forkDir.dir.createSync(recursive: true);
         }
       }
-    } on Exception catch (_) {
-      logger.err('Failed to prepare versions cache directory');
+    });
 
-      rethrow;
-    }
-
-    try {
+    _withFsError('Failed to create version symlink', () {
       if (project.localVersionSymlinkPath.link.existsSync()) {
         project.localVersionSymlinkPath.link.deleteSync();
       }
       project.localVersionSymlinkPath.link.createLink(version.directory);
-    } on Exception catch (_) {
-      logger.err('Failed to create version symlink');
-
-      rethrow;
-    }
+    });
   }
 
   /// Updates the `flutter_sdk` link to ensure it always points to the pinned SDK version.
@@ -101,13 +97,9 @@ class UpdateProjectReferencesWorkflow extends Workflow {
     final currentSdkLink = p.join(project.localFvmPath, flutterSdkLink);
 
     if (currentSdkLink.link.existsSync()) {
-      try {
+      _withFsError('Failed to delete existing flutter_sdk symlink', () {
         currentSdkLink.link.deleteSync();
-      } on Exception catch (_) {
-        logger.err('Failed to delete existing flutter_sdk symlink');
-
-        rethrow;
-      }
+      });
     }
 
     if (!context.privilegedAccess) {
@@ -116,13 +108,9 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       return;
     }
 
-    try {
+    _withFsError('Failed to create flutter_sdk symlink', () {
       currentSdkLink.link.createLink(version.directory);
-    } on Exception catch (_) {
-      logger.err('Failed to create flutter_sdk symlink');
-
-      rethrow;
-    }
+    });
   }
 
   /// Updates all SDK references in the project

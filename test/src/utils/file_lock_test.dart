@@ -428,13 +428,9 @@ void main() {
       },
     );
 
-    test('should handle file system errors gracefully', () {
-      // Skip on platforms where we can't set permissions reliably
-      if (Platform.isWindows) {
-        return;
-      }
-
-      try {
+    test(
+      'should handle file system errors gracefully',
+      () {
         final readOnlyDir = Directory('${tempDir.path}/readonly')..createSync();
         // Make it read-only
         Process.runSync('chmod', ['555', readOnlyDir.path]);
@@ -454,11 +450,9 @@ void main() {
           // Restore permissions to allow cleanup
           Process.runSync('chmod', ['755', readOnlyDir.path]);
         }
-      } catch (e) {
-        // Skip test if we can't set up the conditions
-        print('Skipping file system error test: $e');
-      }
-    });
+      },
+      skip: Platform.isWindows ? 'Permissions work differently on Windows' : null,
+    );
   });
 
   group('Edge cases', () {
