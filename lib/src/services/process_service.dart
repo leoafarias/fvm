@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:io/io.dart';
+
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
