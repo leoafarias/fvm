@@ -119,7 +119,7 @@ jobs:
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: test  # Only wait for main Ubuntu test - optimization
+    needs: [test, test-os]  # Wait for all unit tests before integration
     timeout-minutes: 45
 
     strategy:
