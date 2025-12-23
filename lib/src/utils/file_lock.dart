@@ -116,8 +116,9 @@ class FileLocker {
           file.closeSync();
         }
       } on FileSystemException {
-        // Lock is held by another process
-        await Future.delayed(interval);
+        // Can't use OS-level locking - fall back to timestamp-only locking
+        lock();
+        return () => unlock();
       }
     }
   }
