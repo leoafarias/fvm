@@ -314,7 +314,7 @@ void main() {
         expect(() => cacheService.unlinkGlobal(), returnsNormally);
       });
 
-      test('deprecated getGlobalVersion returns version name', () {
+      test('getGlobalVersion returns version name', () {
         // Create and set a global version
         final version = createTestVersion('stable');
         final versionDir = Directory(path.join(tempDir.path, version.name))
@@ -331,6 +331,43 @@ void main() {
         expect(globalVersionName, equals('stable'));
       });
 
+      test('getGlobal preserves forked version names', () {
+        final version = createTestVersion('myfork/stable');
+        final versionDir = Directory(
+          path.join(tempDir.path, 'myfork', 'stable'),
+        )..createSync(recursive: true);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
+
+        cacheService.setGlobal(cacheVersion);
+        addTearDown(cacheService.unlinkGlobal);
+
+        final global = cacheService.getGlobal();
+        expect(global, isNotNull);
+        expect(global!.nameWithAlias, equals('myfork/stable'));
+        expect(global.fork, equals('myfork'));
+        expect(global.name, equals('stable'));
+
+        final globalVersionName = cacheService.getGlobalVersion();
+        expect(globalVersionName, equals('myfork/stable'));
+      });
+
+      test('getGlobalVersion falls back to basename for outside targets', () {
+        final outsideDir = Directory.systemTemp.createTempSync(
+          'fvm_outside_',
+        );
+        addTearDown(() => outsideDir.deleteSync(recursive: true));
+        addTearDown(cacheService.unlinkGlobal);
+
+        final globalLink = Link(context.globalCacheLink);
+        globalLink.createSync(outsideDir.path, recursive: true);
+
+        final globalVersionName = cacheService.getGlobalVersion();
+        expect(globalVersionName, equals(path.basename(outsideDir.path)));
+      });
+
       test('getGlobalVersion returns null when no global set', () {
         expect(cacheService.getGlobalVersion(), isNull);
       });
@@ -343,6 +380,24 @@ void main() {
 
         // Should return null since the version doesn't exist in cache
         expect(cacheService.getGlobal(), isNull);
+      });
+
+      test('getGlobal returns null for unparseable version name', () {
+        // Create a directory with a name that cannot be parsed as a version
+        // '@invalid' fails because the version part is empty (nothing before @)
+        final invalidDir = Directory(path.join(tempDir.path, '@invalid'))
+          ..createSync(recursive: true);
+        addTearDown(() {
+          if (invalidDir.existsSync()) invalidDir.deleteSync(recursive: true);
+        });
+
+        final globalLink = Link(context.globalCacheLink);
+        globalLink.createSync(invalidDir.path, recursive: true);
+        addTearDown(cacheService.unlinkGlobal);
+
+        // Should return null gracefully, not throw
+        final global = cacheService.getGlobal();
+        expect(global, isNull);
       });
     });
 

@@ -33,6 +33,22 @@ class CacheService extends ContextualService {
     return value;
   }
 
+  String? _relativeVersionNameFromCachePath(String targetPath) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(targetPath);
+    if (!path.isWithin(cacheRoot, normalizedTarget)) {
+      return null;
+    }
+
+    final relative = path.relative(normalizedTarget, from: cacheRoot);
+    if (relative.isEmpty || relative == '.') {
+      return null;
+    }
+
+    // Convert to POSIX-style path for consistent fork/version parsing
+    return path.posix.joinAll(path.split(relative));
+  }
+
   /// Verifies that cache is correct
   /// returns 'true' if cache is correct 'false' if its not
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
@@ -87,18 +103,10 @@ class CacheService extends ContextualService {
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
       if (isFlutterSdkDirectory(dir)) {
-        // This is a version directory
-        final name = path.basename(dir.path);
-
         try {
-          FlutterVersion version;
-          if (forkName != null) {
-            // This is a forked version
-            version = FlutterVersion.parse('$forkName/$name');
-          } else {
-            // This is a regular version
-            version = FlutterVersion.parse(name);
-          }
+          final name = _relativeVersionNameFromCachePath(dir.path);
+          if (name == null) return;
+          final version = FlutterVersion.parse(name);
 
           final cacheVersion = getVersion(version);
           if (cacheVersion != null) {
@@ -211,14 +219,20 @@ class CacheService extends ContextualService {
 
   /// Returns a global [CacheFlutterVersion] if exists
   CacheFlutterVersion? getGlobal() {
-    if (!_globalCacheLink.existsSync()) return null;
-    // Get directory name
-    final version = path.basename(_globalCacheLink.targetSync());
+    final version = getGlobalVersion();
+    if (version == null) return null;
     // Make sure its a valid version
-    final validVersion = FlutterVersion.parse(version);
-
-    // Verify version is cached
-    return getVersion(validVersion);
+    try {
+      final validVersion = FlutterVersion.parse(version);
+      // Verify version is cached
+      return getVersion(validVersion);
+    } on FormatException catch (e) {
+      logger.warn(
+        'Global version "$version" could not be parsed: $e. '
+        'The global symlink may be corrupted.',
+      );
+      return null;
+    }
   }
 
   /// Checks if a cached [version] is configured as global
@@ -232,8 +246,18 @@ class CacheService extends ContextualService {
   String? getGlobalVersion() {
     if (!_globalCacheLink.existsSync()) return null;
 
-    // Get directory name
-    return path.basename(_globalCacheLink.targetSync());
+    final targetPath = _globalCacheLink.targetSync();
+    final relative = _relativeVersionNameFromCachePath(targetPath);
+    if (relative != null) {
+      return relative;
+    }
+
+    logger.debug(
+      'Global symlink target "$targetPath" could not be resolved relative '
+      'to the cache directory. Fork information may not be preserved.',
+    );
+
+    return path.basename(path.normalize(targetPath));
   }
 
   /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
