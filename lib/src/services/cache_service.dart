@@ -101,6 +101,18 @@ class CacheService extends ContextualService {
 
     final cacheVersions = <CacheFlutterVersion>[];
 
+    // Checks if a directory is a Flutter SDK.
+    //
+    // Uses bin/flutter existence as the indicator since it's always present
+    // in Flutter SDK directories (part of the git repository), regardless of
+    // whether setup has been run or which Flutter version is installed.
+    bool isFlutterSdkDirectory(Directory dir) {
+      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+      final flutterBat = File(path.join(dir.path, 'bin', 'flutter.bat'));
+
+      return flutterBin.existsSync() || flutterBat.existsSync();
+    }
+
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
       final versionFile = File(path.join(dir.path, 'version'));
