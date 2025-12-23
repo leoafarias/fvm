@@ -252,15 +252,10 @@ class CacheService extends ContextualService {
       return relative;
     }
 
-    if (!path.isWithin(
-      path.normalize(context.versionsCachePath),
-      path.normalize(targetPath),
-    )) {
-      logger.debug(
-        'Global symlink target "$targetPath" is outside cache directory. '
-        'Fork information may not be preserved.',
-      );
-    }
+    logger.debug(
+      'Global symlink target "$targetPath" could not be resolved relative '
+      'to the cache directory. Fork information may not be preserved.',
+    );
 
     return path.basename(path.normalize(targetPath));
   }
