@@ -37,13 +37,6 @@ class GitService extends ContextualService {
     _updatingCacheLock = createGitCacheLock();
   }
 
-  FileLocker createGitCacheLock() {
-    return FileLocker(
-      '${context.gitCachePath}.lock',
-      lockExpiration: _gitCacheLockTtl,
-    );
-  }
-
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
     // Use timestamp for unique temp dir names to avoid conflicts when
@@ -480,6 +473,13 @@ class GitService extends ContextualService {
       await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
       await _createLocalMirror();
     }
+  }
+
+  FileLocker createGitCacheLock() {
+    return FileLocker(
+      '${context.gitCachePath}.lock',
+      lockExpiration: _gitCacheLockTtl,
+    );
   }
 
   /// Sets the repository origin URL for the given git directory.
