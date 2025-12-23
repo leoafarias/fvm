@@ -95,8 +95,9 @@ class CacheService extends ContextualService {
     // whether setup has been run or which Flutter version is installed.
     bool isFlutterSdkDirectory(Directory dir) {
       final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+      final flutterBat = File(path.join(dir.path, 'bin', 'flutter.bat'));
 
-      return flutterBin.existsSync();
+      return flutterBin.existsSync() || flutterBat.existsSync();
     }
 
     // Process a directory that might be a version directory
