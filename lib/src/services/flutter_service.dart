@@ -100,30 +100,23 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        // Delete corrupted mirror under the same lock GitService uses to avoid
-        // concurrent installs touching the cache while it is being removed.
+        // Delete corrupted mirror so it can be recreated on next install.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          final lock = get<GitService>().createGitCacheLock();
-          final unlock = await lock.getLock();
-          try {
-            final deleted = await deleteDirectoryWithRetry(
-              cacheDir,
-              requireSuccess: false,
-              onFinalError: (error) {
-                logger.warn(
-                  'Could not remove corrupted cache: ${error.message}. '
-                  'You may need to manually delete ${cacheDir.path}',
-                );
-              },
-            );
-            if (deleted) {
-              logger.info(
-                'Removed corrupted cache. It will be recreated on next install.',
+          final deleted = await deleteDirectoryWithRetry(
+            cacheDir,
+            requireSuccess: false,
+            onFinalError: (error) {
+              logger.warn(
+                'Could not remove corrupted cache: ${error.message}. '
+                'You may need to manually delete ${cacheDir.path}',
               );
-            }
-          } finally {
-            unlock();
+            },
+          );
+          if (deleted) {
+            logger.info(
+              'Removed corrupted cache. It will be recreated on next install.',
+            );
           }
         }
       } else {
