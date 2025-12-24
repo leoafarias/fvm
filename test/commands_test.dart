@@ -67,7 +67,7 @@ void main() {
             FlutterVersion.parse(channel),
           );
 
-      expect(targetBin, equals(channelBin.path));
+      expect(targetBin, channelBin.path);
       expect(linkExists, isTrue);
     });
 
@@ -78,7 +78,7 @@ void main() {
 
       final targetVersion = basename(await globalLink.target());
 
-      expect(targetVersion, equals(channel));
+      expect(targetVersion, channel);
       expect(linkExists, isTrue);
     });
 
@@ -134,7 +134,7 @@ void main() {
       final valid = FlutterVersion.parse(release);
       final versionDir = context.get<CacheService>().getVersionCacheDir(valid);
 
-      expect(targetPath, equals(versionDir.path));
+      expect(targetPath, versionDir.path);
       expect(linkExists, isTrue);
       expect(exitCode, ExitCode.success.code);
     });
