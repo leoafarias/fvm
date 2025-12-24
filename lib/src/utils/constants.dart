@@ -61,7 +61,19 @@ String dartExecFileName = 'dart$_execExtension';
 /// The current user's home directory.
 /// On Windows, it is taken from the 'USERPROFILE' environment variable,
 /// while on other platforms it is taken from the 'HOME' environment variable.
-final kUserHome = Platform.isWindows ? _env['USERPROFILE']! : _env['HOME']!;
+String _getUserHome() {
+  final home = Platform.isWindows ? _env['USERPROFILE'] : _env['HOME'];
+  if (home == null || home.isEmpty) {
+    throw Exception(
+      'Could not determine the user home directory. '
+      'Please set ${Platform.isWindows ? 'USERPROFILE' : 'HOME'}.',
+    );
+  }
+
+  return home;
+}
+
+final kUserHome = _getUserHome();
 
 /// The FVM home directory, constructed by joining the user's home directory with the package name.
 /// This directory stores global FVM configuration and state files.

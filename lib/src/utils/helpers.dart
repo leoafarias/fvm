@@ -219,7 +219,17 @@ bool isValidGitUrl(String url) {
       return false;
     }
 
-    if (uri.host.isEmpty && uri.authority.isEmpty && uri.scheme != 'file') {
+    final scheme = uri.scheme.toLowerCase();
+    const allowedSchemes = {'https', 'http', 'git', 'ssh', 'file'};
+    if (!allowedSchemes.contains(scheme)) {
+      return false;
+    }
+
+    if (scheme == 'file') {
+      return _hasGitExtension(uri.path);
+    }
+
+    if (uri.host.isEmpty && uri.authority.isEmpty) {
       return false;
     }
 

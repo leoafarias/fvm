@@ -171,6 +171,19 @@ class CacheService extends ContextualService {
     }
   }
 
+  Directory _safeCacheDirectory(List<String> segments) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final targetPath = path.normalize(path.joinAll([cacheRoot, ...segments]));
+
+    if (!path.isWithin(cacheRoot, targetPath) && targetPath != cacheRoot) {
+      throw AppException(
+        'Invalid cache path computed outside of the cache directory.',
+      );
+    }
+
+    return Directory(targetPath);
+  }
+
   /// Gets the directory for a specified version
   ///
   /// For standard versions: versionsCachePath/version
@@ -178,18 +191,16 @@ class CacheService extends ContextualService {
   Directory getVersionCacheDir(FlutterVersion version) {
     if (version.fromFork) {
       // Fork-specific path: versionsCachePath/forkName/versionName
-      return Directory(
-        path.join(context.versionsCachePath, version.fork!, version.version),
-      );
+      return _safeCacheDirectory([version.fork!, version.version]);
     } // Standard path: versionsCachePath/version.name
 
-    return Directory(path.join(context.versionsCachePath, version.name));
+    return _safeCacheDirectory([version.name]);
   }
 
   // For backward compatibility - used by existing string-based calls
   @Deprecated('Use getVersionCacheDir(FlutterVersion) instead')
   Directory getVersionCacheDirByName(String version) {
-    return Directory(path.join(context.versionsCachePath, version));
+    return _safeCacheDirectory([version]);
   }
 
   // Verifies that cache can be executed and matches version
@@ -239,14 +250,24 @@ class CacheService extends ContextualService {
   bool isGlobal(CacheFlutterVersion version) {
     if (!_globalCacheLink.existsSync()) return false;
 
-    return _globalCacheLink.targetSync() == version.directory;
+    try {
+      return _globalCacheLink.targetSync() == version.directory;
+    } on FileSystemException {
+      return false;
+    }
   }
 
   /// Returns a global version name if exists
   String? getGlobalVersion() {
     if (!_globalCacheLink.existsSync()) return null;
 
-    final targetPath = _globalCacheLink.targetSync();
+    String targetPath;
+    try {
+      targetPath = _globalCacheLink.targetSync();
+    } on FileSystemException catch (e) {
+      logger.warn('Failed to resolve global symlink: $e');
+      return null;
+    }
     final relative = _relativeVersionNameFromCachePath(targetPath);
     if (relative != null) {
       return relative;
