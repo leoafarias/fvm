@@ -60,7 +60,9 @@ test/fixtures/sample_app
 
 # Example app directory
 example_app/
-.context
+# Context folder (allow docs subfolder)
+.context/*
+!.context/docs/
 .augment-guidelines
 
 # Platform-specific directories (generated during testing)

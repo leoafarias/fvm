@@ -52,9 +52,10 @@ Commands → Workflows → Services → Models
 
 Reference these for specific tasks:
 
-- @README.md - Project overview, release process, emergency deployments
+- @README.md - Project overview, release process
 - @CHANGELOG.md - Version history, breaking changes
 - @.github/workflows/README.md - CI/CD pipelines, deployment automation
 - @test/TESTING_METHODOLOGY.md - Test patterns, TestFactory, mocking
 - @test/integration/README.md - Integration test phases (38 tests)
-- @docs/version_parsing_implementation.md - Version parsing regex and logic
+- @.context/docs/version-parsing.md - Version parsing regex and logic
+- @.context/docs/v4-release-notes.md - v4.0 architecture changes, migration
