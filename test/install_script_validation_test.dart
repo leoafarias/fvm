@@ -48,7 +48,7 @@ void main() {
       final publicScript = File('docs/public/uninstall.sh');
       expect(
         publicScript.existsSync(),
-        true,
+        isTrue,
         reason: 'Public uninstall.sh script should exist in docs/public',
       );
 
@@ -65,7 +65,7 @@ void main() {
     test('Dockerfile uses correct install script URL', () async {
       // Read the Dockerfile
       final dockerfile = File('.docker/Dockerfile');
-      expect(dockerfile.existsSync(), true, reason: 'Dockerfile should exist');
+      expect(dockerfile.existsSync(), isTrue, reason: 'Dockerfile should exist');
 
       final dockerfileContent = await dockerfile.readAsString();
 
@@ -74,7 +74,7 @@ void main() {
           'https://raw.githubusercontent.com/leoafarias/fvm/main/scripts/install.sh';
       expect(
         dockerfileContent.contains(expectedUrl),
-        true,
+        isTrue,
         reason:
             'Dockerfile should reference the correct public install script URL',
       );
@@ -84,7 +84,7 @@ void main() {
       final grinderFile = File('tool/release_tool/tool/grind.dart');
       expect(
         grinderFile.existsSync(),
-        true,
+        isTrue,
         reason: 'Release grinder file should exist',
       );
 
