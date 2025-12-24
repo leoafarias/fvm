@@ -47,3 +47,14 @@ Commands → Workflows → Services → Models
 
 - Release tool (`tool/release_tool/`) requires Dart >=3.8.0
 - Version format: `[fork/]version[@channel]` (e.g., `stable`, `3.24.0`, `custom-fork/3.24.0@beta`)
+
+## Documentation
+
+Reference these for specific tasks:
+
+- @README.md - Project overview, release process, emergency deployments
+- @CHANGELOG.md - Version history, breaking changes
+- @.github/workflows/README.md - CI/CD pipelines, deployment automation
+- @test/TESTING_METHODOLOGY.md - Test patterns, TestFactory, mocking
+- @test/integration/README.md - Integration test phases (38 tests)
+- @docs/version_parsing_implementation.md - Version parsing regex and logic
