@@ -438,7 +438,7 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // Step 5: Validate the new mirror
+    // Step 4: Validate the new mirror
     logger.debug('Validating new mirror...');
     try {
       await _validateMirror(tempBareDir);
@@ -452,14 +452,17 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // Step 6: Swap directories - remove legacy and rename temp
+    // Step 5: Swap directories - remove legacy and rename temp
     logger.debug('Swapping directories...');
     await _deleteDirectoryWithRetry(legacyDir);
     tempBareDir.renameSync(legacyDir.path);
 
+    // Clean up orphaned temp directories from previous runs
+    await _cleanupOrphanedTempDirs(legacyDir.parent);
+
     logger.info('Legacy cache migrated to bare mirror successfully!');
 
-    // Step 7: Update alternates in installed SDKs to point to new bare path
+    // Step 6: Update alternates in installed SDKs to point to new bare path
     try {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
