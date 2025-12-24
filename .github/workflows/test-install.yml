@@ -41,18 +41,21 @@ jobs:
       - name: Test installation
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
-      
+
       - name: Test reinstall (idempotency)
         run: |
           ./scripts/install.sh
+          export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
-      
+
       - name: Test uninstall
         run: |
+          export PATH="$HOME/fvm/bin:$PATH"
           # First ensure FVM is installed
           which fvm
-          ls -la ~/.fvm_flutter/bin/
+          ls -la ~/fvm/bin/
           
           # Run uninstall
           ./scripts/install.sh --uninstall
@@ -63,8 +66,8 @@ jobs:
             exit 1
           fi
           
-          if [[ -d ~/.fvm_flutter ]]; then
-            echo "❌ FVM directory still exists after uninstall"
+          if [[ -d ~/fvm/bin ]]; then
+            echo "❌ FVM bin directory still exists after uninstall"
             exit 1
           fi
           
@@ -91,35 +94,30 @@ jobs:
       - name: Test container root allowed
         run: |
           ./scripts/install.sh
-          /usr/local/bin/fvm --version
+          export PATH="$HOME/fvm/bin:$PATH"
+          fvm --version
 
-  # Test root blocking on non-container
+  # Test root warning on non-container
   test-permissions:
     name: Test Permissions
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Test root blocked
+
+      - name: Test root shows warning but succeeds
         run: |
-          # Should fail when run as root without container. Capture output instead of
-          # piping so pipefail doesn't mask the expected non-zero exit code.
-          set +e
-          sudo ./scripts/install.sh > /tmp/fvm_install_root.log 2>&1
-          status=$?
-          set -e
+          output=$(sudo -H ./scripts/install.sh 2>&1)
+          echo "$output"
 
-          cat /tmp/fvm_install_root.log
-
-          if [[ $status -ne 0 ]] && grep -q "should not be run as root" /tmp/fvm_install_root.log; then
-            echo "✅ Root correctly blocked"
+          # Should show warning
+          if echo "$output" | grep -q "Warning: Running as root"; then
+            echo "✅ Root warning displayed"
           else
-            echo "❌ Root should have been blocked"
+            echo "❌ Expected root warning"
             exit 1
           fi
-      
-      - name: Test with override
-        run: |
-          sudo env FVM_ALLOW_ROOT=true ./scripts/install.sh
-          sudo /usr/local/bin/fvm --version
+
+          # Should succeed
+          sudo -H /root/fvm/bin/fvm --version
+          echo "✅ Root install successful"
