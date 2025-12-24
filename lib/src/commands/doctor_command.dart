@@ -115,6 +115,7 @@ class DoctorCommand extends BaseFvmCommand {
     );
 
     if (localPropertiesFile.existsSync()) {
+      String? sdkPath;
       final localProperties = localPropertiesFile.readAsLinesSync();
       final sdkLines = localProperties.where(
         (line) => line.startsWith('flutter.sdk'),
@@ -133,7 +134,7 @@ class DoctorCommand extends BaseFvmCommand {
             'Malformed entry in local.properties',
           ]);
         } else {
-          final sdkPath = parts.sublist(1).join('=').trim();
+          sdkPath = parts.sublist(1).join('=').trim();
           table.insertRow(['flutter.sdk', sdkPath]);
         }
 
@@ -156,7 +157,9 @@ class DoctorCommand extends BaseFvmCommand {
               final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
               table.insertRow([
                 'Matches pinned version:',
-                sdkPath == resolvedLink,
+                sdkPath == null
+                    ? 'Cannot validate - malformed flutter.sdk entry'
+                    : sdkPath == resolvedLink,
               ]);
             } on FileSystemException catch (_) {
               table.insertRow([

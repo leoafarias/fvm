@@ -33,7 +33,7 @@ class GitService extends ContextualService {
         context.flutterUrl,
         gitCacheDir.path,
       ],
-      runInShell: false,
+      runInShell: true,
     );
 
     final processLogs = <String>[];
