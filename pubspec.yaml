@@ -33,6 +33,7 @@ dependencies:
   cli_completion: ^0.5.0
   yaml_writer: ^2.1.0
   win32: ^5.0.0
+  xml: ^6.5.0
 
 dev_dependencies:
   grinder: ^0.9.5

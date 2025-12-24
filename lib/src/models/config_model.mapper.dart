@@ -243,6 +243,11 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
   static bool? _$updateVscodeSettings(AppConfig v) => v.updateVscodeSettings;
   static const Field<AppConfig, bool> _f$updateVscodeSettings =
       Field('updateVscodeSettings', _$updateVscodeSettings, opt: true);
+  static bool? _$updateAndroidStudioSettings(AppConfig v) =>
+      v.updateAndroidStudioSettings;
+  static const Field<AppConfig, bool> _f$updateAndroidStudioSettings = Field(
+      'updateAndroidStudioSettings', _$updateAndroidStudioSettings,
+      opt: true);
   static bool? _$updateGitIgnore(AppConfig v) => v.updateGitIgnore;
   static const Field<AppConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
@@ -262,6 +267,7 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
     #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
+    #updateAndroidStudioSettings: _f$updateAndroidStudioSettings,
     #updateGitIgnore: _f$updateGitIgnore,
     #updateMelosSettings: _f$updateMelosSettings,
   };
@@ -280,6 +286,7 @@ class AppConfigMapper extends ClassMapperBase<AppConfig> {
         privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
+        updateAndroidStudioSettings: data.dec(_f$updateAndroidStudioSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore),
         updateMelosSettings: data.dec(_f$updateMelosSettings));
   }
@@ -346,6 +353,7 @@ abstract class AppConfigCopyWith<$R, $In extends AppConfig, $Out>
       bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
+      bool? updateAndroidStudioSettings,
       bool? updateGitIgnore,
       bool? updateMelosSettings});
   AppConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -371,6 +379,7 @@ class _AppConfigCopyWithImpl<$R, $Out>
           Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
+          Object? updateAndroidStudioSettings = $none,
           Object? updateGitIgnore = $none,
           Object? updateMelosSettings = $none}) =>
       $apply(FieldCopyWithData({
@@ -387,6 +396,8 @@ class _AppConfigCopyWithImpl<$R, $Out>
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
+        if (updateAndroidStudioSettings != $none)
+          #updateAndroidStudioSettings: updateAndroidStudioSettings,
         if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
         if (updateMelosSettings != $none)
           #updateMelosSettings: updateMelosSettings
@@ -407,6 +418,8 @@ class _AppConfigCopyWithImpl<$R, $Out>
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
+      updateAndroidStudioSettings: data.get(#updateAndroidStudioSettings,
+          or: $value.updateAndroidStudioSettings),
       updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
       updateMelosSettings:
           data.get(#updateMelosSettings, or: $value.updateMelosSettings));
@@ -462,6 +475,11 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
       v.updateVscodeSettings;
   static const Field<LocalAppConfig, bool> _f$updateVscodeSettings =
       Field('updateVscodeSettings', _$updateVscodeSettings, opt: true);
+  static bool? _$updateAndroidStudioSettings(LocalAppConfig v) =>
+      v.updateAndroidStudioSettings;
+  static const Field<LocalAppConfig, bool> _f$updateAndroidStudioSettings =
+      Field('updateAndroidStudioSettings', _$updateAndroidStudioSettings,
+          opt: true);
   static bool? _$updateGitIgnore(LocalAppConfig v) => v.updateGitIgnore;
   static const Field<LocalAppConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
@@ -483,6 +501,7 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
     #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
+    #updateAndroidStudioSettings: _f$updateAndroidStudioSettings,
     #updateGitIgnore: _f$updateGitIgnore,
     #updateMelosSettings: _f$updateMelosSettings,
     #forks: _f$forks,
@@ -501,6 +520,7 @@ class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
         privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
+        updateAndroidStudioSettings: data.dec(_f$updateAndroidStudioSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore),
         updateMelosSettings: data.dec(_f$updateMelosSettings),
         forks: data.dec(_f$forks));
@@ -571,6 +591,7 @@ abstract class LocalAppConfigCopyWith<$R, $In extends LocalAppConfig, $Out>
       bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
+      bool? updateAndroidStudioSettings,
       bool? updateGitIgnore,
       bool? updateMelosSettings,
       Set<FlutterFork>? forks});
@@ -597,6 +618,7 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
           Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
+          Object? updateAndroidStudioSettings = $none,
           Object? updateGitIgnore = $none,
           Object? updateMelosSettings = $none,
           Object? forks = $none}) =>
@@ -613,6 +635,8 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
+        if (updateAndroidStudioSettings != $none)
+          #updateAndroidStudioSettings: updateAndroidStudioSettings,
         if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
         if (updateMelosSettings != $none)
           #updateMelosSettings: updateMelosSettings,
@@ -633,6 +657,8 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
+      updateAndroidStudioSettings: data.get(#updateAndroidStudioSettings,
+          or: $value.updateAndroidStudioSettings),
       updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
       updateMelosSettings:
           data.get(#updateMelosSettings, or: $value.updateMelosSettings),
@@ -687,6 +713,11 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
       v.updateVscodeSettings;
   static const Field<ProjectConfig, bool> _f$updateVscodeSettings =
       Field('updateVscodeSettings', _$updateVscodeSettings, opt: true);
+  static bool? _$updateAndroidStudioSettings(ProjectConfig v) =>
+      v.updateAndroidStudioSettings;
+  static const Field<ProjectConfig, bool> _f$updateAndroidStudioSettings =
+      Field('updateAndroidStudioSettings', _$updateAndroidStudioSettings,
+          opt: true);
   static bool? _$updateGitIgnore(ProjectConfig v) => v.updateGitIgnore;
   static const Field<ProjectConfig, bool> _f$updateGitIgnore =
       Field('updateGitIgnore', _$updateGitIgnore, opt: true);
@@ -705,6 +736,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
     #privilegedAccess: _f$privilegedAccess,
     #runPubGetOnSdkChanges: _f$runPubGetOnSdkChanges,
     #updateVscodeSettings: _f$updateVscodeSettings,
+    #updateAndroidStudioSettings: _f$updateAndroidStudioSettings,
     #updateGitIgnore: _f$updateGitIgnore,
     #updateMelosSettings: _f$updateMelosSettings,
   };
@@ -722,6 +754,7 @@ class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
         privilegedAccess: data.dec(_f$privilegedAccess),
         runPubGetOnSdkChanges: data.dec(_f$runPubGetOnSdkChanges),
         updateVscodeSettings: data.dec(_f$updateVscodeSettings),
+        updateAndroidStudioSettings: data.dec(_f$updateAndroidStudioSettings),
         updateGitIgnore: data.dec(_f$updateGitIgnore),
         updateMelosSettings: data.dec(_f$updateMelosSettings));
   }
@@ -791,6 +824,7 @@ abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
       bool? privilegedAccess,
       bool? runPubGetOnSdkChanges,
       bool? updateVscodeSettings,
+      bool? updateAndroidStudioSettings,
       bool? updateGitIgnore,
       bool? updateMelosSettings});
   ProjectConfigCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -823,6 +857,7 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           Object? privilegedAccess = $none,
           Object? runPubGetOnSdkChanges = $none,
           Object? updateVscodeSettings = $none,
+          Object? updateAndroidStudioSettings = $none,
           Object? updateGitIgnore = $none,
           Object? updateMelosSettings = $none}) =>
       $apply(FieldCopyWithData({
@@ -837,6 +872,8 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         if (updateVscodeSettings != $none)
           #updateVscodeSettings: updateVscodeSettings,
+        if (updateAndroidStudioSettings != $none)
+          #updateAndroidStudioSettings: updateAndroidStudioSettings,
         if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
         if (updateMelosSettings != $none)
           #updateMelosSettings: updateMelosSettings
@@ -855,6 +892,8 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
           data.get(#runPubGetOnSdkChanges, or: $value.runPubGetOnSdkChanges),
       updateVscodeSettings:
           data.get(#updateVscodeSettings, or: $value.updateVscodeSettings),
+      updateAndroidStudioSettings: data.get(#updateAndroidStudioSettings,
+          or: $value.updateAndroidStudioSettings),
       updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
       updateMelosSettings:
           data.get(#updateMelosSettings, or: $value.updateMelosSettings));

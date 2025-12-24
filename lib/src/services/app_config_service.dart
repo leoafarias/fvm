@@ -55,6 +55,7 @@ class AppConfigService {
             privilegedAccess: config.privilegedAccess,
             runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
             updateVscodeSettings: config.updateVscodeSettings,
+            updateAndroidStudioSettings: config.updateAndroidStudioSettings,
             updateGitIgnore: config.updateGitIgnore,
             disableUpdateCheck: config.disableUpdateCheck,
             lastUpdateCheck: config.lastUpdateCheck,
@@ -73,6 +74,7 @@ class AppConfigService {
             privilegedAccess: config.privilegedAccess,
             runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
             updateVscodeSettings: config.updateVscodeSettings,
+            updateAndroidStudioSettings: config.updateAndroidStudioSettings,
             updateGitIgnore: config.updateGitIgnore,
           ),
         );

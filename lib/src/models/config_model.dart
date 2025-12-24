@@ -97,6 +97,7 @@ abstract class FileConfig extends Config {
   final bool? privilegedAccess;
   final bool? runPubGetOnSdkChanges;
   final bool? updateVscodeSettings;
+  final bool? updateAndroidStudioSettings;
   final bool? updateGitIgnore;
   final bool? updateMelosSettings;
 
@@ -109,6 +110,7 @@ abstract class FileConfig extends Config {
     required this.privilegedAccess,
     required this.runPubGetOnSdkChanges,
     required this.updateVscodeSettings,
+    required this.updateAndroidStudioSettings,
     required this.updateGitIgnore,
     this.updateMelosSettings,
   });
@@ -142,6 +144,7 @@ class AppConfig extends FileConfig with AppConfigMappable {
     super.privilegedAccess,
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
+    super.updateAndroidStudioSettings,
     super.updateGitIgnore,
     super.updateMelosSettings,
   });
@@ -173,6 +176,9 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
   bool? updateVscodeSettings;
 
   @override
+  bool? updateAndroidStudioSettings;
+
+  @override
   bool? updateGitIgnore;
 
   @override
@@ -192,6 +198,7 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
     this.privilegedAccess,
     this.runPubGetOnSdkChanges,
     this.updateVscodeSettings,
+    this.updateAndroidStudioSettings,
     this.updateGitIgnore,
     this.updateMelosSettings,
     Set<FlutterFork>? forks,
@@ -243,6 +250,7 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
     super.privilegedAccess,
     super.runPubGetOnSdkChanges,
     super.updateVscodeSettings,
+    super.updateAndroidStudioSettings,
     super.updateGitIgnore,
     super.updateMelosSettings,
   });
@@ -271,10 +279,24 @@ class ProjectConfig extends FileConfig with ProjectConfigMappable {
   }
 
   static ProjectConfig fromMap(Map<String, dynamic> map) {
-    return ProjectConfigMapper.fromMap({
+    final normalized = {
       ...map,
       'flutter': map['flutterSdkVersion'] ?? map['flutter'],
-    });
+    };
+
+    if (normalized.containsKey('manageVscodeSettings') &&
+        !normalized.containsKey('updateVscodeSettings')) {
+      normalized['updateVscodeSettings'] = normalized['manageVscodeSettings'];
+    }
+
+    if (normalized.containsKey('manageAndroidStudioSettings') &&
+        !normalized.containsKey('updateAndroidStudioSettings')) {
+      normalized['updateAndroidStudioSettings'] =
+          normalized['manageAndroidStudioSettings'];
+      normalized.remove('manageAndroidStudioSettings');
+    }
+
+    return ProjectConfigMapper.fromMap(normalized);
   }
 
   Map<String, dynamic> toLegacyMap() {

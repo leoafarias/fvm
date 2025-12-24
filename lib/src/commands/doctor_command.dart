@@ -217,6 +217,50 @@ class DoctorCommand extends BaseFvmCommand {
       table.insertRow([kIntelliJ, 'No .idea folder found']);
     }
 
+    // Validate FlutterSettings in .idea XML files
+    final ideaDir = Directory(p.join(project.path, '.idea'));
+    if (ideaDir.existsSync()) {
+      var foundFlutterSettings = false;
+      try {
+        final xmlFiles = ideaDir
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((f) => f.path.endsWith('.xml'));
+
+        for (final file in xmlFiles) {
+          final content = file.readAsStringSync();
+          if (content.contains('FlutterSettings') &&
+              content.contains('FLUTTER_SDK_PATH')) {
+            foundFlutterSettings = true;
+            final usesFvmSymlink = content.contains('.fvm/flutter_sdk');
+
+            if (usesFvmSymlink) {
+              table.insertRow([
+                'FlutterSettings',
+                'Correctly configured with FVM symlink path',
+              ]);
+            } else {
+              table.insertRow([
+                'FlutterSettings',
+                'Does not use .fvm/flutter_sdk symlink. '
+                    'Run "fvm use <version>" to fix.',
+              ]);
+            }
+            break;
+          }
+        }
+      } catch (_) {
+        // Ignore errors reading .idea files
+      }
+
+      if (!foundFlutterSettings && dartSdkFile.existsSync()) {
+        table.insertRow([
+          'FlutterSettings',
+          'Not found. Run "fvm use <version>" to configure.',
+        ]);
+      }
+    }
+
     logger.write(table.toString());
   }
 

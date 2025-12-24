@@ -18,6 +18,7 @@ import '../services/releases_service/releases_client.dart';
 import '../version.dart';
 import '../workflows/check_project_constraints.workflow.dart';
 import '../workflows/ensure_cache.workflow.dart';
+import '../workflows/update_android_studio_settings.workflow.dart';
 import '../workflows/resolve_project_deps.workflow.dart';
 import '../workflows/setup_flutter.workflow.dart';
 import '../workflows/setup_gitignore.workflow.dart';
@@ -241,6 +242,7 @@ const _defaultGenerators = <Type, Generator>{
   SetupGitIgnoreWorkflow: SetupGitIgnoreWorkflow.new,
   UpdateProjectReferencesWorkflow: UpdateProjectReferencesWorkflow.new,
   UpdateMelosSettingsWorkflow: UpdateMelosSettingsWorkflow.new,
+  UpdateAndroidStudioSettingsWorkflow: UpdateAndroidStudioSettingsWorkflow.new,
   UpdateVsCodeSettingsWorkflow: UpdateVsCodeSettingsWorkflow.new,
   ValidateFlutterVersionWorkflow: ValidateFlutterVersionWorkflow.new,
   VerifyProjectWorkflow: VerifyProjectWorkflow.new,
