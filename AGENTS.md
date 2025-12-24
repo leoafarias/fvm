@@ -50,12 +50,12 @@ Commands → Workflows → Services → Models
 
 ## Documentation
 
-Reference these for specific tasks:
+Developer docs in `.context/docs/`. Reference for specific tasks:
 
 - @README.md - Project overview, release process
 - @CHANGELOG.md - Version history, breaking changes
 - @.github/workflows/README.md - CI/CD pipelines, deployment automation
-- @test/TESTING_METHODOLOGY.md - Test patterns, TestFactory, mocking
-- @test/integration/README.md - Integration test phases (38 tests)
+- @.context/docs/testing-methodology.md - Test patterns, TestFactory, mocking
+- @.context/docs/integration-tests.md - Integration test phases (38 tests)
 - @.context/docs/version-parsing.md - Version parsing regex and logic
 - @.context/docs/v4-release-notes.md - v4.0 architecture changes, migration
