@@ -465,8 +465,8 @@ class FlutterService extends ContextualService {
 
       // Simplify clone error detection
       if (errorMessage.contains('repository not found') ||
-          errorMessage.contains('remote branch') &&
-              errorMessage.contains('not found')) {
+          (errorMessage.contains('remote branch') &&
+              errorMessage.contains('not found'))) {
         get<CacheService>().remove(version);
 
         if (version.fromFork) {
