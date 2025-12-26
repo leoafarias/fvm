@@ -1,5 +1,6 @@
-# FVM (Flutter Version Manager) SBVR Specification v2.3.0
-## Fully Compliant with SBVR 1.5 Standard
+# FVM (Flutter Version Manager) SBVR Specification v2.4.0
+
+## Aligned with SBVR 1.5 Standard
 
 ---
 
@@ -7,692 +8,813 @@
 
 **Note:** SBVR distinguishes general noun concepts from individual concepts by kind, not via explicit field labels. All terms in this specification are general noun concepts unless otherwise noted.
 
-### Core Terms - Software Development Kit Concepts
+### 1.1 Core Terms - Software Development Kit Concepts
 
-```
-flutter_sdk
-Definition: software development kit that provides tools for Flutter application development
-Reference Scheme: sdk_identifier identifies flutter_sdk
-```
+**flutter sdk**
+- Definition: software development kit that provides tools for Flutter application development
+- Reference Scheme: sdk identifier identifies flutter sdk
 
-```
-flutter_version
-Definition: release that represents a specific build of Flutter SDK
-Reference Scheme: version_name identifies flutter_version
-Characteristic: flutter_version has release_date
-Characteristic: flutter_version has dart_version
-Characteristic: flutter_version has engine_version
-```
+---
 
-```
-channel
-Definition: release track that categorizes Flutter versions by stability level
-Reference Scheme: channel_name identifies channel
-Instances: stable, beta, dev, master, main
-Note: Channel names are individual concepts (named instances), not specialized types
-```
+**flutter version**
+- Definition: release that represents a specific build of Flutter SDK
+- Reference Scheme: version name identifies flutter version
 
-### Storage and Cache Concepts
+---
 
-```
-version_installation
-Definition: the relationship arising from a flutter_version being installed in a cache_directory
-Objectified From: flutter_version is installed in cache_directory
-Reference Scheme: cache_path identifies version_installation
-Characteristic: version_installation has installation_date
-Characteristic: version_installation has directory_size
-Note: Objectification pattern - an instance exists if and only if the underlying relationship exists
-```
+**channel**
+- Definition: release track that categorizes Flutter versions by stability level
+- Reference Scheme: channel name identifies channel
+- Note: Channel names are individual concepts (named instances), not specialized types
+- Definitional Rules:
+  - It is impossible that a channel is other than stable, beta, dev, master, or main
 
-```
-cache_directory
-Definition: filesystem location that stores downloaded Flutter SDKs
-Reference Scheme: directory_path identifies cache_directory
-Characteristic: cache_directory has available_space
-Characteristic: cache_directory has total_size
-```
+---
 
-### Project Concepts
+### 1.2 Storage and Cache Concepts
 
-```
-project
-Definition: Flutter application that requires specific SDK version
-Reference Scheme: project_path identifies project
-Characteristic: project has project_name
-Characteristic: project has root_directory
-```
+**version installation**
+- Definition: the relationship arising from a flutter version being installed in a cache directory
+- Objectified From: flutter version is installed in cache directory
+- Reference Scheme: cache path identifies version installation
+- Note: Objectification pattern - an instance exists if and only if the underlying relationship exists
 
-```
-project_config
-Definition: configuration that specifies FVM settings for a project
-Reference Scheme: config_path identifies project_config
-Characteristic: project_config has flutter_version_requirement
-Characteristic: project_config has update_notification_flag
-```
+---
 
-```
-global_config
-Definition: configuration that defines system-wide FVM settings
-Reference Scheme: global_config_path identifies global_config
-Characteristic: global_config has default_cache_path
-Characteristic: global_config has skip_setup_flag
-```
+**cache directory**
+- Definition: filesystem location that stores downloaded Flutter SDKs
+- Reference Scheme: directory path identifies cache directory
 
-```
-flavor
-Definition: variant that specifies different Flutter version for specific environment
-Reference Scheme: flavor_name identifies flavor
-Characteristic: flavor has target_flutter_version
-```
+---
 
-### Version Control Concepts
+### 1.3 Project Concepts
 
-```
-flutter_fork
-Definition: repository that provides custom Flutter SDK builds
-Reference Scheme: fork_url identifies flutter_fork
-Characteristic: flutter_fork has repository_url
-Characteristic: flutter_fork has default_branch
-```
+**project**
+- Definition: Flutter application that requires specific SDK version
+- Reference Scheme: project path identifies project
 
-```
-git_reference
-Definition: pointer that identifies specific point in Git history
-Reference Scheme: reference_string identifies git_reference
-```
+---
 
-```
-git_branch
-Definition: git_reference that represents development line
-General Concept: git_reference
-Reference Scheme: branch_name identifies git_branch
-```
+**project config**
+- Definition: configuration that specifies FVM settings for a project
+- Reference Scheme: config path identifies project config
 
-```
-git_tag
-Definition: git_reference that marks specific release
-General Concept: git_reference
-Reference Scheme: tag_name identifies git_tag
-```
+---
 
-```
-git_commit
-Definition: git_reference that points to specific commit
-General Concept: git_reference
-Reference Scheme: commit_hash identifies git_commit
-```
+**global config**
+- Definition: configuration that defines system-wide FVM settings
+- Reference Scheme: global config path identifies global config
 
-### Release and Distribution Concepts
+---
 
-```
-flutter_release
-Definition: flutter_version that is officially published by Flutter team
-General Concept: flutter_version
-Reference Scheme: release_hash identifies flutter_release
-Characteristic: flutter_release has archive_url
-Characteristic: flutter_release has sha256_hash
-```
+**flavor**
+- Definition: variant that specifies different Flutter version for specific environment
+- Reference Scheme: flavor name identifies flavor
 
-```
-version_constraint
-Definition: specification that defines acceptable Flutter versions
-Reference Scheme: constraint_expression identifies version_constraint
-Characteristic: version_constraint has minimum_version
-Characteristic: version_constraint has maximum_version
-```
+---
 
-```
-project_constraint
-Definition: the relationship arising from a project constraining acceptable flutter_versions
-Objectified From: project constrains flutter_version
-```
+### 1.4 Version Control Concepts
 
-### System Concepts
+**flutter fork**
+- Definition: repository that provides custom Flutter SDK builds
+- Reference Scheme: fork url identifies flutter fork
 
-```
-fvm
-Definition: software application that manages multiple Flutter SDK versions for development
-Concept Type: individual concept
-Note: FVM (Flutter Version Manager) is the single system instance that executes operations defined in behavioral rules
-```
+---
 
-```
-fvm_link
-Definition: symbolic link that points to active Flutter SDK
-Reference Scheme: link_path identifies fvm_link
-```
+**git reference**
+- Definition: pointer that identifies specific point in Git history
+- Reference Scheme: reference string identifies git reference
 
-```
-environment_variable
-Definition: system variable that configures FVM behavior
-Reference Scheme: variable_name identifies environment_variable
-Characteristic: environment_variable has variable_value
-```
+---
 
-```
-flutter_command
-Definition: executable that performs Flutter operations
-Reference Scheme: command_name identifies flutter_command
-```
+**git branch**
+- Definition: git reference that represents development line
+- General Concept: git reference
+- Reference Scheme: branch name identifies git branch
 
-```
-architecture
-Definition: processor type that executes Flutter SDK
-Reference Scheme: architecture_name identifies architecture
-```
+---
 
-```
-operating_system
-Definition: platform that runs FVM and Flutter SDK
-Reference Scheme: os_name identifies operating_system
-```
+**git tag**
+- Definition: git reference that marks specific release
+- General Concept: git reference
+- Reference Scheme: tag name identifies git tag
 
-```
-user
-Definition: person that manages Flutter versions using FVM
-Reference Scheme: user_identifier identifies user
-```
+---
+
+**git commit**
+- Definition: git reference that points to specific commit
+- General Concept: git reference
+- Reference Scheme: commit hash identifies git commit
+
+---
+
+### 1.5 Release and Distribution Concepts
+
+**flutter release**
+- Definition: flutter version that is officially published by Flutter team
+- General Concept: flutter version
+- Reference Scheme: release hash identifies flutter release
+
+---
+
+**version constraint**
+- Definition: specification that defines acceptable Flutter versions
+- Reference Scheme: constraint expression identifies version constraint
+
+---
+
+**project constraint**
+- Definition: the relationship arising from a project constraining acceptable flutter versions
+- Objectified From: project constrains flutter version
+
+---
+
+### 1.6 System Concepts
+
+**fvm**
+- Definition: software application that manages multiple Flutter SDK versions for development
+- Note: Individual concept. FVM (Flutter Version Manager) is the single system instance that executes operations defined in behavioral rules
+
+---
+
+**fvm link**
+- Definition: symbolic link that points to active Flutter SDK
+- Reference Scheme: link path identifies fvm link
+
+---
+
+**environment variable**
+- Definition: system variable that configures FVM behavior
+- Reference Scheme: variable name identifies environment variable
+
+---
+
+**flutter command**
+- Definition: executable that performs Flutter operations
+- Reference Scheme: command name identifies flutter command
+
+---
+
+**architecture**
+- Definition: processor type that executes Flutter SDK
+- Reference Scheme: architecture name identifies architecture
+
+---
+
+**operating system**
+- Definition: platform that runs FVM and Flutter SDK
+- Reference Scheme: os name identifies operating system
+
+---
+
+**user**
+- Definition: person that manages Flutter versions using FVM
+- Reference Scheme: user identifier identifies user
 
 ---
 
 ## Part 2: Fact Types (Relationships)
 
-### Project-Version Relationships
+### 2.1 Value Attribute Fact Types
 
-```
-Fact Type: project uses flutter_version
-  Preferred verb concept wording: project uses flutter_version
-  Alternative verb concept wording: flutter_version is used by project
-  Necessity: each project uses at most one flutter_version
-  Necessity: each flutter_version is used by zero or more projects
-```
+These fact types represent value attributes of noun concepts (moved from Part 1 Characteristics).
 
-```
-Fact Type: project_config belongs to project
-  Preferred verb concept wording: project_config belongs to project
-  Alternative verb concept wording: project has project_config
-  Necessity: each project_config belongs to exactly one project
-  Necessity: each project has at most one project_config
-```
+#### Flutter Version Attributes
 
-```
-Fact Type: project has project_constraint
-  Preferred verb concept wording: project has project_constraint
-  Alternative verb concept wording: project_constraint belongs to project
-  Necessity: each project has at most one project_constraint
-  Necessity: each project_constraint belongs to exactly one project
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| flutter version has release date | each flutter version has at most one release date |
+| flutter version has dart version | each flutter version has exactly one dart version |
+| flutter version has engine version | each flutter version has exactly one engine version |
 
-```
-Fact Type: project_constraint uses version_constraint
-  Preferred verb concept wording: project_constraint uses version_constraint
-  Alternative verb concept wording: version_constraint defines project_constraint
-  Necessity: each project_constraint uses exactly one version_constraint
-  Necessity: each version_constraint defines zero or more project_constraints
-```
+#### Version Installation Attributes
 
-### Version-Channel Relationships
+| Fact Type | Necessity |
+|-----------|-----------|
+| version installation has installation date | each version installation has exactly one installation date |
+| version installation has directory size | each version installation has exactly one directory size |
 
-```
-Fact Type: flutter_version belongs to channel
-  Preferred verb concept wording: flutter_version belongs to channel
-  Alternative verb concept wording: channel contains flutter_version
-  Necessity: each flutter_version belongs to at least one channel
-  Necessity: each channel contains zero or more flutter_versions
-```
+#### Cache Directory Attributes
 
-```
-Fact Type: flutter_release is published in channel
-  Preferred verb concept wording: flutter_release is published in channel
-  Alternative verb concept wording: channel publishes flutter_release
-  Necessity: each flutter_release is published in at least one channel
-  Necessity: each channel publishes zero or more flutter_releases
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| cache directory has available space | each cache directory has exactly one available space |
+| cache directory has total size | each cache directory has exactly one total size |
 
-### Cache Relationships
+#### Project Attributes
 
-```
-Fact Type: flutter_version is installed in cache_directory
-  Preferred verb concept wording: flutter_version is installed in cache_directory
-  Alternative verb concept wording: cache_directory contains installed flutter_version
-  Necessity: each flutter_version is installed in at most one cache_directory
-  Necessity: each cache_directory contains zero or more installed flutter_versions
-  Objectification: version_installation
-  Note: This fact type is objectified as version_installation to capture installation metadata
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| project has project name | each project has exactly one project name |
+| project has root directory | each project has exactly one root directory |
 
-```
-Fact Type: version_installation involves flutter_version
-  Preferred verb concept wording: version_installation involves flutter_version
-  Alternative verb concept wording: flutter_version is involved in version_installation
-  Necessity: each version_installation involves exactly one flutter_version
-  Necessity: each flutter_version is involved in at most one version_installation
-  Note: Derived from the objectified fact type
-```
+#### Project Config Attributes
 
-```
-Fact Type: version_installation resides in cache_directory
-  Preferred verb concept wording: version_installation resides in cache_directory
-  Alternative verb concept wording: cache_directory contains version_installation
-  Necessity: each version_installation resides in exactly one cache_directory
-  Necessity: each cache_directory contains zero or more version_installations
-  Note: Derived from the objectified fact type
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| project config has flutter version requirement | each project config has at most one flutter version requirement |
+| project config has update notification flag | each project config has exactly one update notification flag |
 
-```
-Fact Type: fvm_link points to version_installation
-  Preferred verb concept wording: fvm_link points to version_installation
-  Alternative verb concept wording: version_installation is referenced by fvm_link
-  Necessity: each fvm_link points to at most one version_installation
-  Necessity: each version_installation is referenced by zero or more fvm_links
-```
+#### Global Config Attributes
 
-### Configuration Relationships
+| Fact Type | Necessity |
+|-----------|-----------|
+| global config has default cache path | each global config has exactly one default cache path |
+| global config has skip setup flag | each global config has exactly one skip setup flag |
 
-```
-Fact Type: project_config defines flavor
-  Preferred verb concept wording: project_config defines flavor
-  Alternative verb concept wording: flavor is defined by project_config
-  Necessity: each flavor is defined by exactly one project_config
-  Necessity: each project_config defines zero or more flavors
-```
+#### Flavor Attributes
 
-```
-Fact Type: flavor specifies flutter_version
-  Preferred verb concept wording: flavor specifies flutter_version
-  Alternative verb concept wording: flutter_version is specified by flavor
-  Necessity: each flavor specifies exactly one flutter_version
-  Necessity: each flutter_version is specified by zero or more flavors
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| flavor has target flutter version | each flavor has exactly one target flutter version |
 
-```
-Fact Type: user configures global_config
-  Preferred verb concept wording: user configures global_config
-  Alternative verb concept wording: global_config is configured by user
-  Necessity: each global_config is configured by exactly one user
-  Necessity: each user configures at most one global_config
-```
+#### Flutter Fork Attributes
 
-### Fork and Reference Relationships
+| Fact Type | Necessity |
+|-----------|-----------|
+| flutter fork has repository url | each flutter fork has exactly one repository url |
+| flutter fork has default branch | each flutter fork has at most one default branch |
 
-```
-Fact Type: flutter_fork provides flutter_version
-  Preferred verb concept wording: flutter_fork provides flutter_version
-  Alternative verb concept wording: flutter_version is provided by flutter_fork
-  Necessity: each flutter_version is provided by at most one flutter_fork
-  Necessity: each flutter_fork provides zero or more flutter_versions
-```
+#### Flutter Release Attributes
 
-```
-Fact Type: git_reference identifies flutter_version
-  Preferred verb concept wording: git_reference identifies flutter_version
-  Alternative verb concept wording: flutter_version is identified by git_reference
-  Necessity: each flutter_version is identified by at most one git_reference
-  Necessity: each git_reference identifies at most one flutter_version
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| flutter release has archive url | each flutter release has exactly one archive url |
+| flutter release has sha256 hash | each flutter release has exactly one sha256 hash |
 
-### System Relationships
+#### Version Constraint Attributes
 
-```
-Fact Type: version_installation supports architecture
-  Preferred verb concept wording: version_installation supports architecture
-  Alternative verb concept wording: architecture is supported by version_installation
-  Necessity: each version_installation supports at least one architecture
-  Necessity: each architecture is supported by zero or more version_installations
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| version constraint has minimum version | each version constraint has at most one minimum version |
+| version constraint has maximum version | each version constraint has at most one maximum version |
 
-```
-Fact Type: version_installation runs on operating_system
-  Preferred verb concept wording: version_installation runs on operating_system
-  Alternative verb concept wording: operating_system runs version_installation
-  Necessity: each version_installation runs on at least one operating_system
-  Necessity: each operating_system runs zero or more version_installations
-```
+#### Environment Variable Attributes
 
-```
-Fact Type: environment_variable configures global_config
-  Preferred verb concept wording: environment_variable configures global_config
-  Alternative verb concept wording: global_config is configured by environment_variable
-  Necessity: each environment_variable configures at most one global_config
-  Necessity: each global_config is configured by zero or more environment_variables
-```
+| Fact Type | Necessity |
+|-----------|-----------|
+| environment variable has variable value | each environment variable has exactly one variable value |
+
+---
+
+### 2.2 Project-Version Relationships
+
+**Fact Type: project uses flutter version**
+- Preferred: project uses flutter version
+- Alternative: flutter version is used by project
+- Necessity: each project uses at most one flutter version
+- Necessity: each flutter version is used by zero or more projects
+
+---
+
+**Fact Type: project config belongs to project**
+- Preferred: project config belongs to project
+- Alternative: project has project config
+- Necessity: each project config belongs to exactly one project
+- Necessity: each project has at most one project config
+
+---
+
+**Fact Type: project has project constraint**
+- Preferred: project has project constraint
+- Alternative: project constraint belongs to project
+- Necessity: each project has at most one project constraint
+- Necessity: each project constraint belongs to exactly one project
+
+---
+
+**Fact Type: project constraint uses version constraint**
+- Preferred: project constraint uses version constraint
+- Alternative: version constraint defines project constraint
+- Necessity: each project constraint uses exactly one version constraint
+- Necessity: each version constraint defines zero or more project constraints
+
+---
+
+### 2.3 Version-Channel Relationships
+
+**Fact Type: flutter version belongs to channel**
+- Preferred: flutter version belongs to channel
+- Alternative: channel contains flutter version
+- Necessity: each flutter version belongs to at least one channel
+- Necessity: each channel contains zero or more flutter versions
+
+---
+
+**Fact Type: flutter release is published in channel**
+- Preferred: flutter release is published in channel
+- Alternative: channel publishes flutter release
+- Necessity: each flutter release is published in at least one channel
+- Necessity: each channel publishes zero or more flutter releases
+
+---
+
+### 2.4 Cache Relationships
+
+**Fact Type: flutter version is installed in cache directory**
+- Preferred: flutter version is installed in cache directory
+- Alternative: cache directory contains installed flutter version
+- Necessity: each flutter version is installed in at most one cache directory
+- Necessity: each cache directory contains zero or more installed flutter versions
+- Note: This fact type is objectified as version installation to capture installation metadata
+
+---
+
+**Fact Type: version installation involves flutter version**
+- Preferred: version installation involves flutter version
+- Alternative: flutter version is involved in version installation
+- Necessity: each version installation involves exactly one flutter version
+- Necessity: each flutter version is involved in at most one version installation
+- Note: Derived from the objectified fact type
+
+---
+
+**Fact Type: version installation resides in cache directory**
+- Preferred: version installation resides in cache directory
+- Alternative: cache directory contains version installation
+- Necessity: each version installation resides in exactly one cache directory
+- Necessity: each cache directory contains zero or more version installations
+- Note: Derived from the objectified fact type
+
+---
+
+**Fact Type: fvm link points to version installation**
+- Preferred: fvm link points to version installation
+- Alternative: version installation is referenced by fvm link
+- Necessity: each fvm link points to at most one version installation
+- Necessity: each version installation is referenced by zero or more fvm links
+
+---
+
+### 2.5 Configuration Relationships
+
+**Fact Type: project config defines flavor**
+- Preferred: project config defines flavor
+- Alternative: flavor is defined by project config
+- Necessity: each flavor is defined by exactly one project config
+- Necessity: each project config defines zero or more flavors
+
+---
+
+**Fact Type: flavor specifies flutter version**
+- Preferred: flavor specifies flutter version
+- Alternative: flutter version is specified by flavor
+- Necessity: each flavor specifies exactly one flutter version
+- Necessity: each flutter version is specified by zero or more flavors
+
+---
+
+**Fact Type: user configures global config**
+- Preferred: user configures global config
+- Alternative: global config is configured by user
+- Necessity: each global config is configured by exactly one user
+- Necessity: each user configures at most one global config
+
+---
+
+### 2.6 Fork and Reference Relationships
+
+**Fact Type: flutter fork provides flutter version**
+- Preferred: flutter fork provides flutter version
+- Alternative: flutter version is provided by flutter fork
+- Necessity: each flutter version is provided by at most one flutter fork
+- Necessity: each flutter fork provides zero or more flutter versions
+
+---
+
+**Fact Type: git reference identifies flutter version**
+- Preferred: git reference identifies flutter version
+- Alternative: flutter version is identified by git reference
+- Necessity: each flutter version is identified by at most one git reference
+- Necessity: each git reference identifies at most one flutter version
+
+---
+
+### 2.7 System Relationships
+
+**Fact Type: version installation supports architecture**
+- Preferred: version installation supports architecture
+- Alternative: architecture is supported by version installation
+- Necessity: each version installation supports at least one architecture
+- Necessity: each architecture is supported by zero or more version installations
+
+---
+
+**Fact Type: version installation runs on operating system**
+- Preferred: version installation runs on operating system
+- Alternative: operating system runs version installation
+- Necessity: each version installation runs on at least one operating system
+- Necessity: each operating system runs zero or more version installations
+
+---
+
+**Fact Type: environment variable configures global config**
+- Preferred: environment variable configures global config
+- Alternative: global config is configured by environment variable
+- Necessity: each environment variable configures at most one global config
+- Necessity: each global config is configured by zero or more environment variables
 
 ---
 
 ## Part 3: Definitional Rules (Alethic Modality)
 
-### Identity and Uniqueness Rules
+### 3.1 Identity and Uniqueness Rules
 
-```
-It is necessary that each flutter_version has exactly one version_name
-It is necessary that each project has exactly one project_path
-It is necessary that each version_installation has exactly one cache_path
-It is necessary that each flavor has exactly one flavor_name
-It is necessary that each channel has exactly one channel_name
-It is necessary that each flutter_release has exactly one release_hash
-It is necessary that each git_commit has exactly one commit_hash
-It is necessary that each user has exactly one user_identifier
-```
+**D1:** It is necessary that each flutter version has exactly one version name
 
-### Structural Integrity Rules
+**D2:** It is necessary that each project has exactly one project path
 
-```
-It is necessary that each project_config of a project is stored in a file named .fvmrc in the root_directory of that project
-It is necessary that each fvm_link of a project is located at .fvm/flutter_sdk relative to the root_directory of that project
-It is necessary that each version_installation in a cache_directory contains a bin/flutter executable
-It is necessary that each flutter_version that is a semantic version follows the pattern major.minor.patch
-It is necessary that each git_commit that is a git_reference has a commit_hash of exactly 40 hexadecimal characters
-```
+**D3:** It is necessary that each version installation has exactly one cache path
 
-### Type Constraints
+**D4:** It is necessary that each flavor has exactly one flavor name
 
-```
-It is impossible that a flutter_version has an empty version_name
-It is impossible that two version_installations in the same cache_directory share the same cache_path
-It is impossible that a project_path contains null bytes
-It is impossible that a channel_name is not one of: stable, beta, dev, master, or main
-It is impossible that a git_reference is both a git_branch and a git_tag
-```
+**D5:** It is necessary that each channel has exactly one channel name
 
-### Composition Rules
+**D6:** It is necessary that each flutter release has exactly one release hash
 
-```
-It is necessary that each version_installation is stored in a subdirectory named by the version_name of that version_installation
-It is necessary that each cache_directory contains a subdirectory named 'versions'
-It is necessary that each flutter_fork includes a valid repository_url
-It is necessary that each version_constraint specifies at least a minimum_version or a maximum_version
-```
+**D7:** It is necessary that each git commit has exactly one commit hash
 
-### Referential Integrity Rules
+**D8:** It is necessary that each user has exactly one user identifier
 
-```
-It is necessary that each flavor_name within a project_config is unique
-It is necessary that each project that has a fvm_link has exactly one project_config
-It is necessary that each fvm_link that points to a version_installation points to a version_installation that exists in the cache_directory
-It is impossible that a project uses a flutter_version that does not exist as a version_installation
-```
+---
 
-### Derivation Rules (Definitional Pattern)
+### 3.2 Structural Integrity Rules
 
-```
-total_cache_size = sum of (directory_size of each version_installation in cache_directory)
+**D9:** It is necessary that each project config of a project is stored in a file named .fvmrc in the root directory of that project
 
-cached_version_count = count of version_installations in cache_directory
+**D10:** It is necessary that each fvm link of a project is located at .fvm/flutter_sdk relative to the root directory of that project
 
-active_project_count = count of projects that have an fvm_link pointing to a version_installation
+**D11:** It is necessary that each version installation in a cache directory contains a bin/flutter executable
 
-flavor_count_of_project = count of flavors defined by the project_config of a project
-```
+**D12:** It is necessary that each flutter version that is a semantic version follows the pattern major.minor.patch
+
+**D13:** It is necessary that each git commit that is a git reference has a commit hash of exactly 40 hexadecimal characters
+
+---
+
+### 3.3 Type Constraints
+
+**D14:** It is impossible that a flutter version has an empty version name
+
+**D15:** It is impossible that two version installations in the same cache directory share the same cache path
+
+**D16:** It is impossible that a project path contains null bytes
+
+**D17:** It is impossible that a git reference is both a git branch and a git tag
+
+---
+
+### 3.4 Composition Rules
+
+**D18:** It is necessary that each version installation is stored in a subdirectory named by the version name of that version installation
+
+**D19:** It is necessary that each cache directory contains a subdirectory named 'versions'
+
+**D20:** It is necessary that each flutter fork includes a valid repository url
+
+**D21:** It is necessary that each version constraint specifies at least a minimum version or a maximum version
+
+---
+
+### 3.5 Referential Integrity Rules
+
+**D22:** It is necessary that each flavor name within a project config is unique
+
+**D23:** It is necessary that each project that has a fvm link has exactly one project config
+
+**D24:** It is necessary that each fvm link that points to a version installation points to a version installation that exists in the cache directory
+
+**D25:** It is impossible that a project uses a flutter version that does not exist as a version installation
+
+---
+
+### 3.6 Derivation Rules (Definitional Pattern)
+
+**DR1:** total cache size = sum of (directory size of each version installation in cache directory)
+
+**DR2:** cached version count = count of version installations in cache directory
+
+**DR3:** active project count = count of projects that have an fvm link pointing to a version installation
+
+**DR4:** flavor count of project = count of flavors defined by the project config of a project
 
 ---
 
 ## Part 4: Behavioral Rules (Deontic Modality)
 
-### Installation and Setup Obligations
+### 4.1 Installation and Setup
 
-```
-It is obligatory that FVM verifies the sha256_hash of a flutter_release after download
-It is obligatory that FVM creates a fvm_link for a project when a user selects a flutter_version for that project
-It is obligatory that FVM adds '.fvm/flutter_sdk' to the .gitignore file of a project when creating a fvm_link
-It is obligatory that FVM validates that a flutter_version meets the version_constraint of a project before allowing use
-It is obligatory that FVM checks if a flutter_version exists as a version_installation before downloading
-```
+**Obligations:**
 
-### Cache Management Rules
+**B1:** It is obligatory that the sha256 hash of a flutter release is verified after download
 
-```
-It is obligatory that FVM maintains read and write permissions for the user on the cache_directory
-It is obligatory that FVM preserves all version_installations when a project switches flutter_version
-It is obligatory that FVM reports the directory_size of the cache_directory when requested by a user
-It is obligatory that FVM validates the integrity of a version_installation before creating a fvm_link to it
-```
+**B2:** It is obligatory that a fvm link is created for a project when a user selects a flutter version for that project
 
-### Configuration Management
+**B3:** It is obligatory that '.fvm/flutter_sdk' is added to the .gitignore file of a project when a fvm link is created
 
-```
-It is obligatory that FVM reads the project_config from the .fvmrc file of a project
-It is obligatory that FVM creates a .fvmrc file when a user selects a flutter_version for a project that has no project_config
-It is obligatory that FVM respects the settings in the global_config when no project_config exists
-It is obligatory that FVM validates the JSON structure of a project_config before processing
-```
+**B4:** It is obligatory that a flutter version is validated to meet the version constraint of a project before use is allowed
 
-### Version Selection Rules
+**B5:** It is obligatory that a flutter version is checked for existence as a version installation before downloading
 
-```
-It is prohibited that FVM uses a flutter_version for a project that does not meet the version_constraint of that project
-It is prohibited that FVM switches the flutter_version of a project while Flutter processes are running for that project
-It is prohibited that FVM installs a flutter_version from an untrusted flutter_fork without user confirmation
-It is prohibited that FVM deletes a version_installation that is referenced by any fvm_link
-```
+---
 
-### Update and Notification Rules
+### 4.2 Cache Management
 
-```
-It is obligatory that FVM checks for updates to the flutter_version of a project when the update_notification_flag is enabled
-It is obligatory that FVM notifies the user when the flutter_version of a project does not match the version_constraint
-It is obligatory that FVM displays migration information when switching between flutter_versions with breaking changes
-```
+**Obligations:**
 
-### File System Operations
+**B6:** It is obligatory that read and write permissions are maintained for the user on the cache directory
 
-```
-It is prohibited that FVM modifies files within a version_installation directory
-It is prohibited that FVM creates circular symbolic links
-It is prohibited that FVM overwrites an existing project_config without user confirmation
-It is prohibited that FVM removes the cache_directory while any project has a fvm_link
-```
+**B7:** It is obligatory that all version installations are preserved when a project switches flutter version
 
-### User Permissions
+**B8:** It is obligatory that the directory size of the cache directory is reported when requested by a user
 
-```
-It is permitted that a user overrides the version_constraint of a project with a force flag
-It is permitted that a user skips setup steps with a skip-setup flag
-It is permitted that a user uses a flutter_fork instead of official releases
-It is permitted that a user removes unused version_installations from the cache_directory
-It is permitted that a user defines multiple flavors in a project_config
-It is permitted that a user uses a git_reference to specify a flutter_version
-```
+**B9:** It is obligatory that the integrity of a version installation is validated before a fvm link is created to it
 
-### Advanced Operations
+---
 
-```
-It is permitted that a user installs pre-release flutter_versions
-It is permitted that a user bypasses the cache_directory with a no-cache flag
-It is permitted that a user executes flutter_commands through FVM proxy
-It is permitted that a user exports the project_config for team sharing
-It is permitted that a user sets environment_variables to override global_config settings
-```
+### 4.3 Configuration Management
+
+**Obligations:**
+
+**B10:** It is obligatory that the project config is read from the .fvmrc file of a project
+
+**B11:** It is obligatory that a .fvmrc file is created when a user selects a flutter version for a project that has no project config
+
+**B12:** It is obligatory that the settings in the global config are respected when no project config exists
+
+**B13:** It is obligatory that the JSON structure of a project config is validated before processing
+
+---
+
+### 4.4 Version Selection
+
+**Prohibitions:**
+
+**B14:** It is prohibited that a flutter version is used for a project that does not meet the version constraint of that project
+
+**B15:** It is prohibited that the flutter version of a project is switched while Flutter processes are running for that project
+
+**B16:** It is prohibited that a flutter version is installed from an untrusted flutter fork without user confirmation
+
+**B17:** It is prohibited that a version installation is deleted that is referenced by any fvm link
+
+---
+
+### 4.5 Update and Notification
+
+**Obligations:**
+
+**B18:** It is obligatory that updates to the flutter version of a project are checked when the update notification flag is enabled
+
+**B19:** It is obligatory that the user is notified when the flutter version of a project does not match the version constraint
+
+**B20:** It is obligatory that migration information is displayed when switching between flutter versions with breaking changes
+
+---
+
+### 4.6 File System Operations
+
+**Prohibitions:**
+
+**B21:** It is prohibited that files within a version installation directory are modified
+
+**B22:** It is prohibited that circular symbolic links are created
+
+**B23:** It is prohibited that an existing project config is overwritten without user confirmation
+
+**B24:** It is prohibited that the cache directory is removed while any project has a fvm link
+
+---
+
+### 4.7 User Permissions
+
+**Permissions:**
+
+**B25:** It is permitted that a user overrides the version constraint of a project with a force flag
+
+**B26:** It is permitted that a user skips setup steps with a skip-setup flag
+
+**B27:** It is permitted that a user uses a flutter fork instead of official releases
+
+**B28:** It is permitted that a user removes unused version installations from the cache directory
+
+**B29:** It is permitted that a user defines multiple flavors in a project config
+
+**B30:** It is permitted that a user uses a git reference to specify a flutter version
+
+---
+
+### 4.8 Advanced Operations
+
+**Permissions:**
+
+**B31:** It is permitted that a user installs pre-release flutter versions
+
+**B32:** It is permitted that a user bypasses the cache directory with a no-cache flag
+
+**B33:** It is permitted that a user executes flutter commands through FVM proxy
+
+**B34:** It is permitted that a user exports the project config for team sharing
+
+**B35:** It is permitted that a user sets environment variables to override global config settings
 
 ---
 
 ## Part 5: Complex Business Rules
 
-### Version Resolution Algorithm
+### 5.1 Version Resolution Algorithm
 
-```
-It is obligatory that FVM uses the flutter_version specified in a command argument
-  if a user specifies a flutter_version in a command argument for a project
+**B36:** It is obligatory that the flutter version specified in a command argument is used
+  if a user specifies a flutter version in a command argument for a project
 
-It is obligatory that FVM uses the flutter_version specified by the active flavor of a project
-  if no flutter_version is specified in a command argument
+**B37:** It is obligatory that the flutter version specified by the active flavor of a project is used
+  if no flutter version is specified in a command argument
   and a flavor is active for that project
 
-It is obligatory that FVM uses the flutter_version specified in the project_config of a project
-  if no flutter_version is specified in a command argument
+**B38:** It is obligatory that the flutter version specified in the project config of a project is used
+  if no flutter version is specified in a command argument
   and no flavor is active for that project
-  and a project_config exists for that project
+  and a project config exists for that project
 
-It is obligatory that FVM uses the flutter_version specified in the global_config
-  if no flutter_version is specified in a command argument
+**B39:** It is obligatory that the flutter version specified in the global config is used
+  if no flutter version is specified in a command argument
   and no flavor is active for the project
-  and no project_config exists for the project
-  and a global_config exists
+  and no project config exists for the project
+  and a global config exists
 
-It is obligatory that FVM uses the system Flutter installation
+**B40:** It is obligatory that the system Flutter installation is used
   if no FVM configuration exists for a project
-```
 
-```
-It is obligatory that FVM validates that the dart_version of a flutter_version is compatible with the dependencies of a project before using that flutter_version for that project
+---
 
-It is obligatory that FVM validates that a flutter_version satisfies the version_constraint of a project before using that flutter_version for that project
+**B41:** It is obligatory that the dart version of a flutter version is validated for compatibility with the dependencies of a project before that flutter version is used for that project
 
-It is obligatory that FVM validates that a version_installation supports the architecture of the system before using that version_installation
+**B42:** It is obligatory that a flutter version is validated to satisfy the version constraint of a project before that flutter version is used for that project
 
-It is obligatory that FVM validates that a version_installation runs on the operating_system of the system before using that version_installation
-```
+**B43:** It is obligatory that a version installation is validated to support the architecture of the system before that version installation is used
 
-### Cache Management Policy
+**B44:** It is obligatory that a version installation is validated to run on the operating system of the system before that version installation is used
 
-```
-It is permitted that FVM removes a version_installation from the cache_directory
-  if the user explicitly requests removal of that version_installation
+---
 
-It is permitted that FVM removes a version_installation from the cache_directory
-  if that version_installation is corrupted or incomplete
+### 5.2 Cache Management Policy
 
-It is permitted that FVM removes a version_installation from the cache_directory
-  if the directory_size of the cache_directory exceeds a configured limit
+**B45:** It is permitted that a version installation is removed from the cache directory
+  if the user explicitly requests removal of that version installation
 
-It is prohibited that FVM removes a version_installation that is referenced by any fvm_link
+**B46:** It is permitted that a version installation is removed from the cache directory
+  if that version installation is corrupted or incomplete
 
-It is prohibited that FVM removes a version_installation that is marked as protected by the user
+**B47:** It is permitted that a version installation is removed from the cache directory
+  if the directory size of the cache directory exceeds a configured limit
 
-It is prohibited that FVM removes a version_installation that is the only version_installation satisfying the version_constraint of an active project
-```
+**B48:** It is prohibited that a version installation is removed that is referenced by any fvm link
 
-```
-It is permitted that multiple projects share the same version_installation
+**B49:** It is prohibited that a version installation is removed that is marked as protected by the user
 
-It is necessary that each project maintains its own fvm_link
+**B50:** It is prohibited that a version installation is removed that is the only version installation satisfying the version constraint of an active project
 
-It is prohibited that any project modifies a shared version_installation
+---
 
-It is obligatory that FVM uses file locking when multiple projects access the same version_installation concurrently
-```
+**B51:** It is permitted that multiple projects share the same version installation
 
-### Fork and Custom Build Management
+**D26:** It is necessary that each project maintains its own fvm link
 
-```
-It is permitted that a user uses a flutter_fork for testing experimental features
+**B52:** It is prohibited that any project modifies a shared version installation
 
-It is permitted that a user uses a flutter_fork for enterprise-specific Flutter builds
+**B53:** It is obligatory that file locking is used when multiple projects access the same version installation concurrently
 
-It is permitted that a user uses a flutter_fork for contributing to Flutter development
+---
 
-It is obligatory that FVM displays a warning when using a flutter_fork
+### 5.3 Fork and Custom Build Management
 
-It is obligatory that FVM records the fork_url in the metadata of a version_installation from a flutter_fork
+**B54:** It is permitted that a user uses a flutter fork for testing experimental features
 
-It is prohibited that FVM auto-updates a flutter_version from a flutter_fork
-```
+**B55:** It is permitted that a user uses a flutter fork for enterprise-specific Flutter builds
 
-### Flavor Management Protocol
+**B56:** It is permitted that a user uses a flutter fork for contributing to Flutter development
 
-```
-It is obligatory that FVM switches to the flutter_version specified by a flavor when a user activates that flavor
+**B57:** It is obligatory that a warning is displayed when a flutter fork is used
 
-It is obligatory that FVM updates the fvm_link atomically when switching flutter_version to prevent corruption
+**B58:** It is obligatory that the fork url is recorded in the metadata of a version installation from a flutter fork
 
-It is prohibited that multiple flavors of the same project are active simultaneously
+**B59:** It is prohibited that a flutter version from a flutter fork is auto-updated
 
-It is permitted that different flavors of a project reference the same version_installation
-```
+---
 
-```
-It is permitted that a flavor inherits settings from the project_config of its project
+### 5.4 Flavor Management Protocol
 
-It is necessary that flavor-specific settings override inherited settings from project_config
+**B60:** It is obligatory that the flutter version specified by a flavor is switched to when a user activates that flavor
 
-It is obligatory that FVM validates that each flavor specifies a valid flutter_version
+**B61:** It is obligatory that the fvm link is updated atomically when switching flutter version to prevent corruption
 
-It is prohibited that a flavor references a flutter_version incompatible with the project
-```
+**B62:** It is prohibited that multiple flavors of the same project are active simultaneously
+
+**B63:** It is permitted that different flavors of a project reference the same version installation
+
+---
+
+**B64:** It is permitted that a flavor inherits settings from the project config of its project
+
+**D27:** It is necessary that flavor-specific settings override inherited settings from project config
+
+**B65:** It is obligatory that each flavor is validated to specify a valid flutter version
+
+**B66:** It is prohibited that a flavor references a flutter version incompatible with the project
 
 ---
 
 ## Part 6: State Management Rules
 
-### Version State Transitions
+### 6.1 Version State Transitions
 
-```
-It is necessary that downloading of a flutter_version precedes installation of that flutter_version
+**ST1:** It is necessary that downloading of a flutter version precedes installation of that flutter version
 
-It is necessary that installation of a flutter_version precedes caching of that flutter_version as a version_installation
+**ST2:** It is necessary that installation of a flutter version precedes caching of that flutter version as a version installation
 
-It is necessary that caching of a flutter_version precedes linking of that version_installation by an fvm_link
+**ST3:** It is necessary that caching of a flutter version precedes linking of that version installation by a fvm link
 
-It is necessary that unlinking of a version_installation precedes deletion of that version_installation
+**ST4:** It is necessary that unlinking of a version installation precedes deletion of that version installation
 
-It is impossible that a flutter_version skips the downloading state before installation
+**ST5:** It is impossible that a flutter version skips the downloading state before installation
 
-It is impossible that a version_installation is deleted before it is unlinked from all fvm_links
+**ST6:** It is impossible that a version installation is deleted before it is unlinked from all fvm links
 
-It is obligatory that FVM logs each state transition of a flutter_version
-```
+**B67:** It is obligatory that each state transition of a flutter version is logged
 
-### Project Configuration States
+---
 
-```
-It is necessary that configuration of a project precedes any use of a flutter_version by that project through FVM
+### 6.2 Project Configuration States
 
-It is obligatory that FVM creates a backup of a project_config before updating that project_config
+**ST7:** It is necessary that configuration of a project precedes any use of a flutter version by that project through FVM
 
-It is prohibited that a project has multiple simultaneous configuration operations
-```
+**B68:** It is obligatory that a backup of a project config is created before that project config is updated
+
+**B69:** It is prohibited that a project has multiple simultaneous configuration operations
 
 ---
 
 ## Part 7: Error Recovery Rules
 
-### Installation Failure Recovery
+### 7.1 Installation Failure Recovery
 
-```
-It is obligatory that FVM rolls back partial installations when download fails
-It is obligatory that FVM preserves the previous fvm_link when version switching fails
-It is obligatory that FVM validates the cache_directory integrity after unexpected termination
-It is obligatory that FVM provides actionable error messages with recovery steps
-```
+**B70:** It is obligatory that partial installations are rolled back when download fails
 
-### Configuration Error Handling
+**B71:** It is obligatory that the previous fvm link is preserved when version switching fails
 
-```
-It is obligatory that FVM validates the project_config schema before processing
-It is obligatory that FVM checks disk space before downloading a flutter_version
-It is obligatory that FVM verifies network connectivity before accessing remote resources
-It is prohibited that FVM proceeds with corrupted or incomplete downloads
-```
+**B72:** It is obligatory that the cache directory integrity is validated after unexpected termination
+
+**B73:** It is obligatory that actionable error messages with recovery steps are provided
+
+---
+
+### 7.2 Configuration Error Handling
+
+**B74:** It is obligatory that the project config schema is validated before processing
+
+**B75:** It is obligatory that disk space is checked before downloading a flutter version
+
+**B76:** It is obligatory that network connectivity is verified before accessing remote resources
+
+**B77:** It is prohibited that corrupted or incomplete downloads are processed
 
 ---
 
 ## Part 8: Integration Rules
 
-### IDE Integration Protocol
+### 8.1 IDE Integration Protocol
 
-```
-It is obligatory that FVM updates VS Code settings.json when switching flutter_version for a project
-It is obligatory that FVM preserves user customizations in IDE configuration files
-It is permitted that FVM configures IntelliJ IDEA Flutter SDK path
-It is obligatory that FVM notifies IDEs of flutter_version changes through filesystem watchers
-```
+**B78:** It is obligatory that VS Code settings.json is updated when flutter version is switched for a project
 
-### CI/CD Integration
+**B79:** It is obligatory that user customizations in IDE configuration files are preserved
 
-```
-It is obligatory that FVM provides non-interactive mode for automation environments
-It is obligatory that FVM returns standardized exit codes for script integration
-It is permitted that FVM reads configuration from environment_variables in CI environments
-It is obligatory that FVM supports headless operation without GUI dependencies
-```
+**B80:** It is permitted that IntelliJ IDEA Flutter SDK path is configured
 
-### Tool Chain Integration
+**B81:** It is obligatory that IDEs are notified of flutter version changes through filesystem watchers
 
-```
-It is permitted that FVM integrates with Melos for monorepo management
-It is permitted that FVM proxies dart and pub commands to the active flutter_version
-It is obligatory that FVM maintains PATH environment compatibility
-It is obligatory that FVM preserves all flutter_command functionality
-```
+---
+
+### 8.2 CI/CD Integration
+
+**B82:** It is obligatory that non-interactive mode is provided for automation environments
+
+**B83:** It is obligatory that standardized exit codes are returned for script integration
+
+**B84:** It is permitted that configuration is read from environment variables in CI environments
+
+**B85:** It is obligatory that headless operation without GUI dependencies is supported
+
+---
+
+### 8.3 Tool Chain Integration
+
+**B86:** It is permitted that Melos is integrated for monorepo management
+
+**B87:** It is permitted that dart and pub commands are proxied to the active flutter version
+
+**B88:** It is obligatory that PATH environment compatibility is maintained
+
+**B89:** It is obligatory that all flutter command functionality is preserved
 
 ---
 
@@ -700,49 +822,53 @@ It is obligatory that FVM preserves all flutter_command functionality
 
 ### Version Format Specifications
 
-```
-Semantic Version Pattern: ^(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9\-\.]+))?$
-Channel Name Pattern: ^(stable|beta|dev|master|main)$
-Git Commit Pattern: ^[a-f0-9]{40}$
-Fork Reference Pattern: ^[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+$
-```
+| Pattern Name | Regular Expression |
+|--------------|-------------------|
+| Semantic Version | `^(\d+)\.(\d+)\.(\d+)(?:-([a-zA-Z0-9\-\.]+))?$` |
+| Channel Name | `^(stable\|beta\|dev\|master\|main)$` |
+| Git Commit | `^[a-f0-9]{40}$` |
+| Fork Reference | `^[a-zA-Z0-9\-]+\/[a-zA-Z0-9\-]+$` |
+
+---
 
 ### Path Validation Requirements
 
-```
-It is necessary that each project_path is an absolute path or relative to current directory
-It is necessary that each cache_path is an absolute filesystem path
-It is necessary that each link_path resolves to a valid target
-It is prohibited that any path contains null bytes or filesystem-invalid characters
-```
+**D28:** It is necessary that each project path is an absolute path or relative to current directory
+
+**D29:** It is necessary that each cache path is an absolute filesystem path
+
+**D30:** It is necessary that each link path resolves to a valid target
+
+**D31:** It is prohibited that any path contains null bytes or filesystem-invalid characters
 
 ---
 
 ## Appendix B: Cardinality Reference
 
 | Relationship | Subject Cardinality | Object Cardinality |
-|-------------|-------------------|-------------------|
-| project uses flutter_version | 0..1 | 0..* |
-| project_config belongs to project | 1..1 | 0..1 |
-| project has project_constraint | 0..1 | 1..1 |
-| project_constraint uses version_constraint | 1..1 | 0..* |
-| flutter_version belongs to channel | 1..* | 0..* |
-| flutter_version is installed in cache_directory | 0..1 | 0..* |
-| version_installation involves flutter_version | 1..1 | 0..1 |
-| version_installation resides in cache_directory | 1..1 | 0..* |
-| fvm_link points to version_installation | 0..1 | 0..* |
-| flavor specifies flutter_version | 1..1 | 0..* |
-| project_config defines flavor | 1..1 | 0..* |
+|--------------|--------------------|--------------------|
+| project uses flutter version | 0..1 | 0..* |
+| project config belongs to project | 1..1 | 0..1 |
+| project has project constraint | 0..1 | 1..1 |
+| project constraint uses version constraint | 1..1 | 0..* |
+| flutter version belongs to channel | 1..* | 0..* |
+| flutter version is installed in cache directory | 0..1 | 0..* |
+| version installation involves flutter version | 1..1 | 0..1 |
+| version installation resides in cache directory | 1..1 | 0..* |
+| fvm link points to version installation | 0..1 | 0..* |
+| flavor specifies flutter version | 1..1 | 0..* |
+| project config defines flavor | 1..1 | 0..* |
 
 ---
 
 ## Document Metadata
 
-- **Version**: 2.3.0
+- **Version**: 2.4.0
 - **SBVR Standard**: 1.5
 - **Based on**: FVM 4.0.0-beta.2
 - **Status**: Final
-- **Last Updated**: 2025-12-05
+- **Last Updated**: 2025-12-24
+- **Aligned with**: SBVR Complete Implementation Guide
 
 ---
 
