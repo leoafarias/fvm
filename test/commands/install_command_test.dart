@@ -46,7 +46,7 @@ void main() {
         );
 
     // Assertions
-    expect(cacheVersion != null, true, reason: 'Install does not exist');
+    expect(cacheVersion, isNotNull, reason: 'Install does not exist');
     expect(existingChannel, releaseChannel);
     expect(exitCode, ExitCode.success.code);
   }

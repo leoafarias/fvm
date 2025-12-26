@@ -21,7 +21,7 @@ void main() {
           releases.containsVersion('v1.9.1+hotfix.4');
       final channels = releases.channels.toMap().keys;
 
-      expect(versionsExists, true);
+      expect(versionsExists, isTrue);
       expect(channels.length, 3);
     });
 
