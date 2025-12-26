@@ -115,6 +115,7 @@ class DoctorCommand extends BaseFvmCommand {
     );
 
     if (localPropertiesFile.existsSync()) {
+      String? sdkPath;
       final localProperties = localPropertiesFile.readAsLinesSync();
       final sdkLines = localProperties.where(
         (line) => line.startsWith('flutter.sdk'),
@@ -126,8 +127,24 @@ class DoctorCommand extends BaseFvmCommand {
           'flutter.sdk not found in local.properties',
         ]);
       } else {
-        final sdkPath = sdkLines.first.split('=')[1];
-        table.insertRow(['flutter.sdk', sdkPath]);
+        final parts = sdkLines.first.split('=');
+        if (parts.length < 2) {
+          table.insertRow([
+            'flutter.sdk',
+            'Malformed entry in local.properties',
+          ]);
+        } else {
+          final sdkValue = parts.sublist(1).join('=').trim();
+          if (sdkValue.isEmpty) {
+            table.insertRow([
+              'flutter.sdk',
+              'Malformed entry in local.properties',
+            ]);
+          } else {
+            sdkPath = sdkValue;
+            table.insertRow(['flutter.sdk', sdkPath]);
+          }
+        }
 
         // Only attempt to resolve symlink if version is pinned
         if (project.pinnedVersion == null) {
@@ -148,7 +165,9 @@ class DoctorCommand extends BaseFvmCommand {
               final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
               table.insertRow([
                 'Matches pinned version:',
-                sdkPath == resolvedLink,
+                sdkPath == null
+                    ? 'Cannot validate - malformed flutter.sdk entry'
+                    : sdkPath == resolvedLink,
               ]);
             } on FileSystemException catch (_) {
               table.insertRow([

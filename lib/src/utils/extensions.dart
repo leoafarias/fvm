@@ -60,8 +60,14 @@ extension LinkExtensions on Link {
     final target = Directory(targetPath);
 
     final sourceExists = existsSync();
-    if (sourceExists && targetSync() == target.path) {
-      return;
+    if (sourceExists) {
+      try {
+        if (targetSync() == target.path) {
+          return;
+        }
+      } on FileSystemException {
+        // Broken symlink; continue to delete and recreate.
+      }
     }
 
     if (sourceExists) {

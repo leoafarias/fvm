@@ -219,7 +219,17 @@ bool isValidGitUrl(String url) {
       return false;
     }
 
-    if (uri.host.isEmpty && uri.authority.isEmpty && uri.scheme != 'file') {
+    final scheme = uri.scheme.toLowerCase();
+    const allowedSchemes = {'https', 'http', 'git', 'ssh', 'file'};
+    if (!allowedSchemes.contains(scheme)) {
+      return false;
+    }
+
+    if (scheme == 'file') {
+      return _hasGitExtension(uri.path);
+    }
+
+    if (uri.host.isEmpty && uri.authority.isEmpty) {
       return false;
     }
 
@@ -315,6 +325,24 @@ Future<int> getDirectorySize(Directory dir) async {
   return total;
 }
 
+Future<int> _getVersionDirectorySize(
+  CacheFlutterVersion version,
+  Logger logger,
+) async {
+  try {
+    return await getDirectorySize(version.directory.dir);
+  } on FileSystemException catch (e) {
+    logger.debug('Cannot access ${version.name} for size calculation: $e');
+
+    return 0;
+  } catch (e) {
+    // Log error but continue with zero for this directory
+    logger.warn('Error calculating size for ${version.name}: $e');
+
+    return 0;
+  }
+}
+
 /// Calculates total size of all cached Flutter versions in parallel.
 Future<int> getFullDirectorySize(
   List<CacheFlutterVersion> versions,
@@ -325,26 +353,16 @@ Future<int> getFullDirectorySize(
   try {
     // Process all directories in parallel with error handling for each
     final sizes = await Future.wait(
-      versions.map((version) async {
-        try {
-          return await getDirectorySize(version.directory.dir);
-        } on FileSystemException catch (e) {
-          logger.debug(
-            'Cannot access ${version.name} for size calculation: $e',
-          );
-
-          return 0;
-        } catch (e) {
-          // Log error but continue with zero for this directory
-          logger.warn('Error calculating size for ${version.name}: $e');
-
-          return 0;
-        }
-      }),
+      versions.map((version) => _getVersionDirectorySize(version, logger)),
     );
 
     // Sum all sizes in one operation
-    return sizes.fold<int>(0, (sum, size) => sum + size);
+    var total = 0;
+    for (final size in sizes) {
+      total += size;
+    }
+
+    return total;
   } catch (e) {
     // Fallback if parallel execution fails
     logger.err(
@@ -363,7 +381,7 @@ Map<String, String> updateEnvironmentVariables(
   // Remove duplicates
   paths = paths.toSet().toList();
 
-  final updatedEnvironment = Map<String, String>.of(env);
+  final updatedEnvironment = Map.of(env);
   final envPath = env['PATH'] ?? '';
   final separator = Platform.isWindows ? ';' : ':';
 

@@ -88,6 +88,21 @@ void main() {
       expect(isValidGitUrl('not a url'), isFalse);
       expect(isValidGitUrl(''), isFalse);
     });
+
+    test('rejects URLs without .git extension', () {
+      // Valid schemes but missing .git suffix
+      expect(isValidGitUrl('https://github.com/flutter/flutter'), isFalse);
+      expect(isValidGitUrl('ssh://git@github.com/flutter/flutter'), isFalse);
+      expect(isValidGitUrl('file:///path/to/repo'), isFalse);
+    });
+
+    test('accepts all valid git URL schemes', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('http://github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('git://github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('ssh://git@github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('file:///path/to/repo.git'), isTrue);
+    });
   });
 
   group('extractFlutterVersionOutput', () {

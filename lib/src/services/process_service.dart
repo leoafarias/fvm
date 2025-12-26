@@ -44,6 +44,7 @@ class ProcessService extends ContextualService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
+    bool runInShell = true,
   }) async {
     logger
       ..debug('')
@@ -56,7 +57,7 @@ class ProcessService extends ContextualService {
         args,
         workingDirectory: workingDirectory,
         environment: environment,
-        runInShell: true,
+        runInShell: runInShell,
       );
 
       if (throwOnError) {
@@ -70,7 +71,7 @@ class ProcessService extends ContextualService {
       args,
       workingDirectory: workingDirectory,
       environment: environment,
-      runInShell: true,
+      runInShell: runInShell,
       mode: ProcessStartMode.inheritStdio,
     );
 

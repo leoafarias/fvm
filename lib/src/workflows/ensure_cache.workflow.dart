@@ -18,12 +18,24 @@ class EnsureCacheWorkflow extends Workflow {
   Future<CacheFlutterVersion> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
+    required bool force,
+    int retryCount = 0,
   }) {
+    const maxRetries = 2;
+    if (retryCount >= maxRetries) {
+      throw AppException(
+        'Failed to fix corrupted cache after $maxRetries attempts. '
+        'Please check disk space and permissions, then try again.',
+      );
+    }
+
     logger
       ..notice(
         'Flutter SDK version: ${version.name} isn\'t executable, indicating the cache is corrupted.',
       )
-      ..info('Auto-fixing corrupted cache by reinstalling...');
+      ..info(
+        'Auto-fixing corrupted cache by reinstalling (attempt ${retryCount + 1}/$maxRetries)...',
+      );
 
     // Always auto-fix corrupted cache - no prompting needed
     // Corrupted cache is always a problem that needs fixing
@@ -32,7 +44,12 @@ class EnsureCacheWorkflow extends Workflow {
       'The corrupted SDK version is now being removed and a reinstallation will follow...',
     );
 
-    return call(version, shouldInstall: shouldInstall);
+    return call(
+      version,
+      shouldInstall: shouldInstall,
+      force: force,
+      retryCount: retryCount + 1,
+    );
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
@@ -114,6 +131,7 @@ class EnsureCacheWorkflow extends Workflow {
     FlutterVersion version, {
     bool shouldInstall = false,
     bool force = false,
+    int retryCount = 0,
   }) async {
     _validateContext();
     _validateGit();
@@ -131,6 +149,8 @@ class EnsureCacheWorkflow extends Workflow {
         return await _handleNonExecutable(
           cacheVersion,
           shouldInstall: shouldInstall,
+          force: force,
+          retryCount: retryCount,
         );
       }
 
@@ -175,8 +195,8 @@ class EnsureCacheWorkflow extends Workflow {
     if (useGitCache && !version.fromFork) {
       try {
         await gitService.updateLocalMirror();
-      } on Exception {
-        logger.warn('Failed to setup local cache. Falling back to git clone.');
+      } on Exception catch (e) {
+        logger.warn('Failed to setup local cache ($e). Falling back to git clone.');
         // Do not rethrow, allow to fallback to clone
       }
     }

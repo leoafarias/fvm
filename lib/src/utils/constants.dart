@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
+import 'exceptions.dart';
+
 /// The package name for Flutter Version Management (FVM).
 /// This value is used to construct directory paths and identifiers for FVM.
 const kPackageName = 'fvm';
@@ -61,7 +63,19 @@ String dartExecFileName = 'dart$_execExtension';
 /// The current user's home directory.
 /// On Windows, it is taken from the 'USERPROFILE' environment variable,
 /// while on other platforms it is taken from the 'HOME' environment variable.
-final kUserHome = Platform.isWindows ? _env['USERPROFILE']! : _env['HOME']!;
+String _getUserHome() {
+  final home = Platform.isWindows ? _env['USERPROFILE'] : _env['HOME'];
+  if (home == null || home.isEmpty) {
+    throw AppException(
+      'Could not determine the user home directory. '
+      'Please set ${Platform.isWindows ? 'USERPROFILE' : 'HOME'}.',
+    );
+  }
+
+  return home;
+}
+
+final kUserHome = _getUserHome();
 
 /// The FVM home directory, constructed by joining the user's home directory with the package name.
 /// This directory stores global FVM configuration and state files.
@@ -86,7 +100,7 @@ String get _configHome {
   if (Platform.isWindows) {
     final appdata = _env['APPDATA'];
     if (appdata == null) {
-      throw Exception('Environment variable %APPDATA% is not defined!');
+      throw AppException('Environment variable %APPDATA% is not defined!');
     }
 
     return appdata;

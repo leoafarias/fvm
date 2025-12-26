@@ -20,6 +20,7 @@ class _FakeProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
+    bool runInShell = true,
   }) async {
     if (exception != null) {
       throw exception!;
