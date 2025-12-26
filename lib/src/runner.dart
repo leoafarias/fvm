@@ -69,12 +69,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(IntegrationTestCommand(context));
   }
 
-  /// Disable auto-install of shell completions to avoid PathAccessException
-  /// in managed environments (Nix/Home Manager) where shell configs are read-only.
-  /// Users can still manually install completions via `fvm completion install`.
-  @override
-  bool get enableAutoInstall => false;
-
   /// Checks if the current version (set by the build runner on the
   /// version.dart file) is the most recent one. If not, show a prompt to the
   /// user.
@@ -310,4 +304,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     return exitCode;
   }
+
+  /// Disable auto-install of shell completions to avoid PathAccessException
+  /// in managed environments (Nix/Home Manager) where shell configs are read-only.
+  /// Users can still manually install completions via `fvm completion install`.
+  @override
+  bool get enableAutoInstall => false;
 }

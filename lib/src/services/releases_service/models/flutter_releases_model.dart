@@ -83,11 +83,15 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
   final currentRelease = currentReleaseValue;
 
   final releasesValue = map['releases'];
-  if (releasesValue is! List<dynamic>) {
+  if (releasesValue is! List) {
     throw AppException('Invalid releases data: missing releases list');
   }
-  // ignore: avoid-dynamic
-  final releasesJson = releasesValue;
+  final releasesJson = releasesValue.whereType<Map<String, dynamic>>().toList();
+  if (releasesJson.length != releasesValue.length) {
+    throw AppException(
+      'Invalid releases data: release entries must be objects',
+    );
+  }
 
   final systemArch = _currentSystemArch();
 
@@ -116,9 +120,7 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    final releaseItem = FlutterSdkRelease.fromMap(
-      release as Map<String, dynamic>,
-    );
+    final releaseItem = FlutterSdkRelease.fromMap(release);
 
     /// Add to releases
     releasesList.add(releaseItem);

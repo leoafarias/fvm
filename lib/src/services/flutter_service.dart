@@ -356,7 +356,7 @@ class VersionRunner {
 
     logger.debug('Starting to update environment variables...');
 
-    final updatedEnvironment = Map<String, String>.of(env);
+    final updatedEnvironment = Map.of(env);
 
     final envPath = env['PATH'] ?? '';
 
