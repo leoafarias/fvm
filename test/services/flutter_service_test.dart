@@ -98,6 +98,7 @@ class _FakeProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
+    bool runInShell = true,
   }) async {
     lastCommand = command;
     lastArgs = args;
