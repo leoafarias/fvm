@@ -163,6 +163,8 @@ String? _currentSystemArch() {
     return null;
   }
 
+  // Returns the Dart VM architecture, not native hardware.
+  // On Rosetta 2, this returns x64 even on ARM64 Macs.
   switch (Abi.current()) {
     case Abi.macosArm64:
       return 'arm64';
