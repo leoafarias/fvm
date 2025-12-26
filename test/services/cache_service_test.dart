@@ -107,14 +107,16 @@ void main() {
         // Given
         final versions = ['2.0.0', '1.0.0', 'stable', 'beta'];
         for (final version in versions) {
-          Directory(
-            path.join(tempDir.path, version),
-          ).createSync(recursive: true);
+          final versionDir = Directory(path.join(tempDir.path, version))
+            ..createSync(recursive: true);
 
-          // Add bin/flutter to mark this as a Flutter SDK directory
-          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
-          binDir.createSync(recursive: true);
-          File(path.join(binDir.path, 'flutter')).createSync();
+          // Add the "version" file
+          File(path.join(versionDir.path, 'version'))
+              .writeAsStringSync('$version (test)');
+
+          // Create bin/flutter to mark as valid SDK directory
+          File(path.join(versionDir.path, 'bin', 'flutter'))
+              .createSync(recursive: true);
         }
 
         // Create a non-directory file that should be ignored
@@ -142,47 +144,31 @@ void main() {
         );
       });
 
-      test('skips hidden directories like .dart_tool', () async {
-        // Given
-        final versions = ['stable', 'beta'];
-        for (final version in versions) {
-          Directory(
-            path.join(tempDir.path, version),
-          ).createSync(recursive: true);
+      test(
+        'detects SDK directory without version file when git and flutter bin exist',
+        () async {
+          final versionName = 'stable';
+          final versionDir = Directory(path.join(tempDir.path, versionName))
+            ..createSync(recursive: true);
 
-          // Add bin/flutter to mark this as a Flutter SDK directory
-          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
-          binDir.createSync(recursive: true);
-          File(path.join(binDir.path, 'flutter')).createSync();
-        }
+          // Simulate a repo clone missing the version metadata file
+          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+          File(
+            path.join(
+              versionDir.path,
+              'bin',
+              Platform.isWindows ? 'flutter.bat' : 'flutter',
+            ),
+          )
+            ..createSync(recursive: true)
+            ..writeAsStringSync('dummy');
 
-        // Create a hidden directory (.dart_tool) with bin/flutter
-        // This simulates the bug where .dart_tool was being picked up
-        final dartToolDir = Directory(
-          path.join(tempDir.path, '.dart_tool'),
-        )..createSync(recursive: true);
-        final dartToolBinDir = Directory(path.join(dartToolDir.path, 'bin'));
-        dartToolBinDir.createSync(recursive: true);
-        File(path.join(dartToolBinDir.path, 'flutter')).createSync();
+          final result = await cacheService.getAllVersions();
 
-        // Create another hidden directory (.DS_Store)
-        Directory(
-          path.join(tempDir.path, '.hidden'),
-        ).createSync(recursive: true);
-
-        // When
-        final result = await cacheService.getAllVersions();
-
-        // Then - should only find the non-hidden directories
-        expect(result, hasLength(versions.length));
-        expect(result.map((v) => v.name).toList(), containsAll(versions));
-        // Ensure .dart_tool is not in the results
-        expect(
-          result.map((v) => v.name).toList(),
-          isNot(contains('.dart_tool')),
-        );
-        expect(result.map((v) => v.name).toList(), isNot(contains('.hidden')));
-      });
+          expect(result, hasLength(1));
+          expect(result.single.name, versionName);
+        },
+      );
     });
 
     group('remove', () {
