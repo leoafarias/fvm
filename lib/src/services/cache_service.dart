@@ -256,7 +256,9 @@ class CacheService extends ContextualService {
 
     try {
       return _globalCacheLink.targetSync() == version.directory;
-    } on FileSystemException {
+    } on FileSystemException catch (e) {
+      logger.debug('Cannot verify if version is global: $e');
+
       return false;
     }
   }
