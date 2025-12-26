@@ -134,8 +134,16 @@ class DoctorCommand extends BaseFvmCommand {
             'Malformed entry in local.properties',
           ]);
         } else {
-          sdkPath = parts.sublist(1).join('=').trim();
-          table.insertRow(['flutter.sdk', sdkPath]);
+          final sdkValue = parts.sublist(1).join('=').trim();
+          if (sdkValue.isEmpty) {
+            table.insertRow([
+              'flutter.sdk',
+              'Malformed entry in local.properties',
+            ]);
+          } else {
+            sdkPath = sdkValue;
+            table.insertRow(['flutter.sdk', sdkPath]);
+          }
         }
 
         // Only attempt to resolve symlink if version is pinned
