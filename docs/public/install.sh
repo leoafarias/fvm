@@ -25,6 +25,7 @@ readonly OLD_USER_PATH="${HOME}/.fvm_flutter"
 
 UNINSTALL_ONLY=0
 REQUESTED_VERSION=""
+AUTO_SETUP=0
 
 # ---- helpers ----
 resolve_install_base() {
@@ -103,6 +104,7 @@ FLAGS:
   -h, --help            Show this help and exit
   -v, --version         Show installer version and exit
   -u, --uninstall       Remove FVM installation
+  -s, --auto-setup      Automatically configure shell profile
 
 EXAMPLES:
   # Install latest version
@@ -142,37 +144,68 @@ get_latest_version() {
 }
 
 print_path_instructions() {
+  local auto_setup_flag="$1"
+  local path_configured=0
+
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "✓ Installation complete!"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  echo "To use FVM, add it to your PATH:"
-  echo ""
-  echo "  # For bash (add to ~/.bashrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For zsh (add to ~/.zshrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For fish (run once):"
-  echo "  fish_add_path \"$BIN_DIR\""
-  echo ""
-  echo "Then restart your shell or run:"
-  echo "  source ~/.bashrc  # or ~/.zshrc"
-  echo ""
+
+  # CI environment: always auto-setup PATH
   if is_ci; then
-    echo "CI detected."
-    echo "To use FVM in this same step, run:"
-    echo "  export PATH=\"$BIN_DIR:\$PATH\""
-    echo "To persist for later steps, use your CI's env file mechanism"
-    echo "  (e.g., \$GITHUB_PATH on GitHub Actions, \$BASH_ENV on CircleCI)."
+    echo "CI environment detected - configuring PATH automatically..."
     echo ""
-  else
-    echo "Note: If you ran this via curl | bash, run the export command"
-    echo "above in your current shell."
+    setup_ci_path "$BIN_DIR"
+    path_configured=1
+    echo ""
+    echo "FVM is now available in this step and subsequent steps."
+    echo ""
+  # Auto-setup flag: configure shell profile
+  elif [ "$auto_setup_flag" = "1" ]; then
+    echo "Auto-configuring shell profile..."
+    echo ""
+    if auto_setup_profile "$BIN_DIR"; then
+      path_configured=1
+    fi
     echo ""
   fi
+
+  # If not auto-configured, print manual instructions
+  if [ "$path_configured" -eq 0 ]; then
+    # Check if already configured in profile
+    local shell_type
+    local profile_file
+    shell_type="$(detect_shell)"
+    profile_file="$(get_profile_file "$shell_type")"
+
+    if [ -n "$profile_file" ] && is_path_configured "$profile_file" "$BIN_DIR"; then
+      echo "✓ FVM is already configured in $profile_file"
+      echo ""
+      echo "Restart your shell or run: source $profile_file"
+      echo ""
+    else
+      echo "To use FVM, add it to your PATH:"
+      echo ""
+      echo "  # For bash (add to ~/.bashrc):"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo ""
+      echo "  # For zsh (add to ~/.zshrc):"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo ""
+      echo "  # For fish (run once):"
+      echo "  fish_add_path \"$BIN_DIR\""
+      echo ""
+      echo "Then restart your shell or run:"
+      echo "  source ~/.bashrc  # or ~/.zshrc"
+      echo ""
+      echo "Or re-run with --auto-setup to configure automatically:"
+      echo "  curl -fsSL https://fvm.app/install.sh | bash -s -- --auto-setup"
+      echo ""
+    fi
+  fi
+
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
@@ -184,6 +217,228 @@ is_ci() {
   [ -n "${TRAVIS:-}" ] || [ -n "${BUILDKITE:-}" ] || [ -n "${DRONE:-}" ] || \
   [ -n "${TF_BUILD:-}" ] || [ -n "${TEAMCITY_VERSION:-}" ] || \
   [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
+}
+
+# ---- profile auto-detection ----
+
+# Detect the user's shell
+detect_shell() {
+  local shell_name=""
+
+  # First try $SHELL (login shell)
+  if [ -n "${SHELL:-}" ]; then
+    shell_name="$(basename "$SHELL")"
+  fi
+
+  # Fallback: check parent process (current shell)
+  if [ -z "$shell_name" ] && [ -f /proc/$PPID/comm ]; then
+    shell_name="$(cat /proc/$PPID/comm 2>/dev/null || true)"
+  fi
+
+  # Normalize shell names
+  case "$shell_name" in
+    bash|bash*)  echo "bash" ;;
+    zsh|zsh*)    echo "zsh" ;;
+    fish|fish*)  echo "fish" ;;
+    *)           echo "unknown" ;;
+  esac
+}
+
+# Get the appropriate profile file for a shell
+get_profile_file() {
+  local shell_type="$1"
+  local profile_file=""
+
+  case "$shell_type" in
+    bash)
+      # Check for existing files in priority order
+      if [ -f "$HOME/.bashrc" ]; then
+        profile_file="$HOME/.bashrc"
+      elif [ -f "$HOME/.bash_profile" ]; then
+        profile_file="$HOME/.bash_profile"
+      elif [ -f "$HOME/.profile" ]; then
+        profile_file="$HOME/.profile"
+      else
+        # Default to .bashrc
+        profile_file="$HOME/.bashrc"
+      fi
+      ;;
+    zsh)
+      if [ -f "$HOME/.zshrc" ]; then
+        profile_file="$HOME/.zshrc"
+      elif [ -f "$HOME/.zprofile" ]; then
+        profile_file="$HOME/.zprofile"
+      else
+        profile_file="$HOME/.zshrc"
+      fi
+      ;;
+    fish)
+      profile_file="$HOME/.config/fish/config.fish"
+      ;;
+    *)
+      # Unknown shell - try common profiles
+      if [ -f "$HOME/.profile" ]; then
+        profile_file="$HOME/.profile"
+      elif [ -f "$HOME/.bashrc" ]; then
+        profile_file="$HOME/.bashrc"
+      fi
+      ;;
+  esac
+
+  echo "$profile_file"
+}
+
+# Check if FVM is already in PATH configuration
+is_path_configured() {
+  local profile_file="$1"
+  local bin_dir="$2"
+
+  if [ ! -f "$profile_file" ]; then
+    return 1
+  fi
+
+  # Check for FVM bin directory in profile
+  if grep -q "$bin_dir" "$profile_file" 2>/dev/null; then
+    return 0
+  fi
+
+  # Also check for ~/fvm/bin pattern (unexpanded)
+  if grep -qE '(\$HOME|~)/fvm/bin' "$profile_file" 2>/dev/null; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Check if FVM is currently in PATH
+is_fvm_in_path() {
+  case ":${PATH:-}:" in
+    *:"$BIN_DIR":*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Add FVM to profile file
+add_to_profile() {
+  local shell_type="$1"
+  local profile_file="$2"
+  local bin_dir="$3"
+
+  # Ensure parent directory exists (for fish)
+  local parent_dir
+  parent_dir="$(dirname "$profile_file")"
+  if [ ! -d "$parent_dir" ]; then
+    mkdir -p "$parent_dir" 2>/dev/null || return 1
+  fi
+
+  # Create file if it doesn't exist
+  if [ ! -f "$profile_file" ]; then
+    touch "$profile_file" 2>/dev/null || return 1
+  fi
+
+  # Add appropriate PATH configuration
+  case "$shell_type" in
+    fish)
+      echo "" >> "$profile_file"
+      echo "# FVM (Flutter Version Manager)" >> "$profile_file"
+      echo "fish_add_path \"$bin_dir\"" >> "$profile_file"
+      ;;
+    *)
+      echo "" >> "$profile_file"
+      echo "# FVM (Flutter Version Manager)" >> "$profile_file"
+      echo "export PATH=\"$bin_dir:\$PATH\"" >> "$profile_file"
+      ;;
+  esac
+
+  return 0
+}
+
+# Setup CI environment PATH automatically
+setup_ci_path() {
+  local bin_dir="$1"
+  local ci_setup_done=0
+
+  # GitHub Actions
+  if [ -n "${GITHUB_PATH:-}" ]; then
+    echo "$bin_dir" >> "$GITHUB_PATH"
+    echo "✓ Added to GITHUB_PATH (available in subsequent steps)" >&2
+    ci_setup_done=1
+  fi
+
+  # GitHub Actions - also set GITHUB_ENV for current step visibility
+  if [ -n "${GITHUB_ENV:-}" ]; then
+    echo "FVM_BIN_DIR=$bin_dir" >> "$GITHUB_ENV"
+  fi
+
+  # CircleCI / Generic BASH_ENV
+  if [ -n "${BASH_ENV:-}" ] && [ -w "${BASH_ENV:-/dev/null}" ]; then
+    echo "export PATH=\"$bin_dir:\$PATH\"" >> "$BASH_ENV"
+    echo "✓ Added to BASH_ENV (available in subsequent steps)" >&2
+    ci_setup_done=1
+  fi
+
+  # GitLab CI
+  if [ -n "${GITLAB_CI:-}" ]; then
+    # GitLab uses artifacts or cache for cross-job state
+    # For same-job, we export below
+    :
+  fi
+
+  # Azure DevOps
+  if [ -n "${TF_BUILD:-}" ]; then
+    echo "##vso[task.prependpath]$bin_dir"
+    echo "✓ Added via Azure DevOps logging command" >&2
+    ci_setup_done=1
+  fi
+
+  # Always export for current shell/step
+  export PATH="$bin_dir:$PATH"
+  echo "✓ Exported PATH for current step" >&2
+
+  return 0
+}
+
+# Auto-setup profile for interactive shells
+auto_setup_profile() {
+  local bin_dir="$1"
+  local shell_type
+  local profile_file
+
+  shell_type="$(detect_shell)"
+
+  if [ "$shell_type" = "unknown" ]; then
+    echo "⚠ Could not detect shell type. Manual PATH setup required." >&2
+    return 1
+  fi
+
+  profile_file="$(get_profile_file "$shell_type")"
+
+  if [ -z "$profile_file" ]; then
+    echo "⚠ Could not determine profile file for $shell_type. Manual PATH setup required." >&2
+    return 1
+  fi
+
+  # Check if already configured
+  if is_path_configured "$profile_file" "$bin_dir"; then
+    echo "✓ FVM already configured in $profile_file" >&2
+    return 0
+  fi
+
+  # Check if profile is writable
+  if [ -f "$profile_file" ] && [ ! -w "$profile_file" ]; then
+    echo "⚠ Cannot write to $profile_file (read-only). Manual PATH setup required." >&2
+    return 1
+  fi
+
+  # Add to profile
+  if add_to_profile "$shell_type" "$profile_file" "$bin_dir"; then
+    echo "✓ Added FVM to $profile_file" >&2
+    echo "  Run 'source $profile_file' or restart your shell to apply." >&2
+    return 0
+  else
+    echo "⚠ Failed to update $profile_file. Manual PATH setup required." >&2
+    return 1
+  fi
 }
 
 migrate_from_v1() {
@@ -333,6 +588,7 @@ for arg in "$@"; do
     -h|--help) usage; exit 0 ;;
     -v|--version) print_installer_version; exit 0 ;;
     -u|--uninstall) UNINSTALL_ONLY=1 ;;
+    -s|--auto-setup) AUTO_SETUP=1 ;;
     -*)
       echo "error: unknown option: $arg" >&2
       echo ""
@@ -500,7 +756,7 @@ echo "Installed to: ${BIN_DIR}/fvm"
 
 if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
   echo "FVM version: ${VERSION}"
-  print_path_instructions
+  print_path_instructions "$AUTO_SETUP"
 else
   echo ""
   echo "⚠ Binary installed but cannot execute (missing libraries)."
