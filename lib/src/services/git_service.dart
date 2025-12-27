@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:git/git.dart';
 import 'package:path/path.dart' as path;
@@ -39,13 +40,14 @@ class GitService extends ContextualService {
 
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
-    // Use timestamp for unique temp dir names to avoid conflicts when
-    // previous temp dirs can't be deleted (Windows file locking)
+    // Use timestamp + random to avoid conflicts from concurrent operations
+    // and when previous temp dirs can't be deleted (Windows file locking)
     final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(99999);
     final tempDir = Directory(
       path.join(
         gitCacheDir.parent.path,
-        '${path.basename(gitCacheDir.path)}.tmp.$timestamp',
+        '${path.basename(gitCacheDir.path)}.tmp.${timestamp}_$random',
       ),
     );
 
@@ -235,11 +237,12 @@ class GitService extends ContextualService {
     for (final entity in parentDir.listSync()) {
       if (entity is! Directory) continue;
       final name = path.basename(entity.path);
-      // Match temp dir patterns: {baseName}.tmp.{timestamp}, {baseName}.bare-tmp.{timestamp}
-      // e.g., cache.git.tmp.1234567890, cache.git.bare-tmp.1234567890
+      // Match temp dir patterns: {baseName}.tmp.{timestamp}_{random}, {baseName}.bare-tmp.{timestamp}_{random}
+      // e.g., cache.git.tmp.1234567890_12345, cache.git.bare-tmp.1234567890_12345
+      // Also matches legacy format without random suffix for cleanup compatibility
       if ((name.startsWith('$baseName.tmp.') ||
               name.startsWith('$baseName.bare-tmp.')) &&
-          RegExp(r'\.\d+$').hasMatch(name)) {
+          RegExp(r'\.\d+(_\d+)?$').hasMatch(name)) {
         await _deleteDirectoryWithRetry(entity, requireSuccess: false);
       }
     }
@@ -393,13 +396,14 @@ class GitService extends ContextualService {
     }
 
     // Step 2: Create bare mirror from local clone (fast - no network)
-    // Use timestamp for unique temp dir names to avoid conflicts when
-    // previous temp dirs can't be deleted (Windows file locking)
+    // Use timestamp + random to avoid conflicts from concurrent operations
+    // and when previous temp dirs can't be deleted (Windows file locking)
     final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final random = Random().nextInt(99999);
     final tempBareDir = Directory(
       path.join(
         legacyDir.parent.path,
-        '${path.basename(legacyDir.path)}.bare-tmp.$timestamp',
+        '${path.basename(legacyDir.path)}.bare-tmp.${timestamp}_$random',
       ),
     );
 
