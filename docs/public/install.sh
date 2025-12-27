@@ -221,26 +221,28 @@ is_ci() {
 
 # ---- profile auto-detection ----
 
-# Detect the user's shell
+# Detect the user's shell (works on Linux, macOS, BSD)
 detect_shell() {
   local shell_name=""
 
-  # First try $SHELL (login shell)
-  if [ -n "${SHELL:-}" ]; then
-    shell_name="$(basename "$SHELL")"
+  # Primary: use ps command (portable across Linux, macOS, BSD)
+  if command -v ps >/dev/null 2>&1; then
+    shell_name="$(ps -p "$PPID" -o 'comm=' 2>/dev/null || true)"
+    shell_name="${shell_name##-}"       # Remove leading dash (login shells)
+    shell_name="${shell_name##*/}"      # Extract basename
   fi
 
-  # Fallback: check parent process (current shell)
-  if [ -z "$shell_name" ] && [ -f /proc/$PPID/comm ]; then
-    shell_name="$(cat /proc/$PPID/comm 2>/dev/null || true)"
+  # Fallback: use $SHELL environment variable
+  if [ -z "$shell_name" ] && [ -n "${SHELL:-}" ]; then
+    shell_name="$(basename "$SHELL" 2>/dev/null)" || shell_name=""
   fi
 
   # Normalize shell names
   case "$shell_name" in
-    bash|bash*)  echo "bash" ;;
-    zsh|zsh*)    echo "zsh" ;;
-    fish|fish*)  echo "fish" ;;
-    *)           echo "unknown" ;;
+    bash*)  echo "bash" ;;
+    zsh*)   echo "zsh" ;;
+    fish*)  echo "fish" ;;
+    *)      echo "unknown" ;;
   esac
 }
 
@@ -251,29 +253,36 @@ get_profile_file() {
 
   case "$shell_type" in
     bash)
-      # Check for existing files in priority order
-      if [ -f "$HOME/.bashrc" ]; then
-        profile_file="$HOME/.bashrc"
-      elif [ -f "$HOME/.bash_profile" ]; then
+      # Priority: .bash_profile (macOS default), .bash_login, .bashrc, .profile
+      # Login shells read .bash_profile first; .bashrc is for interactive non-login
+      if [ -f "$HOME/.bash_profile" ]; then
         profile_file="$HOME/.bash_profile"
+      elif [ -f "$HOME/.bash_login" ]; then
+        profile_file="$HOME/.bash_login"
+      elif [ -f "$HOME/.bashrc" ]; then
+        profile_file="$HOME/.bashrc"
       elif [ -f "$HOME/.profile" ]; then
         profile_file="$HOME/.profile"
       else
-        # Default to .bashrc
+        # Default to .bashrc (most common on Linux)
         profile_file="$HOME/.bashrc"
       fi
       ;;
     zsh)
-      if [ -f "$HOME/.zshrc" ]; then
-        profile_file="$HOME/.zshrc"
-      elif [ -f "$HOME/.zprofile" ]; then
+      # Priority: .zprofile (login shell PATH setup), .zshrc (interactive)
+      # For PATH modifications, .zprofile is recommended per Zsh docs
+      if [ -f "$HOME/.zprofile" ]; then
         profile_file="$HOME/.zprofile"
-      else
+      elif [ -f "$HOME/.zshrc" ]; then
         profile_file="$HOME/.zshrc"
+      else
+        profile_file="$HOME/.zprofile"
       fi
       ;;
     fish)
-      profile_file="$HOME/.config/fish/config.fish"
+      # Respect XDG_CONFIG_HOME for fish configuration
+      local fish_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
+      profile_file="$fish_config_dir/fish/config.fish"
       ;;
     *)
       # Unknown shell - try common profiles
@@ -297,25 +306,18 @@ is_path_configured() {
     return 1
   fi
 
-  # Check for FVM bin directory in profile
-  if grep -q "$bin_dir" "$profile_file" 2>/dev/null; then
+  # Use -F for fixed string matching (prevents regex injection)
+  # Check for FVM bin directory in profile (skip comment lines)
+  if grep -v '^\s*#' "$profile_file" 2>/dev/null | grep -qF "$bin_dir"; then
     return 0
   fi
 
-  # Also check for ~/fvm/bin pattern (unexpanded)
-  if grep -qE '(\$HOME|~)/fvm/bin' "$profile_file" 2>/dev/null; then
+  # Also check for ~/fvm/bin or $HOME/fvm/bin patterns (unexpanded)
+  if grep -v '^\s*#' "$profile_file" 2>/dev/null | grep -qE '(\$HOME|~)/fvm/bin'; then
     return 0
   fi
 
   return 1
-}
-
-# Check if FVM is currently in PATH
-is_fvm_in_path() {
-  case ":${PATH:-}:" in
-    *:"$BIN_DIR":*) return 0 ;;
-    *) return 1 ;;
-  esac
 }
 
 # Add FVM to profile file
@@ -358,42 +360,42 @@ setup_ci_path() {
   local bin_dir="$1"
   local ci_setup_done=0
 
-  # GitHub Actions
+  # GitHub Actions - write to GITHUB_PATH for subsequent steps
   if [ -n "${GITHUB_PATH:-}" ]; then
-    echo "$bin_dir" >> "$GITHUB_PATH"
-    echo "✓ Added to GITHUB_PATH (available in subsequent steps)" >&2
-    ci_setup_done=1
+    if echo "$bin_dir" >> "$GITHUB_PATH" 2>/dev/null; then
+      echo "✓ Added to GITHUB_PATH (available in subsequent steps)" >&2
+      ci_setup_done=1
+    else
+      echo "⚠ Failed to write to GITHUB_PATH" >&2
+    fi
   fi
 
-  # GitHub Actions - also set GITHUB_ENV for current step visibility
-  if [ -n "${GITHUB_ENV:-}" ]; then
-    echo "FVM_BIN_DIR=$bin_dir" >> "$GITHUB_ENV"
+  # CircleCI / Generic BASH_ENV - sourced at start of every step
+  if [ -n "${BASH_ENV:-}" ] && [ -w "$BASH_ENV" ]; then
+    if echo "export PATH=\"$bin_dir:\$PATH\"" >> "$BASH_ENV" 2>/dev/null; then
+      echo "✓ Added to BASH_ENV (available in subsequent steps)" >&2
+      ci_setup_done=1
+    fi
   fi
 
-  # CircleCI / Generic BASH_ENV
-  if [ -n "${BASH_ENV:-}" ] && [ -w "${BASH_ENV:-/dev/null}" ]; then
-    echo "export PATH=\"$bin_dir:\$PATH\"" >> "$BASH_ENV"
-    echo "✓ Added to BASH_ENV (available in subsequent steps)" >&2
-    ci_setup_done=1
-  fi
-
-  # GitLab CI
-  if [ -n "${GITLAB_CI:-}" ]; then
-    # GitLab uses artifacts or cache for cross-job state
-    # For same-job, we export below
-    :
-  fi
-
-  # Azure DevOps
+  # Azure DevOps - logging command modifies PATH for subsequent tasks
   if [ -n "${TF_BUILD:-}" ]; then
     echo "##vso[task.prependpath]$bin_dir"
     echo "✓ Added via Azure DevOps logging command" >&2
     ci_setup_done=1
   fi
 
+  # GitLab CI - export PATH works within the same job's script section
+  # No special setup needed; the export below handles it
+
   # Always export for current shell/step
   export PATH="$bin_dir:$PATH"
-  echo "✓ Exported PATH for current step" >&2
+
+  if [ "$ci_setup_done" -eq 1 ]; then
+    echo "✓ Configured PATH for CI environment" >&2
+  else
+    echo "✓ Exported PATH for current step" >&2
+  fi
 
   return 0
 }
