@@ -126,24 +126,25 @@ class FlutterService extends ContextualService {
         );
       }
 
-      _cleanupPartialClone(versionDir);
+      await _cleanupPartialClone(versionDir);
 
       return null;
     }
   }
 
-  void _cleanupPartialClone(Directory versionDir) {
-    try {
-      if (versionDir.existsSync()) {
-        versionDir.deleteSync(recursive: true);
-      }
-    } on FileSystemException catch (e) {
-      // Error level since this leaves orphaned directories that consume disk space
-      logger.err(
-        'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
-        'You may need to manually delete this directory.',
-      );
-    }
+  Future<void> _cleanupPartialClone(Directory versionDir) async {
+    if (!versionDir.existsSync()) return;
+    await deleteDirectoryWithRetry(
+      versionDir,
+      requireSuccess: false,
+      onFinalError: (e) {
+        // Error level since this leaves orphaned directories that consume disk space
+        logger.err(
+          'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
+          'You may need to manually delete this directory.',
+        );
+      },
+    );
   }
 
   Future<void> _updateOriginToFlutter(Directory versionDir) async {
@@ -213,7 +214,7 @@ class FlutterService extends ContextualService {
       'Retrying clone from remote repository...',
     );
 
-    _cleanupPartialClone(versionDir);
+    await _cleanupPartialClone(versionDir);
 
     final retryResult = await _cloneSdk(
       source: repoUrl,
