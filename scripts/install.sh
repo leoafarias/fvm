@@ -136,6 +136,81 @@ require() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 is required" >&
 
 normalize_version() { printf '%s\n' "${1#v}"; }
 
+# Find first existing file from a list, or return the last (default)
+# Usage: find_first_file file1 file2 ... default
+find_first_file() {
+  local default="${!#}"  # Last argument is default
+  local file
+  for file in "$@"; do
+    [ -f "$file" ] && { echo "$file"; return 0; }
+  done
+  echo "$default"
+}
+
+# Try to remove a file/symlink, using sudo as fallback
+# Args: $1=path $2=description
+# Returns: 0 if removed, 1 if failed or didn't exist
+try_remove_file() {
+  local path="$1"
+  local desc="${2:-file}"
+
+  [ -e "$path" ] || [ -L "$path" ] || return 1
+
+  rm -f "$path" 2>/dev/null || true
+  if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+    echo "✓ Removed $desc" >&2
+    return 0
+  fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo rm -f "$path" 2>/dev/null || true
+    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+      echo "✓ Removed $desc (required sudo)" >&2
+      return 0
+    fi
+  fi
+
+  echo "⚠ Could not remove $path" >&2
+  echo "  You may remove it manually: sudo rm $path" >&2
+  return 1
+}
+
+# Try to remove a directory, optionally backing up first
+# Args: $1=path $2=backup_first (1=yes, 0=no)
+# Returns: 0 if removed/backed up, 1 if failed or didn't exist
+try_remove_directory() {
+  local path="$1"
+  local backup_first="${2:-0}"
+
+  [ -d "$path" ] || return 1
+
+  if [ "$backup_first" -eq 1 ]; then
+    local backup_path="${path}.bak.$(date +%Y%m%d%H%M%S)"
+    if mv "$path" "$backup_path" 2>/dev/null; then
+      echo "✓ Backed up to: $backup_path" >&2
+      return 0
+    fi
+  fi
+
+  rm -rf "$path" 2>/dev/null || true
+  if [ ! -d "$path" ]; then
+    echo "✓ Removed directory: $path" >&2
+    return 0
+  fi
+
+  echo "⚠ Could not remove $path" >&2
+  echo "  You may remove it manually: rm -rf $path" >&2
+  return 1
+}
+
+# Print musl libc warning (used in multiple detection paths)
+print_musl_warning() {
+  echo "" >&2
+  echo "Note: Detected musl libc (Alpine Linux)." >&2
+  echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
+  echo "" >&2
+}
+
 get_latest_version() {
   # Follows redirect from /releases/latest -> .../tag/vX.Y.Z
   local url
@@ -252,56 +327,25 @@ get_profile_file() {
 
   case "$shell_type" in
     bash)
-      # Platform-aware priority (verified against NVM and Homebrew patterns):
-      # - macOS Terminal.app opens login shells -> .bash_profile first
-      # - Linux terminals typically open non-login interactive shells -> .bashrc first
+      # Platform-aware priority (verified against NVM and Homebrew patterns)
       if [ "$(uname -s)" = "Darwin" ]; then
-        # macOS: .bash_profile > .bash_login > .bashrc > .profile
-        if [ -f "$HOME/.bash_profile" ]; then
-          profile_file="$HOME/.bash_profile"
-        elif [ -f "$HOME/.bash_login" ]; then
-          profile_file="$HOME/.bash_login"
-        elif [ -f "$HOME/.bashrc" ]; then
-          profile_file="$HOME/.bashrc"
-        elif [ -f "$HOME/.profile" ]; then
-          profile_file="$HOME/.profile"
-        else
-          profile_file="$HOME/.bash_profile"
-        fi
+        # macOS: .bash_profile > .bash_login > .bashrc > .profile (login shells)
+        profile_file="$(find_first_file "$HOME/.bash_profile" "$HOME/.bash_login" \
+          "$HOME/.bashrc" "$HOME/.profile" "$HOME/.bash_profile")"
       else
-        # Linux/BSD: .bashrc > .bash_profile > .profile
-        # (most .bash_profile files source .bashrc anyway)
-        if [ -f "$HOME/.bashrc" ]; then
-          profile_file="$HOME/.bashrc"
-        elif [ -f "$HOME/.bash_profile" ]; then
-          profile_file="$HOME/.bash_profile"
-        elif [ -f "$HOME/.profile" ]; then
-          profile_file="$HOME/.profile"
-        else
-          profile_file="$HOME/.bashrc"
-        fi
+        # Linux/BSD: .bashrc > .bash_profile > .profile (interactive shells)
+        profile_file="$(find_first_file "$HOME/.bashrc" "$HOME/.bash_profile" \
+          "$HOME/.profile" "$HOME/.bashrc")"
       fi
       ;;
     zsh)
-      # Platform-aware priority (matches Homebrew):
-      # - macOS: .zprofile (login shell)
-      # - Linux: .zshrc (interactive shell)
+      # Platform-aware priority (matches Homebrew)
       if [ "$(uname -s)" = "Darwin" ]; then
-        if [ -f "$HOME/.zprofile" ]; then
-          profile_file="$HOME/.zprofile"
-        elif [ -f "$HOME/.zshrc" ]; then
-          profile_file="$HOME/.zshrc"
-        else
-          profile_file="$HOME/.zprofile"
-        fi
+        # macOS: .zprofile (login shell)
+        profile_file="$(find_first_file "$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.zprofile")"
       else
-        if [ -f "$HOME/.zshrc" ]; then
-          profile_file="$HOME/.zshrc"
-        elif [ -f "$HOME/.zprofile" ]; then
-          profile_file="$HOME/.zprofile"
-        else
-          profile_file="$HOME/.zshrc"
-        fi
+        # Linux: .zshrc (interactive shell)
+        profile_file="$(find_first_file "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.zshrc")"
       fi
       ;;
     fish)
@@ -311,12 +355,8 @@ get_profile_file() {
       ;;
     *)
       # Unknown shell - try common profile files in order (NVM pattern)
-      for profile in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"; do
-        if [ -f "$HOME/$profile" ]; then
-          profile_file="$HOME/$profile"
-          break
-        fi
-      done
+      profile_file="$(find_first_file "$HOME/.profile" "$HOME/.bashrc" \
+        "$HOME/.bash_profile" "$HOME/.zprofile" "$HOME/.zshrc" "")"
       ;;
   esac
 
@@ -395,38 +435,16 @@ setup_ci_path() {
 migrate_from_v1() {
   local migrated=0
 
-  # 1. Remove old system symlink (v1 or v2 --system) only if it points to FVM
+  # 1. Remove old system symlink only if it points to a known FVM location
   if [ -L "$OLD_SYSTEM_PATH" ]; then
     local symlink_target
     symlink_target="$(readlink "$OLD_SYSTEM_PATH" 2>/dev/null || true)"
 
-    # Only remove if symlink points to a known FVM location
     case "$symlink_target" in
       *fvm_flutter/bin/fvm|*fvm/bin/fvm)
         echo "" >&2
         echo "Detected old system symlink at $OLD_SYSTEM_PATH -> $symlink_target" >&2
-
-        # Try to remove without sudo first (|| true prevents set -e exit)
-        rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink" >&2
-          migrated=1
-        else
-          # Try with sudo if available
-          if command -v sudo >/dev/null 2>&1; then
-            sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-            if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-              echo "✓ Removed old system symlink (required sudo)" >&2
-              migrated=1
-            else
-              echo "⚠ Could not remove $OLD_SYSTEM_PATH" >&2
-              echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-            fi
-          else
-            echo "⚠ Could not remove $OLD_SYSTEM_PATH (need sudo)" >&2
-            echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-          fi
-        fi
+        try_remove_file "$OLD_SYSTEM_PATH" "old system symlink" && migrated=1
         ;;
       *)
         echo "" >&2
@@ -440,26 +458,11 @@ migrate_from_v1() {
     echo "  Not removing automatically. Remove it manually if it is an old FVM binary." >&2
   fi
 
-  # 2. Backup old user directory (~/.fvm_flutter) instead of deleting
+  # 2. Backup old user directory (~/.fvm_flutter)
   if [ -d "$OLD_USER_PATH" ]; then
     echo "" >&2
     echo "Detected old installation at $OLD_USER_PATH" >&2
-
-    local backup_path="${OLD_USER_PATH}.bak.$(date +%Y%m%d%H%M%S)"
-    if mv "$OLD_USER_PATH" "$backup_path" 2>/dev/null; then
-      echo "✓ Backed up old directory to: $backup_path" >&2
-      migrated=1
-    else
-      # Fallback: try to remove if move fails (e.g., cross-device move)
-      rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-      if [ ! -d "$OLD_USER_PATH" ]; then
-        echo "✓ Removed old user directory (backup failed)" >&2
-        migrated=1
-      else
-        echo "⚠ Could not move or remove $OLD_USER_PATH" >&2
-        echo "  You may remove it manually: rm -rf $OLD_USER_PATH" >&2
-      fi
-    fi
+    try_remove_directory "$OLD_USER_PATH" 1 && migrated=1  # 1 = backup first
   fi
 
   # 3. Print PATH update notice if migrated
@@ -485,48 +488,15 @@ do_uninstall() {
 
   validate_install_base "$INSTALL_BASE"
 
-  # 1. Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
-  # Note: This removes the entire $BIN_DIR directory.
-  if [ -d "$BIN_DIR" ]; then
-    rm -rf "$BIN_DIR" 2>/dev/null || true
-    if [ ! -d "$BIN_DIR" ]; then
-      echo "✓ Removed binary directory: $BIN_DIR" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $BIN_DIR (check permissions)" >&2
-    fi
-  fi
+  # 1. Remove the bin directory (preserves cached SDKs in versions/)
+  try_remove_directory "$BIN_DIR" 0 && removed_any=1
 
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
-  if [ -d "$OLD_USER_PATH" ]; then
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old directory: $OLD_USER_PATH" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-    fi
-  fi
+  # 2. Remove old user directory (~/.fvm_flutter)
+  try_remove_directory "$OLD_USER_PATH" 0 && removed_any=1
 
   # 3. Remove old system symlink (from v1/v2)
   if [ -L "$OLD_SYSTEM_PATH" ]; then
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-      removed_any=1
-    else
-      if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-          removed_any=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-      fi
-    fi
+    try_remove_file "$OLD_SYSTEM_PATH" "old system symlink" && removed_any=1
   elif [ -e "$OLD_SYSTEM_PATH" ]; then
     echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
@@ -628,16 +598,10 @@ if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; the
     : # glibc detected
   elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
     LIBC_SUFFIX="-musl"
-    echo "" >&2
-    echo "Note: Detected musl libc (Alpine Linux)." >&2
-    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-    echo "" >&2
+    print_musl_warning
   elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
     LIBC_SUFFIX="-musl"
-    echo "" >&2
-    echo "Note: Detected musl libc (Alpine Linux)." >&2
-    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-    echo "" >&2
+    print_musl_warning
   fi
 fi
 readonly LIBC_SUFFIX
