@@ -2,6 +2,11 @@
 # =============================================================================
 # FVM Installer
 # =============================================================================
+# v2.1.0 (2025-12)
+#   - Auto-add FVM to PATH in shell config (bash/zsh/fish)
+#   - Opt-out: FVM_NO_PROFILE=1 or PROFILE=/dev/null
+#   - Managed block with markers for clean uninstall
+#
 # v2.0.0 (2025-12)
 #   - Install to ~/fvm/bin (no sudo required)
 #   - FVM_INSTALL_DIR for custom location
@@ -16,7 +21,7 @@ umask 022
 
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
-readonly INSTALLER_VERSION="2.0.0"
+readonly INSTALLER_VERSION="2.1.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
@@ -98,6 +103,9 @@ ARGUMENTS:
 
 ENVIRONMENT:
   FVM_INSTALL_DIR        Install base directory (default: \$HOME/fvm)
+  FVM_NO_PROFILE=1       Skip auto-modifying shell config
+  FVM_PROFILE=/path      Override detected shell profile path
+  PROFILE=/dev/null      Alternative way to skip profile modification (nvm-style)
 
 FLAGS:
   -h, --help            Show this help and exit
@@ -184,6 +192,160 @@ is_ci() {
   [ -n "${TRAVIS:-}" ] || [ -n "${BUILDKITE:-}" ] || [ -n "${DRONE:-}" ] || \
   [ -n "${TF_BUILD:-}" ] || [ -n "${TEAMCITY_VERSION:-}" ] || \
   [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
+}
+
+# ---- optional profile / PATH modification ----
+# Opt-out options:
+#   - PROFILE=/dev/null        (nvm-style)
+#   - FVM_NO_PROFILE=1|true
+# Optional override:
+#   - FVM_PROFILE=/path/to/file
+
+fvm_should_modify_profile() {
+  # Don't modify profiles in CI by default
+  if is_ci; then
+    return 1
+  fi
+
+  # Respect opt-outs
+  case "${PROFILE:-}" in /dev/null) return 1 ;; esac
+  case "${FVM_PROFILE:-}" in /dev/null) return 1 ;; esac
+  case "${FVM_NO_PROFILE:-}" in 1|true|TRUE|yes|YES) return 1 ;; esac
+
+  # Avoid modifying root's dotfiles automatically
+  if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+    return 1
+  fi
+
+  return 0
+}
+
+fvm_detect_profile() {
+  # Explicit override first
+  if [ -n "${FVM_PROFILE:-}" ] && [ "${FVM_PROFILE}" != "/dev/null" ]; then
+    printf '%s\n' "${FVM_PROFILE}"
+    return 0
+  fi
+  if [ -n "${PROFILE:-}" ] && [ "${PROFILE}" != "/dev/null" ]; then
+    printf '%s\n' "${PROFILE}"
+    return 0
+  fi
+
+  # Detect by login shell (what you actually want to configure)
+  local shell_name
+  shell_name="$(basename "${SHELL:-}")"
+
+  case "$shell_name" in
+    fish)
+      printf '%s\n' "$HOME/.config/fish/config.fish"
+      return 0
+      ;;
+    zsh)
+      if [ -f "$HOME/.zshrc" ]; then
+        printf '%s\n' "$HOME/.zshrc"
+      elif [ -f "$HOME/.zprofile" ]; then
+        printf '%s\n' "$HOME/.zprofile"
+      else
+        # create ~/.zshrc if nothing exists
+        printf '%s\n' "$HOME/.zshrc"
+      fi
+      return 0
+      ;;
+    bash)
+      if [ -f "$HOME/.bashrc" ]; then
+        printf '%s\n' "$HOME/.bashrc"
+      elif [ -f "$HOME/.bash_profile" ]; then
+        printf '%s\n' "$HOME/.bash_profile"
+      else
+        # create ~/.bashrc if nothing exists
+        printf '%s\n' "$HOME/.bashrc"
+      fi
+      return 0
+      ;;
+  esac
+
+  # Fallback for unknown shells
+  printf '%s\n' "$HOME/.profile"
+}
+
+fvm_remove_managed_block() {
+  local file="$1"
+  local begin="# >>> fvm >>>"
+  local end="# <<< fvm <<<"
+
+  [ -f "$file" ] || return 0
+  grep -Fqs "$begin" "$file" || return 0
+  grep -Fqs "$end" "$file" || return 0
+
+  # Use awk to remove the managed block
+  awk -v begin="$begin" -v end="$end" '
+    $0==begin {skip=1; next}
+    $0==end {skip=0; next}
+    !skip {print}
+  ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+}
+
+fvm_maybe_add_to_path() {
+  fvm_should_modify_profile || return 0
+
+  local profile
+  profile="$(fvm_detect_profile)"
+
+  # Ensure file exists and is writable (fish config path needs dirs)
+  mkdir -p "$(dirname "$profile")" 2>/dev/null || true
+  touch "$profile" 2>/dev/null || {
+    echo "Note: Could not write to $profile" >&2
+    echo "Add PATH manually: export PATH=\"$BIN_DIR:\$PATH\"" >&2
+    return 0
+  }
+
+  # If user already added BIN_DIR manually (anywhere), do nothing
+  if grep -Fqs "$BIN_DIR" "$profile"; then
+    return 0
+  fi
+
+  # Replace previous managed block (handles changing install dir cleanly)
+  fvm_remove_managed_block "$profile"
+
+  local begin="# >>> fvm >>>"
+  local end="# <<< fvm <<<"
+  local shell_name
+  shell_name="$(basename "${SHELL:-}")"
+
+  if [ "$shell_name" = "fish" ] || [ "$(basename "$profile")" = "config.fish" ]; then
+    cat >> "$profile" <<EOF
+
+$begin
+# Add FVM to PATH
+if type -q fish_add_path
+  fish_add_path "$BIN_DIR"
+else
+  set -gx PATH "$BIN_DIR" \$PATH
+end
+$end
+EOF
+  else
+    cat >> "$profile" <<EOF
+
+$begin
+export PATH="$BIN_DIR:\$PATH"
+$end
+EOF
+  fi
+
+  echo "✓ Added FVM to PATH in: $profile" >&2
+}
+
+fvm_remove_from_profile() {
+  local profile
+  profile="$(fvm_detect_profile)"
+
+  if [ -f "$profile" ]; then
+    if grep -Fqs "# >>> fvm >>>" "$profile"; then
+      fvm_remove_managed_block "$profile"
+      echo "✓ Removed FVM PATH entry from: $profile" >&2
+    fi
+  fi
 }
 
 migrate_from_v1() {
@@ -305,6 +467,9 @@ do_uninstall() {
     echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
 
+  # 4. Remove FVM PATH entry from shell profile (if we added it)
+  fvm_remove_from_profile || true
+
   if [ "$removed_any" -eq 0 ]; then
     echo "No FVM installation found (ok)" >&2
   fi
@@ -317,7 +482,7 @@ do_uninstall() {
   echo "Note: Cached Flutter SDKs remain in $INSTALL_BASE/versions/" >&2
   echo "      To remove them: rm -rf $INSTALL_BASE/" >&2
   echo "" >&2
-  echo "Remove PATH entries from your shell config:" >&2
+  echo "If you added FVM to your PATH manually, remove entries from:" >&2
   echo "  - ~/.bashrc" >&2
   echo "  - ~/.zshrc" >&2
   echo "  - ~/.config/fish/config.fish" >&2
@@ -500,6 +665,10 @@ echo "Installed to: ${BIN_DIR}/fvm"
 
 if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
   echo "FVM version: ${VERSION}"
+
+  # Attempt to auto-add to PATH in shell config
+  fvm_maybe_add_to_path || true
+
   print_path_instructions
 else
   echo ""
