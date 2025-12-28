@@ -150,36 +150,51 @@ get_latest_version() {
 }
 
 print_path_instructions() {
+  local profile_updated="${1:-false}"
+
   echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo "✓ Installation complete!"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  echo "To use FVM, add it to your PATH:"
-  echo ""
-  echo "  # For bash (add to ~/.bashrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For zsh (add to ~/.zshrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For fish (run once):"
-  echo "  fish_add_path \"$BIN_DIR\""
-  echo ""
-  echo "Then restart your shell or run:"
-  echo "  source ~/.bashrc  # or ~/.zshrc"
-  echo ""
-  if is_ci; then
-    echo "CI detected."
-    echo "To use FVM in this same step, run:"
-    echo "  export PATH=\"$BIN_DIR:\$PATH\""
-    echo "To persist for later steps, use your CI's env file mechanism"
-    echo "  (e.g., \$GITHUB_PATH on GitHub Actions, \$BASH_ENV on CircleCI)."
+
+  if [ "$profile_updated" = "true" ]; then
+    echo "FVM has been added to your PATH. To use it now, either:"
+    echo "  • Restart your terminal, or"
+    echo "  • Run: source ~/.bashrc  # (or ~/.zshrc)"
     echo ""
+    if ! is_ci; then
+      echo "If you ran this via curl | bash, also run in this shell:"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo ""
+    fi
   else
-    echo "Note: If you ran this via curl | bash, run the export command"
-    echo "above in your current shell."
+    echo "To use FVM, add it to your PATH:"
     echo ""
+    echo "  # For bash (add to ~/.bashrc):"
+    echo "  export PATH=\"$BIN_DIR:\$PATH\""
+    echo ""
+    echo "  # For zsh (add to ~/.zshrc):"
+    echo "  export PATH=\"$BIN_DIR:\$PATH\""
+    echo ""
+    echo "  # For fish (run once):"
+    echo "  fish_add_path \"$BIN_DIR\""
+    echo ""
+    echo "Then restart your shell or run:"
+    echo "  source ~/.bashrc  # or ~/.zshrc"
+    echo ""
+    if is_ci; then
+      echo "CI detected."
+      echo "To use FVM in this same step, run:"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo "To persist for later steps, use your CI's env file mechanism"
+      echo "  (e.g., \$GITHUB_PATH on GitHub Actions, \$BASH_ENV on CircleCI)."
+      echo ""
+    else
+      echo "Note: If you ran this via curl | bash, run the export command"
+      echo "above in your current shell."
+      echo ""
+    fi
   fi
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
@@ -334,6 +349,7 @@ EOF
   fi
 
   echo "✓ Added FVM to PATH in: $profile" >&2
+  FVM_PROFILE_UPDATED="true"
 }
 
 fvm_remove_from_profile() {
@@ -667,9 +683,10 @@ if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
   echo "FVM version: ${VERSION}"
 
   # Attempt to auto-add to PATH in shell config
+  FVM_PROFILE_UPDATED="false"
   fvm_maybe_add_to_path || true
 
-  print_path_instructions
+  print_path_instructions "$FVM_PROFILE_UPDATED"
 else
   echo ""
   echo "⚠ Binary installed but cannot execute (missing libraries)."
