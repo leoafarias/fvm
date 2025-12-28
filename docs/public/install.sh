@@ -98,6 +98,8 @@ ARGUMENTS:
 
 ENVIRONMENT:
   FVM_INSTALL_DIR        Install base directory (default: \$HOME/fvm)
+  PROFILE                Override shell profile file for PATH instructions
+                         Set to /dev/null to skip profile detection
 
 FLAGS:
   -h, --help            Show this help and exit
@@ -224,36 +226,78 @@ detect_shell() {
 }
 
 # Get the appropriate profile file for a shell
+# Supports PROFILE env var override (NVM-compatible)
 get_profile_file() {
   local shell_type="$1"
   local profile_file=""
 
+  # Allow explicit override via PROFILE environment variable
+  if [ -n "${PROFILE:-}" ]; then
+    if [ "${PROFILE}" = "/dev/null" ]; then
+      # User explicitly wants to skip profile detection
+      echo ""
+      return
+    fi
+    if [ -f "${PROFILE}" ]; then
+      echo "${PROFILE}"
+      return
+    fi
+    # PROFILE set but file doesn't exist - warn and continue with auto-detection
+    echo "Warning: PROFILE='${PROFILE}' not found, using auto-detection" >&2
+  fi
+
   case "$shell_type" in
     bash)
-      # Priority: .bash_profile (macOS default), .bash_login, .bashrc, .profile
-      # Login shells read .bash_profile first; .bashrc is for interactive non-login
-      if [ -f "$HOME/.bash_profile" ]; then
-        profile_file="$HOME/.bash_profile"
-      elif [ -f "$HOME/.bash_login" ]; then
-        profile_file="$HOME/.bash_login"
-      elif [ -f "$HOME/.bashrc" ]; then
-        profile_file="$HOME/.bashrc"
-      elif [ -f "$HOME/.profile" ]; then
-        profile_file="$HOME/.profile"
+      # Platform-aware priority (verified against NVM and Homebrew patterns):
+      # - macOS Terminal.app opens login shells -> .bash_profile first
+      # - Linux terminals typically open non-login interactive shells -> .bashrc first
+      if [ "$(uname -s)" = "Darwin" ]; then
+        # macOS: .bash_profile > .bash_login > .bashrc > .profile
+        if [ -f "$HOME/.bash_profile" ]; then
+          profile_file="$HOME/.bash_profile"
+        elif [ -f "$HOME/.bash_login" ]; then
+          profile_file="$HOME/.bash_login"
+        elif [ -f "$HOME/.bashrc" ]; then
+          profile_file="$HOME/.bashrc"
+        elif [ -f "$HOME/.profile" ]; then
+          profile_file="$HOME/.profile"
+        else
+          profile_file="$HOME/.bash_profile"
+        fi
       else
-        # Default to .bashrc (most common on Linux)
-        profile_file="$HOME/.bashrc"
+        # Linux/BSD: .bashrc > .bash_profile > .profile
+        # (most .bash_profile files source .bashrc anyway)
+        if [ -f "$HOME/.bashrc" ]; then
+          profile_file="$HOME/.bashrc"
+        elif [ -f "$HOME/.bash_profile" ]; then
+          profile_file="$HOME/.bash_profile"
+        elif [ -f "$HOME/.profile" ]; then
+          profile_file="$HOME/.profile"
+        else
+          profile_file="$HOME/.bashrc"
+        fi
       fi
       ;;
     zsh)
-      # Priority: .zprofile (login shell PATH setup), .zshrc (interactive)
-      # For PATH modifications, .zprofile is recommended per Zsh docs
-      if [ -f "$HOME/.zprofile" ]; then
-        profile_file="$HOME/.zprofile"
-      elif [ -f "$HOME/.zshrc" ]; then
-        profile_file="$HOME/.zshrc"
+      # Platform-aware priority (matches Homebrew):
+      # - macOS: .zprofile (login shell)
+      # - Linux: .zshrc (interactive shell)
+      if [ "$(uname -s)" = "Darwin" ]; then
+        if [ -f "$HOME/.zprofile" ]; then
+          profile_file="$HOME/.zprofile"
+        elif [ -f "$HOME/.zshrc" ]; then
+          profile_file="$HOME/.zshrc"
+        else
+          profile_file="$HOME/.zprofile"
+        fi
       else
-        profile_file="$HOME/.zprofile"
+        if [ -f "$HOME/.zshrc" ]; then
+          profile_file="$HOME/.zshrc"
+        elif [ -f "$HOME/.zprofile" ]; then
+          profile_file="$HOME/.zprofile"
+        else
+          profile_file="$HOME/.zshrc"
+        fi
       fi
       ;;
     fish)
@@ -262,12 +306,13 @@ get_profile_file() {
       profile_file="$fish_config_dir/fish/config.fish"
       ;;
     *)
-      # Unknown shell - try common profiles
-      if [ -f "$HOME/.profile" ]; then
-        profile_file="$HOME/.profile"
-      elif [ -f "$HOME/.bashrc" ]; then
-        profile_file="$HOME/.bashrc"
-      fi
+      # Unknown shell - try common profile files in order (NVM pattern)
+      for profile in ".profile" ".bashrc" ".bash_profile" ".zprofile" ".zshrc"; do
+        if [ -f "$HOME/$profile" ]; then
+          profile_file="$HOME/$profile"
+          break
+        fi
+      done
       ;;
   esac
 
