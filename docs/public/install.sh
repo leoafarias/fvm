@@ -47,7 +47,6 @@ readonly BIN_DIR="${INSTALL_BASE}/bin"
 
 validate_install_base() {
   local base="$1"
-  local bin_dir="${base}/bin"
 
   if [ -z "$base" ] || [ "$base" = "/" ]; then
     echo "error: refusing to use unsafe install base: '${base:-<empty>}'" >&2
@@ -76,13 +75,7 @@ validate_install_base() {
       exit 1
       ;;
   esac
-
-  case "$bin_dir" in
-    /bin|/usr/bin|/usr/local/bin|/sbin|/usr/sbin)
-      echo "error: refusing to use unsafe bin directory: $bin_dir" >&2
-      exit 1
-      ;;
-  esac
+  # Note: system bin directories (/usr/bin, etc.) already rejected by the HOME/* check above
 }
 
 usage() {
@@ -203,13 +196,6 @@ try_remove_directory() {
   return 1
 }
 
-# Print musl libc warning (used in multiple detection paths)
-print_musl_warning() {
-  echo "" >&2
-  echo "Note: Detected musl libc (Alpine Linux)." >&2
-  echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-  echo "" >&2
-}
 
 get_latest_version() {
   # Follows redirect from /releases/latest -> .../tag/vX.Y.Z
@@ -268,13 +254,12 @@ print_path_instructions() {
 }
 
 is_ci() {
+  # Generic CI check (covers most platforms: Travis, GitLab, Buildkite, etc.)
   if [ -n "${CI:-}" ] && [ "${CI}" != "false" ]; then
     return 0
   fi
-  [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${GITLAB_CI:-}" ] || [ -n "${CIRCLECI:-}" ] || \
-  [ -n "${TRAVIS:-}" ] || [ -n "${BUILDKITE:-}" ] || [ -n "${DRONE:-}" ] || \
-  [ -n "${TF_BUILD:-}" ] || [ -n "${TEAMCITY_VERSION:-}" ] || \
-  [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
+  # Specific platforms we support in setup_ci_path
+  [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${TF_BUILD:-}" ] || [ -n "${CIRCLECI:-}" ]
 }
 
 # ---- profile auto-detection ----
@@ -598,10 +583,15 @@ if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; the
     : # glibc detected
   elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
     LIBC_SUFFIX="-musl"
-    print_musl_warning
   elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
     LIBC_SUFFIX="-musl"
-    print_musl_warning
+  fi
+  # Print musl warning if detected
+  if [ "$LIBC_SUFFIX" = "-musl" ]; then
+    echo "" >&2
+    echo "Note: Detected musl libc (Alpine Linux)." >&2
+    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
+    echo "" >&2
   fi
 fi
 readonly LIBC_SUFFIX
@@ -640,7 +630,7 @@ fi
 # ---- prep dirs and cleanup trap ----
 TMP_DIR=""  # Initialize for set -u (nounset)
 cleanup() { if [ -n "$TMP_DIR" ]; then rm -rf "$TMP_DIR" 2>/dev/null || true; fi; }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
 
 TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
   echo "error: failed to create temp directory" >&2
