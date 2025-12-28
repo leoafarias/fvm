@@ -47,7 +47,6 @@ readonly BIN_DIR="${INSTALL_BASE}/bin"
 
 validate_install_base() {
   local base="$1"
-  local bin_dir="${base}/bin"
 
   if [ -z "$base" ] || [ "$base" = "/" ]; then
     echo "error: refusing to use unsafe install base: '${base:-<empty>}'" >&2
@@ -76,13 +75,7 @@ validate_install_base() {
       exit 1
       ;;
   esac
-
-  case "$bin_dir" in
-    /bin|/usr/bin|/usr/local/bin|/sbin|/usr/sbin)
-      echo "error: refusing to use unsafe bin directory: $bin_dir" >&2
-      exit 1
-      ;;
-  esac
+  # Note: system bin directories (/usr/bin, etc.) already rejected by the HOME/* check above
 }
 
 usage() {
@@ -98,6 +91,8 @@ ARGUMENTS:
 
 ENVIRONMENT:
   FVM_INSTALL_DIR        Install base directory (default: \$HOME/fvm)
+  PROFILE                Override shell profile file for PATH instructions
+                         Set to /dev/null to skip profile detection
 
 FLAGS:
   -h, --help            Show this help and exit
@@ -134,6 +129,74 @@ require() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 is required" >&
 
 normalize_version() { printf '%s\n' "${1#v}"; }
 
+# Find first existing file from a list, or return the last (default)
+# Usage: find_first_file file1 file2 ... default
+find_first_file() {
+  local default="${!#}"  # Last argument is default
+  local file
+  for file in "$@"; do
+    [ -f "$file" ] && { echo "$file"; return 0; }
+  done
+  echo "$default"
+}
+
+# Try to remove a file/symlink, using sudo as fallback
+# Args: $1=path $2=description
+# Returns: 0 if removed, 1 if failed or didn't exist
+try_remove_file() {
+  local path="$1"
+  local desc="${2:-file}"
+
+  [ -e "$path" ] || [ -L "$path" ] || return 1
+
+  rm -f "$path" 2>/dev/null || true
+  if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+    echo "✓ Removed $desc" >&2
+    return 0
+  fi
+
+  if command -v sudo >/dev/null 2>&1; then
+    sudo rm -f "$path" 2>/dev/null || true
+    if [ ! -e "$path" ] && [ ! -L "$path" ]; then
+      echo "✓ Removed $desc (required sudo)" >&2
+      return 0
+    fi
+  fi
+
+  echo "⚠ Could not remove $path" >&2
+  echo "  You may remove it manually: sudo rm $path" >&2
+  return 1
+}
+
+# Try to remove a directory, optionally backing up first
+# Args: $1=path $2=backup_first (1=yes, 0=no)
+# Returns: 0 if removed/backed up, 1 if failed or didn't exist
+try_remove_directory() {
+  local path="$1"
+  local backup_first="${2:-0}"
+
+  [ -d "$path" ] || return 1
+
+  if [ "$backup_first" -eq 1 ]; then
+    local backup_path="${path}.bak.$(date +%Y%m%d%H%M%S)"
+    if mv "$path" "$backup_path" 2>/dev/null; then
+      echo "✓ Backed up to: $backup_path" >&2
+      return 0
+    fi
+  fi
+
+  rm -rf "$path" 2>/dev/null || true
+  if [ ! -d "$path" ]; then
+    echo "✓ Removed directory: $path" >&2
+    return 0
+  fi
+
+  echo "⚠ Could not remove $path" >&2
+  echo "  You may remove it manually: rm -rf $path" >&2
+  return 1
+}
+
+
 get_latest_version() {
   # Follows redirect from /releases/latest -> .../tag/vX.Y.Z
   local url
@@ -147,93 +210,244 @@ print_path_instructions() {
   echo "✓ Installation complete!"
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
-  echo "To use FVM, add it to your PATH:"
-  echo ""
-  echo "  # For bash (add to ~/.bashrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For zsh (add to ~/.zshrc):"
-  echo "  export PATH=\"$BIN_DIR:\$PATH\""
-  echo ""
-  echo "  # For fish (run once):"
-  echo "  fish_add_path \"$BIN_DIR\""
-  echo ""
-  echo "Then restart your shell or run:"
-  echo "  source ~/.bashrc  # or ~/.zshrc"
-  echo ""
+
+  # CI environment: automatically configure PATH
   if is_ci; then
-    echo "CI detected."
-    echo "To use FVM in this same step, run:"
-    echo "  export PATH=\"$BIN_DIR:\$PATH\""
-    echo "To persist for later steps, use your CI's env file mechanism"
-    echo "  (e.g., \$GITHUB_PATH on GitHub Actions, \$BASH_ENV on CircleCI)."
+    echo "CI environment detected - configuring PATH automatically..."
     echo ""
+    setup_ci_path "$BIN_DIR"
+    echo ""
+    echo "FVM is now available in this step and subsequent steps."
   else
-    echo "Note: If you ran this via curl | bash, run the export command"
-    echo "above in your current shell."
-    echo ""
+    # Interactive: check if already configured, otherwise show instructions
+    local shell_type
+    local profile_file
+    shell_type="$(detect_shell)"
+    profile_file="$(get_profile_file "$shell_type")"
+
+    if [ -n "$profile_file" ] && is_path_configured "$profile_file" "$BIN_DIR"; then
+      echo "✓ FVM is already configured in $profile_file"
+      echo ""
+      echo "Restart your shell or run: source $profile_file"
+    else
+      echo "To use FVM, add it to your PATH:"
+      echo ""
+      echo "  # For bash (add to ~/.bashrc or ~/.bash_profile):"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo ""
+      echo "  # For zsh (add to ~/.zshrc or ~/.zprofile):"
+      echo "  export PATH=\"$BIN_DIR:\$PATH\""
+      echo ""
+      echo "  # For fish (run once):"
+      echo "  fish_add_path \"$BIN_DIR\""
+      echo ""
+      if [ -n "$profile_file" ]; then
+        echo "Then restart your shell or run: source $profile_file"
+      else
+        echo "Then restart your shell to apply changes."
+      fi
+    fi
   fi
+
+  echo ""
   echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 }
 
 is_ci() {
+  # Generic CI check (covers most platforms: Travis, GitLab, Buildkite, etc.)
   if [ -n "${CI:-}" ] && [ "${CI}" != "false" ]; then
     return 0
   fi
-  [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${GITLAB_CI:-}" ] || [ -n "${CIRCLECI:-}" ] || \
-  [ -n "${TRAVIS:-}" ] || [ -n "${BUILDKITE:-}" ] || [ -n "${DRONE:-}" ] || \
-  [ -n "${TF_BUILD:-}" ] || [ -n "${TEAMCITY_VERSION:-}" ] || \
-  [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
+  # Specific platforms we support in setup_ci_path
+  [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${TF_BUILD:-}" ] || [ -n "${CIRCLECI:-}" ]
+}
+
+# ---- profile auto-detection ----
+
+# Detect the user's shell (works on Linux, macOS, BSD)
+detect_shell() {
+  local shell_name=""
+
+  # Primary: use ps command (portable across Linux, macOS, BSD)
+  if command -v ps >/dev/null 2>&1; then
+    shell_name="$(ps -p "$PPID" -o 'comm=' 2>/dev/null || true)"
+    shell_name="${shell_name##-}"       # Remove leading dash (login shells)
+    shell_name="${shell_name##*/}"      # Extract basename
+  fi
+
+  # Fallback: use $SHELL environment variable
+  if [ -z "$shell_name" ] && [ -n "${SHELL:-}" ]; then
+    shell_name="$(basename "$SHELL" 2>/dev/null)" || shell_name=""
+  fi
+
+  # Normalize shell names
+  case "$shell_name" in
+    bash*)  echo "bash" ;;
+    zsh*)   echo "zsh" ;;
+    fish*)  echo "fish" ;;
+    *)      echo "unknown" ;;
+  esac
+}
+
+# Get the appropriate profile file for a shell
+# Supports PROFILE env var override (NVM-compatible)
+get_profile_file() {
+  local shell_type="$1"
+  local profile_file=""
+
+  # Allow explicit override via PROFILE environment variable
+  if [ -n "${PROFILE:-}" ]; then
+    if [ "${PROFILE}" = "/dev/null" ]; then
+      # User explicitly wants to skip profile detection
+      echo ""
+      return
+    fi
+    if [ -f "${PROFILE}" ]; then
+      echo "${PROFILE}"
+      return
+    fi
+    # PROFILE set but file doesn't exist - warn and continue with auto-detection
+    echo "Warning: PROFILE='${PROFILE}' not found, using auto-detection" >&2
+  fi
+
+  case "$shell_type" in
+    bash)
+      # Platform-aware priority (verified against NVM and Homebrew patterns)
+      if [ "$(uname -s)" = "Darwin" ]; then
+        # macOS: .bash_profile > .bash_login > .bashrc > .profile (login shells)
+        profile_file="$(find_first_file "$HOME/.bash_profile" "$HOME/.bash_login" \
+          "$HOME/.bashrc" "$HOME/.profile" "$HOME/.bash_profile")"
+      else
+        # Linux/BSD: .bashrc > .bash_profile > .profile (interactive shells)
+        profile_file="$(find_first_file "$HOME/.bashrc" "$HOME/.bash_profile" \
+          "$HOME/.profile" "$HOME/.bashrc")"
+      fi
+      ;;
+    zsh)
+      # Platform-aware priority (matches Homebrew)
+      if [ "$(uname -s)" = "Darwin" ]; then
+        # macOS: .zprofile (login shell)
+        profile_file="$(find_first_file "$HOME/.zprofile" "$HOME/.zshrc" "$HOME/.zprofile")"
+      else
+        # Linux: .zshrc (interactive shell)
+        profile_file="$(find_first_file "$HOME/.zshrc" "$HOME/.zprofile" "$HOME/.zshrc")"
+      fi
+      ;;
+    fish)
+      # Respect XDG_CONFIG_HOME for fish configuration
+      local fish_config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
+      profile_file="$fish_config_dir/fish/config.fish"
+      ;;
+    *)
+      # Unknown shell - try common profile files in order (NVM pattern)
+      profile_file="$(find_first_file "$HOME/.profile" "$HOME/.bashrc" \
+        "$HOME/.bash_profile" "$HOME/.zprofile" "$HOME/.zshrc" "")"
+      ;;
+  esac
+
+  echo "$profile_file"
+}
+
+# Check if FVM is already in PATH configuration
+is_path_configured() {
+  local profile_file="$1"
+  local bin_dir="$2"
+
+  if [ ! -f "$profile_file" ]; then
+    return 1
+  fi
+
+  # Use -F for fixed string matching (prevents regex injection)
+  # Check for FVM bin directory in profile (skip comment lines)
+  # Note: Use [[:space:]] instead of \s for POSIX portability (BSD/macOS grep)
+  if grep -v '^[[:space:]]*#' "$profile_file" 2>/dev/null | grep -qF "$bin_dir"; then
+    return 0
+  fi
+
+  # Also check for ~/fvm/bin or $HOME/fvm/bin patterns (unexpanded)
+  if grep -v '^[[:space:]]*#' "$profile_file" 2>/dev/null | grep -qE '(\$HOME|~)/fvm/bin'; then
+    return 0
+  fi
+
+  return 1
+}
+
+# Setup CI environment PATH automatically
+setup_ci_path() {
+  local bin_dir="$1"
+  local ci_setup_done=0
+
+  # GitHub Actions - write to GITHUB_PATH for subsequent steps
+  if [ -n "${GITHUB_PATH:-}" ]; then
+    if echo "$bin_dir" >> "$GITHUB_PATH" 2>/dev/null; then
+      echo "✓ Added to GITHUB_PATH (available in subsequent steps)" >&2
+      ci_setup_done=1
+    else
+      echo "⚠ Failed to write to GITHUB_PATH" >&2
+    fi
+  fi
+
+  # CircleCI / Generic BASH_ENV - sourced at start of every step
+  if [ -n "${BASH_ENV:-}" ] && [ -w "$BASH_ENV" ]; then
+    if echo "export PATH=\"$bin_dir:\$PATH\"" >> "$BASH_ENV" 2>/dev/null; then
+      echo "✓ Added to BASH_ENV (available in subsequent steps)" >&2
+      ci_setup_done=1
+    fi
+  fi
+
+  # Azure DevOps - logging command modifies PATH for subsequent tasks
+  if [ -n "${TF_BUILD:-}" ]; then
+    echo "##vso[task.prependpath]$bin_dir"
+    echo "✓ Added via Azure DevOps logging command" >&2
+    ci_setup_done=1
+  fi
+
+  # GitLab CI - export PATH works within the same job's script section
+  # No special setup needed; the export below handles it
+
+  # Always export for current shell/step
+  export PATH="$bin_dir:$PATH"
+
+  if [ "$ci_setup_done" -eq 1 ]; then
+    echo "✓ Configured PATH for CI environment" >&2
+  else
+    echo "✓ Exported PATH for current step" >&2
+  fi
+
+  return 0
 }
 
 migrate_from_v1() {
   local migrated=0
 
-  # 1. Remove old system symlink (v1 or v2 --system)
+  # 1. Remove old system symlink only if it points to a known FVM location
   if [ -L "$OLD_SYSTEM_PATH" ]; then
-    echo "" >&2
-    echo "Detected old system installation at $OLD_SYSTEM_PATH" >&2
+    local symlink_target
+    symlink_target="$(readlink "$OLD_SYSTEM_PATH" 2>/dev/null || true)"
 
-    # Try to remove without sudo first (|| true prevents set -e exit)
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink" >&2
-      migrated=1
-    else
-      # Try with sudo if available
-      if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink (required sudo)" >&2
-          migrated=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH" >&2
-          echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (need sudo)" >&2
-        echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-      fi
-    fi
+    case "$symlink_target" in
+      *fvm_flutter/bin/fvm|*fvm/bin/fvm)
+        echo "" >&2
+        echo "Detected old system symlink at $OLD_SYSTEM_PATH -> $symlink_target" >&2
+        try_remove_file "$OLD_SYSTEM_PATH" "old system symlink" && migrated=1
+        ;;
+      *)
+        echo "" >&2
+        echo "⚠ Found symlink at $OLD_SYSTEM_PATH pointing to: $symlink_target" >&2
+        echo "  Not removing (does not appear to be an FVM installation)" >&2
+        ;;
+    esac
   elif [ -e "$OLD_SYSTEM_PATH" ]; then
     echo "" >&2
     echo "⚠ Detected existing non-symlink file at $OLD_SYSTEM_PATH" >&2
     echo "  Not removing automatically. Remove it manually if it is an old FVM binary." >&2
   fi
 
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
+  # 2. Backup old user directory (~/.fvm_flutter)
   if [ -d "$OLD_USER_PATH" ]; then
     echo "" >&2
     echo "Detected old installation at $OLD_USER_PATH" >&2
-
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old user directory" >&2
-      migrated=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-      echo "  You may remove it manually: rm -rf $OLD_USER_PATH" >&2
-    fi
+    try_remove_directory "$OLD_USER_PATH" 1 && migrated=1  # 1 = backup first
   fi
 
   # 3. Print PATH update notice if migrated
@@ -259,48 +473,15 @@ do_uninstall() {
 
   validate_install_base "$INSTALL_BASE"
 
-  # 1. Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
-  # Note: This removes the entire $BIN_DIR directory.
-  if [ -d "$BIN_DIR" ]; then
-    rm -rf "$BIN_DIR" 2>/dev/null || true
-    if [ ! -d "$BIN_DIR" ]; then
-      echo "✓ Removed binary directory: $BIN_DIR" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $BIN_DIR (check permissions)" >&2
-    fi
-  fi
+  # 1. Remove the bin directory (preserves cached SDKs in versions/)
+  try_remove_directory "$BIN_DIR" 0 && removed_any=1
 
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
-  if [ -d "$OLD_USER_PATH" ]; then
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old directory: $OLD_USER_PATH" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-    fi
-  fi
+  # 2. Remove old user directory (~/.fvm_flutter)
+  try_remove_directory "$OLD_USER_PATH" 0 && removed_any=1
 
   # 3. Remove old system symlink (from v1/v2)
   if [ -L "$OLD_SYSTEM_PATH" ]; then
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-      removed_any=1
-    else
-      if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-          removed_any=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-      fi
-    fi
+    try_remove_file "$OLD_SYSTEM_PATH" "old system symlink" && removed_any=1
   elif [ -e "$OLD_SYSTEM_PATH" ]; then
     echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
@@ -402,12 +583,11 @@ if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; the
     : # glibc detected
   elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
     LIBC_SUFFIX="-musl"
-    echo "" >&2
-    echo "Note: Detected musl libc (Alpine Linux)." >&2
-    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-    echo "" >&2
   elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
     LIBC_SUFFIX="-musl"
+  fi
+  # Print musl warning if detected
+  if [ "$LIBC_SUFFIX" = "-musl" ]; then
     echo "" >&2
     echo "Note: Detected musl libc (Alpine Linux)." >&2
     echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
@@ -450,7 +630,7 @@ fi
 # ---- prep dirs and cleanup trap ----
 TMP_DIR=""  # Initialize for set -u (nounset)
 cleanup() { if [ -n "$TMP_DIR" ]; then rm -rf "$TMP_DIR" 2>/dev/null || true; fi; }
-trap cleanup EXIT
+trap cleanup EXIT INT TERM HUP
 
 TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
   echo "error: failed to create temp directory" >&2
