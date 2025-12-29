@@ -446,21 +446,14 @@ do_uninstall() {
   echo "Uninstalling FVM..." >&2
   echo "" >&2
 
-  # 1. Remove only the FVM binary (not entire directory - preserves shared bin dirs)
-  if [ -f "${BIN_DIR}/fvm" ]; then
-    rm -f "${BIN_DIR}/fvm" 2>/dev/null || true
-    if [ ! -f "${BIN_DIR}/fvm" ]; then
-      echo "✓ Removed: ${BIN_DIR}/fvm" >&2
+  # 1. Remove entire bin directory (includes fvm, src/, etc. from older versions)
+  if [ -d "$BIN_DIR" ]; then
+    rm -rf "${BIN_DIR:?}"
+    if [ ! -d "$BIN_DIR" ]; then
+      echo "✓ Removed: ${BIN_DIR}" >&2
       removed_any=1
     else
-      echo "⚠ Could not remove ${BIN_DIR}/fvm (check permissions)" >&2
-    fi
-  fi
-
-  # Try to remove bin directory only if empty (safe for shared directories)
-  if [ -d "$BIN_DIR" ]; then
-    if rmdir "$BIN_DIR" 2>/dev/null; then
-      echo "✓ Removed empty directory: $BIN_DIR" >&2
+      echo "⚠ Could not remove ${BIN_DIR} (check permissions)" >&2
     fi
   fi
 
@@ -678,9 +671,11 @@ if find "$TMP_DIR" -type f -links +1 2>/dev/null | grep -q .; then
   exit 1
 fi
 
-# ---- locate binary in extracted archive ----
+# ---- locate binary and copy archive contents ----
 SOURCE_BIN=""
 if [ -d "${TMP_DIR}/fvm" ] && [ -f "${TMP_DIR}/fvm/fvm" ]; then
+  # Copy entire archive (older FVM versions need src/dart, etc.)
+  cp -a "${TMP_DIR}/fvm/." "$BIN_DIR/"
   SOURCE_BIN="${TMP_DIR}/fvm/fvm"
 elif [ -f "${TMP_DIR}/fvm" ]; then
   SOURCE_BIN="${TMP_DIR}/fvm"
