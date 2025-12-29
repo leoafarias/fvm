@@ -82,7 +82,7 @@ validate_install_base() {
 
   # Reject system bin directories
   case "${base}/bin" in
-    /bin|/usr/bin|/usr/local/bin|/sbin|/usr/sbin)
+    /bin|/usr/bin|/usr/local/bin)
       echo "error: refusing to use unsafe bin directory: ${base}/bin" >&2
       exit 1
       ;;
@@ -459,7 +459,9 @@ do_uninstall() {
 
   # Try to remove bin directory only if empty (safe for shared directories)
   if [ -d "$BIN_DIR" ]; then
-    rmdir "$BIN_DIR" 2>/dev/null && echo "✓ Removed empty directory: $BIN_DIR" >&2 || true
+    if rmdir "$BIN_DIR" 2>/dev/null; then
+      echo "✓ Removed empty directory: $BIN_DIR" >&2
+    fi
   fi
 
   # 2. Remove FVM PATH entry from shell profile (if we added it)
