@@ -2,6 +2,11 @@
 # =============================================================================
 # FVM Installer
 # =============================================================================
+# v2.2.0 (2025-12)
+#   - Add ZDOTDIR support for zsh (respects custom zsh config locations)
+#   - Add XDG_CONFIG_HOME support for fish (XDG Base Directory spec)
+#   - Add runtime PATH duplicate check (prevents duplication on re-source)
+#
 # v2.1.0 (2025-12)
 #   - Auto-add FVM to PATH in shell config (bash/zsh/fish)
 #   - Opt-out: FVM_NO_PROFILE=1 or PROFILE=/dev/null
@@ -21,7 +26,7 @@ umask 022
 
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
-readonly INSTALLER_VERSION="2.1.0"
+readonly INSTALLER_VERSION="2.2.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
@@ -252,17 +257,20 @@ fvm_detect_profile() {
 
   case "$shell_name" in
     fish)
-      printf '%s\n' "$HOME/.config/fish/config.fish"
+      # Respect XDG_CONFIG_HOME if set (XDG Base Directory spec)
+      printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish"
       return 0
       ;;
     zsh)
-      if [ -f "$HOME/.zshrc" ]; then
-        printf '%s\n' "$HOME/.zshrc"
-      elif [ -f "$HOME/.zprofile" ]; then
-        printf '%s\n' "$HOME/.zprofile"
+      # Respect ZDOTDIR if set (zsh standard)
+      local zsh_home="${ZDOTDIR:-$HOME}"
+      if [ -f "$zsh_home/.zshrc" ]; then
+        printf '%s\n' "$zsh_home/.zshrc"
+      elif [ -f "$zsh_home/.zprofile" ]; then
+        printf '%s\n' "$zsh_home/.zprofile"
       else
-        # create ~/.zshrc if nothing exists
-        printf '%s\n' "$HOME/.zshrc"
+        # create .zshrc if nothing exists
+        printf '%s\n' "$zsh_home/.zshrc"
       fi
       return 0
       ;;
@@ -328,6 +336,7 @@ fvm_maybe_add_to_path() {
   shell_name="$(basename "${SHELL:-}")"
 
   if [ "$shell_name" = "fish" ] || [ "$(basename "$profile")" = "config.fish" ]; then
+    # fish_add_path already handles duplicates
     cat >> "$profile" <<EOF
 
 $begin
@@ -340,10 +349,18 @@ end
 $end
 EOF
   else
+    # Use case pattern to avoid duplicates when sourced multiple times (rustup-style)
     cat >> "$profile" <<EOF
 
 $begin
-export PATH="$BIN_DIR:\$PATH"
+# Add FVM to PATH (only if not already present)
+case ":\${PATH}:" in
+  *:"$BIN_DIR":*)
+    ;;
+  *)
+    export PATH="$BIN_DIR:\$PATH"
+    ;;
+esac
 $end
 EOF
   fi
