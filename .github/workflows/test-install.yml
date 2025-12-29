@@ -55,8 +55,9 @@ jobs:
     name: Test install.sh - ${{ matrix.os }}
     needs: validate
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-22.04, macos-latest, macos-13]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -139,9 +140,13 @@ jobs:
 
   # Test old v1 installation detection (warning-only, no auto-delete)
   test-old-installation-warning:
-    name: Test Old Installation Warning
+    name: Test Old Installation Warning - ${{ matrix.os }}
     needs: validate
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
