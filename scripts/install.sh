@@ -2,11 +2,13 @@
 # =============================================================================
 # FVM Installer
 # =============================================================================
+# v2.2.0 (2025-12)
+#   - Auto-remove ~/.fvm_flutter on upgrade (v1 migration)
+#
 # v2.1.0 (2025-12)
 #   - Auto-add FVM to PATH in shell config (bash/zsh/fish)
 #   - Support ZDOTDIR (zsh) and XDG_CONFIG_HOME (fish)
 #   - Preserve symlinked dotfiles, detect musl on all Linux archs
-#   - Old v1 installations: warning-only (no auto-deletion)
 #
 # v2.0.0 (2025-12)
 #   - Install to ~/fvm/bin (no sudo required)
@@ -22,7 +24,7 @@ umask 022
 
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
-readonly INSTALLER_VERSION="2.1.0"
+readonly INSTALLER_VERSION="2.2.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
@@ -416,27 +418,17 @@ fvm_remove_from_profile() {
   fi
 }
 
-# Check for old FVM v1 installation and print warnings (no auto-deletion)
-check_old_installation() {
-  local found=0
-
-  if [ -L "$OLD_SYSTEM_PATH" ] || [ -e "$OLD_SYSTEM_PATH" ]; then
-    echo "" >&2
-    echo "Note: Old FVM found at $OLD_SYSTEM_PATH" >&2
-    echo "  Remove with: sudo rm $OLD_SYSTEM_PATH" >&2
-    found=1
-  fi
-
+# Clean up old v1 installation
+cleanup_old_installation() {
+  # Auto-remove old user directory (~/.fvm_flutter)
   if [ -d "$OLD_USER_PATH" ]; then
-    echo "" >&2
-    echo "Note: Old FVM directory found at $OLD_USER_PATH" >&2
-    echo "  Remove with: rm -rf $OLD_USER_PATH" >&2
-    found=1
+    rm -rf "$OLD_USER_PATH" 2>/dev/null && \
+      echo "✓ Removed old installation: $OLD_USER_PATH" >&2
   fi
 
-  if [ "$found" -eq 1 ]; then
-    echo "" >&2
-    echo "These old paths may cause PATH conflicts." >&2
+  # Warn about old system symlink (needs sudo)
+  if [ -L "$OLD_SYSTEM_PATH" ] || [ -e "$OLD_SYSTEM_PATH" ]; then
+    echo "Note: Old symlink at $OLD_SYSTEM_PATH - remove with: sudo rm $OLD_SYSTEM_PATH" >&2
   fi
 }
 
@@ -691,8 +683,8 @@ cp -a "$SOURCE_BIN" "$TMP_BIN"
 chmod +x "$TMP_BIN"
 mv -f "$TMP_BIN" "${BIN_DIR}/fvm"
 
-# ---- check for old installations (warning only) ----
-check_old_installation
+# ---- clean up old v1 installation ----
+cleanup_old_installation
 
 # ---- verify and report ----
 echo ""
