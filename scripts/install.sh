@@ -2,15 +2,11 @@
 # =============================================================================
 # FVM Installer
 # =============================================================================
-# v2.2.0 (2025-12)
-#   - Add ZDOTDIR support for zsh (respects custom zsh config locations)
-#   - Add XDG_CONFIG_HOME support for fish (XDG Base Directory spec)
-#   - Add runtime PATH duplicate check (prevents duplication on re-source)
-#
 # v2.1.0 (2025-12)
 #   - Auto-add FVM to PATH in shell config (bash/zsh/fish)
-#   - Opt-out: FVM_NO_PROFILE=1 or PROFILE=/dev/null
-#   - Managed block with markers for clean uninstall
+#   - Support ZDOTDIR (zsh) and XDG_CONFIG_HOME (fish)
+#   - Preserve symlinked dotfiles, detect musl on all Linux archs
+#   - Old v1 installations: warning-only (no auto-deletion)
 #
 # v2.0.0 (2025-12)
 #   - Install to ~/fvm/bin (no sudo required)
@@ -26,7 +22,7 @@ umask 022
 
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
-readonly INSTALLER_VERSION="2.2.0"
+readonly INSTALLER_VERSION="2.1.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
@@ -51,16 +47,12 @@ resolve_install_base() {
   printf '%s\n' "$base"
 }
 
-INSTALL_BASE="$(resolve_install_base)"
-readonly INSTALL_BASE
-readonly BIN_DIR="${INSTALL_BASE}/bin"
-
 validate_install_base() {
   local base="$1"
-  local bin_dir="${base}/bin"
 
+  # Reject empty, root, or non-absolute paths
   if [ -z "$base" ] || [ "$base" = "/" ]; then
-    echo "error: refusing to use unsafe install base: '${base:-<empty>}'" >&2
+    echo "error: invalid install base: '${base:-<empty>}'" >&2
     echo "       Set FVM_INSTALL_DIR to a directory under your HOME (default: \$HOME/fvm)" >&2
     exit 1
   fi
@@ -73,27 +65,33 @@ validate_install_base() {
       ;;
   esac
 
+  # Must be under HOME (not equal to HOME)
   if [ "$base" = "$HOME" ]; then
-    echo "error: refusing to use HOME as install base ($HOME). Use a subdirectory like \$HOME/fvm." >&2
+    echo "error: refusing to use HOME as install base. Use a subdirectory like \$HOME/fvm." >&2
     exit 1
   fi
 
   case "$base" in
     "$HOME"/*) ;;
     *)
-      echo "error: refusing to install outside HOME: $base" >&2
+      echo "error: install path must be under HOME: $base" >&2
       echo "       Use a directory under $HOME (e.g. $HOME/fvm), or use a package manager for system-wide installs." >&2
       exit 1
       ;;
   esac
 
-  case "$bin_dir" in
+  # Reject system bin directories
+  case "${base}/bin" in
     /bin|/usr/bin|/usr/local/bin|/sbin|/usr/sbin)
-      echo "error: refusing to use unsafe bin directory: $bin_dir" >&2
+      echo "error: refusing to use unsafe bin directory: ${base}/bin" >&2
       exit 1
       ;;
   esac
 }
+
+# These will be set after arg parsing (so --help/--version work without validation)
+INSTALL_BASE=""
+BIN_DIR=""
 
 usage() {
   cat <<EOF
@@ -130,7 +128,7 @@ EXAMPLES:
 AFTER INSTALLATION:
   Add FVM to your PATH by adding this line to your shell config:
 
-    export PATH="$BIN_DIR:\$PATH"
+    export PATH="\$HOME/fvm/bin:\$PATH"
 
   Then restart your shell or run: source ~/.bashrc
 
@@ -145,12 +143,32 @@ print_installer_version() {
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 is required" >&2; exit 1; }; }
 
+curl_supports() {
+  local flag="$1"
+  curl --help all 2>/dev/null | grep -q -- "$flag"
+}
+
+CURL_FLAGS=()
+
+init_curl_flags() {
+  # Use an array to preserve argument boundaries.
+  CURL_FLAGS=(
+    -fsSL
+    --connect-timeout 10
+    --max-time 300
+  )
+
+  if curl_supports "--proto"; then
+    CURL_FLAGS+=( --proto "=https" --tlsv1.2 )
+  fi
+}
+
 normalize_version() { printf '%s\n' "${1#v}"; }
 
 get_latest_version() {
   # Follows redirect from /releases/latest -> .../tag/vX.Y.Z
   local url
-  url="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest")" || return 1
+  url="$(curl "${CURL_FLAGS[@]}" -o /dev/null -w '%{url_effective}' "https://github.com/${REPO}/releases/latest")" || return 1
   normalize_version "${url##*/}"
 }
 
@@ -301,11 +319,14 @@ fvm_remove_managed_block() {
   grep -Fqs "$end" "$file" || return 0
 
   # Use awk to remove the managed block
+  # Write to temp, then use cat redirection to preserve symlinks
+  local tmp="${file}.tmp.$$"
   awk -v begin="$begin" -v end="$end" '
     $0==begin {skip=1; next}
     $0==end {skip=0; next}
     !skip {print}
-  ' "$file" > "${file}.tmp" && mv "${file}.tmp" "$file"
+  ' "$file" > "$tmp" || { rm -f "$tmp"; return 1; }
+  cat "$tmp" > "$file" && rm -f "$tmp"
 }
 
 fvm_maybe_add_to_path() {
@@ -314,13 +335,15 @@ fvm_maybe_add_to_path() {
   local profile
   profile="$(fvm_detect_profile)"
 
-  # Ensure file exists and is writable (fish config path needs dirs)
+  # Ensure parent directory exists (fish config path needs dirs)
   mkdir -p "$(dirname "$profile")" 2>/dev/null || true
-  touch "$profile" 2>/dev/null || {
+
+  # Test actual append capability (not just touch)
+  if ! : >> "$profile" 2>/dev/null; then
     echo "Note: Could not write to $profile" >&2
     echo "Add PATH manually: export PATH=\"$BIN_DIR:\$PATH\"" >&2
     return 0
-  }
+  fi
 
   # If user already added BIN_DIR manually (anywhere), do nothing
   if grep -Fqs "$BIN_DIR" "$profile"; then
@@ -334,10 +357,11 @@ fvm_maybe_add_to_path() {
   local end="# <<< fvm <<<"
   local shell_name
   shell_name="$(basename "${SHELL:-}")"
+  local append_success=false
 
   if [ "$shell_name" = "fish" ] || [ "$(basename "$profile")" = "config.fish" ]; then
     # fish_add_path already handles duplicates
-    cat >> "$profile" <<EOF
+    if cat >> "$profile" <<EOF
 
 $begin
 # Add FVM to PATH
@@ -348,9 +372,12 @@ else
 end
 $end
 EOF
+    then
+      append_success=true
+    fi
   else
     # Use case pattern to avoid duplicates when sourced multiple times (rustup-style)
-    cat >> "$profile" <<EOF
+    if cat >> "$profile" <<EOF
 
 $begin
 # Add FVM to PATH (only if not already present)
@@ -363,10 +390,18 @@ case ":\${PATH}:" in
 esac
 $end
 EOF
+    then
+      append_success=true
+    fi
   fi
 
-  echo "✓ Added FVM to PATH in: $profile" >&2
-  FVM_PROFILE_UPDATED="true"
+  if [ "$append_success" = "true" ]; then
+    echo "✓ Added FVM to PATH in: $profile" >&2
+    FVM_PROFILE_UPDATED="true"
+  else
+    echo "Warning: Failed to update $profile" >&2
+    echo "Add PATH manually: export PATH=\"$BIN_DIR:\$PATH\"" >&2
+  fi
 }
 
 fvm_remove_from_profile() {
@@ -381,68 +416,27 @@ fvm_remove_from_profile() {
   fi
 }
 
-migrate_from_v1() {
-  local migrated=0
+# Check for old FVM v1 installation and print warnings (no auto-deletion)
+check_old_installation() {
+  local found=0
 
-  # 1. Remove old system symlink (v1 or v2 --system)
-  if [ -L "$OLD_SYSTEM_PATH" ]; then
+  if [ -L "$OLD_SYSTEM_PATH" ] || [ -e "$OLD_SYSTEM_PATH" ]; then
     echo "" >&2
-    echo "Detected old system installation at $OLD_SYSTEM_PATH" >&2
-
-    # Try to remove without sudo first (|| true prevents set -e exit)
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink" >&2
-      migrated=1
-    else
-      # Try with sudo if available
-      if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink (required sudo)" >&2
-          migrated=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH" >&2
-          echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (need sudo)" >&2
-        echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-      fi
-    fi
-  elif [ -e "$OLD_SYSTEM_PATH" ]; then
-    echo "" >&2
-    echo "⚠ Detected existing non-symlink file at $OLD_SYSTEM_PATH" >&2
-    echo "  Not removing automatically. Remove it manually if it is an old FVM binary." >&2
+    echo "Note: Old FVM found at $OLD_SYSTEM_PATH" >&2
+    echo "  Remove with: sudo rm $OLD_SYSTEM_PATH" >&2
+    found=1
   fi
 
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
   if [ -d "$OLD_USER_PATH" ]; then
     echo "" >&2
-    echo "Detected old installation at $OLD_USER_PATH" >&2
-
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old user directory" >&2
-      migrated=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-      echo "  You may remove it manually: rm -rf $OLD_USER_PATH" >&2
-    fi
+    echo "Note: Old FVM directory found at $OLD_USER_PATH" >&2
+    echo "  Remove with: rm -rf $OLD_USER_PATH" >&2
+    found=1
   fi
 
-  # 3. Print PATH update notice if migrated
-  if [ "$migrated" -eq 1 ]; then
+  if [ "$found" -eq 1 ]; then
     echo "" >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "⚠ ACTION REQUIRED: Update your shell PATH" >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "" >&2
-    echo "  Old: export PATH=\"\$HOME/.fvm_flutter/bin:\$PATH\"" >&2
-    echo "  New: export PATH=\"$BIN_DIR:\$PATH\"" >&2
-    echo "" >&2
-    echo "Your cached Flutter SDKs in $INSTALL_BASE/versions/ are preserved." >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
+    echo "These old paths may cause PATH conflicts." >&2
   fi
 }
 
@@ -452,56 +446,27 @@ do_uninstall() {
   echo "Uninstalling FVM..." >&2
   echo "" >&2
 
-  validate_install_base "$INSTALL_BASE"
+  # 1. Remove only the FVM binary (not entire directory - preserves shared bin dirs)
+  if [ -f "${BIN_DIR}/fvm" ]; then
+    rm -f "${BIN_DIR}/fvm" 2>/dev/null || true
+    if [ ! -f "${BIN_DIR}/fvm" ]; then
+      echo "✓ Removed: ${BIN_DIR}/fvm" >&2
+      removed_any=1
+    else
+      echo "⚠ Could not remove ${BIN_DIR}/fvm (check permissions)" >&2
+    fi
+  fi
 
-  # 1. Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
-  # Note: This removes the entire $BIN_DIR directory.
+  # Try to remove bin directory only if empty (safe for shared directories)
   if [ -d "$BIN_DIR" ]; then
-    rm -rf "$BIN_DIR" 2>/dev/null || true
-    if [ ! -d "$BIN_DIR" ]; then
-      echo "✓ Removed binary directory: $BIN_DIR" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $BIN_DIR (check permissions)" >&2
-    fi
+    rmdir "$BIN_DIR" 2>/dev/null && echo "✓ Removed empty directory: $BIN_DIR" >&2 || true
   fi
 
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
-  if [ -d "$OLD_USER_PATH" ]; then
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old directory: $OLD_USER_PATH" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-    fi
-  fi
-
-  # 3. Remove old system symlink (from v1/v2)
-  if [ -L "$OLD_SYSTEM_PATH" ]; then
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-      removed_any=1
-    else
-      if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-          removed_any=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-      fi
-    fi
-  elif [ -e "$OLD_SYSTEM_PATH" ]; then
-    echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
-  fi
-
-  # 4. Remove FVM PATH entry from shell profile (if we added it)
+  # 2. Remove FVM PATH entry from shell profile (if we added it)
   fvm_remove_from_profile || true
+
+  # 3. Print warnings about old installations (no auto-deletion)
+  check_old_installation
 
   if [ "$removed_any" -eq 0 ]; then
     echo "No FVM installation found (ok)" >&2
@@ -554,6 +519,23 @@ if [ -n "$REQUESTED_VERSION" ]; then
   fi
 fi
 
+# ---- initialize install paths ----
+INSTALL_BASE="$(resolve_install_base)"
+readonly INSTALL_BASE
+BIN_DIR="${INSTALL_BASE}/bin"
+readonly BIN_DIR
+
+# Validate paths before any operations
+validate_install_base "$INSTALL_BASE"
+
+# Create bin directory (needed for install)
+if [ "$UNINSTALL_ONLY" -ne 1 ]; then
+  mkdir -p "$BIN_DIR" || {
+    echo "error: cannot create directory: $BIN_DIR" >&2
+    exit 1
+  }
+fi
+
 # ---- handle uninstall ----
 if [ "$UNINSTALL_ONLY" -eq 1 ]; then
   do_uninstall
@@ -567,12 +549,11 @@ if [ "${EUID:-$(id -u)}" -eq 0 ]; then
   echo "" >&2
 fi
 
-validate_install_base "$INSTALL_BASE"
-
 # ---- prereqs ----
 require curl
 require tar
 [ -n "${BASH_VERSION:-}" ] || { echo "error: bash is required to run this installer" >&2; exit 1; }
+init_curl_flags
 
 # ---- detect OS ----
 case "$(uname -s)" in
@@ -592,9 +573,9 @@ case "$(uname -m)" in
 esac
 readonly ARCH
 
-# ---- detect libc (Linux only), musl suffix only for x64/arm64 ----
+# ---- detect libc (Linux only, all architectures) ----
 LIBC_SUFFIX=""
-if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; then
+if [ "$OS" = "linux" ]; then
   # Detect glibc positively via getconf; otherwise check for musl
   if command -v getconf >/dev/null 2>&1 && getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
     : # glibc detected
@@ -624,26 +605,9 @@ fi
 
 echo "Installing FVM ${VERSION} for ${OS}-${ARCH}${LIBC_SUFFIX}..." >&2
 
-# ---- construct asset URL and validate existence, with musl->glibc fallback ----
+# ---- construct asset URL (musl -> glibc fallback happens during download) ----
 TARBALL="fvm-${VERSION}-${OS}-${ARCH}${LIBC_SUFFIX}.tar.gz"
 URL="https://github.com/${REPO}/releases/download/${VERSION}/${TARBALL}"
-
-if ! curl -fsSLI -o /dev/null "$URL"; then
-  if [ -n "$LIBC_SUFFIX" ]; then
-    ALT_URL="https://github.com/${REPO}/releases/download/${VERSION}/fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
-    if curl -fsSLI -o /dev/null "$ALT_URL"; then
-      URL="$ALT_URL"
-      TARBALL="fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
-      echo "Note: Using glibc variant (musl not available)" >&2
-    else
-      echo "error: no asset found for ${OS}/${ARCH} (tried musl and glibc variants)" >&2
-      exit 1
-    fi
-  else
-    echo "error: asset not found: $URL" >&2
-    exit 1
-  fi
-fi
 
 # ---- prep dirs and cleanup trap ----
 TMP_DIR=""  # Initialize for set -u (nounset)
@@ -654,12 +618,37 @@ TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
   echo "error: failed to create temp directory" >&2
   exit 1
 }
-mkdir -p "$BIN_DIR"
 
 # ---- download ----
+download_archive() {
+  local url="$1"
+  local dest="$2"
+  curl "${CURL_FLAGS[@]}" "$url" -o "$dest"
+}
+
 ARCHIVE="${TMP_DIR}/${TARBALL}"
 echo "Downloading ${URL##*/}..." >&2
-curl -fsSL "$URL" -o "$ARCHIVE"
+if ! download_archive "$URL" "$ARCHIVE"; then
+  if [ -n "$LIBC_SUFFIX" ]; then
+    rm -f "$ARCHIVE"
+    ALT_TARBALL="fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
+    ALT_URL="https://github.com/${REPO}/releases/download/${VERSION}/${ALT_TARBALL}"
+    ALT_ARCHIVE="${TMP_DIR}/${ALT_TARBALL}"
+    echo "Note: musl asset not available, trying glibc variant..." >&2
+    if download_archive "$ALT_URL" "$ALT_ARCHIVE"; then
+      URL="$ALT_URL"
+      TARBALL="$ALT_TARBALL"
+      ARCHIVE="$ALT_ARCHIVE"
+      echo "Note: Using glibc variant (musl not available)" >&2
+    else
+      echo "error: no asset found for ${OS}/${ARCH} (tried musl and glibc variants)" >&2
+      exit 1
+    fi
+  else
+    echo "error: asset not found: $URL" >&2
+    exit 1
+  fi
+fi
 
 # ---- validate archive ----
 if ! tar -tzf "$ARCHIVE" >/dev/null 2>&1; then
@@ -677,20 +666,37 @@ fi
 echo "Extracting..." >&2
 tar -xzf "$ARCHIVE" -C "$TMP_DIR"
 
+# ---- validate extracted contents (no symlinks or hardlinks) ----
+if find "$TMP_DIR" -type l 2>/dev/null | grep -q .; then
+  echo "error: archive contains symlinks (refusing to install)" >&2
+  exit 1
+fi
+if find "$TMP_DIR" -type f -links +1 2>/dev/null | grep -q .; then
+  echo "error: archive contains hardlinks (refusing to install)" >&2
+  exit 1
+fi
+
 # ---- locate binary and copy contents per tarball structure ----
+SOURCE_BIN=""
 if [ -d "${TMP_DIR}/fvm" ] && [ -f "${TMP_DIR}/fvm/fvm" ]; then
   cp -a "${TMP_DIR}/fvm/." "$BIN_DIR/"
+  SOURCE_BIN="${TMP_DIR}/fvm/fvm"
 elif [ -f "${TMP_DIR}/fvm" ]; then
-  cp -a "${TMP_DIR}/fvm" "${BIN_DIR}/fvm"
+  SOURCE_BIN="${TMP_DIR}/fvm"
 else
   FOUND="$(find "$TMP_DIR" -type f -name 'fvm' 2>/dev/null | head -n1 || true)"
   [ -n "$FOUND" ] || { echo "error: fvm binary not found in archive" >&2; exit 1; }
-  cp -a "$FOUND" "${BIN_DIR}/fvm"
+  SOURCE_BIN="$FOUND"
 fi
-chmod +x "${BIN_DIR}/fvm"
 
-# ---- migrate from v1/v2 ----
-migrate_from_v1
+# Atomic install of the binary to avoid partial writes
+TMP_BIN="${BIN_DIR}/fvm.new"
+cp -a "$SOURCE_BIN" "$TMP_BIN"
+chmod +x "$TMP_BIN"
+mv -f "$TMP_BIN" "${BIN_DIR}/fvm"
+
+# ---- check for old installations (warning only) ----
+check_old_installation
 
 # ---- verify and report ----
 echo ""
