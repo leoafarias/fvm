@@ -61,6 +61,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test help and version flags
+        run: |
+          ./scripts/install.sh --help | grep -q "FVM Installer"
+          ./scripts/install.sh --version | grep -q "install_fvm.sh version"
+          echo "✅ Help and version flags work"
+
       - name: Test installation
         run: |
           ./scripts/install.sh
@@ -131,15 +137,15 @@ jobs:
           fi
           echo "✅ Custom install location test successful"
 
-  # Test v1 to v2 migration
-  test-migration:
-    name: Test v1 to v2 Migration
+  # Test old v1 installation detection (warning-only, no auto-delete)
+  test-old-installation-warning:
+    name: Test Old Installation Warning
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Simulate v1 installation
+      - name: Simulate old v1 installation
         run: |
           # Create old v1 structure
           mkdir -p ~/.fvm_flutter/bin
@@ -161,33 +167,39 @@ jobs:
           mkdir -p ~/fvm/versions/stable
           echo "cached sdk" > ~/fvm/versions/stable/marker
 
-          echo "✅ v1 simulation ready"
+          echo "✅ Old installation simulation ready"
           ls -la ~/.fvm_flutter/bin/
           ls -la ~/fvm/versions/
 
-      - name: Run v3 installer (triggers migration)
+      - name: Run installer and capture output
         run: |
-          ./scripts/install.sh
+          output=$(./scripts/install.sh 2>&1)
+          echo "$output"
+          echo "$output" > /tmp/install_output.txt
           echo "✅ Installation complete"
 
-      - name: Verify migration
+      - name: Verify warning-only behavior
         run: |
-          # Old user directory should be removed
-          if [ -d ~/.fvm_flutter ]; then
-            echo "❌ Old ~/.fvm_flutter still exists"
+          # Old directories should STILL EXIST (we warn, not delete)
+          if [ ! -d ~/.fvm_flutter ]; then
+            echo "❌ Old ~/.fvm_flutter was deleted (should be warning-only)"
             exit 1
           fi
-          echo "✅ Old user directory removed"
+          echo "✅ Old directory preserved (warning-only)"
 
-          # Check system symlink only if it was created
+          # Verify warning was displayed
+          if grep -q "Old FVM" /tmp/install_output.txt; then
+            echo "✅ Warning about old installation displayed"
+          else
+            echo "❌ Expected warning about old installation"
+            exit 1
+          fi
+
+          # Check system symlink warning if it was created
           if [ "$SYSTEM_SYMLINK_CREATED" = "true" ]; then
             if [ -e /usr/local/bin/fvm ]; then
-              echo "⚠️ Old symlink still exists (may need sudo to remove)"
-            else
-              echo "✅ Old system symlink removed"
+              echo "✅ Old symlink preserved (warning-only)"
             fi
-          else
-            echo "ℹ️ System symlink test skipped (wasn't created)"
           fi
 
           # New binary should exist
@@ -206,7 +218,7 @@ jobs:
 
           # Verify binary works
           ~/fvm/bin/fvm --version
-          echo "✅ Migration test complete"
+          echo "✅ Old installation warning test complete"
 
   # Test install.sh in container (root allowed with warning)
   test-container:
