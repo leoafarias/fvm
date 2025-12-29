@@ -678,10 +678,9 @@ if find "$TMP_DIR" -type f -links +1 2>/dev/null | grep -q .; then
   exit 1
 fi
 
-# ---- locate binary and copy contents per tarball structure ----
+# ---- locate binary in extracted archive ----
 SOURCE_BIN=""
 if [ -d "${TMP_DIR}/fvm" ] && [ -f "${TMP_DIR}/fvm/fvm" ]; then
-  cp -a "${TMP_DIR}/fvm/." "$BIN_DIR/"
   SOURCE_BIN="${TMP_DIR}/fvm/fvm"
 elif [ -f "${TMP_DIR}/fvm" ]; then
   SOURCE_BIN="${TMP_DIR}/fvm"
