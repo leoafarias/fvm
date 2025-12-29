@@ -138,9 +138,9 @@ jobs:
           fi
           echo "✅ Custom install location test successful"
 
-  # Test old v1 installation detection (warning-only, no auto-delete)
-  test-old-installation-warning:
-    name: Test Old Installation Warning - ${{ matrix.os }}
+  # Test old v1 installation cleanup (auto-remove ~/.fvm_flutter)
+  test-old-installation-cleanup:
+    name: Test Old Installation Cleanup - ${{ matrix.os }}
     needs: validate
     strategy:
       fail-fast: false
@@ -183,20 +183,20 @@ jobs:
           echo "$output" > /tmp/install_output.txt
           echo "✅ Installation complete"
 
-      - name: Verify warning-only behavior
+      - name: Verify auto-cleanup behavior
         run: |
-          # Old directories should STILL EXIST (we warn, not delete)
-          if [ ! -d ~/.fvm_flutter ]; then
-            echo "❌ Old ~/.fvm_flutter was deleted (should be warning-only)"
+          # Old user directory should be DELETED (auto-cleanup)
+          if [ -d ~/.fvm_flutter ]; then
+            echo "❌ Old ~/.fvm_flutter still exists (should be auto-removed)"
             exit 1
           fi
-          echo "✅ Old directory preserved (warning-only)"
+          echo "✅ Old directory auto-removed"
 
-          # Verify warning was displayed
-          if grep -q "Old FVM" /tmp/install_output.txt; then
-            echo "✅ Warning about old installation displayed"
+          # Verify cleanup message was displayed
+          if grep -q "Removed old installation" /tmp/install_output.txt; then
+            echo "✅ Old installation cleanup message displayed"
           else
-            echo "❌ Expected warning about old installation"
+            echo "❌ Expected cleanup message"
             exit 1
           fi
 

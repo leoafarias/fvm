@@ -452,8 +452,8 @@ do_uninstall() {
   # 2. Remove FVM PATH entry from shell profile (if we added it)
   fvm_remove_from_profile || true
 
-  # 3. Print warnings about old installations (no auto-deletion)
-  check_old_installation
+  # 3. Clean up old v1 installation
+  cleanup_old_installation
 
   if [ "$removed_any" -eq 0 ]; then
     echo "No FVM installation found (ok)" >&2
