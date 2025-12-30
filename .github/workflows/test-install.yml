@@ -3,22 +3,18 @@ name: Test Install Script
 on:
   push:
     paths:
-      - 'scripts/install.sh'
-      - 'scripts/uninstall.sh'
       - 'docs/public/install.sh'
       - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
-      - 'scripts/install.sh'
-      - 'scripts/uninstall.sh'
       - 'docs/public/install.sh'
       - 'docs/public/uninstall.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
 jobs:
-  # Basic validation - shellcheck and parity
+  # Basic validation - shellcheck
   validate:
     name: Validate Scripts
     runs-on: ubuntu-latest
@@ -30,25 +26,9 @@ jobs:
             sudo apt-get update && sudo apt-get install -y shellcheck
           fi
       - name: Shellcheck install.sh
-        run: shellcheck scripts/install.sh
+        run: shellcheck docs/public/install.sh
       - name: Shellcheck uninstall.sh
-        run: shellcheck scripts/uninstall.sh
-
-      - name: Verify install.sh parity
-        run: |
-          diff scripts/install.sh docs/public/install.sh || {
-            echo "❌ scripts/install.sh and docs/public/install.sh differ!"
-            exit 1
-          }
-          echo "✅ install.sh files are in sync"
-
-      - name: Verify uninstall.sh parity
-        run: |
-          diff scripts/uninstall.sh docs/public/uninstall.sh || {
-            echo "❌ scripts/uninstall.sh and docs/public/uninstall.sh differ!"
-            exit 1
-          }
-          echo "✅ uninstall.sh files are in sync"
+        run: shellcheck docs/public/uninstall.sh
 
   # Test install.sh (v2 - user-local only)
   test-install:
@@ -64,19 +44,19 @@ jobs:
 
       - name: Test help and version flags
         run: |
-          ./scripts/install.sh --help | grep -q "FVM Installer"
-          ./scripts/install.sh --version | grep -q "install_fvm.sh version"
+          ./docs/public/install.sh --help | grep -q "FVM Installer"
+          ./docs/public/install.sh --version | grep -q "install_fvm.sh version"
           echo "✅ Help and version flags work"
 
       - name: Test installation
         run: |
-          ./scripts/install.sh
+          ./docs/public/install.sh
           export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
 
       - name: Test reinstall (idempotency)
         run: |
-          ./scripts/install.sh
+          ./docs/public/install.sh
           export PATH="$HOME/fvm/bin:$PATH"
           fvm --version
 
@@ -84,7 +64,7 @@ jobs:
         run: |
           export PATH="$HOME/fvm/bin:$PATH"
           which fvm
-          ./scripts/install.sh --uninstall
+          ./docs/public/install.sh --uninstall
 
           # Verify uninstall - only bin/ should be removed
           if [[ -d ~/fvm/bin ]]; then
@@ -94,12 +74,12 @@ jobs:
           echo "✅ FVM successfully uninstalled"
 
       - name: Test uninstall on clean system (idempotency)
-        run: ./scripts/install.sh --uninstall
+        run: ./docs/public/install.sh --uninstall
 
       - name: Test specific version installation
         run: |
           # Install specific version (use a known stable version)
-          ./scripts/install.sh 3.2.1
+          ./docs/public/install.sh 3.2.1
 
           # Verify correct version installed
           export PATH="$HOME/fvm/bin:$PATH"
@@ -111,7 +91,7 @@ jobs:
           echo "✅ Specific version installation successful"
 
           # Clean up for next tests
-          ./scripts/install.sh --uninstall
+          ./docs/public/install.sh --uninstall
 
       - name: Test custom install location (FVM_INSTALL_DIR)
         run: |
@@ -119,11 +99,11 @@ jobs:
           mkdir -p "$FVM_INSTALL_DIR/versions/stable"
           echo "cached sdk" > "$FVM_INSTALL_DIR/versions/stable/marker"
 
-          ./scripts/install.sh
+          ./docs/public/install.sh
           export PATH="$FVM_INSTALL_DIR/bin:$PATH"
           fvm --version
 
-          ./scripts/install.sh --uninstall
+          ./docs/public/install.sh --uninstall
 
           # Verify uninstall - only bin/ should be removed
           if [[ -d "$FVM_INSTALL_DIR/bin" ]]; then
@@ -178,7 +158,7 @@ jobs:
 
       - name: Run installer and capture output
         run: |
-          output=$(./scripts/install.sh 2>&1)
+          output=$(./docs/public/install.sh 2>&1)
           echo "$output"
           echo "$output" > /tmp/install_output.txt
           echo "✅ Installation complete"
@@ -239,7 +219,7 @@ jobs:
 
       - name: Test container root install (should warn but succeed)
         run: |
-          output=$(./scripts/install.sh 2>&1)
+          output=$(./docs/public/install.sh 2>&1)
           echo "$output"
 
           # Should show warning
@@ -264,7 +244,7 @@ jobs:
 
       - name: Test root shows warning but succeeds
         run: |
-          output=$(sudo -H ./scripts/install.sh 2>&1)
+          output=$(sudo -H ./docs/public/install.sh 2>&1)
           echo "$output"
 
           # Should show warning

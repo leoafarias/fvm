@@ -4,7 +4,7 @@ FROM dart:stable
 ARG FVM_VERSION
 
 # Canonical install script used by tooling validation
-ENV FVM_INSTALL_SCRIPT_URL=https://raw.githubusercontent.com/leoafarias/fvm/main/scripts/install.sh
+ENV FVM_INSTALL_SCRIPT_URL=https://raw.githubusercontent.com/leoafarias/fvm/main/docs/public/install.sh
 
 # Set the working directory in the container to /app
 WORKDIR /app

@@ -17,9 +17,6 @@ on:
       - "**/*.md"
       - "**/LICENSE"
       - ".gitignore"
-      - "scripts/install.sh"
-      - "scripts/install.ps1"
-      - "scripts/test-install.sh"
       - ".github/workflows/test-install.yml"
 
   push:
@@ -31,9 +28,6 @@ on:
       - "**/*.md"
       - "**/LICENSE"
       - ".gitignore"
-      - "scripts/install.sh"
-      - "scripts/install.ps1"
-      - "scripts/test-install.sh"
       - ".github/workflows/test-install.yml"
 
   workflow_dispatch:

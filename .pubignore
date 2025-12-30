@@ -1,8 +1,7 @@
 # Documentation website (Next.js) - not needed in Dart package
 docs/
 
-# Shell scripts and setup files - not needed in Dart package  
-scripts/
+# Shell scripts and setup files - not needed in Dart package
 setup.sh
 
 # Docker configuration - not needed in Dart package
