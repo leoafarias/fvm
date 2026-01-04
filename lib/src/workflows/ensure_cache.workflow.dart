@@ -140,19 +140,22 @@ class EnsureCacheWorkflow extends Workflow {
     final flutterService = get<FlutterService>();
     final gitService = get<GitService>();
 
-    // Update/migrate git cache BEFORE checking cached versions
-    // This ensures legacy non-bare caches are migrated even for already-cached versions
+    final cacheVersion = cacheService.getVersion(version);
+
+    // Migrate legacy non-bare caches if present, but avoid refreshing the mirror
+    // unless we are about to install or the version is missing.
     final useGitCache = context.gitCache;
-    if (useGitCache && !version.fromFork) {
+    if (!version.fromFork) {
       try {
-        await gitService.updateLocalMirror();
+        await gitService.ensureBareCacheIfPresent();
+        if (useGitCache && (cacheVersion == null || shouldInstall)) {
+          await gitService.updateLocalMirror();
+        }
       } on Exception catch (e) {
         logger.debug('Local cache setup exception: $e');
         logger.warn('Failed to setup local cache. Falling back to git clone.');
       }
     }
-
-    final cacheVersion = cacheService.getVersion(version);
 
     if (cacheVersion != null) {
       final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);

@@ -367,7 +367,10 @@ class GitService extends ContextualService {
 
   /// Migrates an existing non-bare cache clone to a bare mirror without
   /// re-downloading. This reuses local objects and only fetches deltas.
-  Future<void> _migrateCacheCloneToMirror(Directory legacyDir) async {
+  Future<void> _migrateCacheCloneToMirror(
+    Directory legacyDir, {
+    bool updateRemote = true,
+  }) async {
     logger.info('Migrating cache clone to bare mirror...');
 
     final processService = get<ProcessService>();
@@ -433,13 +436,21 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // Step 3: Sync remote (set origin + fetch latest delta)
-    logger.info('Fetching latest from remote...');
-    try {
-      await _syncMirrorWithRemote(tempBareDir);
-    } catch (error) {
-      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
-      rethrow;
+    // Step 3: Sync remote (set origin + fetch latest delta) if requested
+    if (updateRemote) {
+      logger.info('Fetching latest from remote...');
+      try {
+        await _syncMirrorWithRemote(tempBareDir);
+      } catch (error) {
+        await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+        rethrow;
+      }
+    } else {
+      // Ensure the mirror points at the official remote even if we skip fetch
+      await setOriginUrl(
+        repositoryPath: tempBareDir.path,
+        url: context.flutterUrl,
+      );
     }
 
     // Step 4: Validate the new mirror
@@ -549,6 +560,32 @@ class GitService extends ContextualService {
       }
     } finally {
       unlock();
+    }
+  }
+
+  /// Ensures a legacy non-bare cache is migrated to a bare mirror if present.
+  /// This does not create or refresh the mirror from remote.
+  Future<void> ensureBareCacheIfPresent() async {
+    final gitCacheDir = Directory(context.gitCachePath);
+    if (!gitCacheDir.existsSync()) return;
+
+    final cacheState = await _determineCacheState(gitCacheDir);
+    switch (cacheState) {
+      case _GitCacheState.ready:
+      case _GitCacheState.missing:
+        return;
+      case _GitCacheState.legacy:
+        await _migrateCacheCloneToMirror(
+          gitCacheDir,
+          updateRemote: false,
+        );
+        return;
+      case _GitCacheState.invalid:
+        // Defer handling to install/update workflows to avoid heavy work here.
+        logger.debug(
+          'Git cache is invalid; skipping migration. It will be recreated on next install.',
+        );
+        return;
     }
   }
 
