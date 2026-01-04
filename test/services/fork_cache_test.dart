@@ -11,7 +11,7 @@ void main() {
   late FvmContext context;
   late Directory tempDir;
 
-  void _markAsSdk(Directory versionDir) {
+  void markAsSdk(Directory versionDir) {
     Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
     File(
       path.join(
@@ -142,11 +142,11 @@ void main() {
       // Create version directories
       final regularDir = cacheService.getVersionCacheDir(regularVersion);
       regularDir.createSync(recursive: true);
-      _markAsSdk(regularDir);
+      markAsSdk(regularDir);
 
       final forkDir = cacheService.getVersionCacheDir(forkVersion);
       forkDir.createSync(recursive: true);
-      _markAsSdk(forkDir);
+      markAsSdk(forkDir);
 
       // When: Getting all versions
       final versions = await cacheService.getAllVersions();
