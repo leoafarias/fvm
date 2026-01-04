@@ -573,19 +573,16 @@ class GitService extends ContextualService {
     switch (cacheState) {
       case _GitCacheState.ready:
       case _GitCacheState.missing:
-        return;
+        break;
       case _GitCacheState.legacy:
-        await _migrateCacheCloneToMirror(
-          gitCacheDir,
-          updateRemote: false,
-        );
-        return;
+        await _migrateCacheCloneToMirror(gitCacheDir, updateRemote: false);
+        break;
       case _GitCacheState.invalid:
         // Defer handling to install/update workflows to avoid heavy work here.
         logger.debug(
           'Git cache is invalid; skipping migration. It will be recreated on next install.',
         );
-        return;
+        break;
     }
   }
 
