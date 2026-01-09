@@ -70,13 +70,12 @@ class CacheService extends ContextualService {
     return binExists && await isExecutable(version.flutterExec);
   }
 
-  // Verifies that the cache version name matches the flutter version
+  /// Returns true when the cached version can be treated as a match.
+  /// Channels, git refs, and missing SDK metadata don't provide a reliable
+  /// semantic version to compare, so they are treated as matching.
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If it's a channel return true
     if (version.isChannel) return true;
-    // If it's a git commit, return true (commit hash won't match SDK version)
     if (version.isUnknownRef) return true;
-    // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
 
@@ -109,8 +108,9 @@ class CacheService extends ContextualService {
     // whether setup has been run or which Flutter version is installed.
     bool isFlutterSdkDirectory(Directory dir) {
       final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
+      final flutterBat = File(path.join(dir.path, 'bin', 'flutter.bat'));
 
-      return flutterBin.existsSync();
+      return flutterBin.existsSync() || flutterBat.existsSync();
     }
 
     // Process a directory that might be a version directory
@@ -125,8 +125,12 @@ class CacheService extends ContextualService {
           if (cacheVersion != null) {
             cacheVersions.add(cacheVersion);
           }
+        } on FormatException catch (e) {
+          // FormatException is expected for non-version directories (e.g., forks, .dart_tool)
+          logger.debug('Skipping invalid version directory ${dir.path}: $e');
         } catch (e) {
-          // Skip if we can't parse as a version
+          // Unexpected errors warrant warning level
+          logger.warn('Error processing ${dir.path}: $e');
         }
       } else {
         // This might be a fork directory containing version directories

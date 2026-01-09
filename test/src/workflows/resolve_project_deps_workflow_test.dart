@@ -382,8 +382,15 @@ void main() {
     test('should skip confirmation with force flag', () async {
       final testDir = tempDirs.create();
       createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
 
-      final project = runner.context.get<ProjectService>().findAncestor(
+      final context = TestFactory.context(
+        generators: {
+          FlutterService: (context) => FailingFlutterService(context),
+        },
+      );
+
+      final project = context.get<ProjectService>().findAncestor(
             directory: testDir,
           );
 
@@ -396,7 +403,6 @@ void main() {
       // Create Dart SDK cache version file (required for isSetup to be true)
       final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
       dartSdkDir.createSync(recursive: true);
-      // Create bin directory as it is used to check if isSetup
       Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
 
@@ -405,32 +411,28 @@ void main() {
         directory: versionDir.path,
       );
 
-      final workflow = ResolveProjectDependenciesWorkflow(runner.context);
+      final workflow = ResolveProjectDependenciesWorkflow(context);
+      final result = await workflow(project, version, force: true);
 
-      try {
-        final result = await workflow(project, version, force: true);
-        // With force flag, when pub get fails it should return false without prompting
-        if (!result) {
-          final logger = runner.context.get<Logger>();
-          expect(
-            logger.outputs.any(
-              (msg) => msg.contains('Force pinning due to --force flag'),
-            ),
-            isTrue,
-          );
-          // Should not see confirmation prompt
-          expect(
-            logger.outputs.any(
-              (msg) => msg.contains(
-                'Would you like to continue pinning this version anyway?',
-              ),
-            ),
-            isFalse,
-          );
-        }
-      } catch (e) {
-        // Expected in test env without Flutter
-      }
+      // With force flag, when pub get fails it should return false without prompting
+      expect(result, isFalse);
+
+      final logger = context.get<Logger>();
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains('Force pinning due to --force flag'),
+        ),
+        isTrue,
+      );
+      // Should not see confirmation prompt
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains(
+            'Would you like to continue pinning this version anyway?',
+          ),
+        ),
+        isFalse,
+      );
     });
   });
 }
