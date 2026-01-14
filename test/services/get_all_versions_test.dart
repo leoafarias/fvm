@@ -42,6 +42,9 @@ void main() {
       File(path.join(stableDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('stable');
+      // Create bin/flutter to mark as valid SDK
+      File(path.join(stableDir.path, 'bin', 'flutter'))
+          .createSync(recursive: true);
 
       // 2. Fork directory with a version inside
       final forkedVersion = FlutterVersion.parse('testfork/master');
@@ -50,6 +53,9 @@ void main() {
       File(path.join(forkedVersionDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('master');
+      // Create bin/flutter to mark as valid SDK
+      File(path.join(forkedVersionDir.path, 'bin', 'flutter'))
+          .createSync(recursive: true);
 
       print('Directory structure:');
       print('- ${tempDir.path}/');
