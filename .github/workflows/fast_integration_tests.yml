@@ -1,0 +1,238 @@
+name: Fast Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'dart_test.yaml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'lib/**'
+      - 'test/**'
+      - 'pubspec.yaml'
+      - 'dart_test.yaml'
+  workflow_dispatch:
+    inputs:
+      performance-comparison:
+        description: 'Run performance comparison with original tests'
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast-integration:
+    name: Fast Integration Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10  # Much shorter timeout for fast tests
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Cache FVM Git Mirror
+        uses: actions/cache@v3
+        with:
+          path: ~/.fvm/cache.git  # CORRECTED: Use proper FVM git cache path
+          key: fvm-git-cache-${{ runner.os }}-${{ hashFiles('lib/**/*.dart') }}
+          restore-keys: |
+            fvm-git-cache-${{ runner.os }}-
+      
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Fast Integration Test"
+          git config --global user.email "fast-test@fvm.app"
+      
+      - name: Get dependencies
+        run: dart pub get
+      
+      - name: Create build directory for test results
+        run: mkdir -p build
+      
+      - name: Run Fast Integration Tests
+        run: dart test/run_integration_tests.dart --verbose
+        timeout-minutes: 8  # Generous buffer over 5-minute target
+        
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: fast-test-results-${{ matrix.os }}
+          path: |
+            build/test-*.json
+            build/test-*.txt
+          retention-days: 7
+  
+  performance-validation:
+    name: Performance Validation
+    runs-on: ubuntu-latest  # Only run on one platform for performance tests
+    timeout-minutes: 25
+    if: github.event_name == 'push' || github.event.inputs.performance-comparison == 'true'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Cache FVM Git Mirror
+        uses: actions/cache@v3
+        with:
+          path: ~/.fvm/cache.git
+          key: fvm-git-cache-ubuntu-${{ hashFiles('lib/**/*.dart') }}
+          restore-keys: |
+            fvm-git-cache-ubuntu-
+      
+      - name: Setup Git
+        run: |
+          git config --global user.name "FVM Performance Test"
+          git config --global user.email "perf-test@fvm.app"
+      
+      - name: Get dependencies
+        run: dart pub get
+        
+      - name: Create build directory
+        run: mkdir -p build
+      
+      - name: Run Performance Validation Tests
+        run: dart test/run_integration_tests.dart --performance-only --verbose
+        timeout-minutes: 20
+        
+      - name: Upload Performance Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-results
+          path: build/test-*.json
+          retention-days: 30  # Keep performance results longer
+
+  comparison:
+    name: Performance Comparison
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # Long timeout for original tests
+    if: github.event.inputs.performance-comparison == 'true'
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+      
+      - name: Setup Git
+        run: |
+          git config --global user.name "FVM Comparison Test"
+          git config --global user.email "comparison-test@fvm.app"
+      
+      - name: Get dependencies
+        run: dart pub get
+      
+      - name: Run Original Tests (Baseline)
+        id: original
+        continue-on-error: true
+        timeout-minutes: 45  # Original tests can take very long
+        run: |
+          echo "Running original integration tests..."
+          start_time=$(date +%s)
+          dart test/run_integration_tests.dart --original --verbose || echo "Original test issues detected"
+          end_time=$(date +%s)
+          original_time=$((end_time - start_time))
+          echo "original_time=$original_time" >> $GITHUB_OUTPUT
+          echo "Original tests took: $original_time seconds"
+      
+      - name: Run New Fast Tests
+        id: new
+        timeout-minutes: 8
+        run: |
+          echo "Running new fast integration tests..."
+          start_time=$(date +%s)
+          dart test/run_integration_tests.dart --verbose
+          end_time=$(date +%s)
+          new_time=$((end_time - start_time))
+          echo "new_time=$new_time" >> $GITHUB_OUTPUT
+          echo "New tests took: $new_time seconds"
+      
+      - name: Performance Comparison Comment
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const originalTime = ${{ steps.original.outputs.original_time || 1800 }};
+            const newTime = ${{ steps.new.outputs.new_time || 300 }};
+            const speedup = (originalTime / newTime).toFixed(1);
+            const originalMin = (originalTime / 60).toFixed(1);
+            const newMin = (newTime / 60).toFixed(1);
+            
+            const performanceStatus = speedup > 5 ? '🏆 Excellent' : speedup > 3 ? '✅ Great' : speedup > 2 ? '✅ Good' : '⚠️ Needs work';
+            const timeStatus = newTime < 300 ? '🎉 Very Fast' : newTime < 600 ? '✅ Fast' : '⚠️ Acceptable';
+            
+            const body = `## 🚀 Integration Test Performance Report
+            
+            | Metric | Original | New | Improvement |
+            |--------|----------|-----|-------------|
+            | **Time** | ${originalMin} min | **${newMin} min** | **${speedup}x faster** |
+            | **Status** | ${originalTime > 1800 ? '🐌 Very Slow' : '⚠️ Slow'} | ${timeStatus} | ${performanceStatus} |
+            
+            ### Summary
+            - **Target**: <5 minutes ✅ ${newTime < 300 ? 'MET' : 'NOT MET'}
+            - **Achieved**: ${newMin} minutes 
+            - **Speedup**: ${speedup}x improvement
+            - **Performance**: ${performanceStatus}
+            
+            ### Recommendations
+            ${newTime < 180 ? '🎉 Excellent performance! Tests are very fast.' : 
+              newTime < 300 ? '✅ Good performance! Tests meet target.' :
+              '⚠️ Consider optimizing further. Target is <5 minutes.'}
+            
+            ---
+            *Generated by Fast Integration Test workflow*
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  notify-completion:
+    name: Notify Test Completion
+    runs-on: ubuntu-latest
+    needs: [fast-integration, performance-validation]
+    if: always()
+    
+    steps:
+      - name: Check Results
+        run: |
+          echo "Fast Integration Tests: ${{ needs.fast-integration.result }}"
+          echo "Performance Validation: ${{ needs.performance-validation.result }}"
+          
+          if [ "${{ needs.fast-integration.result }}" = "success" ]; then
+            echo "🎉 Fast integration tests completed successfully!"
+            if [ "${{ needs.performance-validation.result }}" = "success" ]; then
+              echo "📊 Performance validation also passed!"
+            fi
+          else
+            echo "❌ Fast integration tests failed"
+            exit 1
+          fi
