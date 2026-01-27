@@ -153,7 +153,6 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         ),
       );
     }
-
   }
 
   void _registerMutatingTools() {
@@ -279,7 +278,6 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         },
       );
     }
-
   }
 
   void _registerProxyTools() {
@@ -353,7 +351,11 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       ),
       run: (call) {
         return _runner.run(
-          ['spawn', stringArg(call, 'version')!, ...listArg(call, 'flutter_args')],
+          [
+            'spawn',
+            stringArg(call, 'version')!,
+            ...listArg(call, 'flutter_args')
+          ],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
           progressLabel: 'spawn',
