@@ -172,7 +172,7 @@ void main() {
     });
 
     group('remove', () {
-      test('removes version directory if it exists', () {
+      test('removes version directory if it exists', () async {
         // Given
         final version = createTestVersion('stable');
         final versionDir = Directory(path.join(tempDir.path, version.name))
@@ -181,7 +181,7 @@ void main() {
         expect(versionDir.existsSync(), isTrue);
 
         // When
-        cacheService.remove(version);
+        await cacheService.remove(version);
 
         // Then
         expect(versionDir.existsSync(), isFalse);
@@ -192,7 +192,7 @@ void main() {
         final version = createTestVersion('non-existent');
 
         // When/Then - should not throw
-        expect(() => cacheService.remove(version), returnsNormally);
+        expect(cacheService.remove(version), completes);
       });
     });
 
@@ -390,7 +390,7 @@ void main() {
     group('Fork cleanup:', () {
       test(
         'should remove empty fork directory after removing last version',
-        () {
+        () async {
           // Create fork structure
           final forkVersion = FlutterVersion.parse('mycompany/stable');
           final forkDir = Directory(
@@ -410,7 +410,7 @@ void main() {
           );
 
           // Remove the version
-          cacheService.remove(forkVersion);
+          await cacheService.remove(forkVersion);
 
           // Fork directory should be removed
           expect(forkDir.existsSync(), isFalse);
@@ -421,7 +421,7 @@ void main() {
         },
       );
 
-      test('should not remove fork directory with other versions', () {
+      test('should not remove fork directory with other versions', () async {
         // Create multiple fork versions
         final version1 = FlutterVersion.parse('mycompany/stable');
 
@@ -437,7 +437,7 @@ void main() {
         expect(betaDir.existsSync(), isTrue);
 
         // Remove only one version
-        cacheService.remove(version1);
+        await cacheService.remove(version1);
 
         // Stable should be gone but fork directory should still exist
         expect(stableDir.existsSync(), isFalse);
@@ -453,7 +453,7 @@ void main() {
         final forkVersion = FlutterVersion.parse('mycompany/master');
 
         // Should not throw
-        expect(() => cacheService.remove(forkVersion), returnsNormally);
+        expect(cacheService.remove(forkVersion), completes);
       });
     });
   });
