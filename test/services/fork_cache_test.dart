@@ -71,7 +71,7 @@ void main() {
       expect(result.path, equals(expectedPath));
     });
 
-    test('remove cleans up empty fork directories', () {
+    test('remove cleans up empty fork directories', () async {
       // Given: A fork directory with a version
       final forkName = 'testfork';
       final versionName = 'master';
@@ -92,14 +92,14 @@ void main() {
       expect(versionDir.existsSync(), isTrue);
 
       // When: Removing the version
-      cacheService.remove(forkVersion);
+      await cacheService.remove(forkVersion);
 
       // Then: Both the version and fork directory should be removed
       expect(versionDir.existsSync(), isFalse);
       expect(forkDir.existsSync(), isFalse);
     });
 
-    test('remove preserves fork directory if other versions exist', () {
+    test('remove preserves fork directory if other versions exist', () async {
       // Given: A fork directory with multiple versions
       final forkName = 'testfork';
       final versionName1 = 'master';
@@ -125,7 +125,7 @@ void main() {
       final forkDir = versionDir1.parent;
 
       // When: Removing one version
-      cacheService.remove(forkVersion1);
+      await cacheService.remove(forkVersion1);
 
       // Then: The version should be removed but the fork directory preserved
       expect(versionDir1.existsSync(), isFalse);
