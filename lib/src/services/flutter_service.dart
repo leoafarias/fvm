@@ -126,7 +126,11 @@ class FlutterService extends ContextualService {
         );
       }
 
-      await _cleanupPartialClone(versionDir);
+      await _cleanupInstallArtifacts(
+        version: version,
+        versionDir: versionDir,
+        removeCache: false,
+      );
 
       return null;
     }
@@ -145,6 +149,18 @@ class FlutterService extends ContextualService {
         );
       },
     );
+  }
+
+  Future<void> _cleanupInstallArtifacts({
+    required FlutterVersion version,
+    required Directory versionDir,
+    required bool removeCache,
+  }) async {
+    await _cleanupPartialClone(versionDir);
+
+    if (removeCache) {
+      await get<CacheService>().remove(version);
+    }
   }
 
   Future<void> _updateOriginToFlutter(Directory versionDir) async {
@@ -189,8 +205,6 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required StackTrace stackTrace,
   }) {
-    get<CacheService>().remove(version);
-
     final message = version.fromFork
         ? 'Reference "${version.version}" was not found in fork "${version.fork}".\n'
             'Please verify that this version exists in the forked repository.\n'
@@ -214,7 +228,11 @@ class FlutterService extends ContextualService {
       'Retrying clone from remote repository...',
     );
 
-    await _cleanupPartialClone(versionDir);
+    await _cleanupInstallArtifacts(
+      version: version,
+      versionDir: versionDir,
+      removeCache: false,
+    );
 
     final retryResult = await _cloneSdk(
       source: repoUrl,
@@ -272,6 +290,221 @@ class FlutterService extends ContextualService {
     }
   }
 
+  Directory _setupCacheDirectories(FlutterVersion version) {
+    final versionDir = get<CacheService>().getVersionCacheDir(version);
+
+    if (version.fromFork) {
+      final forkDir = Directory(
+        path.join(context.versionsCachePath, version.fork!),
+      );
+      if (!forkDir.existsSync()) {
+        forkDir.createSync(recursive: true);
+      }
+      logger.debug('Created fork directory: ${forkDir.path}');
+    }
+
+    return versionDir;
+  }
+
+  Future<String?> _resolveChannel(FlutterVersion version) async {
+    String? channel = version.name;
+
+    if (version.isChannel) {
+      channel = version.name;
+    }
+
+    if (version.isRelease) {
+      if (version.releaseChannel != null) {
+        channel = version.releaseChannel!.name;
+      } else {
+        final release = await get<FlutterReleaseClient>().getReleaseByVersion(
+          version.name,
+        );
+
+        if (release != null) {
+          channel = release.channel.name;
+        }
+      }
+    }
+
+    return channel;
+  }
+
+  String _resolveRepositoryUrl(FlutterVersion version) {
+    String repoUrl = context.flutterUrl;
+
+    if (version.fromFork) {
+      logger.debug('Installing from fork: ${version.fork}');
+
+      try {
+        repoUrl = context.getForkUrl(version.fork!);
+        logger.info('Using forked repository URL: $repoUrl');
+      } catch (_, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Fork "${version.fork}" not found in configuration. '
+            'Please add it first using: fvm fork add ${version.fork} <url>',
+          ),
+          stackTrace,
+        );
+      }
+    }
+
+    return repoUrl;
+  }
+
+  Future<_CloneOutcome> _executeClone({
+    required FlutterVersion version,
+    required Directory versionDir,
+    required String repoUrl,
+    required String? channel,
+    required bool echoOutput,
+  }) async {
+    final bool useLocalMirror = _shouldUseLocalMirror(version);
+
+    ProcessResult result;
+    bool clonedFromMirror = false;
+
+    if (useLocalMirror) {
+      final mirrorResult = await _tryCloneFromMirror(
+        versionDir: versionDir,
+        version: version,
+        channel: channel,
+        echoOutput: echoOutput,
+      );
+
+      if (mirrorResult != null) {
+        result = mirrorResult;
+        clonedFromMirror = true;
+      } else {
+        result = await _cloneSdk(
+          source: repoUrl,
+          versionDir: versionDir,
+          version: version,
+          channel: channel,
+          echoOutput: echoOutput,
+        );
+      }
+    } else {
+      result = await _cloneSdk(
+        source: repoUrl,
+        versionDir: versionDir,
+        version: version,
+        channel: channel,
+        echoOutput: echoOutput,
+      );
+    }
+
+    return _CloneOutcome(result: result, clonedFromMirror: clonedFromMirror);
+  }
+
+  Future<void> _validateClone({
+    required FlutterVersion version,
+    required Directory versionDir,
+    required ProcessResult result,
+    bool checkExitCode = true,
+  }) async {
+    final isGit = await GitDir.isGitDir(versionDir.path);
+
+    if (!isGit) {
+      throw AppException(
+        'Flutter SDK is not a valid git repository after clone. Please try again.',
+      );
+    }
+
+    if (checkExitCode && result.exitCode != ExitCode.success.code) {
+      throw AppException(
+        'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+      );
+    }
+  }
+
+  Future<void> _validateReference({
+    required FlutterVersion version,
+    required Directory versionDir,
+    required bool clonedFromMirror,
+    required String repoUrl,
+    required String? channel,
+    required bool echoOutput,
+  }) async {
+    if (version.isChannel) return;
+
+    try {
+      await _ensureReference(version: version, gitVersionDir: versionDir);
+    } on ProcessException catch (e, stackTrace) {
+      final isReferenceError = _isReferenceLookupError(e.message);
+      final isMissingObject = _isMissingObjectError(e.message);
+
+      if (clonedFromMirror && (isReferenceError || isMissingObject)) {
+        await _retryInstallFromRemote(
+          version: version,
+          versionDir: versionDir,
+          repoUrl: repoUrl,
+          channel: channel,
+          echoOutput: echoOutput,
+        );
+      } else if (isReferenceError) {
+        _throwReferenceLookupError(
+          version: version,
+          repoUrl: repoUrl,
+          stackTrace: stackTrace,
+        );
+      } else {
+        rethrow;
+      }
+    }
+  }
+
+  Future<void> _handleCloneError({
+    required Object error,
+    required StackTrace stackTrace,
+    required FlutterVersion version,
+    required Directory versionDir,
+    required String repoUrl,
+  }) async {
+    if (error is ProcessException) {
+      final errorMessage = error.toString().toLowerCase();
+
+      if (errorMessage.contains('repository not found') ||
+          (errorMessage.contains('remote branch') &&
+              errorMessage.contains('not found'))) {
+        await _cleanupInstallArtifacts(
+          version: version,
+          versionDir: versionDir,
+          removeCache: true,
+        );
+
+        if (version.fromFork) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
+              'Please verify that the fork URL is correct and the version exists.\n'
+              'Repository URL: $repoUrl',
+            ),
+            stackTrace,
+          );
+        }
+
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to clone Flutter repository with version "${version.version}".\n'
+            'The branch or tag does not exist in the upstream repository.\n'
+            'Repository URL: $repoUrl',
+          ),
+          stackTrace,
+        );
+      }
+    }
+
+    await _cleanupInstallArtifacts(
+      version: version,
+      versionDir: versionDir,
+      removeCache: true,
+    );
+
+    Error.throwWithStackTrace(error, stackTrace);
+  }
+
   Future<ProcessResult> run(
     String cmd,
     List<String> args,
@@ -320,185 +553,69 @@ class FlutterService extends ContextualService {
   }
 
   Future<void> install(FlutterVersion version) async {
-    // Get the version-specific cache directory using the FlutterVersion object
-    final versionDir = get<CacheService>().getVersionCacheDir(version);
-
-    // For fork versions, ensure the parent directory exists
-    if (version.fromFork) {
-      final forkDir = Directory(
-        path.join(context.versionsCachePath, version.fork!),
-      );
-      if (!forkDir.existsSync()) {
-        forkDir.createSync(recursive: true);
-      }
-      logger.debug('Created fork directory: ${forkDir.path}');
-    }
-
-    // Check if its git commit
-    String? channel = version.name;
-
-    if (version.isChannel) {
-      channel = version.name;
-    }
-    if (version.isRelease) {
-      if (version.releaseChannel != null) {
-        // Version name forces channel version
-        channel = version.releaseChannel!.name;
-      } else {
-        final release = await get<FlutterReleaseClient>().getReleaseByVersion(
-          version.name,
-        );
-
-        if (release != null) {
-          channel = release.channel.name;
-        }
-      }
-    }
-
-    // Determine which URL to use for cloning
-    String repoUrl = context.flutterUrl;
-
-    // If this is a forked version, use the fork's URL
-    if (version.fromFork) {
-      logger.debug('Installing from fork: ${version.fork}');
-
-      try {
-        repoUrl = context.getForkUrl(version.fork!);
-        logger.info('Using forked repository URL: $repoUrl');
-      } catch (e, stackTrace) {
-        Error.throwWithStackTrace(
-          AppException(
-            'Fork "${version.fork}" not found in configuration. '
-            'Please add it first using: fvm fork add ${version.fork} <url>',
-          ),
-          stackTrace,
-        );
-      }
-    }
-
-    final bool useLocalMirror = _shouldUseLocalMirror(version);
+    final versionDir = _setupCacheDirectories(version);
+    final channel = await _resolveChannel(version);
+    final repoUrl = _resolveRepositoryUrl(version);
     final echoOutput = !(context.isTest || !logger.isVerbose);
 
-    ProcessResult result;
-    bool clonedFromMirror = false;
-
     try {
-      if (useLocalMirror) {
-        final mirrorResult = await _tryCloneFromMirror(
-          versionDir: versionDir,
-          version: version,
-          channel: channel,
-          echoOutput: echoOutput,
-        );
+      final cloneOutcome = await _executeClone(
+        version: version,
+        versionDir: versionDir,
+        repoUrl: repoUrl,
+        channel: channel,
+        echoOutput: echoOutput,
+      );
 
-        if (mirrorResult != null) {
-          result = mirrorResult;
-          clonedFromMirror = true;
-        } else {
-          result = await _cloneSdk(
-            source: repoUrl,
-            versionDir: versionDir,
-            version: version,
-            channel: channel,
-            echoOutput: echoOutput,
-          );
-        }
-      } else {
-        result = await _cloneSdk(
-          source: repoUrl,
-          versionDir: versionDir,
-          version: version,
-          channel: channel,
-          echoOutput: echoOutput,
-        );
-      }
+      await _validateClone(
+        version: version,
+        versionDir: versionDir,
+        result: cloneOutcome.result,
+        checkExitCode: false,
+      );
 
-      // Use FlutterVersion object with getVersionCacheDir
-      final gitVersionDir = get<CacheService>().getVersionCacheDir(version);
-      final isGit = await GitDir.isGitDir(gitVersionDir.path);
+      await _validateReference(
+        version: version,
+        versionDir: versionDir,
+        clonedFromMirror: cloneOutcome.clonedFromMirror,
+        repoUrl: repoUrl,
+        channel: channel,
+        echoOutput: echoOutput,
+      );
 
-      if (!isGit) {
-        throw AppException(
-          'Flutter SDK is not a valid git repository after clone. Please try again.',
-        );
-      }
-
-      /// If version is not a channel reset to version
-      if (!version.isChannel) {
-        try {
-          await _ensureReference(
-            version: version,
-            gitVersionDir: gitVersionDir,
-          );
-        } on ProcessException catch (e, stackTrace) {
-          final isReferenceError = _isReferenceLookupError(e.message);
-          final isMissingObject = _isMissingObjectError(e.message);
-
-          if (clonedFromMirror && (isReferenceError || isMissingObject)) {
-            await _retryInstallFromRemote(
-              version: version,
-              versionDir: versionDir,
-              repoUrl: repoUrl,
-              channel: channel,
-              echoOutput: echoOutput,
-            );
-            // Successfully retried, continue with setup
-          } else if (isReferenceError) {
-            _throwReferenceLookupError(
-              version: version,
-              repoUrl: repoUrl,
-              stackTrace: stackTrace,
-            );
-          } else {
-            rethrow;
-          }
-        }
-      }
-
-      if (result.exitCode != ExitCode.success.code) {
-        throw AppException(
-          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
-        );
-      }
-    } on ProcessException catch (e, stackTrace) {
-      // Improved error message for clone failures
-      String errorMessage = e.toString().toLowerCase();
-
-      // Simplify clone error detection
-      if (errorMessage.contains('repository not found') ||
-          (errorMessage.contains('remote branch') &&
-              errorMessage.contains('not found'))) {
-        get<CacheService>().remove(version);
-
-        if (version.fromFork) {
-          Error.throwWithStackTrace(
-            AppException(
-              'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
-              'Please verify that the fork URL is correct and the version exists.\n'
-              'Repository URL: $repoUrl',
-            ),
-            stackTrace,
-          );
-        }
-
-        Error.throwWithStackTrace(
-          AppException(
-            'Failed to clone Flutter repository with version "${version.version}".\n'
-            'The branch or tag does not exist in the upstream repository.\n'
-            'Repository URL: $repoUrl',
-          ),
-          stackTrace,
-        );
-      }
-
-      // Clean up and rethrow
-      get<CacheService>().remove(version);
-      rethrow;
-    } on Exception {
-      get<CacheService>().remove(version);
-      rethrow;
+      await _validateClone(
+        version: version,
+        versionDir: versionDir,
+        result: cloneOutcome.result,
+      );
+    } on ProcessException catch (error, stackTrace) {
+      await _handleCloneError(
+        error: error,
+        stackTrace: stackTrace,
+        version: version,
+        versionDir: versionDir,
+        repoUrl: repoUrl,
+      );
+    } on Exception catch (error, stackTrace) {
+      await _handleCloneError(
+        error: error,
+        stackTrace: stackTrace,
+        version: version,
+        versionDir: versionDir,
+        repoUrl: repoUrl,
+      );
     }
   }
+}
+
+class _CloneOutcome {
+  final ProcessResult result;
+  final bool clonedFromMirror;
+
+  const _CloneOutcome({
+    required this.result,
+    required this.clonedFromMirror,
+  });
 }
 
 class VersionRunner {
