@@ -26,23 +26,6 @@ List<String> maybeOne(CallToolRequest call, String key) {
   return (v != null && v.isNotEmpty) ? <String>[v] : const <String>[];
 }
 
-List<String> when<T>(
-  CallToolRequest call,
-  String key,
-  List<String> Function(T v) map,
-) {
-  final args = call.arguments ?? const {};
-  if (args.containsKey(key) && args[key] != null) {
-    final v = args[key];
-    if (v is T) {
-      return map(v);
-    }
-    throw ArgumentError.value(v, key, 'Expected $T');
-  }
-
-  return const <String>[];
-}
-
 String? stringArg(CallToolRequest call, String key) {
   final v = (call.arguments ?? const {})[key];
 

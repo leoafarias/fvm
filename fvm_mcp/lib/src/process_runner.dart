@@ -24,7 +24,6 @@ class ProcessRunner {
     List<String> args, {
     String? cwd,
     Duration timeout = const Duration(minutes: 2),
-    bool jsonPassthrough = false,
     String? progressLabel,
     MetaWithProgressToken? meta,
   }) async {
@@ -133,7 +132,6 @@ class ProcessRunner {
         args,
         cwd: cwd,
         timeout: timeout,
-        jsonPassthrough: true,
         progressLabel: progressLabel,
         meta: meta,
       );

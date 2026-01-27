@@ -61,6 +61,12 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
   // ---- Registration ----
 
   void _registerTools() {
+    _registerJsonApiTools();
+    _registerMutatingTools();
+    _registerProxyTools();
+  }
+
+  void _registerJsonApiTools() {
     // JSON API (>= 3.1.2)
     if (fvm.supportsJsonApi) {
       _tool(
@@ -148,6 +154,9 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       );
     }
 
+  }
+
+  void _registerMutatingTools() {
     // Mutating tools (require non-interactive support in FVM >= 3.2.0)
     if (fvm.supportsSkipInput) {
       _tool(
@@ -165,7 +174,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           [
             'install',
             ...maybeOne(call, 'version'),
-            ...when<bool>(call, 'setup', (s) => [s ? '--setup' : '--no-setup']),
+            ...opt<bool>(call, 'setup', (s) => [s ? '--setup' : '--no-setup']),
             ...flag(call, 'skip_pub_get', '--skip-pub-get'),
           ],
           cwd: stringArg(call, 'cwd'),
@@ -271,6 +280,9 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       );
     }
 
+  }
+
+  void _registerProxyTools() {
     // Proxies
     _tool(
       name: 'fvm.flutter',
@@ -317,13 +329,8 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         additionalProperties: false,
       ),
       run: (call) {
-        final command = stringArg(call, 'command');
-        if (command == null || command.isEmpty) {
-          return _error('Missing required arg: "command".');
-        }
-
         return _runner.run(
-          ['exec', command, ...listArg(call, 'args')],
+          ['exec', stringArg(call, 'command')!, ...listArg(call, 'args')],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
           progressLabel: 'exec',
@@ -345,13 +352,8 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         additionalProperties: false,
       ),
       run: (call) {
-        final version = stringArg(call, 'version');
-        if (version == null || version.isEmpty) {
-          return _error('Missing required arg: "version".');
-        }
-
         return _runner.run(
-          ['spawn', version, ...listArg(call, 'flutter_args')],
+          ['spawn', stringArg(call, 'version')!, ...listArg(call, 'flutter_args')],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
           progressLabel: 'spawn',
