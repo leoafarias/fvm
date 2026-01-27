@@ -9,6 +9,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
+import '../utils/file_utils.dart';
 import 'base_service.dart';
 
 enum CacheIntegrity {
@@ -180,9 +181,11 @@ class CacheService extends ContextualService {
   }
 
   /// Removes a Version of Flutter SDK
-  void remove(FlutterVersion version) {
+  Future<void> remove(FlutterVersion version) async {
     final versionDir = getVersionCacheDir(version);
-    if (versionDir.existsSync()) versionDir.deleteSync(recursive: true);
+    if (versionDir.existsSync()) {
+      await deleteDirectoryWithRetry(versionDir);
+    }
 
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
@@ -192,7 +195,7 @@ class CacheService extends ContextualService {
       if (forkDir.existsSync()) {
         final entries = forkDir.listSync();
         if (entries.isEmpty) {
-          forkDir.deleteSync(recursive: true);
+          await deleteDirectoryWithRetry(forkDir);
         }
       }
     }
