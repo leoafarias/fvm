@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:archive/archive.dart';
 import 'package:path/path.dart' as path;
@@ -9,6 +10,75 @@ import '../version.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'releases_service/releases_client.dart';
+
+/// Result from isolate extraction
+class _ExtractionResult {
+  final List<String> executablePaths;
+  final String? error;
+
+  const _ExtractionResult({
+    required this.executablePaths,
+    this.error,
+  });
+}
+
+/// Synchronous extraction that runs in an isolate
+/// Must be a top-level function for isolate compatibility
+_ExtractionResult _extractArchiveSync(
+  String archivePath,
+  String targetPath,
+  bool isLinux,
+  bool isWindows,
+) {
+  try {
+    final archiveBytes = File(archivePath).readAsBytesSync();
+
+    // Decode based on platform
+    final archive = isLinux
+        ? TarDecoder().decodeBytes(XZDecoder().decodeBytes(archiveBytes))
+        : ZipDecoder().decodeBytes(archiveBytes);
+
+    Directory(targetPath).createSync(recursive: true);
+
+    final executablePaths = <String>[];
+
+    for (final file in archive) {
+      if (file.name.isEmpty || file.name.contains('..')) continue;
+
+      // Remove flutter/ prefix
+      final parts = file.name.split('/');
+      if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) {
+        continue;
+      }
+
+      final relativePath =
+          parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
+      if (relativePath.isEmpty) continue;
+
+      final filePath = path.join(targetPath, relativePath);
+
+      if (file.isFile) {
+        final outputFile = File(filePath);
+        outputFile.parent.createSync(recursive: true);
+        outputFile.writeAsBytesSync(file.content);
+
+        // Track files that need executable permissions
+        if (!isWindows &&
+            (relativePath.startsWith('bin/') ||
+                relativePath.contains('/bin/')) &&
+            !relativePath.endsWith('.bat')) {
+          executablePaths.add(filePath);
+        }
+      } else {
+        Directory(filePath).createSync(recursive: true);
+      }
+    }
+
+    return _ExtractionResult(executablePaths: executablePaths);
+  } catch (e) {
+    return _ExtractionResult(executablePaths: [], error: e.toString());
+  }
+}
 
 /// Service for downloading and extracting Flutter SDK archives
 class DownloadService extends ContextualService {
@@ -22,6 +92,7 @@ class DownloadService extends ContextualService {
 
     final tempDir = await Directory.systemTemp.createTemp('fvm_flutter_sdk_');
     final tempFile = File(path.join(tempDir.path, 'flutter_sdk.archive'));
+    IOSink? sink;
 
     try {
       final request = await client.getUrl(Uri.parse(url))
@@ -32,7 +103,7 @@ class DownloadService extends ContextualService {
         throw AppException('Failed to download: HTTP ${response.statusCode}');
       }
 
-      final sink = tempFile.openWrite();
+      sink = tempFile.openWrite();
       final progress = logger.progress('Downloading Flutter SDK');
       int downloaded = 0;
 
@@ -53,11 +124,13 @@ class DownloadService extends ContextualService {
       }
 
       await sink.close();
+      sink = null; // Mark as closed
       final finalMB = (downloaded / 1024 / 1024).toStringAsFixed(1);
       progress.complete('Download complete (${finalMB}MB)');
 
       return tempFile;
     } catch (e) {
+      await sink?.close();
       if (tempDir.existsSync()) tempDir.deleteSync(recursive: true);
       rethrow;
     } finally {
@@ -66,47 +139,30 @@ class DownloadService extends ContextualService {
   }
 
   /// Extracts a Flutter SDK archive to the specified directory
+  /// Runs extraction in an isolate to avoid blocking the main thread
   Future<void> _extractArchive(File archiveFile, Directory targetDir) async {
-    final archiveBytes = await archiveFile.readAsBytes();
+    final result = await Isolate.run(() {
+      return _extractArchiveSync(
+        archiveFile.path,
+        targetDir.path,
+        Platform.isLinux,
+        Platform.isWindows,
+      );
+    });
 
-    // Decode based on platform
-    final archive = Platform.isLinux
-        ? TarDecoder().decodeBytes(XZDecoder().decodeBytes(archiveBytes))
-        : ZipDecoder().decodeBytes(archiveBytes);
+    // Handle any errors from the isolate
+    if (result.error != null) {
+      throw AppException('Extraction failed: ${result.error}');
+    }
 
-    targetDir.createSync(recursive: true);
-
-    for (final file in archive) {
-      if (file.name.isEmpty || file.name.contains('..')) continue;
-
-      // Remove flutter/ prefix
-      final parts = file.name.split('/');
-      if (parts.isEmpty || (parts.first == 'flutter' && parts.length == 1)) {
-        continue;
-      }
-
-      final relativePath =
-          parts.first == 'flutter' ? parts.skip(1).join('/') : file.name;
-      if (relativePath.isEmpty) continue;
-
-      final filePath = path.join(targetDir.path, relativePath);
-
-      if (file.isFile) {
-        final outputFile = File(filePath);
-        await outputFile.parent.create(recursive: true);
-        await outputFile.writeAsBytes(file.content);
-
-        // Set executable permissions for binaries
-        if (!Platform.isWindows &&
-            (relativePath.startsWith('bin/') ||
-                relativePath.contains('/bin/')) &&
-            !relativePath.endsWith('.bat')) {
-          try {
-            Process.runSync('chmod', ['+x', filePath]);
-          } catch (_) {}
+    // Set executable permissions on main thread (Process.runSync works better here)
+    if (!Platform.isWindows) {
+      for (final binPath in result.executablePaths) {
+        try {
+          Process.runSync('chmod', ['+x', binPath]);
+        } catch (e) {
+          logger.debug('Failed to set executable permission for $binPath: $e');
         }
-      } else {
-        Directory(filePath).createSync(recursive: true);
       }
     }
   }

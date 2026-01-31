@@ -124,7 +124,7 @@ void main() {
       final downloadService = DownloadService(context);
       final cacheService = context.get<CacheService>();
 
-      // Use a known small/old version to minimize download size
+      // Use a known stable version that's available across platforms
       final version = FlutterVersion.parse('3.0.0');
       final canDownload = await downloadService.canDownload(version);
       expect(canDownload, isTrue, 
