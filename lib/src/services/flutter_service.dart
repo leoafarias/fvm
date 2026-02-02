@@ -94,7 +94,7 @@ class FlutterService extends ContextualService {
       final isLikelyCorruption = _isMirrorCorruptionError(error.message);
 
       if (isLikelyCorruption) {
-        logger.err(
+        logger.warn(
           'Local git cache appears corrupted '
           '(exit ${error.errorCode}: ${error.message}). '
           'Falling back to remote clone.',
@@ -142,8 +142,8 @@ class FlutterService extends ContextualService {
       versionDir,
       requireSuccess: false,
       onFinalError: (e) {
-        // Error level since this leaves orphaned directories that consume disk space
-        logger.err(
+        // Warn level since cleanup failure is recoverable and execution continues
+        logger.warn(
           'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
           'You may need to manually delete this directory.',
         );
@@ -502,7 +502,14 @@ class FlutterService extends ContextualService {
       removeCache: true,
     );
 
-    Error.throwWithStackTrace(error, stackTrace);
+    logger.debug('Clone error details: $error');
+    Error.throwWithStackTrace(
+      AppException(
+        'Failed to install Flutter SDK: ${version.printFriendlyName}.\n'
+        'Run with --verbose for more details.',
+      ),
+      stackTrace,
+    );
   }
 
   Future<ProcessResult> run(
