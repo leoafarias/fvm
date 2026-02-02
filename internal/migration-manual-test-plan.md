@@ -81,13 +81,15 @@ git -C "$FVM_CACHE_PATH/cache.git" config --bool core.bare
 Expected:
 - `false`
 
-Optional (if present):
+Verify alternates files exist (created by --reference clones):
 
 ```bash
-find "$FVM_CACHE_PATH/versions" -path '*/.git/objects/info/alternates' -print
+find "$FVM_CACHE_PATH/versions" -path '*/.git/objects/info/alternates' -print -exec cat {} \;
 ```
 
-If any alternates files exist, note their contents (legacy paths usually include `.git/objects`).
+Expected:
+- Alternates file exists for each installed version
+- Contents point to legacy cache path (includes `.git/objects` in path)
 
 ## Step 3 - Upgrade to latest FVM and trigger migration
 
@@ -112,11 +114,15 @@ git -C "$FVM_CACHE_PATH/cache.git" config --bool core.bare
 Expected:
 - `true`
 
-If alternates files exist, verify they point to `.../cache.git/objects`:
+Verify alternates were rewritten to bare mirror path:
 
 ```bash
 find "$FVM_CACHE_PATH/versions" -path '*/.git/objects/info/alternates' -print -exec cat {} \;
 ```
+
+Expected:
+- Alternates files still exist
+- Contents now point to `.../cache.git/objects` (no `/.git/` in the path)
 
 ## Step 4 - Run this branch and re-verify
 
