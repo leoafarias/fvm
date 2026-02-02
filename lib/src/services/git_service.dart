@@ -7,7 +7,6 @@ import 'package:path/path.dart' as path;
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/exceptions.dart';
-import '../utils/file_lock.dart';
 import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -16,15 +15,9 @@ import 'process_service.dart';
 /// Service for Git operations
 /// Handles git cache management and repository operations
 class GitService extends ContextualService {
-  late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
 
-  GitService(super.context) {
-    _updatingCacheLock = context.createLock(
-      'updating-cache',
-      expiresIn: const Duration(minutes: 10),
-    );
-  }
+  GitService(super.context);
 
   // Create a custom Process.start, that prints using the progress bar
   Future<void> _createLocalMirror() async {
@@ -108,8 +101,6 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() async {
-    final unlock = await _updatingCacheLock.getLock();
-
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
     final dotGitType = FileSystemEntity.typeSync(
@@ -117,101 +108,97 @@ class GitService extends ContextualService {
     );
     final isBareRepo = dotGitType == FileSystemEntityType.notFound;
 
-    try {
-      if (isGitDir) {
-        try {
-          logger.debug('Updating local mirror...');
-          final processService = get<ProcessService>();
-          Future<ProcessResult> runInCache(List<String> args) {
-            if (isBareRepo) {
-              return processService.run(
-                'git',
-                args: ['--git-dir', gitCacheDir.path, ...args],
-              );
-            }
-
+    if (isGitDir) {
+      try {
+        logger.debug('Updating local mirror...');
+        final processService = get<ProcessService>();
+        Future<ProcessResult> runInCache(List<String> args) {
+          if (isBareRepo) {
             return processService.run(
               'git',
-              args: ['-C', gitCacheDir.path, ...args],
+              args: ['--git-dir', gitCacheDir.path, ...args],
             );
           }
 
-          if (!isBareRepo) {
-            // Ensure clean working directory before fetch operations
-            // This prevents merge conflicts during fetch (fixes #819)
-            logger.debug('Ensuring clean working directory...');
-            await runInCache(['reset', '--hard', 'HEAD']);
-            await runInCache(['clean', '-fd']);
-          }
-
-          // First, prune any stale references
-          logger.debug('Pruning stale references...');
-          await runInCache(['remote', 'prune', 'origin']);
-
-          // Then fetch all refs including tags
-          logger.debug('Fetching all refs...');
-          await runInCache(['fetch', '--all', '--tags', '--prune']);
-
-          if (!isBareRepo) {
-            // Check if there are any uncommitted changes
-            logger.debug('Checking for uncommitted changes...');
-            final statusResult = await runInCache(['status', '--porcelain']);
-            final output = (statusResult.stdout as String).trim();
-            if (output.isEmpty) {
-              logger.debug(
-                'No uncommitted changes. Working directory is clean.',
-              );
-            } else {
-              logger.warn(
-                'Local mirror has unexpected changes. Recreating mirror...',
-              );
-              if (gitCacheDir.existsSync()) {
-                gitCacheDir.deleteSync(recursive: true);
-              }
-              await _createLocalMirror();
-              return;
-            }
-          }
-
-          logger.debug('Local mirror updated successfully');
-        } catch (e) {
-          // Only recreate the mirror if it's a critical git error that indicates
-          // the repository is unrecoverable. Other errors (network, permissions, etc.)
-          // are re-thrown so callers can handle them appropriately.
-          // Known critical error patterns: "not a git repository", "corrupt", "damaged",
-          // "hash mismatch", "object file...empty"
-          if (e is ProcessException) {
-            final messageLower = e.message.toLowerCase();
-            if (messageLower.contains('not a git repository') ||
-                messageLower.contains('corrupt') ||
-                messageLower.contains('damaged') ||
-                messageLower.contains('hash mismatch') ||
-                (messageLower.contains('object file') &&
-                    messageLower.contains('empty'))) {
-              logger.warn(
-                'Local mirror appears to be corrupted (${e.message}). '
-                'Recreating mirror...',
-              );
-              if (gitCacheDir.existsSync()) {
-                gitCacheDir.deleteSync(recursive: true);
-              }
-              await _createLocalMirror();
-
-              return;
-            }
-          }
-
-          logger.err(
-            'Failed to update local mirror: $e. '
-            'Try running "fvm doctor" to diagnose issues.',
+          return processService.run(
+            'git',
+            args: ['-C', gitCacheDir.path, ...args],
           );
-          rethrow;
         }
-      } else {
-        await _createLocalMirror();
+
+        if (!isBareRepo) {
+          // Ensure clean working directory before fetch operations
+          // This prevents merge conflicts during fetch (fixes #819)
+          logger.debug('Ensuring clean working directory...');
+          await runInCache(['reset', '--hard', 'HEAD']);
+          await runInCache(['clean', '-fd']);
+        }
+
+        // First, prune any stale references
+        logger.debug('Pruning stale references...');
+        await runInCache(['remote', 'prune', 'origin']);
+
+        // Then fetch all refs including tags
+        logger.debug('Fetching all refs...');
+        await runInCache(['fetch', '--all', '--tags', '--prune']);
+
+        if (!isBareRepo) {
+          // Check if there are any uncommitted changes
+          logger.debug('Checking for uncommitted changes...');
+          final statusResult = await runInCache(['status', '--porcelain']);
+          final output = (statusResult.stdout as String).trim();
+          if (output.isEmpty) {
+            logger.debug(
+              'No uncommitted changes. Working directory is clean.',
+            );
+          } else {
+            logger.warn(
+              'Local mirror has unexpected changes. Recreating mirror...',
+            );
+            if (gitCacheDir.existsSync()) {
+              gitCacheDir.deleteSync(recursive: true);
+            }
+            await _createLocalMirror();
+            return;
+          }
+        }
+
+        logger.debug('Local mirror updated successfully');
+      } catch (e) {
+        // Only recreate the mirror if it's a critical git error that indicates
+        // the repository is unrecoverable. Other errors (network, permissions, etc.)
+        // are re-thrown so callers can handle them appropriately.
+        // Known critical error patterns: "not a git repository", "corrupt", "damaged",
+        // "hash mismatch", "object file...empty"
+        if (e is ProcessException) {
+          final messageLower = e.message.toLowerCase();
+          if (messageLower.contains('not a git repository') ||
+              messageLower.contains('corrupt') ||
+              messageLower.contains('damaged') ||
+              messageLower.contains('hash mismatch') ||
+              (messageLower.contains('object file') &&
+                  messageLower.contains('empty'))) {
+            logger.warn(
+              'Local mirror appears to be corrupted (${e.message}). '
+              'Recreating mirror...',
+            );
+            if (gitCacheDir.existsSync()) {
+              gitCacheDir.deleteSync(recursive: true);
+            }
+            await _createLocalMirror();
+
+            return;
+          }
+        }
+
+        logger.err(
+          'Failed to update local mirror: $e. '
+          'Try running "fvm doctor" to diagnose issues.',
+        );
+        rethrow;
       }
-    } finally {
-      unlock();
+    } else {
+      await _createLocalMirror();
     }
   }
 
