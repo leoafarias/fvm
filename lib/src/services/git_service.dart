@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
@@ -102,38 +103,64 @@ class GitService extends ContextualService {
   Future<void> updateLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
     final isGitDir = await GitDir.isGitDir(gitCacheDir.path);
+    final dotGitType = FileSystemEntity.typeSync(
+      path.join(gitCacheDir.path, '.git'),
+    );
+    final isBareRepo = dotGitType == FileSystemEntityType.notFound;
 
     if (isGitDir) {
       try {
         logger.debug('Updating local mirror...');
-        final gitDir = await GitDir.fromExisting(gitCacheDir.path);
+        final processService = get<ProcessService>();
+        Future<ProcessResult> runInCache(List<String> args) {
+          if (isBareRepo) {
+            return processService.run(
+              'git',
+              args: ['--git-dir', gitCacheDir.path, ...args],
+            );
+          }
 
-        // Ensure clean working directory before fetch operations
-        // This prevents merge conflicts during fetch (fixes #819)
-        logger.debug('Ensuring clean working directory...');
-        await gitDir.runCommand(['reset', '--hard', 'HEAD']);
-        await gitDir.runCommand(['clean', '-fd']);
+          return processService.run(
+            'git',
+            args: ['-C', gitCacheDir.path, ...args],
+          );
+        }
+
+        if (!isBareRepo) {
+          // Ensure clean working directory before fetch operations
+          // This prevents merge conflicts during fetch (fixes #819)
+          logger.debug('Ensuring clean working directory...');
+          await runInCache(['reset', '--hard', 'HEAD']);
+          await runInCache(['clean', '-fd']);
+        }
 
         // First, prune any stale references
         logger.debug('Pruning stale references...');
-        await gitDir.runCommand(['remote', 'prune', 'origin']);
+        await runInCache(['remote', 'prune', 'origin']);
 
         // Then fetch all refs including tags
         logger.debug('Fetching all refs...');
-        await gitDir.runCommand(['fetch', '--all', '--tags', '--prune']);
+        await runInCache(['fetch', '--all', '--tags', '--prune']);
 
-        // Check if there are any uncommitted changes
-        logger.debug('Checking for uncommitted changes...');
-        final statusResult = await gitDir.runCommand([
-          'status',
-          '--porcelain',
-        ]);
-
-        final output = (statusResult.stdout as String).trim();
-        if (output.isEmpty) {
-          logger.debug('No uncommitted changes. Working directory is clean.');
-        } else {
-          await _createLocalMirror();
+        if (!isBareRepo) {
+          // Check if there are any uncommitted changes
+          logger.debug('Checking for uncommitted changes...');
+          final statusResult = await runInCache(['status', '--porcelain']);
+          final output = (statusResult.stdout as String).trim();
+          if (output.isEmpty) {
+            logger.debug(
+              'No uncommitted changes. Working directory is clean.',
+            );
+          } else {
+            logger.warn(
+              'Local mirror has unexpected changes. Recreating mirror...',
+            );
+            if (gitCacheDir.existsSync()) {
+              gitCacheDir.deleteSync(recursive: true);
+            }
+            await _createLocalMirror();
+            return;
+          }
         }
 
         logger.debug('Local mirror updated successfully');
@@ -155,6 +182,9 @@ class GitService extends ContextualService {
               'Local mirror appears to be corrupted (${e.message}). '
               'Recreating mirror...',
             );
+            if (gitCacheDir.existsSync()) {
+              gitCacheDir.deleteSync(recursive: true);
+            }
             await _createLocalMirror();
 
             return;
