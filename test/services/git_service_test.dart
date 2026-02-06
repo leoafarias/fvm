@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
@@ -206,6 +207,92 @@ void main() {
 
       // Should now be a valid bare mirror
       expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('removeLocalMirror deletes git cache directory', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final cacheDir = Directory(gitCachePath)..createSync(recursive: true);
+      File(p.join(cacheDir.path, 'marker')).writeAsStringSync('cache');
+      expect(cacheDir.existsSync(), isTrue);
+
+      final gitService = GitService(context);
+      final deleted = await gitService.removeLocalMirror();
+
+      expect(deleted, isTrue);
+      expect(cacheDir.existsSync(), isFalse);
+    });
+
+    test('waits for cache lock before running cache migration checks',
+        () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      final lockFilePath = '$gitCachePath.lock';
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final lockHelper = File(
+        p.join(tempDir.path, 'hold_git_cache_lock.dart'),
+      )..writeAsStringSync('''
+import 'dart:io';
+
+Future<void> main(List<String> args) async {
+  final lockFile = File(args[0]);
+  lockFile.parent.createSync(recursive: true);
+  final handle = await lockFile.open(mode: FileMode.write);
+  await handle.lock(FileLock.exclusive);
+  stdout.writeln('locked');
+  await stdout.flush();
+  await Future<void>.delayed(Duration(milliseconds: int.parse(args[1])));
+  await handle.unlock();
+  await handle.close();
+}
+''');
+
+      final lockProcess = await Process.start(Platform.resolvedExecutable, [
+        lockHelper.path,
+        lockFilePath,
+        '1200',
+      ]);
+
+      final lockReady = lockProcess.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .firstWhere((line) => line.trim() == 'locked');
+
+      await lockReady.timeout(const Duration(seconds: 5));
+
+      final gitService = GitService(context);
+      var completed = false;
+      final operation = gitService.ensureBareCacheIfPresent().then((_) {
+        completed = true;
+      });
+
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+      expect(completed, isFalse);
+
+      final lockExitCode = await lockProcess.exitCode.timeout(
+        const Duration(seconds: 5),
+      );
+      expect(lockExitCode, 0);
+
+      await operation.timeout(const Duration(seconds: 5));
+      expect(completed, isTrue);
     });
   });
 }
