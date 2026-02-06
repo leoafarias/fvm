@@ -40,7 +40,10 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
   }) async {
     final detected = await detectFvmVersion();
     if (detected.isUnknown) {
-      throw StateError('FVM not found on PATH (required to start fvm_mcp).');
+      throw StateError(
+        'Unable to detect FVM semver from `fvm --version`. '
+        'Ensure FVM is on PATH and returns a semantic version.',
+      );
     }
 
     final impl = Implementation(name: _serverName, version: _serverVersion);
@@ -195,14 +198,21 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         run: (call) {
           final all = boolArg(call, 'all') ?? false;
           final version = stringArg(call, 'version');
-          if (!all && (version == null || version.isEmpty)) {
-            return _error('Missing args: set "version" or "all=true".');
+          if (all) {
+            return _error(
+              'fvm.remove with "all=true" is not supported in MCP '
+              'non-interactive mode. Remove a specific version instead.',
+            );
+          }
+
+          if (version == null || version.isEmpty) {
+            return _error('Missing args: set "version".');
           }
 
           return _runner.run(
             [
               'remove',
-              if (all) '--all' else ...[version!],
+              version!,
             ],
             cwd: stringArg(call, 'cwd'),
             timeout: const Duration(minutes: 5),
