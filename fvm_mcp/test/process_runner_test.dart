@@ -14,11 +14,13 @@ void main() {
     final outName = Platform.isWindows ? 'fake_fvm.exe' : 'fake_fvm';
     final outPath = '${tmp.path}/$outName';
 
-    final result = await Process.run(
-      Platform.resolvedExecutable,
-      ['compile', 'exe', script, '-o', outPath],
-      runInShell: Platform.isWindows,
-    );
+    final result = await Process.run(Platform.resolvedExecutable, [
+      'compile',
+      'exe',
+      script,
+      '-o',
+      outPath,
+    ], runInShell: Platform.isWindows);
     if (result.exitCode != 0) {
       throw StateError(
         'Failed to compile fake_fvm:\n${result.stdout}\n${result.stderr}',
@@ -28,11 +30,11 @@ void main() {
   }
 
   ProcessRunner runner({required bool hasSkipInput}) => ProcessRunner(
-        exe: fakeFvmExe,
-        hasSkipInput: hasSkipInput,
-        startMode: ProcessStartMode.normal,
-        runInShell: false,
-      );
+    exe: fakeFvmExe,
+    hasSkipInput: hasSkipInput,
+    startMode: ProcessStartMode.normal,
+    runInShell: false,
+  );
 
   String textFrom(CallToolResult result) {
     final contents = result.content.whereType<TextContent>();
@@ -44,21 +46,18 @@ void main() {
   });
 
   test('run returns stdout text', () async {
-    final res = await runner(hasSkipInput: false).run([
-      'echo',
-      'hello',
-      'world',
-    ]);
+    final res = await runner(
+      hasSkipInput: false,
+    ).run(['echo', 'hello', 'world']);
 
     expect(res.isError, anyOf(isNull, isFalse));
     expect(textFrom(res), 'hello world');
   });
 
   test('run passes --fvm-skip-input when supported', () async {
-    final res = await runner(hasSkipInput: true).run([
-      'echo_args_json',
-      'alpha',
-    ]);
+    final res = await runner(
+      hasSkipInput: true,
+    ).run(['echo_args_json', 'alpha']);
 
     expect(res.isError, anyOf(isNull, isFalse));
     final decoded = jsonDecode(textFrom(res)) as Map<String, dynamic>;
@@ -67,10 +66,7 @@ void main() {
   });
 
   test('non-zero exit surfaces stderr', () async {
-    final res = await runner(hasSkipInput: false).run([
-      'stderr',
-      'boom',
-    ]);
+    final res = await runner(hasSkipInput: false).run(['stderr', 'boom']);
 
     expect(res.isError, isTrue);
     expect(textFrom(res), contains('boom'));
@@ -78,10 +74,7 @@ void main() {
 
   test('timeout produces structured error', () async {
     final res = await runner(hasSkipInput: false).run(
-      [
-        'sleep',
-        '2',
-      ],
+      ['sleep', '2'],
       timeout: const Duration(milliseconds: 100),
       progressLabel: 'sleep',
     );
