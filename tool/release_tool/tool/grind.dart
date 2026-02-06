@@ -108,30 +108,6 @@ Future<void> getReleases() async {
   }
 }
 
-@Task('Move install scripts to public directory')
-void moveScripts() {
-  final scriptsDir = Directory(p.join(_effectiveRepoRoot.path, 'scripts'));
-  if (!scriptsDir.existsSync()) {
-    _fail('Scripts directory does not exist at ${scriptsDir.path}');
-  }
-
-  final publicDir =
-      Directory(p.join(_effectiveRepoRoot.path, 'docs/public'));
-  if (!publicDir.existsSync()) {
-    _fail('Public directory does not exist at ${publicDir.path}');
-  }
-
-  for (final scriptName in ['install.sh', 'uninstall.sh']) {
-    final source = File(p.join(scriptsDir.path, scriptName));
-    if (!source.existsSync()) {
-      _fail('$scriptName does not exist in ${scriptsDir.path}');
-    }
-
-    source.copySync(p.join(publicDir.path, scriptName));
-    log('Moved $scriptName to ${publicDir.path}');
-  }
-}
-
 Future<String> _githubRequest(Uri uri) async {
   final override = httpRequestOverride;
   if (override != null) {

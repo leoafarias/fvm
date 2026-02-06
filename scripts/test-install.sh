@@ -21,7 +21,7 @@ NC=$'\033[0m'
 pass() { echo -e "${GREEN}✅ $1${NC}"; }
 fail() { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
-echo "🧪 Testing scripts/install.sh root warning behavior"
+echo "🧪 Testing docs/public/install.sh root warning behavior"
 echo "=================================================="
 echo ""
 echo "This test forces an early failure to avoid downloads."
@@ -30,7 +30,7 @@ echo ""
 run_install_sh_with_early_failure() {
   # Use an unsafe install base (/) so install.sh exits before requiring curl/tar.
   # This should still print the root warning when executed as root.
-  FVM_INSTALL_DIR="/" ./scripts/install.sh 2>&1 || true
+  FVM_INSTALL_DIR="/" ./docs/public/install.sh 2>&1 || true
 }
 
 assert_contains() {
