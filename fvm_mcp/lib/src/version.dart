@@ -1,46 +1,118 @@
 import 'dart:io';
 
-final _versionRe = RegExp(r'^(?:fvm\s+)?(\d+)\.(\d+)\.(\d+)');
+import 'package:pub_semver/pub_semver.dart';
+
+const _semverPattern =
+    r'\d+\.\d+\.\d+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?';
+
+final _versionLineRe = RegExp(
+  '^(?:fvm(?:\\s+version)?\\s*:?\\s*)?v?($_semverPattern)\\s*\$',
+  caseSensitive: false,
+);
+final _versionInlineRe = RegExp(
+  '(?:^|[^0-9A-Za-z])(?:fvm(?:\\s+version)?\\s*:?\\s*)?v?($_semverPattern)(?=\$|[^0-9A-Za-z])',
+  caseSensitive: false,
+);
+
+final _jsonApiMin = Version(3, 1, 2);
+final _skipInputMin = Version(3, 2, 0);
 
 class FvmVersion {
-  final int major;
-  final int minor;
-  final int patch;
+  final Version? semver;
   final String raw;
 
-  const FvmVersion(this.major, this.minor, this.patch, this.raw);
+  const FvmVersion._({required this.semver, required this.raw});
 
-  bool get isUnknown => raw.trim().isEmpty || raw.trim() == 'unknown';
+  const FvmVersion.unknown([this.raw = 'unknown']) : semver = null;
 
-  bool get supportsJsonApi =>
-      (major > 3) || (major == 3 && (minor > 1 || (minor == 1 && patch >= 2)));
-  bool get supportsSkipInput => (major > 3) || (major == 3 && minor >= 2);
+  factory FvmVersion.fromSemver(Version semver) =>
+      FvmVersion._(semver: semver, raw: semver.toString());
+
+  int get major => semver?.major ?? 0;
+  int get minor => semver?.minor ?? 0;
+  int get patch => semver?.patch ?? 0;
+
+  bool get isUnknown => semver == null;
+
+  bool get supportsJsonApi => _isAtLeast(_jsonApiMin);
+  bool get supportsSkipInput => _isAtLeast(_skipInputMin);
+
+  bool _isAtLeast(Version min) => semver != null && semver! >= min;
 
   @override
   String toString() => raw;
 }
 
+String _asText(Object? value) {
+  if (value is String) return value;
+  if (value is List<int>) return String.fromCharCodes(value);
+
+  return '$value';
+}
+
+Version? _parseSemver(String value) {
+  try {
+    return Version.parse(value);
+  } on FormatException {
+    return null;
+  }
+}
+
+FvmVersion parseFvmVersionOutput(String output) {
+  final text = output.trim();
+  if (text.isEmpty) return const FvmVersion.unknown();
+
+  final lines = text.split('\n').map((line) => line.trim()).toList();
+
+  // Prefer clean lines first (e.g., `4.0.5` or `fvm 4.0.5`).
+  for (final line in lines) {
+    if (line.isEmpty) continue;
+
+    final match = _versionLineRe.firstMatch(line);
+    if (match != null) {
+      final version = _parseSemver(match.group(1)!);
+      if (version != null) {
+        return FvmVersion.fromSemver(version);
+      }
+    }
+  }
+
+  // Then prefer inline matches on lines that explicitly mention FVM.
+  for (final line in lines) {
+    if (line.isEmpty || !line.toLowerCase().contains('fvm')) continue;
+
+    final match = _versionInlineRe.firstMatch(line);
+    if (match != null) {
+      final version = _parseSemver(match.group(1)!);
+      if (version != null) {
+        return FvmVersion.fromSemver(version);
+      }
+    }
+  }
+
+  // Last resort: any inline semver token in output.
+  for (final line in lines) {
+    if (line.isEmpty) continue;
+
+    final match = _versionInlineRe.firstMatch(line);
+    if (match != null) {
+      final version = _parseSemver(match.group(1)!);
+      if (version != null) {
+        return FvmVersion.fromSemver(version);
+      }
+    }
+  }
+
+  return const FvmVersion.unknown();
+}
+
 Future<FvmVersion> detectFvmVersion() async {
   try {
     final res = await Process.run('fvm', ['--version'], runInShell: true);
-    final stdoutObj = res.stdout;
-    final stdout = stdoutObj is String
-        ? stdoutObj
-        : stdoutObj is List<int>
-            ? String.fromCharCodes(stdoutObj)
-            : '${res.stdout}';
-    final match = _versionRe.firstMatch(stdout);
-    if (match != null) {
-      final major = int.parse(match.group(1)!);
-      final minor = int.parse(match.group(2)!);
-      final patch = int.parse(match.group(3)!);
+    final combined = '${_asText(res.stdout)}\n${_asText(res.stderr)}';
 
-      return FvmVersion(major, minor, patch, '$major.$minor.$patch');
-    }
-
-    // Fallback when version is not in semantic form.
-    return FvmVersion(0, 0, 0, stdout.trim());
+    return parseFvmVersionOutput(combined);
   } catch (_) {
-    return const FvmVersion(0, 0, 0, 'unknown');
+    return const FvmVersion.unknown();
   }
 }

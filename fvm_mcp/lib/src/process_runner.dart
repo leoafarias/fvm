@@ -3,12 +3,14 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_mcp/server.dart';
+import 'package:process/process.dart';
 
 class ProcessRunner {
   final String exe;
   final bool hasSkipInput;
   final ProcessStartMode startMode;
   final bool runInShell;
+  final ProcessManager processManager;
 
   void Function(ProgressNotification notification)? _notify;
 
@@ -17,8 +19,10 @@ class ProcessRunner {
     required this.hasSkipInput,
     ProcessStartMode? startMode,
     bool? runInShell,
-  })  : startMode = startMode ?? ProcessStartMode.normal,
-        runInShell = runInShell ?? Platform.isWindows;
+    ProcessManager? processManager,
+  }) : startMode = startMode ?? ProcessStartMode.normal,
+       runInShell = runInShell ?? Platform.isWindows,
+       processManager = processManager ?? const LocalProcessManager();
 
   Future<CallToolResult> _runCore(
     List<String> args, {
@@ -27,9 +31,8 @@ class ProcessRunner {
     String? progressLabel,
     MetaWithProgressToken? meta,
   }) async {
-    final proc = await Process.start(
-      exe,
-      args,
+    final proc = await processManager.start(
+      [exe, ...args],
       workingDirectory: cwd,
       runInShell: runInShell,
       mode: startMode,
@@ -48,12 +51,14 @@ class ProcessRunner {
         .catchError((_) {});
 
     if (meta?.progressToken != null && progressLabel != null) {
-      _notify?.call(ProgressNotification(
-        progressToken: meta!.progressToken!,
-        progress: 0,
-        total: 100,
-        message: 'Starting $progressLabel…',
-      ));
+      _notify?.call(
+        ProgressNotification(
+          progressToken: meta!.progressToken!,
+          progress: 0,
+          total: 100,
+          message: 'Starting $progressLabel…',
+        ),
+      );
     }
 
     int code;
@@ -86,19 +91,23 @@ class ProcessRunner {
     final stderrText = errBuf.toString().trimRight();
 
     if (meta?.progressToken != null && progressLabel != null) {
-      _notify?.call(ProgressNotification(
-        progressToken: meta!.progressToken!,
-        progress: 100,
-        total: 100,
-        message: timedOut ? '$progressLabel timed out' : '$progressLabel done',
-      ));
+      _notify?.call(
+        ProgressNotification(
+          progressToken: meta!.progressToken!,
+          progress: 100,
+          total: 100,
+          message: timedOut
+              ? '$progressLabel timed out'
+              : '$progressLabel done',
+        ),
+      );
     }
 
     if (timedOut) {
       return CallToolResult(
         isError: true,
         content: [
-          TextContent(text: 'Timeout after ${timeout.inMinutes}m\n$stderrText')
+          TextContent(text: 'Timeout after ${timeout.inMinutes}m\n$stderrText'),
         ],
       );
     }
@@ -127,14 +136,13 @@ class ProcessRunner {
     Duration timeout = const Duration(minutes: 2),
     String? progressLabel,
     MetaWithProgressToken? meta,
-  }) =>
-      _runCore(
-        args,
-        cwd: cwd,
-        timeout: timeout,
-        progressLabel: progressLabel,
-        meta: meta,
-      );
+  }) => _runCore(
+    args,
+    cwd: cwd,
+    timeout: timeout,
+    progressLabel: progressLabel,
+    meta: meta,
+  );
 
   Future<CallToolResult> run(
     List<String> args, {
@@ -143,10 +151,7 @@ class ProcessRunner {
     String? progressLabel,
     MetaWithProgressToken? meta,
   }) {
-    final full = [
-      if (hasSkipInput) '--fvm-skip-input',
-      ...args,
-    ];
+    final full = [if (hasSkipInput) '--fvm-skip-input', ...args];
 
     return _runCore(
       full,

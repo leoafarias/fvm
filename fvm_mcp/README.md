@@ -56,7 +56,7 @@ class McpCommand extends Command<int> {
 ### Safety
 
 - Mutating tools are marked “state-changing”.
-- `remove` requires either `version` or `all=true`.
+- `remove` supports specific `version` removal only.
 - Proxies honor FVM’s routing order (project → ancestor → global → PATH).
 
 ## License
