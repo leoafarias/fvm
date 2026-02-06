@@ -30,6 +30,7 @@ class GitService extends ContextualService {
 
   bool _isLockContentionError(FileSystemException error) {
     final message = error.message.toLowerCase();
+
     return message.contains('lock failed') ||
         message.contains('resource temporarily unavailable') ||
         message.contains('operation would block') ||
@@ -168,7 +169,8 @@ class GitService extends ContextualService {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
       logger.warn(
-          'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+        'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.',
+      );
     }
   }
 
@@ -385,6 +387,18 @@ class GitService extends ContextualService {
       path.join(resolvedCachePath, 'objects'),
     );
     final desiredParent = path.normalize(resolvedCachePath);
+    final desiredParentComparable =
+        Platform.isWindows ? desiredParent.toLowerCase() : desiredParent;
+    final desiredPathComparable =
+        Platform.isWindows ? desiredPath.toLowerCase() : desiredPath;
+
+    bool isWithinOrEqualToCachePath(String targetPath) {
+      final targetComparable =
+          Platform.isWindows ? targetPath.toLowerCase() : targetPath;
+
+      return targetComparable == desiredParentComparable ||
+          path.isWithin(desiredParentComparable, targetComparable);
+    }
 
     for (final version in versions) {
       final alternatesFile = File(
@@ -406,16 +420,15 @@ class GitService extends ContextualService {
               : currentRaw,
         );
 
-        // Only fix alternates that reference our cache path (not backups, etc.)
-        // Use case-insensitive comparison on Windows where paths are case-insensitive
-        final matchesParent = Platform.isWindows
-            ? currentNorm.toLowerCase().startsWith(desiredParent.toLowerCase())
-            : currentNorm.startsWith(desiredParent);
+        // Only fix alternates that reference our cache path (not backups, etc.).
+        final matchesParent = isWithinOrEqualToCachePath(currentNorm);
         if (!matchesParent) {
           continue;
         }
 
-        if (currentNorm == desiredPath) {
+        final currentComparable =
+            Platform.isWindows ? currentNorm.toLowerCase() : currentNorm;
+        if (currentComparable == desiredPathComparable) {
           continue; // already correct
         }
 
@@ -651,7 +664,8 @@ class GitService extends ContextualService {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
       logger.warn(
-          'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+        'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.',
+      );
     }
 
     // Final safeguard: verify resulting cache is bare; otherwise recreate
@@ -682,6 +696,7 @@ class GitService extends ContextualService {
   }) {
     return _withCacheMutationLock(() async {
       final cacheDir = Directory(context.gitCachePath);
+
       return deleteDirectoryWithRetry(
         cacheDir,
         requireSuccess: requireSuccess,
@@ -730,8 +745,10 @@ class GitService extends ContextualService {
             logger.warn('Migration failed ($e), recreating from scratch...');
             // Ensure clean slate before full recreation
             if (gitCacheDir.existsSync()) {
-              await _deleteDirectoryWithRetry(gitCacheDir,
-                  requireSuccess: false);
+              await _deleteDirectoryWithRetry(
+                gitCacheDir,
+                requireSuccess: false,
+              );
             }
             await _createLocalMirror();
           }

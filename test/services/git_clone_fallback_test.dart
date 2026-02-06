@@ -121,6 +121,49 @@ void main() {
         expect(legacyArtifacts, isEmpty);
       },
     );
+
+    test(
+      'does not rewrite alternates that point outside cache path boundary',
+      () async {
+        Directory(context.gitCachePath).parent.createSync(recursive: true);
+        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+
+        final versionDir = Directory(
+          p.join(context.versionsCachePath, 'stable'),
+        );
+        versionDir.createSync(recursive: true);
+
+        final alternatesFile = File(
+          p.join(
+            versionDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        )..createSync(recursive: true);
+
+        final backupObjectsPath = p.join(
+          '${context.gitCachePath}.backup-custom',
+          'objects',
+        );
+        alternatesFile.writeAsStringSync('$backupObjectsPath\n');
+
+        installedVersions.add(
+          CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('stable'),
+            directory: versionDir.path,
+          ),
+        );
+
+        await gitService.updateLocalMirror();
+
+        expect(
+          alternatesFile.readAsStringSync().trim(),
+          equals(backupObjectsPath),
+        );
+      },
+    );
   });
 }
 
