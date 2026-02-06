@@ -71,83 +71,11 @@ class GitService extends ContextualService {
       rethrow;
     }
 
-    // Swap directories safely by using a backup in the same parent directory.
-    final cachePathType = FileSystemEntity.typeSync(
-      gitCacheDir.path,
-      followLinks: false,
+    await _atomicDirectorySwap(
+      targetPath: gitCacheDir.path,
+      replacementDir: tempDir,
+      restoreFailureLabel: 'previous cache',
     );
-    final backupSuffix = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
-    final backupPath = path.join(
-      gitCacheDir.parent.path,
-      '${path.basename(gitCacheDir.path)}.backup.$backupSuffix',
-    );
-
-    FileSystemEntity? backupEntity;
-    if (cachePathType == FileSystemEntityType.file ||
-        cachePathType == FileSystemEntityType.link) {
-      backupEntity = cachePathType == FileSystemEntityType.file
-          ? File(gitCacheDir.path)
-          : Link(gitCacheDir.path);
-    } else if (cachePathType == FileSystemEntityType.directory) {
-      backupEntity = gitCacheDir;
-    }
-
-    try {
-      if (backupEntity != null) {
-        final existingBackupType = FileSystemEntity.typeSync(
-          backupPath,
-          followLinks: false,
-        );
-        if (existingBackupType == FileSystemEntityType.directory) {
-          await _deleteDirectoryWithRetry(
-            Directory(backupPath),
-            requireSuccess: false,
-          );
-        } else if (existingBackupType == FileSystemEntityType.file) {
-          File(backupPath).deleteSync();
-        } else if (existingBackupType == FileSystemEntityType.link) {
-          Link(backupPath).deleteSync();
-        }
-        backupEntity.renameSync(backupPath);
-      }
-
-      tempDir.renameSync(gitCacheDir.path);
-    } catch (error) {
-      if (!gitCacheDir.existsSync() && backupEntity != null) {
-        try {
-          if (backupEntity is Directory) {
-            Directory(backupPath).renameSync(gitCacheDir.path);
-          } else if (backupEntity is File) {
-            File(backupPath).renameSync(gitCacheDir.path);
-          } else if (backupEntity is Link) {
-            Link(backupPath).renameSync(gitCacheDir.path);
-          }
-        } on FileSystemException catch (restoreError) {
-          logger.warn('Failed to restore previous cache: ${restoreError.message}');
-        }
-      }
-      rethrow;
-    }
-
-    if (backupEntity != null) {
-      final backupType = FileSystemEntity.typeSync(
-        backupPath,
-        followLinks: false,
-      );
-      if (backupType == FileSystemEntityType.directory) {
-        await _deleteDirectoryWithRetry(
-          Directory(backupPath),
-          requireSuccess: false,
-        );
-      } else if (backupType == FileSystemEntityType.file) {
-        File(backupPath).deleteSync();
-      } else if (backupType == FileSystemEntityType.link) {
-        Link(backupPath).deleteSync();
-      }
-    }
-
-    // Clean up orphaned temp directories from previous runs (after rename completes)
-    await _cleanupOrphanedTempDirs(gitCacheDir.parent);
 
     logger.info('Local mirror created successfully!');
 
@@ -365,10 +293,14 @@ class GitService extends ContextualService {
     final versions = await cacheService.getAllVersions();
     if (versions.isEmpty) return;
 
+    // Resolve symlinks so macOS /var -> /private/var doesn't break matching
+    final resolvedCachePath = Directory(context.gitCachePath).existsSync()
+        ? Directory(context.gitCachePath).resolveSymbolicLinksSync()
+        : context.gitCachePath;
     final desiredPath = path.normalize(
-      path.join(context.gitCachePath, 'objects'),
+      path.join(resolvedCachePath, 'objects'),
     );
-    final desiredParent = path.normalize(path.join(context.gitCachePath));
+    final desiredParent = path.normalize(resolvedCachePath);
 
     for (final version in versions) {
       final alternatesFile = File(
@@ -380,11 +312,14 @@ class GitService extends ContextualService {
       try {
         final current = alternatesFile.readAsStringSync().trim();
 
-        // Resolve relative paths from the alternates file's directory, not cwd
+        // Resolve relative paths and symlinks for reliable comparison
+        final currentRaw = path.isAbsolute(current)
+            ? current
+            : path.join(alternatesFile.parent.path, current);
         final currentNorm = path.normalize(
-          path.isAbsolute(current)
-              ? current
-              : path.join(alternatesFile.parent.path, current),
+          Directory(currentRaw).existsSync()
+              ? Directory(currentRaw).resolveSymbolicLinksSync()
+              : currentRaw,
         );
 
         // Only fix alternates that reference our cache path (not backups, etc.)
@@ -424,6 +359,95 @@ class GitService extends ContextualService {
       args: ['remote', 'update', '--prune', 'origin'],
       workingDirectory: gitCacheDir.path,
     );
+  }
+
+  /// Atomically replaces [targetPath] with [replacementDir] using a backup for
+  /// rollback.
+  Future<void> _atomicDirectorySwap({
+    required String targetPath,
+    required Directory replacementDir,
+    String restoreFailureLabel = 'previous cache',
+  }) async {
+    final targetDir = Directory(targetPath);
+    final targetPathType = FileSystemEntity.typeSync(
+      targetPath,
+      followLinks: false,
+    );
+    final backupSuffix =
+        '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
+    final backupPath = path.join(
+      targetDir.parent.path,
+      '${path.basename(targetPath)}.backup.$backupSuffix',
+    );
+
+    FileSystemEntity? backupEntity;
+    if (targetPathType == FileSystemEntityType.file ||
+        targetPathType == FileSystemEntityType.link) {
+      backupEntity = targetPathType == FileSystemEntityType.file
+          ? File(targetPath)
+          : Link(targetPath);
+    } else if (targetPathType == FileSystemEntityType.directory) {
+      backupEntity = targetDir;
+    }
+
+    try {
+      if (backupEntity != null) {
+        final existingBackupType = FileSystemEntity.typeSync(
+          backupPath,
+          followLinks: false,
+        );
+        if (existingBackupType == FileSystemEntityType.directory) {
+          await _deleteDirectoryWithRetry(
+            Directory(backupPath),
+            requireSuccess: false,
+          );
+        } else if (existingBackupType == FileSystemEntityType.file) {
+          File(backupPath).deleteSync();
+        } else if (existingBackupType == FileSystemEntityType.link) {
+          Link(backupPath).deleteSync();
+        }
+        backupEntity.renameSync(backupPath);
+      }
+
+      replacementDir.renameSync(targetPath);
+    } catch (error) {
+      if (!targetDir.existsSync() && backupEntity != null) {
+        try {
+          if (backupEntity is Directory) {
+            Directory(backupPath).renameSync(targetPath);
+          } else if (backupEntity is File) {
+            File(backupPath).renameSync(targetPath);
+          } else if (backupEntity is Link) {
+            Link(backupPath).renameSync(targetPath);
+          }
+        } on FileSystemException catch (restoreError) {
+          logger.warn(
+            'Failed to restore $restoreFailureLabel: ${restoreError.message}',
+          );
+        }
+      }
+      rethrow;
+    }
+
+    if (backupEntity != null) {
+      final backupType = FileSystemEntity.typeSync(
+        backupPath,
+        followLinks: false,
+      );
+      if (backupType == FileSystemEntityType.directory) {
+        await _deleteDirectoryWithRetry(
+          Directory(backupPath),
+          requireSuccess: false,
+        );
+      } else if (backupType == FileSystemEntityType.file) {
+        File(backupPath).deleteSync();
+      } else if (backupType == FileSystemEntityType.link) {
+        Link(backupPath).deleteSync();
+      }
+    }
+
+    // Clean up orphaned temp directories from previous runs (after rename completes)
+    await _cleanupOrphanedTempDirs(targetDir.parent);
   }
 
   /// Migrates an existing non-bare cache clone to a bare mirror without
@@ -530,40 +554,11 @@ class GitService extends ContextualService {
 
     // Step 5: Swap directories - rename legacy to backup, temp to target
     logger.debug('Swapping directories...');
-    final backupSuffix = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
-    final backupDir = Directory(
-      path.join(
-        legacyDir.parent.path,
-        '${path.basename(legacyDir.path)}.backup.$backupSuffix',
-      ),
+    await _atomicDirectorySwap(
+      targetPath: legacyDir.path,
+      replacementDir: tempBareDir,
+      restoreFailureLabel: 'legacy cache',
     );
-
-    if (backupDir.existsSync()) {
-      await _deleteDirectoryWithRetry(backupDir, requireSuccess: false);
-    }
-
-    try {
-      legacyDir.renameSync(backupDir.path);
-      tempBareDir.renameSync(legacyDir.path);
-    } catch (error) {
-      if (!legacyDir.existsSync() && backupDir.existsSync()) {
-        try {
-          backupDir.renameSync(legacyDir.path);
-        } on FileSystemException catch (restoreError) {
-          logger.warn(
-            'Failed to restore legacy cache: ${restoreError.message}',
-          );
-        }
-      }
-      rethrow;
-    }
-
-    if (backupDir.existsSync()) {
-      await _deleteDirectoryWithRetry(backupDir, requireSuccess: false);
-    }
-
-    // Clean up orphaned temp directories from previous runs
-    await _cleanupOrphanedTempDirs(legacyDir.parent);
 
     logger.info('Legacy cache migrated to bare mirror successfully!');
 

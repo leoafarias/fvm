@@ -398,27 +398,6 @@ class FlutterService extends ContextualService {
     return _CloneOutcome(result: result, clonedFromMirror: clonedFromMirror);
   }
 
-  Future<void> _validateClone({
-    required FlutterVersion version,
-    required Directory versionDir,
-    required ProcessResult result,
-    bool checkExitCode = true,
-  }) async {
-    final isGit = await GitDir.isGitDir(versionDir.path);
-
-    if (!isGit) {
-      throw AppException(
-        'Flutter SDK is not a valid git repository after clone. Please try again.',
-      );
-    }
-
-    if (checkExitCode && result.exitCode != ExitCode.success.code) {
-      throw AppException(
-        'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
-      );
-    }
-  }
-
   Future<void> _validateReference({
     required FlutterVersion version,
     required Directory versionDir,
@@ -574,12 +553,13 @@ class FlutterService extends ContextualService {
         echoOutput: echoOutput,
       );
 
-      await _validateClone(
-        version: version,
-        versionDir: versionDir,
-        result: cloneOutcome.result,
-        checkExitCode: false,
-      );
+      // Verify clone produced a valid git repository
+      final isGit = await GitDir.isGitDir(versionDir.path);
+      if (!isGit) {
+        throw AppException(
+          'Flutter SDK is not a valid git repository after clone. Please try again.',
+        );
+      }
 
       await _validateReference(
         version: version,
@@ -590,20 +570,12 @@ class FlutterService extends ContextualService {
         echoOutput: echoOutput,
       );
 
-      await _validateClone(
-        version: version,
-        versionDir: versionDir,
-        result: cloneOutcome.result,
-      );
-    } on ProcessException catch (error, stackTrace) {
-      await _handleCloneError(
-        error: error,
-        stackTrace: stackTrace,
-        version: version,
-        versionDir: versionDir,
-        repoUrl: repoUrl,
-      );
-    } on Exception catch (error, stackTrace) {
+      if (cloneOutcome.result.exitCode != ExitCode.success.code) {
+        throw AppException(
+          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
+        );
+      }
+    } catch (error, stackTrace) {
       await _handleCloneError(
         error: error,
         stackTrace: stackTrace,
