@@ -55,20 +55,21 @@ class GitService extends ContextualService {
 
     RandomAccessFile? lockHandle;
     var lockAcquired = false;
-    final lockWaitStart = DateTime.now();
-    var waitingLogged = false;
     const retryDelay = Duration(milliseconds: 150);
     const waitLogThreshold = Duration(seconds: 2);
-    const maxWait = Duration(minutes: 5);
+    const maxWait = Duration(seconds: 30);
 
     try {
       lockHandle = await lockFile.open(mode: FileMode.write);
+
+      final lockWaitStart = DateTime.now();
+      var waitingLogged = false;
+
       while (!lockAcquired) {
         try {
           await lockHandle.lock(FileLock.exclusive);
           lockAcquired = true;
         } on FileSystemException catch (error, stackTrace) {
-          final elapsed = DateTime.now().difference(lockWaitStart);
           if (!_isLockContentionError(error)) {
             Error.throwWithStackTrace(
               AppException(
@@ -78,6 +79,7 @@ class GitService extends ContextualService {
             );
           }
 
+          final elapsed = DateTime.now().difference(lockWaitStart);
           if (elapsed > maxWait) {
             Error.throwWithStackTrace(
               AppException(
@@ -97,37 +99,33 @@ class GitService extends ContextualService {
           await Future<void>.delayed(retryDelay);
         }
       }
+
+      return await action();
     } on FileSystemException catch (error, stackTrace) {
-      if (lockHandle != null) {
-        await lockHandle.close();
-      }
       Error.throwWithStackTrace(
         AppException(
           'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
         ),
         stackTrace,
       );
-    }
-
-    final acquiredLockHandle = lockHandle;
-    try {
-      return await action();
     } finally {
-      if (lockAcquired) {
+      if (lockHandle != null) {
+        if (lockAcquired) {
+          try {
+            await lockHandle.unlock();
+          } on FileSystemException catch (error) {
+            logger.warn(
+              'Failed to unlock git cache lock at ${lockFile.path}: ${error.message}',
+            );
+          }
+        }
         try {
-          await acquiredLockHandle.unlock();
+          await lockHandle.close();
         } on FileSystemException catch (error) {
           logger.warn(
-            'Failed to unlock git cache lock at ${lockFile.path}: ${error.message}',
+            'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
           );
         }
-      }
-      try {
-        await acquiredLockHandle.close();
-      } on FileSystemException catch (error) {
-        logger.warn(
-          'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
-        );
       }
     }
   }
