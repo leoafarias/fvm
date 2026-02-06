@@ -28,6 +28,99 @@ class GitService extends ContextualService {
 
   GitService(super.context);
 
+  bool _isLockContentionError(FileSystemException error) {
+    final message = error.message.toLowerCase();
+    return message.contains('lock failed') ||
+        message.contains('resource temporarily unavailable') ||
+        message.contains('operation would block') ||
+        message.contains('already locked');
+  }
+
+  Future<T> _withCacheMutationLock<T>(Future<T> Function() action) async {
+    final lockFile = File('${context.gitCachePath}.lock');
+    if (!lockFile.parent.existsSync()) {
+      lockFile.parent.createSync(recursive: true);
+    }
+
+    RandomAccessFile? lockHandle;
+    var lockAcquired = false;
+    final lockWaitStart = DateTime.now();
+    var waitingLogged = false;
+    const retryDelay = Duration(milliseconds: 150);
+    const waitLogThreshold = Duration(seconds: 2);
+    const maxWait = Duration(minutes: 5);
+
+    try {
+      lockHandle = await lockFile.open(mode: FileMode.write);
+      while (!lockAcquired) {
+        try {
+          await lockHandle.lock(FileLock.exclusive);
+          lockAcquired = true;
+        } on FileSystemException catch (error, stackTrace) {
+          final elapsed = DateTime.now().difference(lockWaitStart);
+          if (!_isLockContentionError(error)) {
+            Error.throwWithStackTrace(
+              AppException(
+                'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
+              ),
+              stackTrace,
+            );
+          }
+
+          if (elapsed > maxWait) {
+            Error.throwWithStackTrace(
+              AppException(
+                'Timed out waiting for git cache lock at ${lockFile.path} after ${elapsed.inSeconds}s.',
+              ),
+              stackTrace,
+            );
+          }
+
+          if (!waitingLogged && elapsed >= waitLogThreshold) {
+            waitingLogged = true;
+            logger.debug(
+              'Waiting for git cache lock at ${lockFile.path}...',
+            );
+          }
+
+          await Future<void>.delayed(retryDelay);
+        }
+      }
+    } on FileSystemException catch (error, stackTrace) {
+      if (lockHandle != null) {
+        await lockHandle.close();
+      }
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
+        ),
+        stackTrace,
+      );
+    }
+
+    final acquiredLockHandle = lockHandle;
+    try {
+      return await action();
+    } finally {
+      if (lockAcquired) {
+        try {
+          await acquiredLockHandle.unlock();
+        } on FileSystemException catch (error) {
+          logger.warn(
+            'Failed to unlock git cache lock at ${lockFile.path}: ${error.message}',
+          );
+        }
+      }
+      try {
+        await acquiredLockHandle.close();
+      } on FileSystemException catch (error) {
+        logger.warn(
+          'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
+        );
+      }
+    }
+  }
+
   Future<void> _createLocalMirror() async {
     final gitCacheDir = Directory(context.gitCachePath);
     // Use timestamp + random to avoid conflicts from concurrent operations
@@ -74,7 +167,8 @@ class GitService extends ContextualService {
     try {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
-      logger.warn('Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+      logger.warn(
+          'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
     }
   }
 
@@ -103,8 +197,8 @@ class GitService extends ContextualService {
     });
 
     final stdoutDone = process.stdout.transform(utf8.decoder).forEach(
-      logger.info,
-    );
+          logger.info,
+        );
 
     final exitCode = await process.exitCode;
     await Future.wait([stderrDone, stdoutDone]);
@@ -556,7 +650,8 @@ class GitService extends ContextualService {
     try {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
-      logger.warn('Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
+      logger.warn(
+          'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.');
     }
 
     // Final safeguard: verify resulting cache is bare; otherwise recreate
@@ -580,6 +675,26 @@ class GitService extends ContextualService {
     );
   }
 
+  /// Removes the local mirror cache directory under the cache mutation lock.
+  Future<bool> removeLocalMirror({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) {
+    return _withCacheMutationLock(() async {
+      final cacheDir = Directory(context.gitCachePath);
+      return deleteDirectoryWithRetry(
+        cacheDir,
+        requireSuccess: requireSuccess,
+        onFinalError: onFinalError ??
+            (error) {
+              logger.warn(
+                'Unable to delete local mirror at ${cacheDir.path}: ${error.message}',
+              );
+            },
+      );
+    });
+  }
+
   Future<bool> isGitReference(String version) async {
     final references = await _fetchGitReferences();
 
@@ -592,61 +707,66 @@ class GitService extends ContextualService {
     await gitDir.runCommand(['reset', '--hard', reference]);
   }
 
-  Future<void> updateLocalMirror() async {
-    final gitCacheDir = Directory(context.gitCachePath);
+  Future<void> updateLocalMirror() {
+    return _withCacheMutationLock(() async {
+      final gitCacheDir = Directory(context.gitCachePath);
 
-    final cacheState = await _determineCacheState(gitCacheDir);
+      final cacheState = await _determineCacheState(gitCacheDir);
 
-    switch (cacheState) {
-      case _GitCacheState.ready:
-        await _refreshExistingMirror(gitCacheDir);
-        break;
-      case _GitCacheState.legacy:
-        // Migrate existing clone to bare mirror (fast - uses local objects)
-        await _migrateCacheCloneToMirror(gitCacheDir);
-        break;
-      case _GitCacheState.invalid:
-        // Try migration first - may have usable objects even if repo state is bad
-        logger.debug('Attempting to salvage invalid cache...');
-        try {
+      switch (cacheState) {
+        case _GitCacheState.ready:
+          await _refreshExistingMirror(gitCacheDir);
+          break;
+        case _GitCacheState.legacy:
+          // Migrate existing clone to bare mirror (fast - uses local objects)
           await _migrateCacheCloneToMirror(gitCacheDir);
-        } catch (e) {
-          logger.warn('Migration failed ($e), recreating from scratch...');
-          // Ensure clean slate before full recreation
-          if (gitCacheDir.existsSync()) {
-            await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
+          break;
+        case _GitCacheState.invalid:
+          // Try migration first - may have usable objects even if repo state is bad
+          logger.debug('Attempting to salvage invalid cache...');
+          try {
+            await _migrateCacheCloneToMirror(gitCacheDir);
+          } catch (e) {
+            logger.warn('Migration failed ($e), recreating from scratch...');
+            // Ensure clean slate before full recreation
+            if (gitCacheDir.existsSync()) {
+              await _deleteDirectoryWithRetry(gitCacheDir,
+                  requireSuccess: false);
+            }
+            await _createLocalMirror();
           }
+          break;
+        case _GitCacheState.missing:
+          logger.debug('Git cache not found. Creating mirror...');
           await _createLocalMirror();
-        }
-        break;
-      case _GitCacheState.missing:
-        logger.debug('Git cache not found. Creating mirror...');
-        await _createLocalMirror();
-        break;
-    }
+          break;
+      }
+    });
   }
 
   /// Ensures a legacy non-bare cache is migrated to a bare mirror if present.
   /// This does not create or refresh the mirror from remote.
-  Future<void> ensureBareCacheIfPresent() async {
-    final gitCacheDir = Directory(context.gitCachePath);
-    if (!gitCacheDir.existsSync()) return;
+  Future<void> ensureBareCacheIfPresent() {
+    return _withCacheMutationLock(() async {
+      final gitCacheDir = Directory(context.gitCachePath);
+      if (!gitCacheDir.existsSync()) return;
 
-    final cacheState = await _determineCacheState(gitCacheDir);
-    switch (cacheState) {
-      case _GitCacheState.ready:
-      case _GitCacheState.missing:
-        break;
-      case _GitCacheState.legacy:
-        await _migrateCacheCloneToMirror(gitCacheDir, updateRemote: false);
-        break;
-      case _GitCacheState.invalid:
-        // Defer handling to install/update workflows to avoid heavy work here.
-        logger.debug(
-          'Git cache is invalid; skipping migration. It will be recreated on next install.',
-        );
-        break;
-    }
+      final cacheState = await _determineCacheState(gitCacheDir);
+      switch (cacheState) {
+        case _GitCacheState.ready:
+        case _GitCacheState.missing:
+          break;
+        case _GitCacheState.legacy:
+          await _migrateCacheCloneToMirror(gitCacheDir, updateRemote: false);
+          break;
+        case _GitCacheState.invalid:
+          // Defer handling to install/update workflows to avoid heavy work here.
+          logger.debug(
+            'Git cache is invalid; skipping migration. It will be recreated on next install.',
+          );
+          break;
+      }
+    });
   }
 
   /// Returns the [name] of a branch [version]

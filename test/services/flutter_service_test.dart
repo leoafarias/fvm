@@ -135,6 +135,51 @@ void main() {
         );
       });
 
+      test('preserves reference lookup errors from install flow', () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_reference_error_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: p.join(tempDir.path, '.fvm'),
+              flutterUrl: remoteDir.path,
+              useGitCache: false,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('does-not-exist-1234');
+
+          await expectLater(
+            service.install(version),
+            throwsA(
+              isA<AppException>().having(
+                (e) => e.message,
+                'message',
+                allOf(
+                  contains(
+                    'Reference "${version.version}" was not found in the Flutter repository.',
+                  ),
+                  contains('Repository URL: ${remoteDir.path}'),
+                ),
+              ),
+            ),
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
       test('clones from local mirror and rewrites origin URL', () async {
         final tempDir = Directory.systemTemp.createTempSync(
           'fvm_flutter_service_mirror_',

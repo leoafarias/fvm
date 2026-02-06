@@ -103,8 +103,7 @@ class FlutterService extends ContextualService {
         // Delete corrupted mirror so it can be recreated on next install.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          final deleted = await deleteDirectoryWithRetry(
-            cacheDir,
+          final deleted = await get<GitService>().removeLocalMirror(
             requireSuccess: false,
             onFinalError: (error) {
               logger.warn(
@@ -480,6 +479,10 @@ class FlutterService extends ContextualService {
       versionDir: versionDir,
       removeCache: true,
     );
+
+    if (error is AppException) {
+      Error.throwWithStackTrace(error, stackTrace);
+    }
 
     logger.debug('Clone error details: $error');
     Error.throwWithStackTrace(
