@@ -180,6 +180,63 @@ void main() {
         }
       });
 
+      test(
+          'preserves reference lookup errors after retrying from mirror to remote',
+          () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_reference_error_mirror_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final gitCachePath = p.join(tempDir.path, 'mirror.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand([
+            'clone',
+            '--mirror',
+            remoteDir.path,
+            gitCachePath,
+          ]);
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: p.join(tempDir.path, '.fvm'),
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('does-not-exist-1234');
+
+          await expectLater(
+            service.install(version),
+            throwsA(
+              isA<AppException>().having(
+                (e) => e.message,
+                'message',
+                allOf(
+                  contains(
+                    'Reference "${version.version}" was not found in the Flutter repository.',
+                  ),
+                  contains('Repository URL: ${remoteDir.path}'),
+                ),
+              ),
+            ),
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
       test('clones from local mirror and rewrites origin URL', () async {
         final tempDir = Directory.systemTemp.createTempSync(
           'fvm_flutter_service_mirror_',

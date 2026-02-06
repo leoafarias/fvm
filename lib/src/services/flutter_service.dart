@@ -248,7 +248,18 @@ class FlutterService extends ContextualService {
     }
 
     // Validate reference in fresh clone (no retry this time)
-    await _ensureReference(version: version, gitVersionDir: versionDir);
+    try {
+      await _ensureReference(version: version, gitVersionDir: versionDir);
+    } on ProcessException catch (error, stackTrace) {
+      if (_isReferenceLookupError(error.message)) {
+        _throwReferenceLookupError(
+          version: version,
+          repoUrl: repoUrl,
+          stackTrace: stackTrace,
+        );
+      }
+      rethrow;
+    }
 
     // Bring the shared mirror up to date so future installs can use it.
     if (context.gitCache && !version.fromFork) {
