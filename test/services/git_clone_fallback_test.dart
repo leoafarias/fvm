@@ -92,11 +92,27 @@ void main() {
         // After migration, the cache should be bare
         expect(await isBareGitRepository(context.gitCachePath), isTrue);
 
-        // Alternates file should still exist - migration rewrites the path to
-        // the bare mirror's objects directory, it doesn't remove alternates.
-        // Note: If the alternates path couldn't be rewritten (e.g., symlink
-        // resolution issues), the file still exists but may point to old path.
+        // Alternates file should still exist with path rewritten to bare mirror
         expect(alternatesFile.existsSync(), isTrue);
+        final rawAlternates = alternatesFile.readAsStringSync().trim();
+        final resolvedAlternatesPath = p.isAbsolute(rawAlternates)
+            ? rawAlternates
+            : p.join(alternatesFile.parent.path, rawAlternates);
+        // Resolve symlinks (macOS /var -> /private/var) for reliable comparison
+        final resolvedAlternates = p.normalize(
+          Directory(resolvedAlternatesPath).existsSync()
+              ? Directory(resolvedAlternatesPath).resolveSymbolicLinksSync()
+              : resolvedAlternatesPath,
+        );
+        final expectedObjectsDir = Directory(
+          p.join(context.gitCachePath, 'objects'),
+        );
+        final expectedAlternates = p.normalize(
+          expectedObjectsDir.existsSync()
+              ? expectedObjectsDir.resolveSymbolicLinksSync()
+              : expectedObjectsDir.path,
+        );
+        expect(resolvedAlternates, expectedAlternates);
 
         final legacyArtifacts = Directory(context.gitCachePath)
             .parent
