@@ -7,7 +7,10 @@ List<String> flag(CallToolRequest call, String key, String cliFlag) {
 }
 
 List<String> opt<T>(
-    CallToolRequest call, String key, List<String> Function(T v) build) {
+  CallToolRequest call,
+  String key,
+  List<String> Function(T v) build,
+) {
   final args = call.arguments ?? const {};
   if (args.containsKey(key) && args[key] != null) {
     final v = args[key];

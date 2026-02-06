@@ -9,8 +9,10 @@ void main() {
   test('flag / opt / maybeOne', () {
     final r = _req({'compress': true, 'limit': 10, 'version': 'stable'});
     expect(flag(r, 'compress', '--compress'), equals(['--compress']));
-    expect(opt<int>(r, 'limit', (v) => ['--limit', '$v']),
-        equals(['--limit', '10']));
+    expect(
+      opt<int>(r, 'limit', (v) => ['--limit', '$v']),
+      equals(['--limit', '10']),
+    );
     expect(maybeOne(r, 'version'), equals(['stable']));
     expect(maybeOne(_req({}), 'version'), isEmpty);
   });
@@ -19,7 +21,7 @@ void main() {
     final r = _req({
       'cwd': '/tmp',
       'args': ['--version'],
-      'all': true
+      'all': true,
     });
     expect(stringArg(r, 'cwd'), '/tmp');
     expect(listArg(r, 'args'), equals(['--version']));
