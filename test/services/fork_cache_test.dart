@@ -11,6 +11,17 @@ void main() {
   late FvmContext context;
   late Directory tempDir;
 
+  void markAsSdk(Directory versionDir) {
+    Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+    File(
+      path.join(
+        versionDir.path,
+        'bin',
+        Platform.isWindows ? 'flutter.bat' : 'flutter',
+      ),
+    ).createSync(recursive: true);
+  }
+
   setUp(() {
     // Create test context using TestFactory
     context = TestFactory.context(
@@ -60,7 +71,7 @@ void main() {
       expect(result.path, equals(expectedPath));
     });
 
-    test('remove cleans up empty fork directories', () {
+    test('remove cleans up empty fork directories', () async {
       // Given: A fork directory with a version
       final forkName = 'testfork';
       final versionName = 'master';
@@ -81,14 +92,14 @@ void main() {
       expect(versionDir.existsSync(), isTrue);
 
       // When: Removing the version
-      cacheService.remove(forkVersion);
+      await cacheService.remove(forkVersion);
 
       // Then: Both the version and fork directory should be removed
       expect(versionDir.existsSync(), isFalse);
       expect(forkDir.existsSync(), isFalse);
     });
 
-    test('remove preserves fork directory if other versions exist', () {
+    test('remove preserves fork directory if other versions exist', () async {
       // Given: A fork directory with multiple versions
       final forkName = 'testfork';
       final versionName1 = 'master';
@@ -114,7 +125,7 @@ void main() {
       final forkDir = versionDir1.parent;
 
       // When: Removing one version
-      cacheService.remove(forkVersion1);
+      await cacheService.remove(forkVersion1);
 
       // Then: The version should be removed but the fork directory preserved
       expect(versionDir1.existsSync(), isFalse);
@@ -128,62 +139,17 @@ void main() {
       final regularVersion = FlutterVersion.parse('stable');
       final forkVersion = FlutterVersion.parse('testfork/master');
 
-      // Print debug information about the versions
-      print(
-        'Regular version: $regularVersion, fromFork: ${regularVersion.fromFork}, version: ${regularVersion.version}',
-      );
-      print(
-        'Fork version: $forkVersion, fromFork: ${forkVersion.fromFork}, version: ${forkVersion.version}, fork: ${forkVersion.fork}',
-      );
-
       // Create version directories
       final regularDir = cacheService.getVersionCacheDir(regularVersion);
       regularDir.createSync(recursive: true);
+      markAsSdk(regularDir);
 
       final forkDir = cacheService.getVersionCacheDir(forkVersion);
       forkDir.createSync(recursive: true);
-
-      // Creating bin/flutter is crucial for version detection
-      // For regular version
-      final regularBinDir = Directory(path.join(regularDir.path, 'bin'));
-      regularBinDir.createSync(recursive: true);
-      File(path.join(regularBinDir.path, 'flutter')).createSync();
-
-      // For forked version
-      final forkBinDir = Directory(path.join(forkDir.path, 'bin'));
-      forkBinDir.createSync(recursive: true);
-      File(path.join(forkBinDir.path, 'flutter')).createSync();
-
-      // The key is to make the fork directory look like a non-version directory
-      // by ensuring it doesn't have a "bin/flutter" directly in it
-      final forkParentDir = Directory(
-        path.join(tempDir.path, forkVersion.fork!),
-      );
-      final forkParentBinFlutter = File(
-        path.join(forkParentDir.path, 'bin', 'flutter'),
-      );
-      if (forkParentBinFlutter.existsSync()) {
-        forkParentBinFlutter.deleteSync();
-      }
-
-      // Print directory structure for debugging
-      print('Created directory structure:');
-      print('Root dir: ${tempDir.path}');
-      print('Regular version dir: ${regularDir.path}');
-      print('Fork version dir: ${forkDir.path}');
+      markAsSdk(forkDir);
 
       // When: Getting all versions
       final versions = await cacheService.getAllVersions();
-
-      // Print found versions
-      print('Found ${versions.length} versions:');
-      for (final version in versions) {
-        print(
-          '- Version: ${version.name}, fromFork: ${version.fromFork}, '
-          'version: ${version.version}, fork: ${version.fork}, '
-          'directory: ${version.directory}',
-        );
-      }
 
       // Then: Both versions should be found
       expect(

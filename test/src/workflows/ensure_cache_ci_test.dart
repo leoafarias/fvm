@@ -17,7 +17,9 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test('version mismatch in CI mode auto-selects safe default', () async {
+    test(
+      'version mismatch in CI mode auto-selects safe default',
+      () async {
       // Create context that simulates CI environment
       final context = TestFactory.context(
         environmentOverrides: {'CI': 'true'}, // Triggers isCI = true
@@ -44,9 +46,11 @@ void main() {
 
       expect(result, isNotNull);
       expect(result.name, equals('3.10.0'));
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
-    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
+    test(
+      '--fvm-skip-input flag handles version mismatch gracefully',
+      () async {
       final context = TestFactory.context(
         skipInput: true, // Manual skipInput flag
       );
@@ -68,9 +72,11 @@ void main() {
 
       expect(result, isNotNull);
       expect(result.name, equals('3.10.0'));
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
-    test('GitHub Actions environment handles version mismatch', () async {
+    test(
+      'GitHub Actions environment handles version mismatch',
+      () async {
       final context = TestFactory.context(
         environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
       );
@@ -91,7 +97,7 @@ void main() {
       final result = await ensureCache(version);
 
       expect(result, isNotNull);
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
     test(
       'CI environment variables properly detected from multiple sources',

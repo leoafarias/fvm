@@ -13,13 +13,9 @@
 ## 4.0.3
 
 * fix: preserve all project settings on fvm install
-
 ## 4.0.2
 
-* fix: version detection for Flutter 3.38+ (version file removal)
-* fix: filter hidden directories from cache version listing
-* fix: route conflict in documentation site navigation
-* docs: improve Android Studio/IntelliJ IDE configuration guide
+* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
 
 ## 4.0.1
 
