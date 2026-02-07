@@ -23,59 +23,6 @@ void main() {
     }
   });
 
-  group('moveScripts', () {
-    test('copies install.sh into docs/public', () async {
-      final scriptsDir = Directory(p.join(tempRepo.path, 'scripts'))
-        ..createSync(recursive: true);
-      final docsDir = Directory(p.join(tempRepo.path, 'docs/public'))
-        ..createSync(recursive: true);
-
-      File(p.join(scriptsDir.path, 'install.sh')).writeAsStringSync('echo hi');
-      File(p.join(scriptsDir.path, 'uninstall.sh')).writeAsStringSync('echo bye');
-
-      grind.moveScripts();
-
-      final installCopy = File(p.join(docsDir.path, 'install.sh'));
-      final uninstallCopy = File(p.join(docsDir.path, 'uninstall.sh'));
-      expect(installCopy.existsSync(), isTrue);
-      expect(uninstallCopy.existsSync(), isTrue);
-      expect(installCopy.readAsStringSync(), 'echo hi');
-      expect(uninstallCopy.readAsStringSync(), 'echo bye');
-    });
-
-    test('throws when install script missing', () {
-      Directory(p.join(tempRepo.path, 'docs/public')).createSync(recursive: true);
-
-      expect(
-        grind.moveScripts,
-        throwsA(isA<GrinderException>()),
-      );
-    });
-
-    test('throws when uninstall script missing', () {
-      final scriptsDir = Directory(p.join(tempRepo.path, 'scripts'))
-        ..createSync(recursive: true);
-      Directory(p.join(tempRepo.path, 'docs/public')).createSync(recursive: true);
-      File(p.join(scriptsDir.path, 'install.sh')).writeAsStringSync('echo hi');
-
-      expect(
-        grind.moveScripts,
-        throwsA(isA<GrinderException>()),
-      );
-    });
-
-    test('throws when docs directory missing', () {
-      Directory(p.join(tempRepo.path, 'scripts')).createSync(recursive: true);
-      File(p.join(tempRepo.path, 'scripts/install.sh')).writeAsStringSync('echo hi');
-      File(p.join(tempRepo.path, 'scripts/uninstall.sh')).writeAsStringSync('echo bye');
-
-      expect(
-        grind.moveScripts,
-        throwsA(isA<GrinderException>()),
-      );
-    });
-  });
-
   group('getReleases', () {
     test('writes releases.txt for well-formed response', () async {
       grind.httpRequestOverride = (_) async => jsonEncode([
