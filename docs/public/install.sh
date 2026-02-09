@@ -187,6 +187,11 @@ is_ci() {
 }
 
 migrate_from_v1() {
+  # Legacy migration is not relevant in CI/containers
+  if is_ci; then
+    return 0
+  fi
+
   local migrated=0
 
   # 1. Remove old system symlink (v1 or v2 --system)
@@ -202,7 +207,7 @@ migrate_from_v1() {
     else
       # Try with sudo if available
       if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
+        sudo -n rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
         if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
           echo "✓ Removed old system symlink (required sudo)" >&2
           migrated=1
@@ -282,16 +287,16 @@ do_uninstall() {
     fi
   fi
 
-  # 3. Remove old system symlink (from v1/v2)
-  if [ -L "$OLD_SYSTEM_PATH" ]; then
+  # 3. Remove old system symlink (from v1/v2) — skip in CI (no legacy installs)
+  if ! is_ci && [ -L "$OLD_SYSTEM_PATH" ]; then
     rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
       echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
       removed_any=1
     else
       if command -v sudo >/dev/null 2>&1; then
-        sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ]; then
+        sudo -n rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
+        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
           echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
           removed_any=1
         else
@@ -301,7 +306,7 @@ do_uninstall() {
         echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
       fi
     fi
-  elif [ -e "$OLD_SYSTEM_PATH" ]; then
+  elif ! is_ci && [ -e "$OLD_SYSTEM_PATH" ]; then
     echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
 
@@ -508,4 +513,7 @@ else
   echo "  Then verify: ${BIN_DIR}/fvm --version"
   echo ""
   echo "  PATH: export PATH=\"$BIN_DIR:\$PATH\""
+  if is_ci; then
+    exit 1
+  fi
 fi
