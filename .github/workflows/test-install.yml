@@ -146,9 +146,6 @@ jobs:
           ls -la ~/fvm/versions/
 
       - name: Run v3 installer (triggers migration)
-        env:
-          CI: ""
-          GITHUB_ACTIONS: ""
         run: |
           ./docs/public/install.sh
           echo "✅ Installation complete"

@@ -187,11 +187,6 @@ is_ci() {
 }
 
 migrate_from_v1() {
-  # Legacy migration is not relevant in CI/containers
-  if is_ci; then
-    return 0
-  fi
-
   local migrated=0
 
   # 1. Remove old system symlink (v1 or v2 --system)
