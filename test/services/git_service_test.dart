@@ -232,6 +232,183 @@ void main() {
       expect(cacheDir.existsSync(), isFalse);
     });
 
+    test('recovers from corrupted cache via fallback to fresh clone', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create a non-bare clone (legacy state)
+      await runGitCommand(['clone', remoteDir.path, gitCachePath]);
+
+      // Corrupt it: replace .git/HEAD with garbage so git commands fail
+      // but the directory still looks like it could be a git repo
+      final headFile = File(p.join(gitCachePath, '.git', 'HEAD'));
+      headFile.writeAsStringSync('garbage-not-a-ref\n');
+
+      // Also delete the objects directory to prevent git clone --mirror
+      // from being able to create a valid mirror from this source
+      final objectsDir = Directory(p.join(gitCachePath, '.git', 'objects'));
+      if (objectsDir.existsSync()) {
+        objectsDir.deleteSync(recursive: true);
+      }
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+
+      // updateLocalMirror should detect invalid/legacy state, attempt migration,
+      // and when that fails fall back to creating a fresh mirror from remote
+      await gitService.updateLocalMirror();
+
+      // End result must be a valid bare mirror
+      expect(Directory(gitCachePath).existsSync(), isTrue);
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('ensureBareCacheIfPresent migrates legacy without network fetch',
+        () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create a non-bare clone (legacy state)
+      await runGitCommand(['clone', remoteDir.path, gitCachePath]);
+      expect(await isBareGitRepository(gitCachePath), isFalse);
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.ensureBareCacheIfPresent();
+
+      // Should have migrated to bare mirror
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('ensureBareCacheIfPresent is no-op when cache is missing', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      expect(Directory(gitCachePath).existsSync(), isFalse);
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.ensureBareCacheIfPresent();
+
+      // Should NOT create a mirror (that's updateLocalMirror's job)
+      expect(Directory(gitCachePath).existsSync(), isFalse);
+    });
+
+    test('ensureBareCacheIfPresent defers invalid cache to later workflows',
+        () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create invalid cache (directory exists but is not a git repo)
+      Directory(gitCachePath).createSync(recursive: true);
+      File(p.join(gitCachePath, 'not-a-repo')).writeAsStringSync('garbage');
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.ensureBareCacheIfPresent();
+
+      // Should NOT fix invalid cache - defers to updateLocalMirror
+      expect(Directory(gitCachePath).existsSync(), isTrue);
+      // The garbage file should still be there (no modification)
+      expect(
+        File(p.join(gitCachePath, 'not-a-repo')).existsSync(),
+        isTrue,
+      );
+    });
+
+    test('sequential updateLocalMirror calls are idempotent', () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      expect(Directory(gitCachePath).existsSync(), isFalse);
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+
+      // First call: creates mirror from missing state
+      await gitService.updateLocalMirror();
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+
+      // Second call: should detect ready state and just refresh (no error)
+      await gitService.updateLocalMirror();
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
+    test('refreshes corrupted bare mirror by recreating from scratch',
+        () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+      // Create a valid bare mirror first
+      await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+
+      // Corrupt it: delete all pack files to break fsck
+      final packDir = Directory(p.join(gitCachePath, 'objects', 'pack'));
+      if (packDir.existsSync()) {
+        for (final file in packDir.listSync().whereType<File>()) {
+          file.deleteSync();
+        }
+      }
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+
+      // updateLocalMirror should detect corruption via _validateMirror,
+      // attempt repair via fetch, and if that fails recreate from scratch
+      await gitService.updateLocalMirror();
+
+      // End result must be a valid bare mirror
+      expect(Directory(gitCachePath).existsSync(), isTrue);
+      expect(await isBareGitRepository(gitCachePath), isTrue);
+    });
+
     test('waits for cache lock before running cache migration checks',
         () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');
