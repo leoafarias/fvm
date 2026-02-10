@@ -106,7 +106,8 @@ class ArchiveService extends ContextualService {
     final extension = release.archive.endsWith('.tar.xz') ? '.tar.xz' : '.zip';
     final archiveFile = File(path.join(tempDir.path, 'flutter$extension'));
 
-    final client = HttpClient();
+    final client = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 30);
     final progress = logger.progress('Downloading Flutter SDK archive');
 
     Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
@@ -172,6 +173,16 @@ class ArchiveService extends ContextualService {
       cleanupAndRethrow(
         AppException(
           'Network error while downloading Flutter SDK archive: ${error.message}',
+        ),
+        stackTrace,
+      );
+    } on HandshakeException catch (error, stackTrace) {
+      cleanupAndRethrow(
+        AppException(
+          'TLS certificate verification failed while downloading Flutter SDK '
+          'archive. If you are using a corporate mirror with a self-signed '
+          'certificate, you may need to configure your system\'s certificate '
+          'trust store. ${error.message}',
         ),
         stackTrace,
       );
@@ -377,6 +388,9 @@ class ArchiveService extends ContextualService {
 
   /// Installs a Flutter SDK [version] by downloading and extracting
   /// its precompiled archive into [versionDir].
+  ///
+  /// Uses a staging directory to protect any existing cached version.
+  /// If the install fails, the original [versionDir] is left untouched.
   Future<void> install(FlutterVersion version, Directory versionDir) async {
     _validateSupportedVersion(version);
 
@@ -385,21 +399,52 @@ class ArchiveService extends ContextualService {
       'Installing ${release.version} from archive: ${release.archiveUrl}',
     );
 
-    if (versionDir.existsSync()) {
-      versionDir.deleteSync(recursive: true);
-    }
-    versionDir.createSync(recursive: true);
+    // Use a staging directory so an existing cache survives failures
+    final stagingDir = Directory('${versionDir.path}.archive_staging');
 
-    final download = await _downloadArchive(release);
+    // Clean up any leftover staging directory from a previous failed attempt
+    if (stagingDir.existsSync()) {
+      stagingDir.deleteSync(recursive: true);
+    }
+
+    // Ensure the parent directory exists (required for fork paths)
+    final parentDir = versionDir.parent;
+    if (!parentDir.existsSync()) {
+      parentDir.createSync(recursive: true);
+    }
+
+    stagingDir.createSync(recursive: true);
 
     try {
-      await _verifyChecksum(download.file, release.sha256);
-      await _extractArchive(download.file, versionDir);
-      _flattenStructure(versionDir);
-      _removeMacOsMetadata(versionDir);
-      _validateExtraction(versionDir);
-    } finally {
-      download.dispose();
+      final download = await _downloadArchive(release);
+
+      try {
+        await _verifyChecksum(download.file, release.sha256);
+        await _extractArchive(download.file, stagingDir);
+        _flattenStructure(stagingDir);
+        _removeMacOsMetadata(stagingDir);
+        _validateExtraction(stagingDir);
+      } finally {
+        download.dispose();
+      }
+
+      // Success: swap staging directory into place
+      if (versionDir.existsSync()) {
+        versionDir.deleteSync(recursive: true);
+      }
+      stagingDir.renameSync(versionDir.path);
+    } catch (e) {
+      // Failure: clean up staging, leave existing versionDir untouched
+      if (stagingDir.existsSync()) {
+        try {
+          stagingDir.deleteSync(recursive: true);
+        } catch (cleanupError) {
+          logger.debug(
+            'Warning: Could not clean up staging directory: $cleanupError',
+          );
+        }
+      }
+      rethrow;
     }
   }
 }

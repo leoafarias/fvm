@@ -40,6 +40,13 @@ class _RedirectHttpClient implements HttpClient {
   void close({bool force = false}) => _inner.close(force: force);
 
   @override
+  set connectionTimeout(Duration? timeout) =>
+      _inner.connectionTimeout = timeout;
+
+  @override
+  Duration? get connectionTimeout => _inner.connectionTimeout;
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
@@ -571,6 +578,714 @@ void main() {
         final escaped = testPath.replaceAll("'", "''");
 
         expect(escaped, equals("path''with''multiple''quotes"));
+      });
+    });
+
+    group('install - @dev qualifier', () {
+      test('uses channel-specific lookup for @dev qualifiers', () async {
+        final version = FlutterVersion.parse('2.2.2@dev');
+
+        when(() => mockReleaseClient.getChannelReleases('dev')).thenAnswer(
+          (_) async => [],
+        );
+
+        await expectLater(
+          archiveService.install(version, tempDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('dev channel releases metadata'),
+            ),
+          ),
+        );
+
+        verify(() => mockReleaseClient.getChannelReleases('dev')).called(1);
+        verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
+      });
+    });
+
+    group('safe install - staging directory', () {
+      test('existing cache preserved on download failure', () async {
+        final server =
+            await _startArchiveServer(statusCode: HttpStatus.notFound);
+        addTearDown(() => server.close(force: true));
+
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'cache-preserved-download-fail',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+
+            // Pre-populate the cache directory with a marker file
+            versionDir.createSync(recursive: true);
+            final binDir = Directory(path.join(versionDir.path, 'bin'));
+            binDir.createSync(recursive: true);
+            final marker = File(path.join(binDir.path, 'flutter'));
+            marker.writeAsStringSync('original');
+
+            // Attempt archive install - should fail
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(isA<AppException>()),
+            );
+
+            // Verify original cache is still intact
+            expect(versionDir.existsSync(), isTrue);
+            expect(marker.existsSync(), isTrue);
+            expect(marker.readAsStringSync(), equals('original'));
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('existing cache preserved on checksum failure', () async {
+        final server = await _startArchiveServer(
+          statusCode: HttpStatus.ok,
+          body: 'mismatch-content'.codeUnits,
+        );
+        addTearDown(() => server.close(force: true));
+
+        final release = createTestRelease(sha256: ''.padRight(64, '0'));
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'cache-preserved-checksum-fail',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+
+            // Pre-populate the cache directory with a marker file
+            versionDir.createSync(recursive: true);
+            final marker = File(path.join(versionDir.path, 'marker.txt'));
+            marker.writeAsStringSync('original');
+
+            // Attempt archive install - should fail with checksum mismatch
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  contains('corrupted or tampered'),
+                ),
+              ),
+            );
+
+            // Verify original cache is still intact
+            expect(versionDir.existsSync(), isTrue);
+            expect(marker.existsSync(), isTrue);
+            expect(marker.readAsStringSync(), equals('original'));
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('staging directory cleaned up on failure', () async {
+        final server =
+            await _startArchiveServer(statusCode: HttpStatus.notFound);
+        addTearDown(() => server.close(force: true));
+
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'staging-cleanup',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(isA<AppException>()),
+            );
+
+            // Verify no staging directory remains
+            final stagingDir =
+                Directory('${versionDir.path}.archive_staging');
+            expect(stagingDir.existsSync(), isFalse);
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+    });
+
+    group('structure flattening and validation', () {
+      test('flattens flutter/ subdirectory into target root', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        // Mock extraction to create flutter/ subdirectory structure
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args = invocation.namedArguments[const Symbol('args')]
+              as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          // Create flutter/ subdirectory structure
+          final flutterDir =
+              Directory(path.join(targetDir.path, 'flutter'));
+          flutterDir.createSync(recursive: true);
+          Directory(path.join(flutterDir.path, 'bin')).createSync();
+
+          final execName =
+              Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec =
+              File(path.join(flutterDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          File(path.join(flutterDir.path, 'README'))
+              .writeAsStringSync('readme');
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'flatten-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            // Contents should be flattened from flutter/ to root
+            final execName =
+                Platform.isWindows ? 'flutter.bat' : 'flutter';
+            expect(
+              File(path.join(versionDir.path, 'bin', execName))
+                  .existsSync(),
+              isTrue,
+            );
+            expect(
+              File(path.join(versionDir.path, 'README')).existsSync(),
+              isTrue,
+            );
+            // Original flutter/ dir should be removed
+            expect(
+              Directory(path.join(versionDir.path, 'flutter'))
+                  .existsSync(),
+              isFalse,
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('skips __MACOSX during flatten', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args = invocation.namedArguments[const Symbol('args')]
+              as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          // Create flutter/ with __MACOSX inside
+          final flutterDir =
+              Directory(path.join(targetDir.path, 'flutter'));
+          flutterDir.createSync(recursive: true);
+          Directory(path.join(flutterDir.path, 'bin')).createSync();
+
+          final execName =
+              Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec =
+              File(path.join(flutterDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          // Create __MACOSX directory inside flutter/
+          Directory(path.join(flutterDir.path, '__MACOSX')).createSync();
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'macosx-skip-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            // __MACOSX should not be present in the final directory
+            expect(
+              Directory(path.join(versionDir.path, '__MACOSX'))
+                  .existsSync(),
+              isFalse,
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('no-op flatten when no flutter/ dir exists', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        // Create bin/flutter directly (no flutter/ subdirectory)
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args = invocation.namedArguments[const Symbol('args')]
+              as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          Directory(path.join(targetDir.path, 'bin')).createSync();
+          final execName =
+              Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec =
+              File(path.join(targetDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'no-flatten-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            // Should have bin/flutter at root level
+            final execName =
+                Platform.isWindows ? 'flutter.bat' : 'flutter';
+            expect(
+              File(path.join(versionDir.path, 'bin', execName))
+                  .existsSync(),
+              isTrue,
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('throws when flutter binary missing after extraction', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        // Mock extraction to create empty directory (no flutter binary)
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'missing-binary-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  contains('flutter executable was not found'),
+                ),
+              ),
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+    });
+
+    group('archiveUrl construction', () {
+      test('is built from FlutterReleaseClient.storageUrl prefix', () {
+        final release = createTestRelease(
+          archive: 'stable/linux/flutter_linux_3.16.0-stable.tar.xz',
+        );
+
+        final expectedPrefix = FlutterReleaseClient.storageUrl;
+        expect(
+          release.archiveUrl,
+          equals(
+            '$expectedPrefix/flutter_infra_release/releases/'
+            'stable/linux/flutter_linux_3.16.0-stable.tar.xz',
+          ),
+        );
+      });
+    });
+
+    group('platform-specific extraction', () {
+      test('tar.xz archive calls tar with correct args', () async {
+        final archiveBytes = 'dummy-tar-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(
+          sha256: hash,
+          archive: 'stable/linux/flutter_linux_3.16.0-stable.tar.xz',
+        );
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'tar-args-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            // Will fail at validation (no flutter binary), that's expected
+            try {
+              await svc.install(
+                FlutterVersion.parse('stable'),
+                versionDir,
+              );
+            } catch (_) {}
+
+            // Verify tar was called with correct arguments
+            final captured = verify(
+              () => mockProcessService.run(
+                'tar',
+                args: captureAny(named: 'args'),
+                workingDirectory: any(named: 'workingDirectory'),
+                environment: any(named: 'environment'),
+                throwOnError: any(named: 'throwOnError'),
+                echoOutput: any(named: 'echoOutput'),
+              ),
+            ).captured;
+
+            expect(captured, isNotEmpty);
+            final args = captured.first as List<String>;
+            expect(args[0], equals('-xJf'));
+            expect(args[2], equals('-C'));
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('zip archive on non-Windows calls unzip with correct args',
+          () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'unzip-args-test',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            // Will fail at validation, that's expected
+            try {
+              await svc.install(
+                FlutterVersion.parse('stable'),
+                versionDir,
+              );
+            } catch (_) {}
+
+            if (!Platform.isWindows) {
+              final captured = verify(
+                () => mockProcessService.run(
+                  'unzip',
+                  args: captureAny(named: 'args'),
+                  workingDirectory: any(named: 'workingDirectory'),
+                  environment: any(named: 'environment'),
+                  throwOnError: any(named: 'throwOnError'),
+                  echoOutput: any(named: 'echoOutput'),
+                ),
+              ).captured;
+
+              expect(captured, isNotEmpty);
+              final args = captured.first as List<String>;
+              expect(args[0], equals('-q'));
+              expect(args[1], equals('-o'));
+              expect(args[3], equals('-d'));
+            }
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+    });
+
+    group('network error handling', () {
+      test('wraps SocketException with network error message', () async {
+        // Create a server that immediately closes connections
+        final server =
+            await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        final port = server.port;
+        await server.close(force: true);
+
+        // Use the now-closed port - connection will be refused
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:$port'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'socket-error',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir =
+                Directory(path.join(tempDir.path, 'stable'));
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  anyOf(
+                    contains('Network error'),
+                    contains('Failed to download'),
+                  ),
+                ),
+              ),
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
       });
     });
   });
