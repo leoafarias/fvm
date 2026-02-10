@@ -5,7 +5,6 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/resolve_project_deps.workflow.dart';
@@ -28,6 +27,18 @@ class FailingFlutterService extends FlutterService {
     // Return a failing ProcessResult (exit code 1)
     return ProcessResult(0, 1, '', 'pub get failed (test mock)');
   }
+}
+
+void createFailingFlutterExecutable(Directory binDir) {
+  if (Platform.isWindows) {
+    final file = File(p.join(binDir.path, 'flutter.bat'));
+    file.writeAsStringSync('@echo off\r\nexit /b 1\r\n');
+    return;
+  }
+
+  final file = File(p.join(binDir.path, 'flutter'));
+  file.writeAsStringSync('#!/bin/sh\nexit 1\n');
+  Process.runSync('chmod', ['+x', file.path]);
 }
 
 void main() {
