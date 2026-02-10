@@ -237,12 +237,12 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
             );
           }
 
-          if (version == null || version.isEmpty) {
+          if (version == null) {
             return _error('Missing args: set "version".');
           }
 
           return _runner.run(
-            ['remove', version!],
+            ['remove', version],
             cwd: stringArg(call, 'cwd'),
             timeout: const Duration(minutes: 5),
             progressLabel: 'remove',
@@ -311,7 +311,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         run: (call) {
           final unlink = boolArg(call, 'unlink') == true;
           final version = stringArg(call, 'version');
-          if (!unlink && (version == null || version.isEmpty)) {
+          if (!unlink && version == null) {
             return _error('Missing args: set "version" or "unlink=true".');
           }
 

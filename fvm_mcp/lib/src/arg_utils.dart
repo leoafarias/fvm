@@ -26,7 +26,7 @@ List<String> opt<T>(
 List<String> maybeOne(CallToolRequest call, String key) {
   final v = stringArg(call, key);
 
-  return (v != null && v.isNotEmpty) ? <String>[v] : const <String>[];
+  return v != null ? <String>[v] : const <String>[];
 }
 
 String? stringArg(CallToolRequest call, String key) {
