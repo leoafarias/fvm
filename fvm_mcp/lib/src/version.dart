@@ -90,25 +90,15 @@ FvmVersion parseFvmVersionOutput(String output) {
     }
   }
 
-  // Last resort: any inline semver token in output.
-  for (final line in lines) {
-    if (line.isEmpty) continue;
-
-    final match = _versionInlineRe.firstMatch(line);
-    if (match != null) {
-      final version = _parseSemver(match.group(1)!);
-      if (version != null) {
-        return FvmVersion.fromSemver(version);
-      }
-    }
-  }
-
   return const FvmVersion.unknown();
 }
 
 Future<FvmVersion> detectFvmVersion() async {
   try {
     final res = await Process.run('fvm', ['--version'], runInShell: true);
+    if (res.exitCode != 0) {
+      return const FvmVersion.unknown();
+    }
     final combined = '${_asText(res.stdout)}\n${_asText(res.stderr)}';
 
     return parseFvmVersionOutput(combined);

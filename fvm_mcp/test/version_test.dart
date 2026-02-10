@@ -52,6 +52,14 @@ IO  : writing logs...
     expect(v.raw, '4.0.5');
   });
 
+  test('parseFvmVersionOutput ignores non-FVM semver in logs', () {
+    final v = parseFvmVersionOutput('''
+FINE: Pub 3.10.1
+FINE: Package Config up to date.
+''');
+    expect(v.isUnknown, isTrue);
+  });
+
   test('parseFvmVersionOutput returns unknown when no semver is present', () {
     final v = parseFvmVersionOutput('''
 something unexpected

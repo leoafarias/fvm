@@ -1,5 +1,3 @@
-// @dart=3.5
-
 import 'dart:async';
 
 import 'package:dart_mcp/server.dart';
@@ -10,8 +8,28 @@ import 'process_runner.dart';
 import 'version.dart';
 
 const String _serverName = 'fvm-mcp';
-const String _serverVersion =
-    String.fromEnvironment('FVM_MCP_VERSION', defaultValue: '0.1.0');
+const String _serverVersion = String.fromEnvironment(
+  'FVM_MCP_VERSION',
+  defaultValue: '0.1.0',
+);
+final _readOnlyToolAnnotations = ToolAnnotations(
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: false,
+);
+final _mutatingToolAnnotations = ToolAnnotations(
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: false,
+  openWorldHint: false,
+);
+final _proxyToolAnnotations = ToolAnnotations(
+  readOnlyHint: false,
+  destructiveHint: true,
+  idempotentHint: false,
+  openWorldHint: true,
+);
 
 /// MCP server exposing FVM as tools.
 /// Requires FVM on PATH. Tools are gated by detected version.
@@ -24,15 +42,15 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     required StreamChannel<String> channel,
     required this.fvm,
     required ProcessRunner runner,
-  })  : _runner = runner,
-        super.fromStreamChannel(
-          channel,
-          implementation: implementation,
-          instructions:
-              'Use tools under the fvm.* namespace. Read-only JSON via fvm api; '
-              'mutations are non-interactive where supported. '
-              'Server v${implementation.version}. Detected FVM: ${fvm.raw}.',
-        );
+  }) : _runner = runner,
+       super.fromStreamChannel(
+         channel,
+         implementation: implementation,
+         instructions:
+             'Use tools under the fvm.* namespace. Read-only JSON via fvm api; '
+             'mutations are non-interactive where supported. '
+             'Server v${implementation.version}. Detected FVM: ${fvm.raw}.',
+       );
 
   /// Create, detect FVM version, then return a ready server.
   static Future<FvmMcpServer> start({
@@ -75,85 +93,90 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       _tool(
         name: 'fvm.api.list',
         desc: 'JSON: list cached Flutter SDKs',
-        schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(
-            description: 'Return minified JSON without formatting',
-          ),
-          'skip_size_calculation': BooleanSchema(
-            description: 'Skip calculating SDK disk sizes for faster response',
-          ),
-        }, additionalProperties: false),
-        run: (call) => _runner.runJsonApi(
-          [
-            'api',
-            'list',
-            ...flag(call, 'compress', '--compress'),
-            ...flag(call, 'skip_size_calculation', '--skip-size-calculation'),
-          ],
-          meta: call.meta,
+        annotations: _readOnlyToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'compress': BooleanSchema(
+              description: 'Return minified JSON without formatting',
+            ),
+            'skip_size_calculation': BooleanSchema(
+              description:
+                  'Skip calculating SDK disk sizes for faster response',
+            ),
+          },
+          additionalProperties: false,
         ),
+        run: (call) => _runner.runJsonApi([
+          'api',
+          'list',
+          ...flag(call, 'compress', '--compress'),
+          ...flag(call, 'skip_size_calculation', '--skip-size-calculation'),
+        ], meta: call.meta),
       );
 
       _tool(
         name: 'fvm.api.releases',
         desc: 'JSON: available Flutter releases',
-        schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(
-            description: 'Return minified JSON without formatting',
-          ),
-          'limit': IntegerSchema(minimum: 1),
-          'filter_channel': StringSchema(
-            description: 'Optional channel filter: stable|beta|dev',
-          ),
-        }, additionalProperties: false),
-        run: (call) => _runner.runJsonApi(
-          [
-            'api',
-            'releases',
-            ...opt(call, 'limit', (v) => ['--limit', '$v']),
-            ...opt(call, 'filter_channel', (v) => ['--filter-channel', '$v']),
-            ...flag(call, 'compress', '--compress'),
-          ],
-          meta: call.meta,
+        annotations: _readOnlyToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'compress': BooleanSchema(
+              description: 'Return minified JSON without formatting',
+            ),
+            'limit': IntegerSchema(minimum: 1),
+            'filter_channel': StringSchema(
+              description: 'Optional channel filter: stable|beta|dev',
+            ),
+          },
+          additionalProperties: false,
         ),
+        run: (call) => _runner.runJsonApi([
+          'api',
+          'releases',
+          ...opt(call, 'limit', (v) => ['--limit', '$v']),
+          ...opt(call, 'filter_channel', (v) => ['--filter-channel', '$v']),
+          ...flag(call, 'compress', '--compress'),
+        ], meta: call.meta),
       );
 
       _tool(
         name: 'fvm.api.context',
         desc: 'JSON: FVM configuration, cache paths, and environment info',
-        schema: ObjectSchema(properties: {
-          'compress': BooleanSchema(
-            description: 'Return minified JSON without formatting',
-          ),
-        }, additionalProperties: false),
-        run: (call) => _runner.runJsonApi(
-          [
-            'api',
-            'context',
-            ...flag(call, 'compress', '--compress'),
-          ],
-          meta: call.meta,
+        annotations: _readOnlyToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'compress': BooleanSchema(
+              description: 'Return minified JSON without formatting',
+            ),
+          },
+          additionalProperties: false,
         ),
+        run: (call) => _runner.runJsonApi([
+          'api',
+          'context',
+          ...flag(call, 'compress', '--compress'),
+        ], meta: call.meta),
       );
 
       _tool(
         name: 'fvm.api.project',
         desc: 'JSON: project config',
-        schema: ObjectSchema(properties: {
-          'path': StringSchema(description: 'Path to the Flutter project'),
-          'compress': BooleanSchema(
-            description: 'Return minified JSON without formatting',
-          ),
-        }, additionalProperties: false),
-        run: (call) => _runner.runJsonApi(
-          [
-            'api',
-            'project',
-            ...opt(call, 'path', (v) => ['--path', '$v']),
-            ...flag(call, 'compress', '--compress'),
-          ],
-          meta: call.meta,
+        annotations: _readOnlyToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'path': StringSchema(description: 'Path to the Flutter project'),
+            'compress': BooleanSchema(
+              description: 'Return minified JSON without formatting',
+            ),
+          },
+          additionalProperties: false,
         ),
+        run: (call) => _runner.runJsonApi([
+          'api',
+          'project',
+          ...opt(call, 'path', (v) => ['--path', '$v']),
+          ...flag(call, 'compress', '--compress'),
+        ], meta: call.meta),
       );
     }
   }
@@ -164,14 +187,19 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       _tool(
         name: 'fvm.install',
         desc: 'Install a Flutter SDK into cache (state-changing)',
-        schema: ObjectSchema(properties: {
-          'version': StringSchema(),
-          'setup': BooleanSchema(
-            description: 'true -> --setup, false -> --no-setup (if supported)',
-          ),
-          'skip_pub_get': BooleanSchema(),
-          'cwd': StringSchema(),
-        }, additionalProperties: false),
+        annotations: _mutatingToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'version': StringSchema(),
+            'setup': BooleanSchema(
+              description:
+                  'true -> --setup, false -> --no-setup (if supported)',
+            ),
+            'skip_pub_get': BooleanSchema(),
+            'cwd': StringSchema(),
+          },
+          additionalProperties: false,
+        ),
         run: (call) => _runner.run(
           [
             'install',
@@ -190,11 +218,15 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       _tool(
         name: 'fvm.remove',
         desc: 'Remove SDK(s) from cache (state-changing)',
-        schema: ObjectSchema(properties: {
-          'version': StringSchema(),
-          'all': BooleanSchema(),
-          'cwd': StringSchema(),
-        }, additionalProperties: false),
+        annotations: _mutatingToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'version': StringSchema(),
+            'all': BooleanSchema(),
+            'cwd': StringSchema(),
+          },
+          additionalProperties: false,
+        ),
         run: (call) {
           final all = boolArg(call, 'all') ?? false;
           final version = stringArg(call, 'version');
@@ -210,10 +242,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           }
 
           return _runner.run(
-            [
-              'remove',
-              version!,
-            ],
+            ['remove', version!],
             cwd: stringArg(call, 'cwd'),
             timeout: const Duration(minutes: 5),
             progressLabel: 'remove',
@@ -225,23 +254,30 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       _tool(
         name: 'fvm.use',
         desc: 'Set SDK for current project (state-changing)',
-        schema: ObjectSchema(properties: {
-          'version': StringSchema(),
-          'force': BooleanSchema(),
-          'pin': BooleanSchema(
-            description: 'Pin to exact version, preventing automatic upgrades',
-          ),
-          'flavor': StringSchema(
-            description: 'Named SDK configuration variant for the project',
-          ),
-          'env': StringSchema(
-            description:
-                'Environment name for multi-environment project setups',
-          ),
-          'skip_setup': BooleanSchema(),
-          'skip_pub_get': BooleanSchema(),
-          'cwd': StringSchema(description: 'Working directory for the command'),
-        }, additionalProperties: false),
+        annotations: _mutatingToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'version': StringSchema(),
+            'force': BooleanSchema(),
+            'pin': BooleanSchema(
+              description:
+                  'Pin to exact version, preventing automatic upgrades',
+            ),
+            'flavor': StringSchema(
+              description: 'Named SDK configuration variant for the project',
+            ),
+            'env': StringSchema(
+              description:
+                  'Environment name for multi-environment project setups',
+            ),
+            'skip_setup': BooleanSchema(),
+            'skip_pub_get': BooleanSchema(),
+            'cwd': StringSchema(
+              description: 'Working directory for the command',
+            ),
+          },
+          additionalProperties: false,
+        ),
         run: (call) => _runner.run(
           [
             'use',
@@ -263,11 +299,15 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       _tool(
         name: 'fvm.global',
         desc: 'Set/unlink global SDK (state-changing)',
-        schema: ObjectSchema(properties: {
-          'version': StringSchema(),
-          'force': BooleanSchema(),
-          'unlink': BooleanSchema(),
-        }, additionalProperties: false),
+        annotations: _mutatingToolAnnotations,
+        schema: ObjectSchema(
+          properties: {
+            'version': StringSchema(),
+            'force': BooleanSchema(),
+            'unlink': BooleanSchema(),
+          },
+          additionalProperties: false,
+        ),
         run: (call) {
           final unlink = boolArg(call, 'unlink') == true;
           final version = stringArg(call, 'version');
@@ -295,10 +335,14 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     _tool(
       name: 'fvm.flutter',
       desc: 'Run flutter with the resolved project SDK',
-      schema: ObjectSchema(properties: {
-        'args': ListSchema(items: StringSchema()),
-        'cwd': StringSchema(),
-      }, additionalProperties: false),
+      annotations: _proxyToolAnnotations,
+      schema: ObjectSchema(
+        properties: {
+          'args': ListSchema(items: StringSchema()),
+          'cwd': StringSchema(),
+        },
+        additionalProperties: false,
+      ),
       run: (call) => _runner.run(
         ['flutter', ...listArg(call, 'args')],
         cwd: stringArg(call, 'cwd'),
@@ -311,10 +355,14 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     _tool(
       name: 'fvm.dart',
       desc: 'Run dart with the resolved project SDK',
-      schema: ObjectSchema(properties: {
-        'args': ListSchema(items: StringSchema()),
-        'cwd': StringSchema(),
-      }, additionalProperties: false),
+      annotations: _proxyToolAnnotations,
+      schema: ObjectSchema(
+        properties: {
+          'args': ListSchema(items: StringSchema()),
+          'cwd': StringSchema(),
+        },
+        additionalProperties: false,
+      ),
       run: (call) => _runner.run(
         ['dart', ...listArg(call, 'args')],
         cwd: stringArg(call, 'cwd'),
@@ -327,6 +375,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     _tool(
       name: 'fvm.exec',
       desc: 'Execute a command under the project SDK environment',
+      annotations: _proxyToolAnnotations,
       schema: ObjectSchema(
         required: ['command'],
         properties: {
@@ -350,6 +399,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     _tool(
       name: 'fvm.spawn',
       desc: 'Run flutter <args> with a specific SDK version',
+      annotations: _proxyToolAnnotations,
       schema: ObjectSchema(
         required: ['version'],
         properties: {
@@ -364,7 +414,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           [
             'spawn',
             stringArg(call, 'version')!,
-            ...listArg(call, 'flutter_args')
+            ...listArg(call, 'flutter_args'),
           ],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
@@ -379,11 +429,17 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
   void _tool({
     required String name,
     required String desc,
+    ToolAnnotations? annotations,
     required ObjectSchema schema,
     required Future<CallToolResult> Function(CallToolRequest call) run,
   }) {
     registerTool(
-      Tool(name: name, description: desc, inputSchema: schema),
+      Tool(
+        name: name,
+        description: desc,
+        inputSchema: schema,
+        annotations: annotations,
+      ),
       (call) async {
         try {
           return await run(call);
@@ -407,8 +463,6 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     );
   }
 
-  Future<CallToolResult> _error(String message) async => CallToolResult(
-        isError: true,
-        content: [TextContent(text: message)],
-      );
+  Future<CallToolResult> _error(String message) async =>
+      CallToolResult(isError: true, content: [TextContent(text: message)]);
 }

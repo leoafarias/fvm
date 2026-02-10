@@ -134,8 +134,23 @@ jobs:
         with:
           sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
+        shell: bash
+
       - name: Tests
         uses: ./.github/actions/test
+
+      - name: fvm_mcp | Analyze
+        working-directory: fvm_mcp
+        run: dart analyze
+        shell: bash
+
+      - name: fvm_mcp | Tests
+        working-directory: fvm_mcp
+        run: dart test
+        shell: bash
 
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
