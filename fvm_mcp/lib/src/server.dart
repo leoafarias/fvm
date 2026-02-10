@@ -317,11 +317,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           }
 
           return _runner.run(
-            [
-              'global',
-              target,
-              ...flag(call, 'force', '--force'),
-            ],
+            ['global', target, ...flag(call, 'force', '--force')],
             timeout: const Duration(minutes: 2),
             progressLabel: 'global',
             meta: call.meta,
