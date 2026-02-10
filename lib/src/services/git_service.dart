@@ -112,15 +112,15 @@ class GitService extends ContextualService {
       try {
         logger.debug('Updating local mirror...');
         final processService = get<ProcessService>();
-        Future<ProcessResult> runInCache(List<String> args) {
+        Future<ProcessResult> runInCache(List<String> args) async {
           if (isBareRepo) {
-            return processService.run(
+            return await processService.run(
               'git',
               args: ['--git-dir', gitCacheDir.path, ...args],
             );
           }
 
-          return processService.run(
+          return await processService.run(
             'git',
             args: ['-C', gitCacheDir.path, ...args],
           );
@@ -159,6 +159,7 @@ class GitService extends ContextualService {
               gitCacheDir.deleteSync(recursive: true);
             }
             await _createLocalMirror();
+
             return;
           }
         }

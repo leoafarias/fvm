@@ -145,6 +145,7 @@ class FlutterService extends ContextualService {
     if (useArchive) {
       final archiveService = get<ArchiveService>();
       await archiveService.install(version, versionDir);
+
       return;
     }
 

@@ -206,7 +206,9 @@ class EnsureCacheWorkflow extends Workflow {
       try {
         await gitService.updateLocalMirror();
       } on Exception catch (e) {
-        logger.warn('Failed to setup local cache ($e). Falling back to git clone.');
+        logger.warn(
+          'Failed to setup local cache ($e). Falling back to git clone.',
+        );
         // Do not rethrow, allow to fallback to clone
       }
     }
@@ -215,10 +217,7 @@ class EnsureCacheWorkflow extends Workflow {
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
     try {
-      await flutterService.install(
-        version,
-        useArchive: useArchive,
-      );
+      await flutterService.install(version, useArchive: useArchive);
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
