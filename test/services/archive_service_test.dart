@@ -200,6 +200,64 @@ void main() {
           ),
         );
       });
+
+      test('uses channel-specific lookup for @beta qualifiers', () async {
+        final version = FlutterVersion.parse('2.2.2@beta');
+
+        when(() => mockReleaseClient.getChannelReleases('beta')).thenAnswer(
+          (_) async => [],
+        );
+
+        await expectLater(
+          archiveService.install(version, tempDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('beta channel releases metadata'),
+            ),
+          ),
+        );
+
+        verify(() => mockReleaseClient.getChannelReleases('beta')).called(1);
+        verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
+      });
+
+      test('rejects @stable qualifier for release versions', () async {
+        final version = FlutterVersion.parse('2.2.2@stable');
+
+        expect(
+          () => archiveService.install(version, tempDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('does not support the "@stable" qualifier'),
+            ),
+          ),
+        );
+
+        verifyNever(() => mockReleaseClient.getChannelReleases(any()));
+        verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
+      });
+
+      test('rejects unsupported release qualifiers like @master', () async {
+        final version = FlutterVersion.parse('2.2.2@master');
+
+        expect(
+          () => archiveService.install(version, tempDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('@beta and @dev'),
+            ),
+          ),
+        );
+
+        verifyNever(() => mockReleaseClient.getChannelReleases(any()));
+        verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
+      });
     });
 
     group('archive download and extraction failures', () {
