@@ -233,6 +233,14 @@ class FlutterService extends ContextualService {
       removeCache: false,
     );
 
+    if (versionDir.existsSync()) {
+      throw AppException(
+        'Cannot install version "${version.name}": failed to clean up '
+        'partial clone at ${versionDir.path}. '
+        'Please manually delete this directory and try again.',
+      );
+    }
+
     final retryResult = await _cloneSdk(
       source: repoUrl,
       versionDir: versionDir,
@@ -387,6 +395,14 @@ class FlutterService extends ContextualService {
         result = mirrorResult;
         clonedFromMirror = true;
       } else {
+        if (versionDir.existsSync()) {
+          throw AppException(
+            'Cannot install version "${version.name}": failed to clean up '
+            'partial clone at ${versionDir.path}. '
+            'Please manually delete this directory and try again.',
+          );
+        }
+
         result = await _cloneSdk(
           source: repoUrl,
           versionDir: versionDir,

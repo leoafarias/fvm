@@ -60,7 +60,16 @@ class GitService extends ContextualService {
     const maxWait = Duration(seconds: 30);
 
     try {
-      lockHandle = await lockFile.open(mode: FileMode.write);
+      try {
+        lockHandle = await lockFile.open(mode: FileMode.write);
+      } on FileSystemException catch (error, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
+          ),
+          stackTrace,
+        );
+      }
 
       final lockWaitStart = DateTime.now();
       var waitingLogged = false;
@@ -101,13 +110,6 @@ class GitService extends ContextualService {
       }
 
       return await action();
-    } on FileSystemException catch (error, stackTrace) {
-      Error.throwWithStackTrace(
-        AppException(
-          'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-        ),
-        stackTrace,
-      );
     } finally {
       if (lockHandle != null) {
         if (lockAcquired) {
