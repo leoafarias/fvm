@@ -14,6 +14,7 @@ import 'releases_service/releases_client.dart';
 
 class ArchiveService extends ContextualService {
   static const _supportedArchiveChannels = {'stable', 'beta', 'dev'};
+  static const _supportedArchiveReleaseQualifiers = {'beta', 'dev'};
 
   const ArchiveService(super.context);
 
@@ -54,6 +55,36 @@ class ArchiveService extends ContextualService {
     }
 
     if (version.isRelease) {
+      final releaseQualifier = version.releaseChannel?.name;
+      if (releaseQualifier != null) {
+        if (releaseQualifier == FlutterChannel.stable.name) {
+          throw const AppException(
+            'Archive installation does not support the "@stable" qualifier. '
+            'Use the version without a channel suffix, or use @beta/@dev.',
+          );
+        }
+
+        if (!_supportedArchiveReleaseQualifiers.contains(releaseQualifier)) {
+          throw AppException(
+            'Archive installation supports release qualifiers only for '
+            '@beta and @dev. Received "@$releaseQualifier".',
+          );
+        }
+
+        final channelReleases =
+            await releaseClient.getChannelReleases(releaseQualifier);
+        for (final release in channelReleases) {
+          if (release.version == version.version) {
+            return release;
+          }
+        }
+
+        throw AppException(
+          'Release ${version.version} could not be found in the '
+          '$releaseQualifier channel releases metadata.',
+        );
+      }
+
       final release = await releaseClient.getReleaseByVersion(version.version);
       if (release == null) {
         throw AppException(
