@@ -28,6 +28,8 @@ class FvmVersion {
   factory FvmVersion.fromSemver(Version semver) =>
       FvmVersion._(semver: semver, raw: semver.toString());
 
+  bool _isAtLeast(Version min) => semver != null && semver! >= min;
+
   int get major => semver?.major ?? 0;
   int get minor => semver?.minor ?? 0;
   int get patch => semver?.patch ?? 0;
@@ -36,8 +38,6 @@ class FvmVersion {
 
   bool get supportsJsonApi => _isAtLeast(_jsonApiMin);
   bool get supportsSkipInput => _isAtLeast(_skipInputMin);
-
-  bool _isAtLeast(Version min) => semver != null && semver! >= min;
 
   @override
   String toString() => raw;

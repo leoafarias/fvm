@@ -311,14 +311,15 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         run: (call) {
           final unlink = boolArg(call, 'unlink') == true;
           final version = stringArg(call, 'version');
-          if (!unlink && version == null) {
+          final target = unlink ? '--unlink' : version;
+          if (target == null) {
             return _error('Missing args: set "version" or "unlink=true".');
           }
 
           return _runner.run(
             [
               'global',
-              if (unlink) '--unlink' else version!,
+              target,
               ...flag(call, 'force', '--force'),
             ],
             timeout: const Duration(minutes: 2),
