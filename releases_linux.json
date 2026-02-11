@@ -3,9 +3,29 @@
   "current_release": {
     "beta": "af179acb1353167ce34e324b7d06e6c0091a4edf",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "67323de285b00232883f53b84095eb72be97d35c"
+    "stable": "44a626f4f0027bc38a46dc68aed5964b05a83c18"
   },
   "releases": [
+    {
+      "hash": "44a626f4f0027bc38a46dc68aed5964b05a83c18",
+      "channel": "stable",
+      "version": "3.41.0",
+      "dart_sdk_version": "3.11.0",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-02-11T19:14:07.483404Z",
+      "archive": "stable/linux/flutter_linux_3.41.0-stable.tar.xz",
+      "sha256": "368ae5b6993c51861324e704c42d61c4e290fba7213a88fd0e9fec15ded54599"
+    },
+    {
+      "hash": "c6f67dede3d4aa1aa7a69dd56a3494a5cde6cc80",
+      "channel": "stable",
+      "version": "3.38.10",
+      "dart_sdk_version": "3.10.9",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-02-11T18:30:12.192774Z",
+      "archive": "stable/linux/flutter_linux_3.38.10-stable.tar.xz",
+      "sha256": "385e2629a0a585a835f351ca1605d2c7996377ce2fa16e68296e8fc9a78ccf7a"
+    },
     {
       "hash": "af179acb1353167ce34e324b7d06e6c0091a4edf",
       "channel": "beta",
