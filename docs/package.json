@@ -35,6 +35,9 @@
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7"
   },
+  "resolutions": {
+    "next-mdx-remote": "^6.0.0"
+  },
   "devDependencies": {
     "@types/node": "20.11.10",
     "eslint": "^8.56.0",
