@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/archive_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart';
@@ -361,8 +362,6 @@ class TempDirectoryTracker {
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
-  static const _supportedArchiveChannels = {'stable', 'beta', 'dev'};
-
   bool? lastUseArchive;
   FlutterVersion? lastInstallVersion;
   Directory? lastInstallDirectory;
@@ -370,35 +369,6 @@ class MockFlutterService extends FlutterService {
   MockFlutterService(super.context) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
-    }
-  }
-
-  /// Mirrors ArchiveService._validateSupportedVersion so the mock rejects
-  /// the same unsupported version types as real archive installs.
-  static void _validateArchiveVersion(FlutterVersion version) {
-    if (version.fromFork) {
-      throw const AppException(
-        'Archive installation is not supported for forked Flutter SDKs. '
-        'Please remove the --archive flag or install the fork via git.',
-      );
-    }
-    if (version.isUnknownRef) {
-      throw const AppException(
-        'Archive installation is not supported for commit references. '
-        'Remove the --archive flag to install from git.',
-      );
-    }
-    if (version.isCustom) {
-      throw const AppException(
-        'Archive installation is not supported for custom Flutter SDKs.',
-      );
-    }
-    if (version.isChannel &&
-        !_supportedArchiveChannels.contains(version.name)) {
-      throw const AppException(
-        'Archive installation is available only for the stable, beta, or dev '
-        'channels. Remove the --archive flag or choose a supported channel.',
-      );
     }
   }
 
@@ -417,8 +387,7 @@ class MockFlutterService extends FlutterService {
     lastInstallVersion = version;
 
     if (useArchive) {
-      // Validate version types the same way ArchiveService does
-      _validateArchiveVersion(version);
+      ArchiveService.validateArchiveInstallVersion(version);
 
       final cacheService = get<CacheService>();
       final versionDir = cacheService.getVersionCacheDir(version);

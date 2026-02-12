@@ -530,29 +530,18 @@ void main() {
 
     group('custom version validation', () {
       test('throws AppException for custom Flutter SDKs', () async {
-        // Custom versions have isCustom = true, which means they point to
-        // a local path rather than a release. Archive installation doesn't
-        // support custom paths since there's nothing to download.
-        //
-        // Note: Creating a truly "custom" version requires specific parsing
-        // conditions. This test verifies the validation exists conceptually.
-        // The actual custom detection logic is in FlutterVersion.parse.
-        final customVersion = FlutterVersion.parse('custom');
+        final customVersion = FlutterVersion.parse('custom_local_sdk');
 
-        // Custom detection depends on context; if it's detected as custom,
-        // the archive service should reject it
-        if (customVersion.isCustom) {
-          expect(
-            () => archiveService.install(customVersion, tempDir),
-            throwsA(
-              isA<AppException>().having(
-                (e) => e.message,
-                'message',
-                contains('not supported for custom'),
-              ),
+        expect(
+          () => archiveService.install(customVersion, tempDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('not supported for custom'),
             ),
-          );
-        }
+          ),
+        );
       });
     });
 
@@ -740,9 +729,185 @@ void main() {
             );
 
             // Verify no staging directory remains
-            final stagingDir =
-                Directory('${versionDir.path}.archive_staging');
+            final stagingDir = Directory('${versionDir.path}.archive_staging');
             expect(stagingDir.existsSync(), isFalse);
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('existing cache preserved when finalize step fails', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
+          flutterDir.createSync(recursive: true);
+          Directory(path.join(flutterDir.path, 'bin'))
+              .createSync(recursive: true);
+
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'finalize-failure-preserves-cache',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+            versionDir.createSync(recursive: true);
+
+            final marker = File(path.join(versionDir.path, 'existing.txt'));
+            marker.writeAsStringSync('keep-me');
+
+            final backupPath = '${versionDir.path}.archive_backup';
+            File(backupPath).writeAsStringSync('block-rename');
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  contains('Failed to finalize archive installation'),
+                ),
+              ),
+            );
+
+            expect(versionDir.existsSync(), isTrue);
+            expect(marker.existsSync(), isTrue);
+            expect(marker.readAsStringSync(), equals('keep-me'));
+            expect(
+              Directory('${versionDir.path}.archive_staging').existsSync(),
+              isFalse,
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('successful finalize does not leave backup directory behind',
+          () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
+          flutterDir.createSync(recursive: true);
+          Directory(path.join(flutterDir.path, 'bin'))
+              .createSync(recursive: true);
+
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        final overrides = _RedirectHttpOverrides(
+          Uri.parse('http://127.0.0.1:${server.port}'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'finalize-success-cleans-backup',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+                ProcessService: (_) => mockProcessService,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+            versionDir.createSync(recursive: true);
+            File(path.join(versionDir.path, 'old.txt'))
+                .writeAsStringSync('old');
+
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            expect(
+              Directory('${versionDir.path}.archive_backup').existsSync(),
+              isFalse,
+            );
+            expect(
+              File(path.join(versionDir.path, 'old.txt')).existsSync(),
+              isFalse,
+            );
           },
           createHttpClient: overrides.createHttpClient,
         );
@@ -774,8 +939,8 @@ void main() {
             echoOutput: any(named: 'echoOutput'),
           ),
         ).thenAnswer((invocation) async {
-          final args = invocation.namedArguments[const Symbol('args')]
-              as List<String>;
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
           final targetIdx = args.indexOf('-d');
           final cIdx = args.indexOf('-C');
           final targetPath =
@@ -783,15 +948,12 @@ void main() {
           final targetDir = Directory(targetPath);
 
           // Create flutter/ subdirectory structure
-          final flutterDir =
-              Directory(path.join(targetDir.path, 'flutter'));
+          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
           flutterDir.createSync(recursive: true);
           Directory(path.join(flutterDir.path, 'bin')).createSync();
 
-          final execName =
-              Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec =
-              File(path.join(flutterDir.path, 'bin', execName));
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
           flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
           if (!Platform.isWindows) {
             Process.runSync('chmod', ['+x', flutterExec.path]);
@@ -819,17 +981,14 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
             // Contents should be flattened from flutter/ to root
-            final execName =
-                Platform.isWindows ? 'flutter.bat' : 'flutter';
+            final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
             expect(
-              File(path.join(versionDir.path, 'bin', execName))
-                  .existsSync(),
+              File(path.join(versionDir.path, 'bin', execName)).existsSync(),
               isTrue,
             );
             expect(
@@ -838,8 +997,7 @@ void main() {
             );
             // Original flutter/ dir should be removed
             expect(
-              Directory(path.join(versionDir.path, 'flutter'))
-                  .existsSync(),
+              Directory(path.join(versionDir.path, 'flutter')).existsSync(),
               isFalse,
             );
           },
@@ -870,8 +1028,8 @@ void main() {
             echoOutput: any(named: 'echoOutput'),
           ),
         ).thenAnswer((invocation) async {
-          final args = invocation.namedArguments[const Symbol('args')]
-              as List<String>;
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
           final targetIdx = args.indexOf('-d');
           final cIdx = args.indexOf('-C');
           final targetPath =
@@ -879,15 +1037,12 @@ void main() {
           final targetDir = Directory(targetPath);
 
           // Create flutter/ with __MACOSX inside
-          final flutterDir =
-              Directory(path.join(targetDir.path, 'flutter'));
+          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
           flutterDir.createSync(recursive: true);
           Directory(path.join(flutterDir.path, 'bin')).createSync();
 
-          final execName =
-              Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec =
-              File(path.join(flutterDir.path, 'bin', execName));
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
           flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
           if (!Platform.isWindows) {
             Process.runSync('chmod', ['+x', flutterExec.path]);
@@ -915,15 +1070,13 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
             // __MACOSX should not be present in the final directory
             expect(
-              Directory(path.join(versionDir.path, '__MACOSX'))
-                  .existsSync(),
+              Directory(path.join(versionDir.path, '__MACOSX')).existsSync(),
               isFalse,
             );
           },
@@ -955,8 +1108,8 @@ void main() {
             echoOutput: any(named: 'echoOutput'),
           ),
         ).thenAnswer((invocation) async {
-          final args = invocation.namedArguments[const Symbol('args')]
-              as List<String>;
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
           final targetIdx = args.indexOf('-d');
           final cIdx = args.indexOf('-C');
           final targetPath =
@@ -964,10 +1117,8 @@ void main() {
           final targetDir = Directory(targetPath);
 
           Directory(path.join(targetDir.path, 'bin')).createSync();
-          final execName =
-              Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec =
-              File(path.join(targetDir.path, 'bin', execName));
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(targetDir.path, 'bin', execName));
           flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
           if (!Platform.isWindows) {
             Process.runSync('chmod', ['+x', flutterExec.path]);
@@ -992,17 +1143,14 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
             // Should have bin/flutter at root level
-            final execName =
-                Platform.isWindows ? 'flutter.bat' : 'flutter';
+            final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
             expect(
-              File(path.join(versionDir.path, 'bin', execName))
-                  .existsSync(),
+              File(path.join(versionDir.path, 'bin', execName)).existsSync(),
               isTrue,
             );
           },
@@ -1051,8 +1199,7 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
@@ -1131,8 +1278,7 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             // Will fail at validation (no flutter binary), that's expected
             try {
@@ -1204,8 +1350,7 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             // Will fail at validation, that's expected
             try {
@@ -1242,8 +1387,7 @@ void main() {
     group('network error handling', () {
       test('wraps SocketException with network error message', () async {
         // Create a server that immediately closes connections
-        final server =
-            await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
         final port = server.port;
         await server.close(force: true);
 
@@ -1267,8 +1411,7 @@ void main() {
 
             final svc = ArchiveService(ctx);
             tempDir = Directory(ctx.versionsCachePath);
-            final versionDir =
-                Directory(path.join(tempDir.path, 'stable'));
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
 
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),

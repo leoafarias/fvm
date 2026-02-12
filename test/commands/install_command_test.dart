@@ -127,6 +127,36 @@ void main() {
         ),
       );
     });
+
+    test('throws for @stable qualifiers with --archive', () async {
+      final runner = TestFactory.commandRunner();
+
+      expect(
+        () =>
+            runner.runOrThrow(['fvm', 'install', '2.2.2@stable', '--archive']),
+        throwsA(
+          predicate<AppException>(
+            (error) => error.message.contains(
+              'does not support the "@stable" qualifier',
+            ),
+          ),
+        ),
+      );
+    });
+
+    test('throws for unsupported qualifiers with --archive', () async {
+      final runner = TestFactory.commandRunner();
+
+      expect(
+        () =>
+            runner.runOrThrow(['fvm', 'install', '2.2.2@master', '--archive']),
+        throwsA(
+          predicate<AppException>(
+            (error) => error.message.contains('@beta and @dev'),
+          ),
+        ),
+      );
+    });
   });
 
   // Group 5: Forked versions

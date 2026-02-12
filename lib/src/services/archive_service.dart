@@ -18,7 +18,7 @@ class ArchiveService extends ContextualService {
 
   const ArchiveService(super.context);
 
-  void _validateSupportedVersion(FlutterVersion version) {
+  static void validateArchiveInstallVersion(FlutterVersion version) {
     if (version.fromFork) {
       throw const AppException(
         'Archive installation is not supported for forked Flutter SDKs. '
@@ -38,39 +38,50 @@ class ArchiveService extends ContextualService {
         'Archive installation is not supported for custom Flutter SDKs.',
       );
     }
+
+    if (version.isChannel &&
+        !_supportedArchiveChannels.contains(version.name)) {
+      throw AppException(
+        'Archive installation is available only for the stable, beta, or dev '
+        'channels. Remove the --archive flag or choose a supported channel.',
+      );
+    }
+
+    if (version.isRelease) {
+      final releaseQualifier = version.releaseChannel?.name;
+      if (releaseQualifier == FlutterChannel.stable.name) {
+        throw const AppException(
+          'Archive installation does not support the "@stable" qualifier. '
+          'Use the version without a channel suffix, or use @beta/@dev.',
+        );
+      }
+
+      if (releaseQualifier != null &&
+          !_supportedArchiveReleaseQualifiers.contains(releaseQualifier)) {
+        throw AppException(
+          'Archive installation supports release qualifiers only for '
+          '@beta and @dev. Received "@$releaseQualifier".',
+        );
+      }
+    }
+
+    if (!version.isChannel && !version.isRelease) {
+      throw const AppException(
+        'Archive installation is supported only for Flutter channels and releases.',
+      );
+    }
   }
 
   Future<FlutterSdkRelease> _resolveRelease(FlutterVersion version) async {
     final releaseClient = get<FlutterReleaseClient>();
 
     if (version.isChannel) {
-      if (!_supportedArchiveChannels.contains(version.name)) {
-        throw AppException(
-          'Archive installation is available only for the stable, beta, or dev '
-          'channels. Remove the --archive flag or choose a supported channel.',
-        );
-      }
-
       return releaseClient.getLatestChannelRelease(version.name);
     }
 
     if (version.isRelease) {
       final releaseQualifier = version.releaseChannel?.name;
       if (releaseQualifier != null) {
-        if (releaseQualifier == FlutterChannel.stable.name) {
-          throw const AppException(
-            'Archive installation does not support the "@stable" qualifier. '
-            'Use the version without a channel suffix, or use @beta/@dev.',
-          );
-        }
-
-        if (!_supportedArchiveReleaseQualifiers.contains(releaseQualifier)) {
-          throw AppException(
-            'Archive installation supports release qualifiers only for '
-            '@beta and @dev. Received "@$releaseQualifier".',
-          );
-        }
-
         final channelReleases =
             await releaseClient.getChannelReleases(releaseQualifier);
         for (final release in channelReleases) {
@@ -99,6 +110,56 @@ class ArchiveService extends ContextualService {
     throw const AppException(
       'Archive installation is supported only for Flutter channels and releases.',
     );
+  }
+
+  void _finalizeInstall(
+    Directory stagingDir,
+    Directory versionDir,
+    Directory backupDir,
+  ) {
+    var movedExistingVersion = false;
+
+    try {
+      if (versionDir.existsSync()) {
+        versionDir.renameSync(backupDir.path);
+        movedExistingVersion = true;
+      }
+
+      stagingDir.renameSync(versionDir.path);
+    } on FileSystemException catch (error, stackTrace) {
+      if (movedExistingVersion &&
+          backupDir.existsSync() &&
+          !versionDir.existsSync()) {
+        try {
+          backupDir.renameSync(versionDir.path);
+        } on FileSystemException catch (restoreError) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to finalize archive installation and restore the '
+              'previous SDK cache. ${restoreError.message}',
+            ),
+            stackTrace,
+          );
+        }
+      }
+
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to finalize archive installation: ${error.message}',
+        ),
+        stackTrace,
+      );
+    }
+
+    if (backupDir.existsSync()) {
+      try {
+        backupDir.deleteSync(recursive: true);
+      } catch (cleanupError) {
+        logger.debug(
+          'Could not clean up archive backup directory: $cleanupError',
+        );
+      }
+    }
   }
 
   Future<_DownloadedArchive> _downloadArchive(FlutterSdkRelease release) async {
@@ -392,7 +453,7 @@ class ArchiveService extends ContextualService {
   /// Uses a staging directory to protect any existing cached version.
   /// If the install fails, the original [versionDir] is left untouched.
   Future<void> install(FlutterVersion version, Directory versionDir) async {
-    _validateSupportedVersion(version);
+    validateArchiveInstallVersion(version);
 
     final release = await _resolveRelease(version);
     logger.debug(
@@ -401,10 +462,14 @@ class ArchiveService extends ContextualService {
 
     // Use a staging directory so an existing cache survives failures
     final stagingDir = Directory('${versionDir.path}.archive_staging');
+    final backupDir = Directory('${versionDir.path}.archive_backup');
 
     // Clean up any leftover staging directory from a previous failed attempt
     if (stagingDir.existsSync()) {
       stagingDir.deleteSync(recursive: true);
+    }
+    if (backupDir.existsSync()) {
+      backupDir.deleteSync(recursive: true);
     }
 
     // Ensure the parent directory exists (required for fork paths)
@@ -428,11 +493,7 @@ class ArchiveService extends ContextualService {
         download.dispose();
       }
 
-      // Success: swap staging directory into place
-      if (versionDir.existsSync()) {
-        versionDir.deleteSync(recursive: true);
-      }
-      stagingDir.renameSync(versionDir.path);
+      _finalizeInstall(stagingDir, versionDir, backupDir);
     } catch (e) {
       // Failure: clean up staging, leave existing versionDir untouched
       if (stagingDir.existsSync()) {
