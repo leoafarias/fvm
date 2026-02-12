@@ -69,7 +69,18 @@ void main() {
     final res = await runner(hasSkipInput: false).run(['stderr', 'boom']);
 
     expect(res.isError, isTrue);
+    expect(textFrom(res), contains('Command:'));
+    expect(textFrom(res), contains('Exit code: 1'));
     expect(textFrom(res), contains('boom'));
+  });
+
+  test('non-zero exit without output includes exit code', () async {
+    final res = await runner(hasSkipInput: false).run(['exit', '7']);
+
+    expect(res.isError, isTrue);
+    final text = textFrom(res);
+    expect(text, contains('Command:'));
+    expect(text, contains('Exit code: 7'));
   });
 
   test('timeout produces structured error', () async {
@@ -80,6 +91,8 @@ void main() {
     );
 
     expect(res.isError, isTrue);
-    expect(textFrom(res), contains('Timeout after 0m'));
+    final text = textFrom(res);
+    expect(text, contains('Command:'));
+    expect(text, contains('Timeout after 0m'));
   });
 }

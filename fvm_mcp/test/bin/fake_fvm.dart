@@ -24,6 +24,9 @@ Future<void> main(List<String> args) async {
     case 'stderr':
       stderr.write(rest.isEmpty ? 'error' : rest.join(' '));
       exit(1);
+    case 'exit':
+      final code = rest.isEmpty ? 1 : int.parse(rest.first);
+      exit(code);
     case 'sleep':
       final seconds = rest.isEmpty ? 1 : int.parse(rest.first);
       await Future<void>.delayed(Duration(seconds: seconds));

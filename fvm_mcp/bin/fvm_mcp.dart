@@ -9,8 +9,9 @@ Future<void> main() async {
     final server = await FvmMcpServer.start(channel: channel);
     // Exit when the client shuts down.
     await server.done;
-  } catch (e) {
+  } catch (e, s) {
     stderr.writeln(e);
+    stderr.writeln(s);
     exitCode = 1;
   }
 }

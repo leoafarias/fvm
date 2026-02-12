@@ -376,15 +376,20 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       schema: ObjectSchema(
         required: ['command'],
         properties: {
-          'command': StringSchema(),
+          'command': StringSchema(minLength: 1),
           'args': ListSchema(items: StringSchema()),
           'cwd': StringSchema(),
         },
         additionalProperties: false,
       ),
       run: (call) {
+        final command = stringArg(call, 'command');
+        if (command == null) {
+          return _error('Missing args: set non-empty "command".');
+        }
+
         return _runner.run(
-          ['exec', stringArg(call, 'command')!, ...listArg(call, 'args')],
+          ['exec', command, ...listArg(call, 'args')],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
           progressLabel: 'exec',
@@ -400,19 +405,20 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
       schema: ObjectSchema(
         required: ['version'],
         properties: {
-          'version': StringSchema(),
+          'version': StringSchema(minLength: 1),
           'flutter_args': ListSchema(items: StringSchema()),
           'cwd': StringSchema(),
         },
         additionalProperties: false,
       ),
       run: (call) {
+        final version = stringArg(call, 'version');
+        if (version == null) {
+          return _error('Missing args: set non-empty "version".');
+        }
+
         return _runner.run(
-          [
-            'spawn',
-            stringArg(call, 'version')!,
-            ...listArg(call, 'flutter_args'),
-          ],
+          ['spawn', version, ...listArg(call, 'flutter_args')],
           cwd: stringArg(call, 'cwd'),
           timeout: const Duration(minutes: 10),
           progressLabel: 'spawn',

@@ -24,6 +24,15 @@ class ProcessRunner {
        runInShell = runInShell ?? Platform.isWindows,
        processManager = processManager ?? const LocalProcessManager();
 
+  String _formatCommand(List<String> args) {
+    return [exe, ...args]
+        .map((part) {
+          final escaped = part.replaceAll('"', r'\"');
+          return escaped.contains(' ') ? '"$escaped"' : escaped;
+        })
+        .join(' ');
+  }
+
   Future<CallToolResult> _runCore(
     List<String> args, {
     String? cwd,
@@ -104,20 +113,32 @@ class ProcessRunner {
     }
 
     if (timedOut) {
+      final message = StringBuffer()
+        ..writeln('Timeout after ${timeout.inMinutes}m')
+        ..writeln('Command: ${_formatCommand(args)}');
+      if (stderrText.isNotEmpty) {
+        message.writeln(stderrText);
+      }
+
       return CallToolResult(
         isError: true,
-        content: [
-          TextContent(text: 'Timeout after ${timeout.inMinutes}m\n$stderrText'),
-        ],
+        content: [TextContent(text: message.toString().trimRight())],
       );
     }
 
     if (code != 0) {
-      final message = stderrText.isEmpty ? 'fvm exited with $code' : stderrText;
+      final message = StringBuffer()
+        ..writeln('Command: ${_formatCommand(args)}')
+        ..writeln('Exit code: $code');
+      if (stderrText.isNotEmpty) {
+        message.writeln(stderrText);
+      } else if (stdoutText.isNotEmpty) {
+        message.writeln(stdoutText);
+      }
 
       return CallToolResult(
         isError: true,
-        content: [TextContent(text: message)],
+        content: [TextContent(text: message.toString().trimRight())],
       );
     }
 
