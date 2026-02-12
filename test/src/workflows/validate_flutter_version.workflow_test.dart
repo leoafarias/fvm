@@ -47,22 +47,73 @@ void main() {
       expect(result.name, equals(version));
     });
 
-    /// Commit
-
-    test('should skip validation when force flag is true', () async {
-      // Arrange
-      const version = 'invalid-version';
+    /// Git reference
+    test('should return unknownRef for non-semver input', () async {
+      const version = 'some-commit-ref';
 
       final context = TestFactory.context();
 
       final workflow = ValidateFlutterVersionWorkflow(context);
 
-      // Act
       final result = workflow.call(version);
 
-      // Assert
       expect(result.isUnknownRef, isTrue);
       expect(result.name, equals(version));
+    });
+
+    /// Slash ref vs fork alias ambiguity
+    test('should treat slash ref as git reference when fork not configured',
+        () async {
+      const version = 'feature/my-branch';
+
+      final context = TestFactory.context();
+
+      final workflow = ValidateFlutterVersionWorkflow(context);
+
+      final result = workflow.call(version);
+
+      // Should fall back to git reference (no fork prefix)
+      expect(result.isUnknownRef, isTrue);
+      expect(result.fromFork, isFalse);
+      expect(result.name, equals(version));
+    });
+
+    test('should error for slash channel when fork not configured', () async {
+      const version = 'myfork/stable';
+
+      final context = TestFactory.context();
+
+      final workflow = ValidateFlutterVersionWorkflow(context);
+
+      expect(
+        () => workflow.call(version),
+        throwsA(
+          predicate<Exception>(
+            (e) => e.toString().contains(
+                  'Fork "myfork" has not been configured',
+                ),
+          ),
+        ),
+      );
+    });
+
+    test('should error for slash release when fork not configured', () async {
+      const version = 'myfork/3.24.0';
+
+      final context = TestFactory.context();
+
+      final workflow = ValidateFlutterVersionWorkflow(context);
+
+      expect(
+        () => workflow.call(version),
+        throwsA(
+          predicate<Exception>(
+            (e) => e.toString().contains(
+                  'Fork "myfork" has not been configured',
+                ),
+          ),
+        ),
+      );
     });
   });
 }

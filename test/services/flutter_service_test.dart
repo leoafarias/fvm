@@ -341,6 +341,9 @@ void main() {
           expect(remoteResult.stdout.toString().trim(), remoteDir.path);
 
           final logger = context.get<Logger>();
+
+          // Non-existent mirror path is not transient — should fall back
+          // directly without retrying.
           expect(
             logger.outputs.any(
               (entry) => entry.contains('Falling back to remote clone'),

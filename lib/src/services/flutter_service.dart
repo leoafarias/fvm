@@ -40,6 +40,20 @@ class FlutterService extends ContextualService {
     ..._gitMissingObjectMarkers,
   ];
 
+  /// Error markers for transient mirror availability issues (e.g., race
+  /// during mirror swap or filesystem contention). These are retried once
+  /// before falling back to the remote.
+  static const List<String> _transientMirrorErrorMarkers = [
+    'does not appear to be a git repository',
+    'not a git repository',
+    'no such file or directory',
+    'repository does not exist',
+  ];
+
+  static const int _kMaxTransientMirrorRetries = 1;
+  static const Duration _kTransientMirrorRetryDelay =
+      Duration(milliseconds: 500);
+
   const FlutterService(super.context);
 
   Future<ProcessResult> _cloneSdk({
@@ -73,66 +87,97 @@ class FlutterService extends ContextualService {
   /// Attempts a clone from the local mirror. Returns null on failure so the
   /// caller can fall back to the remote without duplicating the try/catch
   /// boilerplate.
+  ///
+  /// Transient availability errors (e.g., mirror mid-swap) are retried once
+  /// before falling back. Corruption errors skip retry and trigger mirror
+  /// removal.
   Future<ProcessResult?> _tryCloneFromMirror({
     required Directory versionDir,
     required FlutterVersion version,
     required String? channel,
     required bool echoOutput,
   }) async {
-    try {
-      final result = await _cloneSdk(
-        source: context.gitCachePath,
-        versionDir: versionDir,
-        version: version,
-        channel: channel,
-        echoOutput: echoOutput,
-      );
-      await _updateOriginToFlutter(versionDir);
-
-      return result;
-    } on ProcessException catch (error) {
-      final isLikelyCorruption = _isMirrorCorruptionError(error.message);
-
-      if (isLikelyCorruption) {
-        logger.warn(
-          'Local git cache appears corrupted '
-          '(exit ${error.errorCode}: ${error.message}). '
-          'Falling back to remote clone.',
+    for (var attempt = 0;
+        attempt <= _kMaxTransientMirrorRetries;
+        attempt++) {
+      try {
+        final result = await _cloneSdk(
+          source: context.gitCachePath,
+          versionDir: versionDir,
+          version: version,
+          channel: channel,
+          echoOutput: echoOutput,
         );
+        await _updateOriginToFlutter(versionDir);
 
-        // Delete corrupted mirror so it can be recreated on next install.
-        final cacheDir = Directory(context.gitCachePath);
-        if (cacheDir.existsSync()) {
-          final deleted = await get<GitService>().removeLocalMirror(
-            requireSuccess: false,
-            onFinalError: (error) {
-              logger.warn(
-                'Could not remove corrupted cache: ${error.message}. '
-                'You may need to manually delete ${cacheDir.path}',
-              );
-            },
+        return result;
+      } on ProcessException catch (error) {
+        // Corruption: no retry, remove mirror and fall back immediately.
+        if (_isMirrorCorruptionError(error.message)) {
+          logger.warn(
+            'Local git cache appears corrupted '
+            '(exit ${error.errorCode}: ${error.message}). '
+            'Falling back to remote clone.',
           );
-          if (deleted) {
-            logger.info(
-              'Removed corrupted cache. It will be recreated on next install.',
+
+          final cacheDir = Directory(context.gitCachePath);
+          if (cacheDir.existsSync()) {
+            final deleted = await get<GitService>().removeLocalMirror(
+              requireSuccess: false,
+              onFinalError: (error) {
+                logger.warn(
+                  'Could not remove corrupted cache: ${error.message}. '
+                  'You may need to manually delete ${cacheDir.path}',
+                );
+              },
             );
+            if (deleted) {
+              logger.info(
+                'Removed corrupted cache. '
+                'It will be recreated on next install.',
+              );
+            }
           }
+
+          await _cleanupInstallArtifacts(
+            version: version,
+            versionDir: versionDir,
+            removeCache: false,
+          );
+
+          return null;
         }
-      } else {
+
+        // Transient availability error: retry once before falling back.
+        if (_isTransientMirrorError(error.message) &&
+            attempt < _kMaxTransientMirrorRetries) {
+          logger.warn(
+            'Local mirror temporarily unavailable (${error.message}). '
+            'Retrying after ${_kTransientMirrorRetryDelay.inMilliseconds}ms...',
+          );
+          await _cleanupPartialClone(versionDir);
+          await Future.delayed(_kTransientMirrorRetryDelay);
+
+          continue;
+        }
+
+        // Other failures: fall back to remote.
         logger.warn(
           'Cloning from local git cache failed (${error.message}). '
           'Falling back to remote clone.',
         );
+
+        await _cleanupInstallArtifacts(
+          version: version,
+          versionDir: versionDir,
+          removeCache: false,
+        );
+
+        return null;
       }
-
-      await _cleanupInstallArtifacts(
-        version: version,
-        versionDir: versionDir,
-        removeCache: false,
-      );
-
-      return null;
     }
+
+    return null;
   }
 
   Future<void> _cleanupPartialClone(Directory versionDir) async {
@@ -197,6 +242,14 @@ class FlutterService extends ContextualService {
     }
 
     return _gitObjectCorruptionMarkers.any(lower.contains);
+  }
+
+  /// Detects transient mirror availability errors (e.g., race during mirror
+  /// swap or brief filesystem contention). These warrant a single retry.
+  bool _isTransientMirrorError(String errorMessage) {
+    final lower = errorMessage.toLowerCase();
+
+    return _transientMirrorErrorMarkers.any(lower.contains);
   }
 
   Never _throwReferenceLookupError({
