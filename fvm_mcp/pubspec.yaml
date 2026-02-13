@@ -1,6 +1,6 @@
 name: fvm_mcp
 description: MCP server exposing FVM (Flutter Version Management) as tools
-version: 0.1.0
+version: 0.0.1-alpha.1
 publish_to: "none"
 
 environment:

@@ -1,15 +1,51 @@
 # fvm_mcp
 
 MCP server that mirrors the FVM CLI as tools (stdio transport). Read-only JSON endpoints are passed through verbatim; writes are non-interactive on FVM ≥ 3.2.
+Current release status: **alpha** (`0.0.1-alpha.1`).
 
-## Install / Run
+## Prerequisites
+
+- `fvm` must be installed and available on `PATH`.
+- For source execution: Dart SDK `>=3.9.0 <4.0.0`.
+
+## Run From Source
 
 ```bash
+cd fvm_mcp
 dart pub get
 dart run bin/fvm_mcp.dart
 ```
 
-Your MCP client should launch this as a stdio server (`command: dart`, `args: ["run","bin/fvm_mcp.dart"]`), or you can embed it into FVM as `fvm mcp` (see below).
+MCP client config (source mode):
+
+```json
+{
+  "command": "dart",
+  "args": ["run", "bin/fvm_mcp.dart"],
+  "cwd": "/absolute/path/to/repo/fvm_mcp"
+}
+```
+
+## Install Standalone Binary
+
+`fvm_mcp` releases publish prebuilt binaries on GitHub for Linux, macOS, and Windows.
+
+- Download the archive for your platform from the tagged release:
+  - `fvm_mcp-<version>-linux-x64.tar.gz`
+  - `fvm_mcp-<version>-macos.tar.gz`
+  - `fvm_mcp-<version>-windows-x64.zip`
+- Extract the binary.
+- Add it to your `PATH`.
+- Configure your MCP client to launch it over stdio.
+
+MCP client config (binary mode):
+
+```json
+{
+  "command": "fvm_mcp",
+  "args": []
+}
+```
 
 ### Tools
 
@@ -52,6 +88,35 @@ class McpCommand extends Command<int> {
 
 // In the CLI entry, add:  runner.addCommand(McpCommand());
 ```
+
+## Deployment Plan
+
+- Source of truth for version:
+  - `fvm_mcp/pubspec.yaml`
+  - `fvm_mcp/lib/src/server.dart` (`FVM_MCP_VERSION` default)
+- Release notes source:
+  - `fvm_mcp/CHANGELOG.md` section matching the tagged version
+- Release tag format:
+  - `fvm-mcp-v<semver>` (example: `fvm-mcp-v0.0.1-alpha.1`)
+- CI/CD workflow:
+  - `.github/workflows/release-fvm-mcp.yml`
+- Release outputs:
+  - Platform archives (Linux/macOS/Windows)
+  - `SHA256SUMS` checksum file
+- Consumer install path:
+  - Download binary archive from GitHub release
+  - Extract binary and place on `PATH`
+  - Point MCP client at binary command
+
+## Automated Deployment
+
+`release-fvm-mcp.yml` is fully automated:
+
+- Triggered by pushing tags that match `fvm-mcp-v*`.
+- Validates tag/version alignment against package and runtime server version.
+- Validates that `fvm_mcp/CHANGELOG.md` contains a section for the tagged version.
+- Builds binaries on GitHub-hosted runners.
+- Publishes release assets and checksums to GitHub Releases.
 
 ### Safety
 

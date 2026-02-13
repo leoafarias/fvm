@@ -10,7 +10,7 @@ import 'version.dart';
 const String _serverName = 'fvm-mcp';
 const String _serverVersion = String.fromEnvironment(
   'FVM_MCP_VERSION',
-  defaultValue: '0.1.0',
+  defaultValue: '0.0.1-alpha.1',
 );
 final _readOnlyToolAnnotations = ToolAnnotations(
   readOnlyHint: true,
