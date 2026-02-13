@@ -7,7 +7,7 @@ on:
         description: "Dart SDK version"
         type: string
         required: false
-        default: "3.6.0"
+        default: "3.10.0"
 
   pull_request:
     paths-ignore:
@@ -40,6 +40,9 @@ on:
 
   workflow_dispatch:
 
+env:
+  SDK_VERSION: "3.10.0"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -56,27 +59,43 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: ${{ github.event.inputs.sdk-version }}
+          sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
+
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
 
       - uses: invertase/github-action-dart-analyzer@v1
         with:
           fatal-infos: false
-  
+
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-  
+
       - name: Run DCM
-        run: dcm analyze lib
+        run: dcm analyze lib fvm_mcp/lib
       
       - name: Install lcov
         run: sudo apt-get install lcov
 
-      - name: Run tests
+      - name: Run tests (root)
         uses: ./.github/actions/test
         with:
           with-coverage: 'true'
+
+      - name: fvm_mcp | Format check
+        working-directory: fvm_mcp
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: fvm_mcp | Analyze
+        working-directory: fvm_mcp
+        run: dart analyze
+
+      - name: fvm_mcp | Tests
+        working-directory: fvm_mcp
+        run: dart test
 
       - name: Release tool | Install dependencies
         working-directory: tool/release_tool
@@ -113,16 +132,33 @@ jobs:
       - name: Prepare environment
         uses: ./.github/actions/prepare
         with:
-          sdk-version: ${{ github.event.inputs.sdk-version }}
+          sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
+
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
+        shell: bash
 
       - name: Tests
         uses: ./.github/actions/test
+
+      - name: fvm_mcp | Analyze
+        working-directory: fvm_mcp
+        run: dart analyze
+        shell: bash
+
+      - name: fvm_mcp | Tests
+        working-directory: fvm_mcp
+        run: dart test
+        shell: bash
 
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: [test, test-os]  # Wait for all unit tests before integration
     timeout-minutes: 45
+    # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
 
     strategy:
       fail-fast: true
@@ -136,7 +172,7 @@ jobs:
       - name: Setup Dart
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: stable
+          sdk: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
 
       - name: Install dependencies
         run: dart pub get
