@@ -36,6 +36,10 @@
 **Purpose**: Run all tests and quality checks  
 **Used by**: Other workflows for validation before deployment
 
+Includes an `archive-regression` job that runs `scripts/local_regression_agent.sh`
+in CI for archive-focused regression coverage and publishes `.context/testing-runs`
+artifacts for inspection.
+
 ### `test-install.yml` 
 **Trigger**: Manual dispatch  
 **Purpose**: Test FVM installation across different platforms
