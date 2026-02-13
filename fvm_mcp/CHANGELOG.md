@@ -18,4 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Default server-reported version set to `0.0.1-alpha.1`.
+- Enabled pub.dev publishing by removing `publish_to: "none"` and adding
+  package repository metadata.
 - README expanded with source run instructions, binary install flow, and deployment plan.
