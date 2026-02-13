@@ -54,11 +54,23 @@ class ForkAddCommand extends BaseFvmCommand {
     final alias = args[0];
     final url = args[1];
 
+    // Validate alias format
+    final aliasPattern = RegExp(r'^[A-Za-z0-9._-]+$');
+    if (!aliasPattern.hasMatch(alias)) {
+      throw UsageException(
+        'Invalid fork alias format: "$alias"\n'
+        'Alias must contain only letters, numbers, dots, hyphens, '
+        'and underscores.',
+        usage,
+      );
+    }
+
     // Validate URL format
     if (!isValidGitUrl(url)) {
       throw UsageException(
         'Invalid Git URL format: $url\n'
-        'URL must be a valid Git repository URL ending with .git',
+        'URL must be a valid Git repository URL '
+        '(e.g., https://github.com/user/repo.git)',
         usage,
       );
     }

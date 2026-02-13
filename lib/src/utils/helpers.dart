@@ -191,6 +191,10 @@ String extractDartVersionOutput(String input) {
 }
 
 /// Validates if a URL is a valid Git repository URL.
+///
+/// Accepts URLs with or without `.git` suffix, but requires structural
+/// validity: allowed scheme, non-empty host (for network URLs), and at
+/// least one meaningful path segment.
 bool isValidGitUrl(String url) {
   final trimmed = url.trim();
 
@@ -199,8 +203,9 @@ bool isValidGitUrl(String url) {
   }
 
   // Accept scp-like syntax such as git@host:group/repo.git.
-  if (_isScpLikeGitUrl(trimmed)) {
-    return _hasGitExtension(_extractScpPath(trimmed));
+  // Skip URLs with :// which are scheme-based, not scp-like.
+  if (!trimmed.contains('://') && _isScpLikeGitUrl(trimmed)) {
+    return _hasValidRepoPath(_extractScpPath(trimmed));
   }
 
   // Accept ssh:// urls that use scp shorthand after the scheme.
@@ -208,7 +213,7 @@ bool isValidGitUrl(String url) {
   if (trimmed.startsWith(sshScheme)) {
     final remainder = trimmed.substring(sshScheme.length);
     if (_isScpLikeGitUrl(remainder)) {
-      return _hasGitExtension(_extractScpPath(remainder));
+      return _hasValidRepoPath(_extractScpPath(remainder));
     }
   }
 
@@ -226,23 +231,31 @@ bool isValidGitUrl(String url) {
     }
 
     if (scheme == 'file') {
-      return _hasGitExtension(uri.path);
+      return _hasValidRepoPath(uri.path);
     }
 
     if (uri.host.isEmpty && uri.authority.isEmpty) {
       return false;
     }
 
-    final path = uri.path;
-
-    return _hasGitExtension(path);
+    return _hasValidRepoPath(uri.path);
   } on FormatException {
     return false;
   }
 }
 
-bool _hasGitExtension(String? path) {
-  return path != null && path.isNotEmpty && path.endsWith('.git');
+/// Checks that a path has at least one meaningful segment (e.g., /owner/repo
+/// or just repo.git). Accepts paths with or without `.git` suffix.
+bool _hasValidRepoPath(String? path) {
+  if (path == null || path.isEmpty) return false;
+
+  // Strip .git suffix for segment analysis
+  final cleanPath =
+      path.endsWith('.git') ? path.substring(0, path.length - 4) : path;
+
+  final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
+
+  return segments.isNotEmpty;
 }
 
 bool _isScpLikeGitUrl(String url) {

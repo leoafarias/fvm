@@ -116,18 +116,21 @@ class FvmContext with FvmContextMappable {
   /// Flag to determine if should use git cache
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
+    // Respect explicit opt-in/opt-out even on CI. Default behaviour keeps the
+    // git cache disabled on CI to avoid large fetches in ephemeral runners,
+    // but allows forcing it via config/ENV (e.g., FVM_USE_GIT_CACHE=true) so
+    // migration tests and power users can exercise the mirror path.
+    final bool? explicit = config.useGitCache;
 
-    return useGitCache && !isCI;
+    if (explicit != null) return explicit;
+
+    // Default: enable locally, disable on CI.
+    return !isCI;
   }
 
   /// Run pub get on sdk changes
   @MappableField()
-  bool get runPubGetOnSdkChanges {
-    return config.runPubGetOnSdkChanges != null
-        ? config.runPubGetOnSdkChanges!
-        : true;
-  }
+  bool get runPubGetOnSdkChanges => config.runPubGetOnSdkChanges ?? true;
 
   /// FVM Version
   @MappableField()
@@ -151,17 +154,11 @@ class FvmContext with FvmContextMappable {
 
   /// Flutter SDK Path
   @MappableField()
-  bool get updateCheckDisabled {
-    return config.disableUpdateCheck != null
-        ? config.disableUpdateCheck!
-        : false;
-  }
+  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
 
   /// Privileged access
   @MappableField()
-  bool get privilegedAccess {
-    return config.privilegedAccess != null ? config.privilegedAccess! : true;
-  }
+  bool get privilegedAccess => config.privilegedAccess ?? true;
 
   /// Where Default Flutter SDK is stored
   @MappableField()

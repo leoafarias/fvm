@@ -358,6 +358,86 @@ class TempDirectoryTracker {
   }
 }
 
+Future<ProcessResult> runGitCommand(
+  List<String> args, {
+  String? workingDirectory,
+}) async {
+  final result = await Process.run(
+    'git',
+    args,
+    workingDirectory: workingDirectory,
+    runInShell: true,
+  );
+
+  if (result.exitCode != ExitCode.success.code) {
+    throw ProcessException(
+      'git',
+      args,
+      (result.stderr ?? result.stdout).toString(),
+      result.exitCode,
+    );
+  }
+
+  return result;
+}
+
+Future<Directory> createLocalRemoteRepository({
+  required Directory root,
+  String name = 'remote',
+  String branch = 'master',
+}) async {
+  final remoteDir = Directory(p.join(root.path, '$name.git'));
+  if (!remoteDir.existsSync()) {
+    remoteDir.createSync(recursive: true);
+  }
+
+  await runGitCommand(['init', '--bare', remoteDir.path]);
+
+  final seedDir = Directory(p.join(root.path, '${name}_seed'));
+  seedDir.createSync(recursive: true);
+
+  try {
+    await runGitCommand(['init'], workingDirectory: seedDir.path);
+    await runGitCommand(
+      ['config', 'user.email', 'tests@fvm.app'],
+      workingDirectory: seedDir.path,
+    );
+    await runGitCommand(
+      ['config', 'user.name', 'FVM Tests'],
+      workingDirectory: seedDir.path,
+    );
+    File(p.join(seedDir.path, 'README.md')).writeAsStringSync('seed data');
+    await runGitCommand(['add', '.'], workingDirectory: seedDir.path);
+    await runGitCommand(['commit', '-m', 'seed'],
+        workingDirectory: seedDir.path);
+    await runGitCommand(['branch', '-M', branch],
+        workingDirectory: seedDir.path);
+    await runGitCommand(
+      ['remote', 'add', 'origin', remoteDir.path],
+      workingDirectory: seedDir.path,
+    );
+    await runGitCommand(
+      ['push', 'origin', branch],
+      workingDirectory: seedDir.path,
+    );
+  } finally {
+    if (seedDir.existsSync()) {
+      seedDir.deleteSync(recursive: true);
+    }
+  }
+
+  return remoteDir;
+}
+
+Future<bool> isBareGitRepository(String repoPath) async {
+  final result = await runGitCommand(
+    ['rev-parse', '--is-bare-repository'],
+    workingDirectory: repoPath,
+  );
+
+  return result.stdout.toString().trim() == 'true';
+}
+
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
@@ -374,10 +454,8 @@ class MockFlutterService extends FlutterService {
   /// the fixture by creating the directory and a marker file. Finally, it copies
   /// the fixture repository into the version directory (configured via CacheService).
   @override
-  Future<void> install(FlutterVersion version) async {
-    try {
-      return super.install(version);
-    } finally {}
+  Future<void> install(FlutterVersion version) {
+    return super.install(version);
   }
 }
 

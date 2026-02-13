@@ -9,6 +9,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
+import '../utils/file_utils.dart';
 import 'base_service.dart';
 
 enum CacheIntegrity {
@@ -70,13 +71,12 @@ class CacheService extends ContextualService {
     return binExists && await isExecutable(version.flutterExec);
   }
 
-  // Verifies that the cache version name matches the flutter version
+  /// Returns true when the cached version can be treated as a match.
+  /// Channels, git refs, and missing SDK metadata don't provide a reliable
+  /// semantic version to compare, so they are treated as matching.
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If it's a channel return true
     if (version.isChannel) return true;
-    // If it's a git commit, return true (commit hash won't match SDK version)
     if (version.isUnknownRef) return true;
-    // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
 
@@ -102,20 +102,22 @@ class CacheService extends ContextualService {
 
     final cacheVersions = <CacheFlutterVersion>[];
 
-    // Checks if a directory is a Flutter SDK.
-    //
-    // Uses bin/flutter existence as the indicator since it's always present
-    // in Flutter SDK directories (part of the git repository), regardless of
-    // whether setup has been run or which Flutter version is installed.
-    bool isFlutterSdkDirectory(Directory dir) {
-      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
-
-      return flutterBin.existsSync();
-    }
-
     // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
-      if (isFlutterSdkDirectory(dir)) {
+      final versionFile = File(path.join(dir.path, 'version'));
+      final gitDir = Directory(path.join(dir.path, '.git'));
+      final flutterBin = File(
+        path.join(
+          dir.path,
+          'bin',
+          Platform.isWindows ? 'flutter.bat' : 'flutter',
+        ),
+      );
+
+      final looksLikeSdk = versionFile.existsSync() ||
+          (gitDir.existsSync() && flutterBin.existsSync());
+
+      if (looksLikeSdk) {
         try {
           final name = _relativeVersionNameFromCachePath(dir.path);
           if (name == null) return;
@@ -125,8 +127,12 @@ class CacheService extends ContextualService {
           if (cacheVersion != null) {
             cacheVersions.add(cacheVersion);
           }
+        } on FormatException catch (e) {
+          // FormatException is expected for non-version directories (e.g., forks, .dart_tool)
+          logger.debug('Skipping invalid version directory ${dir.path}: $e');
         } catch (e) {
-          // Skip if we can't parse as a version
+          // Unexpected errors warrant warning level
+          logger.warn('Error processing ${dir.path}: $e');
         }
       } else {
         // This might be a fork directory containing version directories
@@ -135,9 +141,6 @@ class CacheService extends ContextualService {
           final entries = await dir.list().toList();
           for (var entry in entries) {
             if (entry.path.isDir()) {
-              final subDirName = path.basename(entry.path);
-              // Skip hidden directories (starting with .)
-              if (subDirName.startsWith('.')) continue;
               // Check subdirectories with this directory as the fork
               await processDirectory(
                 Directory(entry.path),
@@ -149,13 +152,10 @@ class CacheService extends ContextualService {
       }
     }
 
-    // Scan all top-level directories, skipping hidden directories
+    // Scan all top-level directories
     final topLevelEntries = await versionsDir.list().toList();
     for (var entry in topLevelEntries) {
       if (entry.path.isDir()) {
-        final dirName = path.basename(entry.path);
-        // Skip hidden directories (starting with .)
-        if (dirName.startsWith('.')) continue;
         await processDirectory(Directory(entry.path));
       }
     }
@@ -166,9 +166,11 @@ class CacheService extends ContextualService {
   }
 
   /// Removes a Version of Flutter SDK
-  void remove(FlutterVersion version) {
+  Future<void> remove(FlutterVersion version) async {
     final versionDir = getVersionCacheDir(version);
-    if (versionDir.existsSync()) versionDir.deleteSync(recursive: true);
+    if (versionDir.existsSync()) {
+      await deleteDirectoryWithRetry(versionDir);
+    }
 
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
@@ -178,7 +180,7 @@ class CacheService extends ContextualService {
       if (forkDir.existsSync()) {
         final entries = forkDir.listSync();
         if (entries.isEmpty) {
-          forkDir.deleteSync(recursive: true);
+          await deleteDirectoryWithRetry(forkDir);
         }
       }
     }

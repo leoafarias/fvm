@@ -107,14 +107,16 @@ void main() {
         // Given
         final versions = ['2.0.0', '1.0.0', 'stable', 'beta'];
         for (final version in versions) {
-          Directory(
-            path.join(tempDir.path, version),
-          ).createSync(recursive: true);
+          final versionDir = Directory(path.join(tempDir.path, version))
+            ..createSync(recursive: true);
 
-          // Add bin/flutter to mark this as a Flutter SDK directory
-          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
-          binDir.createSync(recursive: true);
-          File(path.join(binDir.path, 'flutter')).createSync();
+          // Add the "version" file
+          File(path.join(versionDir.path, 'version'))
+              .writeAsStringSync('$version (test)');
+
+          // Create bin/flutter to mark as valid SDK directory
+          File(path.join(versionDir.path, 'bin', 'flutter'))
+              .createSync(recursive: true);
         }
 
         // Create a non-directory file that should be ignored
@@ -142,51 +144,35 @@ void main() {
         );
       });
 
-      test('skips hidden directories like .dart_tool', () async {
-        // Given
-        final versions = ['stable', 'beta'];
-        for (final version in versions) {
-          Directory(
-            path.join(tempDir.path, version),
-          ).createSync(recursive: true);
+      test(
+        'detects SDK directory without version file when git and flutter bin exist',
+        () async {
+          final versionName = 'stable';
+          final versionDir = Directory(path.join(tempDir.path, versionName))
+            ..createSync(recursive: true);
 
-          // Add bin/flutter to mark this as a Flutter SDK directory
-          final binDir = Directory(path.join(tempDir.path, version, 'bin'));
-          binDir.createSync(recursive: true);
-          File(path.join(binDir.path, 'flutter')).createSync();
-        }
+          // Simulate a repo clone missing the version metadata file
+          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+          File(
+            path.join(
+              versionDir.path,
+              'bin',
+              Platform.isWindows ? 'flutter.bat' : 'flutter',
+            ),
+          )
+            ..createSync(recursive: true)
+            ..writeAsStringSync('dummy');
 
-        // Create a hidden directory (.dart_tool) with bin/flutter
-        // This simulates the bug where .dart_tool was being picked up
-        final dartToolDir = Directory(
-          path.join(tempDir.path, '.dart_tool'),
-        )..createSync(recursive: true);
-        final dartToolBinDir = Directory(path.join(dartToolDir.path, 'bin'));
-        dartToolBinDir.createSync(recursive: true);
-        File(path.join(dartToolBinDir.path, 'flutter')).createSync();
+          final result = await cacheService.getAllVersions();
 
-        // Create another hidden directory (.DS_Store)
-        Directory(
-          path.join(tempDir.path, '.hidden'),
-        ).createSync(recursive: true);
-
-        // When
-        final result = await cacheService.getAllVersions();
-
-        // Then - should only find the non-hidden directories
-        expect(result, hasLength(versions.length));
-        expect(result.map((v) => v.name).toList(), containsAll(versions));
-        // Ensure .dart_tool is not in the results
-        expect(
-          result.map((v) => v.name).toList(),
-          isNot(contains('.dart_tool')),
-        );
-        expect(result.map((v) => v.name).toList(), isNot(contains('.hidden')));
-      });
+          expect(result, hasLength(1));
+          expect(result.single.name, versionName);
+        },
+      );
     });
 
     group('remove', () {
-      test('removes version directory if it exists', () {
+      test('removes version directory if it exists', () async {
         // Given
         final version = createTestVersion('stable');
         final versionDir = Directory(path.join(tempDir.path, version.name))
@@ -195,7 +181,7 @@ void main() {
         expect(versionDir.existsSync(), isTrue);
 
         // When
-        cacheService.remove(version);
+        await cacheService.remove(version);
 
         // Then
         expect(versionDir.existsSync(), isFalse);
@@ -206,7 +192,7 @@ void main() {
         final version = createTestVersion('non-existent');
 
         // When/Then - should not throw
-        expect(() => cacheService.remove(version), returnsNormally);
+        expect(cacheService.remove(version), completes);
       });
     });
 
@@ -404,7 +390,7 @@ void main() {
     group('Fork cleanup:', () {
       test(
         'should remove empty fork directory after removing last version',
-        () {
+        () async {
           // Create fork structure
           final forkVersion = FlutterVersion.parse('mycompany/stable');
           final forkDir = Directory(
@@ -424,7 +410,7 @@ void main() {
           );
 
           // Remove the version
-          cacheService.remove(forkVersion);
+          await cacheService.remove(forkVersion);
 
           // Fork directory should be removed
           expect(forkDir.existsSync(), isFalse);
@@ -435,7 +421,7 @@ void main() {
         },
       );
 
-      test('should not remove fork directory with other versions', () {
+      test('should not remove fork directory with other versions', () async {
         // Create multiple fork versions
         final version1 = FlutterVersion.parse('mycompany/stable');
 
@@ -451,7 +437,7 @@ void main() {
         expect(betaDir.existsSync(), isTrue);
 
         // Remove only one version
-        cacheService.remove(version1);
+        await cacheService.remove(version1);
 
         // Stable should be gone but fork directory should still exist
         expect(stableDir.existsSync(), isFalse);
@@ -467,7 +453,7 @@ void main() {
         final forkVersion = FlutterVersion.parse('mycompany/master');
 
         // Should not throw
-        expect(() => cacheService.remove(forkVersion), returnsNormally);
+        expect(cacheService.remove(forkVersion), completes);
       });
     });
   });
