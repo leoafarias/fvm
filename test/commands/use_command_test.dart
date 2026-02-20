@@ -1,5 +1,6 @@
 import 'package:args/command_runner.dart';
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -44,6 +45,94 @@ void main() {
         expect(exitCode, ExitCode.success.code);
       });
     }
+  });
+
+  group('Archive flag:', () {
+    test('uses stable channel via archive', () async {
+      final context = TestFactory.context();
+      final localRunner = TestCommandRunner(context);
+
+      final exitCode = await localRunner.run([
+        'fvm',
+        'use',
+        'stable',
+        '--archive',
+        '--force',
+        '--skip-setup',
+        '--skip-pub-get',
+      ]);
+
+      final flutterService =
+          context.get<FlutterService>() as MockFlutterService;
+
+      expect(exitCode, ExitCode.success.code);
+      expect(flutterService.lastUseArchive, isTrue);
+      expect(flutterService.lastInstallVersion?.name, 'stable');
+      expect(flutterService.lastInstallDirectory, isNotNull);
+      expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
+    });
+
+    test('fails for unsupported channels', () async {
+      final localRunner = TestFactory.commandRunner();
+
+      expect(
+        () => localRunner.runOrThrow([
+          'fvm',
+          'use',
+          'master',
+          '--archive',
+          '--skip-setup',
+          '--skip-pub-get',
+        ]),
+        throwsA(
+          predicate<AppException>(
+            (error) => error.message.contains('stable, beta, or dev channels'),
+          ),
+        ),
+      );
+    });
+
+    test('fails for @stable qualifiers', () async {
+      final localRunner = TestFactory.commandRunner();
+
+      expect(
+        () => localRunner.runOrThrow([
+          'fvm',
+          'use',
+          '2.2.2@stable',
+          '--archive',
+          '--skip-setup',
+          '--skip-pub-get',
+        ]),
+        throwsA(
+          predicate<AppException>(
+            (error) => error.message.contains(
+              'does not support the "@stable" qualifier',
+            ),
+          ),
+        ),
+      );
+    });
+
+    test('fails for unsupported release qualifiers', () async {
+      final localRunner = TestFactory.commandRunner();
+
+      expect(
+        () => localRunner.runOrThrow([
+          'fvm',
+          'use',
+          '2.2.2@master',
+          '--archive',
+          '--skip-setup',
+          '--skip-pub-get',
+        ]),
+        throwsA(
+          predicate<AppException>(
+            (error) => error.message.contains('@beta and @dev'),
+          ),
+        ),
+      );
+    });
   });
 
   group('Pin functionality:', () {

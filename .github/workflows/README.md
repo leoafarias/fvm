@@ -32,7 +32,7 @@
 7. Everything deploys automatically!
 
 ### `release-fvm-mcp.yml`
-**Trigger**: Git tag push with `fvm-mcp-v*` pattern + manual dispatch  
+**Trigger**: Git tag push with `fvm-mcp-v*` pattern + manual dispatch
 **Purpose**: Build and publish `fvm_mcp` standalone binaries to GitHub Releases
 **Process**:
 1. **Validate** - Enforce release tag format and version consistency:
@@ -60,6 +60,10 @@
 **Trigger**: Push, PR, workflow_call  
 **Purpose**: Run all tests and quality checks  
 **Used by**: Other workflows for validation before deployment
+
+Includes an `archive-regression` job that runs `scripts/local_regression_agent.sh`
+in CI for archive-focused regression coverage and publishes `.context/testing-runs`
+artifacts for inspection.
 
 ### `test-install.yml` 
 **Trigger**: Manual dispatch  

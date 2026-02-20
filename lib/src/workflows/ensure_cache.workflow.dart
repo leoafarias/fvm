@@ -19,6 +19,7 @@ class EnsureCacheWorkflow extends Workflow {
     CacheFlutterVersion version, {
     required bool shouldInstall,
     required bool force,
+    required bool useArchive,
     int retryCount = 0,
   }) {
     const maxRetries = 2;
@@ -49,13 +50,15 @@ class EnsureCacheWorkflow extends Workflow {
       shouldInstall: shouldInstall,
       force: force,
       retryCount: retryCount + 1,
+      useArchive: useArchive,
     );
   }
 
   // Clarity on why the version mismatch happened and how it can be fixed
   Future<CacheFlutterVersion> _handleVersionMismatch(
-    CacheFlutterVersion version,
-  ) {
+    CacheFlutterVersion version, {
+    required bool useArchive,
+  }) {
     logger
       ..notice(
         'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
@@ -94,7 +97,7 @@ class EnsureCacheWorkflow extends Workflow {
     logger.info('Removing incorrect SDK version...');
     get<CacheService>().remove(version);
 
-    return call(version, shouldInstall: true);
+    return call(version, shouldInstall: true, useArchive: useArchive);
   }
 
   void _validateContext() {
@@ -132,9 +135,12 @@ class EnsureCacheWorkflow extends Workflow {
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
+    bool useArchive = false,
   }) async {
-    _validateContext();
-    _validateGit();
+    if (!useArchive) {
+      _validateContext();
+      _validateGit();
+    }
     // Get valid flutter version
     final cacheService = get<CacheService>();
     final flutterService = get<FlutterService>();
@@ -150,6 +156,7 @@ class EnsureCacheWorkflow extends Workflow {
           cacheVersion,
           shouldInstall: shouldInstall,
           force: force,
+          useArchive: useArchive,
           retryCount: retryCount,
         );
       }
@@ -157,7 +164,10 @@ class EnsureCacheWorkflow extends Workflow {
       if (integrity == CacheIntegrity.versionMismatch &&
           !force &&
           !version.isCustom) {
-        return await _handleVersionMismatch(cacheVersion);
+        return await _handleVersionMismatch(
+          cacheVersion,
+          useArchive: useArchive,
+        );
       } else if (force) {
         logger.warn(
           'Not checking for version mismatch as --force flag is set.',
@@ -189,14 +199,16 @@ class EnsureCacheWorkflow extends Workflow {
       logger.info('Installing Flutter SDK automatically...');
     }
 
-    bool useGitCache = context.gitCache;
+    bool useGitCache = context.gitCache && !useArchive;
 
     // Only update local mirror if not a fork and git cache is enabled
     if (useGitCache && !version.fromFork) {
       try {
         await gitService.updateLocalMirror();
       } on Exception catch (e) {
-        logger.warn('Failed to setup local cache ($e). Falling back to git clone.');
+        logger.warn(
+          'Failed to setup local cache ($e). Falling back to git clone.',
+        );
         // Do not rethrow, allow to fallback to clone
       }
     }
@@ -205,7 +217,7 @@ class EnsureCacheWorkflow extends Workflow {
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
     try {
-      await flutterService.install(version);
+      await flutterService.install(version, useArchive: useArchive);
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
