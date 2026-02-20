@@ -9,7 +9,6 @@ import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
-import '../utils/file_lock.dart';
 import '../utils/git_clone_progress_tracker.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -25,18 +24,9 @@ enum _GitCacheState { missing, invalid, legacy, ready }
 /// Service for Git operations
 /// Handles git cache management and repository operations
 class GitService extends ContextualService {
-  static const _gitCacheLockTtl = Duration(minutes: 10);
-
-  late final FileLocker _updatingCacheLock;
   List<GitReference>? _referencesCache;
 
-  GitService(super.context) {
-    // Create lock based on gitCachePath so all processes using the same
-    // git cache share the same lock, even if they have different cachePath.
-    // This prevents race conditions when tests share a git cache but have
-    // isolated FVM cache directories.
-    _updatingCacheLock = createGitCacheLock();
-  }
+  GitService(super.context);
 
   bool _isLockContentionError(FileSystemException error) {
     final message = error.message.toLowerCase();
@@ -60,54 +50,56 @@ class GitService extends ContextualService {
     const maxWait = Duration(seconds: 30);
 
     try {
-      lockHandle = await lockFile.open(mode: FileMode.write);
+      try {
+        lockHandle = await lockFile.open(mode: FileMode.write);
 
-      final lockWaitStart = DateTime.now();
-      var waitingLogged = false;
+        final lockWaitStart = DateTime.now();
+        var waitingLogged = false;
 
-      while (!lockAcquired) {
-        try {
-          await lockHandle.lock(FileLock.exclusive);
-          lockAcquired = true;
-        } on FileSystemException catch (error, stackTrace) {
-          if (!_isLockContentionError(error)) {
-            Error.throwWithStackTrace(
-              AppException(
-                'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-              ),
-              stackTrace,
-            );
+        while (!lockAcquired) {
+          try {
+            await lockHandle.lock(FileLock.exclusive);
+            lockAcquired = true;
+          } on FileSystemException catch (error, stackTrace) {
+            if (!_isLockContentionError(error)) {
+              Error.throwWithStackTrace(
+                AppException(
+                  'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
+                ),
+                stackTrace,
+              );
+            }
+
+            final elapsed = DateTime.now().difference(lockWaitStart);
+            if (elapsed > maxWait) {
+              Error.throwWithStackTrace(
+                AppException(
+                  'Timed out waiting for git cache lock at ${lockFile.path} after ${elapsed.inSeconds}s.',
+                ),
+                stackTrace,
+              );
+            }
+
+            if (!waitingLogged && elapsed >= waitLogThreshold) {
+              waitingLogged = true;
+              logger.debug(
+                'Waiting for git cache lock at ${lockFile.path}...',
+              );
+            }
+
+            await Future<void>.delayed(retryDelay);
           }
-
-          final elapsed = DateTime.now().difference(lockWaitStart);
-          if (elapsed > maxWait) {
-            Error.throwWithStackTrace(
-              AppException(
-                'Timed out waiting for git cache lock at ${lockFile.path} after ${elapsed.inSeconds}s.',
-              ),
-              stackTrace,
-            );
-          }
-
-          if (!waitingLogged && elapsed >= waitLogThreshold) {
-            waitingLogged = true;
-            logger.debug(
-              'Waiting for git cache lock at ${lockFile.path}...',
-            );
-          }
-
-          await Future<void>.delayed(retryDelay);
         }
+      } on FileSystemException catch (error, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
+          ),
+          stackTrace,
+        );
       }
 
       return await action();
-    } on FileSystemException catch (error, stackTrace) {
-      Error.throwWithStackTrace(
-        AppException(
-          'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-        ),
-        stackTrace,
-      );
     } finally {
       if (lockHandle != null) {
         if (lockAcquired) {
@@ -683,13 +675,6 @@ class GitService extends ContextualService {
       await _deleteDirectoryWithRetry(legacyDir, requireSuccess: false);
       await _createLocalMirror();
     }
-  }
-
-  FileLocker createGitCacheLock() {
-    return FileLocker(
-      '${context.gitCachePath}.lock',
-      lockExpiration: _gitCacheLockTtl,
-    );
   }
 
   /// Sets the repository origin URL for the given git directory.

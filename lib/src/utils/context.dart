@@ -109,8 +109,6 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, '.locks'));
-
   /// Directory where FVM is stored
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
@@ -183,34 +181,6 @@ class FvmContext with FvmContextMappable {
 
   @MappableField()
   bool get skipInput => isCI || _skipInput;
-
-  /// Creates a file-based lock for cross-process synchronization.
-  ///
-  /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
-  /// Locks are stored in `~/.fvm/.locks/{name}.lock`.
-  ///
-  /// Usage:
-  /// ```dart
-  /// final lock = context.createLock('my-operation', expiresIn: Duration(minutes: 5));
-  /// final unlock = await lock.getLock();
-  /// try {
-  ///   // Critical section
-  /// } finally {
-  ///   unlock();
-  /// }
-  /// ```
-  ///
-  /// Defaults to 10 second expiry. Override [expiresIn] for long operations.
-  FileLocker createLock(String name, {Duration? expiresIn}) {
-    if (!_lockDir.existsSync()) {
-      _lockDir.createSync(recursive: true);
-    }
-
-    return FileLocker(
-      join(_lockDir.path, '$name.lock'),
-      lockExpiration: expiresIn ?? const Duration(seconds: 10),
-    );
-  }
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
