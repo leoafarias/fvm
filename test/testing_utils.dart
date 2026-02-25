@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/archive_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:git/git.dart';
 import 'package:io/io.dart';
@@ -361,6 +362,10 @@ class TempDirectoryTracker {
 /// A mock implementation of a Flutter service that installs the SDK
 /// by using a local fixture repository instead of performing a real git clone.
 class MockFlutterService extends FlutterService {
+  bool? lastUseArchive;
+  FlutterVersion? lastInstallVersion;
+  Directory? lastInstallDirectory;
+
   MockFlutterService(super.context) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
@@ -374,9 +379,47 @@ class MockFlutterService extends FlutterService {
   /// the fixture by creating the directory and a marker file. Finally, it copies
   /// the fixture repository into the version directory (configured via CacheService).
   @override
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useArchive = false,
+  }) async {
+    lastUseArchive = useArchive;
+    lastInstallVersion = version;
+
+    if (useArchive) {
+      ArchiveService.validateArchiveInstallVersion(version);
+
+      final cacheService = get<CacheService>();
+      final versionDir = cacheService.getVersionCacheDir(version);
+
+      lastInstallDirectory = Directory(versionDir.path);
+
+      if (versionDir.existsSync()) {
+        versionDir.deleteSync(recursive: true);
+      }
+
+      versionDir.createSync(recursive: true);
+      Directory(p.join(versionDir.path, 'bin')).createSync(recursive: true);
+
+      final flutterExec = p.join(versionDir.path, 'bin', flutterExecFileName);
+
+      if (Platform.isWindows) {
+        File(flutterExec).writeAsStringSync('@echo off\necho Mock Flutter\n');
+      } else {
+        File(flutterExec).writeAsStringSync('#!/bin/sh\necho Mock Flutter\n');
+        Process.runSync('chmod', ['+x', flutterExec]);
+      }
+
+      File(p.join(versionDir.path, 'version'))
+          .writeAsStringSync(version.version);
+
+      return;
+    }
+
     try {
-      return super.install(version);
+      await super.install(version, useArchive: useArchive);
+      final cacheService = get<CacheService>();
+      lastInstallDirectory = cacheService.getVersionCacheDir(version);
     } finally {}
   }
 }

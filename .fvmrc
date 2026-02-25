@@ -1,0 +1,6 @@
+{
+  "flutter": "stable",
+  "flavors": {
+    "bar": "stable"
+  }
+}

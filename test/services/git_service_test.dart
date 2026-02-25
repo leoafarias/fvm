@@ -3,14 +3,14 @@ import 'dart:io';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/process_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
-
-import '../testing_utils.dart';
 
 class _FakeProcessService extends ProcessService {
   _FakeProcessService(super.context);
 
   ProcessException? exception;
+  final runs = <_ProcessRun>[];
 
   @override
   Future<ProcessResult> run(
@@ -22,6 +22,8 @@ class _FakeProcessService extends ProcessService {
     bool echoOutput = false,
     bool runInShell = true,
   }) async {
+    runs.add(_ProcessRun(command: command, args: List<String>.from(args)));
+
     if (exception != null) {
       throw exception!;
     }
@@ -30,15 +32,31 @@ class _FakeProcessService extends ProcessService {
   }
 }
 
+class _ProcessRun {
+  final String command;
+  final List<String> args;
+
+  const _ProcessRun({required this.command, required this.args});
+}
+
 void main() {
   group('GitService', () {
     late FvmContext context;
     late GitService gitService;
     late _FakeProcessService processService;
+    late Directory tempDir;
 
     setUp(() {
-      context = TestFactory.context(
-        generators: {
+      tempDir = Directory.systemTemp.createTempSync('fvm_git_service_test_');
+
+      context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, 'cache'),
+          gitCachePath: p.join(tempDir.path, 'git_cache'),
+          useGitCache: true,
+        ),
+        generatorsOverride: {
           ProcessService: (ctx) {
             processService = _FakeProcessService(ctx);
             return processService;
@@ -47,6 +65,77 @@ void main() {
       );
 
       gitService = GitService(context);
+    });
+
+    tearDown(() {
+      if (tempDir.existsSync()) {
+        tempDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('uses --git-dir for bare repositories', () async {
+      context.get<ProcessService>();
+
+      final initResult = Process.runSync('git', [
+        'init',
+        '--bare',
+        context.gitCachePath,
+      ]);
+      expect(
+        initResult.exitCode,
+        0,
+        reason: 'Failed to create bare git cache: ${initResult.stderr}',
+      );
+
+      await gitService.updateLocalMirror();
+
+      expect(
+        processService.runs.map((run) => run.command),
+        everyElement(equals('git')),
+      );
+      expect(
+        processService.runs.map((run) => run.args).toList(),
+        equals([
+          ['--git-dir', context.gitCachePath, 'remote', 'prune', 'origin'],
+          [
+            '--git-dir',
+            context.gitCachePath,
+            'fetch',
+            '--all',
+            '--tags',
+            '--prune',
+          ],
+        ]),
+      );
+    });
+
+    test('uses -C and working-tree hygiene for non-bare repositories',
+        () async {
+      context.get<ProcessService>();
+
+      final initResult = Process.runSync('git', ['init', context.gitCachePath]);
+      expect(
+        initResult.exitCode,
+        0,
+        reason: 'Failed to create non-bare git cache: ${initResult.stderr}',
+      );
+
+      await gitService.updateLocalMirror();
+
+      expect(
+        processService.runs.map((run) => run.command),
+        everyElement(equals('git')),
+      );
+      expect(
+        processService.runs.map((run) => run.args).toList(),
+        equals([
+          ['-C', context.gitCachePath, 'reset', '--hard', 'HEAD'],
+          ['-C', context.gitCachePath, 'clean', '-fd'],
+          ['-C', context.gitCachePath, 'remote', 'prune', 'origin'],
+          ['-C', context.gitCachePath, 'fetch', '--all', '--tags', '--prune'],
+          ['-C', context.gitCachePath, 'status', '--porcelain'],
+        ]),
+      );
     });
 
     test('throws AppException when git command fails', () async {
