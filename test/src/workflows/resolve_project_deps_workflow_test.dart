@@ -5,7 +5,6 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/resolve_project_deps.workflow.dart';
@@ -90,7 +89,7 @@ void main() {
         final versionDir = tempDirs.create();
         final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        createFailingFlutterExecutable(binDir);
+        File(p.join(binDir.path, 'flutter')).createSync();
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
         // Create Dart SDK cache version file (required for isSetup to be true)
@@ -140,7 +139,7 @@ void main() {
         final versionDir = tempDirs.create();
         final binDir = Directory(p.join(versionDir.path, 'bin'));
         binDir.createSync(recursive: true);
-        createFailingFlutterExecutable(binDir);
+        File(p.join(binDir.path, 'flutter')).createSync();
         File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
 
         // Create Dart SDK cache with DIFFERENT version (3.2.0) to trigger mismatch

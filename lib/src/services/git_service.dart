@@ -21,8 +21,7 @@ import 'process_service.dart';
 /// - ready: bare mirror, ready for use
 enum _GitCacheState { missing, invalid, legacy, ready }
 
-/// Service for Git operations
-/// Handles git cache management and repository operations
+/// Manages git cache (bare mirror), cloning, migration, and reference lookups.
 class GitService extends ContextualService {
   List<GitReference>? _referencesCache;
 
@@ -122,38 +121,45 @@ class GitService extends ContextualService {
     }
   }
 
-  Future<void> _createLocalMirror() async {
-    final gitCacheDir = Directory(context.gitCachePath);
-    // Use timestamp + random to avoid conflicts from concurrent operations
-    // and when previous temp dirs can't be deleted (Windows file locking)
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = Random().nextInt(99999);
-    final tempDir = Directory(
-      path.join(
-        gitCacheDir.parent.path,
-        '${path.basename(gitCacheDir.path)}.tmp.${timestamp}_$random',
-      ),
-    );
-
-    // Ensure the parent exists
-    if (!gitCacheDir.parent.existsSync()) {
-      gitCacheDir.parent.createSync(recursive: true);
+  /// Creates a uniquely-named temp directory next to [baseDir] using [suffix]
+  /// to distinguish the operation. The parent is created if needed.
+  Directory _createTempDir(Directory baseDir, String suffix) {
+    if (!baseDir.parent.existsSync()) {
+      baseDir.parent.createSync(recursive: true);
     }
+    final stamp = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
+    return Directory(
+      path.join(baseDir.parent.path, '${path.basename(baseDir.path)}.$suffix.$stamp'),
+    );
+  }
 
-    // Clean any previous temp clone
+  /// Runs [action] in a temp directory, cleaning up on failure.
+  Future<Directory> _withTempDir(
+    Directory baseDir,
+    String suffix,
+    Future<void> Function(Directory tempDir) action,
+  ) async {
+    final tempDir = _createTempDir(baseDir, suffix);
     if (tempDir.existsSync()) {
       await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
     }
-
     try {
-      await _cloneMirrorInto(tempDir);
-    } catch (error) {
-      // Ensure we don't leave a partial temp clone behind on failure
+      await action(tempDir);
+      return tempDir;
+    } catch (_) {
       if (tempDir.existsSync()) {
         await _deleteDirectoryWithRetry(tempDir, requireSuccess: false);
       }
       rethrow;
     }
+  }
+
+  Future<void> _createLocalMirror() async {
+    final gitCacheDir = Directory(context.gitCachePath);
+
+    final tempDir = await _withTempDir(gitCacheDir, 'tmp', (dir) async {
+      await _cloneMirrorInto(dir);
+    });
 
     await _atomicDirectorySwap(
       targetPath: gitCacheDir.path,
@@ -162,9 +168,11 @@ class GitService extends ContextualService {
     );
 
     logger.info('Local mirror created successfully!');
+    await _tryRewriteAlternates();
+  }
 
-    // After rebuilding the mirror, ensure all installed SDKs point their
-    // alternates to the new bare path (cache.git/objects).
+  /// Best-effort update of SDK alternates after mirror rebuild/migration.
+  Future<void> _tryRewriteAlternates() async {
     try {
       await _rewriteAlternatesToBarePath();
     } catch (e) {
@@ -221,8 +229,6 @@ class GitService extends ContextualService {
     progressTracker.complete();
     try {
       await _validateMirror(gitCacheDir);
-      // Ensure the mirror is actually bare; a non-bare clone here would
-      // break later operations and should be treated as invalid.
       if (!await _isBareRepository(gitCacheDir.path)) {
         throw const ProcessException(
           'git',
@@ -232,8 +238,6 @@ class GitService extends ContextualService {
         );
       }
     } on ProcessException {
-      // Only ProcessException expected from ProcessService.run()
-      // Cleanup corrupted mirror before rethrowing
       await _deleteDirectoryWithRetry(gitCacheDir, requireSuccess: false);
       rethrow;
     }
@@ -249,7 +253,6 @@ class GitService extends ContextualService {
     );
   }
 
-  /// Returns true if the repository at [path] is a bare repository.
   Future<bool> _isBareRepository(String path) async {
     final result = await get<ProcessService>().run(
       'git',
@@ -260,16 +263,14 @@ class GitService extends ContextualService {
     return (result.stdout as String?)?.trim().toLowerCase() == 'true';
   }
 
-  /// Helper method to run git ls-remote commands against the remote repository
   Future<List<GitReference>> _fetchGitReferences() async {
     if (_referencesCache != null) return _referencesCache!;
 
-    final List<String> command = ['ls-remote', '--tags', '--branches'];
-
-    command.add(context.flutterUrl);
-
     try {
-      final result = await get<ProcessService>().run('git', args: command);
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['ls-remote', '--tags', '--branches', context.flutterUrl],
+      );
 
       return _referencesCache = GitReference.parseGitReferences(
         result.stdout as String,
@@ -303,8 +304,8 @@ class GitService extends ContextualService {
     );
   }
 
-  /// Cleans up orphaned temp directories from previous failed operations.
-  /// These can accumulate when Windows file locking prevents deletion.
+  /// Cleans up orphaned temp directories from previous failed operations
+  /// (can accumulate on Windows when file locking prevents deletion).
   Future<void> _cleanupOrphanedTempDirs(Directory parentDir) async {
     if (!parentDir.existsSync()) return;
 
@@ -312,9 +313,7 @@ class GitService extends ContextualService {
     for (final entity in parentDir.listSync()) {
       if (entity is! Directory) continue;
       final name = path.basename(entity.path);
-      // Match temp dir patterns: {baseName}.tmp.{timestamp}_{random}, {baseName}.bare-tmp.{timestamp}_{random}
-      // e.g., cache.git.tmp.1234567890_12345, cache.git.bare-tmp.1234567890_12345
-      // Also matches legacy format without random suffix for cleanup compatibility
+      // Match patterns: {baseName}.tmp.{ts}_{rand} and {baseName}.bare-tmp.{ts}_{rand}
       if ((name.startsWith('$baseName.tmp.') ||
               name.startsWith('$baseName.bare-tmp.')) &&
           RegExp(r'\.\d+(_\d+)?$').hasMatch(name)) {
@@ -350,18 +349,14 @@ class GitService extends ContextualService {
       logger.warn(
         'Local mirror validation failed (${error.message}). Attempting repair...',
       );
-      // Try to repair by fetching from remote - this can fix missing objects
       try {
         await _syncMirrorWithRemote(gitCacheDir);
         await _validateMirror(gitCacheDir);
         logger.info('Mirror repaired successfully via fetch');
-
         return;
       } on ProcessException {
-        // Repair failed, need full recreate
         logger.warn('Repair failed, recreating mirror from scratch...');
         await _createLocalMirror();
-
         return;
       }
     }
@@ -371,40 +366,36 @@ class GitService extends ContextualService {
   }
 
   /// Rewrites alternates files from legacy non-bare path to the bare mirror.
-  /// Safe to run multiple times; it only updates entries that point at the
-  /// current cache path but still include the legacy `/.git/objects` suffix or
-  /// any other mismatched subpath.
+  /// Safe to run multiple times; only updates entries that reference our cache
+  /// path but don't yet point at the bare `objects` directory.
   Future<void> _rewriteAlternatesToBarePath() async {
-    final cacheService = get<CacheService>();
-    final versions = await cacheService.getAllVersions();
+    final versions = await get<CacheService>().getAllVersions();
     if (versions.isEmpty) return;
 
     // Resolve symlinks so macOS /var -> /private/var doesn't break matching
-    final resolvedCachePath = Directory(context.gitCachePath).existsSync()
-        ? Directory(context.gitCachePath).resolveSymbolicLinksSync()
+    final cacheDir = Directory(context.gitCachePath);
+    final resolvedCachePath = cacheDir.existsSync()
+        ? cacheDir.resolveSymbolicLinksSync()
         : context.gitCachePath;
     final desiredPath = path.normalize(
       path.join(resolvedCachePath, 'objects'),
     );
     final desiredParent = path.normalize(resolvedCachePath);
-    final desiredParentComparable =
-        Platform.isWindows ? desiredParent.toLowerCase() : desiredParent;
-    final desiredPathComparable =
-        Platform.isWindows ? desiredPath.toLowerCase() : desiredPath;
 
-    bool isWithinOrEqualToCachePath(String targetPath) {
-      final targetComparable =
-          Platform.isWindows ? targetPath.toLowerCase() : targetPath;
+    // Platform-aware path comparison (Windows is case-insensitive)
+    String comparable(String p) =>
+        Platform.isWindows ? p.toLowerCase() : p;
 
-      return targetComparable == desiredParentComparable ||
-          path.isWithin(desiredParentComparable, targetComparable);
+    bool isWithinCachePath(String target) {
+      final t = comparable(target);
+      final p = comparable(desiredParent);
+      return t == p || path.isWithin(p, t);
     }
 
     for (final version in versions) {
       final alternatesFile = File(
         path.join(version.directory, '.git', 'objects', 'info', 'alternates'),
       );
-
       if (!alternatesFile.existsSync()) continue;
 
       try {
@@ -420,17 +411,8 @@ class GitService extends ContextualService {
               : currentRaw,
         );
 
-        // Only fix alternates that reference our cache path (not backups, etc.).
-        final matchesParent = isWithinOrEqualToCachePath(currentNorm);
-        if (!matchesParent) {
-          continue;
-        }
-
-        final currentComparable =
-            Platform.isWindows ? currentNorm.toLowerCase() : currentNorm;
-        if (currentComparable == desiredPathComparable) {
-          continue; // already correct
-        }
+        if (!isWithinCachePath(currentNorm)) continue;
+        if (comparable(currentNorm) == comparable(desiredPath)) continue;
 
         alternatesFile.writeAsStringSync('$desiredPath\n');
         logger.info(
@@ -458,6 +440,33 @@ class GitService extends ContextualService {
     );
   }
 
+  /// Returns the entity at [entityPath] based on its file system type,
+  /// or null if nothing exists there.
+  static FileSystemEntity? _entityAt(String entityPath) {
+    final type = FileSystemEntity.typeSync(entityPath, followLinks: false);
+    switch (type) {
+      case FileSystemEntityType.directory:
+        return Directory(entityPath);
+      case FileSystemEntityType.file:
+        return File(entityPath);
+      case FileSystemEntityType.link:
+        return Link(entityPath);
+      default:
+        return null;
+    }
+  }
+
+  /// Deletes whatever exists at [entityPath] (file, link, or directory).
+  Future<void> _deleteEntityAt(String entityPath) async {
+    final entity = _entityAt(entityPath);
+    if (entity == null) return;
+    if (entity is Directory) {
+      await _deleteDirectoryWithRetry(entity, requireSuccess: false);
+    } else {
+      entity.deleteSync();
+    }
+  }
+
   /// Atomically replaces [targetPath] with [replacementDir] using a backup for
   /// rollback.
   Future<void> _atomicDirectorySwap({
@@ -466,10 +475,7 @@ class GitService extends ContextualService {
     String restoreFailureLabel = 'previous cache',
   }) async {
     final targetDir = Directory(targetPath);
-    final targetPathType = FileSystemEntity.typeSync(
-      targetPath,
-      followLinks: false,
-    );
+    final existingEntity = _entityAt(targetPath);
     final backupSuffix =
         '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
     final backupPath = path.join(
@@ -477,78 +483,36 @@ class GitService extends ContextualService {
       '${path.basename(targetPath)}.backup.$backupSuffix',
     );
 
-    FileSystemEntity? backupEntity;
-    if (targetPathType == FileSystemEntityType.file ||
-        targetPathType == FileSystemEntityType.link) {
-      backupEntity = targetPathType == FileSystemEntityType.file
-          ? File(targetPath)
-          : Link(targetPath);
-    } else if (targetPathType == FileSystemEntityType.directory) {
-      backupEntity = targetDir;
-    }
-
     try {
-      if (backupEntity != null) {
-        final existingBackupType = FileSystemEntity.typeSync(
-          backupPath,
-          followLinks: false,
-        );
-        if (existingBackupType == FileSystemEntityType.directory) {
-          await _deleteDirectoryWithRetry(
-            Directory(backupPath),
-            requireSuccess: false,
-          );
-        } else if (existingBackupType == FileSystemEntityType.file) {
-          File(backupPath).deleteSync();
-        } else if (existingBackupType == FileSystemEntityType.link) {
-          Link(backupPath).deleteSync();
-        }
-        backupEntity.renameSync(backupPath);
+      if (existingEntity != null) {
+        await _deleteEntityAt(backupPath);
+        existingEntity.renameSync(backupPath);
       }
 
       replacementDir.renameSync(targetPath);
-    } catch (error) {
-      if (!targetDir.existsSync() && backupEntity != null) {
-        try {
-          if (backupEntity is Directory) {
-            Directory(backupPath).renameSync(targetPath);
-          } else if (backupEntity is File) {
-            File(backupPath).renameSync(targetPath);
-          } else if (backupEntity is Link) {
-            Link(backupPath).renameSync(targetPath);
+    } catch (_) {
+      // Restore from backup if the target was moved but replacement failed
+      if (!targetDir.existsSync()) {
+        final backup = _entityAt(backupPath);
+        if (backup != null) {
+          try {
+            backup.renameSync(targetPath);
+          } on FileSystemException catch (restoreError) {
+            logger.warn(
+              'Failed to restore $restoreFailureLabel: ${restoreError.message}',
+            );
           }
-        } on FileSystemException catch (restoreError) {
-          logger.warn(
-            'Failed to restore $restoreFailureLabel: ${restoreError.message}',
-          );
         }
       }
       rethrow;
     }
 
-    if (backupEntity != null) {
-      final backupType = FileSystemEntity.typeSync(
-        backupPath,
-        followLinks: false,
-      );
-      if (backupType == FileSystemEntityType.directory) {
-        await _deleteDirectoryWithRetry(
-          Directory(backupPath),
-          requireSuccess: false,
-        );
-      } else if (backupType == FileSystemEntityType.file) {
-        File(backupPath).deleteSync();
-      } else if (backupType == FileSystemEntityType.link) {
-        Link(backupPath).deleteSync();
-      }
-    }
-
-    // Clean up orphaned temp directories from previous runs (after rename completes)
+    await _deleteEntityAt(backupPath);
     await _cleanupOrphanedTempDirs(targetDir.parent);
   }
 
   /// Migrates an existing non-bare cache clone to a bare mirror without
-  /// re-downloading. This reuses local objects and only fetches deltas.
+  /// re-downloading. Reuses local objects and only fetches deltas.
   Future<void> _migrateCacheCloneToMirror(
     Directory legacyDir, {
     bool updateRemote = true,
@@ -557,48 +521,25 @@ class GitService extends ContextualService {
 
     final processService = get<ProcessService>();
 
-    // Step 1: Clean the legacy clone to ensure no file locks or weird state
-    logger.debug('Cleaning legacy clone...');
-    try {
-      await processService.run(
-        'git',
-        args: ['reset', '--hard', 'HEAD'],
-        workingDirectory: legacyDir.path,
-      );
-    } on ProcessException catch (e) {
-      // Continue even if reset fails (e.g., detached HEAD edge cases)
-      logger.debug('Reset failed (${e.message}), continuing...');
+    // Clean the legacy clone to release file locks and normalize state
+    for (final args in [
+      ['reset', '--hard', 'HEAD'],
+      ['clean', '-fdx'],
+    ]) {
+      try {
+        await processService.run(
+          'git',
+          args: args,
+          workingDirectory: legacyDir.path,
+        );
+      } on ProcessException catch (e) {
+        logger.debug('${args.first} failed (${e.message}), continuing...');
+      }
     }
 
-    try {
-      await processService.run(
-        'git',
-        args: ['clean', '-fdx'],
-        workingDirectory: legacyDir.path,
-      );
-    } on ProcessException catch (e) {
-      logger.debug('Clean failed (${e.message}), continuing...');
-    }
-
-    // Step 2: Create bare mirror from local clone (fast - no network)
-    // Use timestamp + random to avoid conflicts from concurrent operations
-    // and when previous temp dirs can't be deleted (Windows file locking)
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final random = Random().nextInt(99999);
-    final tempBareDir = Directory(
-      path.join(
-        legacyDir.parent.path,
-        '${path.basename(legacyDir.path)}.bare-tmp.${timestamp}_$random',
-      ),
-    );
-
-    // Clean any previous temp directory
-    if (tempBareDir.existsSync()) {
-      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
-    }
-
+    // Create bare mirror from local clone (fast — no network needed)
     logger.info('Creating bare mirror from local clone...');
-    try {
+    final tempBareDir = await _withTempDir(legacyDir, 'bare-tmp', (dir) async {
       await processService.run(
         'git',
         args: [
@@ -607,50 +548,25 @@ class GitService extends ContextualService {
           if (Platform.isWindows) '-c',
           if (Platform.isWindows) 'core.longpaths=true',
           legacyDir.path,
-          tempBareDir.path,
+          dir.path,
         ],
       );
-    } catch (error) {
-      // Clean up on failure
-      if (tempBareDir.existsSync()) {
-        await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
+
+      // Point at the official remote
+      if (updateRemote) {
+        logger.info('Fetching latest from remote...');
+        await _syncMirrorWithRemote(dir);
+      } else {
+        await setOriginUrl(repositoryPath: dir.path, url: context.flutterUrl);
       }
-      rethrow;
-    }
 
-    // Step 3: Sync remote (set origin + fetch latest delta) if requested
-    if (updateRemote) {
-      logger.info('Fetching latest from remote...');
-      try {
-        await _syncMirrorWithRemote(tempBareDir);
-      } catch (error) {
-        await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
-        rethrow;
-      }
-    } else {
-      // Ensure the mirror points at the official remote even if we skip fetch
-      await setOriginUrl(
-        repositoryPath: tempBareDir.path,
-        url: context.flutterUrl,
-      );
-    }
-
-    // Step 4: Validate the new mirror
-    logger.debug('Validating new mirror...');
-    try {
-      await _validateMirror(tempBareDir);
-
-      // Verify it's actually bare
-      if (!await _isBareRepository(tempBareDir.path)) {
+      // Validate the new mirror
+      await _validateMirror(dir);
+      if (!await _isBareRepository(dir.path)) {
         throw AppException('Migration resulted in non-bare repository');
       }
-    } catch (error) {
-      await _deleteDirectoryWithRetry(tempBareDir, requireSuccess: false);
-      rethrow;
-    }
+    });
 
-    // Step 5: Swap directories - rename legacy to backup, temp to target
-    logger.debug('Swapping directories...');
     await _atomicDirectorySwap(
       targetPath: legacyDir.path,
       replacementDir: tempBareDir,
@@ -658,15 +574,7 @@ class GitService extends ContextualService {
     );
 
     logger.info('Legacy cache migrated to bare mirror successfully!');
-
-    // Step 6: Update alternates in installed SDKs to point to new bare path
-    try {
-      await _rewriteAlternatesToBarePath();
-    } catch (e) {
-      logger.warn(
-        'Failed to update SDK alternates: $e. Installed SDKs may need reinstall.',
-      );
-    }
+    await _tryRewriteAlternates();
 
     // Final safeguard: verify resulting cache is bare; otherwise recreate
     // from scratch to avoid leaving legacy worktree layouts behind.
@@ -677,7 +585,6 @@ class GitService extends ContextualService {
     }
   }
 
-  /// Sets the repository origin URL for the given git directory.
   Future<void> setOriginUrl({
     required String repositoryPath,
     required String url,
@@ -689,7 +596,6 @@ class GitService extends ContextualService {
     );
   }
 
-  /// Removes the local mirror cache directory under the cache mutation lock.
   Future<bool> removeLocalMirror({
     bool requireSuccess = false,
     void Function(FileSystemException error)? onFinalError,
@@ -761,8 +667,8 @@ class GitService extends ContextualService {
     });
   }
 
-  /// Ensures a legacy non-bare cache is migrated to a bare mirror if present.
-  /// This does not create or refresh the mirror from remote.
+  /// Migrates a legacy non-bare cache to a bare mirror if present.
+  /// Does not create or refresh the mirror from remote.
   Future<void> ensureBareCacheIfPresent() {
     return _withCacheMutationLock(() async {
       final gitCacheDir = Directory(context.gitCachePath);
@@ -786,36 +692,28 @@ class GitService extends ContextualService {
     });
   }
 
-  /// Returns the [name] of a branch [version]
-  Future<String?> getBranch(String version) async {
-    // For backward compatibility, use the FlutterVersion object
-    // to ensure proper directory path resolution
+  /// Resolves [version] to a [GitDir] for the cached SDK directory.
+  Future<GitDir> _resolveGitDir(String version) async {
     final flutterVersion = FlutterVersion.parse(version);
     final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
 
-    final isGitDir = await GitDir.isGitDir(versionDir.path);
+    if (!await GitDir.isGitDir(versionDir.path)) {
+      throw Exception('Not a git directory');
+    }
 
-    if (!isGitDir) throw Exception('Not a git directory');
+    return GitDir.fromExisting(versionDir.path);
+  }
 
-    final gitDir = await GitDir.fromExisting(versionDir.path);
-
+  /// Returns the branch name for a cached [version].
+  Future<String?> getBranch(String version) async {
+    final gitDir = await _resolveGitDir(version);
     final result = await gitDir.currentBranch();
-
     return result.branchName;
   }
 
-  /// Returns the [name] of a tag [version]
+  /// Returns the exact tag for a cached [version], or null if none matches.
   Future<String?> getTag(String version) async {
-    // For backward compatibility, use the FlutterVersion object
-    // to ensure proper directory path resolution
-    final flutterVersion = FlutterVersion.parse(version);
-    final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
-
-    final isGitDir = await GitDir.isGitDir(versionDir.path);
-
-    if (!isGitDir) throw Exception('Not a git directory');
-
-    final gitDir = await GitDir.fromExisting(versionDir.path);
+    final gitDir = await _resolveGitDir(version);
 
     try {
       final pr = await gitDir.runCommand([
@@ -823,17 +721,12 @@ class GitService extends ContextualService {
         '--tags',
         '--exact-match',
       ]);
-
       return (pr.stdout as String).trim();
     } on ProcessException catch (e) {
-      final message = e.message.toLowerCase();
-
-      if (message.contains('no tag exactly matches')) {
+      if (e.message.toLowerCase().contains('no tag exactly matches')) {
         logger.debug('No exact tag match for version "$version".');
-
         return null;
       }
-
       logger.err('Failed to get tag for version "$version": ${e.message}');
       rethrow;
     } catch (e) {

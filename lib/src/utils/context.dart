@@ -113,18 +113,14 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
-  /// Flag to determine if should use git cache
+  /// Whether to use the local git mirror cache.
+  ///
+  /// Explicit config/ENV opt-in/opt-out is always honoured.
+  /// Default: enabled locally, disabled on CI.
   @MappableField()
   bool get gitCache {
-    // Respect explicit opt-in/opt-out even on CI. Default behaviour keeps the
-    // git cache disabled on CI to avoid large fetches in ephemeral runners,
-    // but allows forcing it via config/ENV (e.g., FVM_USE_GIT_CACHE=true) so
-    // migration tests and power users can exercise the mirror path.
-    final bool? explicit = config.useGitCache;
-
+    final explicit = config.useGitCache;
     if (explicit != null) return explicit;
-
-    // Default: enable locally, disable on CI.
     return !isCI;
   }
 
@@ -137,12 +133,7 @@ class FvmContext with FvmContextMappable {
   String get fvmVersion => packageVersion;
 
   @MappableField()
-  String get gitCachePath {
-    // If git cache is not override use default based on fvmDir
-    if (config.gitCachePath != null) return config.gitCachePath!;
-
-    return join(fvmDir, 'cache.git');
-  }
+  String get gitCachePath => config.gitCachePath ?? join(fvmDir, 'cache.git');
 
   /// Flutter Git Repo
   @MappableField()

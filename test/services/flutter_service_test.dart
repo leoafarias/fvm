@@ -14,8 +14,6 @@ import 'package:test/test.dart';
 
 import '../testing_utils.dart';
 
-/// Deletes a loose git object to simulate corrupted mirrors in tests.
-/// If the object is packed, it unpacks first, then deletes the loose object.
 Future<void> _deleteLooseGitObject({
   required String repoPath,
   required String objectSha,
@@ -676,10 +674,6 @@ void main() {
           version: mockCacheVersion,
         );
 
-        // Testing implementation details:
-        // This test confirms the VersionRunner can be constructed correctly
-        // For more comprehensive testing, we'd need to verify the environment variables
-        // are correctly set, which would require mocking Platform.environment
         expect(versionRunner, isA<VersionRunner>());
       });
     });

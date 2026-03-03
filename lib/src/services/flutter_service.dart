@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:git/git.dart';
@@ -14,7 +13,6 @@ import '../utils/file_utils.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
-import 'logger_service.dart';
 import 'process_service.dart';
 import 'releases_service/releases_client.dart';
 
@@ -38,6 +36,12 @@ class FlutterService extends ContextualService {
   static const List<String> _gitObjectErrorPatterns = [
     ..._gitObjectCorruptionMarkers,
     ..._gitMissingObjectMarkers,
+  ];
+
+  static const List<String> _gitCorruptionKeywords = [
+    'corrupt',
+    'damaged',
+    'hash mismatch',
   ];
 
   const FlutterService(super.context);
@@ -66,13 +70,8 @@ class FlutterService extends ContextualService {
     return runGit(args, echoOutput: echoOutput);
   }
 
-  bool _shouldUseLocalMirror(FlutterVersion version) {
-    return context.gitCache && !version.fromFork;
-  }
-
   /// Attempts a clone from the local mirror. Returns null on failure so the
-  /// caller can fall back to the remote without duplicating the try/catch
-  /// boilerplate.
+  /// caller can fall back to the remote.
   Future<ProcessResult?> _tryCloneFromMirror({
     required Directory versionDir,
     required FlutterVersion version,
@@ -101,21 +100,27 @@ class FlutterService extends ContextualService {
         );
 
         // Delete corrupted mirror so it can be recreated on next install.
+        // Wrapped in try/catch because removeLocalMirror acquires a file lock
+        // that can throw AppException — must not abort the remote fallback.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
-          final deleted = await get<GitService>().removeLocalMirror(
-            requireSuccess: false,
-            onFinalError: (error) {
-              logger.warn(
-                'Could not remove corrupted cache: ${error.message}. '
-                'You may need to manually delete ${cacheDir.path}',
-              );
-            },
-          );
-          if (deleted) {
-            logger.info(
-              'Removed corrupted cache. It will be recreated on next install.',
+          try {
+            final deleted = await get<GitService>().removeLocalMirror(
+              requireSuccess: false,
+              onFinalError: (error) {
+                logger.warn(
+                  'Could not remove corrupted cache: ${error.message}. '
+                  'You may need to manually delete ${cacheDir.path}',
+                );
+              },
             );
+            if (deleted) {
+              logger.info(
+                'Removed corrupted cache. It will be recreated on next install.',
+              );
+            }
+          } catch (e) {
+            logger.debug('Failed to remove corrupted mirror: $e');
           }
         }
       } else {
@@ -176,7 +181,7 @@ class FlutterService extends ContextualService {
 
     return lower.contains('unknown revision') ||
         lower.contains('ambiguous argument') ||
-        lower.contains('not found');
+        (lower.contains('pathspec') && lower.contains('did not match'));
   }
 
   /// Detects git errors that indicate missing or unreadable objects in the
@@ -190,13 +195,8 @@ class FlutterService extends ContextualService {
   bool _isMirrorCorruptionError(String errorMessage) {
     final lower = errorMessage.toLowerCase();
 
-    if (lower.contains('corrupt') ||
-        lower.contains('damaged') ||
-        lower.contains('hash mismatch')) {
-      return true;
-    }
-
-    return _gitObjectCorruptionMarkers.any(lower.contains);
+    return _gitCorruptionKeywords.any(lower.contains) ||
+        _gitObjectCorruptionMarkers.any(lower.contains);
   }
 
   Never _throwReferenceLookupError({
@@ -304,40 +304,29 @@ class FlutterService extends ContextualService {
     final versionDir = get<CacheService>().getVersionCacheDir(version);
 
     if (version.fromFork) {
-      final forkDir = Directory(
-        path.join(context.versionsCachePath, version.fork!),
-      );
-      if (!forkDir.existsSync()) {
-        forkDir.createSync(recursive: true);
-      }
-      logger.debug('Created fork directory: ${forkDir.path}');
+      Directory(path.join(context.versionsCachePath, version.fork!))
+          .createSync(recursive: true);
     }
 
     return versionDir;
   }
 
   Future<String?> _resolveChannel(FlutterVersion version) async {
-    String? channel = version.name;
-
-    if (version.isChannel) {
-      channel = version.name;
-    }
+    if (version.isChannel) return version.name;
 
     if (version.isRelease) {
       if (version.releaseChannel != null) {
-        channel = version.releaseChannel!.name;
-      } else {
-        final release = await get<FlutterReleaseClient>().getReleaseByVersion(
-          version.name,
-        );
-
-        if (release != null) {
-          channel = release.channel.name;
-        }
+        return version.releaseChannel!.name;
       }
+
+      final release = await get<FlutterReleaseClient>().getReleaseByVersion(
+        version.name,
+      );
+
+      if (release != null) return release.channel.name;
     }
 
-    return channel;
+    return version.name;
   }
 
   String _resolveRepositoryUrl(FlutterVersion version) {
@@ -363,17 +352,16 @@ class FlutterService extends ContextualService {
     return repoUrl;
   }
 
-  Future<_CloneOutcome> _executeClone({
+  /// Clones the SDK, trying the local mirror first when enabled.
+  /// Returns true if the clone came from the local mirror.
+  Future<bool> _executeClone({
     required FlutterVersion version,
     required Directory versionDir,
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
   }) async {
-    final bool useLocalMirror = _shouldUseLocalMirror(version);
-
-    ProcessResult result;
-    bool clonedFromMirror = false;
+    final useLocalMirror = context.gitCache && !version.fromFork;
 
     if (useLocalMirror) {
       final mirrorResult = await _tryCloneFromMirror(
@@ -383,29 +371,18 @@ class FlutterService extends ContextualService {
         echoOutput: echoOutput,
       );
 
-      if (mirrorResult != null) {
-        result = mirrorResult;
-        clonedFromMirror = true;
-      } else {
-        result = await _cloneSdk(
-          source: repoUrl,
-          versionDir: versionDir,
-          version: version,
-          channel: channel,
-          echoOutput: echoOutput,
-        );
-      }
-    } else {
-      result = await _cloneSdk(
-        source: repoUrl,
-        versionDir: versionDir,
-        version: version,
-        channel: channel,
-        echoOutput: echoOutput,
-      );
+      if (mirrorResult != null) return true;
     }
 
-    return _CloneOutcome(result: result, clonedFromMirror: clonedFromMirror);
+    await _cloneSdk(
+      source: repoUrl,
+      versionDir: versionDir,
+      version: version,
+      channel: channel,
+      echoOutput: echoOutput,
+    );
+
+    return false;
   }
 
   Future<void> _validateReference({
@@ -451,18 +428,23 @@ class FlutterService extends ContextualService {
     required Directory versionDir,
     required String repoUrl,
   }) async {
+    // Best-effort cleanup — must not mask the original error.
+    try {
+      await _cleanupInstallArtifacts(
+        version: version,
+        versionDir: versionDir,
+        removeCache: true,
+      );
+    } catch (cleanupError) {
+      logger.debug('Cleanup after install failure failed: $cleanupError');
+    }
+
     if (error is ProcessException) {
       final errorMessage = error.toString().toLowerCase();
 
       if (errorMessage.contains('repository not found') ||
           (errorMessage.contains('remote branch') &&
               errorMessage.contains('not found'))) {
-        await _cleanupInstallArtifacts(
-          version: version,
-          versionDir: versionDir,
-          removeCache: true,
-        );
-
         if (version.fromFork) {
           Error.throwWithStackTrace(
             AppException(
@@ -484,12 +466,6 @@ class FlutterService extends ContextualService {
         );
       }
     }
-
-    await _cleanupInstallArtifacts(
-      version: version,
-      versionDir: versionDir,
-      removeCache: true,
-    );
 
     if (error is AppException) {
       Error.throwWithStackTrace(error, stackTrace);
@@ -529,15 +505,13 @@ class FlutterService extends ContextualService {
   }) {
     final args = ['pub', 'get', if (offline) '--offline'];
 
-    // For offline mode, we can safely suppress output
-    // For online mode, we need to allow stdio inheritance for authentication prompts
+    // Online mode needs stdio inheritance for authentication prompts
     return run(
       'flutter',
       args,
       version,
       throwOnError: throwOnError,
-      echoOutput:
-          !offline, // Allow stdio inheritance for authentication when online
+      echoOutput: !offline,
     );
   }
 
@@ -556,10 +530,10 @@ class FlutterService extends ContextualService {
     final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
-    final echoOutput = !(context.isTest || !logger.isVerbose);
+    final echoOutput = !context.isTest && logger.isVerbose;
 
     try {
-      final cloneOutcome = await _executeClone(
+      final clonedFromMirror = await _executeClone(
         version: version,
         versionDir: versionDir,
         repoUrl: repoUrl,
@@ -567,7 +541,6 @@ class FlutterService extends ContextualService {
         echoOutput: echoOutput,
       );
 
-      // Verify clone produced a valid git repository
       final isGit = await GitDir.isGitDir(versionDir.path);
       if (!isGit) {
         throw AppException(
@@ -578,17 +551,11 @@ class FlutterService extends ContextualService {
       await _validateReference(
         version: version,
         versionDir: versionDir,
-        clonedFromMirror: cloneOutcome.clonedFromMirror,
+        clonedFromMirror: clonedFromMirror,
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
       );
-
-      if (cloneOutcome.result.exitCode != ExitCode.success.code) {
-        throw AppException(
-          'Could not clone Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
-        );
-      }
     } catch (error, stackTrace) {
       await _handleCloneError(
         error: error,
@@ -599,16 +566,6 @@ class FlutterService extends ContextualService {
       );
     }
   }
-}
-
-class _CloneOutcome {
-  final ProcessResult result;
-  final bool clonedFromMirror;
-
-  const _CloneOutcome({
-    required this.result,
-    required this.clonedFromMirror,
-  });
 }
 
 class VersionRunner {
@@ -622,41 +579,27 @@ class VersionRunner {
         _version = version;
 
   Map<String, String> _updateEnvironmentVariables(List<String> paths) {
-    // Remove any values that are similar
-    // within the list of paths.
-    paths = paths.toSet().toList();
-
+    final uniquePaths = paths.toSet().toList();
     final env = _context.environment;
-
-    final logger = _context.get<Logger>();
-
-    logger.debug('Starting to update environment variables...');
-
-    final updatedEnvironment = Map.of(env);
-
-    final envPath = env['PATH'] ?? '';
-
     final separator = Platform.isWindows ? ';' : ':';
 
-    updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
-
-    return updatedEnvironment;
+    return {
+      ...env,
+      'PATH': uniquePaths.join(separator) + separator + (env['PATH'] ?? ''),
+    };
   }
 
-  /// Runs dart cmd
   Future<ProcessResult> run(
     String cmd,
     List<String> args, {
     bool? echoOutput,
     bool? throwOnError,
   }) {
-    // Update environment
     final environment = _updateEnvironmentVariables([
       _version.binPath,
       _version.dartBinPath,
     ]);
 
-    // Run command
     return _context.get<ProcessService>().run(
           cmd,
           args: args,

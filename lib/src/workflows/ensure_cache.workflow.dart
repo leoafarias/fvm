@@ -14,7 +14,6 @@ import 'workflow.dart';
 class EnsureCacheWorkflow extends Workflow {
   const EnsureCacheWorkflow(super.context);
 
-  // Auto-fix corrupted cache for improved user experience
   Future<CacheFlutterVersion> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
@@ -37,12 +36,8 @@ class EnsureCacheWorkflow extends Workflow {
         'Auto-fixing corrupted cache by reinstalling (attempt ${retryCount + 1}/$maxRetries)...',
       );
 
-    // Always auto-fix corrupted cache - no prompting needed
-    // Corrupted cache is always a problem that needs fixing
     await get<CacheService>().remove(version);
-    logger.info(
-      'The corrupted SDK version is now being removed and a reinstallation will follow...',
-    );
+    logger.info('Removing corrupted SDK and reinstalling...');
 
     return await call(
       version,
@@ -52,7 +47,6 @@ class EnsureCacheWorkflow extends Workflow {
     );
   }
 
-  // Clarity on why the version mismatch happened and how it can be fixed
   Future<CacheFlutterVersion> _handleVersionMismatch(
     CacheFlutterVersion version,
   ) async {
@@ -73,13 +67,11 @@ class EnsureCacheWorkflow extends Workflow {
 
     String selectedOption;
     if (context.skipInput) {
-      // In CI/non-interactive mode, automatically choose safe default: remove and reinstall
       logger.warn(
-        'CI/non-interactive mode detected: Auto-selecting to remove and reinstall',
+        'CI/non-interactive mode: auto-selecting remove and reinstall',
       );
       selectedOption = secondOption;
     } else {
-      // Interactive mode: show prompt
       selectedOption = logger.select(
         'How would you like to resolve this?',
         options: [firstOption, secondOption],
@@ -98,22 +90,18 @@ class EnsureCacheWorkflow extends Workflow {
   }
 
   void _validateContext() {
-    final isValid = isValidGitUrl(context.flutterUrl);
-    if (!isValid) {
+    if (!isValidGitUrl(context.flutterUrl)) {
       throw AppException(
-        'Invalid Flutter URL: "${context.flutterUrl}". Please change config to a valid git url',
+        'Invalid Flutter URL: "${context.flutterUrl}". '
+        'Please change config to a valid git url',
       );
     }
   }
 
   void _validateGit() {
     try {
-      // `Process.runSync` throws a [ProcessException] when the executable
-      // cannot be found. If Git is installed, it returns a [ProcessResult]
-      // whose [exitCode] is `0` on success.
-      final isGitInstalled =
-          Process.runSync('git', ['--version']).exitCode == 0;
-      if (!isGitInstalled) {
+      final result = Process.runSync('git', ['--version']);
+      if (result.exitCode != 0) {
         throw const AppException('Git is not installed');
       }
     } on ProcessException catch (_, stackTrace) {

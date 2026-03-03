@@ -164,7 +164,6 @@ void main() {
     test('skips recreation when cache is already bare mirror', () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');
 
-      // Create a bare mirror first
       await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
       expect(await isBareGitRepository(gitCachePath), isTrue);
 
@@ -181,14 +180,12 @@ void main() {
       final gitService = GitService(context);
       await gitService.updateLocalMirror();
 
-      // Should still be bare (not recreated)
       expect(await isBareGitRepository(gitCachePath), isTrue);
     });
 
     test('recreates mirror when cache directory is invalid', () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');
 
-      // Create invalid cache (just an empty directory, not a git repo)
       Directory(gitCachePath).createSync(recursive: true);
       expect(Directory(gitCachePath).existsSync(), isTrue);
 
@@ -205,7 +202,6 @@ void main() {
       final gitService = GitService(context);
       await gitService.updateLocalMirror();
 
-      // Should now be a valid bare mirror
       expect(await isBareGitRepository(gitCachePath), isTrue);
     });
 
