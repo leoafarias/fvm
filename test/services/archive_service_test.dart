@@ -140,6 +140,36 @@ void main() {
     }
   });
 
+  Future<T> withArchiveTestZone<T>({
+    required int port,
+    required Future<T> Function(ArchiveService svc, Directory versionDir) body,
+    Map<Type, Generator>? extraGenerators,
+    String debugLabel = 'archive-test',
+    String version = 'stable',
+  }) async {
+    final overrides = _RedirectHttpOverrides(
+      Uri.parse('http://127.0.0.1:$port'),
+    );
+
+    return HttpOverrides.runZoned(
+      () async {
+        final ctx = TestFactory.context(
+          debugLabel: debugLabel,
+          generators: {
+            FlutterReleaseClient: (_) => mockReleaseClient,
+            ...?extraGenerators,
+          },
+        );
+
+        final svc = ArchiveService(ctx);
+        tempDir = Directory(ctx.versionsCachePath);
+        final versionDir = Directory(path.join(tempDir.path, version));
+        return body(svc, versionDir);
+      },
+      createHttpClient: overrides.createHttpClient,
+    );
+  }
+
   group('ArchiveService', () {
     group('install - version validation', () {
       test('throws AppException for forked versions', () async {
@@ -284,27 +314,13 @@ void main() {
         when(() => mockReleaseClient.getReleaseByVersion('3.16.0'))
             .thenAnswer((_) async => release);
 
-        final overrides = _RedirectHttpOverrides(
-            Uri.parse('http://127.0.0.1:${server.port}'));
-
-        await HttpOverrides.runZoned(
-          () async {
-            final context = TestFactory.context(
-              debugLabel: 'checksum-failure',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            archiveService = ArchiveService(context);
-            tempDir = Directory(context.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, '3.16.0'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'checksum-failure',
+          version: '3.16.0',
+          body: (svc, versionDir) async {
             await expectLater(
-              archiveService.install(
-                FlutterVersion.parse('3.16.0'),
-                versionDir,
-              ),
+              svc.install(FlutterVersion.parse('3.16.0'), versionDir),
               throwsA(
                 isA<AppException>().having(
                   (e) => e.message,
@@ -314,7 +330,6 @@ void main() {
               ),
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -329,27 +344,12 @@ void main() {
 
         final existingTempDirs = _listArchiveTempDirs();
 
-        final overrides = _RedirectHttpOverrides(
-            Uri.parse('http://127.0.0.1:${server.port}'));
-
-        await HttpOverrides.runZoned(
-          () async {
-            final context = TestFactory.context(
-              debugLabel: 'http-error',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            archiveService = ArchiveService(context);
-            tempDir = Directory(context.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'http-error',
+          body: (svc, versionDir) async {
             await expectLater(
-              archiveService.install(
-                FlutterVersion.parse('stable'),
-                versionDir,
-              ),
+              svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(
                 isA<AppException>().having(
                   (e) => e.message,
@@ -362,7 +362,6 @@ void main() {
             final after = _listArchiveTempDirs();
             expect(after.toSet().difference(existingTempDirs.toSet()), isEmpty);
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -395,28 +394,13 @@ void main() {
 
         final before = _listArchiveTempDirs();
 
-        final overrides = _RedirectHttpOverrides(
-            Uri.parse('http://127.0.0.1:${server.port}'));
-
-        await HttpOverrides.runZoned(
-          () async {
-            final context = TestFactory.context(
-              debugLabel: 'extract-failure',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            archiveService = ArchiveService(context);
-            tempDir = Directory(context.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'extract-failure',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             await expectLater(
-              archiveService.install(
-                FlutterVersion.parse('stable'),
-                versionDir,
-              ),
+              svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(
                 isA<AppException>().having(
                   (e) => e.message,
@@ -429,7 +413,6 @@ void main() {
             final after = _listArchiveTempDirs();
             expect(after.toSet().difference(before.toSet()), isEmpty);
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
     });
@@ -604,42 +587,25 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'cache-preserved-download-fail',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
-            // Pre-populate the cache directory with a marker file
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'cache-preserved-download-fail',
+          body: (svc, versionDir) async {
             versionDir.createSync(recursive: true);
             final binDir = Directory(path.join(versionDir.path, 'bin'));
             binDir.createSync(recursive: true);
             final marker = File(path.join(binDir.path, 'flutter'));
             marker.writeAsStringSync('original');
 
-            // Attempt archive install - should fail
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(isA<AppException>()),
             );
 
-            // Verify original cache is still intact
             expect(versionDir.existsSync(), isTrue);
             expect(marker.existsSync(), isTrue);
             expect(marker.readAsStringSync(), equals('original'));
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -654,29 +620,14 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'cache-preserved-checksum-fail',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
-            // Pre-populate the cache directory with a marker file
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'cache-preserved-checksum-fail',
+          body: (svc, versionDir) async {
             versionDir.createSync(recursive: true);
             final marker = File(path.join(versionDir.path, 'marker.txt'));
             marker.writeAsStringSync('original');
 
-            // Attempt archive install - should fail with checksum mismatch
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(
@@ -688,12 +639,10 @@ void main() {
               ),
             );
 
-            // Verify original cache is still intact
             expect(versionDir.existsSync(), isTrue);
             expect(marker.existsSync(), isTrue);
             expect(marker.readAsStringSync(), equals('original'));
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -706,33 +655,18 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'staging-cleanup',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'staging-cleanup',
+          body: (svc, versionDir) async {
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(isA<AppException>()),
             );
 
-            // Verify no staging directory remains
             final stagingDir = Directory('${versionDir.path}.archive_staging');
             expect(stagingDir.existsSync(), isFalse);
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -782,23 +716,11 @@ void main() {
           return ProcessResult(0, 0, '', '');
         });
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'finalize-failure-preserves-cache',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'finalize-failure-preserves-cache',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             versionDir.createSync(recursive: true);
 
             final marker = File(path.join(versionDir.path, 'existing.txt'));
@@ -826,7 +748,6 @@ void main() {
               isFalse,
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -877,23 +798,11 @@ void main() {
           return ProcessResult(0, 0, '', '');
         });
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'finalize-success-cleans-backup',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'finalize-success-cleans-backup',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             versionDir.createSync(recursive: true);
             File(path.join(versionDir.path, 'old.txt'))
                 .writeAsStringSync('old');
@@ -909,7 +818,6 @@ void main() {
               isFalse,
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
     });
@@ -928,7 +836,6 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        // Mock extraction to create flutter/ subdirectory structure
         when(
           () => mockProcessService.run(
             any(),
@@ -947,7 +854,6 @@ void main() {
               targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
           final targetDir = Directory(targetPath);
 
-          // Create flutter/ subdirectory structure
           final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
           flutterDir.createSync(recursive: true);
           Directory(path.join(flutterDir.path, 'bin')).createSync();
@@ -965,27 +871,13 @@ void main() {
           return ProcessResult(0, 0, '', '');
         });
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'flatten-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'flatten-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
-            // Contents should be flattened from flutter/ to root
             final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
             expect(
               File(path.join(versionDir.path, 'bin', execName)).existsSync(),
@@ -995,13 +887,11 @@ void main() {
               File(path.join(versionDir.path, 'README')).existsSync(),
               isTrue,
             );
-            // Original flutter/ dir should be removed
             expect(
               Directory(path.join(versionDir.path, 'flutter')).existsSync(),
               isFalse,
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -1036,7 +926,6 @@ void main() {
               targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
           final targetDir = Directory(targetPath);
 
-          // Create flutter/ with __MACOSX inside
           final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
           flutterDir.createSync(recursive: true);
           Directory(path.join(flutterDir.path, 'bin')).createSync();
@@ -1048,39 +937,23 @@ void main() {
             Process.runSync('chmod', ['+x', flutterExec.path]);
           }
 
-          // Create __MACOSX directory inside flutter/
           Directory(path.join(flutterDir.path, '__MACOSX')).createSync();
 
           return ProcessResult(0, 0, '', '');
         });
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'macosx-skip-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'macosx-skip-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
-            // __MACOSX should not be present in the final directory
             expect(
               Directory(path.join(versionDir.path, '__MACOSX')).existsSync(),
               isFalse,
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -1097,7 +970,6 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        // Create bin/flutter directly (no flutter/ subdirectory)
         when(
           () => mockProcessService.run(
             any(),
@@ -1127,34 +999,19 @@ void main() {
           return ProcessResult(0, 0, '', '');
         });
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'no-flatten-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'no-flatten-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
-            // Should have bin/flutter at root level
             final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
             expect(
               File(path.join(versionDir.path, 'bin', execName)).existsSync(),
               isTrue,
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -1171,7 +1028,6 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        // Mock extraction to create empty directory (no flutter binary)
         when(
           () => mockProcessService.run(
             any(),
@@ -1183,24 +1039,11 @@ void main() {
           ),
         ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'missing-binary-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'missing-binary-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(
@@ -1212,7 +1055,6 @@ void main() {
               ),
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
     });
@@ -1262,33 +1104,15 @@ void main() {
           ),
         ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'tar-args-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
-            // Will fail at validation (no flutter binary), that's expected
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'tar-args-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             try {
-              await svc.install(
-                FlutterVersion.parse('stable'),
-                versionDir,
-              );
+              await svc.install(FlutterVersion.parse('stable'), versionDir);
             } catch (_) {}
 
-            // Verify tar was called with correct arguments
             final captured = verify(
               () => mockProcessService.run(
                 'tar',
@@ -1305,7 +1129,6 @@ void main() {
             expect(args[0], equals('-xJf'));
             expect(args[2], equals('-C'));
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
 
@@ -1334,30 +1157,13 @@ void main() {
           ),
         ).thenAnswer((_) async => ProcessResult(0, 0, '', ''));
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:${server.port}'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'unzip-args-test',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-                ProcessService: (_) => mockProcessService,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
-            // Will fail at validation, that's expected
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'unzip-args-test',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
             try {
-              await svc.install(
-                FlutterVersion.parse('stable'),
-                versionDir,
-              );
+              await svc.install(FlutterVersion.parse('stable'), versionDir);
             } catch (_) {}
 
             if (!Platform.isWindows) {
@@ -1379,40 +1185,24 @@ void main() {
               expect(args[3], equals('-d'));
             }
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
     });
 
     group('network error handling', () {
       test('wraps SocketException with network error message', () async {
-        // Create a server that immediately closes connections
         final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
         final port = server.port;
         await server.close(force: true);
 
-        // Use the now-closed port - connection will be refused
         final release = createTestRelease();
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final overrides = _RedirectHttpOverrides(
-          Uri.parse('http://127.0.0.1:$port'),
-        );
-
-        await HttpOverrides.runZoned(
-          () async {
-            final ctx = TestFactory.context(
-              debugLabel: 'socket-error',
-              generators: {
-                FlutterReleaseClient: (_) => mockReleaseClient,
-              },
-            );
-
-            final svc = ArchiveService(ctx);
-            tempDir = Directory(ctx.versionsCachePath);
-            final versionDir = Directory(path.join(tempDir.path, 'stable'));
-
+        await withArchiveTestZone(
+          port: port,
+          debugLabel: 'socket-error',
+          body: (svc, versionDir) async {
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
               throwsA(
@@ -1427,7 +1217,6 @@ void main() {
               ),
             );
           },
-          createHttpClient: overrides.createHttpClient,
         );
       });
     });

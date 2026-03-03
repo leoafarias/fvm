@@ -173,7 +173,11 @@ class ArchiveService extends ContextualService {
 
     Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
       progress.fail('Failed to download Flutter SDK archive');
-      tempDir.deleteSync(recursive: true);
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {
+        // Best-effort cleanup; don't mask the original error
+      }
 
       if (error is AppException) {
         Error.throwWithStackTrace(error, stackTrace);
@@ -216,12 +220,8 @@ class ArchiveService extends ContextualService {
             );
           }
         }
-        await sink.close();
-      } catch (e) {
-        // Ensure sink is closed before cleanup to release file handles
-        // Ignore close errors - we're already handling the original error
+      } finally {
         await sink.close().catchError((_) => null);
-        rethrow;
       }
 
       final description = totalBytes != -1
@@ -247,8 +247,6 @@ class ArchiveService extends ContextualService {
         ),
         stackTrace,
       );
-    } on AppException catch (error, stackTrace) {
-      cleanupAndRethrow(error, stackTrace);
     } catch (error, stackTrace) {
       cleanupAndRethrow(error, stackTrace);
     } finally {
@@ -313,64 +311,52 @@ class ArchiveService extends ContextualService {
     }
   }
 
-  Future<void> _extractTarXz(File archive, Directory targetDir) async {
+  Future<void> _runExtraction(
+    String tool,
+    List<String> args,
+    String errorHint,
+  ) async {
     try {
-      await get<ProcessService>().run(
-        'tar',
-        args: ['-xJf', archive.path, '-C', targetDir.path],
-      );
+      await get<ProcessService>().run(tool, args: args);
     } on ProcessException catch (error, stackTrace) {
       Error.throwWithStackTrace(
-        AppException(
-          'Failed to extract the archive with tar. Ensure the "tar" tool '
-          'is available on your system. ${error.message}',
-        ),
+        AppException('$errorHint ${error.message}'),
         stackTrace,
       );
     }
   }
 
-  Future<void> _extractZipUnix(File archive, Directory targetDir) async {
-    try {
-      await get<ProcessService>().run(
+  Future<void> _extractTarXz(File archive, Directory targetDir) =>
+      _runExtraction(
+        'tar',
+        ['-xJf', archive.path, '-C', targetDir.path],
+        'Failed to extract the archive with tar. Ensure the "tar" tool '
+        'is available on your system.',
+      );
+
+  Future<void> _extractZipUnix(File archive, Directory targetDir) =>
+      _runExtraction(
         'unzip',
-        args: ['-q', '-o', archive.path, '-d', targetDir.path],
+        ['-q', '-o', archive.path, '-d', targetDir.path],
+        'Failed to extract the archive with unzip. Ensure the "unzip" tool '
+        'is installed.',
       );
-    } on ProcessException catch (error, stackTrace) {
-      Error.throwWithStackTrace(
-        AppException(
-          'Failed to extract the archive with unzip. Ensure the "unzip" tool '
-          'is installed. ${error.message}',
-        ),
-        stackTrace,
-      );
-    }
-  }
 
   /// Escapes a path for use in PowerShell single-quoted strings.
   String _escapePowerShellPath(String filePath) =>
       filePath.replaceAll("'", "''");
 
-  Future<void> _extractZipWindows(File archive, Directory targetDir) async {
-    // Use -LiteralPath with single quotes for proper path handling
+  Future<void> _extractZipWindows(File archive, Directory targetDir) {
     final escapedArchive = _escapePowerShellPath(archive.path);
     final escapedTarget = _escapePowerShellPath(targetDir.path);
     final command =
         "Expand-Archive -LiteralPath '$escapedArchive' -DestinationPath '$escapedTarget' -Force";
 
-    try {
-      await get<ProcessService>().run(
-        'powershell',
-        args: ['-NoLogo', '-NoProfile', '-Command', command],
-      );
-    } on ProcessException catch (error, stackTrace) {
-      Error.throwWithStackTrace(
-        AppException(
-          'Failed to extract the archive with PowerShell. ${error.message}',
-        ),
-        stackTrace,
-      );
-    }
+    return _runExtraction(
+      'powershell',
+      ['-NoLogo', '-NoProfile', '-Command', command],
+      'Failed to extract the archive with PowerShell.',
+    );
   }
 
   void _flattenStructure(Directory targetDir) {
@@ -464,7 +450,6 @@ class ArchiveService extends ContextualService {
     final stagingDir = Directory('${versionDir.path}.archive_staging');
     final backupDir = Directory('${versionDir.path}.archive_backup');
 
-    // Clean up any leftover staging directory from a previous failed attempt
     if (stagingDir.existsSync()) {
       stagingDir.deleteSync(recursive: true);
     }
@@ -472,7 +457,6 @@ class ArchiveService extends ContextualService {
       backupDir.deleteSync(recursive: true);
     }
 
-    // Ensure the parent directory exists (required for fork paths)
     final parentDir = versionDir.parent;
     if (!parentDir.existsSync()) {
       parentDir.createSync(recursive: true);
@@ -495,7 +479,6 @@ class ArchiveService extends ContextualService {
 
       _finalizeInstall(stagingDir, versionDir, backupDir);
     } catch (e) {
-      // Failure: clean up staging, leave existing versionDir untouched
       if (stagingDir.existsSync()) {
         try {
           stagingDir.deleteSync(recursive: true);
@@ -523,8 +506,8 @@ class _DownloadedArchive {
 
     try {
       tempDir.deleteSync(recursive: true);
-    } catch (e) {
-      stderr.writeln('Warning: Could not clean up temp directory: $e');
+    } catch (_) {
+      // Best-effort cleanup; outer install() handles its own staging cleanup
     }
   }
 }
