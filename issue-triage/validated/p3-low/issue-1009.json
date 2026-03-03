@@ -1,0 +1,10 @@
+{
+  "number": 1009,
+  "title": "Custom fork issues",
+  "triagedAt": "2026-03-03",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1009.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1009",
+  "notes": "Likely fork-version metadata/docs gap; improve custom fork guidance and list output for unknown fork version metadata."
+}

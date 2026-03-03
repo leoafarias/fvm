@@ -1,0 +1,10 @@
+{
+  "number": 968,
+  "title": "[BUG] Fail agressively when SDK setup fails (e.g. missing dependencies)",
+  "triagedAt": "2026-03-03",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-968.md",
+  "url": "https://github.com/leoafarias/fvm/issues/968",
+  "notes": "Setup success is reported before validating that the SDK finished setup (missing tools like unzip can leave a partial setup state)."
+}

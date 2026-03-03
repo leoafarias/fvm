@@ -1,0 +1,10 @@
+{
+  "number": 1016,
+  "title": "[Feature Request] support installing the latest patch for a stable version without taking latest stable",
+  "triagedAt": "2026-03-03",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1016.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1016",
+  "notes": "Enhancement request for minor-line patch resolution (e.g., 3.38 -> latest 3.38.x); currently interpreted as git reference, not release constraint."
+}

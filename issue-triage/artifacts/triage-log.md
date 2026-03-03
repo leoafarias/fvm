@@ -2,8 +2,8 @@
 
 **Started**: 2025-10-30
 **Current Version**: v4.0.0
-**Total Open Issues**: 54
-**Historical Issues Triaged**: 81
+**Total Open Issues**: 53
+**Historical Issues Triaged**: 89
 
 ## Progress Tracker
 
@@ -12,9 +12,8 @@
 
 ### P1 - High (Installation/Major Issues)
 - [ ] #688 - FVM still performs Git installs; need archive-based strategy honoring FLUTTER_STORAGE_BASE_URL/FLUTTER_RELEASES_URL mirrors with checksum validation and docs.
-- [ ] #783 - Store full 40-char commit hashes in configs; add regression tests.
-- [ ] #897 - Home Manager makes ~/.bash_profile read-only; add guards/skip flag so FVM doesn't throw PathAccessException.
 - [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
+- [ ] #1014 - `fvm install` can fail post-clone with “not a valid git repository” / “Unknown error”; add stronger diagnostics and retry without `--reference` fallback.
 
 ### P2 - Medium (Standard Bugs/Enhancements)
 - [ ] #577 - Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically.
@@ -36,10 +35,11 @@
 - [ ] #782 - Update running-flutter docs to replace ${@:1} with "$@" (or add a bash shebang) so rerouted scripts work under /bin/sh; leave open until docs merged.
 - [ ] #794 - Add Linux ARM artifacts and update install script to detect Pi architectures.
 - [ ] #811 - Create official Nix derivation/flake and upstream to nixpkgs.
-- [ ] #820 - Create reusable GitHub Action to install FVM/Flutter with arm support.
 - [ ] #821 - Add fvm path command + configure dart.getFlutterSdkCommand / dart.getDartSdkCommand in VS Code workflow.
 - [ ] #826 - Add Winget manifests and release automation to mirror Windows binaries.
 - [ ] #894 - Add group-shared cache support (git core.sharedRepository, chmod g+rwX, optional cache group config).
+- [ ] #968 - Setup reports success even when required tools (e.g., unzip) are missing; fail fast when SDK remains not-setup after `flutter --version`.
+- [ ] #1008 - Extend Melos auto-update to support `pubspec.yaml`-based `melos.sdkPath` (not just `melos.yaml` root `sdkPath`).
 
 ### P3 - Low (Minor Issues/Feature Requests)
 - [ ] #575 - `fvm flavor <name> <command>` already proxies Flutter commands with the flavor's version without switching; document usage and close.
@@ -55,6 +55,10 @@
 - [ ] #784 - Consider `fvm env` command to print PATH exports for temporary sessions.
 - [ ] #787 - Assess packaging wrapper scripts; document current PATH-based workflow.
 - [ ] #791 - Fork names already namespace versions (alias/version syntax).
+- [ ] #969 - Clarify/guard RISC-V setup behavior (upstream Flutter limitation) and align architecture support messaging/docs.
+- [ ] #1009 - Improve custom fork docs/output for non-standard refs that show unknown Flutter version metadata.
+- [ ] #1015 - Add official docs for Dart MCP configuration using `.fvm/flutter_sdk`.
+- [ ] #1016 - Consider partial-version install resolution (`3.38` -> latest `3.38.x`) behind explicit resolver behavior.
 
 ### Needs More Info
 - [ ] #731 - Screenshot only; request commands and logs.
@@ -65,6 +69,7 @@
 - [ ] #797 - Suspect CRLF line endings in Flutter script; awaiting diagnostics.
 - [ ] #809 - Request verbose logs and reproduction outside Sidekick.
 - [ ] #906 - Unable to reproduce without timing/log data; need shell config and measurements.
+- [ ] #1017 - PATH/IDE mismatch likely; need minimal repro (`fvm flutter --version`, `flutter --version` in fresh terminal, `where flutter`).
 
 ---
 
@@ -200,13 +205,23 @@
 - PR #964 adds read-only shell profile handling; fixes #897.
 - PR #962 forces full commit hashes; fixes #783 security concern.
 - PR #845 builds arm64 Docker images; fixes #762 multi-arch image gap.
+
+### Session 10: 2026-03-03 (Open Issue Triage Sweep)
+- #968: Validated confusing partial-setup success path when required tools are missing; planned post-setup completeness validation and clearer failure messaging (`artifacts/issue-968.md`).
+- #969: Triaged RISC-V architecture mismatch report as mostly upstream Flutter/toolchain constrained; proposed clearer FVM guardrails and docs (`artifacts/issue-969.md`).
+- #1008: Confirmed Melos auto-update currently targets `melos.yaml` only; planned support for `pubspec.yaml` `melos.sdkPath` workflows (`artifacts/issue-1008.md`).
+- #1009: Documented custom fork metadata ambiguity (`0.0.0-unknown`) and planned docs/output improvements (`artifacts/issue-1009.md`).
+- #1014: Classified install failure as P1 blocker; proposed clone validation diagnostics + retry strategy (`artifacts/issue-1014.md`).
+- #1015: Confirmed MCP docs gap and proposed dedicated guidance for `.fvm/flutter_sdk` integration (`artifacts/issue-1015.md`).
+- #1016: Validated minor-line patch resolution request (`3.38` -> latest `3.38.x`) as feature enhancement candidate (`artifacts/issue-1016.md`).
+- #1017: Marked as needs-info pending minimal reproduction; current logs indicate environment/PATH mismatch rather than core `fvm use` failure (`artifacts/issue-1017.md`).
 ---
 
 ## Summary Statistics
-- **Open Issues**: 54
+- **Open Issues**: 53
 - **P0 Critical**: 0
-- **P1 High**: 4
-- **P2 Medium**: 23
-- **P3 Low**: 13
-- **Needs Info**: 8
+- **P1 High**: 3
+- **P2 Medium**: 24
+- **P3 Low**: 17
+- **Needs Info**: 9
 - **Resolved/Archived**: 9

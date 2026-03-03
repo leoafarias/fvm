@@ -1,0 +1,10 @@
+{
+  "number": 1014,
+  "title": "[BUG] Installing a flutter SDK failing",
+  "triagedAt": "2026-03-03",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1014.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1014",
+  "notes": "Core install flow can fail post-clone with weak diagnostics; needs resilient retry/fallback and clearer failure context."
+}
