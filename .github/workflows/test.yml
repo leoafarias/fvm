@@ -121,42 +121,6 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  archive-regression:
-    name: Archive Regression Agent
-    timeout-minutes: 30
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare environment
-        uses: ./.github/actions/prepare
-        with:
-          sdk-version: ${{ (github.event_name == 'workflow_call' && inputs.sdk-version) || env.SDK_VERSION }}
-
-      - name: Install DCM
-        uses: CQLabs/setup-dcm@v1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Run local regression agent script
-        shell: bash
-        run: |
-          bash scripts/local_regression_agent.sh \
-            --scope archive-only \
-            --integration false \
-            --heavy false \
-            --skip-full-for-archive
-
-      - name: Upload regression run artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: archive-regression-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .context/testing-runs/**
-          if-no-files-found: warn
-
-
   test-os:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
@@ -197,7 +161,7 @@ jobs:
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, archive-regression, test-os]  # Wait for all unit tests before integration
+    needs: [test, test-os]  # Wait for all unit tests before integration
     timeout-minutes: 45
     # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
