@@ -33,7 +33,8 @@ class GitService extends ContextualService {
     return message.contains('lock failed') ||
         message.contains('resource temporarily unavailable') ||
         message.contains('operation would block') ||
-        message.contains('already locked');
+        message.contains('already locked') ||
+        message.contains('being used by another process');
   }
 
   Future<T> _withCacheMutationLock<T>(Future<T> Function() action) async {
@@ -46,7 +47,7 @@ class GitService extends ContextualService {
     var lockAcquired = false;
     const retryDelay = Duration(milliseconds: 150);
     const waitLogThreshold = Duration(seconds: 2);
-    const maxWait = Duration(seconds: 30);
+    const maxWait = Duration(minutes: 5);
 
     try {
       try {
@@ -127,9 +128,11 @@ class GitService extends ContextualService {
     if (!baseDir.parent.existsSync()) {
       baseDir.parent.createSync(recursive: true);
     }
-    final stamp = '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
+    final stamp =
+        '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
     return Directory(
-      path.join(baseDir.parent.path, '${path.basename(baseDir.path)}.$suffix.$stamp'),
+      path.join(
+          baseDir.parent.path, '${path.basename(baseDir.path)}.$suffix.$stamp'),
     );
   }
 
@@ -383,8 +386,7 @@ class GitService extends ContextualService {
     final desiredParent = path.normalize(resolvedCachePath);
 
     // Platform-aware path comparison (Windows is case-insensitive)
-    String comparable(String p) =>
-        Platform.isWindows ? p.toLowerCase() : p;
+    String comparable(String p) => Platform.isWindows ? p.toLowerCase() : p;
 
     bool isWithinCachePath(String target) {
       final t = comparable(target);

@@ -1,3 +1,7 @@
+## Unreleased
+
+* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+
 ## 4.0.5
 
 * feat: migrate install script to v2 with user-local default install (#967)
@@ -13,9 +17,13 @@
 ## 4.0.3
 
 * fix: preserve all project settings on fvm install
+
 ## 4.0.2
 
-* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+* fix: version detection for Flutter 3.38+ (version file removal)
+* fix: filter hidden directories from cache version listing
+* fix: route conflict in documentation site navigation
+* docs: improve Android Studio/IntelliJ IDE configuration guide
 
 ## 4.0.1
 
