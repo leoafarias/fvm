@@ -91,19 +91,28 @@ Expected:
 - Alternates file exists for each installed version
 - Contents point to legacy cache path (includes `.git/objects` in path)
 
-## Step 3 - Upgrade to latest FVM and trigger migration
+## Step 3 - Run this branch to trigger migration
+
+The migration logic lives on this branch (not in published FVM releases).
+From the repo root:
 
 ```bash
-# Latest release (current)
-dart pub global activate fvm
-fvm --version
+dart pub get
 
-# Trigger EnsureCache -> GitService.updateLocalMirror
-fvm install stable
+# Trigger EnsureCache -> ensureBareCacheIfPresent -> _migrateCacheCloneToMirror
+FVM_CACHE_PATH="$FVM_CACHE_PATH" FVM_USE_GIT_CACHE=true \
+  dart run bin/main.dart install stable
 ```
 
-Expected:
-- Migration logs appear (bare mirror creation and/or migration)
+Expected migration log messages:
+- `Migrating cache clone to bare mirror...`
+- `Creating bare mirror from local clone...`
+- `Legacy cache migrated to bare mirror successfully!`
+- `Updated alternates for <version> -> .../cache.git/objects` (one per installed version)
+
+> **Note:** A warning `Failed to setup local cache. Falling back to git clone.`
+> may appear after migration if `updateLocalMirror()` fails on the freshly
+> converted bare repo. This does not affect migration correctness.
 
 Verify migrated cache state:
 
@@ -124,26 +133,26 @@ Expected:
 - Alternates files still exist
 - Contents now point to `.../cache.git/objects` (no `/.git/` in the path)
 
-## Step 4 - Run this branch and re-verify
-
-From the repo root:
+Verify repository integrity:
 
 ```bash
-dart pub get
+git -C "$FVM_CACHE_PATH/cache.git" fsck --connectivity-only
+```
 
-# Use this branch's CLI to ensure migration path still works
-FVM_CACHE_PATH="$FVM_CACHE_PATH" FVM_USE_GIT_CACHE=true \
-  dart run bin/main.dart install stable
+Expected:
+- No errors (dangling commits are normal for a bare mirror converted from a clone)
 
+Verify list still works:
+
+```bash
 FVM_CACHE_PATH="$FVM_CACHE_PATH" FVM_USE_GIT_CACHE=true \
   dart run bin/main.dart list
 ```
 
 Expected:
-- No errors
 - list shows the three cached versions and cache path
 
-## Step 5 - Verify SDKs execute
+## Step 4 - Verify SDKs execute
 
 ```bash
 "$FVM_CACHE_PATH/versions/stable/bin/flutter" --version

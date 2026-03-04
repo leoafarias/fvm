@@ -81,19 +81,26 @@ void main() {
       );
     });
 
+    test('accepts valid git URLs without .git suffix', () {
+      expect(isValidGitUrl('https://github.com/flutter/flutter'), isTrue);
+      expect(isValidGitUrl('ssh://git@github.com/flutter/flutter'), isTrue);
+      expect(isValidGitUrl('git@github.com:flutter/flutter'), isTrue);
+      expect(isValidGitUrl('file:///path/to/repo'), isTrue);
+    });
+
     test('rejects malformed git urls', () {
-      expect(isValidGitUrl('https://github.com/flutter/flutter'), isFalse);
-      expect(isValidGitUrl('git@github.com:flutter/flutter'), isFalse);
       expect(isValidGitUrl('ssh://git@gitlab.com'), isFalse);
       expect(isValidGitUrl('not a url'), isFalse);
       expect(isValidGitUrl(''), isFalse);
     });
 
-    test('rejects URLs without .git extension', () {
-      // Valid schemes but missing .git suffix
-      expect(isValidGitUrl('https://github.com/flutter/flutter'), isFalse);
-      expect(isValidGitUrl('ssh://git@github.com/flutter/flutter'), isFalse);
-      expect(isValidGitUrl('file:///path/to/repo'), isFalse);
+    test('rejects structurally invalid URLs', () {
+      // Host-only: no repo path
+      expect(isValidGitUrl('https://github.com'), isFalse);
+      // Root-only: empty path
+      expect(isValidGitUrl('https://github.com/'), isFalse);
+      // Query-only: no path
+      expect(isValidGitUrl('https://github.com?q=flutter'), isFalse);
     });
 
     test('accepts all valid git URL schemes', () {
