@@ -16,12 +16,6 @@ Technical documentation for FVM developers.
 | `version-parsing.md` | Version string parsing regex and implementation |
 | `v4-release-notes.md` | v4.0 architecture changes, migration guide |
 
-## Workflows
-
-| File | Description |
-|------|-------------|
-| `act-testing.md` | Testing GitHub workflows locally with `act` |
-
 ## Related Documentation
 
 - @README.md - Project overview, release process
