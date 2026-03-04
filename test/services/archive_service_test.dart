@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -126,6 +127,92 @@ Future<HttpServer> _startArchiveServer({
   return server;
 }
 
+Future<HttpServer> _startDelayedHeaderServer({
+  required Duration headerDelay,
+}) async {
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+
+  server.listen((HttpRequest request) async {
+    try {
+      await Future<void>.delayed(headerDelay);
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentLength = 0;
+      await request.response.close();
+    } catch (_) {
+      // Ignore disconnects while intentionally delaying the response.
+    }
+  }, onError: (_) {});
+
+  return server;
+}
+
+Future<HttpServer> _startStalledBodyServer({
+  required Duration stallDuration,
+}) async {
+  final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+  const firstChunk = <int>[1, 2, 3];
+  const secondChunk = <int>[4, 5, 6];
+
+  server.listen((HttpRequest request) async {
+    try {
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentLength = firstChunk.length + secondChunk.length
+        ..add(firstChunk);
+      await request.response.flush();
+      await Future<void>.delayed(stallDuration);
+      request.response.add(secondChunk);
+      await request.response.close();
+    } catch (_) {
+      // Ignore disconnects while intentionally stalling the response body.
+    }
+  }, onError: (_) {});
+
+  return server;
+}
+
+Directory _targetDirFromInvocation(Invocation invocation) {
+  final args = invocation.namedArguments[const Symbol('args')] as List<String>;
+  final targetIdx = args.indexOf('-d');
+  final cIdx = args.indexOf('-C');
+  final targetPath = targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+
+  return Directory(targetPath);
+}
+
+Future<ProcessResult> _simulateExtraction(
+  Invocation invocation, {
+  bool createFlutterSubdir = true,
+  FutureOr<void> Function(
+    Directory targetDir,
+    Directory sdkRootDir,
+    Directory binDir,
+  )? onPrepared,
+}) async {
+  final targetDir = _targetDirFromInvocation(invocation);
+  final sdkRootDir = createFlutterSubdir
+      ? Directory(path.join(targetDir.path, 'flutter'))
+      : targetDir;
+
+  sdkRootDir.createSync(recursive: true);
+  final binDir = Directory(path.join(sdkRootDir.path, 'bin'))
+    ..createSync(recursive: true);
+
+  final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+  final flutterExec = File(path.join(binDir.path, execName));
+  flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+  if (!Platform.isWindows) {
+    Process.runSync('chmod', ['+x', flutterExec.path]);
+  }
+
+  if (onPrepared != null) {
+    await onPrepared(targetDir, sdkRootDir, binDir);
+  }
+
+  return ProcessResult(0, 0, '', '');
+}
+
 void main() {
   late FvmContext context;
   late ArchiveService archiveService;
@@ -183,6 +270,8 @@ void main() {
     Map<Type, Generator>? extraGenerators,
     String debugLabel = 'archive-test',
     String version = 'stable',
+    Duration responseTimeout = const Duration(seconds: 30),
+    Duration readTimeout = const Duration(seconds: 30),
   }) async {
     final overrides = _RedirectHttpOverrides(
       Uri.parse('http://127.0.0.1:$port'),
@@ -198,7 +287,11 @@ void main() {
           },
         );
 
-        final svc = ArchiveService(ctx);
+        final svc = ArchiveService(
+          ctx,
+          responseTimeout: responseTimeout,
+          readTimeout: readTimeout,
+        );
         tempDir = Directory(ctx.versionsCachePath);
         final versionDir = Directory(path.join(tempDir.path, version));
         return body(svc, versionDir);
@@ -729,29 +822,7 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
-          flutterDir.createSync(recursive: true);
-          Directory(path.join(flutterDir.path, 'bin'))
-              .createSync(recursive: true);
-
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(_simulateExtraction);
 
         await withArchiveTestZone(
           port: server.port,
@@ -811,29 +882,7 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
-          flutterDir.createSync(recursive: true);
-          Directory(path.join(flutterDir.path, 'bin'))
-              .createSync(recursive: true);
-
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(_simulateExtraction);
 
         await withArchiveTestZone(
           port: server.port,
@@ -881,29 +930,7 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
-          flutterDir.createSync(recursive: true);
-          Directory(path.join(flutterDir.path, 'bin'))
-              .createSync(recursive: true);
-
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(_simulateExtraction);
 
         await withArchiveTestZone(
           port: server.port,
@@ -911,11 +938,9 @@ void main() {
           extraGenerators: {ProcessService: (_) => mockProcessService},
           body: (svc, versionDir) async {
             // Simulate interrupted state: backup exists, versionDir does not
-            final backupDir =
-                Directory('${versionDir.path}.archive_backup');
+            final backupDir = Directory('${versionDir.path}.archive_backup');
             backupDir.createSync(recursive: true);
-            final marker =
-                File(path.join(backupDir.path, 'previous-sdk.txt'));
+            final marker = File(path.join(backupDir.path, 'previous-sdk.txt'));
             marker.writeAsStringSync('rescued');
 
             expect(versionDir.existsSync(), isFalse);
@@ -927,6 +952,86 @@ void main() {
             // versionDir must contain the new archive content
             expect(backupDir.existsSync(), isFalse);
             expect(versionDir.existsSync(), isTrue);
+          },
+        );
+      });
+
+      test('serializes concurrent installs for the same version', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+        final firstExtractionStarted = Completer<void>();
+        final allowFirstExtractionToFinish = Completer<void>();
+        var extractionRuns = 0;
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          extractionRuns++;
+
+          if (extractionRuns == 1) {
+            firstExtractionStarted.complete();
+            await allowFirstExtractionToFinish.future;
+          }
+
+          return _simulateExtraction(invocation);
+        });
+
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'concurrent-install-lock',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
+            final firstInstall = svc.install(
+              FlutterVersion.parse('stable'),
+              versionDir,
+            );
+            await firstExtractionStarted.future;
+
+            final secondInstall = svc.install(
+              FlutterVersion.parse('stable'),
+              versionDir,
+            );
+
+            await Future<void>.delayed(const Duration(milliseconds: 120));
+            expect(
+              extractionRuns,
+              equals(1),
+              reason:
+                  'Second install should wait for the first install lock to release.',
+            );
+
+            allowFirstExtractionToFinish.complete();
+            await Future.wait([firstInstall, secondInstall]);
+
+            final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+            expect(extractionRuns, equals(2));
+            expect(
+              File(path.join(versionDir.path, 'bin', execName)).existsSync(),
+              isTrue,
+            );
+            expect(
+              Directory('${versionDir.path}.archive_staging').existsSync(),
+              isFalse,
+            );
+            expect(
+              Directory('${versionDir.path}.archive_backup').existsSync(),
+              isFalse,
+            );
           },
         );
       });
@@ -955,31 +1060,15 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
-          flutterDir.createSync(recursive: true);
-          Directory(path.join(flutterDir.path, 'bin')).createSync();
-
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          File(path.join(flutterDir.path, 'README'))
-              .writeAsStringSync('readme');
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(
+          (invocation) => _simulateExtraction(
+            invocation,
+            onPrepared: (_, sdkRootDir, __) {
+              File(path.join(sdkRootDir.path, 'README'))
+                  .writeAsStringSync('readme');
+            },
+          ),
+        );
 
         await withArchiveTestZone(
           port: server.port,
@@ -1027,30 +1116,14 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
-          flutterDir.createSync(recursive: true);
-          Directory(path.join(flutterDir.path, 'bin')).createSync();
-
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          Directory(path.join(flutterDir.path, '__MACOSX')).createSync();
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(
+          (invocation) => _simulateExtraction(
+            invocation,
+            onPrepared: (_, sdkRootDir, __) {
+              Directory(path.join(sdkRootDir.path, '__MACOSX')).createSync();
+            },
+          ),
+        );
 
         await withArchiveTestZone(
           port: server.port,
@@ -1089,25 +1162,10 @@ void main() {
             throwOnError: any(named: 'throwOnError'),
             echoOutput: any(named: 'echoOutput'),
           ),
-        ).thenAnswer((invocation) async {
-          final args =
-              invocation.namedArguments[const Symbol('args')] as List<String>;
-          final targetIdx = args.indexOf('-d');
-          final cIdx = args.indexOf('-C');
-          final targetPath =
-              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
-          final targetDir = Directory(targetPath);
-
-          Directory(path.join(targetDir.path, 'bin')).createSync();
-          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-          final flutterExec = File(path.join(targetDir.path, 'bin', execName));
-          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
-          if (!Platform.isWindows) {
-            Process.runSync('chmod', ['+x', flutterExec.path]);
-          }
-
-          return ProcessResult(0, 0, '', '');
-        });
+        ).thenAnswer(
+          (invocation) =>
+              _simulateExtraction(invocation, createFlutterSubdir: false),
+        );
 
         await withArchiveTestZone(
           port: server.port,
@@ -1167,6 +1225,68 @@ void main() {
           },
         );
       });
+
+      test(
+        'throws when extracted symlink points outside sdk directory',
+        () async {
+          final archiveBytes = 'dummy-zip-data'.codeUnits;
+          final hash = sha256.convert(archiveBytes).toString();
+          final release = createTestRelease(sha256: hash);
+          final server = await _startArchiveServer(body: archiveBytes);
+          addTearDown(() => server.close(force: true));
+
+          final mockProcessService = MockProcessService();
+
+          when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+              .thenAnswer((_) async => release);
+
+          when(
+            () => mockProcessService.run(
+              any(),
+              args: any(named: 'args'),
+              workingDirectory: any(named: 'workingDirectory'),
+              environment: any(named: 'environment'),
+              throwOnError: any(named: 'throwOnError'),
+              echoOutput: any(named: 'echoOutput'),
+            ),
+          ).thenAnswer(
+            (invocation) => _simulateExtraction(
+              invocation,
+              onPrepared: (targetDir, _, binDir) {
+                final outsideDir = Directory(
+                  path.join(targetDir.parent.path, 'outside_target'),
+                )..createSync(recursive: true);
+                final outsideFile =
+                    File(path.join(outsideDir.path, 'outside.txt'))
+                      ..writeAsStringSync('outside');
+                final escapedLink = Link(path.join(binDir.path, 'escape_link'));
+                escapedLink.createSync(outsideFile.path);
+              },
+            ),
+          );
+
+          await withArchiveTestZone(
+            port: server.port,
+            debugLabel: 'symlink-safety-test',
+            extraGenerators: {ProcessService: (_) => mockProcessService},
+            body: (svc, versionDir) async {
+              await expectLater(
+                svc.install(FlutterVersion.parse('stable'), versionDir),
+                throwsA(
+                  isA<AppException>().having(
+                    (e) => e.message,
+                    'message',
+                    contains('symlink that points outside'),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        skip: Platform.isWindows
+            ? 'Windows symlink creation requires elevated privileges.'
+            : null,
+      );
     });
 
     group('archiveUrl construction', () {
@@ -1405,6 +1525,93 @@ void main() {
             );
           },
           createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('wraps delayed header response as timeout with retry guidance',
+          () async {
+        final server = await _startDelayedHeaderServer(
+          headerDelay: const Duration(milliseconds: 300),
+        );
+        addTearDown(() => server.close(force: true));
+
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final before = _listArchiveTempDirs();
+
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'header-timeout',
+          responseTimeout: const Duration(milliseconds: 100),
+          readTimeout: const Duration(milliseconds: 400),
+          body: (svc, versionDir) async {
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  allOf(
+                    contains(
+                        'Timed out while waiting for response from server'),
+                    contains('Please retry'),
+                  ),
+                ),
+              ),
+            );
+
+            final after = _listArchiveTempDirs();
+            expect(after.toSet().difference(before.toSet()), isEmpty);
+            expect(
+              Directory('${versionDir.path}.archive_staging').existsSync(),
+              isFalse,
+            );
+          },
+        );
+      });
+
+      test('wraps stalled body stream as timeout with retry guidance',
+          () async {
+        final server = await _startStalledBodyServer(
+          stallDuration: const Duration(milliseconds: 300),
+        );
+        addTearDown(() => server.close(force: true));
+
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final before = _listArchiveTempDirs();
+
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'read-timeout',
+          responseTimeout: const Duration(milliseconds: 200),
+          readTimeout: const Duration(milliseconds: 100),
+          body: (svc, versionDir) async {
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  allOf(
+                    contains('Timed out while waiting for download data'),
+                    contains('Please retry'),
+                  ),
+                ),
+              ),
+            );
+
+            final after = _listArchiveTempDirs();
+            expect(after.toSet().difference(before.toSet()), isEmpty);
+            expect(
+              Directory('${versionDir.path}.archive_staging').existsSync(),
+              isFalse,
+            );
+          },
         );
       });
     });

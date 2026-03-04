@@ -15,8 +15,22 @@ import 'releases_service/releases_client.dart';
 class ArchiveService extends ContextualService {
   static const _supportedArchiveChannels = {'stable', 'beta', 'dev'};
   static const _supportedArchiveReleaseQualifiers = {'beta', 'dev'};
+  static const _connectionTimeout = Duration(seconds: 30);
+  static const _defaultResponseTimeout = Duration(seconds: 30);
+  static const _defaultReadTimeout = Duration(seconds: 30);
+  // Install operations can run through different ArchiveService instances,
+  // so this lock map must be shared process-wide.
+  static final Map<String, Future<void>> _inProcessInstallLocks = {};
 
-  const ArchiveService(super.context);
+  final Duration _responseTimeout;
+  final Duration _readTimeout;
+
+  const ArchiveService(
+    super.context, {
+    Duration responseTimeout = _defaultResponseTimeout,
+    Duration readTimeout = _defaultReadTimeout,
+  })  : _responseTimeout = responseTimeout,
+        _readTimeout = readTimeout;
 
   static void validateArchiveInstallVersion(FlutterVersion version) {
     if (version.fromFork) {
@@ -162,13 +176,102 @@ class ArchiveService extends ContextualService {
     }
   }
 
+  String _formatDuration(Duration duration) {
+    if (duration.inMilliseconds % 1000 == 0) {
+      return '${duration.inSeconds}s';
+    }
+
+    return '${duration.inMilliseconds}ms';
+  }
+
+  Future<RandomAccessFile> _acquireInstallLock(File lockFile) async {
+    if (!lockFile.parent.existsSync()) {
+      lockFile.parent.createSync(recursive: true);
+    }
+
+    final lockHandle = await lockFile.open(mode: FileMode.writeOnlyAppend);
+
+    try {
+      await lockHandle.lock(FileLock.blockingExclusive);
+
+      return lockHandle;
+    } on FileSystemException catch (error, stackTrace) {
+      try {
+        await lockHandle.close();
+      } catch (_) {
+        // Best-effort cleanup before surfacing original lock error.
+      }
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to acquire archive install lock: ${error.message}',
+        ),
+        stackTrace,
+      );
+    }
+  }
+
+  Future<void> _releaseInstallLock(RandomAccessFile lockHandle) async {
+    try {
+      await lockHandle.unlock();
+    } catch (error) {
+      logger.debug('Failed to unlock archive install file: $error');
+    }
+
+    try {
+      await lockHandle.close();
+    } catch (error) {
+      logger.debug('Failed to close archive install lock file: $error');
+    }
+  }
+
+  Future<T> _withInProcessInstallLock<T>(
+    String lockKey,
+    Future<T> Function() action,
+  ) async {
+    final previousLock = _inProcessInstallLocks[lockKey];
+    final lockCompleter = Completer<void>();
+    _inProcessInstallLocks[lockKey] = lockCompleter.future;
+
+    if (previousLock != null) {
+      logger.debug('Waiting for in-process archive install lock: $lockKey');
+      await previousLock;
+    }
+
+    try {
+      return await action();
+    } finally {
+      lockCompleter.complete();
+      if (identical(_inProcessInstallLocks[lockKey], lockCompleter.future)) {
+        _inProcessInstallLocks.remove(lockKey);
+      }
+    }
+  }
+
+  Future<HttpClientResponse> _closeRequestWithTimeout(
+    HttpClientRequest request, {
+    required Never Function(Object, StackTrace) cleanupAndRethrow,
+  }) async {
+    try {
+      return await request.close().timeout(_responseTimeout);
+    } on TimeoutException catch (_, stackTrace) {
+      cleanupAndRethrow(
+        AppException(
+          'Timed out while waiting for response from server after '
+          '${_formatDuration(_responseTimeout)}. Please retry. If this '
+          'keeps happening, check your network, proxy, or mirror '
+          'configuration.',
+        ),
+        stackTrace,
+      );
+    }
+  }
+
   Future<_DownloadedArchive> _downloadArchive(FlutterSdkRelease release) async {
     final tempDir = await Directory.systemTemp.createTemp('fvm_archive_');
     final extension = release.archive.endsWith('.tar.xz') ? '.tar.xz' : '.zip';
     final archiveFile = File(path.join(tempDir.path, 'flutter$extension'));
 
-    final client = HttpClient()
-      ..connectionTimeout = const Duration(seconds: 30);
+    final client = HttpClient()..connectionTimeout = _connectionTimeout;
     final progress = logger.progress('Downloading Flutter SDK archive');
 
     Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
@@ -191,7 +294,10 @@ class ArchiveService extends ContextualService {
 
     try {
       final request = await client.getUrl(Uri.parse(release.archiveUrl));
-      final response = await request.close();
+      final response = await _closeRequestWithTimeout(
+        request,
+        cleanupAndRethrow: cleanupAndRethrow,
+      );
 
       if (response.statusCode >= 400) {
         throw AppException(
@@ -204,7 +310,7 @@ class ArchiveService extends ContextualService {
       var downloaded = 0;
 
       try {
-        await for (final chunk in response) {
+        await for (final chunk in response.timeout(_readTimeout)) {
           sink.add(chunk);
           downloaded += chunk.length;
 
@@ -220,8 +326,21 @@ class ArchiveService extends ContextualService {
             );
           }
         }
+      } on TimeoutException catch (_, stackTrace) {
+        cleanupAndRethrow(
+          AppException(
+            'Timed out while waiting for download data after '
+            '${_formatDuration(_readTimeout)}. Please retry. If this keeps '
+            'happening, check your network, proxy, or mirror configuration.',
+          ),
+          stackTrace,
+        );
       } finally {
-        await sink.close().catchError((_) => null);
+        try {
+          await sink.close();
+        } catch (_) {
+          // Best-effort stream cleanup.
+        }
       }
 
       final description = totalBytes != -1
@@ -331,7 +450,7 @@ class ArchiveService extends ContextualService {
         'tar',
         ['-xJf', archive.path, '-C', targetDir.path],
         'Failed to extract the archive with tar. Ensure the "tar" tool '
-        'is available on your system.',
+            'is available on your system.',
       );
 
   Future<void> _extractZipUnix(File archive, Directory targetDir) =>
@@ -339,7 +458,7 @@ class ArchiveService extends ContextualService {
         'unzip',
         ['-q', '-o', archive.path, '-d', targetDir.path],
         'Failed to extract the archive with unzip. Ensure the "unzip" tool '
-        'is installed.',
+            'is installed.',
       );
 
   /// Escapes a path for use in PowerShell single-quoted strings.
@@ -403,6 +522,48 @@ class ArchiveService extends ContextualService {
     }
   }
 
+  String _readLinkTarget(Link entity) {
+    try {
+      return entity.targetSync();
+    } on FileSystemException catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to inspect extracted symlink "${entity.path}": '
+          '${error.message}',
+        ),
+        stackTrace,
+      );
+    }
+  }
+
+  void _validateSymlinkSafety(Directory targetDir) {
+    final rootPath = path.normalize(targetDir.absolute.path);
+
+    for (final entity
+        in targetDir.listSync(recursive: true, followLinks: false)) {
+      if (entity is! Link) {
+        continue;
+      }
+
+      final linkTarget = _readLinkTarget(entity);
+
+      final resolvedTarget = path.normalize(
+        path.isAbsolute(linkTarget)
+            ? linkTarget
+            : path.join(path.dirname(entity.path), linkTarget),
+      );
+
+      final isInside =
+          resolvedTarget == rootPath || path.isWithin(rootPath, resolvedTarget);
+      if (!isInside) {
+        throw AppException(
+          'The extracted Flutter archive contains a symlink that points '
+          'outside the SDK directory: ${entity.path}.',
+        );
+      }
+    }
+  }
+
   void _validateExtraction(Directory targetDir) {
     final flutterExecPath =
         path.join(targetDir.path, 'bin', flutterExecFileName);
@@ -433,6 +594,87 @@ class ArchiveService extends ContextualService {
     return '${value.toStringAsFixed(precision)} ${units[unit]}';
   }
 
+  void _cleanupStagingDir(Directory stagingDir) {
+    if (!stagingDir.existsSync()) {
+      return;
+    }
+
+    try {
+      stagingDir.deleteSync(recursive: true);
+    } catch (cleanupError) {
+      logger.debug(
+        'Warning: Could not clean up staging directory: $cleanupError',
+      );
+    }
+  }
+
+  Future<void> _installLocked(
+    FlutterVersion version,
+    Directory versionDir,
+  ) async {
+    final lockFile = File('${versionDir.path}.archive_lock');
+    logger.debug('Acquiring archive install lock: ${lockFile.path}');
+    final lockHandle = await _acquireInstallLock(lockFile);
+
+    try {
+      final release = await _resolveRelease(version);
+      logger.debug(
+        'Installing ${release.version} from archive: ${release.archiveUrl}',
+      );
+
+      // Use a staging directory so an existing cache survives failures
+      final stagingDir = Directory('${versionDir.path}.archive_staging');
+      final backupDir = Directory('${versionDir.path}.archive_backup');
+
+      if (stagingDir.existsSync()) {
+        stagingDir.deleteSync(recursive: true);
+      }
+
+      // Recover from interrupted finalize: if a previous run was killed after
+      // versionDir was moved to backupDir but before stagingDir took its place,
+      // the backup is the only surviving copy. Restore it instead of deleting.
+      if (backupDir.existsSync()) {
+        if (!versionDir.existsSync()) {
+          logger.debug(
+            'Detected interrupted archive install – restoring backup.',
+          );
+          backupDir.renameSync(versionDir.path);
+        } else {
+          backupDir.deleteSync(recursive: true);
+        }
+      }
+
+      final parentDir = versionDir.parent;
+      if (!parentDir.existsSync()) {
+        parentDir.createSync(recursive: true);
+      }
+
+      stagingDir.createSync(recursive: true);
+
+      try {
+        final download = await _downloadArchive(release);
+
+        try {
+          await _verifyChecksum(download.file, release.sha256);
+          await _extractArchive(download.file, stagingDir);
+          _flattenStructure(stagingDir);
+          _removeMacOsMetadata(stagingDir);
+          _validateSymlinkSafety(stagingDir);
+          _validateExtraction(stagingDir);
+        } finally {
+          download.dispose();
+        }
+
+        _finalizeInstall(stagingDir, versionDir, backupDir);
+      } catch (_) {
+        _cleanupStagingDir(stagingDir);
+        rethrow;
+      }
+    } finally {
+      await _releaseInstallLock(lockHandle);
+    }
+  }
+
   /// Installs a Flutter SDK [version] by downloading and extracting
   /// its precompiled archive into [versionDir].
   ///
@@ -441,66 +683,11 @@ class ArchiveService extends ContextualService {
   Future<void> install(FlutterVersion version, Directory versionDir) async {
     validateArchiveInstallVersion(version);
 
-    final release = await _resolveRelease(version);
-    logger.debug(
-      'Installing ${release.version} from archive: ${release.archiveUrl}',
+    final lockKey = path.normalize(versionDir.absolute.path);
+    await _withInProcessInstallLock(
+      lockKey,
+      () => _installLocked(version, versionDir),
     );
-
-    // Use a staging directory so an existing cache survives failures
-    final stagingDir = Directory('${versionDir.path}.archive_staging');
-    final backupDir = Directory('${versionDir.path}.archive_backup');
-
-    if (stagingDir.existsSync()) {
-      stagingDir.deleteSync(recursive: true);
-    }
-
-    // Recover from interrupted finalize: if a previous run was killed after
-    // versionDir was moved to backupDir but before stagingDir took its place,
-    // the backup is the only surviving copy. Restore it instead of deleting.
-    if (backupDir.existsSync()) {
-      if (!versionDir.existsSync()) {
-        logger.debug(
-          'Detected interrupted archive install – restoring backup.',
-        );
-        backupDir.renameSync(versionDir.path);
-      } else {
-        backupDir.deleteSync(recursive: true);
-      }
-    }
-
-    final parentDir = versionDir.parent;
-    if (!parentDir.existsSync()) {
-      parentDir.createSync(recursive: true);
-    }
-
-    stagingDir.createSync(recursive: true);
-
-    try {
-      final download = await _downloadArchive(release);
-
-      try {
-        await _verifyChecksum(download.file, release.sha256);
-        await _extractArchive(download.file, stagingDir);
-        _flattenStructure(stagingDir);
-        _removeMacOsMetadata(stagingDir);
-        _validateExtraction(stagingDir);
-      } finally {
-        download.dispose();
-      }
-
-      _finalizeInstall(stagingDir, versionDir, backupDir);
-    } catch (e) {
-      if (stagingDir.existsSync()) {
-        try {
-          stagingDir.deleteSync(recursive: true);
-        } catch (cleanupError) {
-          logger.debug(
-            'Warning: Could not clean up staging directory: $cleanupError',
-          );
-        }
-      }
-      rethrow;
-    }
   }
 }
 
