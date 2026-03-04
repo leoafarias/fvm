@@ -63,6 +63,43 @@ class _RedirectHttpOverrides extends HttpOverrides {
   }
 }
 
+/// An HttpClient that throws a predetermined error on every getUrl call.
+class _ThrowingHttpClient implements HttpClient {
+  _ThrowingHttpClient(this._error);
+
+  final Object _error;
+
+  @override
+  Future<HttpClientRequest> getUrl(Uri url) => Future.error(_error);
+
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) =>
+      Future.error(_error);
+
+  @override
+  void close({bool force = false}) {}
+
+  @override
+  set connectionTimeout(Duration? timeout) {}
+
+  @override
+  Duration? get connectionTimeout => null;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _ThrowingHttpOverrides extends HttpOverrides {
+  _ThrowingHttpOverrides(this.error);
+
+  final Object error;
+
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return _ThrowingHttpClient(error);
+  }
+}
+
 List<String> _listArchiveTempDirs() {
   return Directory.systemTemp
       .listSync()
@@ -820,6 +857,79 @@ void main() {
           },
         );
       });
+
+      test('interrupted install recovers backup when versionDir is missing',
+          () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        when(
+          () => mockProcessService.run(
+            any(),
+            args: any(named: 'args'),
+            workingDirectory: any(named: 'workingDirectory'),
+            environment: any(named: 'environment'),
+            throwOnError: any(named: 'throwOnError'),
+            echoOutput: any(named: 'echoOutput'),
+          ),
+        ).thenAnswer((invocation) async {
+          final args =
+              invocation.namedArguments[const Symbol('args')] as List<String>;
+          final targetIdx = args.indexOf('-d');
+          final cIdx = args.indexOf('-C');
+          final targetPath =
+              targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
+          final targetDir = Directory(targetPath);
+
+          final flutterDir = Directory(path.join(targetDir.path, 'flutter'));
+          flutterDir.createSync(recursive: true);
+          Directory(path.join(flutterDir.path, 'bin'))
+              .createSync(recursive: true);
+
+          final execName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+          final flutterExec = File(path.join(flutterDir.path, 'bin', execName));
+          flutterExec.writeAsStringSync('#!/bin/sh\necho mock\n');
+          if (!Platform.isWindows) {
+            Process.runSync('chmod', ['+x', flutterExec.path]);
+          }
+
+          return ProcessResult(0, 0, '', '');
+        });
+
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'interrupted-install-recovers-backup',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
+            // Simulate interrupted state: backup exists, versionDir does not
+            final backupDir =
+                Directory('${versionDir.path}.archive_backup');
+            backupDir.createSync(recursive: true);
+            final marker =
+                File(path.join(backupDir.path, 'previous-sdk.txt'));
+            marker.writeAsStringSync('rescued');
+
+            expect(versionDir.existsSync(), isFalse);
+
+            // install() should recover backup to versionDir before proceeding
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            // After successful install the backup must be gone and
+            // versionDir must contain the new archive content
+            expect(backupDir.existsSync(), isFalse);
+            expect(versionDir.existsSync(), isTrue);
+          },
+        );
+      });
     });
 
     group('structure flattening and validation', () {
@@ -1217,6 +1327,84 @@ void main() {
               ),
             );
           },
+        );
+      });
+
+      test('wraps HandshakeException with TLS guidance message', () async {
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _ThrowingHttpOverrides(
+          const HandshakeException('CERTIFICATE_VERIFY_FAILED'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'tls-handshake-error',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  allOf(
+                    contains('TLS certificate verification failed'),
+                    contains('self-signed'),
+                  ),
+                ),
+              ),
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
+        );
+      });
+
+      test('wraps timeout SocketException with network error message',
+          () async {
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final overrides = _ThrowingHttpOverrides(
+          const SocketException('Connection timed out'),
+        );
+
+        await HttpOverrides.runZoned(
+          () async {
+            final ctx = TestFactory.context(
+              debugLabel: 'timeout-socket-error',
+              generators: {
+                FlutterReleaseClient: (_) => mockReleaseClient,
+              },
+            );
+
+            final svc = ArchiveService(ctx);
+            tempDir = Directory(ctx.versionsCachePath);
+            final versionDir = Directory(path.join(tempDir.path, 'stable'));
+
+            await expectLater(
+              svc.install(FlutterVersion.parse('stable'), versionDir),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  contains('Network error'),
+                ),
+              ),
+            );
+          },
+          createHttpClient: overrides.createHttpClient,
         );
       });
     });

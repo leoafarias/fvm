@@ -181,9 +181,11 @@ if run_cmd "Stage A" "dart --version" && \
    run_cmd "Stage A" "git --version" && \
    run_cmd "Stage A" "dart pub get"; then
 
+  stage_a_ok=true
+
   if [[ "$(uname -s)" != "MINGW" && "$(uname -s)" != "MSYS" && "$(uname -s)" != CYGWIN* ]]; then
-    run_cmd "Stage A" "which tar" || true
-    run_cmd "Stage A" "which unzip" || true
+    run_cmd "Stage A" "which tar" || stage_a_ok=false
+    run_cmd "Stage A" "which unzip" || stage_a_ok=false
   fi
 
   if command -v flutter >/dev/null 2>&1; then
@@ -192,7 +194,12 @@ if run_cmd "Stage A" "dart --version" && \
     log "[Stage A] flutter not found (non-blocking warning)"
   fi
 
-  stage_status "Stage A Environment Preflight" "PASS"
+  if [[ "$stage_a_ok" == "true" ]]; then
+    stage_status "Stage A Environment Preflight" "PASS"
+  else
+    stage_status "Stage A Environment Preflight" "FAIL"
+    goto_end=true
+  fi
 else
   stage_status "Stage A Environment Preflight" "FAIL"
   goto_end=true

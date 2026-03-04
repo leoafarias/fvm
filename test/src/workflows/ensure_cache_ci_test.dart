@@ -189,6 +189,38 @@ void main() {
       expect(flutterService.lastInstallVersion?.name, 'stable');
     });
 
+    test('useArchive is preserved through version mismatch reinstall', () async {
+      final context = TestFactory.context(
+        debugLabel: 'archive-version-mismatch-test',
+        environmentOverrides: {'CI': 'true'}, // auto-select reinstall
+      );
+      runner = TestCommandRunner(context);
+      final flutterService =
+          context.get<FlutterService>() as MockFlutterService;
+
+      // First install using --archive
+      await runner.run(['fvm', 'install', '3.10.0', '--archive', '--no-setup']);
+
+      // Create version mismatch by modifying SDK version file
+      final version = FlutterVersion.parse('3.10.0');
+      final cacheService = context.get<CacheService>();
+      final cacheVersion = cacheService.getVersion(version);
+      expect(cacheVersion, isNotNull);
+      forceUpdateFlutterSdkVersionFile(cacheVersion!, '3.10.5');
+
+      // Reset markers before triggering reinstall
+      flutterService
+        ..lastUseArchive = null
+        ..lastInstallVersion = null;
+
+      final ensureCache = EnsureCacheWorkflow(context);
+      final result = await ensureCache(version, useArchive: true);
+
+      expect(result, isNotNull);
+      expect(result.name, equals('3.10.0'));
+      expect(flutterService.lastUseArchive, isTrue);
+    });
+
     test('useArchive flag is forwarded in workflow call signature', () async {
       final context = TestFactory.context();
       final ensureCache = EnsureCacheWorkflow(context);

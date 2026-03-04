@@ -453,8 +453,19 @@ class ArchiveService extends ContextualService {
     if (stagingDir.existsSync()) {
       stagingDir.deleteSync(recursive: true);
     }
+
+    // Recover from interrupted finalize: if a previous run was killed after
+    // versionDir was moved to backupDir but before stagingDir took its place,
+    // the backup is the only surviving copy. Restore it instead of deleting.
     if (backupDir.existsSync()) {
-      backupDir.deleteSync(recursive: true);
+      if (!versionDir.existsSync()) {
+        logger.debug(
+          'Detected interrupted archive install – restoring backup.',
+        );
+        backupDir.renameSync(versionDir.path);
+      } else {
+        backupDir.deleteSync(recursive: true);
+      }
     }
 
     final parentDir = versionDir.parent;
