@@ -2,11 +2,40 @@
 
 Goal: validate that a legacy (non-bare) git cache and any SDK references are migrated correctly, and that this branch still operates the cache and SDKs after migration.
 
+## Quick run (recommended)
+
+Use the scripted validator when you want the full flow with built-in assertions:
+
+```bash
+# Full validation + automatic cleanup
+./scripts/manual-migration-test.sh --cleanup
+```
+
+Useful variants:
+
+```bash
+# Keep cache for manual inspection
+./scripts/manual-migration-test.sh
+
+# Force a specific release version instead of auto-detecting the 2nd latest stable
+./scripts/manual-migration-test.sh --release-version 3.41.3
+```
+
+Script behavior:
+- uses an isolated cache path by default (`.context/tmp/fvm-migration-cache`)
+- validates pre-migration and post-migration assertions from this guide
+- writes logs to `.context/tmp/` (including migration output and fsck output)
+- restores your global `fvm` version after running
+
+---
+
+## Manual step-by-step (debug-friendly)
+
 ## Variables (set once)
 
 ```bash
 # Use an isolated cache so we do not touch your global ~/.fvm
-export FVM_CACHE_PATH="/Users/leofarias/Forks/fvm/.conductor/montevideo/.context/tmp/fvm-migration-cache"
+export FVM_CACHE_PATH="$(pwd)/.context/tmp/fvm-migration-cache"
 export FVM_USE_GIT_CACHE=true
 ```
 

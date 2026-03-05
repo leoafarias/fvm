@@ -130,13 +130,13 @@ class EnsureCacheWorkflow extends Workflow {
 
     final cacheVersion = cacheService.getVersion(version);
 
-    // Migrate legacy non-bare caches if present, but avoid refreshing the mirror
-    // unless we are about to install or the version is missing.
+    // Migrate legacy non-bare caches if present.
+    // Refresh the mirror only when we actually need to clone (cache miss).
     final useGitCache = context.gitCache;
     if (!version.fromFork) {
       try {
         await gitService.ensureBareCacheIfPresent();
-        if (useGitCache && (cacheVersion == null || shouldInstall)) {
+        if (useGitCache && cacheVersion == null) {
           await gitService.updateLocalMirror();
         }
       } on Exception catch (e) {
