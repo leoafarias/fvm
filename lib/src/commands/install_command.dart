@@ -67,8 +67,11 @@ class InstallCommand extends BaseFvmCommand {
         );
       }
 
+      // Apply fork/ref ambiguity resolution to project-pinned versions
+      final resolvedVersion = validateFlutterVersion(version.nameWithAlias);
+
       final cacheVersion = await ensureCache(
-        version,
+        resolvedVersion,
         shouldInstall: true,
         useArchive: useArchive,
       );

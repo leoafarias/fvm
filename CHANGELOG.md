@@ -1,3 +1,7 @@
+## Unreleased
+
+* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+
 ## 4.0.5
 
 * feat: migrate install script to v2 with user-local default install (#967)

@@ -14,14 +14,13 @@ import 'workflow.dart';
 class EnsureCacheWorkflow extends Workflow {
   const EnsureCacheWorkflow(super.context);
 
-  // Auto-fix corrupted cache for improved user experience
   Future<CacheFlutterVersion> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
     required bool force,
     required bool useArchive,
     int retryCount = 0,
-  }) {
+  }) async {
     const maxRetries = 2;
     if (retryCount >= maxRetries) {
       throw AppException(
@@ -38,14 +37,10 @@ class EnsureCacheWorkflow extends Workflow {
         'Auto-fixing corrupted cache by reinstalling (attempt ${retryCount + 1}/$maxRetries)...',
       );
 
-    // Always auto-fix corrupted cache - no prompting needed
-    // Corrupted cache is always a problem that needs fixing
-    get<CacheService>().remove(version);
-    logger.info(
-      'The corrupted SDK version is now being removed and a reinstallation will follow...',
-    );
+    await get<CacheService>().remove(version);
+    logger.info('Removing corrupted SDK and reinstalling...');
 
-    return call(
+    return await call(
       version,
       shouldInstall: shouldInstall,
       force: force,
@@ -54,11 +49,10 @@ class EnsureCacheWorkflow extends Workflow {
     );
   }
 
-  // Clarity on why the version mismatch happened and how it can be fixed
   Future<CacheFlutterVersion> _handleVersionMismatch(
     CacheFlutterVersion version, {
     required bool useArchive,
-  }) {
+  }) async {
     logger
       ..notice(
         'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
@@ -76,13 +70,11 @@ class EnsureCacheWorkflow extends Workflow {
 
     String selectedOption;
     if (context.skipInput) {
-      // In CI/non-interactive mode, automatically choose safe default: remove and reinstall
       logger.warn(
-        'CI/non-interactive mode detected: Auto-selecting to remove and reinstall',
+        'CI/non-interactive mode: auto-selecting remove and reinstall',
       );
       selectedOption = secondOption;
     } else {
-      // Interactive mode: show prompt
       selectedOption = logger.select(
         'How would you like to resolve this?',
         options: [firstOption, secondOption],
@@ -95,28 +87,28 @@ class EnsureCacheWorkflow extends Workflow {
     }
 
     logger.info('Removing incorrect SDK version...');
-    get<CacheService>().remove(version);
+    await get<CacheService>().remove(version);
 
-    return call(version, shouldInstall: true, useArchive: useArchive);
+    return await call(
+      version,
+      shouldInstall: true,
+      useArchive: useArchive,
+    );
   }
 
   void _validateContext() {
-    final isValid = isValidGitUrl(context.flutterUrl);
-    if (!isValid) {
+    if (!isValidGitUrl(context.flutterUrl)) {
       throw AppException(
-        'Invalid Flutter URL: "${context.flutterUrl}". Please change config to a valid git url',
+        'Invalid Flutter URL: "${context.flutterUrl}". '
+        'Please change config to a valid git url',
       );
     }
   }
 
   void _validateGit() {
     try {
-      // `Process.runSync` throws a [ProcessException] when the executable
-      // cannot be found. If Git is installed, it returns a [ProcessResult]
-      // whose [exitCode] is `0` on success.
-      final isGitInstalled =
-          Process.runSync('git', ['--version']).exitCode == 0;
-      if (!isGitInstalled) {
+      final result = Process.runSync('git', ['--version']);
+      if (result.exitCode != 0) {
         throw const AppException('Git is not installed');
       }
     } on ProcessException catch (_, stackTrace) {
@@ -147,6 +139,21 @@ class EnsureCacheWorkflow extends Workflow {
     final gitService = get<GitService>();
 
     final cacheVersion = cacheService.getVersion(version);
+
+    // Migrate legacy non-bare caches if present.
+    // Refresh the mirror only when we actually need to clone (cache miss).
+    final useGitCache = context.gitCache && !useArchive;
+    if (useGitCache && !version.fromFork) {
+      try {
+        await gitService.ensureBareCacheIfPresent();
+        if (cacheVersion == null) {
+          await gitService.updateLocalMirror();
+        }
+      } on Exception catch (e) {
+        logger.debug('Local cache setup exception: $e');
+        logger.warn('Failed to setup local cache. Falling back to git clone.');
+      }
+    }
 
     if (cacheVersion != null) {
       final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
@@ -197,20 +204,6 @@ class EnsureCacheWorkflow extends Workflow {
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} is not installed.',
       );
       logger.info('Installing Flutter SDK automatically...');
-    }
-
-    bool useGitCache = context.gitCache && !useArchive;
-
-    // Only update local mirror if not a fork and git cache is enabled
-    if (useGitCache && !version.fromFork) {
-      try {
-        await gitService.updateLocalMirror();
-      } on Exception catch (e) {
-        logger.warn(
-          'Failed to setup local cache ($e). Falling back to git clone.',
-        );
-        // Do not rethrow, allow to fallback to clone
-      }
     }
 
     final progress = logger.progress(

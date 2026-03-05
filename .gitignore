@@ -76,3 +76,6 @@ ios/
 android/
 coverage/html_report
 .augment/env/setup.sh
+
+# Internal planning documents
+plan.md

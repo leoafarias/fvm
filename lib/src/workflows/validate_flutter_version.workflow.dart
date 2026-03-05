@@ -18,6 +18,20 @@ class ValidateFlutterVersionWorkflow extends Workflow {
       );
 
       if (fork == null) {
+        // For unknownRef types (e.g., feature/my-branch), the slash is likely
+        // part of a git branch name, not a fork alias. Treat the whole input
+        // as a git reference.
+        if (flutterVersion.isUnknownRef) {
+          logger.debug(
+            'No fork alias "${flutterVersion.fork}" configured, '
+            'treating "$version" as git reference',
+          );
+
+          return FlutterVersion.gitReference(version);
+        }
+
+        // For channel/release forms (e.g., myfork/stable, myfork/3.24.0),
+        // the user clearly intended a configured fork alias.
         throw AppDetailedException(
           'Fork "${flutterVersion.fork}" has not been configured',
           'Add the fork to your configuration first: fvm config',

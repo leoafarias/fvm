@@ -86,6 +86,54 @@ void main() {
       );
     });
 
+    test('Accept valid alias formats', () async {
+      for (final alias in ['my-fork', 'my_fork.v2', 'FORK123', 'a']) {
+        LocalAppConfig.read()
+          ..forks.removeWhere((f) => f.name == alias)
+          ..save();
+
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          alias,
+          testForkUrl,
+        ]);
+        expect(exitCode, ExitCode.success.code, reason: 'alias "$alias"');
+
+        // Cleanup
+        LocalAppConfig.read()
+          ..forks.removeWhere((f) => f.name == alias)
+          ..save();
+      }
+    });
+
+    test('Reject alias with slash', () async {
+      expect(
+        () => runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          'my/fork',
+          testForkUrl,
+        ]),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('Reject alias with spaces', () async {
+      expect(
+        () => runner.runOrThrow([
+          'fvm',
+          'fork',
+          'add',
+          'my fork',
+          testForkUrl,
+        ]),
+        throwsA(isA<Exception>()),
+      );
+    });
+
     test('Reject duplicate fork name', () async {
       // Add a fork first
       LocalAppConfig.read()

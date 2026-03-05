@@ -42,12 +42,16 @@ on:
 
 env:
   SDK_VERSION: "3.10.0"
+  RELEASE_DART_SDK: "3.9.0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Unit Tests - Run first for fast feedback
+  # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: Test
     timeout-minutes: 30
@@ -71,8 +75,16 @@ jobs:
 
       - name: Install DCM
         uses: CQLabs/setup-dcm@v1
+        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Ensure DCM available
+        run: |
+          if ! command -v dcm >/dev/null 2>&1; then
+            dart pub global activate dart_code_metrics
+            echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+          fi
 
       - name: Run DCM
         run: dcm analyze lib fvm_mcp/lib
@@ -97,11 +109,13 @@ jobs:
         working-directory: fvm_mcp
         run: dart test
 
-      # Release tooling requires Dart >=3.8 (see tool/release_tool/pubspec.yaml)
-      - name: Switch to Dart 3.8 for release tool
+      - name: Clean Dart SDK temp files
+        run: rm -f ${{ runner.temp }}/dartsdk-*.zip
+
+      - name: Setup Dart (release tool)
         uses: dart-lang/setup-dart@v1
         with:
-          sdk: "3.8.0"
+          sdk: ${{ env.RELEASE_DART_SDK }}
 
       - name: Release tool | Install dependencies
         working-directory: tool/release_tool
@@ -125,7 +139,6 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 30
     runs-on: ${{ matrix.os }}
-    # needs: test  # Allow parallel execution - optimization
     strategy:
       fail-fast: true
       matrix:
@@ -158,10 +171,13 @@ jobs:
         run: dart test
         shell: bash
 
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Integration Tests - Run in parallel with unit tests
+  # ─────────────────────────────────────────────────────────────────────────────
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, test-os]  # Wait for all unit tests before integration
+    needs: [test, test-os]
     timeout-minutes: 45
     # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
@@ -191,3 +207,35 @@ jobs:
       - name: Run Integration Tests
         shell: bash
         run: dart run grinder integration-test
+
+  migration-test:
+    name: Migration Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Setup Git (required for FVM operations)
+        run: |
+          git config --global user.name "FVM Integration Test"
+          git config --global user.email "test@fvm.app"
+
+      - name: Migration from v3 integration test
+        env:
+          RUN_MIGRATION_IT: "true"
+        run: dart test test/integration/migration_from_v3_test.dart

@@ -40,6 +40,28 @@ PowerShell installation script for Windows.
 ### install.md
 Documentation for the installation process.
 
+### manual-migration-test.sh
+One-command validation for legacy git-cache migration to a bare mirror.
+
+What it validates:
+- Seeds a legacy cache with `fvm 4.0.1` (`stable`, one stable release, `beta`)
+- Confirms pre-migration non-bare cache and legacy alternates paths
+- Triggers migration through `dart run bin/main.dart install stable`
+- Confirms bare cache and rewritten alternates
+- Verifies `list` output and SDK executability
+
+Usage:
+```bash
+# Default run (isolated cache in .context/tmp)
+./scripts/manual-migration-test.sh
+
+# Specify release version explicitly
+./scripts/manual-migration-test.sh --release-version 3.41.3
+
+# Remove test cache at the end
+./scripts/manual-migration-test.sh --cleanup
+```
+
 ## Design Principles
 
 All scripts follow:

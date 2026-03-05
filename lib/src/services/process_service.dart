@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
-
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
@@ -90,10 +88,9 @@ class ProcessService extends ContextualService {
 }
 
 extension ProcessResultX on ProcessResult {
-  // Note: Using `this.exitCode` explicitly to avoid shadowing by
-  // dart:io's top-level `exitCode` getter (which returns the current
-  // process's exit code, not the ProcessResult's).
-  bool get isSuccess => this.exitCode == ExitCode.success.code;
+  // Note: `this.exitCode` is intentional -- without the explicit receiver,
+  // Dart resolves to `dart:io`'s top-level `exitCode` getter.
+  bool get isSuccess => this.exitCode == 0;
 
-  bool get isFailure => this.exitCode != ExitCode.success.code;
+  bool get isFailure => this.exitCode != 0;
 }
