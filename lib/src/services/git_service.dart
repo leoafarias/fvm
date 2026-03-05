@@ -51,52 +51,56 @@ class GitService extends ContextualService {
     );
   }
 
-  Future<RandomAccessFile> _openCacheMutationLock(File lockFile) async {
-    try {
-      return await lockFile.open(mode: FileMode.write);
-    } on FileSystemException catch (error, stackTrace) {
-      _throwLockAcquisitionError(lockFile, error, stackTrace);
-    }
-  }
-
-  Future<void> _acquireCacheMutationLock(
-    RandomAccessFile lockHandle,
-    File lockFile,
-  ) async {
+  Future<RandomAccessFile> _acquireCacheMutationLock(File lockFile) async {
     const retryDelay = Duration(milliseconds: 150);
     const waitLogThreshold = Duration(seconds: 2);
     const maxWait = Duration(minutes: 5);
 
-    final lockWaitStart = DateTime.now();
-    var waitingLogged = false;
+    RandomAccessFile? lockHandle;
 
-    while (true) {
+    try {
       try {
-        await lockHandle.lock(FileLock.exclusive);
-        return;
+        lockHandle = await lockFile.open(mode: FileMode.write);
       } on FileSystemException catch (error, stackTrace) {
-        if (!_isLockContentionError(error)) {
-          _throwLockAcquisitionError(lockFile, error, stackTrace);
-        }
-
-        final elapsed = DateTime.now().difference(lockWaitStart);
-        if (elapsed > maxWait) {
-          Error.throwWithStackTrace(
-            AppException(
-              'Timed out waiting for git cache lock at ${lockFile.path} '
-              'after ${elapsed.inSeconds}s.',
-            ),
-            stackTrace,
-          );
-        }
-
-        if (!waitingLogged && elapsed >= waitLogThreshold) {
-          waitingLogged = true;
-          logger.debug('Waiting for git cache lock at ${lockFile.path}...');
-        }
-
-        await Future<void>.delayed(retryDelay);
+        _throwLockAcquisitionError(lockFile, error, stackTrace);
       }
+
+      final lockWaitStart = DateTime.now();
+      var waitingLogged = false;
+
+      while (true) {
+        try {
+          await lockHandle.lock(FileLock.exclusive);
+          return lockHandle;
+        } on FileSystemException catch (error, stackTrace) {
+          if (!_isLockContentionError(error)) {
+            _throwLockAcquisitionError(lockFile, error, stackTrace);
+          }
+
+          final elapsed = DateTime.now().difference(lockWaitStart);
+          if (elapsed > maxWait) {
+            Error.throwWithStackTrace(
+              AppException(
+                'Timed out waiting for git cache lock at ${lockFile.path} '
+                'after ${elapsed.inSeconds}s.',
+              ),
+              stackTrace,
+            );
+          }
+
+          if (!waitingLogged && elapsed >= waitLogThreshold) {
+            waitingLogged = true;
+            logger.debug('Waiting for git cache lock at ${lockFile.path}...');
+          }
+
+          await Future<void>.delayed(retryDelay);
+        }
+      }
+    } catch (_) {
+      if (lockHandle != null) {
+        await _releaseCacheMutationLock(lockHandle, lockFile, unlock: false);
+      }
+      rethrow;
     }
   }
 
@@ -133,19 +137,16 @@ class GitService extends ContextualService {
     }
 
     RandomAccessFile? lockHandle;
-    var lockAcquired = false;
 
     try {
-      lockHandle = await _openCacheMutationLock(lockFile);
-      await _acquireCacheMutationLock(lockHandle, lockFile);
-      lockAcquired = true;
+      lockHandle = await _acquireCacheMutationLock(lockFile);
       return await action();
     } finally {
       if (lockHandle != null) {
         await _releaseCacheMutationLock(
           lockHandle,
           lockFile,
-          unlock: lockAcquired,
+          unlock: true,
         );
       }
     }

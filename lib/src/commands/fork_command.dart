@@ -22,7 +22,7 @@ class ForkCommand extends BaseFvmCommand {
   @override
   final description = 'Manage Flutter fork aliases';
   @override
-  final hidden = false; // Explicitly set to false to ensure visibility
+  final hidden = false;
 
   ForkCommand(super.context) {
     addSubcommand(ForkAddCommand(context));
@@ -109,7 +109,6 @@ class ForkRemoveCommand extends BaseFvmCommand {
   Future<int> run() async {
     final args = argResults!.rest;
     if (args.isEmpty) {
-      // Show usage error
       throw UsageException('Usage: fvm fork remove <alias>', usage);
     }
     final alias = args[0];
