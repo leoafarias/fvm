@@ -81,6 +81,10 @@ void main() {
       );
     });
 
+    test('rejects ssh urls that only provide a port-like suffix', () {
+      expect(isValidGitUrl('ssh://git@gitlab.com:22'), isFalse);
+    });
+
     test('accepts valid git URLs without .git suffix', () {
       expect(isValidGitUrl('https://github.com/flutter/flutter'), isTrue);
       expect(isValidGitUrl('ssh://git@github.com/flutter/flutter'), isTrue);

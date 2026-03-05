@@ -113,6 +113,22 @@ class _FakeProcessService extends ProcessService {
   }
 }
 
+class _CleanupFailingFlutterService extends FlutterService {
+  _CleanupFailingFlutterService(super.context);
+
+  @override
+  Future<bool> cleanupPartialClone(
+    Directory versionDir, {
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) async {
+    throw FileSystemException(
+      'simulated cleanup failure',
+      versionDir.path,
+    );
+  }
+}
+
 void main() {
   group('FlutterService', () {
     group('install method', () {
@@ -344,6 +360,55 @@ void main() {
               (entry) => entry.contains('Falling back to remote clone'),
             ),
             isTrue,
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
+      test(
+          'aborts remote fallback when cleanup cannot make destination reusable',
+          () async {
+        final tempDir = Directory.systemTemp.createTempSync(
+          'fvm_flutter_service_cleanup_failure_',
+        );
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+
+          final cachePath = p.join(tempDir.path, '.fvm');
+          final gitCachePath = p.join(tempDir.path, 'missing', 'mirror.git');
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: cachePath,
+              gitCachePath: gitCachePath,
+              flutterUrl: remoteDir.path,
+              useGitCache: true,
+            ),
+          );
+
+          final service = _CleanupFailingFlutterService(context);
+          final version = FlutterVersion.parse('master');
+
+          await expectLater(
+            service.install(version),
+            throwsA(
+              isA<AppException>().having(
+                (e) => e.message,
+                'message',
+                allOf(
+                  contains('Unable to clean up partial clone'),
+                  contains('Please manually delete this directory and retry.'),
+                ),
+              ),
+            ),
           );
         } finally {
           if (tempDir.existsSync()) {

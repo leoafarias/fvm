@@ -907,6 +907,36 @@ void main() {
         );
       });
 
+      test('preflight backup restore failures are wrapped as AppException',
+          () async {
+        final release = createTestRelease();
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        final versionDir = Directory(path.join(tempDir.path, 'stable'));
+        final backupDir = Directory('${versionDir.path}.archive_backup')
+          ..createSync(recursive: true);
+        File(path.join(backupDir.path, 'previous-sdk.txt'))
+            .writeAsStringSync('rescued');
+
+        // Occupy the target path with a file so backup restore fails before any
+        // download or extraction work begins.
+        File(versionDir.path).writeAsStringSync('occupied');
+
+        await expectLater(
+          archiveService.install(FlutterVersion.parse('stable'), versionDir),
+          throwsA(
+            isA<AppException>().having(
+              (e) => e.message,
+              'message',
+              contains('Failed to restore archive backup directory'),
+            ),
+          ),
+        );
+
+        expect(backupDir.existsSync(), isTrue);
+      });
+
       test('interrupted install recovers backup when versionDir is missing',
           () async {
         final archiveBytes = 'dummy-zip-data'.codeUnits;
@@ -1268,6 +1298,77 @@ void main() {
           await withArchiveTestZone(
             port: server.port,
             debugLabel: 'symlink-safety-test',
+            extraGenerators: {ProcessService: (_) => mockProcessService},
+            body: (svc, versionDir) async {
+              await expectLater(
+                svc.install(FlutterVersion.parse('stable'), versionDir),
+                throwsA(
+                  isA<AppException>().having(
+                    (e) => e.message,
+                    'message',
+                    contains('symlink that points outside'),
+                  ),
+                ),
+              );
+            },
+          );
+        },
+        skip: Platform.isWindows
+            ? 'Windows symlink creation requires elevated privileges.'
+            : null,
+      );
+
+      test(
+        'throws when extracted symlink resolves outside sdk directory via multi-hop chain',
+        () async {
+          final archiveBytes = 'dummy-zip-data'.codeUnits;
+          final hash = sha256.convert(archiveBytes).toString();
+          final release = createTestRelease(sha256: hash);
+          final server = await _startArchiveServer(body: archiveBytes);
+          addTearDown(() => server.close(force: true));
+
+          final mockProcessService = MockProcessService();
+
+          when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+              .thenAnswer((_) async => release);
+
+          when(
+            () => mockProcessService.run(
+              any(),
+              args: any(named: 'args'),
+              workingDirectory: any(named: 'workingDirectory'),
+              environment: any(named: 'environment'),
+              throwOnError: any(named: 'throwOnError'),
+              echoOutput: any(named: 'echoOutput'),
+            ),
+          ).thenAnswer(
+            (invocation) => _simulateExtraction(
+              invocation,
+              onPrepared: (targetDir, _, binDir) {
+                final outsideDir = Directory(
+                  path.join(targetDir.parent.path, 'outside_multi_hop'),
+                )..createSync(recursive: true);
+                final outsideFile =
+                    File(path.join(outsideDir.path, 'outside.txt'))
+                      ..writeAsStringSync('outside');
+                final innerLinksDir =
+                    Directory(path.join(binDir.path, 'inner_links'))
+                      ..createSync(recursive: true);
+
+                final secondHop = Link(
+                  path.join(innerLinksDir.path, 'second_hop'),
+                );
+                secondHop.createSync(outsideFile.path);
+
+                final firstHop = Link(path.join(binDir.path, 'multi_hop'));
+                firstHop.createSync(path.join('inner_links', 'second_hop'));
+              },
+            ),
+          );
+
+          await withArchiveTestZone(
+            port: server.port,
+            debugLabel: 'symlink-multi-hop-safety-test',
             extraGenerators: {ProcessService: (_) => mockProcessService},
             body: (svc, versionDir) async {
               await expectLater(

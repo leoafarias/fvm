@@ -37,6 +37,95 @@ class GitService extends ContextualService {
         message.contains('being used by another process');
   }
 
+  Never _throwLockAcquisitionError(
+    File lockFile,
+    FileSystemException error,
+    StackTrace stackTrace,
+  ) {
+    Error.throwWithStackTrace(
+      AppException(
+        'Failed to acquire git cache lock at ${lockFile.path}: '
+        '${error.message}',
+      ),
+      stackTrace,
+    );
+  }
+
+  Future<RandomAccessFile> _openCacheMutationLock(File lockFile) async {
+    try {
+      return await lockFile.open(mode: FileMode.write);
+    } on FileSystemException catch (error, stackTrace) {
+      _throwLockAcquisitionError(lockFile, error, stackTrace);
+    }
+  }
+
+  Future<void> _acquireCacheMutationLock(
+    RandomAccessFile lockHandle,
+    File lockFile,
+  ) async {
+    const retryDelay = Duration(milliseconds: 150);
+    const waitLogThreshold = Duration(seconds: 2);
+    const maxWait = Duration(minutes: 5);
+
+    final lockWaitStart = DateTime.now();
+    var waitingLogged = false;
+
+    while (true) {
+      try {
+        await lockHandle.lock(FileLock.exclusive);
+        return;
+      } on FileSystemException catch (error, stackTrace) {
+        if (!_isLockContentionError(error)) {
+          _throwLockAcquisitionError(lockFile, error, stackTrace);
+        }
+
+        final elapsed = DateTime.now().difference(lockWaitStart);
+        if (elapsed > maxWait) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Timed out waiting for git cache lock at ${lockFile.path} '
+              'after ${elapsed.inSeconds}s.',
+            ),
+            stackTrace,
+          );
+        }
+
+        if (!waitingLogged && elapsed >= waitLogThreshold) {
+          waitingLogged = true;
+          logger.debug('Waiting for git cache lock at ${lockFile.path}...');
+        }
+
+        await Future<void>.delayed(retryDelay);
+      }
+    }
+  }
+
+  Future<void> _releaseCacheMutationLock(
+    RandomAccessFile lockHandle,
+    File lockFile, {
+    required bool unlock,
+  }) async {
+    if (unlock) {
+      try {
+        await lockHandle.unlock();
+      } on FileSystemException catch (error) {
+        logger.warn(
+          'Failed to unlock git cache lock at ${lockFile.path}: '
+          '${error.message}',
+        );
+      }
+    }
+
+    try {
+      await lockHandle.close();
+    } on FileSystemException catch (error) {
+      logger.warn(
+        'Failed to close git cache lock at ${lockFile.path}: '
+        '${error.message}',
+      );
+    }
+  }
+
   Future<T> _withCacheMutationLock<T>(Future<T> Function() action) async {
     final lockFile = File('${context.gitCachePath}.lock');
     if (!lockFile.parent.existsSync()) {
@@ -45,79 +134,19 @@ class GitService extends ContextualService {
 
     RandomAccessFile? lockHandle;
     var lockAcquired = false;
-    const retryDelay = Duration(milliseconds: 150);
-    const waitLogThreshold = Duration(seconds: 2);
-    const maxWait = Duration(minutes: 5);
 
     try {
-      try {
-        lockHandle = await lockFile.open(mode: FileMode.write);
-
-        final lockWaitStart = DateTime.now();
-        var waitingLogged = false;
-
-        while (!lockAcquired) {
-          try {
-            await lockHandle.lock(FileLock.exclusive);
-            lockAcquired = true;
-          } on FileSystemException catch (error, stackTrace) {
-            if (!_isLockContentionError(error)) {
-              Error.throwWithStackTrace(
-                AppException(
-                  'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-                ),
-                stackTrace,
-              );
-            }
-
-            final elapsed = DateTime.now().difference(lockWaitStart);
-            if (elapsed > maxWait) {
-              Error.throwWithStackTrace(
-                AppException(
-                  'Timed out waiting for git cache lock at ${lockFile.path} after ${elapsed.inSeconds}s.',
-                ),
-                stackTrace,
-              );
-            }
-
-            if (!waitingLogged && elapsed >= waitLogThreshold) {
-              waitingLogged = true;
-              logger.debug(
-                'Waiting for git cache lock at ${lockFile.path}...',
-              );
-            }
-
-            await Future<void>.delayed(retryDelay);
-          }
-        }
-      } on FileSystemException catch (error, stackTrace) {
-        Error.throwWithStackTrace(
-          AppException(
-            'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-          ),
-          stackTrace,
-        );
-      }
-
+      lockHandle = await _openCacheMutationLock(lockFile);
+      await _acquireCacheMutationLock(lockHandle, lockFile);
+      lockAcquired = true;
       return await action();
     } finally {
       if (lockHandle != null) {
-        if (lockAcquired) {
-          try {
-            await lockHandle.unlock();
-          } on FileSystemException catch (error) {
-            logger.warn(
-              'Failed to unlock git cache lock at ${lockFile.path}: ${error.message}',
-            );
-          }
-        }
-        try {
-          await lockHandle.close();
-        } on FileSystemException catch (error) {
-          logger.warn(
-            'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
-          );
-        }
+        await _releaseCacheMutationLock(
+          lockHandle,
+          lockFile,
+          unlock: lockAcquired,
+        );
       }
     }
   }
@@ -389,9 +418,10 @@ class GitService extends ContextualService {
     String comparable(String p) => Platform.isWindows ? p.toLowerCase() : p;
 
     bool isWithinCachePath(String target) {
-      final t = comparable(target);
-      final p = comparable(desiredParent);
-      return t == p || path.isWithin(p, t);
+      final targetComparable = comparable(target);
+      final cacheComparable = comparable(desiredParent);
+      return targetComparable == cacheComparable ||
+          path.isWithin(cacheComparable, targetComparable);
     }
 
     for (final version in versions) {
@@ -677,20 +707,19 @@ class GitService extends ContextualService {
       if (!gitCacheDir.existsSync()) return;
 
       final cacheState = await _determineCacheState(gitCacheDir);
-      switch (cacheState) {
-        case _GitCacheState.ready:
-        case _GitCacheState.missing:
-          break;
-        case _GitCacheState.legacy:
-          await _migrateCacheCloneToMirror(gitCacheDir, updateRemote: false);
-          break;
-        case _GitCacheState.invalid:
-          // Defer handling to install/update workflows to avoid heavy work here.
-          logger.debug(
-            'Git cache is invalid; skipping migration. It will be recreated on next install.',
-          );
-          break;
+      if (cacheState == _GitCacheState.ready) {
+        return;
       }
+
+      if (cacheState == _GitCacheState.legacy) {
+        await _migrateCacheCloneToMirror(gitCacheDir, updateRemote: false);
+        return;
+      }
+
+      // Defer handling to install/update workflows to avoid heavy work here.
+      logger.debug(
+        'Git cache is invalid; skipping migration. It will be recreated on next install.',
+      );
     });
   }
 

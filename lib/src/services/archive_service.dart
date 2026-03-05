@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import '../models/flutter_version_model.dart';
 import '../utils/constants.dart';
 import '../utils/exceptions.dart';
+import '../utils/file_utils.dart';
 import 'base_service.dart';
 import 'process_service.dart';
 import 'releases_service/models/version_model.dart';
@@ -221,6 +222,74 @@ class ArchiveService extends ContextualService {
       await lockHandle.close();
     } catch (error) {
       logger.debug('Failed to close archive install lock file: $error');
+    }
+  }
+
+  Future<void> _prepareInstallDirectories(
+    Directory versionDir,
+    Directory stagingDir,
+    Directory backupDir,
+  ) async {
+    Future<void> deleteArchiveDirectory(
+      Directory directory, {
+      required String description,
+    }) async {
+      try {
+        await deleteDirectoryWithRetry(directory);
+      } on FileSystemException catch (error, stackTrace) {
+        Error.throwWithStackTrace(
+          AppException(
+            'Failed to remove archive $description at ${directory.path}: '
+            '${error.message}',
+          ),
+          stackTrace,
+        );
+      }
+    }
+
+    if (stagingDir.existsSync()) {
+      await deleteArchiveDirectory(
+        stagingDir,
+        description: 'staging directory',
+      );
+    }
+
+    // Recover from interrupted finalize: if a previous run was killed after
+    // versionDir was moved to backupDir but before stagingDir took its place,
+    // the backup is the only surviving copy. Restore it instead of deleting.
+    if (backupDir.existsSync()) {
+      if (!versionDir.existsSync()) {
+        logger
+            .debug('Detected interrupted archive install - restoring backup.');
+        try {
+          backupDir.renameSync(versionDir.path);
+        } on FileSystemException catch (error, stackTrace) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to restore archive backup directory from '
+              '${backupDir.path} to ${versionDir.path}: ${error.message}',
+            ),
+            stackTrace,
+          );
+        }
+      } else {
+        await deleteArchiveDirectory(
+          backupDir,
+          description: 'backup directory',
+        );
+      }
+    }
+
+    try {
+      stagingDir.createSync(recursive: true);
+    } on FileSystemException catch (error, stackTrace) {
+      Error.throwWithStackTrace(
+        AppException(
+          'Failed to create archive staging directory at ${stagingDir.path}: '
+          '${error.message}',
+        ),
+        stackTrace,
+      );
     }
   }
 
@@ -522,13 +591,16 @@ class ArchiveService extends ContextualService {
     }
   }
 
-  String _readLinkTarget(Link entity) {
+  String _resolveEntityPath(
+    FileSystemEntity entity, {
+    required String description,
+  }) {
     try {
-      return entity.targetSync();
+      return path.normalize(entity.resolveSymbolicLinksSync());
     } on FileSystemException catch (error, stackTrace) {
       Error.throwWithStackTrace(
         AppException(
-          'Failed to inspect extracted symlink "${entity.path}": '
+          'Failed to resolve $description "${entity.path}": '
           '${error.message}',
         ),
         stackTrace,
@@ -537,20 +609,19 @@ class ArchiveService extends ContextualService {
   }
 
   void _validateSymlinkSafety(Directory targetDir) {
-    final rootPath = path.normalize(targetDir.absolute.path);
+    final rootPath = _resolveEntityPath(
+      targetDir,
+      description: 'extracted SDK directory',
+    );
 
     for (final entity
         in targetDir.listSync(recursive: true, followLinks: false)) {
       if (entity is! Link) {
         continue;
       }
-
-      final linkTarget = _readLinkTarget(entity);
-
-      final resolvedTarget = path.normalize(
-        path.isAbsolute(linkTarget)
-            ? linkTarget
-            : path.join(path.dirname(entity.path), linkTarget),
+      final resolvedTarget = _resolveEntityPath(
+        entity,
+        description: 'extracted symlink',
       );
 
       final isInside =
@@ -594,18 +665,20 @@ class ArchiveService extends ContextualService {
     return '${value.toStringAsFixed(precision)} ${units[unit]}';
   }
 
-  void _cleanupStagingDir(Directory stagingDir) {
+  Future<void> _cleanupStagingDir(Directory stagingDir) async {
     if (!stagingDir.existsSync()) {
       return;
     }
 
-    try {
-      stagingDir.deleteSync(recursive: true);
-    } catch (cleanupError) {
-      logger.debug(
-        'Warning: Could not clean up staging directory: $cleanupError',
-      );
-    }
+    await deleteDirectoryWithRetry(
+      stagingDir,
+      requireSuccess: false,
+      onFinalError: (cleanupError) {
+        logger.debug(
+          'Warning: Could not clean up staging directory: $cleanupError',
+        );
+      },
+    );
   }
 
   Future<void> _installLocked(
@@ -625,31 +698,7 @@ class ArchiveService extends ContextualService {
       // Use a staging directory so an existing cache survives failures
       final stagingDir = Directory('${versionDir.path}.archive_staging');
       final backupDir = Directory('${versionDir.path}.archive_backup');
-
-      if (stagingDir.existsSync()) {
-        stagingDir.deleteSync(recursive: true);
-      }
-
-      // Recover from interrupted finalize: if a previous run was killed after
-      // versionDir was moved to backupDir but before stagingDir took its place,
-      // the backup is the only surviving copy. Restore it instead of deleting.
-      if (backupDir.existsSync()) {
-        if (!versionDir.existsSync()) {
-          logger.debug(
-            'Detected interrupted archive install – restoring backup.',
-          );
-          backupDir.renameSync(versionDir.path);
-        } else {
-          backupDir.deleteSync(recursive: true);
-        }
-      }
-
-      final parentDir = versionDir.parent;
-      if (!parentDir.existsSync()) {
-        parentDir.createSync(recursive: true);
-      }
-
-      stagingDir.createSync(recursive: true);
+      await _prepareInstallDirectories(versionDir, stagingDir, backupDir);
 
       try {
         final download = await _downloadArchive(release);
@@ -667,7 +716,7 @@ class ArchiveService extends ContextualService {
 
         _finalizeInstall(stagingDir, versionDir, backupDir);
       } catch (_) {
-        _cleanupStagingDir(stagingDir);
+        await _cleanupStagingDir(stagingDir);
         rethrow;
       }
     } finally {

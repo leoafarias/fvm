@@ -213,7 +213,7 @@ bool isValidGitUrl(String url) {
   if (trimmed.startsWith(sshScheme)) {
     final remainder = trimmed.substring(sshScheme.length);
     if (_isScpLikeGitUrl(remainder)) {
-      return _hasValidRepoPath(_extractScpPath(remainder));
+      return _hasValidSshSchemeRepoPath(_extractScpPath(remainder));
     }
   }
 
@@ -264,6 +264,15 @@ bool _hasValidRepoPath(String? path) {
   final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
 
   return segments.isNotEmpty;
+}
+
+bool _hasValidSshSchemeRepoPath(String? path) {
+  if (!_hasValidRepoPath(path)) return false;
+
+  final segments =
+      path!.split('/').where((segment) => segment.isNotEmpty).toList();
+
+  return segments.length >= 2;
 }
 
 bool _isScpLikeGitUrl(String url) {

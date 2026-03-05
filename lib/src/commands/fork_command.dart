@@ -54,7 +54,6 @@ class ForkAddCommand extends BaseFvmCommand {
     final alias = args[0];
     final url = args[1];
 
-    // Validate alias format
     final aliasPattern = RegExp(r'^[A-Za-z0-9._-]+$');
     if (!aliasPattern.hasMatch(alias)) {
       throw UsageException(
@@ -65,7 +64,6 @@ class ForkAddCommand extends BaseFvmCommand {
       );
     }
 
-    // Validate URL format
     if (!isValidGitUrl(url)) {
       throw UsageException(
         'Invalid Git URL format: $url\n'
@@ -75,7 +73,6 @@ class ForkAddCommand extends BaseFvmCommand {
       );
     }
 
-    // Check for duplicate alias
     final config = LocalAppConfig.read();
     if (config.forks.any((f) => f.name == alias)) {
       throw UsageException(
