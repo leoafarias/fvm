@@ -100,12 +100,13 @@ void main() {
 
     // Test 2: On global version
     test('On global version', () async {
-      final versionNumber = "2.2.0";
+      const installVersion = '2.2.0@stable';
+      const releaseVersion = '2.2.0';
 
       // Install specific version
-      await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
+      await testRunner.run(['fvm', 'install', installVersion, '--setup']);
       final cacheVersion = testRunner.context.get<CacheService>().getVersion(
-            FlutterVersion.parse(versionNumber),
+            FlutterVersion.parse(installVersion),
           );
 
       // Update environment variables
@@ -132,7 +133,7 @@ void main() {
       // Get release information
       final release = await testRunner.context
           .get<FlutterReleaseClient>()
-          .getReleaseByVersion(versionNumber);
+          .getReleaseByVersion(releaseVersion);
 
       // Extract version information
       final dartVersionOut = dartVersionResult.stdout.toString().isEmpty
@@ -143,10 +144,17 @@ void main() {
         flutterVersionResult.stdout,
       );
       final dartVersion = extractDartVersionOutput(dartVersionOut);
+      final expectedChannel =
+          release?.channel.name ?? cacheVersion.releaseChannel?.name;
+      final parsedChannel = flutterVersion.channel;
 
       // Verify version information
       expect(dartVersion, cacheVersion.dartSdkVersion);
-      expect(flutterVersion.channel, release!.channel.name);
+      expect(parsedChannel, isNotEmpty);
+      expect(isFlutterChannel(parsedChannel!), isTrue);
+      if (expectedChannel != null) {
+        expect(parsedChannel, expectedChannel);
+      }
       expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });

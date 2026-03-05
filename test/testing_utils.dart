@@ -6,7 +6,6 @@ import 'dart:math';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/flutter_service.dart';
-import 'package:git/git.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -36,37 +35,12 @@ class TestCommandRunner extends FvmCommandRunner {
   }
 }
 
-/// update sdk version in a cache version
 void forceUpdateFlutterSdkVersionFile(
   CacheFlutterVersion version,
   String sdkVersion,
 ) {
   final sdkVersionFile = File(p.join(version.directory, 'version'));
   sdkVersionFile.writeAsStringSync(sdkVersion);
-}
-
-Future<void> getCommitCount(FvmContext context) async {
-  final gitDir = await GitDir.fromExisting(context.gitCachePath);
-  final result = await gitDir.runCommand([
-    'rev-list',
-    '--count',
-    'HEAD..origin/master',
-  ], echoOutput: true);
-  final commitCount = result.stdout.trim();
-  print('Commit count: $commitCount');
-}
-
-Future<DateTime> getDateOfLastCommit(FvmContext context) async {
-  final gitDir = await GitDir.fromExisting(context.gitCachePath);
-  final result = await gitDir.runCommand([
-    'log',
-    '-1',
-    '--format=%cd',
-    '--date=short',
-  ]);
-  final lastCommitDate = result.stdout.trim();
-
-  return DateTime.parse(lastCommitDate);
 }
 
 const _kTempTestDirPrefix = 'TEST_DIR_';
@@ -108,21 +82,17 @@ File createProjectConfig(ProjectConfig config, Directory directory) {
   return file;
 }
 
-/// Generate a random uuid without any dependencies
 String _generateUuid() {
   final random = Random();
   const hexDigits = '0123456789abcdef';
   final uuid = List.filled(36, '', growable: false);
 
-  // Generate random hex digits
   for (var i = 0; i < 36; i++) {
     if (i == 8 || i == 13 || i == 18 || i == 23) {
       uuid[i] = '-';
     } else if (i == 14) {
-      // Version 4 UUID has '4' as the version number
       uuid[i] = '4';
     } else if (i == 19) {
-      // UUID variant (8, 9, a, or b)
       uuid[i] = hexDigits[(random.nextInt(4) + 8)];
     } else {
       uuid[i] = hexDigits[random.nextInt(16)];
@@ -138,7 +108,6 @@ String _replaceTempDirectory(String path) {
   );
 }
 
-/// Custom matcher to check that a Project has a configuration.
 Matcher isProjectMatcher({
   Directory? expectedDirectory,
   bool hasConfig = true,
@@ -246,30 +215,23 @@ class TestFactory {
   }) {
     debugLabel ??= _generateUuid();
 
-    // Read global config to preserve forks
     final globalConfig = LocalAppConfig.read();
 
-    // Create a configuration for the test context using a temporary directory for cache
-    // and the main git cache path from the existing FVMContext.
-    // Always include forks from global config to ensure they're available in tests
     final config = AppConfig(
       cachePath: createTempDir().path,
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
-      forks: globalConfig.forks, // Preserve global forks
+      forks: globalConfig.forks,
     );
 
-    // Create the test context using the computed contextId, the config overrides,
-    // and a temporary directory for the working directory.
     final testContext = FvmContext.create(
       debugLabel: debugLabel,
       configOverrides: config,
       logLevel: Level.verbose,
       workingDirectoryOverride: createTempDir(debugLabel).path,
       isTest: true,
-      skipInput: skipInput ??
-          false, // Allow overriding skipInput for testing user input
+      skipInput: skipInput ?? false,
       environmentOverrides: environmentOverrides,
       generatorsOverride: {FlutterService: _mockFlutterService, ...?generators},
     );
@@ -300,7 +262,6 @@ Future<List<String>> runnerZoned(
   return printed;
 }
 
-/// Create a matcher to check if list of strings is a valid json
 class _IsExpectedJson extends Matcher {
   final String expected;
 
@@ -335,19 +296,15 @@ Matcher isExpectedJson(String expected) {
   return _IsExpectedJson(expected);
 }
 
-/// A simple test helper that tracks temporary directories for cleanup.
-/// Following KISS principle - just what we need, nothing more.
 class TempDirectoryTracker {
   final _dirs = <Directory>[];
 
-  /// Creates a temporary directory and tracks it for cleanup.
   Directory create() {
     final dir = createTempDir();
     _dirs.add(dir);
     return dir;
   }
 
-  /// Cleans up all tracked directories.
   void cleanUp() {
     for (final dir in _dirs) {
       if (dir.existsSync()) {
@@ -358,26 +315,91 @@ class TempDirectoryTracker {
   }
 }
 
-/// A mock implementation of a Flutter service that installs the SDK
-/// by using a local fixture repository instead of performing a real git clone.
+Future<ProcessResult> runGitCommand(
+  List<String> args, {
+  String? workingDirectory,
+}) async {
+  final result = await Process.run(
+    'git',
+    args,
+    workingDirectory: workingDirectory,
+    runInShell: true,
+  );
+
+  if (result.exitCode != ExitCode.success.code) {
+    throw ProcessException(
+      'git',
+      args,
+      (result.stderr ?? result.stdout).toString(),
+      result.exitCode,
+    );
+  }
+
+  return result;
+}
+
+Future<Directory> createLocalRemoteRepository({
+  required Directory root,
+  String name = 'remote',
+  String branch = 'master',
+}) async {
+  final remoteDir = Directory(p.join(root.path, '$name.git'));
+  if (!remoteDir.existsSync()) {
+    remoteDir.createSync(recursive: true);
+  }
+
+  await runGitCommand(['init', '--bare', remoteDir.path]);
+
+  final seedDir = Directory(p.join(root.path, '${name}_seed'));
+  seedDir.createSync(recursive: true);
+
+  try {
+    await runGitCommand(['init'], workingDirectory: seedDir.path);
+    await runGitCommand(
+      ['config', 'user.email', 'tests@fvm.app'],
+      workingDirectory: seedDir.path,
+    );
+    await runGitCommand(
+      ['config', 'user.name', 'FVM Tests'],
+      workingDirectory: seedDir.path,
+    );
+    File(p.join(seedDir.path, 'README.md')).writeAsStringSync('seed data');
+    await runGitCommand(['add', '.'], workingDirectory: seedDir.path);
+    await runGitCommand(['commit', '-m', 'seed'],
+        workingDirectory: seedDir.path);
+    await runGitCommand(['branch', '-M', branch],
+        workingDirectory: seedDir.path);
+    await runGitCommand(
+      ['remote', 'add', 'origin', remoteDir.path],
+      workingDirectory: seedDir.path,
+    );
+    await runGitCommand(
+      ['push', 'origin', branch],
+      workingDirectory: seedDir.path,
+    );
+  } finally {
+    if (seedDir.existsSync()) {
+      seedDir.deleteSync(recursive: true);
+    }
+  }
+
+  return remoteDir;
+}
+
+Future<bool> isBareGitRepository(String repoPath) async {
+  final result = await runGitCommand(
+    ['rev-parse', '--is-bare-repository'],
+    workingDirectory: repoPath,
+  );
+
+  return result.stdout.toString().trim() == 'true';
+}
+
 class MockFlutterService extends FlutterService {
   MockFlutterService(super.context) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
     }
-  }
-
-  /// Installs the Flutter SDK for the given [version].
-  ///
-  /// This method checks if a fixture repository already exists in the local
-  /// project cache (at `.fixtures/flutter`). If it does not exist, it “clones”
-  /// the fixture by creating the directory and a marker file. Finally, it copies
-  /// the fixture repository into the version directory (configured via CacheService).
-  @override
-  Future<void> install(FlutterVersion version) async {
-    try {
-      return super.install(version);
-    } finally {}
   }
 }
 

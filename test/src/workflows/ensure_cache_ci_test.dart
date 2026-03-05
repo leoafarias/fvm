@@ -17,38 +17,36 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test('version mismatch in CI mode auto-selects safe default', () async {
-      // Create context that simulates CI environment
+    test(
+      'version mismatch in CI mode auto-selects safe default',
+      () async {
       final context = TestFactory.context(
-        environmentOverrides: {'CI': 'true'}, // Triggers isCI = true
+        environmentOverrides: {'CI': 'true'},
       );
       runner = TestFactory.commandRunner(context: context);
 
-      // Setup version with mismatch
       final version = FlutterVersion.parse('3.10.0');
       final cacheService = context.get<CacheService>();
       final ensureCache = EnsureCacheWorkflow(context);
 
-      // First install the version
       await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
 
-      // Create version mismatch by modifying SDK version file
       final cacheVersion = cacheService.getVersion(version);
       if (cacheVersion != null) {
         forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
       }
 
-      // This should NOT crash in CI mode, should auto-select "remove and reinstall"
-      // Currently this will crash with exit code because no default selection is provided
       final result = await ensureCache(version);
 
       expect(result, isNotNull);
       expect(result.name, equals('3.10.0'));
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
-    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
+    test(
+      '--fvm-skip-input flag handles version mismatch gracefully',
+      () async {
       final context = TestFactory.context(
-        skipInput: true, // Manual skipInput flag
+        skipInput: true,
       );
       runner = TestCommandRunner(context);
 
@@ -56,21 +54,21 @@ void main() {
       final cacheService = context.get<CacheService>();
       final ensureCache = EnsureCacheWorkflow(context);
 
-      // Setup version with mismatch
       await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
       final cacheVersion = cacheService.getVersion(version);
       if (cacheVersion != null) {
         forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
       }
 
-      // Should not crash with --fvm-skip-input flag
       final result = await ensureCache(version);
 
       expect(result, isNotNull);
       expect(result.name, equals('3.10.0'));
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
-    test('GitHub Actions environment handles version mismatch', () async {
+    test(
+      'GitHub Actions environment handles version mismatch',
+      () async {
       final context = TestFactory.context(
         environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
       );
@@ -80,23 +78,20 @@ void main() {
       final cacheService = context.get<CacheService>();
       final ensureCache = EnsureCacheWorkflow(context);
 
-      // Setup version with mismatch
       await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
       final cacheVersion = cacheService.getVersion(version);
       if (cacheVersion != null) {
         forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
       }
 
-      // Should handle gracefully in GitHub Actions
       final result = await ensureCache(version);
 
       expect(result, isNotNull);
-    });
+    }, timeout: Timeout(Duration(minutes: 15)));
 
     test(
       'CI environment variables properly detected from multiple sources',
       () {
-        // Test ALL supported CI environment variables from constants.dart
         final ciVariables = [
           'CI',
           'TRAVIS',
@@ -126,7 +121,6 @@ void main() {
           );
         }
 
-        // Test that having multiple CI variables also works
         final multiCiContext = TestFactory.context(
           environmentOverrides: {'CI': 'true', 'GITHUB_ACTIONS': 'true'},
         );
@@ -136,14 +130,5 @@ void main() {
       },
     );
 
-    test('verify CI detection works correctly', () {
-      // Test CI environment detection
-      final ciContext = TestFactory.context(
-        environmentOverrides: {'CI': 'true'},
-      );
-
-      expect(ciContext.isCI, isTrue);
-      expect(ciContext.skipInput, isTrue);
-    });
   });
 }

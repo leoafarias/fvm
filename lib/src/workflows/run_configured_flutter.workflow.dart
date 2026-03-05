@@ -30,7 +30,7 @@ class RunConfiguredFlutterWorkflow extends Workflow {
     } else {
       final globalVersion = get<CacheService>().getGlobal();
       if (globalVersion != null) {
-        selectedVersion = globalVersion;
+        selectedVersion = await get<EnsureCacheWorkflow>().call(globalVersion);
         logger.debug(
           '$kPackageName: Running Flutter from global version "${globalVersion.flutterSdkVersion}"',
         );

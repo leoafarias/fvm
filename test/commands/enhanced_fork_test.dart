@@ -119,23 +119,46 @@ void main() {
     });
 
     group('Fork error handling:', () {
-      test('Install from non-existent fork fails gracefully', () async {
+      test('Install with slash unknownRef treats as git reference', () async {
+        // "nonexistent/leo-test-21" - unknownRef type, no configured fork
+        // Should fall back to treating the whole input as a git reference.
+        // Installation fails because the ref doesn't exist in the repo,
+        // but the error must be about the missing git ref, NOT about
+        // an unconfigured fork alias.
         expect(
-          () =>
-              runner.runOrThrow(['fvm', 'install', 'nonexistent/leo-test-21']),
+          () => runner.runOrThrow(
+            ['fvm', 'install', 'nonexistent/leo-test-21'],
+          ),
           throwsA(
             predicate<Exception>(
-              (e) => e.toString().contains(
-                    'Fork "nonexistent" has not been configured',
-                  ),
+              (e) =>
+                  e.toString().contains('not found') &&
+                  !e.toString().contains('has not been configured'),
             ),
           ),
         );
       });
 
-      test('Use non-existent fork fails gracefully', () async {
+      test('Use with slash unknownRef treats as git reference', () async {
+        // Same fallback for the use command
         expect(
-          () => runner.runOrThrow(['fvm', 'use', 'nonexistent/leo-test-21']),
+          () => runner.runOrThrow(
+            ['fvm', 'use', 'nonexistent/leo-test-21', '--force', '--skip-setup'],
+          ),
+          throwsA(
+            predicate<Exception>(
+              (e) =>
+                  e.toString().contains('not found') &&
+                  !e.toString().contains('has not been configured'),
+            ),
+          ),
+        );
+      });
+
+      test('Install with slash channel still requires fork config', () async {
+        // "nonexistent/stable" - channel type, user clearly intended a fork
+        expect(
+          () => runner.runOrThrow(['fvm', 'install', 'nonexistent/stable']),
           throwsA(
             predicate<Exception>(
               (e) => e.toString().contains(
