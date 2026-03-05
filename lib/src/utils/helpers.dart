@@ -224,6 +224,11 @@ bool isValidGitUrl(String url) {
       return false;
     }
 
+    // Query/fragment suffixes are not valid git remotes.
+    if (uri.hasQuery || uri.hasFragment) {
+      return false;
+    }
+
     final scheme = uri.scheme.toLowerCase();
     const allowedSchemes = {'https', 'http', 'git', 'ssh', 'file'};
     if (!allowedSchemes.contains(scheme)) {
@@ -248,6 +253,9 @@ bool isValidGitUrl(String url) {
 /// or just repo.git). Accepts paths with or without `.git` suffix.
 bool _hasValidRepoPath(String? path) {
   if (path == null || path.isEmpty) return false;
+
+  // scp-like paths may contain query/fragment text; reject those.
+  if (path.contains('?') || path.contains('#')) return false;
 
   // Strip .git suffix for segment analysis
   final cleanPath =

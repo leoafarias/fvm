@@ -103,6 +103,25 @@ void main() {
       expect(isValidGitUrl('https://github.com?q=flutter'), isFalse);
     });
 
+    test('rejects URLs with query or fragment suffixes', () {
+      expect(
+        isValidGitUrl('https://github.com/flutter/flutter.git?foo=1'),
+        isFalse,
+      );
+      expect(
+        isValidGitUrl('https://github.com/flutter/flutter#main'),
+        isFalse,
+      );
+      expect(
+        isValidGitUrl('git@github.com:flutter/flutter.git?foo=1'),
+        isFalse,
+      );
+      expect(
+        isValidGitUrl('git@github.com:flutter/flutter.git#main'),
+        isFalse,
+      );
+    });
+
     test('accepts all valid git URL schemes', () {
       expect(isValidGitUrl('https://github.com/flutter/flutter.git'), isTrue);
       expect(isValidGitUrl('http://github.com/flutter/flutter.git'), isTrue);
