@@ -151,7 +151,7 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
     throw FormatException('Unable to parse Dart version.');
   }
 
-  final channel = channelMatch?.group(1);
+  final channel = channelMatch?.group(1)?.trim().toLowerCase();
   if (channel == null || !isFlutterChannel(channel)) {
     throw FormatException('Unable to parse Flutter channel.');
   }
