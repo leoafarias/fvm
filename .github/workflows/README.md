@@ -32,7 +32,7 @@
 7. Everything deploys automatically!
 
 ### `release-fvm-mcp.yml`
-**Trigger**: Git tag push with `fvm-mcp-v*` pattern + manual dispatch
+**Trigger**: Git tag push with `fvm-mcp-v*` pattern + manual dispatch  
 **Purpose**: Build and publish `fvm_mcp` standalone binaries to GitHub Releases
 **Process**:
 1. **Validate** - Enforce release tag format and version consistency:

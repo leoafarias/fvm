@@ -188,6 +188,6 @@ class CacheFlutterVersion extends FlutterVersion
   /// Whether this cached version has not been set up.
   bool get isNotSetup => !isSetup;
 
-  FlutterVersion toFlutterVersion() => FlutterVersion(name,
-      releaseChannel: releaseChannel, type: type, fork: fork);
+  FlutterVersion toFlutterVersion() =>
+      FlutterVersion(name, releaseChannel: releaseChannel, type: type, fork: fork);
 }

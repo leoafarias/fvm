@@ -44,8 +44,8 @@ class EnsureCacheWorkflow extends Workflow {
       version,
       shouldInstall: shouldInstall,
       force: force,
-      retryCount: retryCount + 1,
       useArchive: useArchive,
+      retryCount: retryCount + 1,
     );
   }
 
@@ -119,32 +119,6 @@ class EnsureCacheWorkflow extends Workflow {
     }
   }
 
-  Future<void> _prepareInstallPrerequisites(
-    FlutterVersion version,
-    GitService gitService, {
-    required bool useArchive,
-  }) async {
-    if (useArchive) {
-      return;
-    }
-
-    _validateContext();
-    _validateGit();
-
-    final useGitCache = context.gitCache && !version.fromFork;
-    if (!useGitCache) {
-      return;
-    }
-
-    try {
-      await gitService.ensureBareCacheIfPresent();
-      await gitService.updateLocalMirror();
-    } on Exception catch (e) {
-      logger.debug('Local cache setup exception: $e');
-      logger.warn('Failed to setup local cache. Falling back to git clone.');
-    }
-  }
-
   /// Ensures that the specified Flutter SDK version is cached locally.
   ///
   /// Returns a [CacheFlutterVersion] which represents the locally cached version.
@@ -155,12 +129,29 @@ class EnsureCacheWorkflow extends Workflow {
     int retryCount = 0,
     bool useArchive = false,
   }) async {
+    _validateContext();
+    _validateGit();
     // Get valid flutter version
     final cacheService = get<CacheService>();
     final flutterService = get<FlutterService>();
     final gitService = get<GitService>();
 
     final cacheVersion = cacheService.getVersion(version);
+
+    // Migrate legacy non-bare caches if present.
+    // Refresh the mirror only when we actually need to clone (cache miss).
+    final useGitCache = context.gitCache;
+    if (!useArchive && !version.fromFork) {
+      try {
+        await gitService.ensureBareCacheIfPresent();
+        if (useGitCache && cacheVersion == null) {
+          await gitService.updateLocalMirror();
+        }
+      } on Exception catch (e) {
+        logger.debug('Local cache setup exception: $e');
+        logger.warn('Failed to setup local cache. Falling back to git clone.');
+      }
+    }
 
     if (cacheVersion != null) {
       final integrity = await cacheService.verifyCacheIntegrity(cacheVersion);
@@ -205,12 +196,6 @@ class EnsureCacheWorkflow extends Workflow {
     if (version.isCustom) {
       throw AppException('Local Flutter SDKs must be installed manually.');
     }
-
-    await _prepareInstallPrerequisites(
-      version,
-      gitService,
-      useArchive: useArchive,
-    );
 
     if (!shouldInstall) {
       logger.info(

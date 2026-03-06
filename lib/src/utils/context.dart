@@ -116,12 +116,13 @@ class FvmContext with FvmContextMappable {
 
   /// Whether to use the local git mirror cache.
   ///
-  /// The mirror stays disabled on CI to match the established install flow.
+  /// Explicit config/ENV opt-in/opt-out is always honoured.
+  /// Default: enabled locally, disabled on CI.
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache ?? true;
-
-    return useGitCache && !isCI;
+    final explicit = config.useGitCache;
+    if (explicit != null) return explicit;
+    return !isCI;
   }
 
   /// Run pub get on sdk changes

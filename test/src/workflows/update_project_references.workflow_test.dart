@@ -88,8 +88,7 @@ void main() {
         ),
       );
       expect(versionFile.existsSync(), isTrue);
-      expect(versionFile.readAsStringSync(),
-          equals(cacheVersion.flutterSdkVersion));
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.flutterSdkVersion));
 
       final releaseFile = File(
         p.join(
@@ -137,8 +136,7 @@ void main() {
       );
 
       expect(versionFile.existsSync(), isTrue);
-      expect(
-          versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
     });
 
     test(
@@ -152,7 +150,8 @@ void main() {
             directory: testDir,
           );
 
-      final versionDir = Directory(p.join(cacheDir.path, 'versions', '3.10.0'));
+      final versionDir =
+          Directory(p.join(cacheDir.path, 'versions', '3.10.0'));
       versionDir.createSync(recursive: true);
 
       // Create an empty version file (whitespace only) to test empty string fallback
@@ -177,8 +176,7 @@ void main() {
 
       // Should fall back to nameWithAlias when version is empty/whitespace
       expect(versionFile.existsSync(), isTrue);
-      expect(
-          versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
+      expect(versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
     });
 
     test(
@@ -448,8 +446,7 @@ void main() {
       dartSdkDir.createSync(recursive: true);
 
       // Create version files
-      File(p.join(forkVersionDir.path, 'version'))
-          .writeAsStringSync(versionName);
+      File(p.join(forkVersionDir.path, 'version')).writeAsStringSync(versionName);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('2.19.0');
 
       // Create a fork FlutterVersion
@@ -527,8 +524,7 @@ void main() {
       forkVersionDir.createSync(recursive: true);
 
       // Create version file
-      File(p.join(forkVersionDir.path, 'version'))
-          .writeAsStringSync(versionName);
+      File(p.join(forkVersionDir.path, 'version')).writeAsStringSync(versionName);
 
       final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
       final cacheVersion = CacheFlutterVersion.fromVersion(

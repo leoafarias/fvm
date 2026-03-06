@@ -143,13 +143,7 @@ void main() {
         // Same fallback for the use command
         expect(
           () => runner.runOrThrow(
-            [
-              'fvm',
-              'use',
-              'nonexistent/leo-test-21',
-              '--force',
-              '--skip-setup'
-            ],
+            ['fvm', 'use', 'nonexistent/leo-test-21', '--force', '--skip-setup'],
           ),
           throwsA(
             predicate<Exception>(

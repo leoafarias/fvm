@@ -31,8 +31,7 @@ void main() {
 
     test('Dockerfile uses correct install script URL', () async {
       final dockerfile = File('.docker/Dockerfile');
-      expect(dockerfile.existsSync(), isTrue,
-          reason: 'Dockerfile should exist');
+      expect(dockerfile.existsSync(), isTrue, reason: 'Dockerfile should exist');
 
       final dockerfileContent = await dockerfile.readAsString();
 

@@ -308,8 +308,9 @@ class CacheService extends ContextualService {
     final versionDir = Directory(version.directory);
     if (!versionDir.existsSync()) return;
 
-    final versionString =
-        version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion;
+    final versionString = version.fromFork
+        ? '${version.fork}/$sdkVersion'
+        : sdkVersion;
     final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 

@@ -411,8 +411,7 @@ void main() {
       final contents = workspaceFile.readAsStringSync();
       expect(
         contents,
-        contains(
-            '"dart.flutterSdkPath": ".fvm/versions/$forkName/$versionName"'),
+        contains('"dart.flutterSdkPath": ".fvm/versions/$forkName/$versionName"'),
       );
       expect(contents, contains('"editor.formatOnSave": true'));
     });

@@ -117,8 +117,7 @@ Future<String> _githubRequest(Uri uri) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(uri);
-    request.headers
-        .set(HttpHeaders.acceptHeader, 'application/vnd.github.v3+json');
+    request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github.v3+json');
     final token = Platform.environment['GITHUB_TOKEN'];
     if (token != null && token.isNotEmpty) {
       request.headers.set(HttpHeaders.authorizationHeader, 'token $token');

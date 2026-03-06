@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:git/git.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
+import 'archive_service.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
-import 'archive_service.dart';
 import '../utils/file_utils.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
@@ -132,33 +131,23 @@ class FlutterService extends ContextualService {
         );
       }
 
-      await _cleanupPartialCloneOrThrow(versionDir);
+      await _cleanupInstallArtifacts(
+        version: version,
+        versionDir: versionDir,
+        removeCache: false,
+      );
 
       return null;
     }
   }
 
-  @visibleForTesting
-  Future<bool> cleanupPartialClone(
-    Directory versionDir, {
-    bool requireSuccess = false,
-    void Function(FileSystemException error)? onFinalError,
-  }) async {
-    if (!versionDir.existsSync()) {
-      return true;
-    }
-
-    return deleteDirectoryWithRetry(
+  Future<void> _cleanupPartialClone(Directory versionDir) async {
+    if (!versionDir.existsSync()) return;
+    await deleteDirectoryWithRetry(
       versionDir,
-      requireSuccess: requireSuccess,
-      onFinalError: onFinalError,
-    );
-  }
-
-  Future<void> _cleanupPartialCloneOrWarn(Directory versionDir) async {
-    await cleanupPartialClone(
-      versionDir,
+      requireSuccess: false,
       onFinalError: (e) {
+        // Warn level since cleanup failure is recoverable and execution continues
         logger.warn(
           'Unable to clean up partial clone at ${versionDir.path}: ${e.message}. '
           'You may need to manually delete this directory.',
@@ -167,29 +156,16 @@ class FlutterService extends ContextualService {
     );
   }
 
-  Future<void> _cleanupPartialCloneOrThrow(Directory versionDir) async {
-    try {
-      final cleaned = await cleanupPartialClone(
-        versionDir,
-        requireSuccess: true,
-      );
-      if (cleaned) {
-        return;
-      }
-    } on FileSystemException catch (error, stackTrace) {
-      Error.throwWithStackTrace(
-        AppException(
-          'Unable to clean up partial clone at ${versionDir.path}: '
-          '${error.message}. Please manually delete this directory and retry.',
-        ),
-        stackTrace,
-      );
-    }
+  Future<void> _cleanupInstallArtifacts({
+    required FlutterVersion version,
+    required Directory versionDir,
+    required bool removeCache,
+  }) async {
+    await _cleanupPartialClone(versionDir);
 
-    throw AppException(
-      'Unable to clean up partial clone at ${versionDir.path}. '
-      'Please manually delete this directory and retry.',
-    );
+    if (removeCache) {
+      await get<CacheService>().remove(version);
+    }
   }
 
   Future<void> _updateOriginToFlutter(Directory versionDir) async {
@@ -224,32 +200,18 @@ class FlutterService extends ContextualService {
         _gitObjectCorruptionMarkers.any(lower.contains);
   }
 
-  String _buildRepositoryErrorMessage({
-    required FlutterVersion version,
-    required String repoUrl,
-    required String forkMessage,
-    required String upstreamMessage,
-  }) {
-    final message = version.fromFork ? forkMessage : upstreamMessage;
-
-    return '$message\nRepository URL: $repoUrl';
-  }
-
   Never _throwReferenceLookupError({
     required FlutterVersion version,
     required String repoUrl,
     required StackTrace stackTrace,
   }) {
-    final message = _buildRepositoryErrorMessage(
-      version: version,
-      repoUrl: repoUrl,
-      forkMessage:
-          'Reference "${version.version}" was not found in fork "${version.fork}".\n'
-          'Please verify that this version exists in the forked repository.',
-      upstreamMessage:
-          'Reference "${version.version}" was not found in the Flutter repository.\n'
-          'Please check that you have specified a valid version.',
-    );
+    final message = version.fromFork
+        ? 'Reference "${version.version}" was not found in fork "${version.fork}".\n'
+            'Please verify that this version exists in the forked repository.\n'
+            'Repository URL: $repoUrl'
+        : 'Reference "${version.version}" was not found in the Flutter repository.\n'
+            'Please check that you have specified a valid version.\n'
+            'Repository URL: $repoUrl';
 
     Error.throwWithStackTrace(AppException(message), stackTrace);
   }
@@ -266,7 +228,11 @@ class FlutterService extends ContextualService {
       'Retrying clone from remote repository...',
     );
 
-    await _cleanupPartialCloneOrThrow(versionDir);
+    await _cleanupInstallArtifacts(
+      version: version,
+      versionDir: versionDir,
+      removeCache: false,
+    );
 
     final retryResult = await _cloneSdk(
       source: repoUrl,
@@ -465,8 +431,11 @@ class FlutterService extends ContextualService {
   }) async {
     // Best-effort cleanup — must not mask the original error.
     try {
-      await _cleanupPartialCloneOrWarn(versionDir);
-      await get<CacheService>().remove(version);
+      await _cleanupInstallArtifacts(
+        version: version,
+        versionDir: versionDir,
+        removeCache: true,
+      );
     } catch (cleanupError) {
       logger.debug('Cleanup after install failure failed: $cleanupError');
     }
@@ -477,18 +446,22 @@ class FlutterService extends ContextualService {
       if (errorMessage.contains('repository not found') ||
           (errorMessage.contains('remote branch') &&
               errorMessage.contains('not found'))) {
+        if (version.fromFork) {
+          Error.throwWithStackTrace(
+            AppException(
+              'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
+              'Please verify that the fork URL is correct and the version exists.\n'
+              'Repository URL: $repoUrl',
+            ),
+            stackTrace,
+          );
+        }
+
         Error.throwWithStackTrace(
           AppException(
-            _buildRepositoryErrorMessage(
-              version: version,
-              repoUrl: repoUrl,
-              forkMessage:
-                  'Failed to clone fork "${version.fork}" with version "${version.version}".\n'
-                  'Please verify that the fork URL is correct and the version exists.',
-              upstreamMessage:
-                  'Failed to clone Flutter repository with version "${version.version}".\n'
-                  'The branch or tag does not exist in the upstream repository.',
-            ),
+            'Failed to clone Flutter repository with version "${version.version}".\n'
+            'The branch or tag does not exist in the upstream repository.\n'
+            'Repository URL: $repoUrl',
           ),
           stackTrace,
         );
@@ -558,14 +531,13 @@ class FlutterService extends ContextualService {
     FlutterVersion version, {
     bool useArchive = false,
   }) async {
+    final versionDir = _setupCacheDirectories(version);
     if (useArchive) {
-      final versionDir = _setupCacheDirectories(version);
       final archiveService = get<ArchiveService>();
       await archiveService.install(version, versionDir);
 
       return;
     }
-    final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
     final echoOutput = !context.isTest && logger.isVerbose;

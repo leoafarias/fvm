@@ -119,8 +119,7 @@ void main() {
           final versionDir = Directory(path.join(tempDir.path, versionName))
             ..createSync(recursive: true);
 
-          Directory(path.join(versionDir.path, '.git'))
-              .createSync(recursive: true);
+          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
           File(
             path.join(
               versionDir.path,
@@ -218,6 +217,7 @@ void main() {
           equals(CacheIntegrity.invalid),
         );
       });
+
     });
 
     group('moveToSdkVersionDirectory', () {
@@ -236,6 +236,7 @@ void main() {
           throwsA(isA<AppException>()),
         );
       });
+
     });
 
     group('Global version management:', () {
