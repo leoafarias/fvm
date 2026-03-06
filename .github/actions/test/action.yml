@@ -11,7 +11,20 @@ runs:
   using: "composite"
   steps:
     - name: Prepare tests
-      run: dart run grinder test-setup
+      run: FVM_USE_GIT_CACHE=true dart run grinder test-setup
+      shell: bash
+
+    - name: Pre-seed shared test git cache
+      run: |
+        # Tests use ~/fvm_test_cache/gitcache as shared git mirror (see testing_utils.dart).
+        # test-setup (with FVM_USE_GIT_CACHE=true) creates a mirror at ~/fvm/cache.git.
+        # Clone it locally so integration-style tests skip the slow remote clone.
+        DEFAULT_MIRROR="$HOME/fvm/cache.git"
+        TEST_CACHE="$HOME/fvm_test_cache/gitcache"
+        if [ -d "$DEFAULT_MIRROR" ] && [ ! -d "$TEST_CACHE" ]; then
+          mkdir -p "$(dirname "$TEST_CACHE")"
+          git clone --mirror "$DEFAULT_MIRROR" "$TEST_CACHE"
+        fi
       shell: bash
 
     - name: Run tests
