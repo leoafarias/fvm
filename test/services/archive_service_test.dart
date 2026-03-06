@@ -174,11 +174,22 @@ Future<HttpServer> _startStalledBodyServer({
 
 Directory _targetDirFromInvocation(Invocation invocation) {
   final args = invocation.namedArguments[const Symbol('args')] as List<String>;
-  final targetIdx = args.indexOf('-d');
-  final cIdx = args.indexOf('-C');
-  final targetPath = targetIdx >= 0 ? args[targetIdx + 1] : args[cIdx + 1];
 
-  return Directory(targetPath);
+  // Unix: unzip -q -o archive -d targetPath
+  final targetIdx = args.indexOf('-d');
+  if (targetIdx >= 0) return Directory(args[targetIdx + 1]);
+
+  // Unix: tar -xJf archive -C targetPath
+  final cIdx = args.indexOf('-C');
+  if (cIdx >= 0) return Directory(args[cIdx + 1]);
+
+  // Windows: powershell -Command "Expand-Archive ... -DestinationPath 'path' ..."
+  final commandArg = args.last;
+  final match =
+      RegExp(r"-DestinationPath\s+'([^']+)'").firstMatch(commandArg);
+  if (match != null) return Directory(match.group(1)!);
+
+  throw StateError('Cannot determine target directory from args: $args');
 }
 
 Future<ProcessResult> _simulateExtraction(
@@ -535,7 +546,7 @@ void main() {
                 isA<AppException>().having(
                   (e) => e.message,
                   'message',
-                  contains('Failed to extract the archive with unzip'),
+                  contains('Failed to extract'),
                 ),
               ),
             );
