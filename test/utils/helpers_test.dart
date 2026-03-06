@@ -85,6 +85,11 @@ void main() {
       expect(isValidGitUrl('ssh://git@gitlab.com:22'), isFalse);
     });
 
+    test('rejects Windows drive paths', () {
+      expect(isValidGitUrl(r'C:\repo'), isFalse);
+      expect(isValidGitUrl('C:/repo'), isFalse);
+    });
+
     test('accepts valid git URLs without .git suffix', () {
       expect(isValidGitUrl('https://github.com/flutter/flutter'), isTrue);
       expect(isValidGitUrl('ssh://git@github.com/flutter/flutter'), isTrue);

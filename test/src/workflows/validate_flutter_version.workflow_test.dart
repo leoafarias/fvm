@@ -61,21 +61,23 @@ void main() {
       expect(result.name, equals(version));
     });
 
-    /// Slash ref vs fork alias ambiguity
-    test('should treat slash ref as git reference when fork not configured',
-        () async {
+    test('should error for slash ref when fork not configured', () async {
       const version = 'feature/my-branch';
 
       final context = TestFactory.context();
 
       final workflow = ValidateFlutterVersionWorkflow(context);
 
-      final result = workflow.call(version);
-
-      // Should fall back to git reference (no fork prefix)
-      expect(result.isUnknownRef, isTrue);
-      expect(result.fromFork, isFalse);
-      expect(result.name, equals(version));
+      expect(
+        () => workflow.call(version),
+        throwsA(
+          predicate<Exception>(
+            (e) => e.toString().contains(
+                  'Fork "feature" has not been configured',
+                ),
+          ),
+        ),
+      );
     });
 
     test('should error for slash channel when fork not configured', () async {

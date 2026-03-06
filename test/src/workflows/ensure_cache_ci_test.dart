@@ -21,9 +21,16 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test(
-      'version mismatch in CI mode auto-selects safe default',
-      () async {
+    test('CI keeps the git mirror disabled even when configured on', () {
+      final context = TestFactory.context(
+        environmentOverrides: {'CI': 'true'},
+      );
+
+      expect(context.isCI, isTrue);
+      expect(context.gitCache, isFalse);
+    });
+
+    test('version mismatch in CI mode auto-selects safe default', () async {
       final context = TestFactory.context(
         environmentOverrides: {'CI': 'true'},
       );
@@ -46,9 +53,7 @@ void main() {
       expect(result.name, equals('3.10.0'));
     }, timeout: Timeout(Duration(minutes: 15)));
 
-    test(
-      '--fvm-skip-input flag handles version mismatch gracefully',
-      () async {
+    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
       final context = TestFactory.context(
         skipInput: true,
       );
@@ -70,9 +75,7 @@ void main() {
       expect(result.name, equals('3.10.0'));
     }, timeout: Timeout(Duration(minutes: 15)));
 
-    test(
-      'GitHub Actions environment handles version mismatch',
-      () async {
+    test('GitHub Actions environment handles version mismatch', () async {
       final context = TestFactory.context(
         environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
       );
@@ -133,7 +136,6 @@ void main() {
         expect(multiCiContext.skipInput, isTrue);
       },
     );
-
   });
 
   group('EnsureCache useArchive propagation', () {
@@ -174,7 +176,8 @@ void main() {
       expect(flutterService.lastInstallVersion?.name, 'stable');
     });
 
-    test('useArchive is preserved through version mismatch reinstall', () async {
+    test('useArchive is preserved through version mismatch reinstall',
+        () async {
       final context = TestFactory.context(
         debugLabel: 'archive-version-mismatch-test',
         environmentOverrides: {'CI': 'true'}, // auto-select reinstall

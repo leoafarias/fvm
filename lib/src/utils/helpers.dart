@@ -202,6 +202,10 @@ bool isValidGitUrl(String url) {
     return false;
   }
 
+  if (_looksLikeWindowsDrivePath(trimmed)) {
+    return false;
+  }
+
   // Accept scp-like syntax such as git@host:group/repo.git.
   // Skip URLs with :// which are scheme-based, not scp-like.
   if (!trimmed.contains('://') && _isScpLikeGitUrl(trimmed)) {
@@ -273,6 +277,12 @@ bool _hasValidSshSchemeRepoPath(String? path) {
       path!.split('/').where((segment) => segment.isNotEmpty).toList();
 
   return segments.length >= 2;
+}
+
+bool _looksLikeWindowsDrivePath(String value) {
+  if (value.contains('://') || value.contains('@')) return false;
+
+  return RegExp(r'^[a-zA-Z]:').hasMatch(value);
 }
 
 bool _isScpLikeGitUrl(String url) {
