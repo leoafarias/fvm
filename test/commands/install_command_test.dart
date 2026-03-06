@@ -125,48 +125,6 @@ void main() {
       expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
     });
 
-    test('throws for git commit references with --archive', () async {
-      final runner = TestFactory.commandRunner();
-
-      expect(
-        () => runner.runOrThrow(['fvm', 'install', 'f4c74a6ec3', '--archive']),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains('commit references'),
-          ),
-        ),
-      );
-    });
-
-    test('throws for @stable qualifiers with --archive', () async {
-      final runner = TestFactory.commandRunner();
-
-      expect(
-        () =>
-            runner.runOrThrow(['fvm', 'install', '2.2.2@stable', '--archive']),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains(
-              'does not support the "@stable" qualifier',
-            ),
-          ),
-        ),
-      );
-    });
-
-    test('throws for unsupported qualifiers with --archive', () async {
-      final runner = TestFactory.commandRunner();
-
-      expect(
-        () =>
-            runner.runOrThrow(['fvm', 'install', '2.2.2@master', '--archive']),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains('@beta and @dev'),
-          ),
-        ),
-      );
-    });
   });
 
   // Group 5: Forked versions

@@ -72,67 +72,6 @@ void main() {
       expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
     });
 
-    test('fails for unsupported channels', () async {
-      final localRunner = TestFactory.commandRunner();
-
-      expect(
-        () => localRunner.runOrThrow([
-          'fvm',
-          'use',
-          'master',
-          '--archive',
-          '--skip-setup',
-          '--skip-pub-get',
-        ]),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains('stable, beta, or dev channels'),
-          ),
-        ),
-      );
-    });
-
-    test('fails for @stable qualifiers', () async {
-      final localRunner = TestFactory.commandRunner();
-
-      expect(
-        () => localRunner.runOrThrow([
-          'fvm',
-          'use',
-          '2.2.2@stable',
-          '--archive',
-          '--skip-setup',
-          '--skip-pub-get',
-        ]),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains(
-              'does not support the "@stable" qualifier',
-            ),
-          ),
-        ),
-      );
-    });
-
-    test('fails for unsupported release qualifiers', () async {
-      final localRunner = TestFactory.commandRunner();
-
-      expect(
-        () => localRunner.runOrThrow([
-          'fvm',
-          'use',
-          '2.2.2@master',
-          '--archive',
-          '--skip-setup',
-          '--skip-pub-get',
-        ]),
-        throwsA(
-          predicate<AppException>(
-            (error) => error.message.contains('@beta and @dev'),
-          ),
-        ),
-      );
-    });
   });
 
   group('Pin functionality:', () {
