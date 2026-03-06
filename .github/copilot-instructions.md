@@ -17,7 +17,7 @@
    - Root: `dart pub get`
    - Also check subprojects when touched:
      - `fvm_mcp/`: `dart pub get`
-     - `tool/release_tool/`: `dart pub get` (requires newer Dart; see below)
+     - `tool/release_tool/`: `dart pub get` (requires Dart `>=3.8.0`)
 3. Before changing code, run baseline checks (if environment supports Dart):
    - `dart analyze --fatal-infos`
    - `dcm analyze lib`
@@ -52,9 +52,9 @@
 1. **Local command failure**: `dart: command not found`
    - Seen when running `dart pub get`, `dart analyze --fatal-infos`, and `dart test` in this environment.
    - Workaround: install/setup Dart before validation (CI uses `dart-lang/setup-dart`; locally ensure `dart --version` works, then rerun commands).
-2. **GitHub Actions log retrieval limitation for one failed run**:
-   - `get_workflow_run_logs_url` returned `404 Not Found` for run `22766668580`.
-   - `list_workflow_jobs`/`get_job_logs` returned zero jobs for that same run.
+2. **GitHub Actions log retrieval limitation for a failed run**:
+   - `get_workflow_run_logs_url` returned `404 Not Found`.
+   - `list_workflow_jobs`/`get_job_logs` returned zero jobs for that run.
    - Workaround: inspect `get_workflow_run` metadata (run URL, branch, event) and use the Actions UI/run page for details when API log endpoints are unavailable.
 
 ## High-value docs for deeper context
