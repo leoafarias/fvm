@@ -54,7 +54,7 @@ jobs:
   # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: Test
-    timeout-minutes: 30
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -137,7 +137,7 @@ jobs:
 
   test-os:
     name: Test on ${{ matrix.os }}
-    timeout-minutes: 45
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: true
@@ -178,7 +178,7 @@ jobs:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     needs: [test, test-os]
-    timeout-minutes: 45
+    timeout-minutes: 20
     # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
 
@@ -211,7 +211,7 @@ jobs:
   migration-test:
     name: Migration Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 20
 
     strategy:
       fail-fast: true
