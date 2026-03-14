@@ -86,6 +86,25 @@ class CacheService extends ContextualService {
     return versionsMatch(version.version, cached);
   }
 
+  /// Heuristic check for a Flutter SDK directory.
+  ///
+  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
+  /// this is a cloned Flutter SDK rather than a fork parent directory.
+  bool _looksLikeFlutterSdk(Directory dir) {
+    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
+    if (hasVersionFile) return true;
+
+    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
+    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
+
+    return hasGitDir && hasBin;
+  }
+
+  bool _isArchiveOperationDirectory(String name) {
+    return _archiveOperationSuffixes.any(name.endsWith);
+  }
+
   Link get _globalCacheLink => Link(context.globalCacheLink);
 
   CacheFlutterVersion? getVersion(FlutterVersion version) {
@@ -154,25 +173,6 @@ class CacheService extends ContextualService {
     cacheVersions.sort((a, b) => b.compareTo(a));
 
     return cacheVersions;
-  }
-
-  /// Heuristic check for a Flutter SDK directory.
-  ///
-  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
-  /// this is a cloned Flutter SDK rather than a fork parent directory.
-  bool _looksLikeFlutterSdk(Directory dir) {
-    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
-    if (hasVersionFile) return true;
-
-    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
-    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
-
-    return hasGitDir && hasBin;
-  }
-
-  bool _isArchiveOperationDirectory(String name) {
-    return _archiveOperationSuffixes.any(name.endsWith);
   }
 
   /// Removes a cached Flutter SDK version and cleans up empty fork directories.
@@ -308,9 +308,8 @@ class CacheService extends ContextualService {
     final versionDir = Directory(version.directory);
     if (!versionDir.existsSync()) return;
 
-    final versionString = version.fromFork
-        ? '${version.fork}/$sdkVersion'
-        : sdkVersion;
+    final versionString =
+        version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion;
     final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 

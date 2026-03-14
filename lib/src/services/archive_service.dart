@@ -318,13 +318,12 @@ class ArchiveService extends ContextualService {
   }
 
   Future<HttpClientResponse> _closeRequestWithTimeout(
-    HttpClientRequest request, {
-    required Never Function(Object, StackTrace) cleanupAndRethrow,
-  }) async {
+    HttpClientRequest request,
+  ) async {
     try {
       return await request.close().timeout(_responseTimeout);
     } on TimeoutException catch (_, stackTrace) {
-      cleanupAndRethrow(
+      Error.throwWithStackTrace(
         AppException(
           'Timed out while waiting for response from server after '
           '${_formatDuration(_responseTimeout)}. Please retry. If this '
@@ -344,27 +343,12 @@ class ArchiveService extends ContextualService {
     final client = HttpClient()..connectionTimeout = _connectionTimeout;
     final progress = logger.progress('Downloading Flutter SDK archive');
     IOSink? sink;
-    var shouldCleanupTempDir = true;
-
-    Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
-      progress.fail('Failed to download Flutter SDK archive');
-
-      if (error is AppException) {
-        Error.throwWithStackTrace(error, stackTrace);
-      }
-
-      Error.throwWithStackTrace(
-        AppException('Failed to download Flutter SDK archive: $error'),
-        stackTrace,
-      );
-    }
+    AppException? pendingError;
+    StackTrace? pendingStackTrace;
 
     try {
       final request = await client.getUrl(Uri.parse(release.archiveUrl));
-      final response = await _closeRequestWithTimeout(
-        request,
-        cleanupAndRethrow: cleanupAndRethrow,
-      );
+      final response = await _closeRequestWithTimeout(request);
 
       if (response.statusCode >= 400) {
         throw AppException(
@@ -394,7 +378,7 @@ class ArchiveService extends ContextualService {
           }
         }
       } on TimeoutException catch (_, stackTrace) {
-        cleanupAndRethrow(
+        Error.throwWithStackTrace(
           AppException(
             'Timed out while waiting for download data after '
             '${_formatDuration(_readTimeout)}. Please retry. If this keeps '
@@ -408,28 +392,28 @@ class ArchiveService extends ContextualService {
           ? _formatBytes(totalBytes)
           : _formatBytes(downloaded);
       progress.complete('Downloaded Flutter SDK archive ($description)');
-      shouldCleanupTempDir = false;
 
       return _DownloadedArchive(file: archiveFile, tempDir: tempDir);
     } on SocketException catch (error, stackTrace) {
-      cleanupAndRethrow(
-        AppException(
-          'Network error while downloading Flutter SDK archive: ${error.message}',
-        ),
-        stackTrace,
+      pendingError = AppException(
+        'Network error while downloading Flutter SDK archive: ${error.message}',
       );
+      pendingStackTrace = stackTrace;
     } on HandshakeException catch (error, stackTrace) {
-      cleanupAndRethrow(
-        AppException(
-          'TLS certificate verification failed while downloading Flutter SDK '
-          'archive. If you are using a corporate mirror with a self-signed '
-          'certificate, you may need to configure your system\'s certificate '
-          'trust store. ${error.message}',
-        ),
-        stackTrace,
+      pendingError = AppException(
+        'TLS certificate verification failed while downloading Flutter SDK '
+        'archive. If you are using a corporate mirror with a self-signed '
+        'certificate, you may need to configure your system\'s certificate '
+        'trust store. ${error.message}',
       );
+      pendingStackTrace = stackTrace;
+    } on AppException catch (error, stackTrace) {
+      pendingError = error;
+      pendingStackTrace = stackTrace;
     } catch (error, stackTrace) {
-      cleanupAndRethrow(error, stackTrace);
+      pendingError =
+          AppException('Failed to download Flutter SDK archive: $error');
+      pendingStackTrace = stackTrace;
     } finally {
       if (sink != null) {
         try {
@@ -447,7 +431,7 @@ class ArchiveService extends ContextualService {
 
       client.close(force: true);
 
-      if (shouldCleanupTempDir) {
+      if (pendingError != null) {
         await deleteDirectoryWithRetry(
           tempDir,
           requireSuccess: false,
@@ -459,6 +443,11 @@ class ArchiveService extends ContextualService {
         );
       }
     }
+
+    final error = pendingError;
+    final stackTrace = pendingStackTrace;
+    progress.fail('Failed to download Flutter SDK archive');
+    Error.throwWithStackTrace(error, stackTrace);
   }
 
   Future<void> _verifyChecksum(File archive, String expectedSha256) async {

@@ -122,6 +122,7 @@ class FvmContext with FvmContextMappable {
   bool get gitCache {
     final explicit = config.useGitCache;
     if (explicit != null) return explicit;
+
     return !isCI;
   }
 

@@ -89,11 +89,7 @@ class EnsureCacheWorkflow extends Workflow {
     logger.info('Removing incorrect SDK version...');
     await get<CacheService>().remove(version);
 
-    return await call(
-      version,
-      shouldInstall: true,
-      useArchive: useArchive,
-    );
+    return await call(version, shouldInstall: true, useArchive: useArchive);
   }
 
   void _validateContext() {
