@@ -210,6 +210,7 @@ class TestFactory {
   static FvmContext context({
     String? debugLabel,
     bool? privilegedAccess,
+    String? flutterUrl,
     Map<Type, Generator>? generators,
     bool? skipInput,
     Map<String, String>? environmentOverrides,
@@ -223,6 +224,7 @@ class TestFactory {
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
+      flutterUrl: flutterUrl,
       forks: globalConfig.forks,
     );
 
@@ -445,11 +447,9 @@ class MockFlutterService extends FlutterService {
       return;
     }
 
-    try {
-      await super.install(version, useArchive: useArchive);
-      final cacheService = get<CacheService>();
-      lastInstallDirectory = cacheService.getVersionCacheDir(version);
-    } finally {}
+    await super.install(version, useArchive: useArchive);
+    final cacheService = get<CacheService>();
+    lastInstallDirectory = cacheService.getVersionCacheDir(version);
   }
 }
 

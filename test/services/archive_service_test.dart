@@ -101,15 +101,6 @@ class _ThrowingHttpOverrides extends HttpOverrides {
   }
 }
 
-List<String> _listArchiveTempDirs() {
-  return Directory.systemTemp
-      .listSync()
-      .whereType<Directory>()
-      .where((dir) => path.basename(dir.path).startsWith('fvm_archive_'))
-      .map((dir) => dir.path)
-      .toList();
-}
-
 Future<HttpServer> _startArchiveServer({
   int statusCode = 200,
   List<int> body = const <int>[],
@@ -185,8 +176,7 @@ Directory _targetDirFromInvocation(Invocation invocation) {
 
   // Windows: powershell -Command "Expand-Archive ... -DestinationPath 'path' ..."
   final commandArg = args.last;
-  final match =
-      RegExp(r"-DestinationPath\s+'([^']+)'").firstMatch(commandArg);
+  final match = RegExp(r"-DestinationPath\s+'([^']+)'").firstMatch(commandArg);
   if (match != null) return Directory(match.group(1)!);
 
   throw StateError('Cannot determine target directory from args: $args');
@@ -229,6 +219,7 @@ void main() {
   late ArchiveService archiveService;
   late MockFlutterReleaseClient mockReleaseClient;
   late Directory tempDir;
+  late List<Directory> trackedArchiveTempDirs;
 
   // Test fixture data
   FlutterSdkRelease createTestRelease({
@@ -257,6 +248,7 @@ void main() {
     registerFallbackValue('command');
 
     mockReleaseClient = MockFlutterReleaseClient();
+    trackedArchiveTempDirs = [];
 
     context = TestFactory.context(
       debugLabel: 'archive-service-test',
@@ -302,12 +294,32 @@ void main() {
           ctx,
           responseTimeout: responseTimeout,
           readTimeout: readTimeout,
+          createTempDir: (prefix) async {
+            final dir = Directory(
+              path.join(
+                ctx.fvmDir,
+                '$prefix${trackedArchiveTempDirs.length}',
+              ),
+            );
+            dir.createSync(recursive: true);
+            trackedArchiveTempDirs.add(dir);
+
+            return dir;
+          },
         );
         tempDir = Directory(ctx.versionsCachePath);
         final versionDir = Directory(path.join(tempDir.path, version));
         return body(svc, versionDir);
       },
       createHttpClient: overrides.createHttpClient,
+    );
+  }
+
+  void expectTrackedArchiveTempDirsDeleted() {
+    expect(trackedArchiveTempDirs, isNotEmpty);
+    expect(
+      trackedArchiveTempDirs.every((dir) => !dir.existsSync()),
+      isTrue,
     );
   }
 
@@ -338,7 +350,7 @@ void main() {
             isA<AppException>().having(
               (e) => e.message,
               'message',
-              contains('not supported for commit references'),
+              contains('not supported for git references'),
             ),
           ),
         );
@@ -401,21 +413,25 @@ void main() {
         verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
       });
 
-      test('rejects @stable qualifier for release versions', () async {
+      test('uses channel-specific lookup for @stable qualifiers', () async {
         final version = FlutterVersion.parse('2.2.2@stable');
 
-        expect(
-          () => archiveService.install(version, tempDir),
+        when(() => mockReleaseClient.getChannelReleases('stable')).thenAnswer(
+          (_) async => [],
+        );
+
+        await expectLater(
+          archiveService.install(version, tempDir),
           throwsA(
             isA<AppException>().having(
               (e) => e.message,
               'message',
-              contains('does not support the "@stable" qualifier'),
+              contains('stable channel releases metadata'),
             ),
           ),
         );
 
-        verifyNever(() => mockReleaseClient.getChannelReleases(any()));
+        verify(() => mockReleaseClient.getChannelReleases('stable')).called(1);
         verifyNever(() => mockReleaseClient.getReleaseByVersion(any()));
       });
 
@@ -428,7 +444,7 @@ void main() {
             isA<AppException>().having(
               (e) => e.message,
               'message',
-              contains('@beta and @dev'),
+              contains('@stable, @beta, and @dev'),
             ),
           ),
         );
@@ -483,8 +499,6 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final existingTempDirs = _listArchiveTempDirs();
-
         await withArchiveTestZone(
           port: server.port,
           debugLabel: 'http-error',
@@ -500,8 +514,7 @@ void main() {
               ),
             );
 
-            final after = _listArchiveTempDirs();
-            expect(after.toSet().difference(existingTempDirs.toSet()), isEmpty);
+            expectTrackedArchiveTempDirsDeleted();
           },
         );
       });
@@ -533,8 +546,6 @@ void main() {
           ProcessException('unzip', const [], 'boom', 1),
         );
 
-        final before = _listArchiveTempDirs();
-
         await withArchiveTestZone(
           port: server.port,
           debugLabel: 'extract-failure',
@@ -551,8 +562,7 @@ void main() {
               ),
             );
 
-            final after = _listArchiveTempDirs();
-            expect(after.toSet().difference(before.toSet()), isEmpty);
+            expectTrackedArchiveTempDirsDeleted();
           },
         );
       });
@@ -1651,8 +1661,6 @@ void main() {
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
 
-        final before = _listArchiveTempDirs();
-
         await withArchiveTestZone(
           port: server.port,
           debugLabel: 'header-timeout',
@@ -1674,8 +1682,7 @@ void main() {
               ),
             );
 
-            final after = _listArchiveTempDirs();
-            expect(after.toSet().difference(before.toSet()), isEmpty);
+            expectTrackedArchiveTempDirsDeleted();
             expect(
               Directory('${versionDir.path}.archive_staging').existsSync(),
               isFalse,
@@ -1694,8 +1701,6 @@ void main() {
         final release = createTestRelease();
         when(() => mockReleaseClient.getLatestChannelRelease('stable'))
             .thenAnswer((_) async => release);
-
-        final before = _listArchiveTempDirs();
 
         await withArchiveTestZone(
           port: server.port,
@@ -1717,8 +1722,7 @@ void main() {
               ),
             );
 
-            final after = _listArchiveTempDirs();
-            expect(after.toSet().difference(before.toSet()), isEmpty);
+            expectTrackedArchiveTempDirsDeleted();
             expect(
               Directory('${versionDir.path}.archive_staging').existsSync(),
               isFalse,

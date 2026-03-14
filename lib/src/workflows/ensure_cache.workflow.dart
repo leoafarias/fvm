@@ -129,8 +129,10 @@ class EnsureCacheWorkflow extends Workflow {
     int retryCount = 0,
     bool useArchive = false,
   }) async {
-    _validateContext();
-    _validateGit();
+    if (!useArchive) {
+      _validateContext();
+      _validateGit();
+    }
     // Get valid flutter version
     final cacheService = get<CacheService>();
     final flutterService = get<FlutterService>();

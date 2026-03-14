@@ -15,7 +15,7 @@ import 'releases_service/releases_client.dart';
 
 class ArchiveService extends ContextualService {
   static const _supportedArchiveChannels = {'stable', 'beta', 'dev'};
-  static const _supportedArchiveReleaseQualifiers = {'beta', 'dev'};
+  static const _supportedArchiveReleaseQualifiers = {'stable', 'beta', 'dev'};
   static const _connectionTimeout = Duration(seconds: 30);
   static const _defaultResponseTimeout = Duration(seconds: 30);
   static const _defaultReadTimeout = Duration(seconds: 30);
@@ -25,13 +25,20 @@ class ArchiveService extends ContextualService {
 
   final Duration _responseTimeout;
   final Duration _readTimeout;
+  final Future<Directory> Function(String prefix) _createTempDir;
 
-  const ArchiveService(
+  ArchiveService(
     super.context, {
     Duration responseTimeout = _defaultResponseTimeout,
     Duration readTimeout = _defaultReadTimeout,
+    Future<Directory> Function(String prefix)? createTempDir,
   })  : _responseTimeout = responseTimeout,
-        _readTimeout = readTimeout;
+        _readTimeout = readTimeout,
+        _createTempDir = createTempDir ?? _defaultCreateTempDir;
+
+  static Future<Directory> _defaultCreateTempDir(String prefix) {
+    return Directory.systemTemp.createTemp(prefix);
+  }
 
   static void validateArchiveInstallVersion(FlutterVersion version) {
     if (version.fromFork) {
@@ -43,7 +50,8 @@ class ArchiveService extends ContextualService {
 
     if (version.isUnknownRef) {
       throw const AppException(
-        'Archive installation is not supported for commit references. '
+        'Archive installation is not supported for git references '
+        '(branches, tags, or commits). '
         'Remove the --archive flag to install from git.',
       );
     }
@@ -64,18 +72,11 @@ class ArchiveService extends ContextualService {
 
     if (version.isRelease) {
       final releaseQualifier = version.releaseChannel?.name;
-      if (releaseQualifier == FlutterChannel.stable.name) {
-        throw const AppException(
-          'Archive installation does not support the "@stable" qualifier. '
-          'Use the version without a channel suffix, or use @beta/@dev.',
-        );
-      }
-
       if (releaseQualifier != null &&
           !_supportedArchiveReleaseQualifiers.contains(releaseQualifier)) {
         throw AppException(
           'Archive installation supports release qualifiers only for '
-          '@beta and @dev. Received "@$releaseQualifier".',
+          '@stable, @beta, and @dev. Received "@$releaseQualifier".',
         );
       }
     }
@@ -336,20 +337,17 @@ class ArchiveService extends ContextualService {
   }
 
   Future<_DownloadedArchive> _downloadArchive(FlutterSdkRelease release) async {
-    final tempDir = await Directory.systemTemp.createTemp('fvm_archive_');
+    final tempDir = await _createTempDir('fvm_archive_');
     final extension = release.archive.endsWith('.tar.xz') ? '.tar.xz' : '.zip';
     final archiveFile = File(path.join(tempDir.path, 'flutter$extension'));
 
     final client = HttpClient()..connectionTimeout = _connectionTimeout;
     final progress = logger.progress('Downloading Flutter SDK archive');
+    IOSink? sink;
+    var shouldCleanupTempDir = true;
 
     Never cleanupAndRethrow(Object error, StackTrace stackTrace) {
       progress.fail('Failed to download Flutter SDK archive');
-      try {
-        tempDir.deleteSync(recursive: true);
-      } catch (_) {
-        // Best-effort cleanup; don't mask the original error
-      }
 
       if (error is AppException) {
         Error.throwWithStackTrace(error, stackTrace);
@@ -375,7 +373,7 @@ class ArchiveService extends ContextualService {
       }
 
       final totalBytes = response.contentLength;
-      final sink = archiveFile.openWrite();
+      sink = archiveFile.openWrite();
       var downloaded = 0;
 
       try {
@@ -404,18 +402,13 @@ class ArchiveService extends ContextualService {
           ),
           stackTrace,
         );
-      } finally {
-        try {
-          await sink.close();
-        } catch (_) {
-          // Best-effort stream cleanup.
-        }
       }
 
       final description = totalBytes != -1
           ? _formatBytes(totalBytes)
           : _formatBytes(downloaded);
       progress.complete('Downloaded Flutter SDK archive ($description)');
+      shouldCleanupTempDir = false;
 
       return _DownloadedArchive(file: archiveFile, tempDir: tempDir);
     } on SocketException catch (error, stackTrace) {
@@ -438,7 +431,33 @@ class ArchiveService extends ContextualService {
     } catch (error, stackTrace) {
       cleanupAndRethrow(error, stackTrace);
     } finally {
+      if (sink != null) {
+        try {
+          await sink.flush();
+        } catch (_) {
+          // Best-effort stream cleanup.
+        }
+
+        try {
+          await sink.close();
+        } catch (_) {
+          // Best-effort stream cleanup.
+        }
+      }
+
       client.close(force: true);
+
+      if (shouldCleanupTempDir) {
+        await deleteDirectoryWithRetry(
+          tempDir,
+          requireSuccess: false,
+          onFinalError: (cleanupError) {
+            logger.debug(
+              'Could not clean up archive temp directory: $cleanupError',
+            );
+          },
+        );
+      }
     }
   }
 
