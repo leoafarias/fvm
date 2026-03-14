@@ -7,6 +7,7 @@ import '../api/api_service.dart';
 import '../models/config_model.dart';
 import '../models/log_level_model.dart';
 import '../services/app_config_service.dart';
+import '../services/archive_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
@@ -121,6 +122,7 @@ class FvmContext with FvmContextMappable {
   bool get gitCache {
     final explicit = config.useGitCache;
     if (explicit != null) return explicit;
+
     return !isCI;
   }
 
@@ -217,6 +219,7 @@ const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
+  ArchiveService: ArchiveService.new,
   FlutterService: FlutterService.new,
   ApiService: ApiService.new,
   GitService: GitService.new,

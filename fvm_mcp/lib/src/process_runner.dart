@@ -28,6 +28,7 @@ class ProcessRunner {
     return [exe, ...args]
         .map((part) {
           final escaped = part.replaceAll('"', r'\"');
+
           return escaped.contains(' ') ? '"$escaped"' : escaped;
         })
         .join(' ');

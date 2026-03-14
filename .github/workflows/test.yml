@@ -211,7 +211,7 @@ jobs:
   migration-test:
     name: Migration Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 45
 
     strategy:
       fail-fast: true
