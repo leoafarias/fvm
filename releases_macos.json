@@ -3,9 +3,29 @@
   "current_release": {
     "beta": "66c2526ea17d655269978e62c284174913506df2",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "ff37bef603469fb030f2b72995ab929ccfc227f0"
+    "stable": "2c9eb20739dfec95e2c74bd3dfa4601b0a8a36aa"
   },
   "releases": [
+    {
+      "hash": "2c9eb20739dfec95e2c74bd3dfa4601b0a8a36aa",
+      "channel": "stable",
+      "version": "3.41.5",
+      "dart_sdk_version": "3.11.3",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-03-18T17:17:30.499145Z",
+      "archive": "stable/macos/flutter_macos_3.41.5-stable.zip",
+      "sha256": "c2f9d18e633704d58ac45f87961ead20437570476d052a7e22bcb9d985ddcecc"
+    },
+    {
+      "hash": "2c9eb20739dfec95e2c74bd3dfa4601b0a8a36aa",
+      "channel": "stable",
+      "version": "3.41.5",
+      "dart_sdk_version": "3.11.3",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2026-03-18T17:12:22.330873Z",
+      "archive": "stable/macos/flutter_macos_arm64_3.41.5-stable.zip",
+      "sha256": "90d8e7d7e6c2c27ce8634a6c99eb8a218ea63ba29781b61eb9db72c62d027546"
+    },
     {
       "hash": "66c2526ea17d655269978e62c284174913506df2",
       "channel": "beta",
