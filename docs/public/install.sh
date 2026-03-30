@@ -132,6 +132,39 @@ print_installer_version() {
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 is required" >&2; exit 1; }; }
 
+map_uname_arch() {
+  local uname_arch="${1:-$(uname -m)}"
+
+  case "$uname_arch" in
+    x86_64|amd64) printf '%s\n' "x64" ;;
+    aarch64|arm64) printf '%s\n' "arm64" ;;
+    armv7l|armv7|armv6l|armv6|armhf) printf '%s\n' "arm" ;;
+    riscv64) printf '%s\n' "riscv64" ;;
+    *)
+      echo "error: unsupported architecture: $uname_arch" >&2
+      exit 1
+      ;;
+  esac
+}
+
+detect_arch() {
+  local uname_s="$1"
+  local uname_arch
+  local arm64_capability
+
+  uname_arch="$(uname -m)"
+
+  if [ "$uname_s" = "Darwin" ]; then
+    arm64_capability="$(sysctl -n hw.optional.arm64 2>/dev/null || true)"
+    case "$arm64_capability" in
+      1) printf '%s\n' "arm64" ; return ;;
+      0) printf '%s\n' "x64" ; return ;;
+    esac
+  fi
+
+  map_uname_arch "$uname_arch"
+}
+
 normalize_version() { printf '%s\n' "${1#v}"; }
 
 get_latest_version() {
@@ -377,22 +410,24 @@ require tar
 [ -n "${BASH_VERSION:-}" ] || { echo "error: bash is required to run this installer" >&2; exit 1; }
 
 # ---- detect OS ----
-case "$(uname -s)" in
+RAW_UNAME_S="$(uname -s)"
+readonly RAW_UNAME_S
+
+case "$RAW_UNAME_S" in
   Linux)  OS="linux" ;;
   Darwin) OS="macos" ;;
-  *) echo "error: unsupported OS: $(uname -s)" >&2; exit 1 ;;
+  *) echo "error: unsupported OS: $RAW_UNAME_S" >&2; exit 1 ;;
 esac
 readonly OS
 
 # ---- detect ARCH ----
-case "$(uname -m)" in
-  x86_64|amd64)                   ARCH="x64" ;;
-  aarch64|arm64)                  ARCH="arm64" ;;
-  armv7l|armv7|armv6l|armv6|armhf) ARCH="arm" ;;
-  riscv64)                        ARCH="riscv64" ;;
-  *) echo "error: unsupported architecture: $(uname -m)" >&2; exit 1 ;;
-esac
+ARCH="$(detect_arch "$RAW_UNAME_S")"
 readonly ARCH
+
+if [ "${FVM_INSTALL_TEST_MODE:-}" = "print-target" ]; then
+  printf 'OS=%s ARCH=%s\n' "$OS" "$ARCH"
+  exit 0
+fi
 
 # ---- detect libc (Linux only), musl suffix only for x64/arm64 ----
 LIBC_SUFFIX=""

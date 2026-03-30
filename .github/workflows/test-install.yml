@@ -5,11 +5,13 @@ on:
     paths:
       - 'docs/public/install.sh'
       - 'docs/public/uninstall.sh'
+      - 'scripts/test-install-arch.sh'
       - '.github/workflows/test-install.yml'
   pull_request:
     paths:
       - 'docs/public/install.sh'
       - 'docs/public/uninstall.sh'
+      - 'scripts/test-install-arch.sh'
       - '.github/workflows/test-install.yml'
   workflow_dispatch:
 
@@ -29,6 +31,10 @@ jobs:
         run: shellcheck docs/public/install.sh
       - name: Shellcheck uninstall.sh
         run: shellcheck docs/public/uninstall.sh
+      - name: Shellcheck test-install-arch.sh
+        run: shellcheck scripts/test-install-arch.sh
+      - name: Test install.sh architecture detection
+        run: ./scripts/test-install-arch.sh
 
   # Test install.sh (v2 - user-local only)
   test-install:
