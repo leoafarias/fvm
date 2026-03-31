@@ -52,6 +52,43 @@ EOF
 
 chmod +x "${STUB_DIR}/uname" "${SYSCTL_STUB}"
 
+# Verify the shipped helper still prefers /usr/sbin/sysctl over PATH sysctl.
+# This catches regressions back to PATH-only resolution on macOS hosts.
+assert_resolve_sysctl_prefers_absolute_path() {
+  local output
+
+  if [ ! -x "/usr/sbin/sysctl" ]; then
+    echo "ℹ️  Skipping absolute-path sysctl precedence check on this host"
+    return 0
+  fi
+
+  cat > "${STUB_DIR}/sysctl" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "fake-path-sysctl"
+EOF
+  chmod +x "${STUB_DIR}/sysctl"
+
+  # shellcheck disable=SC2016
+  output="$(
+    env \
+      PATH="${STUB_DIR}:${BASH_DIR}" \
+      HOME="${TEST_HOME}" \
+      INSTALL_SCRIPT="${INSTALL_SCRIPT}" \
+      "${BASH_BIN}" -c '
+        set -euo pipefail
+        source "$INSTALL_SCRIPT"
+        resolve_sysctl_cmd
+      '
+  )"
+
+  if [ "${output}" != "/usr/sbin/sysctl" ]; then
+    fail "resolve_sysctl_cmd prefers absolute path -> expected '/usr/sbin/sysctl', got '${output}'"
+  fi
+
+  pass "resolve_sysctl_cmd prefers absolute path over PATH"
+}
+
 # Run detect_arch in an isolated subprocess with stubbed commands.
 # sysctl_mode: "value" (returns sysctl_value), "fail" (sysctl exits 1), "missing" (no sysctl)
 run_detect_arch() {
@@ -125,6 +162,8 @@ assert_failure() {
 
 echo "🧪 Testing install.sh architecture detection"
 echo "============================================"
+
+assert_resolve_sysctl_prefers_absolute_path
 
 # Darwin + sysctl (the Rosetta fix)
 assert_arch "Darwin under Rosetta selects arm64"       "arm64"   "Darwin" "x86_64" "value" "1"
