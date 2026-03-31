@@ -11,9 +11,6 @@
 #   - Install to ~/.fvm_flutter/bin with /usr/local/bin symlink
 #   - Auto-modify shell config
 # =============================================================================
-set -euo pipefail
-umask 022
-
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
 readonly INSTALLER_VERSION="2.0.0"
@@ -131,6 +128,55 @@ print_installer_version() {
 }
 
 require() { command -v "$1" >/dev/null 2>&1 || { echo "error: $1 is required" >&2; exit 1; }; }
+
+map_uname_arch() {
+  local uname_arch="${1:-$(uname -m)}"
+
+  case "$uname_arch" in
+    x86_64|amd64) printf '%s\n' "x64" ;;
+    aarch64|arm64) printf '%s\n' "arm64" ;;
+    armv7l|armv7|armv6l|armv6|armhf) printf '%s\n' "arm" ;;
+    riscv64) printf '%s\n' "riscv64" ;;
+    *)
+      echo "error: unsupported architecture: $uname_arch" >&2
+      exit 1
+      ;;
+  esac
+}
+
+resolve_sysctl_cmd() {
+  if [ -x "/usr/sbin/sysctl" ]; then
+    printf '%s\n' "/usr/sbin/sysctl"
+    return 0
+  fi
+
+  local _sysctl
+  if _sysctl="$(command -v sysctl 2>/dev/null)"; then
+    printf '%s\n' "$_sysctl"
+    return 0
+  fi
+
+  return 1
+}
+
+detect_arch() {
+  local uname_s="$1"
+  local arm64_capability
+  local sysctl_cmd
+
+  if [ "$uname_s" = "Darwin" ]; then
+    sysctl_cmd="$(resolve_sysctl_cmd || true)"
+    if [ -n "$sysctl_cmd" ]; then
+      arm64_capability="$("$sysctl_cmd" -n hw.optional.arm64 2>/dev/null || true)"
+      case "$arm64_capability" in
+        1) printf '%s\n' "arm64" ; return ;;
+        0) printf '%s\n' "x64" ; return ;;
+      esac
+    fi
+  fi
+
+  map_uname_arch "$(uname -m)"
+}
 
 normalize_version() { printf '%s\n' "${1#v}"; }
 
@@ -327,188 +373,194 @@ do_uninstall() {
   exit 0
 }
 
-# ---- arg parsing ----
-for arg in "$@"; do
-  case "$arg" in
-    -h|--help) usage; exit 0 ;;
-    -v|--version) print_installer_version; exit 0 ;;
-    -u|--uninstall) UNINSTALL_ONLY=1 ;;
-    -*)
-      echo "error: unknown option: $arg" >&2
-      echo ""
-      usage
-      exit 1
-      ;;
-    *)
-      if [ -n "$REQUESTED_VERSION" ]; then
-        echo "error: multiple versions specified" >&2
+main() {
+  set -euo pipefail
+  umask 022
+
+  # ---- arg parsing ----
+  for arg in "$@"; do
+    case "$arg" in
+      -h|--help) usage; exit 0 ;;
+      -v|--version) print_installer_version; exit 0 ;;
+      -u|--uninstall) UNINSTALL_ONLY=1 ;;
+      -*)
+        echo "error: unknown option: $arg" >&2
+        echo ""
+        usage
         exit 1
-      fi
-      REQUESTED_VERSION="$arg"
-      ;;
-  esac
-done
+        ;;
+      *)
+        if [ -n "$REQUESTED_VERSION" ]; then
+          echo "error: multiple versions specified" >&2
+          exit 1
+        fi
+        REQUESTED_VERSION="$arg"
+        ;;
+    esac
+  done
 
-if [ -n "$REQUESTED_VERSION" ]; then
-  if ! [[ "$REQUESTED_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z._-]+)?$ ]]; then
-    echo "error: invalid version format: $REQUESTED_VERSION (expected X.Y.Z or vX.Y.Z)" >&2
-    exit 1
-  fi
-fi
-
-# ---- handle uninstall ----
-if [ "$UNINSTALL_ONLY" -eq 1 ]; then
-  do_uninstall
-fi
-
-# ---- root user handling ----
-if [ "${EUID:-$(id -u)}" -eq 0 ]; then
-  echo "⚠ Warning: Running as root" >&2
-  echo "  FVM will be installed to $BIN_DIR and likely won't be accessible to other users." >&2
-  echo "  It is recommended that each user install FVM individually in their own home directory." >&2
-  echo "" >&2
-fi
-
-validate_install_base "$INSTALL_BASE"
-
-# ---- prereqs ----
-require curl
-require tar
-[ -n "${BASH_VERSION:-}" ] || { echo "error: bash is required to run this installer" >&2; exit 1; }
-
-# ---- detect OS ----
-case "$(uname -s)" in
-  Linux)  OS="linux" ;;
-  Darwin) OS="macos" ;;
-  *) echo "error: unsupported OS: $(uname -s)" >&2; exit 1 ;;
-esac
-readonly OS
-
-# ---- detect ARCH ----
-case "$(uname -m)" in
-  x86_64|amd64)                   ARCH="x64" ;;
-  aarch64|arm64)                  ARCH="arm64" ;;
-  armv7l|armv7|armv6l|armv6|armhf) ARCH="arm" ;;
-  riscv64)                        ARCH="riscv64" ;;
-  *) echo "error: unsupported architecture: $(uname -m)" >&2; exit 1 ;;
-esac
-readonly ARCH
-
-# ---- detect libc (Linux only), musl suffix only for x64/arm64 ----
-LIBC_SUFFIX=""
-if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; then
-  # Detect glibc positively via getconf; otherwise check for musl
-  if command -v getconf >/dev/null 2>&1 && getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
-    : # glibc detected
-  elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
-    LIBC_SUFFIX="-musl"
-    echo "" >&2
-    echo "Note: Detected musl libc (Alpine Linux)." >&2
-    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-    echo "" >&2
-  elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
-    LIBC_SUFFIX="-musl"
-    echo "" >&2
-    echo "Note: Detected musl libc (Alpine Linux)." >&2
-    echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
-    echo "" >&2
-  fi
-fi
-readonly LIBC_SUFFIX
-
-# ---- resolve version ----
-if [ -n "$REQUESTED_VERSION" ]; then
-  VERSION="$(normalize_version "$REQUESTED_VERSION")"
-else
-  echo "Fetching latest FVM version..." >&2
-  VERSION="$(get_latest_version)" || { echo "error: failed to determine latest version" >&2; exit 1; }
-fi
-
-echo "Installing FVM ${VERSION} for ${OS}-${ARCH}${LIBC_SUFFIX}..." >&2
-
-# ---- construct asset URL and validate existence, with musl->glibc fallback ----
-TARBALL="fvm-${VERSION}-${OS}-${ARCH}${LIBC_SUFFIX}.tar.gz"
-URL="https://github.com/${REPO}/releases/download/${VERSION}/${TARBALL}"
-
-if ! curl -fsSLI -o /dev/null "$URL"; then
-  if [ -n "$LIBC_SUFFIX" ]; then
-    ALT_URL="https://github.com/${REPO}/releases/download/${VERSION}/fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
-    if curl -fsSLI -o /dev/null "$ALT_URL"; then
-      URL="$ALT_URL"
-      TARBALL="fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
-      echo "Note: Using glibc variant (musl not available)" >&2
-    else
-      echo "error: no asset found for ${OS}/${ARCH} (tried musl and glibc variants)" >&2
+  if [ -n "$REQUESTED_VERSION" ]; then
+    if ! [[ "$REQUESTED_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z._-]+)?$ ]]; then
+      echo "error: invalid version format: $REQUESTED_VERSION (expected X.Y.Z or vX.Y.Z)" >&2
       exit 1
     fi
+  fi
+
+  # ---- handle uninstall ----
+  if [ "$UNINSTALL_ONLY" -eq 1 ]; then
+    do_uninstall
+  fi
+
+  # ---- root user handling ----
+  if [ "${EUID:-$(id -u)}" -eq 0 ]; then
+    echo "⚠ Warning: Running as root" >&2
+    echo "  FVM will be installed to $BIN_DIR and likely won't be accessible to other users." >&2
+    echo "  It is recommended that each user install FVM individually in their own home directory." >&2
+    echo "" >&2
+  fi
+
+  validate_install_base "$INSTALL_BASE"
+
+  # ---- prereqs ----
+  require curl
+  require tar
+  [ -n "${BASH_VERSION:-}" ] || { echo "error: bash is required to run this installer" >&2; exit 1; }
+
+  # ---- detect OS ----
+  RAW_UNAME_S="$(uname -s)"
+  readonly RAW_UNAME_S
+
+  case "$RAW_UNAME_S" in
+    Linux)  OS="linux" ;;
+    Darwin) OS="macos" ;;
+    *) echo "error: unsupported OS: $RAW_UNAME_S" >&2; exit 1 ;;
+  esac
+  readonly OS
+
+  # ---- detect ARCH ----
+  ARCH="$(detect_arch "$RAW_UNAME_S")"
+  readonly ARCH
+
+  # ---- detect libc (Linux only), musl suffix only for x64/arm64 ----
+  LIBC_SUFFIX=""
+  if [ "$OS" = "linux" ] && { [ "$ARCH" = "x64" ] || [ "$ARCH" = "arm64" ]; }; then
+    # Detect glibc positively via getconf; otherwise check for musl
+    if command -v getconf >/dev/null 2>&1 && getconf GNU_LIBC_VERSION >/dev/null 2>&1; then
+      : # glibc detected
+    elif command -v ldd >/dev/null 2>&1 && ldd --version 2>&1 | grep -qi musl; then
+      LIBC_SUFFIX="-musl"
+      echo "" >&2
+      echo "Note: Detected musl libc (Alpine Linux)." >&2
+      echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
+      echo "" >&2
+    elif ls /lib/ld-musl-*.so.1 >/dev/null 2>&1 || ls /usr/lib/ld-musl-*.so.1 >/dev/null 2>&1; then
+      LIBC_SUFFIX="-musl"
+      echo "" >&2
+      echo "Note: Detected musl libc (Alpine Linux)." >&2
+      echo "      Flutter SDK requires glibc. You may need: apk add gcompat" >&2
+      echo "" >&2
+    fi
+  fi
+  readonly LIBC_SUFFIX
+
+  # ---- resolve version ----
+  if [ -n "$REQUESTED_VERSION" ]; then
+    VERSION="$(normalize_version "$REQUESTED_VERSION")"
   else
-    echo "error: asset not found: $URL" >&2
+    echo "Fetching latest FVM version..." >&2
+    VERSION="$(get_latest_version)" || { echo "error: failed to determine latest version" >&2; exit 1; }
+  fi
+
+  echo "Installing FVM ${VERSION} for ${OS}-${ARCH}${LIBC_SUFFIX}..." >&2
+
+  # ---- construct asset URL and validate existence, with musl->glibc fallback ----
+  TARBALL="fvm-${VERSION}-${OS}-${ARCH}${LIBC_SUFFIX}.tar.gz"
+  URL="https://github.com/${REPO}/releases/download/${VERSION}/${TARBALL}"
+
+  if ! curl -fsSLI -o /dev/null "$URL"; then
+    if [ -n "$LIBC_SUFFIX" ]; then
+      ALT_URL="https://github.com/${REPO}/releases/download/${VERSION}/fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
+      if curl -fsSLI -o /dev/null "$ALT_URL"; then
+        URL="$ALT_URL"
+        TARBALL="fvm-${VERSION}-${OS}-${ARCH}.tar.gz"
+        echo "Note: Using glibc variant (musl not available)" >&2
+      else
+        echo "error: no asset found for ${OS}/${ARCH} (tried musl and glibc variants)" >&2
+        exit 1
+      fi
+    else
+      echo "error: asset not found: $URL" >&2
+      exit 1
+    fi
+  fi
+
+  # ---- prep dirs and cleanup trap ----
+  TMP_DIR=""  # Initialize for set -u (nounset)
+  cleanup() { if [ -n "$TMP_DIR" ]; then rm -rf "$TMP_DIR" 2>/dev/null || true; fi; }
+  trap cleanup EXIT
+
+  TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
+    echo "error: failed to create temp directory" >&2
+    exit 1
+  }
+  mkdir -p "$BIN_DIR"
+
+  # ---- download ----
+  ARCHIVE="${TMP_DIR}/${TARBALL}"
+  echo "Downloading ${URL##*/}..." >&2
+  curl -fsSL "$URL" -o "$ARCHIVE"
+
+  # ---- validate archive ----
+  if ! tar -tzf "$ARCHIVE" >/dev/null 2>&1; then
+    echo "error: downloaded archive appears corrupted" >&2
     exit 1
   fi
-fi
 
-# ---- prep dirs and cleanup trap ----
-TMP_DIR=""  # Initialize for set -u (nounset)
-cleanup() { if [ -n "$TMP_DIR" ]; then rm -rf "$TMP_DIR" 2>/dev/null || true; fi; }
-trap cleanup EXIT
+  # ---- validate no path traversal ----
+  if tar -tzf "$ARCHIVE" | grep -qE '^/|^\.\.$|^\.\./|/\.\.$|/\.\./'; then
+    echo "error: archive contains unsafe paths (absolute or traversal)" >&2
+    exit 1
+  fi
 
-TMP_DIR="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_install')" || {
-  echo "error: failed to create temp directory" >&2
-  exit 1
+  # ---- extract ----
+  echo "Extracting..." >&2
+  tar -xzf "$ARCHIVE" -C "$TMP_DIR"
+
+  # ---- locate binary and copy contents per tarball structure ----
+  if [ -d "${TMP_DIR}/fvm" ] && [ -f "${TMP_DIR}/fvm/fvm" ]; then
+    cp -a "${TMP_DIR}/fvm/." "$BIN_DIR/"
+  elif [ -f "${TMP_DIR}/fvm" ]; then
+    cp -a "${TMP_DIR}/fvm" "${BIN_DIR}/fvm"
+  else
+    FOUND="$(find "$TMP_DIR" -type f -name 'fvm' 2>/dev/null | head -n1 || true)"
+    [ -n "$FOUND" ] || { echo "error: fvm binary not found in archive" >&2; exit 1; }
+    cp -a "$FOUND" "${BIN_DIR}/fvm"
+  fi
+  chmod +x "${BIN_DIR}/fvm"
+
+  # ---- migrate from v1/v2 ----
+  migrate_from_v1
+
+  # ---- verify and report ----
+  echo ""
+  echo "Installed to: ${BIN_DIR}/fvm"
+
+  if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
+    echo "FVM version: ${VERSION}"
+    print_path_instructions
+  else
+    echo ""
+    echo "⚠ Binary installed but cannot execute (missing libraries)."
+    echo "  On Alpine Linux: apk add gcompat"
+    echo "  Then verify: ${BIN_DIR}/fvm --version"
+    echo ""
+    echo "  PATH: export PATH=\"$BIN_DIR:\$PATH\""
+    if is_ci; then
+      exit 1
+    fi
+  fi
 }
-mkdir -p "$BIN_DIR"
 
-# ---- download ----
-ARCHIVE="${TMP_DIR}/${TARBALL}"
-echo "Downloading ${URL##*/}..." >&2
-curl -fsSL "$URL" -o "$ARCHIVE"
-
-# ---- validate archive ----
-if ! tar -tzf "$ARCHIVE" >/dev/null 2>&1; then
-  echo "error: downloaded archive appears corrupted" >&2
-  exit 1
-fi
-
-# ---- validate no path traversal ----
-if tar -tzf "$ARCHIVE" | grep -qE '^/|^\.\.$|^\.\./|/\.\.$|/\.\./'; then
-  echo "error: archive contains unsafe paths (absolute or traversal)" >&2
-  exit 1
-fi
-
-# ---- extract ----
-echo "Extracting..." >&2
-tar -xzf "$ARCHIVE" -C "$TMP_DIR"
-
-# ---- locate binary and copy contents per tarball structure ----
-if [ -d "${TMP_DIR}/fvm" ] && [ -f "${TMP_DIR}/fvm/fvm" ]; then
-  cp -a "${TMP_DIR}/fvm/." "$BIN_DIR/"
-elif [ -f "${TMP_DIR}/fvm" ]; then
-  cp -a "${TMP_DIR}/fvm" "${BIN_DIR}/fvm"
-else
-  FOUND="$(find "$TMP_DIR" -type f -name 'fvm' 2>/dev/null | head -n1 || true)"
-  [ -n "$FOUND" ] || { echo "error: fvm binary not found in archive" >&2; exit 1; }
-  cp -a "$FOUND" "${BIN_DIR}/fvm"
-fi
-chmod +x "${BIN_DIR}/fvm"
-
-# ---- migrate from v1/v2 ----
-migrate_from_v1
-
-# ---- verify and report ----
-echo ""
-echo "Installed to: ${BIN_DIR}/fvm"
-
-if "${BIN_DIR}/fvm" --version >/dev/null 2>&1; then
-  echo "FVM version: ${VERSION}"
-  print_path_instructions
-else
-  echo ""
-  echo "⚠ Binary installed but cannot execute (missing libraries)."
-  echo "  On Alpine Linux: apk add gcompat"
-  echo "  Then verify: ${BIN_DIR}/fvm --version"
-  echo ""
-  echo "  PATH: export PATH=\"$BIN_DIR:\$PATH\""
-  if is_ci; then
-    exit 1
-  fi
+if ! (return 0 2>/dev/null); then
+  main "$@"
 fi

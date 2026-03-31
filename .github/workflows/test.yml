@@ -20,6 +20,7 @@ on:
       - "docs/public/install.sh"
       - "docs/public/uninstall.sh"
       - "scripts/install.ps1"
+      - "scripts/test-install-arch.sh"
       - "scripts/test-install.sh"
       - ".github/workflows/test-install.yml"
 
@@ -35,6 +36,7 @@ on:
       - "docs/public/install.sh"
       - "docs/public/uninstall.sh"
       - "scripts/install.ps1"
+      - "scripts/test-install-arch.sh"
       - "scripts/test-install.sh"
       - ".github/workflows/test-install.yml"
 

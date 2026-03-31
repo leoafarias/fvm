@@ -1,6 +1,7 @@
 ## Unreleased
 
 * change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+* fix: make the macOS install script select the arm64 binary correctly when launched from a Rosetta-translated shell on Apple Silicon.
 
 ## 4.0.5
 
