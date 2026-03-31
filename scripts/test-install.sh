@@ -84,7 +84,7 @@ direct_output="$(bash ./docs/public/install.sh --help 2>&1)"
 assert_contains "$direct_output" "FVM Installer"
 
 # Piped execution (curl | bash path): main runs, --help prints usage
-piped_output="$(cat ./docs/public/install.sh | bash -s -- --help 2>&1)"
+piped_output="$(bash -s -- --help < ./docs/public/install.sh 2>&1)"
 assert_contains "$piped_output" "FVM Installer"
 
 # Sourced: main does NOT run, functions are available
