@@ -75,4 +75,22 @@ else
 fi
 
 echo ""
+echo "🧪 Testing execution guard (direct, piped, sourced)"
+echo "=================================================="
+echo ""
+
+# Direct execution: main runs, --help prints usage
+direct_output="$(bash ./docs/public/install.sh --help 2>&1)"
+assert_contains "$direct_output" "FVM Installer"
+
+# Piped execution (curl | bash path): main runs, --help prints usage
+piped_output="$(cat ./docs/public/install.sh | bash -s -- --help 2>&1)"
+assert_contains "$piped_output" "FVM Installer"
+
+# Sourced: main does NOT run, functions are available
+sourced_output="$(bash -c 'source ./docs/public/install.sh; type -t detect_arch' 2>&1)"
+assert_contains "$sourced_output" "function"
+assert_not_contains "$sourced_output" "Fetching latest"
+
+echo ""
 echo "✅ All tests passed!"
