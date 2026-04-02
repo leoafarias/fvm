@@ -1,0 +1,9 @@
+{
+  "number": 1017,
+  "title": "[BUG] fvm use doesn't work",
+  "triagedAt": "2026-03-03",
+  "status": "needs_info",
+  "artifact": "../artifacts/issue-1017.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1017",
+  "notes": "Current diagnostics point to PATH/IDE configuration mismatch; need minimal reproduction with fresh terminal and command-path evidence."
+}

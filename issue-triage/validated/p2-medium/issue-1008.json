@@ -1,0 +1,10 @@
+{
+  "number": 1008,
+  "title": "[BUG] versions not auto update",
+  "triagedAt": "2026-03-03",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1008.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1008",
+  "notes": "Melos auto-update flow only handles melos.yaml sdkPath, not pubspec-based melos.sdkPath configuration used by some workspaces."
+}

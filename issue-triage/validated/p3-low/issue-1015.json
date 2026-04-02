@@ -1,0 +1,10 @@
+{
+  "number": 1015,
+  "title": "Update docs to add info about using FVM with Dart MCP ",
+  "triagedAt": "2026-03-03",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1015.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1015",
+  "notes": "Documentation gap: no MCP configuration guidance currently exists in docs for FVM-managed Flutter SDK usage."
+}

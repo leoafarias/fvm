@@ -1,0 +1,10 @@
+{
+  "number": 969,
+  "title": "[BUG] RISC-V: Download the right dart SDK (and engine ?) for real RISC-V support",
+  "triagedAt": "2026-03-03",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-969.md",
+  "url": "https://github.com/leoafarias/fvm/issues/969",
+  "notes": "Primarily an upstream Flutter/RISC-V tooling limitation; FVM should add clearer guardrails and docs for architecture constraints."
+}

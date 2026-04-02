@@ -2,13 +2,13 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjE3MzA5Nw==",
+      "id": "MDQ6VXNlcjUwODAyMDQ=",
       "is_bot": false,
-      "login": "zhengpenghou",
-      "name": ""
+      "login": "TheCarpetMerchant",
+      "name": "TheCarpetMerchant"
     },
-    "body": "1. Cross-user weirdness\n\nBinary lives in:\nFVM_DIR=\"$HOME/.fvm_flutter\" → e.g. /home/alice/.fvm_flutter/bin/fvm\n\nSymlink lives in:\nSYMLINK_TARGET=\"/usr/local/bin/fvm\"\n\nSo:\n\nUser A installs FVM → /usr/local/bin/fvm -> /home/alice/.fvm_flutter/bin/fvm\n\nUser B runs fvm → executes code inside Alice’s home directory.\n\nThat’s bad for:\n\nSecurity (one user’s home directory becomes part of another user’s runtime).\n\nCorrectness (if Alice deletes her home, B’s fvm breaks).\n\nPrinciple of least surprise.\n\nSystem-wide paths should not point into a specific user’s $HOME.\n\n2. Permissions & sudo/doas friction\n\nRight now a “normal user install” requires:\n\nWrite access to ~/.fvm_flutter ✅\n\nPlus sudo/doas to touch /usr/local/bin ❌\n\nSo a non-privileged, per-user install still fails if:\n\nNo sudo/doas, or\n\n/usr/local/bin is managed by something else (Nix, system packaging, etc.), or\n\nYou just don’t want the script messing with system dirs.\n\nA per-user install ideally never needs privilege escalation.\n\n3. Uninstall semantics are confusing\n\nUninstall runs as the current user and:\n\nDeletes $HOME/.fvm_flutter\n\nRemoves /usr/local/bin/fvm (using sudo/doas)\n\nBut:\n\nIf multiple users are on the system and one uninstalls, they blow away a symlink that may have been created during a “system-ish” install.\n\nIf some admin later installs a global fvm to /usr/local/bin, your uninstall logic might remove it if the symlink target happens to match your heuristic.\n\n4. Home directory dependence for a “system” binary\n\nEven when you’re the only user:\n\n/usr/local/bin/fvm depends on $HOME being the same directory used at install time.\n\nIf you move home, change username, or restore from backup with a different path → fvm is broken.\n\nSystem binaries should not depend on the installer user’s $HOME.",
-    "createdAt": "2025-11-15T20:25:17Z",
+    "body": "[2026-03-02 09-02-57.zip](https://github.com/user-attachments/files/25677332/2026-03-02.09-02-57.zip)\n\n**Before creating a bug report please make check the following**\n\n- [X] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [X] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [X] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [ ] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\nSee attached video, `fvm use 3.19.0` does not change the output of `flutter --version`\n\n**To Reproduce**\nUsing fvm 4.0.5, run `fvm 4.0.5`\n\n**Expected behavior**\n`flutter --version` should output 3.19.0\n\n**Logs**\nPlease provide the verbose logs by running `--verbose` after the command.\n```\nD:\\test> fvm use 3.19.0 --verbose\n\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: use\n\nLooking up directory: D:\\test\nFound valid candidate: D:\\test\nSkipping git reference validation for version: 3.19.0\n\nUpdating project config\nProject name: test\nProject path: D:\\test\nFlutter version: 3.19.0\n\nStarting to update environment variables...\n\nRunning: flutter\n\nDependencies resolved offline.\n✓ Updated VSCode folder Flutter SDK path setting.\nNo VSCode workspace files found.\nReached filesystem root, no melos.yaml found\nNo melos.yaml file found in project hierarchy.\n✓ Project now uses Flutter SDK : SDK Version : 3.19.0\n┌────────────────────────────────────────────────────────────────────┐\n│ ✓ Running on VsCode, please restart the terminal to apply changes. │\n└────────────────────────────────────────────────────────────────────┘\nYou can then use \"flutter\" command within the VsCode terminal.\n```\n\nfvm doctor :\n\n```\nFVM Doctor:                                                                                                                                             \n--------------------------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬──────────────────────┐\n│ Project                     │ test                 │\n├─────────────────────────────┼──────────────────────┤\n│ Directory                   │ D:\\test              │\n├─────────────────────────────┼──────────────────────┤\n│ Active Flavor               │ None                 │\n├─────────────────────────────┼──────────────────────┤\n│ Is Flutter Project          │ Yes                  │\n├─────────────────────────────┼──────────────────────┤\n│ Dart Tool Generator Version │ 3.8.1                │\n├─────────────────────────────┼──────────────────────┤\n│ Dart tool version           │ 3.32.4               │\n├─────────────────────────────┼──────────────────────┤\n│ .gitignore Present          │ Yes                  │\n├─────────────────────────────┼──────────────────────┤\n│ Config Present              │ Yes                  │\n├─────────────────────────────┼──────────────────────┤\n│ Pinned Version              │ 3.19.0               │\n├─────────────────────────────┼──────────────────────┤\n│ Config path                 │ .fvmrc               │\n├─────────────────────────────┼──────────────────────┤\n│ Local cache dir             │ .fvm\\versions        │\n├─────────────────────────────┼──────────────────────┤\n│ Version symlink             │ .fvm\\versions\\3.19.0 │\n└─────────────────────────────┴──────────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐\n│ IDEs                           │ Value                                                                                                                \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ VSCode                         │                                                                                                                      \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ dart.flutterSdkPath            │ .fvm/versions/3.19.0                                                                                                 \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Matches pinned version:        │ false                                                                                                                \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                                                                                                      \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ flutter.sdk                    │ D:\\\\Code\\\\Dart\\\\flutter_sdk\\\\flutter                                                                                 \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Matches pinned version:        │ false                                                                                                                \n                                          │\n├────────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ SDK Path                       │ SDK Path does not point to the project directory. \"fvm use\" will not make IntelliJ (Android Studio, ...) switch Flutter version. Please consult documentation. │\n└────────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬──────────────────────────────────────────────┐\n│ Environment Variables │ Value                                        │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ Flutter PATH          │ D:\\Code\\Dart\\flutter_sdk\\flutter\\bin\\flutter │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ Dart PATH             │ D:\\Code\\Dart\\flutter_sdk\\flutter\\bin\\dart    │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ FVM_CACHE_PATH        │ N/A                                          │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ FVM_USE_GIT_CACHE     │ N/A                                          │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A                                          │\n├───────────────────────┼──────────────────────────────────────────────┤\n│ FVM_FLUTTER_URL       │ N/A                                          │\n└───────────────────────┴──────────────────────────────────────────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ windows \"Windows 11 Professionnel\" 10.0 (Build 26200)            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ fr-BE                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.9.0 (stable) (Mon Aug 11 07:58:10 2025 -0700) on \"windows_x64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\n```\n\n**Desktop (please complete the following information):**\n\n- OS: Windows 11\n- FVM Version: 4.0.5\n- If Windows: How do I get this information from VSCode ?\n\n**Additional context**\nBoth VSCode and fvm.exe are set to execute as admin.",
+    "createdAt": "2026-03-02T08:14:22Z",
     "labels": [
       {
         "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
@@ -17,10 +17,111 @@
         "color": "d73a4a"
       }
     ],
-    "number": 974,
-    "title": "[BUG] Put the binary in a user directory, then expose it via a system-wide symlink will create many issues",
-    "updatedAt": "2025-11-15T20:25:17Z",
-    "url": "https://github.com/leoafarias/fvm/issues/974"
+    "number": 1017,
+    "title": "[BUG] fvm use doesn't work",
+    "updatedAt": "2026-03-02T08:16:37Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1017"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjY0ODk1NA==",
+      "is_bot": false,
+      "login": "scopendo",
+      "name": "Scott Barden"
+    },
+    "body": "**Is your feature request related to a problem? Please describe.**\nI like to control when I adopt stable versions (e.g. 3.38 → 3.41). However, as I generally want to stay up-to-date with patches (e.g. 3.38.9 → 3.38.10), I currently have to install a specific patch version and then uninstall the previous patch version. There is no way to install “latest 3.38.x” if \"stable\" has moved to a new minor version.\n\nThis makes it awkward to keep multiple minor versions side-by-side (e.g. 3.38.x and 3.41.x) without manually installing each patch release as it appears.\n\n**Describe the solution you'd like**\nSupport `fvm install 3.38` and install the latest, with `fvm list` indicating when a new patch level is available.",
+    "createdAt": "2026-02-19T20:34:55Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 1016,
+    "title": "[Feature Request] support installing the latest patch for a stable version without taking latest stable",
+    "updatedAt": "2026-02-19T20:34:55Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1016"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjM4MzgwMDQw",
+      "is_bot": false,
+      "login": "Harishwarrior",
+      "name": "Harish Anbalagan"
+    },
+    "body": "We use AI every day to develop Flutter apps. But I noticed the Dart MCP always fails to use the fvm. I have updated the MCP config from the official docs. It would be great if we could add this to the docs\n\nSource: https://github.com/dart-lang/ai/issues/319#issuecomment-3554308855\n\n```json\n{\n    \"mcpServers\": {\n        \"dart\": {\n            \"command\": \"dart\",\n            \"args\": [\n                \"mcp-server\",\n                \"--flutter-sdk\",\n                \".fvm/flutter_sdk\"\n            ]\n        }\n    }\n}\n```",
+    "createdAt": "2026-02-18T08:09:48Z",
+    "labels": [],
+    "number": 1015,
+    "title": "Update docs to add info about using FVM with Dart MCP ",
+    "updatedAt": "2026-02-18T08:10:03Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1015"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "U_kgDOD43x2Q",
+      "is_bot": false,
+      "login": "coups-cs",
+      "name": ""
+    },
+    "body": "**Describe the bug**\n\nWhen the fvm cli attempts to install a flutter SDK for the first time  there is an `Unknown error`\n<img width=\"854\" height=\"194\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/22a4db21-52f3-444d-aba3-321f531608ad\" />\n```bash\nProcessException: Unknown error\n     Command: git clone --progress -c advice.detachedHead=false -b stable --reference /Users/user/fvm/cache.git https://github.com/flutter/flutter.git /Users/user/fvm/versions/stable\n```\n\nThis is the state of the fvm folder in my user filesystem\n<img width=\"850\" height=\"35\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/dd8a81c8-24cd-4a63-82de-5675a0424678\" />\n\nIf I then attempt to install again it has an issue with the clone repo.\n<img width=\"857\" height=\"53\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/454a6084-3174-45ad-9abe-f8ac27fb242d\" />\n\nThis happens upon installing any version of the Flutter SDK\n<img width=\"852\" height=\"47\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ed82d247-437e-41e8-83d3-6a40969fbdb3\" />\n\nThe issue appears **not** to be localised to my MacBook, I have found another user is experiencing the same issue.\n\nThere's a simple work around which I will post in this thread.\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Go to terminal.\n2. Run `fvm install stable` or `fvm install <Flutter SDK version number>`\n3. See error\n\n**Expected behavior**\nFlutter SDK version should install correctly into the version folder to be used in your project\n\n**Logs**\n<details>\n  <summary>fvm install 3.41.0 --verbose</summary>\n\n  ```bash\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: install\n\nSkipping git reference validation for version: 3.41.0\nUpdating local mirror...\nEnsuring clean working directory...\nPruning stale references...\nFetching all refs...\nChecking for uncommitted changes...\nNo uncommitted changes. Working directory is clean.\nLocal mirror updated successfully\nInstalling Flutter SDK: SDK Version : 3.41.0\nCloning into '/Users/samcoupland/fvm/versions/3.41.0'...\nUpdating files: 100% (15354/15354), done.\n✗ Failed to install 3.41.0 (0ms)\n✗ Flutter SDK is not a valid git repository after clone. Please try again.\n```\n\n</details>\n\n**Desktop (please complete the following information):**\n\n- OS: IOS\n- FVM Version: 4.0.5\n\n**Additional context**\n\nI have installed the latest version of FVM using brew, however I have experienced the same issue after installing it directly from fvm.app.\n\nI can confirm git is working correctly and I have also updated the git config to allow for larger packet sizes and to accommodate for large repos, but have not seen a change in this error.",
+    "createdAt": "2026-02-13T15:59:14Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1014,
+    "title": "[BUG] Installing a flutter SDK failing",
+    "updatedAt": "2026-02-13T16:12:10Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1014"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "U_kgDOBpcoyQ",
+      "is_bot": false,
+      "login": "patrick-billingsley",
+      "name": ""
+    },
+    "body": "I am trying to get set up using a fork of Flutter in my own repo. I am having a similar issue to [this](https://github.com/leoafarias/fvm/issues/773). I am uncertain which approach is appropriate for my use case and am having little luck.\n\nUltimately, I need to setup a fork of Flutter with a patch fix that my project can use. This is a company project so the forked version needs to be accessible from any other dev's machine by running `fvm use`.\n\nI created a fork of the Flutter repo per [their instructions](https://github.com/flutter/flutter/blob/main/docs/contributing/Setting-up-the-Framework-development-environment.md). Since this is currently pointing to the latest flutter I created a new branch and associated tag for my target version 3.35.6 that is pulled from that flutter tag. I then created a new branch and tag for my patch fix 3.35.6-patch. \n\nI created a fork using the first approach: `fvm fork add my-fork`\nI installed it with: `fvm install my-fork/3.35.6-patch`\nI list my versions: `fvm list`\nFlutter Version is listed as \"0.0.0-unknown\"\n\nI also tried using the second approach but if I understand correctly this will only work locally. I happily welcome any guidance.",
+    "createdAt": "2026-01-02T20:46:57Z",
+    "labels": [],
+    "number": 1009,
+    "title": "Custom fork issues",
+    "updatedAt": "2026-02-11T10:48:59Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1009"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjE3NzQzNTE=",
+      "is_bot": false,
+      "login": "jopmiddelkamp",
+      "name": "Jop Middelkamp"
+    },
+    "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [x] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\nWe've got our project setup with Melos i.c.w. dart workspaces. The default setting for `updateMelosSettings` is `true` but when we run `fvm use 3.38.5` in our root (workspace) folder the melos version is not updating and keeps showing `sdkPath: .fvm/versions/3.38.3`. And would it also be possible to have the `sdk` and `flutter` auto update under the `environment`?\n\nworkspace, pubspec.yaml:\n```yaml\nname: beans_workspace\npublish_to: none\nworkspace:\n  - ...\n\nenvironment:\n  sdk: ^3.10.0 # <-- this would be nice too\n  flutter: ^3.38.0 # <-- this would be nice too\n\ndependencies:\n  ...\n\ndev_dependencies:\n  ...\n\ndependency_overrides:\n  ...\n\nmelos:\n  sdkPath: .fvm/versions/3.38.3 # <-- this\n\n  scripts:\n    ...\n```\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Checkout this repo: https://github.com/Beans-BV/melos_issue\n1. Go to terminal..\n2. Run `fvm use 3.38.5`...\n3. Check if the flutter version under `/pubspec.yaml` -> melos -> sdkPath is updated\n\n**Expected behavior**\nTo update the sdkPath to the correct symlink folder.\n\n**Desktop (please complete the following information):**\n\n- OS: MacOS\n- FVM Version 4.0.5\n\n**Additional context**\n```\nflutter doctor -v\n[✓] Flutter (Channel stable, 3.38.5, on macOS 26.1 25B78 darwin-arm64, locale en-GB) [391ms]\n    • Flutter version 3.38.5 on channel stable at /Users/jopmiddelkamp/fvm/versions/stable\n    • Upstream repository https://github.com/flutter/flutter.git\n    • Framework revision f6ff1529fd (3 weeks ago), 2025-12-11 11:50:07 -0500\n    • Engine revision 1527ae0ec5\n    • Dart version 3.10.4\n    • DevTools version 2.51.1\n    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop, enable-android, enable-ios, cli-animations,\n      enable-native-assets, enable-swift-package-manager, omit-legacy-version-file, enable-lldb-debugging\n\n[✓] Android toolchain - develop for Android devices (Android SDK version 36.1.0) [1,311ms]\n    • Android SDK at /Users/jopmiddelkamp/Library/Android/sdk\n    • Emulator version 36.3.10.0 (build_id 14472402) (CL:N/A)\n    • Platform android-36.1, build-tools 36.1.0\n    • Java binary at: /Users/jopmiddelkamp/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/java\n      This is the JDK bundled with the latest Android Studio installation on this machine.\n      To manually set the JDK path, use: `flutter config --jdk-dir=\"path/to/jdk\"`.\n    • Java version OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)\n    • All Android licenses accepted.\n\n[✓] Xcode - develop for iOS and macOS (Xcode 26.2) [6.4s]\n    • Xcode at /Applications/Xcode.app/Contents/Developer\n    • Build 17C52\n    • CocoaPods version 1.16.2\n\n[✓] Chrome - develop for the web [8ms]\n    • Chrome at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n\n[✓] Connected device (4 available) [6.3s]\n    • sdk gphone64 arm64 (mobile)         • emulator-5554                        • android-arm64  • Android 16 (API 36) (emulator)\n    • iPhone SE (3rd generation) (mobile) • 21B10044-C4D0-4B32-9F29-CC68CED43183 • ios            • com.apple.CoreSimulator.SimRuntime.iOS-17-5 (simulator)\n    • macOS (desktop)                     • macos                                • darwin-arm64   • macOS 26.1 25B78 darwin-arm64\n    • Chrome (web)                        • chrome                               • web-javascript • Google Chrome \n\n[✓] Network resources [521ms]\n    • All expected network resources are available.\n```\n",
+    "createdAt": "2025-12-31T03:45:57Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1008,
+    "title": "[BUG] versions not auto update",
+    "updatedAt": "2025-12-31T03:45:57Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1008"
   },
   {
     "assignees": [],
@@ -28,7 +129,7 @@
       "id": "MDQ6VXNlcjkyNzQwNzc=",
       "is_bot": false,
       "login": "vhaudiquet",
-      "name": "Valentin HAUDIQUET"
+      "name": "Valentin Haudiquet"
     },
     "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n\n**Describe the bug**\nOn RISC-V, fvm downloads `arm64` version of the dart SDK. This will not work...\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Create a RISC-V VM (documentation is available, e.g. [here for Ubuntu](https://canonical-ubuntu-boards.readthedocs-hosted.com/en/latest/how-to/qemu-riscv/))\n2. Install unzip `apt update && apt install -y unzip` (cf. #968)\n3. Download fvm latest release and extract:\n```\ncurl -L -O https://github.com/leoafarias/fvm/releases/download/4.0.1/fvm-4.0.1-linux-riscv64.tar.gz\ntar xzf fvm-4.0.1-linux-riscv64.tar.gz\ncd fvm\n```\n3. Create `.fvmrc` file: `echo '{ \"flutter\": \"3.35.3\" }' > .fvmrc`\n4. Use `./fvm install`\n\n**Expected behavior**\nfvm downloads `riscv64` binaries, and not `arm64` ones.\n\n**Logs**\n```\nubuntu@ubuntu:~/fvm/test$ ../fvm install\n✓ Flutter SDK: SDK Version : 3.35.3 is already installed.\nSetting up Flutter SDK: 3.35.3\n\nDownloading Linux arm64 Dart SDK from Flutter engine ddf47dd3ff96dbde6d9c614db0d7f019d7c7a2b7...\n\n...\n\nBuilding flutter tool...\n/home/ubuntu/fvm/versions/3.35.3/bin/internal/shared.sh: line 23: /home/ubuntu/fvm/versions/3.35.3/bin/cache/dart-sdk/bin/dart: cannot execute binary file: Exec format error\n...\n```\n\n**Desktop (please complete the following information):**\n\n- OS: Ubuntu 26.04 Resolute Raccoon (Development Preview)\n- FVM Version: 4.0.1\n\n**Additional context**\n\nAlright, this is not easy.\nI think that there is no Flutter engine built by google for riscv64, and I've heard that the Google Flutter team doesn't want to build an engine for riscv64.\n\nMaybe that will make you want to drop risc-v support ?\n\nThe dart SDK builds binaries for riscv64, so a first step would be to download dart SDK binaries directly from upstream dart and not the flutter engine. But then we still miss the Flutter engine.\n\nAnother way is to use the patches mentioned in the articles linked in https://github.com/flutter/flutter/issues/99963. However I'm not sure if you want to do that, and there is still no flutter engine available in binary form.\n\nAnother way would be to use a flutter engine from another place than google, that would be maintained by the community or another organization. I plan to investigate building a flutter engine for riscv64, trying to automate that build, and we will see how that goes. I will communicate more when concrete plans are in place.\n\nI'm not sure what you think as a maintainer of fvm, whether that seems like a total waste of your time for 0.1% of users or if you are willing to introduce special cases and dedicate a bit of time for that. But I think that if you want to support RISC-V, it might be more complex than initially thought.",
     "createdAt": "2025-11-12T16:59:32Z",
@@ -51,7 +152,7 @@
       "id": "MDQ6VXNlcjkyNzQwNzc=",
       "is_bot": false,
       "login": "vhaudiquet",
-      "name": "Valentin HAUDIQUET"
+      "name": "Valentin Haudiquet"
     },
     "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n\n**Describe the bug**\nI'm on a riscv64 VM, testing the newly-added risc-v support :)\nI set up a .fvmrc with `{ \"flutter\": \"3.35.3\" }`, and try to run `fvm install`.\nEverything seems to work, but after download I get:\n```\n✓ Flutter SDK: SDK Version : 3.35.3 installed! (95.2s)\nSetting up Flutter SDK: 3.35.3\n\n\nMissing \"unzip\" tool. Unable to extract Dart SDK.\nConsider running \"sudo apt-get install unzip\".\n\n\n✓ Flutter SDK: SDK Version : 3.35.3 is setup\n[WARN] Flutter SDK is not setup, skipping resolve dependencies.\n✓ Project now uses Flutter SDK : SDK Version : 3.35.3\n```\n\nIt feels kind of weird that the SDK setup seems to fail, then gives me a checkmark that it works, then a warning  about it not being setup, and then a checkmark that everything works.\n\nIMHO this should fail more agressively ? Feel free to close if you don't think that this is relevant, but I feel like the current output is very confusing\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Set up a VM / container that does not have unzip\n2. Setup an fvmrc file\n3. Use fvm install\n\n**Expected behavior**\nThe program would fail with an error message telling me to fix dependencies, or end on a warning that the SDK is not setup, without ever telling me that it is setup with a checkmark.\n\n**Logs**\n\nSee above\n\n**Desktop (please complete the following information):**\n\n- OS: Ubuntu 26.04 Resolute Raccoon (Development Preview)\n- FVM Version: 4.0.1 (latest release)\n\n**Additional context**\n\nAfter installing unzip, the SDK setup takes place.\nHowever it downloads the arm64 sdk. This is a whole other bug... (#969)\n\nThank you for your work!\n",
     "createdAt": "2025-11-12T16:43:40Z",
@@ -73,7 +174,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -123,22 +225,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjg2NjA3NTg5",
-      "is_bot": false,
-      "login": "i11010520",
-      "name": ""
-    },
-    "body": "In nix/homemanager environment, \n`fvm` always complain:\n`PathAccessException: Cannot open file, path = '/Users/me/.bash_profile' (OS Error: Permission denied, errno = 13)`\n\nIs it possible to custom some config to work around?",
-    "createdAt": "2025-07-24T12:47:56Z",
-    "labels": [],
-    "number": 897,
-    "title": "How to avoid warning of access .bash_profile?",
-    "updatedAt": "2025-11-15T01:28:57Z",
-    "url": "https://github.com/leoafarias/fvm/issues/897"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "MDQ6VXNlcjExNTY3NzY=",
       "is_bot": false,
       "login": "byron-hawkins",
@@ -179,7 +265,7 @@
     ],
     "number": 826,
     "title": "[Feature Request] Add package to Winget",
-    "updatedAt": "2025-10-18T18:07:13Z",
+    "updatedAt": "2026-01-01T16:35:43Z",
     "url": "https://github.com/leoafarias/fvm/issues/826"
   },
   {
@@ -295,7 +381,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -393,7 +480,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -897,7 +985,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -926,7 +1015,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -955,7 +1045,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -1019,7 +1110,8 @@
       {
         "id": "MDQ6VXNlcjc0MDc5MQ==",
         "login": "ManuelRauber",
-        "name": "Manuel Rauber"
+        "name": "Manuel Rauber",
+        "databaseId": 0
       }
     ],
     "author": {
@@ -1048,7 +1140,8 @@
       {
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
-        "name": "Leo Farias"
+        "name": "Leo Farias",
+        "databaseId": 0
       }
     ],
     "author": {

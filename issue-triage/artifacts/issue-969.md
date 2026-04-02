@@ -1,49 +1,80 @@
-# Issue #969: [BUG] RISC-V: Download the right Dart SDK (and engine) for real RISC-V support
+# Issue #969: [BUG] RISC-V: Download the right dart SDK (and engine ?) for real RISC-V support
 
 ## Metadata
-- **Reporter**: @vhaudiquet  
-- **Created**: 2025-11-12  
-- **Reported Version**: 4.0.1  
-- **Issue Type**: bug  
+- **Reporter**: @vhaudiquet
+- **Created**: 2025-11-12
+- **Reported Version**: 4.0.1
+- **Issue Type**: bug / platform support gap
 - **URL**: https://github.com/leoafarias/fvm/issues/969
 
 ## Problem Summary
-On riscv64, `fvm install` downloads the Linux arm64 Dart SDK from the Flutter engine, leading to exec format errors when building Flutter tools. Flutter upstream currently lacks official riscv64 engine binaries.
+On Linux RISC-V, running setup after install downloads an `arm64` Dart SDK, causing runtime failure (`Exec format error`). Reporter later noted the download decision appears to happen inside Flutter tooling, not directly in FVM.
 
 ## Version Context
-- Reported against: v4.0.1  
-- Current version: v4.0.0 (repo) / 4.0.1 (release)  
-- Version-specific: No (platform-specific)
+- Reported against: v4.0.1
+- Current version: v4.0.0+
+- Version-specific: no
+- Reason: architecture behavior depends on Flutter toolchain support, and FVM currently delegates setup to Flutter itself.
 
 ## Validation Steps
-1. User reproduction on Ubuntu riscv64 shows arm64 SDK download and subsequent exec format error.  
-2. Root cause: architecture mapping defaults to arm64 for Flutter archives; no riscv64 artifact exists upstream.
+1. Reviewed setup execution path in FVM.
+2. Reviewed release/install architecture handling paths in repository.
+3. Reviewed issue thread updates indicating upstream Flutter tooling behavior.
 
 ## Evidence
-- Log: “Downloading Linux arm64 Dart SDK… cannot execute binary file: Exec format error”.
+```text
+lib/src/services/flutter_service.dart:126-128
+- Setup is delegated to `flutter --version` inside installed SDK.
 
-## Current Status in v4.0.x
-- [x] Still reproducible (upstream lacks riscv64 engine)  
-- [ ] Already fixed  
-- [ ] Not applicable to v4.0.x  
+scripts/install.sh:242-251
+- Installer script still hard-codes x64/arm64 architecture mapping.
+
+lib/src/services/releases_service/models/flutter_releases_model.dart:76-101
+- Release filtering uses fixed `systemArch = 'x64'` and only applies arch filtering on macOS.
+```
+
+**Files/Code References:**
+- [lib/src/services/flutter_service.dart:126](../lib/src/services/flutter_service.dart#L126) - Delegated setup call.
+- [scripts/install.sh:242](../scripts/install.sh#L242) - Current architecture mapping in installer script.
+- [lib/src/services/releases_service/models/flutter_releases_model.dart:76](../lib/src/services/releases_service/models/flutter_releases_model.dart#L76) - Architecture filtering assumptions.
+
+## Current Status in v4.0.0
+- [x] Still reproducible (for RISC-V environments)
+- [ ] Already fixed
+- [ ] Not applicable to v4.0.0
 - [ ] Needs more information
+- [ ] Cannot reproduce
 
 ## Troubleshooting/Implementation Plan
+
 ### Root Cause Analysis
-Arch resolver maps riscv64 → arm64; Flutter engine releases do not ship riscv64 archives, so FVM downloads an incompatible binary.
+FVM can install/use a RISC-V FVM binary, but SDK setup remains dependent on Flutter tooling behavior for that architecture. Current repo code also has architecture assumptions in installer/release parsing paths that can confuse the support story.
 
 ### Proposed Solution
-1. Update architecture detection to recognize `riscv64` and block with a clear, early error explaining that Flutter engine binaries are not published for this arch.  
-2. Optionally allow a “Dart-only” install path (download Dart SDK directly from dart.dev) when `--dart-only` flag is provided, documenting limitations (no Flutter engine).  
-3. Add tests for riscv64 detection in install workflow to ensure arm64 is never fetched on riscv64.  
-4. Documentation: note unsupported status and potential community-built engine paths; point to upstream Flutter issue for tracking.
+1. Add explicit guardrails when running on RISC-V: if setup output indicates architecture mismatch (`Exec format error`), show a dedicated message that Flutter engine/tooling support is currently limited.
+2. Update docs to separate "FVM binary availability" from "Flutter SDK/engine availability" on RISC-V.
+3. Align installer/release architecture handling to avoid conflicting signals (for example, support matrix and script logic should match published artifacts).
+4. Add a regression test for architecture detection/parsing behavior in release metadata.
+
+### Alternative Approaches (if applicable)
+- Mark RISC-V as experimental with a prominent warning instead of attempting automatic workarounds.
 
 ### Dependencies & Risks
-- True Flutter support depends on upstream providing riscv64 engine builds; interim behavior should fail fast with guidance.
+- Final fix depends on upstream Flutter engine/toolchain availability for RISC-V.
+- Over-promising support without engine binaries will increase support noise.
 
-### Recommendation
-**Action**: validate-p2  
-**Reason**: Platform-specific install failure; must fail clearly and avoid pulling wrong architecture.
+### Related Code Locations
+- [docs/pages/documentation/getting-started/installation.mdx](../docs/pages/documentation/getting-started/installation.mdx) - Support matrix should match actual behavior.
+- [docs/public/install.sh](../docs/public/install.sh) - Public script mirror needs to stay in sync with `scripts/install.sh`.
+
+## Recommendation
+**Action**: validate-p3
+
+**Reason**: Real user impact on a niche platform, but mostly upstream/toolchain constrained; prioritize documentation and guardrails over core logic changes.
 
 ## Notes
-- Related UX bug #968 covers dependency error handling; this issue is architecture/availability.
+- Reporter explicitly acknowledged this may be upstream Flutter behavior and invited close/wontfix if FVM scope remains limited.
+
+---
+**Validated by**: Code Agent  
+**Date**: 2026-03-03

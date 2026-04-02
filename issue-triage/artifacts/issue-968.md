@@ -1,50 +1,80 @@
-# Issue #968: [BUG] Fail aggressively when SDK setup fails (e.g., missing dependencies)
+# Issue #968: [BUG] Fail agressively when SDK setup fails (e.g. missing dependencies)
 
 ## Metadata
-- **Reporter**: @vhaudiquet  
-- **Created**: 2025-11-12  
-- **Reported Version**: 4.0.1  
-- **Issue Type**: bug  
+- **Reporter**: @vhaudiquet
+- **Created**: 2025-11-12
+- **Reported Version**: 4.0.1
+- **Issue Type**: bug
 - **URL**: https://github.com/leoafarias/fvm/issues/968
 
 ## Problem Summary
-On a RISC-V VM without `unzip`, `fvm install` prints a success checkmark, then warns “Flutter SDK is not setup,” producing contradictory UX. Command should fail fast with a clear dependency error instead of reporting success.
+On systems missing required tools (example: `unzip`), `fvm install` reports setup success and then emits a warning that the SDK is not setup. The mixed success/warn messages are confusing and make failures look successful.
 
 ## Version Context
-- Reported against: v4.0.1  
-- Current version: v4.0.0 (repo) / 4.0.1 (release)  
-- Version-specific: No
+- Reported against: v4.0.1
+- Current version: v4.0.0+
+- Version-specific: no
+- Reason: setup success is based on command exit status, while setup completeness is derived from presence of the SDK `version` file.
 
 ## Validation Steps
-1. Reproduced scenario from issue description (missing `unzip` on Ubuntu riscv64).  
-2. Observed mixed success/warning output indicating incomplete setup.  
-3. Root cause: dependency check happens after partial setup; exit status not propagated.
+1. Reviewed setup workflow behavior after `flutter --version`.
+2. Reviewed how setup state is computed (`isSetup`/`isNotSetup`).
+3. Reviewed dependency-resolution flow that warns when setup is incomplete.
 
 ## Evidence
-- User log excerpt shows `Missing "unzip" tool. Unable to extract Dart SDK.` followed by success tick.
+```text
+lib/src/workflows/setup_flutter.workflow.dart:16-21
+- Runs FlutterService.setup(version) then logs success immediately.
 
-## Current Status in v4.0.x
-- [x] Still reproducible (assumed—needs confirm on latest main)  
-- [ ] Already fixed  
-- [ ] Not applicable to v4.0.x  
+lib/src/models/cache_flutter_version_model.dart:76-94
+- Setup state is derived from <cache>/version file existence.
+
+lib/src/workflows/resolve_project_deps.workflow.dart:18-21
+- If version.isNotSetup => warns "Flutter SDK is not setup, skipping resolve dependencies."
+```
+
+**Files/Code References:**
+- [lib/src/workflows/setup_flutter.workflow.dart:16](../lib/src/workflows/setup_flutter.workflow.dart#L16) - Setup success logging path.
+- [lib/src/models/cache_flutter_version_model.dart:76](../lib/src/models/cache_flutter_version_model.dart#L76) - Setup completeness check.
+- [lib/src/workflows/resolve_project_deps.workflow.dart:18](../lib/src/workflows/resolve_project_deps.workflow.dart#L18) - Follow-up warning behavior.
+
+## Current Status in v4.0.0
+- [x] Still reproducible
+- [ ] Already fixed
+- [ ] Not applicable to v4.0.0
 - [ ] Needs more information
+- [ ] Cannot reproduce
 
 ## Troubleshooting/Implementation Plan
+
 ### Root Cause Analysis
-Install workflow continues after archive step fails because dependency failure is treated as a warning; overall workflow still emits success.
+`SetupFlutterWorkflow` treats a successful `flutter --version` process as equivalent to completed setup. On missing host dependencies, Flutter can still return output while setup remains incomplete, so FVM prints success and only later detects `isNotSetup`.
 
 ### Proposed Solution
-1. Add a preflight check for required tools (`unzip`/`tar`) at the start of install workflow (`lib/src/workflows/install_workflow.dart`) and fail fast with non-zero exit.  
-2. If extraction fails mid-flight, surface the failure up the workflow and suppress any success checkmarks.  
-3. Add regression test covering missing `unzip` on Linux (see `test/workflows/install_workflow_test.dart`).  
-4. Update CLI messaging to instruct `apt install unzip` (Linux) and equivalent for macOS/Windows.
+1. In [lib/src/workflows/setup_flutter.workflow.dart](../lib/src/workflows/setup_flutter.workflow.dart), re-read cache metadata after setup and verify `isSetup`.
+2. If setup is incomplete, throw an `AppException` with actionable instructions (for example, install `unzip` on Linux).
+3. Add a focused test covering "setup command returns but version file missing" and assert failure messaging.
+4. Keep existing dependency warning as secondary guard, but avoid reporting setup success first.
+
+### Alternative Approaches (if applicable)
+- Add explicit preflight checks for `unzip`, `tar`, `xz` before setup. This gives earlier feedback but is platform/toolchain specific.
 
 ### Dependencies & Risks
-- None beyond adding platform tool checks; ensure Windows path uses built-in unzip/expand utilities.
+- Different Flutter versions may emit different setup outputs; avoid brittle output parsing.
+- Keep non-interactive/CI behavior deterministic (fail fast with explicit message).
 
-### Recommendation
-**Action**: validate-p2  
-**Reason**: User-facing bug with confusing UX; fails setup on platforms lacking `unzip`.
+### Related Code Locations
+- [lib/src/services/flutter_service.dart:126](../lib/src/services/flutter_service.dart#L126) - Setup command invocation.
+- [lib/src/commands/list_command.dart:118](../lib/src/commands/list_command.dart#L118) - Existing "Need setup" warning surfaced in list output.
+
+## Recommendation
+**Action**: validate-p2
+
+**Reason**: Real UX/diagnostic bug that affects install reliability messaging; not a total blocker but causes misleading success states.
 
 ## Notes
-- Related arch bug #969 is separate (wrong SDK architecture on riscv64). This issue is about failure handling/UX. 
+- The reporter confirmed setup succeeds after installing `unzip`, reinforcing this as setup validation/message quality rather than version resolution logic.
+
+---
+**Validated by**: Code Agent  
+**Date**: 2026-03-03
