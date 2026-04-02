@@ -30,7 +30,7 @@ curl -fsSL https://fvm.app/install.sh | bash
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s <version>
+curl -fsSL https://fvm.app/install.sh | bash -s -- <version>
 ```
 
 *Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
@@ -82,7 +82,7 @@ curl -fsSL https://fvm.app/install.sh | bash
 Install a specific version:
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s <version>
+curl -fsSL https://fvm.app/install.sh | bash -s -- <version>
 ```
 
 *Replace `<version>` with your desired FVM version (e.g., `3.2.1`)*
@@ -120,8 +120,8 @@ dart pub global deactivate fvm
 The install script (`install.sh`) supports several options:
 
 - **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
-- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s <version>` (replace `<version>` with desired FVM version)
-- **Container/CI support**: Set `FVM_ALLOW_ROOT=true` for Docker/CI environments
+- **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s -- <version>` (replace `<version>` with desired FVM version)
+- **Custom install location**: `FVM_INSTALL_DIR=<path> curl -fsSL https://fvm.app/install.sh | bash` (absolute path under `$HOME`)
 - **Help**: `./install.sh --help`
 - **Version info**: `./install.sh --version`
 
@@ -135,22 +135,22 @@ The install script (`install.sh`) supports several options:
 
 ### Requirements
 
-- **macOS/Linux**: `curl`, `tar`, and `sudo` or `doas`
+- **macOS/Linux**: `curl` and `tar`
 - **Windows**: PowerShell (for script) or Chocolatey
 
 ## PATH Configuration
 
-The install script automatically configures your shell PATH. For manual installations, add FVM to your PATH:
+The install script prints instructions to add FVM to your shell PATH. For manual installations, add FVM to your PATH:
 
 <Tabs items={['macOS/Linux (Install Script)', 'macOS/Linux (Pub)', 'Windows']}>
   <Tabs.Tab>
-The install script automatically adds FVM to your PATH by updating your shell configuration:
+The install script prints instructions to add FVM to your PATH. Add the following to your shell configuration:
 
-- **Bash**: `~/.bashrc` or `~/.bash_profile`
-- **Zsh**: `~/.zshrc`
-- **Fish**: `~/.config/fish/config.fish`
+- **Bash**: Add to `~/.bashrc`
+- **Zsh**: Add to `~/.zshrc`
+- **Fish**: Run `fish_add_path "<install_dir>/bin"`
 
-The script adds: `export PATH="$HOME/.fvm_flutter/bin:$PATH"`
+Add this line: `export PATH="<install_dir>/bin:$PATH"` (default install dir is `$HOME/fvm`)
 
 To apply changes immediately: `source ~/.zshrc` (or your shell config file)
 
@@ -177,7 +177,7 @@ Add to your PATH environment variable:
 
 **Install Script:**
 ```bash
-./install.sh --uninstall
+curl -fsSL https://fvm.app/install.sh | bash -s -- --uninstall
 ```
 
 **Homebrew:**

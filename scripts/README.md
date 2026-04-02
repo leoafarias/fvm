@@ -1,17 +1,10 @@
 # FVM Scripts
 
-This directory contains installation and testing scripts for FVM.
+This directory contains testing and utility scripts for FVM.
 
-## Scripts
+## Installation Scripts
 
-### install.sh
-The main FVM installation script for Linux/macOS that:
-- Detects OS and architecture
-- Downloads the appropriate FVM binary
-- Creates a system-wide symlink
-- Configures shell PATH
-- Supports container environments (Docker, Podman, CI)
-- **Now includes uninstall functionality via `--uninstall` flag**
+The main installation scripts (`install.sh` and `uninstall.sh`) are located in `docs/public/` and served at https://fvm.app/install.sh.
 
 Usage:
 ```bash
@@ -22,19 +15,15 @@ curl -fsSL https://fvm.app/install.sh | bash
 curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 
 # Uninstall FVM
-./install.sh --uninstall
-
-# Container/CI support
-export FVM_ALLOW_ROOT=true
-./install.sh
+./docs/public/install.sh --uninstall
 ```
+
+## Scripts in This Directory
 
 ### test-install.sh
 Test script for the installation logic:
-- Tests container detection (Docker, Podman)
-- Tests CI environment detection
-- Tests manual override (FVM_ALLOW_ROOT)
-- Validates security (blocks root in regular environments)
+- Tests root warning behavior
+- Validates security (warns root in regular environments)
 
 Usage:
 ```bash
@@ -45,8 +34,44 @@ Usage:
 sudo ./scripts/test-install.sh
 ```
 
+### test-install-arch.sh
+Deterministic regression test for install target selection:
+- Verifies macOS Rosetta-aware arm64 detection
+- Verifies Linux architecture mapping and unsupported-arch failures
+- Avoids downloads by stubbing `uname`, `sysctl`, `curl`, and `tar`
+
+Usage:
+```bash
+./scripts/test-install-arch.sh
+```
+
+### install.ps1
+PowerShell installation script for Windows.
+
 ### install.md
 Documentation for the installation process.
+
+### manual-migration-test.sh
+One-command validation for legacy git-cache migration to a bare mirror.
+
+What it validates:
+- Seeds a legacy cache with `fvm 4.0.1` (`stable`, one stable release, `beta`)
+- Confirms pre-migration non-bare cache and legacy alternates paths
+- Triggers migration through `dart run bin/main.dart install stable`
+- Confirms bare cache and rewritten alternates
+- Verifies `list` output and SDK executability
+
+Usage:
+```bash
+# Default run (isolated cache in .context/tmp)
+./scripts/manual-migration-test.sh
+
+# Specify release version explicitly
+./scripts/manual-migration-test.sh --release-version 3.41.3
+
+# Remove test cache at the end
+./scripts/manual-migration-test.sh --cleanup
+```
 
 ## Design Principles
 

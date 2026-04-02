@@ -36,7 +36,18 @@ class ProjectService extends ContextualService {
       debugPrinter: logger.debug,
     );
 
-    return project ?? Project.loadFromDirectory(context.workingDirectory.dir);
+    final result =
+        project ?? Project.loadFromDirectory(context.workingDirectory.dir);
+
+    // Warn if config was loaded from legacy .fvm/fvm_config.json
+    if (result.hasConfig && !File(result.configPath).existsSync()) {
+      logger.warn(
+        'Using legacy config at ${result.legacyConfigPath}. '
+        'Consider migrating to .fvmrc by running: fvm use <version>',
+      );
+    }
+
+    return result;
   }
 
   /// Search for version configured

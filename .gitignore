@@ -1,7 +1,9 @@
 # Files and directories created by pub
 .dart_tool/
 .packages
-.claude
+.claude/*
+!.claude/settings.json
+CLAUDE.md
 
 # Do not version the sdk versions
 versions/
@@ -60,7 +62,9 @@ test/fixtures/sample_app
 
 # Example app directory
 example_app/
-.context
+# Context folder (allow docs subfolder)
+.context/*
+!.context/docs/
 .augment-guidelines
 
 # Platform-specific directories (generated during testing)
@@ -70,6 +74,8 @@ linux/
 macos/
 ios/
 android/
-CLAUDE.md
 coverage/html_report
 .augment/env/setup.sh
+
+# Internal planning documents
+plan.md

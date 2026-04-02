@@ -9,6 +9,7 @@ import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/extensions.dart';
+import '../utils/file_utils.dart';
 import 'base_service.dart';
 
 enum CacheIntegrity {
@@ -21,7 +22,6 @@ enum CacheIntegrity {
   bool get isValid => this == valid;
 }
 
-/// Service to interact with FVM Cache
 class CacheService extends ContextualService {
   const CacheService(super.context);
 
@@ -33,21 +33,47 @@ class CacheService extends ContextualService {
     return value;
   }
 
-  /// Verifies that cache is correct
-  /// returns 'true' if cache is correct 'false' if its not
+  String? _relativeVersionNameFromCachePath(String targetPath) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(targetPath);
+    if (!path.isWithin(cacheRoot, normalizedTarget)) {
+      return null;
+    }
+
+    final relative = path.relative(normalizedTarget, from: cacheRoot);
+    if (relative.isEmpty || relative == '.') {
+      return null;
+    }
+
+    // Convert to POSIX-style path for consistent fork/version parsing
+    return path.posix.joinAll(path.split(relative));
+  }
+
+  Directory _safeCacheDirectory(List<String> segments) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final targetPath = path.normalize(path.joinAll([cacheRoot, ...segments]));
+
+    if (!path.isWithin(cacheRoot, targetPath) && targetPath != cacheRoot) {
+      throw AppException(
+        'Invalid cache path computed outside of the cache directory.',
+      );
+    }
+
+    return Directory(targetPath);
+  }
+
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
     final binExists = File(version.flutterExec).existsSync();
 
     return binExists && await isExecutable(version.flutterExec);
   }
 
-  // Verifies that the cache version name matches the flutter version
+  /// Returns true when the cached version can be treated as a match.
+  /// Channels, git refs, and missing SDK metadata don't provide a reliable
+  /// semantic version to compare, so they are treated as matching.
   bool _verifyVersionMatch(CacheFlutterVersion version) {
-    // If it's a channel return true
     if (version.isChannel) return true;
-    // If it's a git commit, return true (commit hash won't match SDK version)
     if (version.isUnknownRef) return true;
-    // If sdkVersion is not available return true
     final cached = version.flutterSdkVersion;
     if (cached == null) return true;
 
@@ -56,98 +82,91 @@ class CacheService extends ContextualService {
 
   Link get _globalCacheLink => Link(context.globalCacheLink);
 
-  /// Returns a [CacheFlutterVersion] from a [version]
   CacheFlutterVersion? getVersion(FlutterVersion version) {
     final versionDir = getVersionCacheDir(version);
-    // Return null if version does not exist
     if (!versionDir.existsSync()) return null;
 
     return CacheFlutterVersion.fromVersion(version, directory: versionDir.path);
   }
 
-  /// Lists Installed Flutter SDK Version
+  /// Lists all installed Flutter SDK versions, sorted newest first.
   Future<List<CacheFlutterVersion>> getAllVersions() async {
     final versionsDir = Directory(context.versionsCachePath);
-    // Returns empty array if directory does not exist
     if (!await versionsDir.exists()) return [];
 
     final cacheVersions = <CacheFlutterVersion>[];
 
-    // Checks if a directory is a Flutter SDK.
-    //
-    // Uses bin/flutter existence as the indicator since it's always present
-    // in Flutter SDK directories (part of the git repository), regardless of
-    // whether setup has been run or which Flutter version is installed.
-    bool isFlutterSdkDirectory(Directory dir) {
-      final flutterBin = File(path.join(dir.path, 'bin', 'flutter'));
-
-      return flutterBin.existsSync();
-    }
-
-    // Process a directory that might be a version directory
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
-      if (isFlutterSdkDirectory(dir)) {
-        // This is a version directory
-        final name = path.basename(dir.path);
-
+      if (_looksLikeFlutterSdk(dir)) {
         try {
-          FlutterVersion version;
-          if (forkName != null) {
-            // This is a forked version
-            version = FlutterVersion.parse('$forkName/$name');
-          } else {
-            // This is a regular version
-            version = FlutterVersion.parse(name);
-          }
+          final name = _relativeVersionNameFromCachePath(dir.path);
+          if (name == null) return;
+          final version = FlutterVersion.parse(name);
 
           final cacheVersion = getVersion(version);
           if (cacheVersion != null) {
             cacheVersions.add(cacheVersion);
           }
+        } on FormatException catch (e) {
+          logger.debug('Skipping invalid version directory ${dir.path}: $e');
         } catch (e) {
-          // Skip if we can't parse as a version
+          logger.warn('Error processing ${dir.path}: $e');
         }
-      } else {
-        // This might be a fork directory containing version directories
-        // Only check top-level directories without a fork name
-        if (forkName == null) {
-          final entries = await dir.list().toList();
-          for (var entry in entries) {
-            if (entry.path.isDir()) {
-              final subDirName = path.basename(entry.path);
-              // Skip hidden directories (starting with .)
-              if (subDirName.startsWith('.')) continue;
-              // Check subdirectories with this directory as the fork
-              await processDirectory(
-                Directory(entry.path),
-                forkName: path.basename(dir.path),
-              );
-            }
-          }
+
+        return;
+      }
+
+      // Non-SDK top-level directories may be fork directories
+      if (forkName != null) return;
+
+      final entries = await dir.list().toList();
+      for (var entry in entries) {
+        if (entry.path.isDir()) {
+          final subDirName = path.basename(entry.path);
+          if (subDirName.startsWith('.')) continue;
+          await processDirectory(
+            Directory(entry.path),
+            forkName: path.basename(dir.path),
+          );
         }
       }
     }
 
-    // Scan all top-level directories, skipping hidden directories
     final topLevelEntries = await versionsDir.list().toList();
     for (var entry in topLevelEntries) {
       if (entry.path.isDir()) {
         final dirName = path.basename(entry.path);
-        // Skip hidden directories (starting with .)
         if (dirName.startsWith('.')) continue;
         await processDirectory(Directory(entry.path));
       }
     }
 
-    cacheVersions.sort((a, b) => a.compareTo(b));
+    cacheVersions.sort((a, b) => b.compareTo(a));
 
-    return cacheVersions.reversed.toList();
+    return cacheVersions;
   }
 
-  /// Removes a Version of Flutter SDK
-  void remove(FlutterVersion version) {
+  /// Heuristic check for a Flutter SDK directory.
+  ///
+  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
+  /// this is a cloned Flutter SDK rather than a fork parent directory.
+  bool _looksLikeFlutterSdk(Directory dir) {
+    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
+    if (hasVersionFile) return true;
+
+    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
+    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
+
+    return hasGitDir && hasBin;
+  }
+
+  /// Removes a cached Flutter SDK version and cleans up empty fork directories.
+  Future<void> remove(FlutterVersion version) async {
     final versionDir = getVersionCacheDir(version);
-    if (versionDir.existsSync()) versionDir.deleteSync(recursive: true);
+    if (versionDir.existsSync()) {
+      await deleteDirectoryWithRetry(versionDir);
+    }
 
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
@@ -157,31 +176,28 @@ class CacheService extends ContextualService {
       if (forkDir.existsSync()) {
         final entries = forkDir.listSync();
         if (entries.isEmpty) {
-          forkDir.deleteSync(recursive: true);
+          await deleteDirectoryWithRetry(forkDir);
         }
       }
     }
   }
 
-  /// Gets the directory for a specified version
+  /// Returns the cache directory for [version].
   ///
-  /// For standard versions: versionsCachePath/version
-  /// For fork versions: versionsCachePath/fork/version
+  /// Fork versions resolve to `versionsCachePath/fork/version`,
+  /// standard versions to `versionsCachePath/version`.
   Directory getVersionCacheDir(FlutterVersion version) {
     if (version.fromFork) {
-      // Fork-specific path: versionsCachePath/forkName/versionName
-      return Directory(
-        path.join(context.versionsCachePath, version.fork!, version.version),
-      );
-    } // Standard path: versionsCachePath/version.name
+      return _safeCacheDirectory([version.fork!, version.version]);
+    }
 
-    return Directory(path.join(context.versionsCachePath, version.name));
+    return _safeCacheDirectory([version.name]);
   }
 
   // For backward compatibility - used by existing string-based calls
   @Deprecated('Use getVersionCacheDir(FlutterVersion) instead')
   Directory getVersionCacheDirByName(String version) {
-    return Directory(path.join(context.versionsCachePath, version));
+    return _safeCacheDirectory([version]);
   }
 
   // Verifies that cache can be executed and matches version
@@ -197,49 +213,78 @@ class CacheService extends ContextualService {
     return CacheIntegrity.valid;
   }
 
-  /// Sets a [CacheFlutterVersion] as global
   void setGlobal(CacheFlutterVersion version) {
     _globalCacheLink.createLink(version.directory);
   }
 
-  /// Unlinks global version
   void unlinkGlobal() {
     if (_globalCacheLink.existsSync()) {
       _globalCacheLink.deleteSync();
     }
   }
 
-  /// Returns a global [CacheFlutterVersion] if exists
+  /// Returns the global [CacheFlutterVersion], or null if none is set.
   CacheFlutterVersion? getGlobal() {
-    if (!_globalCacheLink.existsSync()) return null;
-    // Get directory name
-    final version = path.basename(_globalCacheLink.targetSync());
-    // Make sure its a valid version
-    final validVersion = FlutterVersion.parse(version);
+    final version = getGlobalVersion();
+    if (version == null) return null;
 
-    // Verify version is cached
-    return getVersion(validVersion);
+    try {
+      final validVersion = FlutterVersion.parse(version);
+
+      return getVersion(validVersion);
+    } on FormatException catch (e) {
+      logger.warn(
+        'Global version "$version" could not be parsed: $e. '
+        'The global symlink may be corrupted.',
+      );
+
+      return null;
+    }
   }
 
-  /// Checks if a cached [version] is configured as global
   bool isGlobal(CacheFlutterVersion version) {
-    if (!_globalCacheLink.existsSync()) return false;
+    if (!_globalCacheLink.existsSync()) {
+      return false;
+    }
 
-    return _globalCacheLink.targetSync() == version.directory;
+    try {
+      return _globalCacheLink.targetSync() == version.directory;
+    } on FileSystemException catch (e) {
+      logger.debug('Cannot verify if version is global: $e');
+
+      return false;
+    }
   }
 
-  /// Returns a global version name if exists
+  /// Returns the global version name, or null if none is set.
   String? getGlobalVersion() {
     if (!_globalCacheLink.existsSync()) return null;
 
-    // Get directory name
-    return path.basename(_globalCacheLink.targetSync());
+    String targetPath;
+    try {
+      targetPath = _globalCacheLink.targetSync();
+    } on FileSystemException catch (e) {
+      logger.warn('Failed to resolve global symlink: $e');
+
+      return null;
+    }
+
+    final relative = _relativeVersionNameFromCachePath(targetPath);
+    if (relative != null) return relative;
+
+    // Symlink points outside the cache directory; fall back to the directory
+    // name, which loses fork information.
+    logger.debug(
+      'Global symlink target "$targetPath" could not be resolved relative '
+      'to the cache directory. Fork information may not be preserved.',
+    );
+
+    return path.basename(path.normalize(targetPath));
   }
 
-  /// Moves a [CacheFlutterVersion] to the cache of [sdkVersion]
+  /// Renames [version]'s cache directory to match its actual SDK version.
   void moveToSdkVersionDirectory(CacheFlutterVersion version) {
     final sdkVersion = version.flutterSdkVersion;
-
     if (sdkVersion == null) {
       throw AppException(
         'Cannot move to SDK version directory without a valid version',
@@ -247,20 +292,18 @@ class CacheService extends ContextualService {
     }
 
     final versionDir = Directory(version.directory);
-    FlutterVersion targetVersion = FlutterVersion.parse(sdkVersion);
+    if (!versionDir.existsSync()) return;
 
-    // If the original version is from a fork, maintain the fork information
-    if (version.fromFork) {
-      targetVersion = FlutterVersion.parse('${version.fork}/$sdkVersion');
-    }
-
+    final versionString =
+        version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion;
+    final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 
     if (newDir.existsSync()) {
       newDir.deleteSync(recursive: true);
     }
 
-    // Ensure parent directory exists for fork versions
+    // renameSync requires the parent directory to exist
     if (targetVersion.fromFork) {
       final forkDir = Directory(
         path.join(context.versionsCachePath, targetVersion.fork!),
@@ -270,9 +313,7 @@ class CacheService extends ContextualService {
       }
     }
 
-    if (versionDir.existsSync()) {
-      versionDir.renameSync(newDir.path);
-    }
+    versionDir.renameSync(newDir.path);
   }
 
   /// Determines if [configured] and [cached] versions should be considered

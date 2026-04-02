@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:io/io.dart';
-
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
@@ -44,6 +42,7 @@ class ProcessService extends ContextualService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
+    bool runInShell = true,
   }) async {
     logger
       ..debug('')
@@ -56,7 +55,7 @@ class ProcessService extends ContextualService {
         args,
         workingDirectory: workingDirectory,
         environment: environment,
-        runInShell: true,
+        runInShell: runInShell,
       );
 
       if (throwOnError) {
@@ -70,7 +69,7 @@ class ProcessService extends ContextualService {
       args,
       workingDirectory: workingDirectory,
       environment: environment,
-      runInShell: true,
+      runInShell: runInShell,
       mode: ProcessStartMode.inheritStdio,
     );
 
@@ -89,7 +88,9 @@ class ProcessService extends ContextualService {
 }
 
 extension ProcessResultX on ProcessResult {
-  bool get isSuccess => exitCode == ExitCode.success.code;
+  // Note: `this.exitCode` is intentional -- without the explicit receiver,
+  // Dart resolves to `dart:io`'s top-level `exitCode` getter.
+  bool get isSuccess => this.exitCode == 0;
 
-  bool get isFailure => exitCode != ExitCode.success.code;
+  bool get isFailure => this.exitCode != 0;
 }

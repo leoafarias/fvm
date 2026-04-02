@@ -151,7 +151,7 @@ FlutterVersionOutput extractFlutterVersionOutput(String content) {
     throw FormatException('Unable to parse Dart version.');
   }
 
-  final channel = channelMatch?.group(1);
+  final channel = channelMatch?.group(1)?.trim().toLowerCase();
   if (channel == null || !isFlutterChannel(channel)) {
     throw FormatException('Unable to parse Flutter channel.');
   }
@@ -191,6 +191,10 @@ String extractDartVersionOutput(String input) {
 }
 
 /// Validates if a URL is a valid Git repository URL.
+///
+/// Accepts URLs with or without `.git` suffix, but requires structural
+/// validity: allowed scheme, non-empty host (for network URLs), and at
+/// least one meaningful path segment.
 bool isValidGitUrl(String url) {
   final trimmed = url.trim();
 
@@ -199,8 +203,9 @@ bool isValidGitUrl(String url) {
   }
 
   // Accept scp-like syntax such as git@host:group/repo.git.
-  if (_isScpLikeGitUrl(trimmed)) {
-    return _hasGitExtension(_extractScpPath(trimmed));
+  // Skip URLs with :// which are scheme-based, not scp-like.
+  if (!trimmed.contains('://') && _isScpLikeGitUrl(trimmed)) {
+    return _hasValidRepoPath(_extractScpPath(trimmed));
   }
 
   // Accept ssh:// urls that use scp shorthand after the scheme.
@@ -208,7 +213,7 @@ bool isValidGitUrl(String url) {
   if (trimmed.startsWith(sshScheme)) {
     final remainder = trimmed.substring(sshScheme.length);
     if (_isScpLikeGitUrl(remainder)) {
-      return _hasGitExtension(_extractScpPath(remainder));
+      return _hasValidRepoPath(_extractScpPath(remainder));
     }
   }
 
@@ -219,20 +224,46 @@ bool isValidGitUrl(String url) {
       return false;
     }
 
-    if (uri.host.isEmpty && uri.authority.isEmpty && uri.scheme != 'file') {
+    // Query/fragment suffixes are not valid git remotes.
+    if (uri.hasQuery || uri.hasFragment) {
       return false;
     }
 
-    final path = uri.path;
+    final scheme = uri.scheme.toLowerCase();
+    const allowedSchemes = {'https', 'http', 'git', 'ssh', 'file'};
+    if (!allowedSchemes.contains(scheme)) {
+      return false;
+    }
 
-    return _hasGitExtension(path);
+    if (scheme == 'file') {
+      return _hasValidRepoPath(uri.path);
+    }
+
+    if (uri.host.isEmpty && uri.authority.isEmpty) {
+      return false;
+    }
+
+    return _hasValidRepoPath(uri.path);
   } on FormatException {
     return false;
   }
 }
 
-bool _hasGitExtension(String? path) {
-  return path != null && path.isNotEmpty && path.endsWith('.git');
+/// Checks that a path has at least one meaningful segment (e.g., /owner/repo
+/// or just repo.git). Accepts paths with or without `.git` suffix.
+bool _hasValidRepoPath(String? path) {
+  if (path == null || path.isEmpty) return false;
+
+  // scp-like paths may contain query/fragment text; reject those.
+  if (path.contains('?') || path.contains('#')) return false;
+
+  // Strip .git suffix for segment analysis
+  final cleanPath =
+      path.endsWith('.git') ? path.substring(0, path.length - 4) : path;
+
+  final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
+
+  return segments.isNotEmpty;
 }
 
 bool _isScpLikeGitUrl(String url) {
@@ -315,6 +346,24 @@ Future<int> getDirectorySize(Directory dir) async {
   return total;
 }
 
+Future<int> _getVersionDirectorySize(
+  CacheFlutterVersion version,
+  Logger logger,
+) async {
+  try {
+    return await getDirectorySize(version.directory.dir);
+  } on FileSystemException catch (e) {
+    logger.debug('Cannot access ${version.name} for size calculation: $e');
+
+    return 0;
+  } catch (e) {
+    // Log error but continue with zero for this directory
+    logger.warn('Error calculating size for ${version.name}: $e');
+
+    return 0;
+  }
+}
+
 /// Calculates total size of all cached Flutter versions in parallel.
 Future<int> getFullDirectorySize(
   List<CacheFlutterVersion> versions,
@@ -325,26 +374,16 @@ Future<int> getFullDirectorySize(
   try {
     // Process all directories in parallel with error handling for each
     final sizes = await Future.wait(
-      versions.map((version) async {
-        try {
-          return await getDirectorySize(version.directory.dir);
-        } on FileSystemException catch (e) {
-          logger.debug(
-            'Cannot access ${version.name} for size calculation: $e',
-          );
-
-          return 0;
-        } catch (e) {
-          // Log error but continue with zero for this directory
-          logger.warn('Error calculating size for ${version.name}: $e');
-
-          return 0;
-        }
-      }),
+      versions.map((version) => _getVersionDirectorySize(version, logger)),
     );
 
     // Sum all sizes in one operation
-    return sizes.fold<int>(0, (sum, size) => sum + size);
+    var total = 0;
+    for (final size in sizes) {
+      total += size;
+    }
+
+    return total;
   } catch (e) {
     // Fallback if parallel execution fails
     logger.err(
@@ -363,7 +402,7 @@ Map<String, String> updateEnvironmentVariables(
   // Remove duplicates
   paths = paths.toSet().toList();
 
-  final updatedEnvironment = Map<String, String>.of(env);
+  final updatedEnvironment = Map.of(env);
   final envPath = env['PATH'] ?? '';
   final separator = Platform.isWindows ? ';' : ':';
 

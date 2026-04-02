@@ -29,7 +29,6 @@ import '../workflows/validate_flutter_version.workflow.dart';
 import '../workflows/verify_project.workflow.dart';
 import 'constants.dart';
 import 'extensions.dart';
-import 'file_lock.dart';
 
 part 'context.mapper.dart';
 
@@ -110,39 +109,31 @@ class FvmContext with FvmContextMappable {
     );
   }
 
-  Directory get _lockDir => Directory(join(fvmDir, 'locks'));
-
   /// Directory where FVM is stored
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
-  /// Flag to determine if should use git cache
+  /// Whether to use the local git mirror cache.
+  ///
+  /// Explicit config/ENV opt-in/opt-out is always honoured.
+  /// Default: enabled locally, disabled on CI.
   @MappableField()
   bool get gitCache {
-    final useGitCache = config.useGitCache != null ? config.useGitCache! : true;
-
-    return useGitCache && !isCI;
+    final explicit = config.useGitCache;
+    if (explicit != null) return explicit;
+    return !isCI;
   }
 
   /// Run pub get on sdk changes
   @MappableField()
-  bool get runPubGetOnSdkChanges {
-    return config.runPubGetOnSdkChanges != null
-        ? config.runPubGetOnSdkChanges!
-        : true;
-  }
+  bool get runPubGetOnSdkChanges => config.runPubGetOnSdkChanges ?? true;
 
   /// FVM Version
   @MappableField()
   String get fvmVersion => packageVersion;
 
   @MappableField()
-  String get gitCachePath {
-    // If git cache is not override use default based on fvmDir
-    if (config.gitCachePath != null) return config.gitCachePath!;
-
-    return join(fvmDir, 'cache.git');
-  }
+  String get gitCachePath => config.gitCachePath ?? join(fvmDir, 'cache.git');
 
   /// Flutter Git Repo
   @MappableField()
@@ -154,17 +145,11 @@ class FvmContext with FvmContextMappable {
 
   /// Flutter SDK Path
   @MappableField()
-  bool get updateCheckDisabled {
-    return config.disableUpdateCheck != null
-        ? config.disableUpdateCheck!
-        : false;
-  }
+  bool get updateCheckDisabled => config.disableUpdateCheck ?? false;
 
   /// Privileged access
   @MappableField()
-  bool get privilegedAccess {
-    return config.privilegedAccess != null ? config.privilegedAccess! : true;
-  }
+  bool get privilegedAccess => config.privilegedAccess ?? true;
 
   /// Where Default Flutter SDK is stored
   @MappableField()
@@ -187,34 +172,6 @@ class FvmContext with FvmContextMappable {
 
   @MappableField()
   bool get skipInput => isCI || _skipInput;
-
-  /// Creates a file-based lock for cross-process synchronization.
-  ///
-  /// Uses timestamp-based expiration to prevent deadlocks from crashed processes.
-  /// Locks are stored in `~/.fvm/locks/{name}.lock`.
-  ///
-  /// Usage:
-  /// ```dart
-  /// final lock = context.createLock('my-operation', expiresIn: Duration(minutes: 5));
-  /// final unlock = await lock.getLock();
-  /// try {
-  ///   // Critical section
-  /// } finally {
-  ///   unlock();
-  /// }
-  /// ```
-  ///
-  /// Defaults to 10 second expiry. Override [expiresIn] for long operations.
-  FileLocker createLock(String name, {Duration? expiresIn}) {
-    if (!_lockDir.existsSync()) {
-      _lockDir.createSync(recursive: true);
-    }
-
-    return FileLocker(
-      join(_lockDir.path, '$name.lock'),
-      lockExpiration: expiresIn ?? const Duration(seconds: 10),
-    );
-  }
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {

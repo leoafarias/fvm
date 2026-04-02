@@ -1,3 +1,15 @@
+## Unreleased
+
+* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+* fix: make the macOS install script select the arm64 binary correctly when launched from a Rosetta-translated shell on Apple Silicon.
+
+## 4.0.5
+
+* feat: migrate install script to v2 with user-local default install (#967)
+* fix: disable auto-install of shell completions for Nix/Home Manager environments (#991)
+* fix: support legacy `.fvm/fvm_config.json` file loading (#996)
+* fix: improve PATH guidance for CI installs (#999)
+
 ## 4.0.4
 
 * fix: remove leading newline from fvm dart/flutter output

@@ -19,35 +19,45 @@ void main() {
           FlutterVersion.parse(version),
         );
 
-    // Determine the expected release channel
-    String? releaseChannel;
+    expect(cacheVersion, isNotNull, reason: 'Install does not exist');
+    final installedVersion = cacheVersion!;
 
     if (isFlutterChannel(version)) {
-      releaseChannel = version;
+      // Channels should stay on the requested branch.
+      final existingChannel = await runner.context.get<GitService>().getBranch(
+            version,
+          );
+      expect(existingChannel, version);
     } else {
-      if (cacheVersion!.releaseChannel != null) {
-        releaseChannel = cacheVersion.releaseChannel!.name;
+      // Resolve the expected channel for version installs. For very old
+      // releases, metadata can be unavailable on arm64 (release index is
+      // architecture-filtered), so channel matching is skipped when we cannot
+      // derive an expected channel.
+      String? expectedChannel;
+      if (installedVersion.releaseChannel != null) {
+        expectedChannel = installedVersion.releaseChannel!.name;
+      } else if (installedVersion.isUnknownRef) {
+        expectedChannel = FlutterChannel.master.name;
       } else {
         final release = await runner.context
             .get<FlutterReleaseClient>()
-            .getReleaseByVersion(cacheVersion.version);
+            .getReleaseByVersion(installedVersion.version);
+        expectedChannel = release?.channel.name;
+      }
 
-        if (cacheVersion.isUnknownRef) {
-          releaseChannel = FlutterChannel.master.name;
-        } else {
-          releaseChannel = release!.channel.name;
-        }
+      final existingChannel = await runner.context.get<GitService>().getBranch(
+            version,
+          );
+
+      if (expectedChannel != null) {
+        expect(existingChannel, expectedChannel);
+      } else {
+        expect(existingChannel, isNotNull);
+        expect(existingChannel, isNotEmpty);
       }
     }
 
-    // Get the actual branch from the installed version
-    final existingChannel = await runner.context.get<GitService>().getBranch(
-          version,
-        );
-
     // Assertions
-    expect(cacheVersion != null, true, reason: 'Install does not exist');
-    expect(existingChannel, releaseChannel);
     expect(exitCode, ExitCode.success.code);
   }
 

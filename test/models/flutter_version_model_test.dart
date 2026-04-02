@@ -15,12 +15,12 @@ void main() {
       final shortGitCommit = FlutterVersion.parse(shortCommit);
 
       // Check if its channel
-      expect(master.isChannel, true);
-      expect(beta.isChannel, true);
-      expect(channelWithVersion.isChannel, false);
-      expect(version.isChannel, false);
-      expect(gitCommit.isChannel, false);
-      expect(shortGitCommit.isChannel, false);
+      expect(master.isChannel, isTrue);
+      expect(beta.isChannel, isTrue);
+      expect(channelWithVersion.isChannel, isFalse);
+      expect(version.isChannel, isFalse);
+      expect(gitCommit.isChannel, isFalse);
+      expect(shortGitCommit.isChannel, isFalse);
 
       // Check for correct vertsion
       expect(master.name, 'master');
@@ -41,28 +41,28 @@ void main() {
       expect(shortGitCommit.releaseChannel, null);
 
       // Check if its master
-      expect(master.isMain, true);
-      expect(beta.isMain, false);
-      expect(channelWithVersion.isMain, false);
-      expect(version.isMain, false);
-      expect(gitCommit.isMain, false);
-      expect(shortGitCommit.isMain, false);
+      expect(master.isMain, isTrue);
+      expect(beta.isMain, isFalse);
+      expect(channelWithVersion.isMain, isFalse);
+      expect(version.isMain, isFalse);
+      expect(gitCommit.isMain, isFalse);
+      expect(shortGitCommit.isMain, isFalse);
 
       // Check if its release
-      expect(master.isRelease, false);
-      expect(beta.isRelease, false);
-      expect(channelWithVersion.isRelease, true);
-      expect(version.isRelease, true);
-      expect(gitCommit.isRelease, false);
-      expect(shortGitCommit.isRelease, false);
+      expect(master.isRelease, isFalse);
+      expect(beta.isRelease, isFalse);
+      expect(channelWithVersion.isRelease, isTrue);
+      expect(version.isRelease, isTrue);
+      expect(gitCommit.isRelease, isFalse);
+      expect(shortGitCommit.isRelease, isFalse);
 
       // Check if its commit
-      expect(master.isUnknownRef, false);
-      expect(beta.isUnknownRef, false);
-      expect(channelWithVersion.isUnknownRef, false);
-      expect(version.isUnknownRef, false);
-      expect(gitCommit.isUnknownRef, true);
-      expect(shortGitCommit.isUnknownRef, true);
+      expect(master.isUnknownRef, isFalse);
+      expect(beta.isUnknownRef, isFalse);
+      expect(channelWithVersion.isUnknownRef, isFalse);
+      expect(version.isUnknownRef, isFalse);
+      expect(gitCommit.isUnknownRef, isTrue);
+      expect(shortGitCommit.isUnknownRef, isTrue);
 
       // Checks version
       expect(master.name, 'master');

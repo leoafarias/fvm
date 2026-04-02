@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
 
 import '../../../models/flutter_version_model.dart';
+import '../../../utils/exceptions.dart';
 import 'version_model.dart';
 
 part 'flutter_releases_model.mapper.dart';
@@ -68,12 +70,30 @@ class FlutterReleasesResponse with FlutterReleasesResponseMappable {
 /// Finds the proper release base on the hash
 /// Assigns to the current_release
 FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
-  final baseUrl = map['base_url'] as String;
-  final currentRelease = map['current_release'] as Map<String, dynamic>;
-  // ignore: avoid-dynamic
-  final releasesJson = map['releases'] as List<dynamic>;
+  final baseUrlValue = map['base_url'];
+  if (baseUrlValue is! String || baseUrlValue.isEmpty) {
+    throw AppException('Invalid releases data: missing base_url');
+  }
+  final baseUrl = baseUrlValue;
 
-  final systemArch = 'x64';
+  final currentReleaseValue = map['current_release'];
+  if (currentReleaseValue is! Map<String, dynamic>) {
+    throw AppException('Invalid releases data: missing current_release');
+  }
+  final currentRelease = currentReleaseValue;
+
+  final releasesValue = map['releases'];
+  if (releasesValue is! List) {
+    throw AppException('Invalid releases data: missing releases list');
+  }
+  final releasesJson = releasesValue.whereType<Map<String, dynamic>>().toList();
+  if (releasesJson.length != releasesValue.length) {
+    throw AppException(
+      'Invalid releases data: release entries must be objects',
+    );
+  }
+
+  final systemArch = _currentSystemArch();
 
   final releasesList = <FlutterSdkRelease>[];
   final versionReleaseMap = <String, FlutterSdkRelease>{};
@@ -90,7 +110,7 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    if (Platform.isMacOS) {
+    if (Platform.isMacOS && systemArch != null) {
       // Filter out releases based on architecture
       // Remove if architecture is not compatible
       final arch = release['dart_sdk_arch'];
@@ -100,9 +120,7 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
       }
     }
 
-    final releaseItem = FlutterSdkRelease.fromMap(
-      release as Map<String, dynamic>,
-    );
+    final releaseItem = FlutterSdkRelease.fromMap(release);
 
     /// Add to releases
     releasesList.add(releaseItem);
@@ -114,14 +132,22 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
   final beta = currentRelease['beta'] as String?;
   final stable = currentRelease['stable'] as String?;
 
+  if (dev == null || beta == null || stable == null) {
+    throw AppException('Invalid releases data: missing release channels');
+  }
+
   final devRelease = hashReleaseMap[dev];
   final betaRelease = hashReleaseMap[beta];
   final stableRelease = hashReleaseMap[stable];
 
+  if (devRelease == null || betaRelease == null || stableRelease == null) {
+    throw AppException('Invalid releases data: missing channel releases');
+  }
+
   final channels = Channels(
-    beta: betaRelease!,
-    dev: devRelease!,
-    stable: stableRelease!,
+    beta: betaRelease,
+    dev: devRelease,
+    stable: stableRelease,
   );
 
   return FlutterReleasesResponse(
@@ -130,4 +156,21 @@ FlutterReleasesResponse _parseCurrentReleases(Map<String, dynamic> map) {
     versions: releasesList,
     versionReleaseMap: versionReleaseMap,
   );
+}
+
+String? _currentSystemArch() {
+  if (!Platform.isMacOS) {
+    return null;
+  }
+
+  // Returns the Dart VM architecture, not native hardware.
+  // On Rosetta 2, this returns x64 even on ARM64 Macs.
+  switch (Abi.current()) {
+    case Abi.macosArm64:
+      return 'arm64';
+    case Abi.macosX64:
+      return 'x64';
+    default:
+      return null;
+  }
 }

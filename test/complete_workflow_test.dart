@@ -35,18 +35,18 @@ void main() {
           await testRunner.context.get<GitService>().getBranch(channel);
 
       // Verify installation succeeded
-      expect(cacheVersion != null, true, reason: 'Install does not exist');
+      expect(cacheVersion, isNotNull, reason: 'Install does not exist');
       expect(existingChannel, channel);
 
       // Verify version is not set up yet
       expect(
         cacheVersion?.isNotSetup,
-        true,
+        isTrue,
         reason: 'Version should not be setup',
       );
       expect(
         cacheVersion?.isChannel,
-        true,
+        isTrue,
         reason: 'Version should be channel',
       );
       // flutterSdkVersion can be detected via git tags even before setup

@@ -304,4 +304,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     return exitCode;
   }
+
+  /// Disable auto-install of shell completions to avoid PathAccessException
+  /// in managed environments (Nix/Home Manager) where shell configs are read-only.
+  /// Users can still manually install completions via `fvm completion install`.
+  @override
+  bool get enableAutoInstall => false;
 }

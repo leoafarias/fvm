@@ -1,0 +1,223 @@
+name: Deploy FVM MCP
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag in format fvm-mcp-vX.Y.Z[-pre-release]"
+        required: true
+        type: string
+  push:
+    tags:
+      - "fvm-mcp-v*"
+
+env:
+  SDK_VERSION: "3.10.0"
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    name: Validate FVM MCP release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+      prerelease: ${{ steps.meta.outputs.prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ env.SDK_VERSION }}
+
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
+
+      - name: fvm_mcp | Format check
+        working-directory: fvm_mcp
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: fvm_mcp | Analyze
+        working-directory: fvm_mcp
+        run: dart analyze
+
+      - name: fvm_mcp | Tests
+        working-directory: fvm_mcp
+        run: dart test
+
+      - name: Resolve release metadata
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${GITHUB_REF_NAME}"
+          fi
+
+          if [[ ! "$TAG" =~ ^fvm-mcp-v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?$ ]]; then
+            echo "Invalid tag format: $TAG"
+            echo "Expected: fvm-mcp-v<semver>, for example fvm-mcp-v0.0.1-alpha.1"
+            exit 1
+          fi
+
+          VERSION="${TAG#fvm-mcp-v}"
+          PUBSPEC_VERSION="$(awk '/^version:/ {print $2; exit}' fvm_mcp/pubspec.yaml)"
+          SERVER_VERSION="$(sed -n "s/.*defaultValue: '\\([^']*\\)'.*/\\1/p" fvm_mcp/lib/src/server.dart | head -n1)"
+
+          if [[ -z "${PUBSPEC_VERSION}" ]]; then
+            echo "Unable to read version from fvm_mcp/pubspec.yaml"
+            exit 1
+          fi
+
+          if [[ -z "${SERVER_VERSION}" ]]; then
+            echo "Unable to read default server version from fvm_mcp/lib/src/server.dart"
+            exit 1
+          fi
+
+          if [[ "${VERSION}" != "${PUBSPEC_VERSION}" ]]; then
+            echo "Tag version (${VERSION}) does not match pubspec version (${PUBSPEC_VERSION})"
+            exit 1
+          fi
+
+          if [[ "${VERSION}" != "${SERVER_VERSION}" ]]; then
+            echo "Tag version (${VERSION}) does not match server default version (${SERVER_VERSION})"
+            exit 1
+          fi
+
+          PRERELEASE=false
+          if [[ "${VERSION}" == *-* ]]; then
+            PRERELEASE=true
+          fi
+
+          echo "tag=${TAG}" >> "${GITHUB_OUTPUT}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "prerelease=${PRERELEASE}" >> "${GITHUB_OUTPUT}"
+
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux-x64
+            binary_name: fvm_mcp
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: macos
+            binary_name: fvm_mcp
+            archive_ext: tar.gz
+          - os: windows-latest
+            target: windows-x64
+            binary_name: fvm_mcp.exe
+            archive_ext: zip
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.validate.outputs.tag }}
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ env.SDK_VERSION }}
+
+      - name: fvm_mcp | Install dependencies
+        working-directory: fvm_mcp
+        run: dart pub get
+
+      - name: fvm_mcp | Compile executable
+        working-directory: fvm_mcp
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/fvm_mcp
+          dart compile exe bin/fvm_mcp.dart -o "build/fvm_mcp/${{ matrix.binary_name }}"
+
+      - name: Package archive (tar.gz)
+        if: matrix.archive_ext == 'tar.gz'
+        shell: bash
+        run: |
+          set -euo pipefail
+          ARCHIVE="fvm_mcp-${{ needs.validate.outputs.version }}-${{ matrix.target }}.tar.gz"
+          tar -C fvm_mcp/build/fvm_mcp -czf "${ARCHIVE}" "${{ matrix.binary_name }}"
+
+      - name: Package archive (zip)
+        if: matrix.archive_ext == 'zip'
+        shell: pwsh
+        run: |
+          $archive = "fvm_mcp-${{ needs.validate.outputs.version }}-${{ matrix.target }}.zip"
+          Compress-Archive -Path "fvm_mcp/build/fvm_mcp/${{ matrix.binary_name }}" -DestinationPath $archive -Force
+
+      - name: Upload archive artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fvm_mcp-${{ matrix.target }}
+          path: fvm_mcp-${{ needs.validate.outputs.version }}-${{ matrix.target }}.${{ matrix.archive_ext }}
+
+  release:
+    name: Publish GitHub release
+    runs-on: ubuntu-latest
+    needs: [validate, build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ needs.validate.outputs.tag }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: fvm_mcp-*
+          merge-multiple: true
+          path: dist
+
+      - name: Extract release notes from changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ needs.validate.outputs.version }}"
+          awk -v version="${VERSION}" '
+            BEGIN { in_section = 0 }
+            $0 ~ "^##[[:space:]]+" version "([[:space:]]+-.*)?$" {
+              in_section = 1
+              next
+            }
+            in_section && /^##[[:space:]]+/ { exit }
+            in_section { print }
+          ' fvm_mcp/CHANGELOG.md > RELEASE_NOTES.md
+
+          if [[ ! -s RELEASE_NOTES.md ]]; then
+            echo "No changelog section found for version ${VERSION} in fvm_mcp/CHANGELOG.md"
+            exit 1
+          fi
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          shasum -a 256 * > SHA256SUMS
+
+      - name: Create or update release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.validate.outputs.tag }}
+          name: fvm_mcp v${{ needs.validate.outputs.version }}
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            dist/*

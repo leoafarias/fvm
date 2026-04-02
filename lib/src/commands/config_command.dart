@@ -46,6 +46,20 @@ class ConfigCommand extends BaseFvmCommand {
       updateConfigKey(key, argResults![key.paramKey]);
     }
 
+    if (wasParsed('update-check')) {
+      final updateCheckEnabled = argResults!['update-check'] as bool;
+      final disableUpdateCheck = !updateCheckEnabled;
+
+      logger.info(
+        'Setting update-check to: ${yellow.wrap(updateCheckEnabled.toString())}',
+      );
+
+      if (globalConfig['disableUpdateCheck'] != disableUpdateCheck) {
+        globalConfig['disableUpdateCheck'] = disableUpdateCheck;
+        hasChanges = true;
+      }
+    }
+
     // Save
     if (hasChanges) {
       logger.info('');
