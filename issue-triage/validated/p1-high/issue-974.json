@@ -1,0 +1,25 @@
+{
+  "issue_number": 974,
+  "title": "[BUG] Put the binary in a user directory, then expose it via a system-wide symlink will create many issues",
+  "url": "https://github.com/leoafarias/fvm/issues/974",
+  "reporter": "zhengpenghou",
+  "created_at": "2025-11-15T20:25:17Z",
+  "priority": "P1-High",
+  "category": "install-script",
+  "type": "architectural-bug",
+  "status": "validated",
+  "summary": "Install script places binary in $HOME/.fvm_flutter with system symlink in /usr/local/bin, violating industry standards and creating cross-user security risks, unnecessary sudo requirements, and fragile uninstall semantics",
+  "root_cause": "Hybrid installation paradigm mixing per-user binary location with system-wide symlink - no major CLI tool uses this pattern",
+  "affected_files": [
+    "scripts/install.sh",
+    "scripts/uninstall.sh"
+  ],
+  "related_issues": [699, 785, 796, 816, 832, 864, 897],
+  "related_prs": [967],
+  "resolution_pr": 967,
+  "resolution_status": "PR #967 open - implements user-local default install",
+  "security_classifications": ["CWE-668", "CWE-362"],
+  "artifact": "issue-triage/artifacts/issue-974-validation.md",
+  "validated_date": "2025-12-08",
+  "validated_by": "Code Agent"
+}

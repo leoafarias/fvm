@@ -1,0 +1,10 @@
+{
+  "number": 969,
+  "title": "[BUG] RISC-V: Download the right dart SDK (and engine ?) for real RISC-V support",
+  "triagedAt": "2025-12-09",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-969.md",
+  "url": "https://github.com/leoafarias/fvm/issues/969",
+  "notes": "riscv64 installs pull arm64 binaries; block with clear error or add dart-only path until Flutter engine provides riscv64."
+}

@@ -1,20 +1,20 @@
 [
   {
     "author": {
-      "id": "MDQ6VXNlcjY1NzA5Njc2",
+      "id": "MDQ6VXNlcjcxMTgwMDg3",
       "is_bot": false,
-      "login": "huanghui1998hhh",
-      "name": "hhh"
+      "login": "Integral-Tech",
+      "name": "Integral"
     },
     "baseRefName": "main",
-    "body": "When using `fvm use fork/x.x.x` to set a fork version, running `fvm flutter xxxxx` was incorrectly using the official Flutter x.x.x version instead of the fork repository. This was caused by missing fork prefix handling in configuration read/write operations.",
-    "createdAt": "2025-11-26T10:48:43Z",
-    "headRefName": "fix/read-or-write-cache-fork-version",
+    "body": "- Add a Repology badge to display the versions and up to date status of FVM in all known repositories.\r\n- Avoid marking install script as recommended, since using the package manager to install software is generally preferred on Linux.",
+    "createdAt": "2025-12-06T07:00:12Z",
+    "headRefName": "add-repology",
     "labels": [],
-    "number": 981,
-    "title": "fix: read or write cache with fork version",
-    "updatedAt": "2025-12-03T06:34:04Z",
-    "url": "https://github.com/leoafarias/fvm/pull/981"
+    "number": 990,
+    "title": "docs: add package manager installation in Linux section",
+    "updatedAt": "2025-12-06T07:00:17Z",
+    "url": "https://github.com/leoafarias/fvm/pull/990"
   },
   {
     "author": {
@@ -30,7 +30,7 @@
     "labels": [],
     "number": 976,
     "title": "Refactor git cache to mirrored architecture",
-    "updatedAt": "2025-12-05T19:49:22Z",
+    "updatedAt": "2025-12-07T21:43:41Z",
     "url": "https://github.com/leoafarias/fvm/pull/976"
   },
   {
@@ -81,7 +81,7 @@
     "labels": [],
     "number": 966,
     "title": "feat: add archive-based installation support",
-    "updatedAt": "2025-12-04T18:22:31Z",
+    "updatedAt": "2025-12-05T19:57:38Z",
     "url": "https://github.com/leoafarias/fvm/pull/966"
   },
   {
@@ -100,21 +100,6 @@
     "title": "Add fvm MCP server package",
     "updatedAt": "2025-12-02T14:42:59Z",
     "url": "https://github.com/leoafarias/fvm/pull/965"
-  },
-  {
-    "author": {
-      "is_bot": true,
-      "login": "app/copilot-swe-agent"
-    },
-    "baseRefName": "main",
-    "body": "Short commit hashes (10 chars) in `.fvmrc` create a security vulnerability: they can collide across repository forks, enabling [DOS attacks](https://blog.teddykatz.com/2019/11/12/github-actions-dos.html). An attacker could craft a malicious commit with a colliding short hash and trick projects into using it.\n\n## Changes\n\n- **GitService**: Added `resolveCommitHash()` using `git rev-parse` to expand commit references to full 40-character SHA-1 hashes\n- **UpdateProjectReferencesWorkflow**: Resolve commit hashes before writing to `.fvmrc` when `version.isUnknownRef` is true\n- **Exports**: Made `GitService` public for testing\n\n## Behavior\n\n```dart\n// User input (short or full hash accepted)\n$ fvm use 6d04a16210\n\n// Stored in .fvmrc (always full hash)\n{\n  \"flutter\": \"6d04a162109d07876230709adf4013db113b16a3\"\n}\n```\n\nOnly commit-based versions are affected. Semantic versions (`3.10.0`) and channels (`stable`, `beta`) remain unchanged.\n\n## Testing\n\nAdded unit and integration tests validating:\n- Short hash → full hash expansion\n- Full hash preservation\n- Non-commit version handling\n- Error cases (non-git directories, invalid refs)\n\n## Documentation\n\nSee `docs/security-fix-full-commit-hash.md` for security context and implementation details.\n\n## Backward Compatibility\n\nExisting `.fvmrc` files with short hashes continue to work. They'll be upgraded to full hashes on next `fvm use`.\n\n> [!WARNING]\n>\n> <details>\n> <summary>Firewall rules blocked me from connecting to one or more addresses (expand for details)</summary>\n>\n> #### I tried to connect to the following addresses, but was blocked by firewall rules:\n>\n> - `dl-ssl.google.com`\n>   - Triggering command: `wget -qO- REDACTED` (dns block)\n> - `esm.ubuntu.com`\n>   - Triggering command: `/usr/lib/apt/methods/https` (dns block)\n>\n> If you need me to access, download, or install something from one of these locations, you can either:\n>\n> - Configure [Actions setup steps](https://gh.io/copilot/actions-setup-steps) to set up my environment, which run before the firewall is enabled\n> - Add the appropriate URLs or hosts to the custom allowlist in this repository's [Copilot coding agent settings](https://github.com/leoafarias/fvm/settings/copilot/coding_agent) (admins only)\n>\n> </details>\n\n<!-- START COPILOT CODING AGENT SUFFIX -->\n\n\n\n<details>\n\n<summary>Original prompt</summary>\n\n> \n> ----\n> \n> *This section details on the original issue you should resolve*\n> \n> <issue_title>[BUG] DO NOT use short hash for commit versions (DOS attack)</issue_title>\n> <issue_description>**Before creating a bug report please make check the following**\r\n> \r\n> - [x] You have read our [FAQ](https://fvm.app/docs/guides/faq)\r\n> - [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\r\n> - [x] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\r\n> - [x] Run `fvm doctor` if possible and add the output to the issue.\r\n> \r\n> **Describe the bug**\r\n> Using a commit version of flutter will specify the short hash in the `.fvmrc` (and vscode config) files.\r\n> This can easily be DOSed as commit hashes are shared between forks of the repo.\r\n> You can read more about it in: https://blog.teddykatz.com/2019/11/12/github-actions-dos.html\r\n> \r\n> **To Reproduce**\r\n> run `fvm use 6d04a162109d07876230709adf4013db113b16a3`\r\n> see the content of `.fvmrc`\r\n> ```json\r\n> {\r\n>   \"flutter\": \"6d04a16210\"\r\n> }\r\n> ```\r\n> \r\n> **Expected behavior**\r\n> The full commit hash is used in the config file.\r\n> Also when just the short commit was specified in the first place\r\n> \r\n> **Logs**\r\n> N.A.\r\n> \r\n> **Desktop (please complete the following information):**\r\n> N.A.\r\n> \r\n> **Additional context**\r\n> Short hashes should only ever be used to display a nice version to the user.\r\n> Never to refer to any particular commit (especially on GitHub).\r\n> </issue_description>\n> \n> <agent_instructions>Go ahead and eiw this we ahve version 4.0.0 which si differnt but might be good but can you amke rsure you udnerand the root fo the problem and try toi udnersand the change and see if this owrks or not? or even if this is currenlty hapens on version 4</agent_instructions>\n> \n> ## Comments on the Issue (you are @copilot in this section)\n> \n> <comments>\n> <comment_new><author>@leoafarias</author><body>\n> @Leptopoda, thank you for opening this issue. Do you think you would be able to create a PR addressing this? I believe this should be fairly straightforward, but I am still trying to catch up on the issues and PRs in fvm.</body></comment_new>\n> </comments>\n> \n\n\n</details>\n\n- Fixes leoafarias/fvm#783\n\n<!-- START COPILOT CODING AGENT TIPS -->\n---\n\n💡 You can make Copilot smarter by setting up custom instructions, customizing its development environment and configuring Model Context Protocol (MCP) servers. Learn more [Copilot coding agent tips](https://gh.io/copilot-coding-agent-tips) in the docs.",
-    "createdAt": "2025-11-04T17:36:05Z",
-    "headRefName": "copilot/fix-short-hash-commit-versions",
-    "labels": [],
-    "number": 962,
-    "title": "Security: Store full commit hashes in config to prevent DOS attacks",
-    "updatedAt": "2025-11-04T18:29:01Z",
-    "url": "https://github.com/leoafarias/fvm/pull/962"
   },
   {
     "author": {

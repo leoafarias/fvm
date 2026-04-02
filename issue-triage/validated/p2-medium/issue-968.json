@@ -1,0 +1,10 @@
+{
+  "number": 968,
+  "title": "[BUG] Fail agressively when SDK setup fails (e.g. missing dependencies)",
+  "triagedAt": "2025-12-09",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-968.md",
+  "url": "https://github.com/leoafarias/fvm/issues/968",
+  "notes": "Missing unzip reports success; add preflight dependency check and fail fast with clear error."
+}

@@ -2,7 +2,7 @@
 
 **Started**: 2025-10-30
 **Current Version**: v4.0.0
-**Total Open Issues**: 54
+**Total Open Issues**: 49
 **Historical Issues Triaged**: 81
 
 ## Progress Tracker
@@ -12,9 +12,9 @@
 
 ### P1 - High (Installation/Major Issues)
 - [ ] #688 - FVM still performs Git installs; need archive-based strategy honoring FLUTTER_STORAGE_BASE_URL/FLUTTER_RELEASES_URL mirrors with checksum validation and docs.
-- [ ] #783 - Store full 40-char commit hashes in configs; add regression tests.
-- [ ] #897 - Home Manager makes ~/.bash_profile read-only; add guards/skip flag so FVM doesn't throw PathAccessException.
+- [ ] #897 - Home Manager makes ~/.bash_profile read-only; fix: override `enableAutoInstall => false` in `runner.dart` (see `artifacts/issue-897-fix-plan.md`).
 - [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
+- [ ] #974 - Binary/symlink cross-user issues; align with installer v2 (#967).
 
 ### P2 - Medium (Standard Bugs/Enhancements)
 - [ ] #577 - Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically.
@@ -34,6 +34,8 @@
 - [ ] #764 - Retain per-project version symlinks instead of wiping .fvm/versions.
 - [ ] #774 - Docs need a PATH section showing how to expose ~/.fvm/default/bin so global commands like rps can find Dart; update guides before closing.
 - [ ] #782 - Update running-flutter docs to replace ${@:1} with "$@" (or add a bash shebang) so rerouted scripts work under /bin/sh; leave open until docs merged.
+- [ ] #968 - Fail aggressively when SDK setup dependencies (e.g., unzip) are missing; currently shows success then warning.
+- [ ] #969 - RISC-V installs download arm64 binaries; need clear error or architecture handling until upstream provides riscv64 engine.
 - [ ] #794 - Add Linux ARM artifacts and update install script to detect Pi architectures.
 - [ ] #811 - Create official Nix derivation/flake and upstream to nixpkgs.
 - [ ] #820 - Create reusable GitHub Action to install FVM/Flutter with arm support.
@@ -80,7 +82,7 @@
 - #933: Chocolatey nuspec shows only “fvm”; documented metadata update to expose “Flutter Version Manager” (`artifacts/issue-933.md`).
 - #906: Could not reproduce Android Studio terminal delay; requested timing data and shell config (`artifacts/issue-906.md`).
 - #904: Determined Kotlin warning is upstream in Flutter’s Gradle tooling; no FVM fix (`artifacts/issue-904.md`).
-- #897: Plan to skip/guard shell profile edits when permissions are managed by Home Manager (`artifacts/issue-897.md`).
+- #897: Root cause found - `cli_completion` package auto-installs completions on every command, accessing read-only shell configs. Fix: override `enableAutoInstall => false` in `runner.dart`. Full plan in `artifacts/issue-897-fix-plan.md`. Note: PR #967 does NOT fix this.
 - #895: Confirmed FVM 4.0.0 is published (Homebrew + docs) and issue can be closed (`artifacts/issue-895.md`).
 - #894: Documented approach for group-writable shared caches (core.sharedRepository, chmod) (`artifacts/issue-894.md`).
 - #893: Plan to merge PATH updates into VS Code terminal settings so `flutter` resolves to project SDK (`artifacts/issue-893.md`).
@@ -198,15 +200,20 @@
 - PR #967 (installer v2, user-local default) mitigates cross-user install/security concerns raised in #974; monitor until merged.
 - PR #966 (archive installs) explicitly resolves #688 once merged.
 - PR #964 adds read-only shell profile handling; fixes #897.
-- PR #962 forces full commit hashes; fixes #783 security concern.
 - PR #845 builds arm64 Docker images; fixes #762 multi-arch image gap.
+
+### Session 10: 2025-12-09 (Issue Sync)
+- #783 closed by maintainer as "not a security vulnerability / not planned"; moved to `resolved/` with note that PR #962 was closed without merge.
+- #974 validated as P1-High architectural issue: install script places binary in `$HOME/.fvm_flutter` with system symlink in `/usr/local/bin`, violating industry standards (no major tool uses this pattern). Creates cross-user security risks, unnecessary sudo requirements, and fragile uninstall semantics. **PR #967 directly addresses this** with user-local default install (`artifacts/issue-974-validation.md`).
+- Added triage artifacts for #968 (fail fast when unzip missing) and #969 (riscv64 pulls arm64 binaries); both classified P2 with plans captured.
+- Moved closed #820 to `resolved/` after confirming GitHub state.
 ---
 
 ## Summary Statistics
-- **Open Issues**: 54
+- **Open Issues**: 49
 - **P0 Critical**: 0
 - **P1 High**: 4
-- **P2 Medium**: 23
+- **P2 Medium**: 24
 - **P3 Low**: 13
 - **Needs Info**: 8
-- **Resolved/Archived**: 9
+- **Resolved/Archived**: 2

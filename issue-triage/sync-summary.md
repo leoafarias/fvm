@@ -7,8 +7,8 @@
 ## ✅ Actions Completed
 
 ### 1. Synced GitHub Data
-- Fetched 30 open issues
-- Fetched 13 open pull requests
+- Fetched 50 open issues
+- Fetched 12 open pull requests
 
 ### 2. Cleaned Up `resolved/` Folder
 All 9 issues previously in `resolved/` are now CLOSED on GitHub.
@@ -33,7 +33,7 @@ issue-triage/
 │   ├── p2-medium/   ~23 files
 │   └── p3-low/      ~13 files
 ├── needs_info/      8 files
-├── pending_issues/  Fresh sync (52 issues, 13 PRs)
+├── pending_issues/  Fresh sync (50 issues, 12 PRs)
 └── artifacts/       Analysis docs
 ```
 
@@ -54,8 +54,8 @@ All P0 bugs have been fixed in v4.0.3 (Dec 5, 2025):
 ### PRs Ready for Action
 | PR | Title | Status |
 |----|-------|--------|
-| #981 | Fix fork version cache | CI passes, needs 1-line fix |
-| #962 | Security: full commit hashes | Ready for review |
+| ~~#981~~ | Fix fork version cache | **MERGED** (Dec 5, 2025) |
+| #962 | Security: full commit hashes | **NEEDS REBASE + FIXES** (see `pr-962-analysis.md`) |
 
 ---
 
@@ -72,7 +72,7 @@ All P0 bugs have been fixed in v4.0.3 (Dec 5, 2025):
 - #388, #771, #786, #799, #801, #825, #833, #880, #933
 
 ### PR Activity
-- PR #981 opened (community fork fix)
+- PR #981 merged (community fork fix) - Dec 5, 2025
 - PR #976 active (git cache refactor)
 - PR #984 merged (v4.0.2 release)
 
@@ -83,10 +83,12 @@ All P0 bugs have been fixed in v4.0.3 (Dec 5, 2025):
 ### Completed ✅
 1. [x] Fix #971 (VSCode settings bug) - PR #986, v4.0.3
 2. [x] Fix #982 (newline bug) - PR #988, v4.0.3
+3. [x] Review & merge PR #981 (fork version fix) - Dec 5, 2025
+
+### In Progress
+4. [~] Review PR #962 (security fix) - Reviewed, needs rebase + critical fixes
 
 ### Pending
-3. [ ] Review PR #981 (fork version fix)
-4. [ ] Review PR #962 (security fix)
 5. [ ] Decide on stale PRs (#923, #920)
 6. [ ] Review community PRs (#775, #845, #828)
 

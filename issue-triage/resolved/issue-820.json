@@ -1,0 +1,10 @@
+{
+  "number": 820,
+  "title": "setup-flutter-fvm action - mainly for aarch64/arm64 builds.",
+  "triagedAt": "2025-10-30",
+  "closedAt": "2025-11-23",
+  "status": "resolved",
+  "resolution": "closed-upstream",
+  "artifact": "../artifacts/issue-820.md",
+  "url": "https://github.com/leoafarias/fvm/issues/820",
+  "notes": "GitHub issue is closed; no further local action."}

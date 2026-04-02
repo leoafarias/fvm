@@ -1,14 +1,14 @@
-# Issue & PR Triage Report - December 5, 2025
+# Issue & PR Triage Report - December 9, 2025
 
 ## Executive Summary
 
 **Current State:**
-- 52 open issues
-- 13 open PRs
-- Last sync: October 31, 2025 (35 days ago)
+- 49 open issues
+- 12 open PRs
+- Last sync: December 9, 2025
 
 **Key Findings:**
-- 9 issues in `resolved/` folder are now CLOSED on GitHub → need folder cleanup
+- #783 closed by maintainer as “not a security vulnerability / not planned”; PR #962 closed without merge
 - Several community PRs are ready for review/merge
 - 5 new bugs reported in last 2 months need triage
 
@@ -40,7 +40,7 @@
 | PR | Title | CI Status | Recommendation |
 |----|-------|-----------|----------------|
 | **#981** | Fix fork version cache | ✅ All tests pass | **Merge after contributor fixes line 41** - you already reviewed |
-| **#962** | Security: full commit hashes | ✅ Vercel passes | **Review for v4 compatibility** - fixes #783 |
+| **#962** | Security: full commit hashes | Closed (unmerged) | Superseded by maintainer decision on #783 |
 | **#775** | Nix Flake support | Mergeable | Review - addresses #811, 15 months old |
 | **#845** | ARM64 Docker images | Unknown | Review for v4 - addresses #762, 7 months old |
 | **#828** | Dart SDK column in releases | Unknown | Small feature - 9 months old |
@@ -60,25 +60,8 @@
 
 ---
 
-## Folder Cleanup Required
-
-### `resolved/` folder → All CLOSED on GitHub
-
-These 9 issues need to be moved to `closed/`:
-
-| Issue | GitHub State |
-|-------|--------------|
-| #388 | CLOSED |
-| #771 | CLOSED |
-| #786 | CLOSED |
-| #799 | CLOSED |
-| #801 | CLOSED |
-| #825 | CLOSED |
-| #833 | CLOSED |
-| #880 | CLOSED |
-| #933 | CLOSED |
-
-**Action:** Move all JSON files from `resolved/` to `closed/`
+## Folder Cleanup Check
+- Resolved folder currently contains only `issue-783.json` (closed-not-planned); no additional cleanup needed after today’s sync.
 
 ---
 
@@ -86,7 +69,6 @@ These 9 issues need to be moved to `closed/`:
 
 | Issue | Title | Resolution |
 |-------|-------|------------|
-| **#783** | Short hash DOS attack | PR #962 ready (pending review) |
 | **#688** | FLUTTER_STORAGE_BASE_URL | PR #966 in progress |
 | **#762** | ARM64 Docker images | PR #845 ready (needs review) |
 | **#811** | Nix package | PR #775 ready (needs review) |
@@ -126,7 +108,7 @@ These 9 issues need to be moved to `closed/`:
 
 ### Short-term (Next 2 Weeks)
 
-4. **Review PR #962** - Security fix for #783
+4. **Note**: PR #962 closed; #783 closed as not planned
    - Check v4 compatibility
    - Merge if tests pass
 

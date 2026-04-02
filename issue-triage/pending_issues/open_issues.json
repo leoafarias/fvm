@@ -366,40 +366,6 @@
     "url": "https://github.com/leoafarias/fvm/issues/784"
   },
   {
-    "assignees": [
-      {
-        "id": "MDQ6VXNlcjQzNTgzMw==",
-        "login": "leoafarias",
-        "name": "Leo Farias"
-      },
-      {
-        "id": "BOT_kgDOC9w8XQ",
-        "login": "Copilot",
-        "name": ""
-      }
-    ],
-    "author": {
-      "id": "MDQ6VXNlcjI1MjY2Mzg3",
-      "is_bot": false,
-      "login": "Leptopoda",
-      "name": "Nikolas Rimikis"
-    },
-    "body": "**Before creating a bug report please make check the following**\r\n\r\n- [x] You have read our [FAQ](https://fvm.app/docs/guides/faq)\r\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\r\n- [x] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\r\n- [x] Run `fvm doctor` if possible and add the output to the issue.\r\n\r\n**Describe the bug**\r\nUsing a commit version of flutter will specify the short hash in the `.fvmrc` (and vscode config) files.\r\nThis can easily be DOSed as commit hashes are shared between forks of the repo.\r\nYou can read more about it in: https://blog.teddykatz.com/2019/11/12/github-actions-dos.html\r\n\r\n**To Reproduce**\r\nrun `fvm use 6d04a162109d07876230709adf4013db113b16a3`\r\nsee the content of `.fvmrc`\r\n```json\r\n{\r\n  \"flutter\": \"6d04a16210\"\r\n}\r\n```\r\n\r\n**Expected behavior**\r\nThe full commit hash is used in the config file.\r\nAlso when just the short commit was specified in the first place\r\n\r\n**Logs**\r\nN.A.\r\n\r\n**Desktop (please complete the following information):**\r\nN.A.\r\n\r\n**Additional context**\r\nShort hashes should only ever be used to display a nice version to the user.\r\nNever to refer to any particular commit (especially on GitHub).\r\n",
-    "createdAt": "2024-09-16T19:32:56Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 783,
-    "title": "[BUG] DO NOT use short hash for commit versions (DOS attack)",
-    "updatedAt": "2024-11-04T19:01:20Z",
-    "url": "https://github.com/leoafarias/fvm/issues/783"
-  },
-  {
     "assignees": [],
     "author": {
       "id": "MDQ6VXNlcjc1OTMxNDk5",

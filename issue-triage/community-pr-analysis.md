@@ -11,7 +11,8 @@
 - **Action**: Close PR with thank you message, reference the commit
 
 ### PR #899 - @app/copilot-swe-agent - Fix SSH URL, gitignore, commit hash
-- **Issues**: #783, #881, #839, #825
+- **Issues**: #881, #839, #825  
+  > Note: #783 was closed on 2025-12-09 as “not a security vulnerability / not planned”; PR #962 closed without merge.
 - **Status**: CLOSED (Oct 30, 23:25)
 - **Note**: You manually implemented these fixes in commits:
   - `50fa23b9` - SSH URL validation, gitignore newline, doc link bugs (Aug 23)

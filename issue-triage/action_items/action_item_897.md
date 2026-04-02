@@ -1,46 +1,53 @@
 # Action Item: Issue #897 – Handle Read-Only Shell Profiles (Nix/Home Manager)
 
+> **UPDATE 2025-12-09**: Previous analysis was incorrect. The error comes from the **Dart CLI** (`cli_completion` package), NOT the install script. See `issue-triage/artifacts/issue-897-fix-plan.md` for the correct fix.
+
 ## Objective
-Stop the installer from touching shell profiles that are read-only (Home Manager/Nix), so users no longer see `PathAccessException: .../.bash_profile` when running `fvm`.
+Stop the `cli_completion` package from auto-installing shell completions (which accesses read-only shell configs in Nix/Home Manager environments).
 
-## Current State (v4.0.0)
-- The *only* place we touch `.bashrc`/`.bash_profile`/`.zshrc` is `scripts/install.sh` (and the copy in `docs/public/install.sh`). Runtime Dart code no longer edits shell profiles.
-- `update_shell_config()` merely checks `[[ -w "$config_file" ]]` against the symlink itself; when the symlink points inside the Nix store, the append (`>> file`) still fails and Dart surfaces the `PathAccessException`.
-- We also auto-create missing files for bash, which is undesirable for managed environments.
+## Corrected Root Cause Analysis
 
-## Root Cause
-Installer assumes it can create/append to the profile files. In Nix/Home Manager setups those targets are symlinks into read-only locations, so appending fails even though the symlink looks writable.
+The `PathAccessException` is thrown by the `cli_completion` Dart package, not `scripts/install.sh`.
 
-## Implementation Steps (Installer Only)
-1. **Resolve real target before writing**
-   - Inside `update_shell_config`, compute `local resolved=$(python - <<<'import os,sys; print(os.path.realpath(sys.argv[1]))' "$config_file")` (or `readlink`/`perl` equivalent available in POSIX shell).
-   - If `resolved` doesn’t exist or isn’t writable, bail out immediately (return 1) so the caller falls back to manual instructions.
-   - Also check the parent directory is writable when the file doesn’t exist; otherwise skip instead of creating it.
-2. **Skip invisible/managed files**
-   - For bash: iterate the two candidates, but only call `update_shell_config` when the file exists **and** passes the resolved-path check. Do *not* create `.bash_profile` if it was absent.
-   - For zsh/fish, apply the same resolved-path guard.
-3. **Clear warning message**
-   - When `update_shell_config` returns 1, log a precise reason (e.g., `warn "Skipping ~/.bash_profile; resolved target is read-only. Add PATH manually."`). Capture the tilde form for readability.
-   - Keep the existing manual instructions so users know exactly what to paste.
-4. **Parity for `docs/public/install.sh`**
-   - Mirror the same logic in the published installer so curl/bash installs behave identically.
-5. **Regression test (script)**
-   - In `scripts/install.sh`’s integration tests (if any) or manual QA checklist, simulate `ln -s /nix/store/... ~/.bash_profile` and verify the script reports “skipping” and exits zero without throwing.
+### Call Flow
+1. User runs any FVM command (e.g., `fvm doctor`)
+2. `FvmCommandRunner` extends `CompletionCommandRunner` from `cli_completion`
+3. `CompletionCommandRunner.runCommand()` checks `enableAutoInstall` (defaults to `true`)
+4. Calls `tryInstallCompletionFiles()` which reads/writes shell config files
+5. In Nix/Home Manager: shell configs are symlinks to read-only Nix store → `PathAccessException`
 
-## Files to Modify
-- `scripts/install.sh`
-- `docs/public/install.sh`
-- `docs/pages/documentation/getting-started/installation.mdx` (brief note pointing Nix/Home Manager users to manual PATH instructions and explaining the new “skipped” message they’ll see)
+### Evidence
+Reproduced locally:
+```bash
+chmod 000 ~/.zshrc ~/.bash_profile
+fvm doctor  # Throws PathAccessException
+```
 
-## Validation & Testing
-- Run installer in a simulated read-only environment and ensure no exceptions are thrown and messaging is informative.
-- Execute `dart test` for new unit tests.
+## Correct Fix
 
-## Completion Criteria
-- Installer never attempts to create/append when the resolved target is read-only; users see a warning plus manual steps instead of a crash.
-- Documentation explains what the warning means and how Nix/Home Manager users should update PATH manually.
-- Issue #897 (and duplicates like #799) can be closed after confirmation.
+**File**: `lib/src/runner.dart`
 
-## References
-- Planning artifact: `issue-triage/artifacts/issue-897.md`
-- GitHub issue: https://github.com/leoafarias/fvm/issues/897
+**Change**: Add override to disable auto-install of shell completions:
+
+```dart
+class FvmCommandRunner extends CompletionCommandRunner<int> {
+  /// Disable auto-install of shell completions to avoid PathAccessException
+  /// in managed environments (Nix/Home Manager) where shell configs are read-only.
+  /// Users can still manually install completions via `fvm completion install`.
+  @override
+  bool get enableAutoInstall => false;
+
+  // ... rest of class unchanged
+}
+```
+
+## Full Implementation Plan
+
+See: `issue-triage/artifacts/issue-897-fix-plan.md`
+
+## Issues to Close After Merge
+- #897 - How to avoid warning of access .bash_profile?
+- #799 - PathAccessException: Cannot open ~/.zshrc
+
+## Note on PR #967
+PR #967 (install script v2) does **NOT** fix this issue. It only removes shell config writes from the bash install script, but the Dart CLI still uses `cli_completion` which causes the error.
