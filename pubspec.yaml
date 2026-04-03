@@ -20,7 +20,7 @@ dependencies:
   meta: ^1.10.0
   path: ^1.9.0
   pub_semver: ^2.1.4
-  pub_updater: ^0.4.0
+  pub_updater: ^0.5.0
   scope: ^5.1.0
   yaml: ^3.1.2
   yaml_edit: ^2.2.0
