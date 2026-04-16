@@ -136,6 +136,51 @@ void main() {
           expect(result.single.name, versionName);
         },
       );
+
+      test('ignores archive operation directories', () async {
+        final stableDir = Directory(path.join(tempDir.path, 'stable'))
+          ..createSync(recursive: true);
+        File(path.join(stableDir.path, 'version')).writeAsStringSync('stable');
+        File(path.join(stableDir.path, 'bin', 'flutter'))
+            .createSync(recursive: true);
+
+        final stagingDir = Directory(
+          path.join(tempDir.path, 'stable.archive_staging'),
+        )..createSync(recursive: true);
+        File(path.join(stagingDir.path, 'version'))
+            .writeAsStringSync('stable.archive_staging');
+        File(path.join(stagingDir.path, 'bin', 'flutter'))
+            .createSync(recursive: true);
+
+        final forkVersionDir = Directory(
+          path.join(tempDir.path, 'myfork', 'stable'),
+        )..createSync(recursive: true);
+        File(path.join(forkVersionDir.path, 'version'))
+            .writeAsStringSync('stable');
+        File(path.join(forkVersionDir.path, 'bin', 'flutter'))
+            .createSync(recursive: true);
+
+        final forkBackupDir = Directory(
+          path.join(tempDir.path, 'myfork', 'stable.archive_backup'),
+        )..createSync(recursive: true);
+        File(path.join(forkBackupDir.path, 'version'))
+            .writeAsStringSync('stable.archive_backup');
+        File(path.join(forkBackupDir.path, 'bin', 'flutter'))
+            .createSync(recursive: true);
+
+        final result = await cacheService.getAllVersions();
+        final standardVersion =
+            result.singleWhere((version) => !version.fromFork);
+        final forkedVersion = result.singleWhere((version) => version.fromFork);
+
+        expect(
+          result,
+          hasLength(2),
+        );
+        expect(standardVersion.name, 'stable');
+        expect(forkedVersion.name, 'stable');
+        expect(forkedVersion.fork, 'myfork');
+      });
     });
 
     group('remove', () {
