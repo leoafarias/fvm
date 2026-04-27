@@ -3,18 +3,18 @@
   "current_release": {
     "beta": "8dc49c65ccb9ac402a026579c37518de7cc34999",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "cc0734ac716fbb8b90f3f9db8020958b1553afa7"
+    "stable": "02085feb3f5d8a8156e5e28512b9d99351d510c0"
   },
   "releases": [
     {
-      "hash": "cc0734ac716fbb8b90f3f9db8020958b1553afa7",
+      "hash": "02085feb3f5d8a8156e5e28512b9d99351d510c0",
       "channel": "stable",
-      "version": "3.41.7",
+      "version": "3.41.8",
       "dart_sdk_version": "3.11.5",
       "dart_sdk_arch": "x64",
-      "release_date": "2026-04-16T18:33:14.614131Z",
-      "archive": "stable/windows/flutter_windows_3.41.7-stable.zip",
-      "sha256": "de17b513b740a931c5dbc3f96b5a659c1612dfe6b5e1f910c5ad954a8bac17ee"
+      "release_date": "2026-04-27T17:30:57.433464Z",
+      "archive": "stable/windows/flutter_windows_3.41.8-stable.zip",
+      "sha256": "aecdf77f7663d3d08ba5e349d7b37773d5ab6d33856fa2fdc64452bdee8860d7"
     },
     {
       "hash": "8dc49c65ccb9ac402a026579c37518de7cc34999",
@@ -25,6 +25,16 @@
       "release_date": "2026-04-16T18:34:34.288150Z",
       "archive": "beta/windows/flutter_windows_3.44.0-0.2.pre-beta.zip",
       "sha256": "4d8dc7699a462194fca8f2eb94d9e8035284720e61da5f285bb21010e7e34d3a"
+    },
+    {
+      "hash": "cc0734ac716fbb8b90f3f9db8020958b1553afa7",
+      "channel": "stable",
+      "version": "3.41.7",
+      "dart_sdk_version": "3.11.5",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-04-16T18:33:14.614131Z",
+      "archive": "stable/windows/flutter_windows_3.41.7-stable.zip",
+      "sha256": "de17b513b740a931c5dbc3f96b5a659c1612dfe6b5e1f910c5ad954a8bac17ee"
     },
     {
       "hash": "1af378ecb693db8b56500d2100348d6c728e06cd",
