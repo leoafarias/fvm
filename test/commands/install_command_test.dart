@@ -1,5 +1,6 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/commands/install_command.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -103,6 +104,27 @@ void main() {
         await testInstallVersion(version);
       });
     }
+  });
+
+  group('Install via archive:', () {
+    test('installs stable channel using archive flow', () async {
+      final context = TestFactory.context();
+      final runner = TestCommandRunner(context);
+
+      final exitCode = await runner.run(
+        ['fvm', 'install', 'stable', '--archive'],
+      );
+
+      final flutterService =
+          context.get<FlutterService>() as MockFlutterService;
+
+      expect(exitCode, ExitCode.success.code);
+      expect(flutterService.lastUseArchive, isTrue);
+      expect(flutterService.lastInstallVersion?.name, 'stable');
+      expect(flutterService.lastInstallDirectory, isNotNull);
+      expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
+    });
+
   });
 
   // Group 5: Forked versions

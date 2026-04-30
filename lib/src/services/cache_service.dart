@@ -22,6 +22,12 @@ enum CacheIntegrity {
   bool get isValid => this == valid;
 }
 
+const _archiveOperationSuffixes = [
+  '.archive_staging',
+  '.archive_backup',
+  '.archive_lock',
+];
+
 class CacheService extends ContextualService {
   const CacheService(super.context);
 
@@ -80,6 +86,25 @@ class CacheService extends ContextualService {
     return versionsMatch(version.version, cached);
   }
 
+  /// Heuristic check for a Flutter SDK directory.
+  ///
+  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
+  /// this is a cloned Flutter SDK rather than a fork parent directory.
+  bool _looksLikeFlutterSdk(Directory dir) {
+    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
+    if (hasVersionFile) return true;
+
+    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
+    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
+
+    return hasGitDir && hasBin;
+  }
+
+  bool _isArchiveOperationDirectory(String name) {
+    return _archiveOperationSuffixes.any(name.endsWith);
+  }
+
   Link get _globalCacheLink => Link(context.globalCacheLink);
 
   CacheFlutterVersion? getVersion(FlutterVersion version) {
@@ -97,6 +122,8 @@ class CacheService extends ContextualService {
     final cacheVersions = <CacheFlutterVersion>[];
 
     Future<void> processDirectory(Directory dir, {String? forkName}) async {
+      if (_isArchiveOperationDirectory(path.basename(dir.path))) return;
+
       if (_looksLikeFlutterSdk(dir)) {
         try {
           final name = _relativeVersionNameFromCachePath(dir.path);
@@ -124,6 +151,7 @@ class CacheService extends ContextualService {
         if (entry.path.isDir()) {
           final subDirName = path.basename(entry.path);
           if (subDirName.startsWith('.')) continue;
+          if (_isArchiveOperationDirectory(subDirName)) continue;
           await processDirectory(
             Directory(entry.path),
             forkName: path.basename(dir.path),
@@ -137,6 +165,7 @@ class CacheService extends ContextualService {
       if (entry.path.isDir()) {
         final dirName = path.basename(entry.path);
         if (dirName.startsWith('.')) continue;
+        if (_isArchiveOperationDirectory(dirName)) continue;
         await processDirectory(Directory(entry.path));
       }
     }
@@ -144,21 +173,6 @@ class CacheService extends ContextualService {
     cacheVersions.sort((a, b) => b.compareTo(a));
 
     return cacheVersions;
-  }
-
-  /// Heuristic check for a Flutter SDK directory.
-  ///
-  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
-  /// this is a cloned Flutter SDK rather than a fork parent directory.
-  bool _looksLikeFlutterSdk(Directory dir) {
-    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
-    if (hasVersionFile) return true;
-
-    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
-    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
-
-    return hasGitDir && hasBin;
   }
 
   /// Removes a cached Flutter SDK version and cleans up empty fork directories.
@@ -294,9 +308,8 @@ class CacheService extends ContextualService {
     final versionDir = Directory(version.directory);
     if (!versionDir.existsSync()) return;
 
-    final versionString = version.fromFork
-        ? '${version.fork}/$sdkVersion'
-        : sdkVersion;
+    final versionString =
+        version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion;
     final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 

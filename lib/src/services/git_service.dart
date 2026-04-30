@@ -27,6 +27,22 @@ class GitService extends ContextualService {
 
   GitService(super.context);
 
+  /// Returns the entity at [entityPath] based on its file system type,
+  /// or null if nothing exists there.
+  static FileSystemEntity? _entityAt(String entityPath) {
+    final type = FileSystemEntity.typeSync(entityPath, followLinks: false);
+    switch (type) {
+      case FileSystemEntityType.directory:
+        return Directory(entityPath);
+      case FileSystemEntityType.file:
+        return File(entityPath);
+      case FileSystemEntityType.link:
+        return Link(entityPath);
+      default:
+        return null;
+    }
+  }
+
   bool _isLockContentionError(FileSystemException error) {
     final message = error.message.toLowerCase();
 
@@ -130,9 +146,12 @@ class GitService extends ContextualService {
     }
     final stamp =
         '${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(99999)}';
+
     return Directory(
       path.join(
-          baseDir.parent.path, '${path.basename(baseDir.path)}.$suffix.$stamp'),
+        baseDir.parent.path,
+        '${path.basename(baseDir.path)}.$suffix.$stamp',
+      ),
     );
   }
 
@@ -148,6 +167,7 @@ class GitService extends ContextualService {
     }
     try {
       await action(tempDir);
+
       return tempDir;
     } catch (_) {
       if (tempDir.existsSync()) {
@@ -356,10 +376,12 @@ class GitService extends ContextualService {
         await _syncMirrorWithRemote(gitCacheDir);
         await _validateMirror(gitCacheDir);
         logger.info('Mirror repaired successfully via fetch');
+
         return;
       } on ProcessException {
         logger.warn('Repair failed, recreating mirror from scratch...');
         await _createLocalMirror();
+
         return;
       }
     }
@@ -391,6 +413,7 @@ class GitService extends ContextualService {
     bool isWithinCachePath(String target) {
       final t = comparable(target);
       final p = comparable(desiredParent);
+
       return t == p || path.isWithin(p, t);
     }
 
@@ -440,22 +463,6 @@ class GitService extends ContextualService {
       args: ['remote', 'update', '--prune', 'origin'],
       workingDirectory: gitCacheDir.path,
     );
-  }
-
-  /// Returns the entity at [entityPath] based on its file system type,
-  /// or null if nothing exists there.
-  static FileSystemEntity? _entityAt(String entityPath) {
-    final type = FileSystemEntity.typeSync(entityPath, followLinks: false);
-    switch (type) {
-      case FileSystemEntityType.directory:
-        return Directory(entityPath);
-      case FileSystemEntityType.file:
-        return File(entityPath);
-      case FileSystemEntityType.link:
-        return Link(entityPath);
-      default:
-        return null;
-    }
   }
 
   /// Deletes whatever exists at [entityPath] (file, link, or directory).
@@ -587,6 +594,18 @@ class GitService extends ContextualService {
     }
   }
 
+  /// Resolves [version] to a [GitDir] for the cached SDK directory.
+  Future<GitDir> _resolveGitDir(String version) async {
+    final flutterVersion = FlutterVersion.parse(version);
+    final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
+
+    if (!await GitDir.isGitDir(versionDir.path)) {
+      throw Exception('Not a git directory');
+    }
+
+    return GitDir.fromExisting(versionDir.path);
+  }
+
   Future<void> setOriginUrl({
     required String repositoryPath,
     required String url,
@@ -694,22 +713,11 @@ class GitService extends ContextualService {
     });
   }
 
-  /// Resolves [version] to a [GitDir] for the cached SDK directory.
-  Future<GitDir> _resolveGitDir(String version) async {
-    final flutterVersion = FlutterVersion.parse(version);
-    final versionDir = get<CacheService>().getVersionCacheDir(flutterVersion);
-
-    if (!await GitDir.isGitDir(versionDir.path)) {
-      throw Exception('Not a git directory');
-    }
-
-    return GitDir.fromExisting(versionDir.path);
-  }
-
   /// Returns the branch name for a cached [version].
   Future<String?> getBranch(String version) async {
     final gitDir = await _resolveGitDir(version);
     final result = await gitDir.currentBranch();
+
     return result.branchName;
   }
 
@@ -723,10 +731,12 @@ class GitService extends ContextualService {
         '--tags',
         '--exact-match',
       ]);
+
       return (pr.stdout as String).trim();
     } on ProcessException catch (e) {
       if (e.message.toLowerCase().contains('no tag exactly matches')) {
         logger.debug('No exact tag match for version "$version".');
+
         return null;
       }
       logger.err('Failed to get tag for version "$version": ${e.message}');
