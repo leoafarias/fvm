@@ -347,25 +347,21 @@ class GitService extends ContextualService {
 
   Future<void> _refreshExistingMirror(Directory gitCacheDir) async {
     try {
-      await _validateMirror(gitCacheDir);
+      await _syncMirrorWithRemote(gitCacheDir);
+      logger.debug('Local mirror updated successfully');
     } on ProcessException catch (error) {
       logger.warn(
-        'Local mirror validation failed (${error.message}). Attempting repair...',
+        'Local mirror update failed (${error.message}). Attempting repair...',
       );
       try {
-        await _syncMirrorWithRemote(gitCacheDir);
         await _validateMirror(gitCacheDir);
-        logger.info('Mirror repaired successfully via fetch');
-        return;
+        await _syncMirrorWithRemote(gitCacheDir);
+        logger.info('Mirror repaired successfully');
       } on ProcessException {
         logger.warn('Repair failed, recreating mirror from scratch...');
         await _createLocalMirror();
-        return;
       }
     }
-
-    await _syncMirrorWithRemote(gitCacheDir);
-    logger.debug('Local mirror updated successfully');
   }
 
   /// Rewrites alternates files from legacy non-bare path to the bare mirror.
@@ -616,6 +612,24 @@ class GitService extends ContextualService {
             },
       );
     });
+  }
+
+  /// Runs `git fsck --connectivity-only` against the local mirror to detect
+  /// missing or unreachable objects. Returns `null` when the mirror is missing
+  /// (nothing to check), `true` when the mirror is healthy, and `false` when
+  /// validation fails.
+  Future<bool?> verifyMirrorIntegrity() async {
+    final gitCacheDir = Directory(context.gitCachePath);
+    if (!gitCacheDir.existsSync()) return null;
+    if (!await _isBareRepository(gitCacheDir.path)) return false;
+
+    try {
+      await _validateMirror(gitCacheDir);
+      return true;
+    } on ProcessException catch (error) {
+      logger.debug('Mirror integrity check failed: ${error.message}');
+      return false;
+    }
   }
 
   Future<bool> isGitReference(String version) async {
