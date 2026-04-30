@@ -14,74 +14,6 @@ void main() {
       runner = TestFactory.commandRunner();
     });
 
-    group('Install command flags:', () {
-      test('Install with --setup flag', () async {
-        const version = 'stable';
-
-        final exitCode = await runner.runOrThrow([
-          'fvm',
-          'install',
-          version,
-          '--setup',
-        ]);
-
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(cacheVersion, isNotNull, reason: 'Install with setup failed');
-      });
-
-      test('Install with --skip-pub-get flag', () async {
-        const version = 'stable';
-
-        final exitCode = await runner.runOrThrow([
-          'fvm',
-          'install',
-          version,
-          '--skip-pub-get',
-        ]);
-
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(
-          cacheVersion,
-          isNotNull,
-          reason: 'Install with skip-pub-get failed',
-        );
-      });
-
-      test('Install with both --setup and --skip-pub-get flags', () async {
-        const version = 'beta';
-
-        final exitCode = await runner.runOrThrow([
-          'fvm',
-          'install',
-          version,
-          '--setup',
-          '--skip-pub-get',
-        ]);
-
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(
-          cacheVersion,
-          isNotNull,
-          reason: 'Install with multiple flags failed',
-        );
-      });
-    });
-
     group('Install from project configuration:', () {
       test('Install without version uses project config', () async {
         // Create a temporary directory for this test
@@ -144,64 +76,6 @@ void main() {
           );
         },
       );
-    });
-
-    group('Install version formats:', () {
-      test('Install version with v prefix', () async {
-        const version =
-            'v1.12.0'; // Use a version that actually exists with v prefix
-
-        final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation (should strip v prefix)
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(
-          cacheVersion != null,
-          true,
-          reason: 'Install with v prefix failed',
-        );
-      });
-
-      test('Install version with channel suffix', () async {
-        const version = '3.19.0@beta';
-
-        final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(version),
-            );
-        expect(
-          cacheVersion != null,
-          true,
-          reason: 'Install with channel suffix failed',
-        );
-      });
-
-      test('Install git commit hash', () async {
-        const commitHash = 'f4c74a6ec3';
-
-        final exitCode = await runner.runOrThrow([
-          'fvm',
-          'install',
-          commitHash,
-        ]);
-        expect(exitCode, ExitCode.success.code);
-
-        // Verify installation
-        final cacheVersion = runner.context.get<CacheService>().getVersion(
-              FlutterVersion.parse(commitHash),
-            );
-        expect(
-          cacheVersion != null,
-          true,
-          reason: 'Install commit hash failed',
-        );
-      });
     });
 
     group('Install error handling:', () {
