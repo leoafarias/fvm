@@ -9,14 +9,6 @@ String getTempTestDir([String? contextId = '', String path = '']) {
   return join(kUserHome, 'fvm-test', contextId, path);
 }
 
-/// Path of the bare git mirror shared across the test suite. Tests created
-/// via `TestFactory.context()` point at this directory; `tool/prime_test_cache.dart`
-/// populates it before `dart test` runs so installs hit a warm local mirror
-/// instead of falling back to remote clones.
-String getSharedTestGitCachePath() {
-  return join(kUserHome, 'fvm_test_cache', 'gitcache');
-}
-
 String getTempTestProjectDir([String? contextId = '', String name = '']) {
   return join(getTempTestDir(contextId, 'projects'), name);
 }

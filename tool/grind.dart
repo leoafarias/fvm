@@ -18,7 +18,7 @@ void testSetup() {
     testDir.deleteSync(recursive: true);
   }
 
-  runDartScript('tool/prime_test_cache.dart');
+  runDartScript('bin/main.dart', arguments: ['install', 'stable']);
 }
 
 @Task('Run tests')

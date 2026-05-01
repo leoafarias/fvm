@@ -10,8 +10,6 @@ import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
-import 'testing_helpers/prepare_test_environment.dart';
-
 class TestCommandRunner extends FvmCommandRunner {
   TestCommandRunner(super.context);
 
@@ -405,5 +403,7 @@ class MockFlutterService extends FlutterService {
   }
 }
 
-final _sharedGitCacheDir = Directory(getSharedTestGitCachePath());
-final _sharedTestFvmDir = _sharedGitCacheDir.parent;
+final _sharedTestFvmDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
+final _sharedGitCacheDir = Directory(
+  p.join(_sharedTestFvmDir.path, 'gitcache'),
+);
