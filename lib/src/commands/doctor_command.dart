@@ -7,7 +7,6 @@ import 'package:path/path.dart' as p;
 
 import '../models/config_model.dart';
 import '../models/project_model.dart';
-import '../services/git_service.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
@@ -250,25 +249,6 @@ class DoctorCommand extends BaseFvmCommand {
     logger.write(table.toString());
   }
 
-  Future<void> _printGitCacheIntegrity() async {
-    logger
-      ..info()
-      ..info('Git cache:');
-
-    final table = createTable(['Git cache', 'Value']);
-    table.insertRow(['Path', context.gitCachePath]);
-
-    final healthy = await get<GitService>().verifyMirrorIntegrity();
-    final status = switch (healthy) {
-      null => 'Not created yet',
-      true => 'OK',
-      false => 'Corrupt - run "fvm install" or remove the cache to recreate',
-    };
-    table.insertRow(['Integrity', status]);
-
-    logger.write(table.toString());
-  }
-
   @override
   Future<int> run() async {
     final project = get<ProjectService>().findAncestor();
@@ -281,7 +261,6 @@ class DoctorCommand extends BaseFvmCommand {
     _printProject(project);
     _printIdeLinks(project);
     _printEnvironmentDetails(flutterWhich, dartWhich);
-    await _printGitCacheIntegrity();
 
     return ExitCode.success.code;
   }

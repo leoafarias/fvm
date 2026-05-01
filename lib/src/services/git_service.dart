@@ -614,25 +614,6 @@ class GitService extends ContextualService {
     });
   }
 
-  /// Runs `git fsck --connectivity-only` against the local mirror to detect
-  /// missing or unreachable objects. Returns `null` when the mirror is missing
-  /// (nothing to check), `true` when the mirror is healthy, and `false` when
-  /// validation fails (including when the directory exists but is not a git
-  /// repository).
-  Future<bool?> verifyMirrorIntegrity() async {
-    final gitCacheDir = Directory(context.gitCachePath);
-    if (!gitCacheDir.existsSync()) return null;
-
-    try {
-      if (!await _isBareRepository(gitCacheDir.path)) return false;
-      await _validateMirror(gitCacheDir);
-      return true;
-    } on ProcessException catch (error) {
-      logger.debug('Mirror integrity check failed: ${error.message}');
-      return false;
-    }
-  }
-
   Future<bool> isGitReference(String version) async {
     final references = await _fetchGitReferences();
 
