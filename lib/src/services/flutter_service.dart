@@ -53,6 +53,13 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
   }) {
+    // Pin git's working directory to the clone destination's parent so the
+    // process is not sensitive to the global `Directory.current` (which
+    // concurrent test cleanup or external callers may have deleted, causing
+    // mid-clone "Unable to read current working directory" failures).
+    final processCwd = versionDir.parent;
+    processCwd.createSync(recursive: true);
+
     final args = [
       'clone',
       '--progress',
@@ -67,7 +74,11 @@ class FlutterService extends ContextualService {
       versionDir.path,
     ];
 
-    return runGit(args, echoOutput: echoOutput);
+    return runGit(
+      args,
+      echoOutput: echoOutput,
+      processWorkingDir: processCwd.path,
+    );
   }
 
   /// Attempts a clone from the local mirror. Returns null on failure so the

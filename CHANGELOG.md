@@ -1,7 +1,11 @@
-## Unreleased
+## 4.1.0
 
-* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
-* fix: make the macOS install script select the arm64 binary correctly when launched from a Rosetta-translated shell on Apple Silicon.
+* feat: opt out of update checks for quieter CI and offline runs (#994)
+* feat: keep working with cached SDKs even when Flutter drops the version file (#997)
+* perf: faster installs and smaller disk usage with a leaner git cache (one-time repack on upgrade) (#1018)
+* fix: stop forked versions from getting mixed up in the global cache (#995)
+* fix: more reliable concurrent FVM commands (#1002)
+* chore: cleanup cache handling and release parsing (#1005)
 
 ## 4.0.5
 
