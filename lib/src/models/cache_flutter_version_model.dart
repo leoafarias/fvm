@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../utils/compare_semver.dart';
 import '../utils/constants.dart';
@@ -187,6 +188,25 @@ class CacheFlutterVersion extends FlutterVersion
 
   /// Whether this cached version has not been set up.
   bool get isNotSetup => !isSetup;
+
+  /// Whether [flutterSdkVersion] parses as a real semantic version.
+  ///
+  /// When false, the detected value is almost certainly garbage (stale git tag,
+  /// manually written `version` file, corrupted JSON). In that case the
+  /// "preserve detected SDK and reinstall" remediation cannot work because it
+  /// would just rename the cache into a nonsense directory.
+  @MappableField()
+  bool get hasValidDetectedVersion {
+    final v = flutterSdkVersion;
+    if (v == null || v.isEmpty) return false;
+    try {
+      Version.parse(v.startsWith('v') || v.startsWith('V') ? v.substring(1) : v);
+
+      return true;
+    } on FormatException {
+      return false;
+    }
+  }
 
   FlutterVersion toFlutterVersion() =>
       FlutterVersion(name, releaseChannel: releaseChannel, type: type, fork: fork);

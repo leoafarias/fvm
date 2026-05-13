@@ -200,6 +200,9 @@ class GitService extends ContextualService {
       ],
       runInShell: true,
     );
+    // Register so this long-running clone is killed if fvm receives a
+    // termination signal mid-clone.
+    get<ProcessService>().register(process);
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);

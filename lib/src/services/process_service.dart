@@ -1,9 +1,55 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
-  const ProcessService(super.context);
+  ProcessService(super.context);
+
+  /// Long-running children we should clean up if we receive a termination
+  /// signal. Short-lived blocking spawns (Process.run / Process.runSync) don't
+  /// need tracking because they cannot outlive the caller.
+  final Set<Process> _liveChildren = <Process>{};
+
+  void _track(Process child) {
+    _liveChildren.add(child);
+    unawaited(
+      child.exitCode.whenComplete(() => _liveChildren.remove(child)),
+    );
+  }
+
+  /// Sends [signal] to every tracked child, waits up to [graceful] for them to
+  /// exit, then SIGKILLs any survivors.
+  ///
+  /// This handles catchable termination of `fvm` itself (Ctrl-C / SIGINT,
+  /// `kill <pid>` / SIGTERM, terminal close / SIGHUP). It does NOT — and
+  /// cannot in pure Dart — handle SIGKILL of the fvm process, which is
+  /// uncatchable and leaves descendants orphaned to init.
+  Future<void> killAllChildren({
+    ProcessSignal signal = ProcessSignal.sigterm,
+    Duration graceful = const Duration(seconds: 2),
+  }) async {
+    if (_liveChildren.isEmpty) return;
+    final snapshot = List<Process>.from(_liveChildren);
+    for (final p in snapshot) {
+      _safeKill(p, signal);
+    }
+    await Future.any([
+      Future.wait(snapshot.map((p) => p.exitCode)),
+      Future<void>.delayed(graceful),
+    ]);
+    for (final p in _liveChildren) {
+      _safeKill(p, ProcessSignal.sigkill);
+    }
+  }
+
+  void _safeKill(Process p, ProcessSignal signal) {
+    try {
+      p.kill(signal);
+    } catch (_) {
+      // Process may have already exited between snapshot and kill; ignore.
+    }
+  }
 
   void _throwIfProcessFailed(
     ProcessResult pr,
@@ -72,6 +118,8 @@ class ProcessService extends ContextualService {
       runInShell: runInShell,
       mode: ProcessStartMode.inheritStdio,
     );
+    // Track the long-running proxy child so signal handlers can clean it up.
+    _track(process);
 
     processResult = ProcessResult(
       process.pid,
@@ -85,6 +133,11 @@ class ProcessService extends ContextualService {
 
     return processResult;
   }
+
+  /// Public API for other services (e.g. GitService) to register a long-running
+  /// process they spawned directly via `Process.start`, so it participates in
+  /// signal-forwarded cleanup.
+  void register(Process process) => _track(process);
 }
 
 extension ProcessResultX on ProcessResult {

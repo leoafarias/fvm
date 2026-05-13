@@ -257,5 +257,50 @@ void main() {
 
       tempDir.deleteSync(recursive: true);
     });
+
+    group('hasValidDetectedVersion', () {
+      CacheFlutterVersion build(String? sdkVersion) {
+        return CacheFlutterVersion.fromMap({
+          'name': '3.10.0',
+          'type': 'release',
+          'directory': '/tmp/whatever',
+          if (sdkVersion != null) 'flutterSdkVersion': sdkVersion,
+          'dartSdkVersion': null,
+          'isSetup': false,
+        });
+      }
+
+      test('returns false for null flutterSdkVersion', () {
+        expect(build(null).hasValidDetectedVersion, isFalse);
+      });
+
+      test('returns false for empty flutterSdkVersion', () {
+        expect(build('').hasValidDetectedVersion, isFalse);
+      });
+
+      test('returns true for v4.260508.0 (it is technically valid semver)',
+          () {
+        // Issue #1030's symptom value happens to parse as semver
+        // (major=4, minor=260508, patch=0), so it can't be excluded by
+        // semver-parsing alone. The banner reword in EnsureCacheWorkflow makes
+        // the "discard" option the default in this case, which is the actual
+        // user-facing fix.
+        expect(build('v4.260508.0').hasValidDetectedVersion, isTrue);
+      });
+
+      test('returns false for channel names and unparseable refs', () {
+        expect(build('master').hasValidDetectedVersion, isFalse);
+        expect(build('stable').hasValidDetectedVersion, isFalse);
+        expect(build('abc123def').hasValidDetectedVersion, isFalse);
+        expect(build('not-a-version').hasValidDetectedVersion, isFalse);
+      });
+
+      test('returns true for standard release strings', () {
+        expect(build('3.38.3').hasValidDetectedVersion, isTrue);
+        expect(build('v3.19.0').hasValidDetectedVersion, isTrue);
+        expect(build('V3.19.0').hasValidDetectedVersion, isTrue);
+        expect(build('3.38.3-pre.42').hasValidDetectedVersion, isTrue);
+      });
+    });
   });
 }

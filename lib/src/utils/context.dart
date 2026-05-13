@@ -170,8 +170,16 @@ class FvmContext with FvmContextMappable {
     return kCiEnvironmentVariables.any(environment.containsKey);
   }
 
+  /// True when interactive prompts should be skipped.
+  ///
+  /// Returns true if any of these hold:
+  /// - `--fvm-skip-input` flag was passed
+  /// - A known CI environment variable is set (see [isCI])
+  /// - stdin is not attached to a terminal (so a non-interactive caller such as
+  ///   a git pre-commit hook, build script, or agent harness cannot answer the
+  ///   prompt without blocking forever)
   @MappableField()
-  bool get skipInput => isCI || _skipInput;
+  bool get skipInput => isCI || _skipInput || !stdin.hasTerminal;
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
