@@ -64,10 +64,6 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
   static String _$flutterExec(CacheFlutterVersion v) => v.flutterExec;
   static const Field<CacheFlutterVersion, String> _f$flutterExec =
       Field('flutterExec', _$flutterExec);
-  static bool _$hasValidDetectedVersion(CacheFlutterVersion v) =>
-      v.hasValidDetectedVersion;
-  static const Field<CacheFlutterVersion, bool> _f$hasValidDetectedVersion =
-      Field('hasValidDetectedVersion', _$hasValidDetectedVersion);
 
   @override
   final MappableFields<CacheFlutterVersion> fields = const {
@@ -84,7 +80,6 @@ class CacheFlutterVersionMapper extends ClassMapperBase<CacheFlutterVersion> {
     #dartBinPath: _f$dartBinPath,
     #dartExec: _f$dartExec,
     #flutterExec: _f$flutterExec,
-    #hasValidDetectedVersion: _f$hasValidDetectedVersion,
   };
   @override
   final bool ignoreNull = true;

@@ -50,54 +50,40 @@ class EnsureCacheWorkflow extends Workflow {
   Future<CacheFlutterVersion> _handleVersionMismatch(
     CacheFlutterVersion version,
   ) async {
-    final detected = version.flutterSdkVersion;
-    final canPreserve = version.hasValidDetectedVersion;
-
     logger
       ..notice(
-        'Cache for "${version.name}" reports SDK version "$detected", which '
-        'does not match. '
-        '${canPreserve ? "This usually happens when 'flutter upgrade' was run "
-                "on a cached SDK." : "The detected value does not look like a "
-                "Flutter SDK version, so the cache may be corrupted."}',
+        'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
       )
       ..info(
-        'In FVM-managed projects, do not run "flutter upgrade" directly. '
-        'Use "fvm install <version>" instead.',
+        'This can occur if you manually run "flutter upgrade" on a cached SDK.',
       )
       ..info();
 
-    final reinstallOption =
-        'Discard this cache and reinstall ${version.name}';
-    final preserveOption =
-        'Keep the detected SDK as "$detected", then reinstall ${version.name}';
+    final firstOption =
+        'Move ${version.flutterSdkVersion} to the correct cache directory and reinstall ${version.name}';
+
+    final secondOption =
+        'Remove incorrect version and reinstall ${version.name}';
 
     String selectedOption;
-    if (!canPreserve) {
+    if (context.skipInput) {
       logger.warn(
-        'Detected version "$detected" is not a valid Flutter SDK version; '
-        'auto-discarding and reinstalling.',
+        'CI/non-interactive mode: auto-selecting remove and reinstall',
       );
-      selectedOption = reinstallOption;
-    } else if (context.skipInput) {
-      logger.warn(
-        'Non-interactive mode: auto-selecting discard and reinstall.',
-      );
-      selectedOption = reinstallOption;
+      selectedOption = secondOption;
     } else {
       selectedOption = logger.select(
         'How would you like to resolve this?',
-        options: [reinstallOption, preserveOption],
-        defaultSelection: 0,
+        options: [firstOption, secondOption],
       );
     }
 
-    if (selectedOption == preserveOption) {
-      logger.info('Preserving detected SDK as "$detected"...');
+    if (selectedOption == firstOption) {
+      logger.info('Moving SDK to the correct cache directory...');
       get<CacheService>().moveToSdkVersionDirectory(version);
     }
 
-    logger.info('Removing cache for ${version.name}...');
+    logger.info('Removing incorrect SDK version...');
     await get<CacheService>().remove(version);
 
     return await call(version, shouldInstall: true);
