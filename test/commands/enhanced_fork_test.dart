@@ -1,5 +1,7 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -11,19 +13,19 @@ void main() {
     const testForkUrl = 'https://github.com/leoafarias/flutter.git';
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      runner = TestFactory.fastCommandRunner();
 
       // Clean up any existing test fork
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == testForkName)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
     });
 
     tearDown(() {
       // Clean up after tests
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == testForkName)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
     });
 
     group('Fork workflow integration:', () {
@@ -39,7 +41,7 @@ void main() {
         expect(addExitCode, ExitCode.success.code);
 
         // Verify fork was added
-        final config = LocalAppConfig.read();
+        final config = LocalAppConfig.read(path: runner.context.appConfigPath);
         final fork = config.forks.firstWhere(
           (f) => f.name == testForkName,
           orElse: () => const FlutterFork(name: '', url: ''),
@@ -48,15 +50,37 @@ void main() {
         expect(fork.url, testForkUrl);
 
         // Create a new runner to pick up the updated global config with forks
-        final installRunner = TestFactory.commandRunner();
+        final installRunner = TestFactory.fastCommandRunner(
+          context: TestFactory.fastContext(
+            appConfigPath: runner.context.appConfigPath,
+          ),
+        );
+        final flutterService =
+            installRunner.context.get<FlutterService>() as FakeFlutterService;
+        final cacheService = installRunner.context.get<CacheService>();
+        const forkVersion = '$testForkName/leo-test-21';
 
         // Step 2: Install version from fork with specific branch
         final installExitCode = await installRunner.runOrThrow([
           'fvm',
           'install',
-          '$testForkName/leo-test-21',
+          forkVersion,
         ]);
         expect(installExitCode, ExitCode.success.code);
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(
+          flutterService.installedVersions.single.nameWithAlias,
+          equals(forkVersion),
+        );
+
+        final cacheVersion = cacheService.getVersion(
+          FlutterVersion.parse(forkVersion),
+        );
+        expect(cacheVersion, isNotNull);
+        expect(
+          cacheVersion!.directory,
+          endsWith(p.join(testForkName, 'leo-test-21')),
+        );
 
         // Step 3: Use version from fork
         final useExitCode = await installRunner.runOrThrow([
@@ -112,7 +136,7 @@ void main() {
         expect(removeExitCode, ExitCode.success.code);
 
         // Verify fork was removed
-        final config = LocalAppConfig.read();
+        final config = LocalAppConfig.read(path: runner.context.appConfigPath);
         final hasTestFork = config.forks.any((f) => f.name == testForkName);
         expect(hasTestFork, isFalse);
       });
@@ -234,9 +258,9 @@ void main() {
 
       test('Fork list works with no forks configured', () async {
         // Ensure no forks exist
-        LocalAppConfig.read()
+        LocalAppConfig.read(path: runner.context.appConfigPath)
           ..forks.clear()
-          ..save();
+          ..save(path: runner.context.appConfigPath);
 
         final exitCode = await runner.runOrThrow(['fvm', 'fork', 'list']);
         expect(exitCode, ExitCode.success.code);

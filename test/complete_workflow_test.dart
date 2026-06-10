@@ -11,7 +11,7 @@ void main() {
   late TestCommandRunner testRunner;
 
   setUp(() {
-    testRunner = TestFactory.commandRunner();
+    testRunner = TestFactory.fastCommandRunner();
   });
 
   group('Complete flow', () {

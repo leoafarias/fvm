@@ -199,30 +199,31 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
     this.forks = {...?forks};
   }
 
-  static LocalAppConfig read() {
+  static LocalAppConfig read({String? path}) {
     try {
-      return _configFile.existsSync()
-          ? LocalAppConfig.fromJson(_configFile.readAsStringSync())
+      final configFile = _configFile(path);
+
+      return configFile.existsSync()
+          ? LocalAppConfig.fromJson(configFile.readAsStringSync())
           : LocalAppConfig();
     } catch (e) {
       return LocalAppConfig();
     }
   }
 
-  static File get _configFile => File(kAppConfigFile);
+  static File _configFile(String? path) => File(path ?? kAppConfigFile);
 
   bool get isEmpty => LocalAppConfig() == this;
 
-  String get location => _configFile.path;
-
-  void save() {
+  void save({String? path}) {
+    final configFile = _configFile(path);
     // Ensure the parent directory exists before writing the file
     // This follows the same pattern used throughout FVM for directory creation
-    final parentDir = _configFile.parent;
+    final parentDir = configFile.parent;
     if (!parentDir.existsSync()) {
       parentDir.createSync(recursive: true);
     }
-    _configFile.writeAsStringSync(prettyJson(toMap()));
+    configFile.writeAsStringSync(prettyJson(toMap()));
   }
 }
 

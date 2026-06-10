@@ -1,3 +1,4 @@
+@Tags(['git'])
 import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';

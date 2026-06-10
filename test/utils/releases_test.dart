@@ -10,7 +10,7 @@ void main() {
     late TestCommandRunner runner;
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      runner = TestFactory.fastCommandRunner();
     });
 
     test('Can check releases', () async {
