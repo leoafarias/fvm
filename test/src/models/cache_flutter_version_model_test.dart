@@ -257,5 +257,63 @@ void main() {
 
       tempDir.deleteSync(recursive: true);
     });
+
+    test(
+      'flutterSdkVersion ignores parent repository tags when SDK metadata is absent',
+      () {
+        final appDir = Directory.systemTemp.createTempSync('tagged_app_');
+
+        try {
+          File(path.join(appDir.path, 'pubspec.yaml')).writeAsStringSync('''
+name: tagged_app
+version: 4.260508.0+0
+''');
+          _runGit(appDir, ['init']);
+          _runGit(appDir, ['config', 'user.email', 'test@example.com']);
+          _runGit(appDir, ['config', 'user.name', 'Test User']);
+          _runGit(appDir, ['add', 'pubspec.yaml']);
+          _runGit(appDir, ['commit', '-m', 'Initial commit']);
+          _runGit(appDir, ['tag', 'v4.260508.0']);
+
+          final sdkDir = Directory(
+            path.join(appDir.path, '.fvm', 'versions', '3.38.3'),
+          )..createSync(recursive: true);
+
+          final version = CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('3.38.3'),
+            directory: sdkDir.path,
+          );
+
+          expect(version.flutterSdkVersion, isNull);
+        } finally {
+          appDir.deleteSync(recursive: true);
+        }
+      },
+      skip: !_isGitAvailable() ? 'git is not available' : false,
+    );
   });
+}
+
+bool _isGitAvailable() {
+  try {
+    return Process.runSync('git', ['--version']).exitCode == 0;
+  } on ProcessException {
+    return false;
+  }
+}
+
+void _runGit(Directory workingDirectory, List<String> arguments) {
+  final result = Process.runSync(
+    'git',
+    arguments,
+    workingDirectory: workingDirectory.path,
+  );
+
+  if (result.exitCode != 0) {
+    fail(
+      'git ${arguments.join(' ')} failed with exit code ${result.exitCode}.\n'
+      'stdout: ${result.stdout}\n'
+      'stderr: ${result.stderr}',
+    );
+  }
 }

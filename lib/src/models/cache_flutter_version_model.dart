@@ -28,7 +28,6 @@ class CacheFlutterVersion extends FlutterVersion
   /// Detection order (at construction time):
   /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
   /// 2. Legacy version file (`version`) - Flutter <3.38
-  /// 3. Git tag via `git describe --tags` - for pre-setup SDKs
   @MappableField()
   final String? flutterSdkVersion;
 
@@ -106,13 +105,11 @@ class CacheFlutterVersion extends FlutterVersion
     final isSetup = dartSdkBinDir.existsSync();
 
     // --- Flutter SDK version detection ---
-    // Priority: JSON → legacy version file → git describe
+    // Priority: JSON → legacy version file
     String? flutterVersion = rootMetadata?.primaryVersion;
 
     // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
     flutterVersion ??= join(directory, 'version').file.read()?.trim();
-
-    flutterVersion ??= _getVersionFromGit(directory);
 
     // --- Dart SDK version detection ---
     // Priority: JSON → dart-sdk version file
@@ -130,30 +127,6 @@ class CacheFlutterVersion extends FlutterVersion
       dartVersion: dartVersion,
       isSetup: isSetup,
     );
-  }
-
-  // Attempts to get version from git tags (for pre-setup SDKs).
-  static String? _getVersionFromGit(String directory) {
-    try {
-      final result = Process.runSync(
-        'git',
-        ['describe', '--tags', '--abbrev=0'],
-        workingDirectory: directory,
-      );
-      if (result.exitCode == 0) {
-        final tag = (result.stdout as String).trim();
-
-        return tag.isNotEmpty ? tag : null;
-      }
-    } on ProcessException {
-      // Git not available or command execution failed
-      return null;
-    } on FileSystemException {
-      // Working directory missing or permission denied
-      return null;
-    }
-
-    return null;
   }
 
   /// The bin directory path for this cached version.
@@ -188,6 +161,10 @@ class CacheFlutterVersion extends FlutterVersion
   /// Whether this cached version has not been set up.
   bool get isNotSetup => !isSetup;
 
-  FlutterVersion toFlutterVersion() =>
-      FlutterVersion(name, releaseChannel: releaseChannel, type: type, fork: fork);
+  FlutterVersion toFlutterVersion() => FlutterVersion(
+        name,
+        releaseChannel: releaseChannel,
+        type: type,
+        fork: fork,
+      );
 }

@@ -1,4 +1,7 @@
-import 'package:fvm/src/services/cache_service.dart';
+import 'dart:io';
+
+import 'package:fvm/fvm.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -64,6 +67,50 @@ void main() {
 
     test('flags real version mismatches', () {
       expect(cacheService.versionsMatch('3.16.0', '3.19.0'), isFalse);
+    });
+  });
+
+  group('verifyCacheIntegrity', () {
+    late CacheService cacheService;
+    late Directory sdkDir;
+
+    setUp(() {
+      cacheService = CacheService(TestFactory.context());
+      sdkDir = Directory.systemTemp.createTempSync('cache_integrity_');
+    });
+
+    tearDown(() {
+      if (sdkDir.existsSync()) {
+        sdkDir.deleteSync(recursive: true);
+      }
+    });
+
+    test('treats missing Flutter SDK metadata as valid', () async {
+      final flutterExecutable = File(
+        path.join(sdkDir.path, 'bin', flutterExecFileName),
+      )
+        ..createSync(recursive: true)
+        ..writeAsStringSync('');
+
+      if (!Platform.isWindows) {
+        final result =
+            Process.runSync('chmod', ['755', flutterExecutable.path]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+      }
+
+      final version = CacheFlutterVersion(
+        '3.10.0',
+        type: VersionType.release,
+        directory: sdkDir.path,
+        flutterSdkVersion: null,
+        dartSdkVersion: null,
+        isSetup: true,
+      );
+
+      expect(
+        await cacheService.verifyCacheIntegrity(version),
+        CacheIntegrity.valid,
+      );
     });
   });
 }

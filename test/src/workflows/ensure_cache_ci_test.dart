@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
 
@@ -17,9 +18,7 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test(
-      'version mismatch in CI mode auto-selects safe default',
-      () async {
+    test('version mismatch in CI mode auto-selects safe default', () async {
       final context = TestFactory.context(
         environmentOverrides: {'CI': 'true'},
       );
@@ -40,11 +39,24 @@ void main() {
 
       expect(result, isNotNull);
       expect(result.name, equals('3.10.0'));
+
+      final output = context.get<Logger>().outputs.join('\n');
+      expect(
+        output,
+        contains(
+          'Cached SDK metadata reports 3.10.5, but FVM expected 3.10.0 for this cache entry.',
+        ),
+      );
+      expect(
+        output,
+        contains(
+          'This can happen when a cached SDK is upgraded or changed outside FVM.',
+        ),
+      );
+      expect(output, isNot(contains('manually run "flutter upgrade"')));
     }, timeout: Timeout(Duration(minutes: 15)));
 
-    test(
-      '--fvm-skip-input flag handles version mismatch gracefully',
-      () async {
+    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
       final context = TestFactory.context(
         skipInput: true,
       );
@@ -66,9 +78,7 @@ void main() {
       expect(result.name, equals('3.10.0'));
     }, timeout: Timeout(Duration(minutes: 15)));
 
-    test(
-      'GitHub Actions environment handles version mismatch',
-      () async {
+    test('GitHub Actions environment handles version mismatch', () async {
       final context = TestFactory.context(
         environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
       );
@@ -129,6 +139,5 @@ void main() {
         expect(multiCiContext.skipInput, isTrue);
       },
     );
-
   });
 }
