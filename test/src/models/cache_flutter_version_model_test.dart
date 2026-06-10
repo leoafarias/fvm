@@ -4,6 +4,8 @@ import 'package:fvm/fvm.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../../testing_utils.dart';
+
 void main() {
   group('CacheFlutterVersion', () {
     test('fromMap constructor', () {
@@ -113,7 +115,7 @@ void main() {
 
     test('flutterSdkVersion getter', () {
       // Create a temporary directory for testing
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
+      final tempDir = createTempDir('cache_version_test');
       final versionFile = File(path.join(tempDir.path, 'version'));
       versionFile.writeAsStringSync('1.0.0');
 
@@ -128,78 +130,86 @@ void main() {
     });
 
     test(
-        'flutterSdkVersion returns null when no json or legacy version file present',
-        () {
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
-      // Simulate artifacts existing (dart-sdk/version) so we don't rely on git.
-      final dartSdkDir =
-          Directory(path.join(tempDir.path, 'bin', 'cache', 'dart-sdk'))
-            ..createSync(recursive: true);
-      File(path.join(dartSdkDir.path, 'version')).writeAsStringSync('3.9.0');
+      'flutterSdkVersion returns null when no json or legacy version file present',
+      () {
+        final tempDir = createTempDir('cache_version_test');
+        // Simulate artifacts existing (dart-sdk/version) so we don't rely on git.
+        final dartSdkDir = Directory(
+          path.join(tempDir.path, 'bin', 'cache', 'dart-sdk'),
+        )..createSync(recursive: true);
+        File(path.join(dartSdkDir.path, 'version')).writeAsStringSync('3.9.0');
 
-      final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.release('test'),
-        directory: tempDir.path,
-      );
+        final version = CacheFlutterVersion.fromVersion(
+          FlutterVersion.release('test'),
+          directory: tempDir.path,
+        );
 
-      expect(version.flutterSdkVersion, isNull);
+        expect(version.flutterSdkVersion, isNull);
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
 
     test(
-        'flutterSdkVersion reads flutter.version.json when legacy file missing',
-        () {
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
-      final jsonFile = File(
-        path.join(tempDir.path, 'bin', 'cache', 'flutter.version.json'),
-      )..createSync(recursive: true);
+      'flutterSdkVersion reads flutter.version.json when legacy file missing',
+      () {
+        final tempDir = createTempDir('cache_version_test');
+        final jsonFile = File(
+          path.join(tempDir.path, 'bin', 'cache', 'flutter.version.json'),
+        )..createSync(recursive: true);
 
-      final fixture =
-          File(path.join('test', 'fixtures', 'flutter.version.example.json'));
-      expect(fixture.existsSync(), isTrue,
-          reason: 'Fixture flutter.version.example.json is missing');
-      jsonFile.writeAsStringSync(fixture.readAsStringSync());
+        final fixture = File(
+          path.join('test', 'fixtures', 'flutter.version.example.json'),
+        );
+        expect(
+          fixture.existsSync(),
+          isTrue,
+          reason: 'Fixture flutter.version.example.json is missing',
+        );
+        jsonFile.writeAsStringSync(fixture.readAsStringSync());
 
-      final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.release('test'),
-        directory: tempDir.path,
-      );
+        final version = CacheFlutterVersion.fromVersion(
+          FlutterVersion.release('test'),
+          directory: tempDir.path,
+        );
 
-      expect(version.flutterSdkVersion, '3.33.0-1.0.pre-1070');
+        expect(version.flutterSdkVersion, '3.33.0-1.0.pre-1070');
 
-      tempDir.deleteSync(recursive: true);
-    });
+        tempDir.deleteSync(recursive: true);
+      },
+    );
 
     test('dartSdkVersion getter prefers flutter.version.json when present', () {
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
+      final tempDir = createTempDir('cache_version_test');
       final jsonFile = File(
         path.join(tempDir.path, 'bin', 'cache', 'flutter.version.json'),
       )..createSync(recursive: true);
 
-      final fixture =
-          File(path.join('test', 'fixtures', 'flutter.version.example.json'));
-      expect(fixture.existsSync(), isTrue,
-          reason: 'Fixture flutter.version.example.json is missing');
+      final fixture = File(
+        path.join('test', 'fixtures', 'flutter.version.example.json'),
+      );
+      expect(
+        fixture.existsSync(),
+        isTrue,
+        reason: 'Fixture flutter.version.example.json is missing',
+      );
       jsonFile.writeAsStringSync(fixture.readAsStringSync());
 
       final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
         directory: tempDir.path,
       );
-      expect(
-        version.dartSdkVersion,
-        '3.10.0 (build 3.10.0-15.0.dev)',
-      );
+      expect(version.dartSdkVersion, '3.10.0 (build 3.10.0-15.0.dev)');
 
       tempDir.deleteSync(recursive: true);
     });
 
     test('dartSdkVersion getter', () {
       // Create a temporary directory for testing
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
-      final dartSdkDir =
-          Directory(path.join(tempDir.path, 'bin', 'cache', 'dart-sdk'));
+      final tempDir = createTempDir('cache_version_test');
+      final dartSdkDir = Directory(
+        path.join(tempDir.path, 'bin', 'cache', 'dart-sdk'),
+      );
       dartSdkDir.createSync(recursive: true);
       final versionFile = File(path.join(dartSdkDir.path, 'version'));
       versionFile.writeAsStringSync('2.12.0');
@@ -224,14 +234,15 @@ void main() {
 
     test('isSetup getter', () {
       // Create a temporary directory for testing
-      final tempDir = Directory.systemTemp.createTempSync('cache_version_test');
+      final tempDir = createTempDir('cache_version_test');
       // isSetup now checks for dart-sdk/bin/ directory existence (more robust)
-      final dartSdkBinDir =
-          Directory(path.join(tempDir.path, 'bin', 'cache', 'dart-sdk', 'bin'))
-            ..createSync(recursive: true);
+      final dartSdkBinDir = Directory(
+        path.join(tempDir.path, 'bin', 'cache', 'dart-sdk', 'bin'),
+      )..createSync(recursive: true);
       // Also create version file so dartSdkVersion is populated
-      File(path.join(dartSdkBinDir.parent.path, 'version'))
-          .writeAsStringSync('3.9.0');
+      File(
+        path.join(dartSdkBinDir.parent.path, 'version'),
+      ).writeAsStringSync('3.9.0');
 
       final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.release('test'),
@@ -245,7 +256,7 @@ void main() {
     });
 
     test('flutterSdkVersion is null when no version sources available', () {
-      final tempDir = Directory.systemTemp.createTempSync('no_version_');
+      final tempDir = createTempDir('no_version');
 
       final version = CacheFlutterVersion.fromVersion(
         FlutterVersion.parse('test'),
@@ -261,33 +272,29 @@ void main() {
     test(
       'flutterSdkVersion ignores parent repository tags when SDK metadata is absent',
       () {
-        final appDir = Directory.systemTemp.createTempSync('tagged_app_');
+        final appDir = createTempDir('tagged_app');
 
-        try {
-          File(path.join(appDir.path, 'pubspec.yaml')).writeAsStringSync('''
+        File(path.join(appDir.path, 'pubspec.yaml')).writeAsStringSync('''
 name: tagged_app
 version: 4.260508.0+0
 ''');
-          _runGit(appDir, ['init']);
-          _runGit(appDir, ['config', 'user.email', 'test@example.com']);
-          _runGit(appDir, ['config', 'user.name', 'Test User']);
-          _runGit(appDir, ['add', 'pubspec.yaml']);
-          _runGit(appDir, ['commit', '-m', 'Initial commit']);
-          _runGit(appDir, ['tag', 'v4.260508.0']);
+        _runGit(appDir, ['init']);
+        _runGit(appDir, ['config', 'user.email', 'test@example.com']);
+        _runGit(appDir, ['config', 'user.name', 'Test User']);
+        _runGit(appDir, ['add', 'pubspec.yaml']);
+        _runGit(appDir, ['commit', '-m', 'Initial commit']);
+        _runGit(appDir, ['tag', 'v4.260508.0']);
 
-          final sdkDir = Directory(
-            path.join(appDir.path, '.fvm', 'versions', '3.38.3'),
-          )..createSync(recursive: true);
+        final sdkDir = Directory(
+          path.join(appDir.path, '.fvm', 'versions', '3.38.3'),
+        )..createSync(recursive: true);
 
-          final version = CacheFlutterVersion.fromVersion(
-            FlutterVersion.parse('3.38.3'),
-            directory: sdkDir.path,
-          );
+        final version = CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('3.38.3'),
+          directory: sdkDir.path,
+        );
 
-          expect(version.flutterSdkVersion, isNull);
-        } finally {
-          appDir.deleteSync(recursive: true);
-        }
+        expect(version.flutterSdkVersion, isNull);
       },
       skip: !_isGitAvailable() ? 'git is not available' : false,
     );
