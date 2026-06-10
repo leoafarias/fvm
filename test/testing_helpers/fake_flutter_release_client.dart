@@ -12,9 +12,9 @@ class FakeFlutterReleaseClient extends FlutterReleaseClient {
     'test/fixtures/releases/minimal_releases.json',
   );
 
-  late final FlutterReleasesResponse _releases = _loadReleases();
+  late final FlutterReleasesResponse _releases = loadFixtureReleases();
 
-  static FlutterReleasesResponse _loadReleases() {
+  static FlutterReleasesResponse loadFixtureReleases() {
     final file = File(_fixturePath);
     if (!file.existsSync()) {
       throw StateError('Missing releases fixture: $_fixturePath');

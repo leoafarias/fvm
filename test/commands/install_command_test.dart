@@ -96,6 +96,7 @@ void main() {
 
   // Group 4: Git commit hashes
   group('Install from Git commit hash:', () {
+    // Fast fake commit hash, intentionally unrelated to the real integration hash.
     final commitHashes = ['f4c74a6ec3'];
 
     for (var version in commitHashes) {

@@ -7,15 +7,9 @@ import '../testing_utils.dart';
 void main() {
   group('Config command:', () {
     late TestCommandRunner runner;
-    late LocalAppConfig originalConfig;
 
     setUp(() {
       runner = TestFactory.commandRunner();
-      originalConfig = LocalAppConfig.read();
-    });
-
-    tearDown(() {
-      originalConfig.save();
     });
 
     test('fvm config --no-update-check persists disableUpdateCheck', () async {
@@ -27,7 +21,9 @@ void main() {
 
       expect(exitCode, ExitCode.success.code);
 
-      final updatedConfig = LocalAppConfig.read();
+      final updatedConfig = LocalAppConfig.read(
+        path: runner.context.appConfigPath,
+      );
       expect(updatedConfig.disableUpdateCheck, isTrue);
     });
 
@@ -45,7 +41,9 @@ void main() {
 
       expect(exitCode, ExitCode.success.code);
 
-      final updatedConfig = LocalAppConfig.read();
+      final updatedConfig = LocalAppConfig.read(
+        path: runner.context.appConfigPath,
+      );
       expect(updatedConfig.disableUpdateCheck, isFalse);
     });
   });

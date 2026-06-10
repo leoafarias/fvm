@@ -16,16 +16,16 @@ void main() {
       runner = TestFactory.fastCommandRunner();
 
       // Clean up any existing test fork
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == testForkName)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
     });
 
     tearDown(() {
       // Clean up after tests
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == testForkName)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
     });
 
     group('Fork workflow integration:', () {
@@ -41,7 +41,7 @@ void main() {
         expect(addExitCode, ExitCode.success.code);
 
         // Verify fork was added
-        final config = LocalAppConfig.read();
+        final config = LocalAppConfig.read(path: runner.context.appConfigPath);
         final fork = config.forks.firstWhere(
           (f) => f.name == testForkName,
           orElse: () => const FlutterFork(name: '', url: ''),
@@ -50,7 +50,11 @@ void main() {
         expect(fork.url, testForkUrl);
 
         // Create a new runner to pick up the updated global config with forks
-        final installRunner = TestFactory.fastCommandRunner();
+        final installRunner = TestFactory.fastCommandRunner(
+          context: TestFactory.fastContext(
+            appConfigPath: runner.context.appConfigPath,
+          ),
+        );
         final flutterService =
             installRunner.context.get<FlutterService>() as FakeFlutterService;
         final cacheService = installRunner.context.get<CacheService>();
@@ -132,7 +136,7 @@ void main() {
         expect(removeExitCode, ExitCode.success.code);
 
         // Verify fork was removed
-        final config = LocalAppConfig.read();
+        final config = LocalAppConfig.read(path: runner.context.appConfigPath);
         final hasTestFork = config.forks.any((f) => f.name == testForkName);
         expect(hasTestFork, isFalse);
       });
@@ -254,9 +258,9 @@ void main() {
 
       test('Fork list works with no forks configured', () async {
         // Ensure no forks exist
-        LocalAppConfig.read()
+        LocalAppConfig.read(path: runner.context.appConfigPath)
           ..forks.clear()
-          ..save();
+          ..save(path: runner.context.appConfigPath);
 
         final exitCode = await runner.runOrThrow(['fvm', 'fork', 'list']);
         expect(exitCode, ExitCode.success.code);

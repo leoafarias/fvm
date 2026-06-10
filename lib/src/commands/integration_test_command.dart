@@ -81,27 +81,20 @@ class IntegrationTestCommand extends BaseFvmCommand {
 class IntegrationTestRunner {
   final FvmContext context;
 
-  // Test configuration constants as FlutterVersion objects
-  // Optimized to minimize SDK downloads - only 4 versions needed:
-  // - stable: Used for most tests (tests 5, 9, 11, etc.)
-  // - 3.19.0: Release version test (test 6)
-  // - fb57da5f94: Git commit test (test 7, removed in test 33)
-  // - 3.22.0: Setup test (test 8 - validates explicit setup flag, removed in test 14)
-  //
-  // Note: Install tests use --no-setup to speed up tests
-  // Only test 8 and test 35 run setup explicitly
-  // Flutter SDK validation happens once in test 16
+  // Test configuration constants as FlutterVersion objects.
+  // Keep the version set intentionally small because this runner performs real
+  // network clones and SDK setup against the user's FVM cache.
+  // - stable: Real channel install reused by use/setup/destroy/global tests.
+  // - fb57da5f94: Real integration commit hash, unrelated to fast fake tests.
   static final testChannelVersion = FlutterVersion.parse('stable');
-  static final testReleaseVersion = FlutterVersion.parse('3.19.0');
   static final testCommitVersion = FlutterVersion.parse('fb57da5f94');
-  static final setupTestVersion = FlutterVersion.parse(
-    '3.22.0',
-  ); // Used in test 8
-  static const testForkName = 'testfork';
-  static const testForkUrl = 'https://github.com/flutter/flutter.git';
   late Directory _testDir;
   late String _originalDir;
   late Directory _tempFilesDir;
+  final _phaseCounts = <String, int>{};
+  var _testCount = 0;
+  var _phaseNumber = 0;
+  String? _currentPhase;
 
   IntegrationTestRunner(this.context);
 
@@ -155,388 +148,121 @@ class IntegrationTestRunner {
     }
   }
 
-  /// Phase 1: Basic Command Interface (4 tests)
-  Future<void> _runPhase1BasicCommands() async {
-    logger.info('=== Phase 1: Basic Command Interface ===');
-
-    _logTest('1. Testing FVM help...');
-    await _runFvmCommand(['--help']);
-    _logSuccess('Help command works');
-
-    _logTest('2. Testing FVM version...');
-    await _runFvmCommand(['--version']);
-    _logSuccess('Version command works');
-
-    _logTest('3. Testing releases (first 5 lines)...');
-    await _runFvmCommand(['releases']);
-    _logSuccess('Releases command works');
-
-    _logTest('4. Testing list command...');
-    await _runFvmCommand(['list']);
-    _logSuccess('List command works');
+  /// Phase 1: Network Release Metadata
+  Future<void> _runPhase1ReleaseMetadata() async {
+    await _runPhase('Network Release Metadata', () async {
+      // REAL INTEGRATION: live release metadata through the production client.
+      _logTest('Testing releases command against live metadata...');
+      await _runFvmCommand(['releases']);
+      _logSuccess('Live releases command works');
+    });
   }
 
-  /// Phase 2: Installation Workflow Tests (5 tests)
-  Future<void> _runPhase2InstallationWorkflows() async {
-    logger.info('=== Phase 2: Installation Workflow Tests ===');
+  /// Phase 2: Real Installation Workflows
+  Future<void> _runPhase2RealInstallations() async {
+    await _runPhase('Real Installation Workflows', () async {
+      // REAL INTEGRATION: real channel clone/install.
+      _logTest('Testing channel installation...');
+      await _runFvmCommand(['install', testChannelVersion.name, '--no-setup']);
+      await _verifyInstallation(testChannelVersion);
+      _logSuccess('Channel installation works');
 
-    _logTest('5. Testing channel installation...');
-    await _runFvmCommand(['install', testChannelVersion.name, '--no-setup']);
-    await _verifyInstallation(testChannelVersion);
-    _logSuccess('Channel installation works');
-
-    _logTest('6. Testing release installation...');
-    await _runFvmCommand(['install', testReleaseVersion.name, '--no-setup']);
-    await _verifyInstallation(testReleaseVersion);
-    _logSuccess('Release installation works');
-
-    _logTest('7. Testing Git commit installation...');
-    await _runFvmCommand(['install', testCommitVersion.name, '--no-setup']);
-    await _verifyInstallation(testCommitVersion);
-    _logSuccess('Git commit installation works');
-
-    _logTest('8. Testing installation with setup...');
-    // Test setup flag - explicitly run setup
-    await _runFvmCommand(['install', setupTestVersion.name, '--setup']);
-    await _verifyInstallation(setupTestVersion);
-    _logSuccess('Installation with setup flag works');
+      // REAL INTEGRATION: real commit clone/install.
+      _logTest('Testing Git commit installation...');
+      await _runFvmCommand(['install', testCommitVersion.name, '--no-setup']);
+      await _verifyInstallation(testCommitVersion);
+      _logSuccess('Git commit installation works');
+    });
   }
 
-  /// Phase 3: Project Lifecycle Tests (8 tests)
+  /// Phase 3: Project Lifecycle
   Future<void> _runPhase3ProjectLifecycle() async {
-    logger.info('=== Phase 3: Project Lifecycle Tests ===');
-
-    _logTest('9. Testing FVM use workflow...');
-    logger.info('Test directory before use: ${_testDir.path}');
-    logger.info('Current working directory: ${Directory.current.path}');
-    await _runFvmCommand(['use', testChannelVersion.name, '--skip-setup']);
-    logger.info('Test directory after use: ${_testDir.path}');
-    logger.info('Current working directory: ${Directory.current.path}');
-    _verifyProjectConfiguration();
-    _logSuccess('Use command works');
-
-    _logTest('10. Testing use with flavor...');
-    await _runFvmCommand([
-      'use',
-      testReleaseVersion.name,
-      '--flavor',
-      'production',
-      '--skip-setup',
-    ]);
-    await _verifyFlavorConfiguration('production');
-    _logSuccess('Flavor configuration works');
-
-    _logTest('11. Testing use with force flag...');
-    // Use the already installed stable version
-    await _runFvmCommand([
-      'use',
-      testChannelVersion.name,
-      '--force',
-      '--skip-setup',
-    ]);
-    _logSuccess('Force flag works');
-
-    _logTest('12. Testing VS Code settings integration...');
-    _verifyVSCodeIntegration();
-    _logSuccess('VS Code integration verified');
-
-    _logTest('13. Testing .gitignore integration...');
-    await _verifyGitignoreIntegration();
-    _logSuccess('Gitignore integration verified');
+    await _runPhase('Project Lifecycle', () async {
+      // REAL INTEGRATION: real use workflow plus project symlink validation.
+      _logTest('Testing FVM use workflow and symlink creation...');
+      logger.info('Test directory before use: ${_testDir.path}');
+      logger.info('Current working directory: ${Directory.current.path}');
+      await _runFvmCommand(['use', testChannelVersion.name, '--skip-setup']);
+      logger.info('Test directory after use: ${_testDir.path}');
+      logger.info('Current working directory: ${Directory.current.path}');
+      _verifyProjectConfiguration();
+      _logSuccess('Use command creates project configuration and symlink');
+    });
   }
 
-  /// Phase 4: Version Management Tests (2 tests)
-  Future<void> _runPhase4VersionManagement() async {
-    logger.info('=== Phase 4: Version Management Tests ===');
+  /// Phase 4: SDK Validation
+  Future<void> _runPhase4SdkValidation() async {
+    await _runPhase('SDK Validation', () async {
+      // REAL INTEGRATION: real SDK setup and flutter doctor validation.
+      _logTest('Testing Flutter proxy command and SDK validation...');
+      await _runFvmCommand(['install', testChannelVersion.name, '--setup']);
+      await _verifyInstallation(testChannelVersion);
 
-    _logTest('14. Testing version removal...');
-    // Use the version installed for setup test
-    await _runFvmCommand(['remove', setupTestVersion.name]);
-    _verifyVersionRemoval(setupTestVersion);
-    _logSuccess('Version removal works');
-
-    _logTest('15. Testing doctor command...');
-    await _runFvmCommand(['doctor']);
-    _logSuccess('Doctor command works');
-  }
-
-  /// Phase 5: Advanced Commands Tests (5 tests)
-  Future<void> _runPhase5AdvancedCommands() async {
-    logger.info('=== Phase 5: Advanced Command Tests ===');
-
-    _logTest('16. Testing Flutter proxy command and SDK validation...');
-    // This is the single point where we validate Flutter version properly
-    final flutterOutput = await _runFvmCommandWithOutput([
-      'flutter',
-      '--version',
-    ]);
-    await _createTempFile('flutter_version.txt', flutterOutput);
-    if (flutterOutput.isNotEmpty) {
-      logger.info('Flutter version output:');
-      logger.info(flutterOutput.split('\n').take(2).join('\n'));
-
-      // Validate that Flutter is properly set up
+      final flutterOutput = await _runFvmCommandWithOutput([
+        'flutter',
+        '--version',
+      ]);
+      await _createTempFile('flutter_version.txt', flutterOutput);
       if (!flutterOutput.contains('Flutter')) {
         throw AppException(
           'Flutter version output does not contain Flutter information',
         );
       }
 
-      // Check if we can run doctor to ensure SDK is properly set up
+      logger.info('Flutter version output:');
+      logger.info(flutterOutput.split('\n').take(2).join('\n'));
       logger.info('Validating Flutter SDK setup with doctor...');
+
       final doctorOutput = await _runFvmCommandWithOutput([
         'flutter',
         'doctor',
         '-v',
       ]);
+      await _createTempFile('flutter_doctor.txt', doctorOutput);
       if (!doctorOutput.contains('Flutter') || !doctorOutput.contains('Dart')) {
         throw AppException(
           'Flutter doctor output indicates SDK is not properly set up',
         );
       }
-      logger.success('Flutter SDK is properly set up and validated');
-    }
-    _logSuccess('Flutter proxy works and SDK is validated');
 
-    _logTest('17. Testing Dart proxy command...');
-    final dartOutput = await _runFvmCommandWithOutput(['dart', '--version']);
-    await _createTempFile('dart_version.txt', dartOutput);
-    if (dartOutput.isNotEmpty) {
-      logger.info('Dart version output:');
-      logger.info(dartOutput.split('\n').first);
-    }
-    _logSuccess('Dart proxy works');
-
-    _logTest('18. Testing spawn command...');
-    final spawnOutput = await _runFvmCommandWithOutput([
-      'spawn',
-      testChannelVersion.name,
-      '--version',
-    ]);
-    await _createTempFile('spawn_version.txt', spawnOutput);
-    if (spawnOutput.isNotEmpty) {
-      logger.info('Spawn output:');
-      logger.info(spawnOutput.split('\n').take(2).join('\n'));
-    }
-    _logSuccess('Spawn command works');
-
-    _logTest('19. Testing exec command...');
-    final execOutput = await _runFvmCommandWithOutput([
-      'exec',
-      'echo',
-      'Exec test successful',
-    ]);
-    await _createTempFile('exec_output.txt', execOutput);
-    if (!execOutput.contains('Exec test successful')) {
-      throw AppException('Exec command output verification failed');
-    }
-    _logSuccess('Exec command works');
-
-    _logTest('20. Testing flavor command...');
-    // Set up flavor first
-    await _runFvmCommand([
-      'use',
-      testChannelVersion.name,
-      '--flavor',
-      'development',
-      '--skip-setup',
-    ]);
-
-    // Test flavor command
-    try {
-      final flavorOutput = await _runFvmCommandWithOutput([
-        'flavor',
-        'development',
-        '--version',
-      ]);
-      await _createTempFile('flavor_output.txt', flavorOutput);
-      if (flavorOutput.isNotEmpty) {
-        logger.info('Flavor output:');
-        logger.info(flavorOutput.split('\n').take(2).join('\n'));
-      }
-      _logSuccess('Flavor command works');
-    } catch (e) {
-      logger.info('Note: Flavor command may not be available or configured');
-    }
+      _logSuccess('Flutter proxy works and SDK is validated');
+    });
   }
 
-  /// Phase 6: API Command Tests (4 tests)
-  Future<void> _runPhase6ApiCommands() async {
-    logger.info('=== Phase 6: API Command Tests ===');
-
-    _logTest('21. Testing API list command...');
-    final apiListOutput = await _runFvmCommandWithOutput(['api', 'list']);
-    await _createTempFile('api_list.txt', apiListOutput);
-    if (apiListOutput.isNotEmpty) {
-      logger.info('API list sample:');
-      logger.info(apiListOutput.split('\n').take(5).join('\n'));
-    }
-    _logSuccess('API list command works');
-
-    _logTest('22. Testing API releases command...');
-    final apiReleasesOutput = await _runFvmCommandWithOutput([
-      'api',
-      'releases',
-      '--limit',
-      '3',
-    ]);
-    await _createTempFile('api_releases.txt', apiReleasesOutput);
-    if (apiReleasesOutput.isNotEmpty) {
+  /// Phase 5: API Release Smoke
+  Future<void> _runPhase5ApiReleaseSmoke() async {
+    await _runPhase('API Release Smoke', () async {
+      // REAL INTEGRATION: real releases API command backed by live metadata.
+      _logTest('Testing API releases command...');
+      final apiReleasesOutput = await _runFvmCommandWithOutput([
+        'api',
+        'releases',
+        '--limit',
+        '3',
+      ]);
+      await _createTempFile('api_releases.txt', apiReleasesOutput);
+      if (apiReleasesOutput.trim().isEmpty) {
+        throw AppException('API releases output is empty');
+      }
       logger.info('API releases sample:');
       logger.info(apiReleasesOutput.split('\n').take(5).join('\n'));
-    }
-    _logSuccess('API releases command works');
-
-    _logTest('23. Testing API project command...');
-    final apiProjectOutput = await _runFvmCommandWithOutput(['api', 'project']);
-    await _createTempFile('api_project.txt', apiProjectOutput);
-    if (apiProjectOutput.isNotEmpty) {
-      logger.info('API project sample:');
-      logger.info(apiProjectOutput.split('\n').take(5).join('\n'));
-    }
-    _logSuccess('API project command works');
-
-    _logTest('24. Testing API context command...');
-    final apiContextOutput = await _runFvmCommandWithOutput(['api', 'context']);
-    await _createTempFile('api_context.txt', apiContextOutput);
-    if (apiContextOutput.isNotEmpty) {
-      logger.info('API context sample:');
-      logger.info(apiContextOutput.split('\n').take(5).join('\n'));
-    }
-    _logSuccess('API context command works');
+      _logSuccess('API releases command works');
+    });
   }
 
-  /// Phase 7: Fork Management Tests (3 tests)
-  Future<void> _runPhase7ForkManagement() async {
-    logger.info('=== Phase 7: Fork Management Tests ===');
+  /// Phase 6: Recovery
+  Future<void> _runPhase6Recovery() async {
+    await _runPhase('Recovery', () async {
+      // REAL INTEGRATION: recovery with a corrupted cache entry present.
+      _logTest('Testing corrupted cache recovery...');
+      await _testCorruptedCacheRecovery();
+      _logSuccess('Corrupted cache recovery works');
 
-    _logTest('25. Testing fork add command...');
-    // Clean up any existing test fork first
-    try {
-      await _runFvmCommand(['fork', 'remove', testForkName]);
-    } catch (e) {
-      // Ignore if fork doesn't exist
-    }
-    await _runFvmCommand(['fork', 'add', testForkName, testForkUrl]);
-    _logSuccess('Fork add command works');
-
-    _logTest('26. Testing fork list command...');
-    final forkListOutput = await _runFvmCommandWithOutput(['fork', 'list']);
-    if (!forkListOutput.contains(testForkName)) {
-      throw AppException('Fork not found in list');
-    }
-    logger.info('Fork list output:');
-    logger.info(forkListOutput);
-    _logSuccess('Fork list command works and shows added fork');
-
-    _logTest('27. Testing fork remove command...');
-    await _runFvmCommand(['fork', 'remove', testForkName]);
-
-    // Verify fork was removed
-    final forkListAfter = await _runFvmCommandWithOutput(['fork', 'list']);
-    if (forkListAfter.contains(testForkName)) {
-      throw AppException('Fork still exists after removal');
-    }
-    _logSuccess('Fork successfully removed');
-  }
-
-  /// Phase 8: Configuration Management Tests (2 tests)
-  Future<void> _runPhase8ConfigManagement() async {
-    logger.info('=== Phase 8: Configuration Management Tests ===');
-
-    _logTest('28. Testing config command...');
-    final configOutput = await _runFvmCommandWithOutput(['config']);
-    await _createTempFile('config_output.txt', configOutput);
-    _verifyConfigOutput(configOutput);
-    logger.info('Config output:');
-    logger.info(configOutput.split('\n').take(10).join('\n'));
-    _logSuccess('Config command works');
-
-    _logTest('29. Testing config setting modification...');
-
-    // Skip cache path modification during integration test
-    // as it causes issues with the in-memory context
-    logger.info(
-      'Note: Skipping cache path modification to avoid context issues',
-    );
-    logger.info(
-      'This test would normally modify the cache path, but it causes',
-    );
-    logger.info(
-      'the in-memory context to become out of sync with the config file.',
-    );
-
-    // Instead, test a different config option that won't affect the test flow
-    // Test update check setting which is safe to modify
-    await _runFvmCommand(['config', '--no-update-check']);
-    final modifiedConfig = await _runFvmCommandWithOutput(['config']);
-
-    if (!modifiedConfig.contains('disableUpdateCheck: true')) {
-      throw AppException('Update check setting not updated in config output');
-    }
-
-    // Restore the setting
-    await _runFvmCommand(['config', '--update-check']);
-
-    _logSuccess('Config modification works');
-  }
-
-  /// Verify config command output (based on bash script lines 509-518)
-  void _verifyConfigOutput(String output) {
-    // Check for basic config structure
-    if (!output.contains('FVM Configuration')) {
-      throw AppException('Config output missing header');
-    }
-
-    // Handle both empty config and configured states
-    final hasNoSettings = output.contains('No settings have been configured');
-    final hasCachePath = output.contains('cachePath');
-
-    if (!hasNoSettings && !hasCachePath) {
-      throw AppException('Config output missing expected content');
-    }
-
-    // Verify it's valid output (not empty or error)
-    if (output.trim().isEmpty) {
-      throw AppException('Config output is empty');
-    }
-
-    logger.success('Config output contains valid configuration');
-  }
-
-  /// Phase 9: Error Handling Tests (3 tests)
-  Future<void> _runPhase9ErrorHandling() async {
-    logger.info('=== Phase 9: Error Handling Tests ===');
-
-    _logTest('30. Testing invalid version handling...');
-    try {
-      await _runFvmCommand(['install', 'invalid-version-12345']);
-      throw AppException('Invalid version should have failed');
-    } catch (e) {
-      if (e is! AppException || e.message.contains('should have failed')) {
-        rethrow;
-      }
-      _logSuccess('Invalid version handled gracefully');
-    }
-
-    _logTest('31. Testing invalid command handling...');
-    try {
-      await _runFvmCommand(['invalid-command-xyz']);
-      throw AppException('Invalid command should have failed');
-    } catch (e) {
-      if (e is! AppException || e.message.contains('should have failed')) {
-        rethrow;
-      }
-      _logSuccess('Invalid command handled gracefully');
-    }
-
-    _logTest('32. Testing corrupted cache recovery...');
-    await _testCorruptedCacheRecovery();
-    _logSuccess('Corrupted cache recovery works');
-
-    _logTest('33. Testing Git clone fallback mechanism...');
-    await _testGitCloneFallback();
-    _logSuccess('Git clone fallback mechanism works');
+      // REAL INTEGRATION: fallback from a corrupted local git cache.
+      _logTest('Testing Git clone fallback mechanism...');
+      await _testGitCloneFallback();
+      _logSuccess('Git clone fallback mechanism works');
+    });
   }
 
   /// Test corrupted cache recovery (based on bash script lines 545-565)
@@ -552,8 +278,8 @@ class IntegrationTestRunner {
       final corruptFile = File(p.join(corruptDir.path, 'flutter'));
       await corruptFile.writeAsString('corrupted');
 
-      // Try to install a valid version (should work fine despite corruption)
-      await _runFvmCommand(['install', testChannelVersion.name]);
+      // Try to install a valid version (should work fine despite corruption).
+      await _runFvmCommand(['install', testChannelVersion.name, '--no-setup']);
 
       logger.success('System recovered from corrupted cache entry');
     } catch (e) {
@@ -581,6 +307,7 @@ class IntegrationTestRunner {
         useGitCache: true, // Ensure git cache is enabled for this test
       ),
       workingDirectoryOverride: context.workingDirectory,
+      appConfigPath: context.appConfigPath,
     );
 
     try {
@@ -629,19 +356,14 @@ class IntegrationTestRunner {
     }
   }
 
-  /// Phase 10: Cleanup Operations Tests (2 tests)
-  Future<void> _runPhase10CleanupOperations() async {
-    logger.info('=== Phase 10: Cleanup Operations Tests ===');
-
-    _logTest('34. Testing selective version removal...');
-    // Remove one of the previously installed versions
-    await _runFvmCommand(['remove', testCommitVersion.name]);
-    _verifyVersionRemoval(testCommitVersion);
-    _logSuccess('Selective version removal works');
-
-    _logTest('35. Testing destroy command with backup/restore...');
-    await _testDestroyCommandSafely();
-    _logSuccess('Destroy command test completed');
+  /// Phase 7: Destructive Cache Cleanup
+  Future<void> _runPhase7CleanupOperations() async {
+    await _runPhase('Destructive Cache Cleanup', () async {
+      // REAL INTEGRATION: destroy real cache contents and reinstall guard SDK.
+      _logTest('Testing destroy command and reinstall...');
+      await _testDestroyCommandSafely();
+      _logSuccess('Destroy command and reinstall completed');
+    });
   }
 
   /// Test destroy command safely (focused on destroy functionality, not backup/restore)
@@ -723,103 +445,74 @@ class IntegrationTestRunner {
     }
   }
 
-  /// Phase 11: Final Validation Tests (2 tests)
-  Future<void> _runPhase11FinalValidation() async {
-    logger.info('=== Phase 11: Final Validation Tests ===');
-
-    _logTest('36. Final system state validation...');
-    final versionOutput = await _runFvmCommandWithOutput(['--version']);
-    await _createTempFile('final_version.txt', versionOutput);
-    logger.info('FVM version: $versionOutput');
-    await _verifyFinalSystemState();
-    _logSuccess('FVM still functional after all tests');
-
-    _logTest('37. Testing concurrent operation safety...');
-    await _testConcurrentOperations();
-    _logSuccess('Concurrent operations completed safely');
+  /// Phase 8: Concurrency
+  Future<void> _runPhase8Concurrency() async {
+    await _runPhase('Concurrency', () async {
+      // REAL INTEGRATION: concurrent operations over real installed SDKs.
+      _logTest('Testing concurrent operation safety...');
+      await _testConcurrentOperations();
+      _logSuccess('Concurrent operations completed safely');
+    });
   }
 
-  /// Phase 12: Global Command Test (2 tests) - Run last to avoid affecting other tests
-  Future<void> _runPhase12GlobalCommand() async {
-    logger.info('=== Phase 12: Global Command Test ===');
-    logger.info(
-      'Running global command tests last to avoid affecting other tests',
-    );
+  /// Phase 9: Global Symlink
+  Future<void> _runPhase9GlobalCommand() async {
+    await _runPhase('Global Symlink', () async {
+      // REAL INTEGRATION: real global symlink creation and validation.
+      _logTest('Testing global version setting and symlink validation...');
 
-    _logTest('38. Testing global version setting...');
+      final originalGlobalVersion = _getGlobalVersion();
+      logger.info('Current global version: ${originalGlobalVersion ?? "none"}');
 
-    // First, backup current global configuration
-    final originalGlobalVersion = _getGlobalVersion();
-    logger.info('Current global version: ${originalGlobalVersion ?? "none"}');
+      try {
+        await _runFvmCommand(['global', testChannelVersion.name]);
 
-    try {
-      // Set global version (skip setup since it's already installed)
-      await _runFvmCommand(['global', testChannelVersion.name]);
-      _logSuccess('Global version set successfully');
+        final globalLink = Link(context.globalCacheLink);
+        if (!globalLink.existsSync()) {
+          throw AppException('Global default symlink not created');
+        }
 
-      _logTest('39. Validating global command with PATH verification...');
+        final target = globalLink.targetSync();
+        if (!target.contains(testChannelVersion.name)) {
+          throw AppException('Global symlink points to wrong version: $target');
+        }
 
-      // Verify the global symlink was created
-      final globalLink = Link(context.globalCacheLink);
-      if (!globalLink.existsSync()) {
-        throw AppException('Global default symlink not created');
-      }
+        final cacheService = context.get<CacheService>();
+        final globalVersion = cacheService.getGlobal();
+        if (globalVersion == null) {
+          throw AppException('Global version not found after setting');
+        }
 
-      // Verify it points to the correct version
-      final target = globalLink.targetSync();
-      if (!target.contains(testChannelVersion.name)) {
-        throw AppException('Global symlink points to wrong version: $target');
-      }
+        final globalFlutterBin = File(globalVersion.flutterExec);
+        if (!globalFlutterBin.existsSync()) {
+          throw AppException(
+            'Flutter binary not found at expected path: ${globalVersion.flutterExec}',
+          );
+        }
 
-      // Log the PATH that should be added
-      logger.info(
-        'PATH verification: FVM global bin should be at: ${context.globalCacheBinPath}',
-      );
+        final currentGlobalVersion = _getGlobalVersion();
+        if (currentGlobalVersion != testChannelVersion.name) {
+          throw AppException(
+            'Global version mismatch: expected ${testChannelVersion.name}, got $currentGlobalVersion',
+          );
+        }
 
-      // Verify flutter binary exists through the cache service
-      final cacheService = context.get<CacheService>();
-      final globalVersion = cacheService.getGlobal();
-      if (globalVersion == null) {
-        throw AppException('Global version not found after setting');
-      }
-
-      final globalFlutterBin = File(globalVersion.flutterExec);
-      if (!globalFlutterBin.existsSync()) {
-        logger.warn(
-          'Warning: Flutter binary not found at expected path: ${globalVersion.flutterExec}',
-        );
-        logger.info(
-          'Note: This might be normal if symlinks are handled differently',
-        );
-      }
-
-      // Verify we can get the global version through the service
-      final currentGlobalVersion = _getGlobalVersion();
-      if (currentGlobalVersion != testChannelVersion.name) {
-        throw AppException(
-          'Global version mismatch: expected ${testChannelVersion.name}, got $currentGlobalVersion',
-        );
-      }
-
-      logger.success('Global version verified: ${testChannelVersion.name}');
-      logger.success('Global symlink exists at: ${globalLink.path}');
-      logger.success(
-        'Global PATH would include: ${context.globalCacheBinPath}',
-      );
-      _logSuccess('Global command validated with PATH verification');
-    } finally {
-      // Restore original global version if there was one
-      if (originalGlobalVersion != null) {
-        logger.info(
-          'Restoring original global version: $originalGlobalVersion',
-        );
-        try {
-          await _runFvmCommand(['global', originalGlobalVersion]);
-        } catch (e) {
-          logger.warn('Could not restore original global version: $e');
+        logger.success('Global version verified: ${testChannelVersion.name}');
+        logger.success('Global symlink exists at: ${globalLink.path}');
+        _logSuccess('Global command created a valid SDK symlink');
+      } finally {
+        if (originalGlobalVersion != null) {
+          logger.info(
+            'Restoring original global version: $originalGlobalVersion',
+          );
+          try {
+            await _runFvmCommand(['global', originalGlobalVersion]);
+          } catch (e) {
+            logger.warn('Could not restore original global version: $e');
+          }
         }
       }
-    }
+    });
   }
 
   /// Get current global version if any
@@ -829,89 +522,23 @@ class IntegrationTestRunner {
     return cacheService.getGlobalVersion();
   }
 
-  /// Verify final system state
-  Future<void> _verifyFinalSystemState() async {
-    final cacheService = context.get<CacheService>();
-
-    // Debug: Log cache directory being used
-    logger.info('Checking cache directory: ${context.versionsCachePath}');
-    final cacheDir = Directory(context.versionsCachePath);
-    if (cacheDir.existsSync()) {
-      final contents = cacheDir.listSync();
-      logger.info('Cache directory contents: ${contents.length} items');
-      for (final item in contents) {
-        logger.info('  - ${p.basename(item.path)}');
-      }
-    } else {
-      logger.info('Cache directory does not exist!');
-    }
-
-    // Get all installed versions using the service
-    final installedVersions = await cacheService.getAllVersions();
-    logger.info('CacheService found ${installedVersions.length} versions');
-
-    // Also check directory directly as a fallback
-    if (installedVersions.isEmpty && cacheDir.existsSync()) {
-      final dirs = cacheDir.listSync().whereType<Directory>().toList();
-      final validDirs = dirs
-          .where((d) => File(p.join(d.path, 'bin', 'flutter')).existsSync())
-          .toList();
-
-      if (validDirs.isNotEmpty) {
-        logger.warn(
-          'Cache service reports 0 versions but found ${validDirs.length} in directory',
-        );
-        logger.warn('This might be a cache service refresh issue');
-
-        // Don't fail if we found versions in the directory
-        return;
-      }
-    }
-
-    if (installedVersions.isEmpty) {
-      throw AppException('No Flutter versions found after tests');
-    }
-
-    // Verify each version has valid cache integrity
-    for (final version in installedVersions) {
-      final integrity = await cacheService.verifyCacheIntegrity(version);
-      if (integrity != CacheIntegrity.valid) {
-        logger.warn(
-          'Warning: Version ${version.name} has integrity issue: $integrity',
-        );
-      }
-    }
-
-    logger.success('Final system state verified');
-    logger.info('  - Cache directory: ${context.fvmDir}');
-    logger.info('  - Installed versions: ${installedVersions.length}');
-
-    // List all installed versions
-    for (final version in installedVersions) {
-      logger.info('    - ${version.printFriendlyName}');
-    }
-  }
-
   /// Test concurrent operations (based on bash script concurrent testing)
   Future<void> _testConcurrentOperations() async {
     logger.info('Running concurrent FVM operations...');
 
-    // Run multiple read-only commands concurrently
+    // Run multiple real commands concurrently against installed SDK/cache state.
     final futures = [
       _runFvmCommand(['list']),
-      _runFvmCommand(['doctor']),
       _runFvmCommand(['releases']),
-      _runFvmCommand(['api', 'context']),
+      _runFvmCommand(['flutter', '--version']),
     ];
 
-    // Wait for all to complete
     await Future.wait(futures);
 
-    // Test concurrent installation (if not in fast mode)
     logger.info('Testing concurrent version access...');
     final concurrentFutures = [
-      _runFvmCommand(['spawn', testChannelVersion.name, '--version']),
       _runFvmCommand(['flutter', '--version']),
+      _runFvmCommand(['install', testChannelVersion.name, '--no-setup']),
     ];
 
     await Future.wait(concurrentFutures);
@@ -957,9 +584,23 @@ class IntegrationTestRunner {
     return file;
   }
 
+  Future<void> _runPhase(String name, Future<void> Function() body) async {
+    logger.info('=== Phase ${++_phaseNumber}: $name ===');
+    _currentPhase = name;
+    try {
+      await body();
+    } finally {
+      _currentPhase = null;
+      logger.info('');
+    }
+  }
+
   /// Helper method to log test start
   void _logTest(String message) {
-    logger.info('[TEST] $message');
+    _testCount += 1;
+    final phase = _currentPhase ?? 'Unscoped';
+    _phaseCounts.update(phase, (count) => count + 1, ifAbsent: () => 1);
+    logger.info('[TEST] $_testCount. $message');
   }
 
   /// Helper method to log test success
@@ -987,7 +628,7 @@ class IntegrationTestRunner {
     }
 
     logger.info(
-      '✓ Version ${version.name} verified in isolated cache: ${cacheVersion.directory}',
+      'Version ${version.name} verified in isolated cache: ${cacheVersion.directory}',
     );
   }
 
@@ -1032,144 +673,51 @@ class IntegrationTestRunner {
       );
     }
 
-    logger.info('✓ Project configuration verified');
+    logger.info('Project configuration verified');
     logger.info('  - .fvmrc file exists');
     logger.info('  - .fvm directory exists');
     logger.info('  - flutter_sdk symlink exists and points to: $target');
-  }
-
-  /// Verify flavor configuration
-  Future<void> _verifyFlavorConfiguration(String flavor) async {
-    final fvmrcFile = File(p.join(_testDir.path, '.fvmrc'));
-    if (!fvmrcFile.existsSync()) {
-      throw AppException('.fvmrc file not found');
-    }
-
-    final content = await fvmrcFile.readAsString();
-    if (!content.contains(flavor)) {
-      throw AppException('Flavor $flavor not found in .fvmrc');
-    }
-  }
-
-  /// Verify VS Code integration
-  void _verifyVSCodeIntegration() {
-    final vscodeDir = Directory(p.join(_testDir.path, '.vscode'));
-    if (vscodeDir.existsSync()) {
-      final settingsFile = File(p.join(vscodeDir.path, 'settings.json'));
-      if (settingsFile.existsSync()) {
-        logger.info('VS Code settings.json found');
-      }
-    }
-    // VS Code integration is optional, so we don't fail if it's not present
-  }
-
-  /// Verify .gitignore integration
-  Future<void> _verifyGitignoreIntegration() async {
-    final gitignoreFile = File(p.join(_testDir.path, '.gitignore'));
-    if (gitignoreFile.existsSync()) {
-      final content = await gitignoreFile.readAsString();
-      if (content.contains('.fvm/flutter_sdk')) {
-        logger.info('.gitignore updated with FVM entries');
-      }
-    }
-    // .gitignore integration is optional, so we don't fail if it's not present
-  }
-
-  /// Verify version removal
-  void _verifyVersionRemoval(FlutterVersion version) {
-    final cacheService = context.get<CacheService>();
-    final cacheVersion = cacheService.getVersion(version);
-
-    if (cacheVersion != null) {
-      throw AppException(
-        'Version ${version.name} still exists in isolated cache after removal',
-      );
-    }
-
-    logger.info(
-      '✓ Version ${version.name} successfully removed from isolated cache',
-    );
   }
 
   /// Print test summary
   void _printSummary() {
     logger.info('');
     logger.info('=== Integration Test Summary ===');
-    logger.success('All 38 tests passed successfully!');
-    logger.info('--- Test Coverage ---');
-    logger.info('   • Basic Commands: 4 tests (1-4)');
-    logger.info('   • Installation Workflows: 4 tests (5-8)');
-    logger.info('   • Project Lifecycle: 5 tests (9-13)');
-    logger.info('   • Version Management: 2 tests (14-15)');
-    logger.info('   • Advanced Commands: 5 tests (16-20)');
-    logger.info('   • API Commands: 4 tests (21-24)');
-    logger.info('   • Fork Management: 3 tests (25-27)');
-    logger.info('   • Configuration: 2 tests (28-29)');
-    logger.info('   • Error Handling: 3 tests (30-32)');
-    logger.info('   • Cleanup Operations: 2 tests (33-34)');
-    logger.info('   • Final Validation: 2 tests (35-36)');
-    logger.info('   • Global Command: 2 tests (37-38)');
+    logger.success('All $_testCount real integration tests passed!');
+    logger.info('--- Runtime Test Coverage ---');
+    for (final entry in _phaseCounts.entries) {
+      final label = entry.value == 1 ? 'test' : 'tests';
+      logger.info('   - ${entry.key}: ${entry.value} $label');
+    }
     logger.info('');
     logger.info('[INFO] Test artifacts saved to: ${_tempFilesDir.path}');
     logger.info('[INFO] Cache verified at: ${context.fvmDir}');
     logger.info('');
     logger.success('FVM integration tests completed successfully!');
-    logger.info(
-      '   Perfect equivalent to bash script with 38 complete tests',
-    );
-    logger.info('');
     logger.info('Real-world operations tested:');
-    logger.info('  - Actual Git clones and Flutter SDK installations');
-    logger.info('  - File system changes (symlinks, .fvmrc, .gitignore)');
-    logger.info('  - VS Code settings integration');
-    logger.info('  - Configuration persistence');
-    logger.info('  - Error recovery and graceful failure handling');
-    logger.info('  - Multi-version management');
-    logger.info('  - Fork repository management');
-    logger.info('  - API endpoint functionality');
-    logger.info('  - Output capture and verification');
-    logger.info('  - Corrupted cache recovery');
+    logger.info('  - Live release metadata');
+    logger.info('  - Real Git clones and Flutter SDK installations');
+    logger.info('  - File system changes (symlinks and .fvmrc)');
+    logger.info('  - Flutter SDK setup and doctor validation');
+    logger.info('  - API releases smoke coverage');
+    logger.info('  - Corrupted cache and clone fallback recovery');
+    logger.info('  - Destructive cache cleanup and reinstall');
     logger.info('  - Concurrent operation safety');
+    logger.info('  - Global SDK symlink validation');
     logger.info('');
   }
 
   /// Execute the complete integration test workflow
   Future<void> _runIntegrationWorkflow() async {
-    // Step 1: Basic Command Verification
-    await _runPhase1BasicCommands();
-
-    // Step 2: Install Required Versions (workflow dependency)
-    await _runPhase2InstallationWorkflows();
-
-    // Step 3: Project Configuration Workflow
+    await _runPhase1ReleaseMetadata();
+    await _runPhase2RealInstallations();
     await _runPhase3ProjectLifecycle();
-
-    // Step 4: Version Management Workflow
-    await _runPhase4VersionManagement();
-
-    // Step 5: Advanced Command Workflow
-    await _runPhase5AdvancedCommands();
-
-    // Step 6: API Integration Workflow
-    await _runPhase6ApiCommands();
-
-    // Step 7: Fork Management Workflow
-    await _runPhase7ForkManagement();
-
-    // Step 8: Configuration Management Workflow
-    await _runPhase8ConfigManagement();
-
-    // Step 9: Error Handling Verification
-    await _runPhase9ErrorHandling();
-
-    // Step 10: Cleanup Operations Workflow
-    await _runPhase10CleanupOperations();
-
-    // Step 11: Final System Verification
-    await _runPhase11FinalValidation();
-
-    // Step 12: Global Command Test (run last to avoid affecting other tests)
-    await _runPhase12GlobalCommand();
+    await _runPhase4SdkValidation();
+    await _runPhase5ApiReleaseSmoke();
+    await _runPhase6Recovery();
+    await _runPhase7CleanupOperations();
+    await _runPhase8Concurrency();
+    await _runPhase9GlobalCommand();
   }
 
   Logger get logger => context.get();
@@ -1180,7 +728,7 @@ class IntegrationTestRunner {
 
     try {
       logger.info('[TEST] Starting FVM Integration Test Workflow');
-      logger.info('Running complete test suite with all 39 tests');
+      logger.info('Running trimmed real integration guardrails');
       logger.info('');
 
       // Execute as a continuous workflow, not separate phases

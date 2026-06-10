@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 
+import 'fake_flutter_release_client.dart';
 import 'fake_flutter_sdk_fixture.dart';
 
 /// Fixture-backed Flutter SDK behavior for fast tests.
@@ -17,17 +18,13 @@ class FakeFlutterService extends FlutterService {
   final installFailures = <String, Exception>{};
   final runResults = <String, ProcessResult>{};
 
-  static final _allowedReleases = <String>{
-    '2.0.0',
-    '2.2.0',
-    '2.2.2',
-    '3.0.0',
-    '3.10.0',
-    '3.10.5',
-    '3.19.0',
-    '1.12.0',
-    '3.19.0@beta',
-  };
+  static final _allowedReleases = FakeFlutterReleaseClient.loadFixtureReleases()
+      .versions
+      .map((release) => release.version)
+      .toSet();
+
+  static Set<String> get allowedReleaseVersions =>
+      Set.unmodifiable(_allowedReleases);
 
   static final _allowedForkRefs = <String>{
     'leo-test-21',

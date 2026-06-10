@@ -26,7 +26,8 @@ class ConfigCommand extends BaseFvmCommand {
   @override
   Future<int> run() async {
     // Flag if settings should be saved
-    final globalConfig = LocalAppConfig.read().toMap();
+    final globalConfig =
+        LocalAppConfig.read(path: context.appConfigPath).toMap();
     bool hasChanges = false;
 
     void updateConfigKey<T>(ConfigOptions key, T value) {
@@ -66,7 +67,7 @@ class ConfigCommand extends BaseFvmCommand {
       final updateProgress = logger.progress('Saving settings');
       // Update settings
       try {
-        LocalAppConfig.fromMap(globalConfig).save();
+        LocalAppConfig.fromMap(globalConfig).save(path: context.appConfigPath);
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         rethrow;
@@ -76,11 +77,11 @@ class ConfigCommand extends BaseFvmCommand {
       return ExitCode.success.code;
     }
 
-    final config = LocalAppConfig.read();
+    final config = LocalAppConfig.read(path: context.appConfigPath);
 
     logger
       ..info('FVM Configuration:')
-      ..info('Located at ${config.location}')
+      ..info('Located at ${context.appConfigPath}')
       ..info('');
 
     if (config.isEmpty) {

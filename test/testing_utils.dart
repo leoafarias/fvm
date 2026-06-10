@@ -394,6 +394,7 @@ class TestFactory {
     bool? skipInput,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
+    String? appConfigPath,
   }) {
     return context(
       debugLabel: debugLabel,
@@ -401,6 +402,7 @@ class TestFactory {
       skipInput: skipInput,
       environmentOverrides: environmentOverrides,
       workingDirectoryOverride: workingDirectoryOverride,
+      appConfigPath: appConfigPath,
       generators: {
         FlutterService: (context) => FakeFlutterService(context),
         FlutterReleaseClient: (context) => FakeFlutterReleaseClient(context),
@@ -417,15 +419,19 @@ class TestFactory {
     bool? skipInput,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
+    String? appConfigPath,
   }) {
     debugLabel ??= _generateUuid();
 
-    final globalConfig = LocalAppConfig.read();
     final contextRoot = createTempDir(debugLabel);
     final cacheDir = Directory(p.join(contextRoot.path, 'cache'))
       ..createSync(recursive: true);
+    final configFilePath =
+        appConfigPath ?? p.join(contextRoot.path, 'config', kFvmConfigFileName);
     final workingDir = Directory(p.join(contextRoot.path, 'workspace'))
       ..createSync(recursive: true);
+
+    final globalConfig = LocalAppConfig.read(path: configFilePath);
 
     final config = AppConfig(
       cachePath: cacheDir.path,
@@ -440,6 +446,7 @@ class TestFactory {
       configOverrides: config,
       logLevel: Level.verbose,
       workingDirectoryOverride: workingDirectoryOverride ?? workingDir.path,
+      appConfigPath: configFilePath,
       isTest: true,
       skipInput: skipInput ?? false,
       environmentOverrides: environmentOverrides,
