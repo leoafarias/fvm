@@ -1,5 +1,6 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
 
@@ -95,6 +96,52 @@ void main() {
       },
     );
 
+    test('non-TTY mode handles version mismatch gracefully', () async {
+      final context = TestFactory.fastContext(
+        stdinHasTerminal: false,
+      );
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
+
+      final version = FlutterVersion.parse('3.10.0');
+      final cacheService = context.get<CacheService>();
+      final ensureCache = EnsureCacheWorkflow(context);
+
+      FakeFlutterSdkFixture.install(
+        context,
+        version,
+        state: FakeFlutterSdkState.versionMismatch,
+        mismatchCachedVersion: '3.10.5',
+      );
+
+      final mismatchedVersion = cacheService.getVersion(version);
+      expect(mismatchedVersion, isNotNull);
+      expect(
+        await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+        equals(CacheIntegrity.versionMismatch),
+      );
+
+      final installCountBefore = flutterService.installedVersions.length;
+      final result = await ensureCache(version);
+      final logger = context.get<Logger>();
+
+      expect(result, isNotNull);
+      expect(result.name, equals('3.10.0'));
+      expect(
+        flutterService.installedVersions.length,
+        greaterThan(installCountBefore),
+      );
+      expect(flutterService.installedVersions.last.name, equals('3.10.0'));
+      expect(
+        logger.outputs.any(
+          (message) => message.contains(
+            'CI/non-interactive mode: auto-selecting remove and reinstall',
+          ),
+        ),
+        isTrue,
+      );
+    });
+
     test(
       'GitHub Actions environment handles version mismatch',
       () async {
@@ -172,5 +219,22 @@ void main() {
         expect(multiCiContext.skipInput, isTrue);
       },
     );
+
+    test('non-TTY stdin is treated as skipped input', () {
+      final context = FvmContext.raw(
+        debugLabel: null,
+        workingDirectory: '.',
+        config: const AppConfig(),
+        appConfigPath: '',
+        generators: <Type, Generator>{},
+        environment: const {},
+        skipInput: false,
+        stdinHasTerminal: false,
+      );
+
+      expect(context.isCI, isFalse);
+      expect(context.stdinHasTerminal, isFalse);
+      expect(context.skipInput, isTrue);
+    });
   });
 }

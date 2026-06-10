@@ -46,6 +46,9 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static bool _$_skipInput(FvmContext v) => v._skipInput;
   static const Field<FvmContext, bool> _f$_skipInput =
       Field('_skipInput', _$_skipInput, key: r'skipInput');
+  static bool _$stdinHasTerminal(FvmContext v) => v.stdinHasTerminal;
+  static const Field<FvmContext, bool> _f$stdinHasTerminal =
+      Field('stdinHasTerminal', _$stdinHasTerminal, opt: true, def: true);
   static bool _$isTest(FvmContext v) => v.isTest;
   static const Field<FvmContext, bool> _f$isTest =
       Field('isTest', _$isTest, opt: true, def: false);
@@ -102,6 +105,7 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
     #_generators: _f$_generators,
     #environment: _f$environment,
     #_skipInput: _f$_skipInput,
+    #stdinHasTerminal: _f$stdinHasTerminal,
     #isTest: _f$isTest,
     #logLevel: _f$logLevel,
     #fvmDir: _f$fvmDir,
@@ -129,6 +133,7 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
         generators: data.dec(_f$_generators),
         environment: data.dec(_f$environment),
         skipInput: data.dec(_f$_skipInput),
+        stdinHasTerminal: data.dec(_f$stdinHasTerminal),
         isTest: data.dec(_f$isTest),
         logLevel: data.dec(_f$logLevel));
   }
@@ -202,6 +207,7 @@ abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
       Map<Type, Contextual Function(FvmContext)>? generators,
       Map<String, String>? environment,
       bool? skipInput,
+      bool? stdinHasTerminal,
       bool? isTest,
       Level? logLevel});
   FvmContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -243,6 +249,7 @@ class _FvmContextCopyWithImpl<$R, $Out>
           Map<Type, Contextual Function(FvmContext)>? generators,
           Map<String, String>? environment,
           bool? skipInput,
+          bool? stdinHasTerminal,
           bool? isTest,
           Level? logLevel}) =>
       $apply(FieldCopyWithData({
@@ -253,6 +260,7 @@ class _FvmContextCopyWithImpl<$R, $Out>
         if (generators != null) #generators: generators,
         if (environment != null) #environment: environment,
         if (skipInput != null) #skipInput: skipInput,
+        if (stdinHasTerminal != null) #stdinHasTerminal: stdinHasTerminal,
         if (isTest != null) #isTest: isTest,
         if (logLevel != null) #logLevel: logLevel
       }));
@@ -266,6 +274,8 @@ class _FvmContextCopyWithImpl<$R, $Out>
       generators: data.get(#generators, or: $value._generators),
       environment: data.get(#environment, or: $value.environment),
       skipInput: data.get(#skipInput, or: $value._skipInput),
+      stdinHasTerminal:
+          data.get(#stdinHasTerminal, or: $value.stdinHasTerminal),
       isTest: data.get(#isTest, or: $value.isTest),
       logLevel: data.get(#logLevel, or: $value.logLevel));
 
