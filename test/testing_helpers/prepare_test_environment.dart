@@ -5,8 +5,17 @@ import 'package:fvm/src/utils/context.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart';
 
+const _kSharedTestCacheDirName = 'fvm_test_cache';
+const _kSharedTestWorkspaceDirName = 'workspaces';
+
 String getTempTestDir([String? contextId = '', String path = '']) {
-  return join(kUserHome, 'fvm-test', contextId, path);
+  return join(
+    kUserHome,
+    _kSharedTestCacheDirName,
+    _kSharedTestWorkspaceDirName,
+    contextId,
+    path,
+  );
 }
 
 String getTempTestProjectDir([String? contextId = '', String name = '']) {
@@ -67,16 +76,16 @@ Future<void> setUpContext(
 }
 
 void tearDownContext(FvmContext context) {
-  // final tempPath = getTempTestDir(context.id);
+  final tempPath = getTempTestDir(context.debugLabel);
 
-  // final tempDir = Directory(tempPath);
+  final tempDir = Directory(tempPath);
 
-  // if (tempDir.existsSync()) {
-  //   try {
-  //     tempDir.deleteSync(recursive: true);
-  //   } on FileSystemException catch (e) {
-  //     // just log the error, as it can fail due to open files
-  //     logger.err(e.message);
-  //   }
-  // }
+  if (!tempDir.existsSync()) return;
+
+  try {
+    tempDir.deleteSync(recursive: true);
+  } on FileSystemException {
+    // Best-effort cleanup: tests should not fail only because the OS still has
+    // a handle open on a file inside the fixture workspace.
+  }
 }

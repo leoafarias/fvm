@@ -1,3 +1,4 @@
+@Tags(['git'])
 import 'dart:io';
 
 import 'package:fvm/src/models/cache_flutter_version_model.dart';
@@ -20,7 +21,7 @@ void main() {
     late List<CacheFlutterVersion> installedVersions;
 
     setUp(() async {
-      tempDir = Directory.systemTemp.createTempSync('fvm_git_cache_test_');
+      tempDir = createTempDir('fvm_git_cache_test');
 
       remoteDir = await createLocalRemoteRepository(
         root: tempDir,
@@ -52,75 +53,63 @@ void main() {
       }
     });
 
-    test(
-      'migrates working-tree cache to bare mirror',
-      () async {
-        Directory(context.gitCachePath).parent.createSync(recursive: true);
-        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+    test('migrates working-tree cache to bare mirror', () async {
+      Directory(context.gitCachePath).parent.createSync(recursive: true);
+      await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
 
-        final versionDir = Directory(
-          p.join(context.versionsCachePath, 'master'),
-        );
-        versionDir.parent.createSync(recursive: true);
+      final versionDir = Directory(p.join(context.versionsCachePath, 'master'));
+      versionDir.parent.createSync(recursive: true);
 
-        await runGitCommand([
-          'clone',
-          '--reference',
-          context.gitCachePath,
-          remoteDir.path,
-          versionDir.path,
-        ]);
+      await runGitCommand([
+        'clone',
+        '--reference',
+        context.gitCachePath,
+        remoteDir.path,
+        versionDir.path,
+      ]);
 
-        final version = FlutterVersion.parse('master');
-        installedVersions.add(
-          CacheFlutterVersion.fromVersion(version, directory: versionDir.path),
-        );
+      final version = FlutterVersion.parse('master');
+      installedVersions.add(
+        CacheFlutterVersion.fromVersion(version, directory: versionDir.path),
+      );
 
-        final alternatesFile = File(
-          p.join(
-            versionDir.path,
-            '.git',
-            'objects',
-            'info',
-            'alternates',
-          ),
-        );
-        expect(alternatesFile.existsSync(), isTrue);
+      final alternatesFile = File(
+        p.join(versionDir.path, '.git', 'objects', 'info', 'alternates'),
+      );
+      expect(alternatesFile.existsSync(), isTrue);
 
-        await gitService.updateLocalMirror();
+      await gitService.updateLocalMirror();
 
-        // After migration, the cache should be bare
-        expect(await isBareGitRepository(context.gitCachePath), isTrue);
+      // After migration, the cache should be bare
+      expect(await isBareGitRepository(context.gitCachePath), isTrue);
 
-        // Alternates file should still exist with path rewritten to bare mirror
-        expect(alternatesFile.existsSync(), isTrue);
-        final rawAlternates = alternatesFile.readAsStringSync().trim();
-        final resolvedAlternatesPath = p.isAbsolute(rawAlternates)
-            ? rawAlternates
-            : p.join(alternatesFile.parent.path, rawAlternates);
-        // Resolve symlinks (macOS /var -> /private/var) for reliable comparison
-        final resolvedAlternates = p.normalize(
-          Directory(resolvedAlternatesPath).existsSync()
-              ? Directory(resolvedAlternatesPath).resolveSymbolicLinksSync()
-              : resolvedAlternatesPath,
-        );
-        final expectedObjectsDir = Directory(
-          p.join(context.gitCachePath, 'objects'),
-        );
-        final expectedAlternates = p.normalize(
-          expectedObjectsDir.existsSync()
-              ? expectedObjectsDir.resolveSymbolicLinksSync()
-              : expectedObjectsDir.path,
-        );
-        expect(resolvedAlternates, expectedAlternates);
+      // Alternates file should still exist with path rewritten to bare mirror
+      expect(alternatesFile.existsSync(), isTrue);
+      final rawAlternates = alternatesFile.readAsStringSync().trim();
+      final resolvedAlternatesPath = p.isAbsolute(rawAlternates)
+          ? rawAlternates
+          : p.join(alternatesFile.parent.path, rawAlternates);
+      // Resolve symlinks (macOS /var -> /private/var) for reliable comparison
+      final resolvedAlternates = p.normalize(
+        Directory(resolvedAlternatesPath).existsSync()
+            ? Directory(resolvedAlternatesPath).resolveSymbolicLinksSync()
+            : resolvedAlternatesPath,
+      );
+      final expectedObjectsDir = Directory(
+        p.join(context.gitCachePath, 'objects'),
+      );
+      final expectedAlternates = p.normalize(
+        expectedObjectsDir.existsSync()
+            ? expectedObjectsDir.resolveSymbolicLinksSync()
+            : expectedObjectsDir.path,
+      );
+      expect(resolvedAlternates, expectedAlternates);
 
-        final legacyArtifacts = Directory(context.gitCachePath)
-            .parent
-            .listSync()
-            .where((entity) => entity.path.contains('.legacy-'));
-        expect(legacyArtifacts, isEmpty);
-      },
-    );
+      final legacyArtifacts = Directory(
+        context.gitCachePath,
+      ).parent.listSync().where((entity) => entity.path.contains('.legacy-'));
+      expect(legacyArtifacts, isEmpty);
+    });
 
     test(
       'does not rewrite alternates that point outside cache path boundary',
@@ -134,13 +123,7 @@ void main() {
         versionDir.createSync(recursive: true);
 
         final alternatesFile = File(
-          p.join(
-            versionDir.path,
-            '.git',
-            'objects',
-            'info',
-            'alternates',
-          ),
+          p.join(versionDir.path, '.git', 'objects', 'info', 'alternates'),
         )..createSync(recursive: true);
 
         final backupObjectsPath = p.join(

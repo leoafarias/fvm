@@ -13,7 +13,7 @@ void main() {
   late TestCommandRunner runner;
 
   setUp(() {
-    runner = TestFactory.commandRunner();
+    runner = TestFactory.fastCommandRunner();
   });
 
   group('Use workflow:', () {
@@ -80,10 +80,8 @@ void main() {
       try {
         createPubspecYaml(testDir);
 
-        // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: testDir.path,
-          isTest: true,
         );
         final localRunner = TestCommandRunner(context);
 
@@ -95,10 +93,10 @@ void main() {
         ]);
         expect(exitCode, ExitCode.success.code);
 
-        // Verify pinned to specific version, not channel
+        // Verify pinned to fixture-backed stable release, not channel
         final project = context.get<ProjectService>().findAncestor();
         expect(project.pinnedVersion?.name, isNot('stable'));
-        expect(project.pinnedVersion?.name, matches(r'^\d+\.\d+\.\d+'));
+        expect(project.pinnedVersion?.name, equals('3.10.5'));
       } finally {
         if (testDir.existsSync()) {
           testDir.deleteSync(recursive: true);
@@ -112,10 +110,8 @@ void main() {
       try {
         createPubspecYaml(testDir);
 
-        // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: testDir.path,
-          isTest: true,
         );
         final localRunner = TestCommandRunner(context);
 
@@ -142,10 +138,8 @@ void main() {
       try {
         createPubspecYaml(testDir);
 
-        // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: testDir.path,
-          isTest: true,
         );
         final localRunner = TestCommandRunner(context);
 
@@ -173,10 +167,8 @@ void main() {
       try {
         createPubspecYaml(testDir);
 
-        // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: testDir.path,
-          isTest: true,
         );
         final localRunner = TestCommandRunner(context);
 

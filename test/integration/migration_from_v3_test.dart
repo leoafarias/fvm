@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
+import '../testing_utils.dart';
+
 Future<ProcessResult> _run(
   List<String> cmd, {
   required Map<String, String> env,
@@ -44,7 +46,7 @@ void main() {
   late String fvmLegacyExe;
 
   setUpAll(() {
-    tempHome = Directory.systemTemp.createTempSync('fvm_migration_it');
+    tempHome = createTempDir('fvm_migration_it');
     env = {
       ...Platform.environment,
       // FVM v3 reads FVM_HOME; newer versions use FVM_CACHE_PATH. Keep both
@@ -66,10 +68,14 @@ void main() {
     // Flutter (some golden file names exceed the legacy 260-char limit).
     if (Platform.isWindows) {
       final result = Process.runSync(
-        'git',
-        ['config', '--global', 'core.longpaths', 'true'],
-        environment: env,
-      );
+          'git',
+          [
+            'config',
+            '--global',
+            'core.longpaths',
+            'true',
+          ],
+          environment: env);
       if (result.exitCode != 0) {
         throw Exception('Failed to enable git longpaths: ${result.stderr}');
       }
@@ -95,10 +101,14 @@ void main() {
     'migrates cache from fvm 3.x to current',
     () async {
       // 1) Install legacy fvm 3.x
-      await _run(
-        ['dart', 'pub', 'global', 'activate', 'fvm', '3.2.1'],
-        env: env,
-      );
+      await _run([
+        'dart',
+        'pub',
+        'global',
+        'activate',
+        'fvm',
+        '3.2.1',
+      ], env: env);
 
       // helper to run the legacy fvm binary
       Future<void> legacyInstall(String target) async {
@@ -119,8 +129,10 @@ void main() {
         environment: env,
         workingDirectory: p.join(tempHome.path, 'cache.git'),
       );
-      expect((legacyBare.stdout as String?)?.trim().toLowerCase(),
-          equals('false'));
+      expect(
+        (legacyBare.stdout as String?)?.trim().toLowerCase(),
+        equals('false'),
+      );
 
       // 3) Run current fvm (repo code) to trigger migration
       await _run(
@@ -145,16 +157,13 @@ void main() {
       // installed by it won't have alternates files. We only verify the cache is
       // bare and the versions remain functional.
       for (final v in ['stable', 'beta', '3.10.0']) {
-        final status = await _run(
-          [
-            'git',
-            '-C',
-            p.join(tempHome.path, 'versions', v),
-            'status',
-            '--short',
-          ],
-          env: env,
-        );
+        final status = await _run([
+          'git',
+          '-C',
+          p.join(tempHome.path, 'versions', v),
+          'status',
+          '--short',
+        ], env: env);
         expect((status.stdout as String?)?.trim(), isEmpty);
       }
     },

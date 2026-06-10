@@ -1,0 +1,100 @@
+{
+  "base_url": "https://storage.googleapis.com/flutter_infra_release",
+  "current_release": {
+    "beta": "hash_3_19_0_beta",
+    "dev": "hash_3_22_0_dev",
+    "stable": "hash_3_10_5"
+  },
+  "releases": [
+    {
+      "archive": "stable/macos/flutter_macos_3.10.5-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "3.0.0",
+      "hash": "hash_3_10_5",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_10_5",
+      "version": "3.10.5"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_3.10.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "3.0.0",
+      "hash": "hash_3_10_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_10_0",
+      "version": "3.10.0"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_3.19.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "3.3.0",
+      "hash": "hash_3_19_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_19_0",
+      "version": "3.19.0"
+    },
+    {
+      "archive": "beta/macos/flutter_macos_3.19.0-beta.zip",
+      "channel": "beta",
+      "dart_sdk_version": "3.3.0",
+      "hash": "hash_3_19_0_beta",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_19_0_beta",
+      "version": "3.19.0@beta"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_3.0.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "3.0.0",
+      "hash": "hash_3_0_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_0_0",
+      "version": "3.0.0"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_2.0.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "2.12.0",
+      "hash": "hash_2_0_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_2_0_0",
+      "version": "2.0.0"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_2.2.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "2.13.0",
+      "hash": "hash_2_2_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_2_2_0",
+      "version": "2.2.0"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_2.2.2-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "2.13.0",
+      "hash": "hash_2_2_2",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_2_2_2",
+      "version": "2.2.2"
+    },
+    {
+      "archive": "stable/macos/flutter_macos_1.12.0-stable.zip",
+      "channel": "stable",
+      "dart_sdk_version": "2.7.0",
+      "hash": "hash_1_12_0",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_1_12_0",
+      "version": "1.12.0"
+    },
+    {
+      "archive": "dev/macos/flutter_macos_3.22.0-dev.zip",
+      "channel": "dev",
+      "dart_sdk_version": "3.4.0",
+      "hash": "hash_3_22_0_dev",
+      "release_date": "2024-01-01T00:00:00.000Z",
+      "sha256": "sha256_3_22_0_dev",
+      "version": "3.22.0-dev"
+    }
+  ]
+}

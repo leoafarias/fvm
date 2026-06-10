@@ -11,6 +11,11 @@ void main() {
 
   Future<String> _compileFakeFvm() async {
     final tmp = await Directory.systemTemp.createTemp('fvm_mcp_fake_fvm_');
+    addTearDown(() async {
+      if (await tmp.exists()) {
+        await tmp.delete(recursive: true);
+      }
+    });
     final outName = Platform.isWindows ? 'fake_fvm.exe' : 'fake_fvm';
     final outPath = '${tmp.path}/$outName';
 

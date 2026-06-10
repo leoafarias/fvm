@@ -11,6 +11,11 @@ void main() {
 
   setUp(() async {
     tempRepo = await Directory.systemTemp.createTemp('release_tool_test_');
+    addTearDown(() async {
+      if (await tempRepo.exists()) {
+        await tempRepo.delete(recursive: true);
+      }
+    });
     grind.repoRootOverride = tempRepo;
     grind.httpRequestOverride = null;
   });
@@ -26,15 +31,9 @@ void main() {
   group('getReleases', () {
     test('writes releases.txt for well-formed response', () async {
       grind.httpRequestOverride = (_) async => jsonEncode([
-            {
-              'tag_name': 'v1.0.0',
-              'published_at': '2024-01-01T00:00:00Z',
-            },
-            {
-              'tag_name': 'v0.9.0',
-              'published_at': '2023-12-01T00:00:00Z',
-            },
-          ]);
+        {'tag_name': 'v1.0.0', 'published_at': '2024-01-01T00:00:00Z'},
+        {'tag_name': 'v0.9.0', 'published_at': '2023-12-01T00:00:00Z'},
+      ]);
 
       await grind.getReleases();
 
@@ -47,17 +46,15 @@ void main() {
 
     test('skips releases missing required fields', () async {
       grind.httpRequestOverride = (_) async => jsonEncode([
-            {'tag_name': 'v1.0.0'},
-            {
-              'tag_name': 'v0.9.0',
-              'published_at': '2023-12-01T00:00:00Z',
-            },
-          ]);
+        {'tag_name': 'v1.0.0'},
+        {'tag_name': 'v0.9.0', 'published_at': '2023-12-01T00:00:00Z'},
+      ]);
 
       await grind.getReleases();
 
-      final contents =
-          File(p.join(tempRepo.path, 'releases.txt')).readAsStringSync();
+      final contents = File(
+        p.join(tempRepo.path, 'releases.txt'),
+      ).readAsStringSync();
       expect(contents, isNot(contains('v1.0.0')));
       expect(contents, contains('v0.9.0'));
     });
@@ -65,10 +62,7 @@ void main() {
     test('fails on invalid json', () async {
       grind.httpRequestOverride = (_) async => 'not-json';
 
-      await expectLater(
-        grind.getReleases(),
-        throwsA(isA<GrinderException>()),
-      );
+      await expectLater(grind.getReleases(), throwsA(isA<GrinderException>()));
     });
   });
 

@@ -19,7 +19,6 @@ class _UpdateFailingGitService extends GitService {
 }
 
 void main() {
-  late TestCommandRunner runner;
   late TempDirectoryTracker tempDirs;
 
   setUp(() {
@@ -31,71 +30,120 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test('version mismatch in CI mode auto-selects safe default', () async {
-      final context = TestFactory.context(
-        environmentOverrides: {'CI': 'true'},
-      );
-      runner = TestFactory.commandRunner(context: context);
+    test(
+      'version mismatch in CI mode auto-selects safe default',
+      () async {
+        final context = TestFactory.fastContext(
+          environmentOverrides: {'CI': 'true'},
+        );
+        final flutterService =
+            context.get<FlutterService>() as FakeFlutterService;
 
-      final version = FlutterVersion.parse('3.10.0');
-      final cacheService = context.get<CacheService>();
-      final ensureCache = EnsureCacheWorkflow(context);
+        final version = FlutterVersion.parse('3.10.0');
+        final cacheService = context.get<CacheService>();
+        final ensureCache = EnsureCacheWorkflow(context);
 
-      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
+        FakeFlutterSdkFixture.install(
+          context,
+          version,
+          state: FakeFlutterSdkState.versionMismatch,
+          mismatchCachedVersion: '3.10.5',
+        );
 
-      final cacheVersion = cacheService.getVersion(version);
-      if (cacheVersion != null) {
-        forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
-      }
+        final mismatchedVersion = cacheService.getVersion(version);
+        expect(mismatchedVersion, isNotNull);
+        expect(
+          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+          equals(CacheIntegrity.versionMismatch),
+        );
 
-      final result = await ensureCache(version);
+        final installCountBefore = flutterService.installedVersions.length;
+        final result = await ensureCache(version);
 
-      expect(result, isNotNull);
-      expect(result.name, equals('3.10.0'));
-    }, timeout: Timeout(Duration(minutes: 15)));
+        expect(result, isNotNull);
+        expect(result.name, equals('3.10.0'));
+        expect(
+          flutterService.installedVersions.length,
+          greaterThan(installCountBefore),
+        );
+        expect(flutterService.installedVersions.last.name, equals('3.10.0'));
+      },
+    );
 
-    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
-      final context = TestFactory.context(
-        skipInput: true,
-      );
-      runner = TestCommandRunner(context);
+    test(
+      '--fvm-skip-input flag handles version mismatch gracefully',
+      () async {
+        final context = TestFactory.fastContext(
+          skipInput: true,
+        );
+        final flutterService =
+            context.get<FlutterService>() as FakeFlutterService;
 
-      final version = FlutterVersion.parse('3.10.0');
-      final cacheService = context.get<CacheService>();
-      final ensureCache = EnsureCacheWorkflow(context);
+        final version = FlutterVersion.parse('3.10.0');
+        final cacheService = context.get<CacheService>();
+        final ensureCache = EnsureCacheWorkflow(context);
 
-      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
-      final cacheVersion = cacheService.getVersion(version);
-      if (cacheVersion != null) {
-        forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
-      }
+        FakeFlutterSdkFixture.install(
+          context,
+          version,
+          state: FakeFlutterSdkState.versionMismatch,
+          mismatchCachedVersion: '3.10.5',
+        );
 
-      final result = await ensureCache(version);
+        final mismatchedVersion = cacheService.getVersion(version);
+        expect(
+          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+          equals(CacheIntegrity.versionMismatch),
+        );
 
-      expect(result, isNotNull);
-      expect(result.name, equals('3.10.0'));
-    }, timeout: Timeout(Duration(minutes: 15)));
+        final installCountBefore = flutterService.installedVersions.length;
+        final result = await ensureCache(version);
 
-    test('GitHub Actions environment handles version mismatch', () async {
-      final context = TestFactory.context(
-        environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
-      );
-      runner = TestFactory.commandRunner(context: context);
+        expect(result, isNotNull);
+        expect(result.name, equals('3.10.0'));
+        expect(
+          flutterService.installedVersions.length,
+          greaterThan(installCountBefore),
+        );
+      },
+    );
 
-      final version = FlutterVersion.parse('3.10.0');
-      final cacheService = context.get<CacheService>();
-      final ensureCache = EnsureCacheWorkflow(context);
+    test(
+      'GitHub Actions environment handles version mismatch',
+      () async {
+        final context = TestFactory.fastContext(
+          environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
+        );
+        final flutterService =
+            context.get<FlutterService>() as FakeFlutterService;
 
-      await runner.run(['fvm', 'install', '3.10.0', '--no-setup']);
-      final cacheVersion = cacheService.getVersion(version);
-      if (cacheVersion != null) {
-        forceUpdateFlutterSdkVersionFile(cacheVersion, '3.10.5');
-      }
+        final version = FlutterVersion.parse('3.10.0');
+        final cacheService = context.get<CacheService>();
+        final ensureCache = EnsureCacheWorkflow(context);
 
-      final result = await ensureCache(version);
+        FakeFlutterSdkFixture.install(
+          context,
+          version,
+          state: FakeFlutterSdkState.versionMismatch,
+          mismatchCachedVersion: '3.10.5',
+        );
 
-      expect(result, isNotNull);
-    }, timeout: Timeout(Duration(minutes: 15)));
+        final mismatchedVersion = cacheService.getVersion(version);
+        expect(
+          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+          equals(CacheIntegrity.versionMismatch),
+        );
+
+        final installCountBefore = flutterService.installedVersions.length;
+        final result = await ensureCache(version);
+
+        expect(result, isNotNull);
+        expect(
+          flutterService.installedVersions.length,
+          greaterThan(installCountBefore),
+        );
+      },
+    );
 
     test(
       'CI environment variables properly detected from multiple sources',
@@ -144,7 +192,7 @@ void main() {
       final context = TestFactory.context(
         debugLabel: 'archive-propagation-test',
       );
-      runner = TestCommandRunner(context);
+      final runner = TestCommandRunner(context);
       final flutterService =
           context.get<FlutterService>() as MockFlutterService;
 
@@ -183,7 +231,7 @@ void main() {
         debugLabel: 'archive-version-mismatch-test',
         environmentOverrides: {'CI': 'true'}, // auto-select reinstall
       );
-      runner = TestCommandRunner(context);
+      final runner = TestCommandRunner(context);
       final flutterService =
           context.get<FlutterService>() as MockFlutterService;
 
@@ -195,7 +243,8 @@ void main() {
       final cacheService = context.get<CacheService>();
       final cacheVersion = cacheService.getVersion(version);
       expect(cacheVersion, isNotNull);
-      forceUpdateFlutterSdkVersionFile(cacheVersion!, '3.10.5');
+      File(path.join(cacheVersion!.directory, 'version'))
+          .writeAsStringSync('3.10.5');
 
       // Reset markers before triggering reinstall
       flutterService

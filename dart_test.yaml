@@ -1,11 +1,18 @@
 concurrency: 2
 timeout: 10m
+tags:
+  sdk:
+  network:
+  git:
+  integration:
+  migration:
 paths:
   - test/utils
   - test/src
   - test/services
   - test/commands
   - test/models
+  - test/testing_helpers
   - test/version_format_workflow_test.dart
   - test/complete_workflow_test.dart
 # Do not include widget tests or sample/example app tests

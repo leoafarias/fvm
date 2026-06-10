@@ -10,7 +10,7 @@ import '../testing_utils.dart';
 void main() {
   // Reusable test function for all version installations
   Future<void> testInstallVersion(String version) async {
-    final runner = TestFactory.commandRunner();
+    final runner = TestFactory.fastCommandRunner();
 
     // Run the install command
     final exitCode = await runner.runOrThrow(['fvm', 'install', version]);
@@ -97,6 +97,7 @@ void main() {
 
   // Group 4: Git commit hashes
   group('Install from Git commit hash:', () {
+    // Fast fake commit hash, intentionally unrelated to the real integration hash.
     final commitHashes = ['f4c74a6ec3'];
 
     for (var version in commitHashes) {
@@ -131,7 +132,7 @@ void main() {
     const testForkName = 'testfork';
 
     test('Validates fork exists in config', () async {
-      final runner = TestFactory.commandRunner();
+      final runner = TestFactory.fastCommandRunner();
 
       // Try to install a version with a fork that's not configured
       expect(
@@ -168,9 +169,8 @@ void main() {
         createPubspecYaml(tempDir);
 
         // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: tempDir.path,
-          isTest: true,
         );
         final runner = TestCommandRunner(context);
 
@@ -198,9 +198,8 @@ void main() {
         createPubspecYaml(tempDir);
 
         // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: tempDir.path,
-          isTest: true,
         );
         final runner = TestCommandRunner(context);
 
@@ -231,9 +230,8 @@ void main() {
         createPubspecYaml(tempDir);
 
         // Create runner with working directory
-        final context = FvmContext.create(
+        final context = TestFactory.fastContext(
           workingDirectoryOverride: tempDir.path,
-          isTest: true,
         );
         final runner = TestCommandRunner(context);
 
@@ -254,7 +252,7 @@ void main() {
     });
 
     test('invocation getter returns correct string', () {
-      final context = FvmContext.create(isTest: true);
+      final context = TestFactory.fastContext();
       final command = InstallCommand(context);
       expect(command.invocation, contains('fvm install {version}'));
       expect(command.invocation, contains('if no {version}'));

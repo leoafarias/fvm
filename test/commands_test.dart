@@ -19,7 +19,7 @@ void main() {
   const release = '2.0.0';
 
   setUp(() {
-    runner = TestFactory.commandRunner();
+    runner = TestFactory.fastCommandRunner();
     context = runner.context;
   });
 
