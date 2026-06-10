@@ -6,9 +6,19 @@ import 'dart:math';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'testing_helpers/fake_flutter_release_client.dart';
+import 'testing_helpers/fake_flutter_service.dart';
+import 'testing_helpers/fake_git_service.dart';
+
+export 'testing_helpers/fake_flutter_release_client.dart';
+export 'testing_helpers/fake_flutter_sdk_fixture.dart';
+export 'testing_helpers/fake_flutter_service.dart';
+export 'testing_helpers/fake_git_service.dart';
 
 class TestCommandRunner extends FvmCommandRunner {
   TestCommandRunner(super.context);
@@ -33,14 +43,6 @@ class TestCommandRunner extends FvmCommandRunner {
     await runCommand(parse(updatedArgs));
     return ExitCode.success.code;
   }
-}
-
-void forceUpdateFlutterSdkVersionFile(
-  CacheFlutterVersion version,
-  String sdkVersion,
-) {
-  final sdkVersionFile = File(p.join(version.directory, 'version'));
-  sdkVersionFile.writeAsStringSync(sdkVersion);
 }
 
 const _kTempTestDirPrefix = 'TEST_DIR_';
@@ -381,21 +383,55 @@ class TestFactory {
     return TestCommandRunner(context ?? TestFactory.context());
   }
 
+  static TestCommandRunner fastCommandRunner({FvmContext? context}) {
+    return TestCommandRunner(context ?? TestFactory.fastContext());
+  }
+
+  static FvmContext fastContext({
+    String? debugLabel,
+    bool? privilegedAccess,
+    Map<Type, Generator>? generators,
+    bool? skipInput,
+    Map<String, String>? environmentOverrides,
+    String? workingDirectoryOverride,
+    String? appConfigPath,
+  }) {
+    return context(
+      debugLabel: debugLabel,
+      privilegedAccess: privilegedAccess,
+      skipInput: skipInput,
+      environmentOverrides: environmentOverrides,
+      workingDirectoryOverride: workingDirectoryOverride,
+      appConfigPath: appConfigPath,
+      generators: {
+        FlutterService: (context) => FakeFlutterService(context),
+        FlutterReleaseClient: (context) => FakeFlutterReleaseClient(context),
+        GitService: (context) => FakeGitService(context),
+        ...?generators,
+      },
+    );
+  }
+
   static FvmContext context({
     String? debugLabel,
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
     bool? skipInput,
     Map<String, String>? environmentOverrides,
+    String? workingDirectoryOverride,
+    String? appConfigPath,
   }) {
     debugLabel ??= _generateUuid();
 
-    final globalConfig = LocalAppConfig.read();
     final contextRoot = createTempDir(debugLabel);
     final cacheDir = Directory(p.join(contextRoot.path, 'cache'))
       ..createSync(recursive: true);
+    final configFilePath =
+        appConfigPath ?? p.join(contextRoot.path, 'config', kFvmConfigFileName);
     final workingDir = Directory(p.join(contextRoot.path, 'workspace'))
       ..createSync(recursive: true);
+
+    final globalConfig = LocalAppConfig.read(path: configFilePath);
 
     final config = AppConfig(
       cachePath: cacheDir.path,
@@ -409,7 +445,8 @@ class TestFactory {
       debugLabel: debugLabel,
       configOverrides: config,
       logLevel: Level.verbose,
-      workingDirectoryOverride: workingDir.path,
+      workingDirectoryOverride: workingDirectoryOverride ?? workingDir.path,
+      appConfigPath: configFilePath,
       isTest: true,
       skipInput: skipInput ?? false,
       environmentOverrides: environmentOverrides,

@@ -7,7 +7,7 @@ Technical documentation for FVM developers.
 | File | Description |
 |------|-------------|
 | `testing-methodology.md` | Test patterns, TestFactory, mocking, best practices |
-| `integration-tests.md` | Integration test phases, 38 tests, running tests |
+| `integration-tests.md` | Real integration guardrails, safety notes, running tests |
 
 ## Architecture
 

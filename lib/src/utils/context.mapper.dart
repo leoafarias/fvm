@@ -32,6 +32,9 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static AppConfig _$config(FvmContext v) => v.config;
   static const Field<FvmContext, AppConfig> _f$config =
       Field('config', _$config);
+  static String _$appConfigPath(FvmContext v) => v.appConfigPath;
+  static const Field<FvmContext, String> _f$appConfigPath =
+      Field('appConfigPath', _$appConfigPath);
   static Map<Type, Contextual Function(FvmContext)> _$_generators(
           FvmContext v) =>
       v._generators;
@@ -95,6 +98,7 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
     #debugLabel: _f$debugLabel,
     #workingDirectory: _f$workingDirectory,
     #config: _f$config,
+    #appConfigPath: _f$appConfigPath,
     #_generators: _f$_generators,
     #environment: _f$environment,
     #_skipInput: _f$_skipInput,
@@ -121,6 +125,7 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
         debugLabel: data.dec(_f$debugLabel),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
+        appConfigPath: data.dec(_f$appConfigPath),
         generators: data.dec(_f$_generators),
         environment: data.dec(_f$environment),
         skipInput: data.dec(_f$_skipInput),
@@ -193,6 +198,7 @@ abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
       {String? debugLabel,
       String? workingDirectory,
       AppConfig? config,
+      String? appConfigPath,
       Map<Type, Contextual Function(FvmContext)>? generators,
       Map<String, String>? environment,
       bool? skipInput,
@@ -233,6 +239,7 @@ class _FvmContextCopyWithImpl<$R, $Out>
           {Object? debugLabel = $none,
           String? workingDirectory,
           AppConfig? config,
+          String? appConfigPath,
           Map<Type, Contextual Function(FvmContext)>? generators,
           Map<String, String>? environment,
           bool? skipInput,
@@ -242,6 +249,7 @@ class _FvmContextCopyWithImpl<$R, $Out>
         if (debugLabel != $none) #debugLabel: debugLabel,
         if (workingDirectory != null) #workingDirectory: workingDirectory,
         if (config != null) #config: config,
+        if (appConfigPath != null) #appConfigPath: appConfigPath,
         if (generators != null) #generators: generators,
         if (environment != null) #environment: environment,
         if (skipInput != null) #skipInput: skipInput,
@@ -254,6 +262,7 @@ class _FvmContextCopyWithImpl<$R, $Out>
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
       config: data.get(#config, or: $value.config),
+      appConfigPath: data.get(#appConfigPath, or: $value.appConfigPath),
       generators: data.get(#generators, or: $value._generators),
       environment: data.get(#environment, or: $value.environment),
       skipInput: data.get(#skipInput, or: $value._skipInput),
