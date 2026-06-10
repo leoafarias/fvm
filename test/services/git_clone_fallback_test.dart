@@ -37,7 +37,7 @@ void main() {
     late bool failSdkRemoval;
 
     setUp(() async {
-      tempDir = Directory.systemTemp.createTempSync('fvm_git_cache_test_');
+      tempDir = createTempDir('fvm_git_cache_test');
 
       remoteDir = await createLocalRemoteRepository(
         root: tempDir,
@@ -73,69 +73,58 @@ void main() {
       }
     });
 
-    test(
-      'migrates working-tree cache to heads/tags cache and dissociates SDK',
-      () async {
-        Directory(context.gitCachePath).parent.createSync(recursive: true);
-        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+    test('migrates working-tree cache to heads/tags cache and dissociates SDK',
+        () async {
+      Directory(context.gitCachePath).parent.createSync(recursive: true);
+      await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
 
-        final versionDir = Directory(
-          p.join(context.versionsCachePath, 'master'),
-        );
-        versionDir.parent.createSync(recursive: true);
+      final versionDir = Directory(p.join(context.versionsCachePath, 'master'));
+      versionDir.parent.createSync(recursive: true);
 
-        await runGitCommand([
-          'clone',
-          '--reference',
-          context.gitCachePath,
-          remoteDir.path,
-          versionDir.path,
-        ]);
+      await runGitCommand([
+        'clone',
+        '--reference',
+        context.gitCachePath,
+        remoteDir.path,
+        versionDir.path,
+      ]);
 
-        final version = FlutterVersion.parse('master');
-        installedVersions.add(
-          CacheFlutterVersion.fromVersion(version, directory: versionDir.path),
-        );
+      final version = FlutterVersion.parse('master');
+      installedVersions.add(
+        CacheFlutterVersion.fromVersion(version, directory: versionDir.path),
+      );
 
-        final alternatesFile = File(
-          p.join(
-            versionDir.path,
-            '.git',
-            'objects',
-            'info',
-            'alternates',
-          ),
-        );
-        expect(alternatesFile.existsSync(), isTrue);
+      final alternatesFile = File(
+        p.join(versionDir.path, '.git', 'objects', 'info', 'alternates'),
+      );
+      expect(alternatesFile.existsSync(), isTrue);
 
-        await gitService.updateLocalMirror();
+      await gitService.updateLocalMirror();
 
-        // After migration, the cache should be bare
-        expect(await isBareGitRepository(context.gitCachePath), isTrue);
+      // After migration, the cache should be bare
+      expect(await isBareGitRepository(context.gitCachePath), isTrue);
 
-        final refs = await _gitRefs(context.gitCachePath);
-        expect(
-          refs.every(
-            (ref) =>
-                ref.startsWith('refs/heads/') || ref.startsWith('refs/tags/'),
-          ),
-          isTrue,
-        );
+      final refs = await _gitRefs(context.gitCachePath);
+      expect(
+        refs.every(
+          (ref) =>
+              ref.startsWith('refs/heads/') || ref.startsWith('refs/tags/'),
+        ),
+        isTrue,
+      );
 
-        // FVM-owned alternates are removed after objects are repacked locally.
-        expect(alternatesFile.existsSync(), isFalse);
-        await runGitCommand(
-          ['fsck', '--connectivity-only'],
-          workingDirectory: versionDir.path,
-        );
+      // FVM-owned alternates are removed after objects are repacked locally.
+      expect(alternatesFile.existsSync(), isFalse);
+      await runGitCommand(
+        ['fsck', '--connectivity-only'],
+        workingDirectory: versionDir.path,
+      );
 
-        final legacyArtifacts = Directory(context.gitCachePath)
-            .parent
-            .listSync()
-            .where((entity) => entity.path.contains('.legacy-'));
-        expect(legacyArtifacts, isEmpty);
-      },
-    );
+      final legacyArtifacts = Directory(
+        context.gitCachePath,
+      ).parent.listSync().where((entity) => entity.path.contains('.legacy-'));
+      expect(legacyArtifacts, isEmpty);
+    });
 
     test(
       'does not remove alternates that point outside cache path boundary',
@@ -149,13 +138,7 @@ void main() {
         versionDir.createSync(recursive: true);
 
         final alternatesFile = File(
-          p.join(
-            versionDir.path,
-            '.git',
-            'objects',
-            'info',
-            'alternates',
-          ),
+          p.join(versionDir.path, '.git', 'objects', 'info', 'alternates'),
         )..createSync(recursive: true);
 
         final backupObjectsPath = p.join(

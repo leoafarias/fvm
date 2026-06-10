@@ -236,10 +236,7 @@ void main() {
       const repoPath = '/tmp/fvm-test-repo';
       const url = 'https://example.com/flutter.git';
 
-      await gitService.setOriginUrl(
-        repositoryPath: repoPath,
-        url: url,
-      );
+      await gitService.setOriginUrl(repositoryPath: repoPath, url: url);
 
       expect(processService.lastCommand, equals('git'));
       expect(
@@ -255,7 +252,7 @@ void main() {
     late Directory remoteDir;
 
     setUp(() async {
-      tempDir = Directory.systemTemp.createTempSync('fvm_cache_state_test_');
+      tempDir = createTempDir('fvm_cache_state_test');
       remoteDir = await createLocalRemoteRepository(
         root: tempDir,
         name: 'flutter_remote',
@@ -461,23 +458,24 @@ void main() {
       expect(cacheDir.existsSync(), isFalse);
     });
 
-    test('waits for cache lock before running cache migration checks',
-        () async {
-      final gitCachePath = p.join(tempDir.path, 'cache.git');
-      final lockFilePath = '$gitCachePath.lock';
-      final context = FvmContext.create(
-        isTest: true,
-        configOverrides: AppConfig(
-          cachePath: p.join(tempDir.path, '.fvm'),
-          gitCachePath: gitCachePath,
-          flutterUrl: remoteDir.path,
-          useGitCache: true,
-        ),
-      );
+    test(
+      'waits for cache lock before running cache migration checks',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'cache.git');
+        final lockFilePath = '$gitCachePath.lock';
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
 
-      final lockHelper = File(
-        p.join(tempDir.path, 'hold_git_cache_lock.dart'),
-      )..writeAsStringSync('''
+        final lockHelper =
+            File(p.join(tempDir.path, 'hold_git_cache_lock.dart'))
+              ..writeAsStringSync('''
 import 'dart:io';
 
 Future<void> main(List<String> args) async {
@@ -493,35 +491,36 @@ Future<void> main(List<String> args) async {
 }
 ''');
 
-      final lockProcess = await Process.start(Platform.resolvedExecutable, [
-        lockHelper.path,
-        lockFilePath,
-        '1200',
-      ]);
+        final lockProcess = await Process.start(Platform.resolvedExecutable, [
+          lockHelper.path,
+          lockFilePath,
+          '1200',
+        ]);
 
-      final lockReady = lockProcess.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .firstWhere((line) => line.trim() == 'locked');
+        final lockReady = lockProcess.stdout
+            .transform(utf8.decoder)
+            .transform(const LineSplitter())
+            .firstWhere((line) => line.trim() == 'locked');
 
-      await lockReady.timeout(const Duration(seconds: 5));
+        await lockReady.timeout(const Duration(seconds: 5));
 
-      final gitService = GitService(context);
-      var completed = false;
-      final operation = gitService.ensureBareCacheIfPresent().then((_) {
-        completed = true;
-      });
+        final gitService = GitService(context);
+        var completed = false;
+        final operation = gitService.ensureBareCacheIfPresent().then((_) {
+          completed = true;
+        });
 
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-      expect(completed, isFalse);
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        expect(completed, isFalse);
 
-      final lockExitCode = await lockProcess.exitCode.timeout(
-        const Duration(seconds: 5),
-      );
-      expect(lockExitCode, 0);
+        final lockExitCode = await lockProcess.exitCode.timeout(
+          const Duration(seconds: 5),
+        );
+        expect(lockExitCode, 0);
 
-      await operation.timeout(const Duration(seconds: 5));
-      expect(completed, isTrue);
-    });
+        await operation.timeout(const Duration(seconds: 5));
+        expect(completed, isTrue);
+      },
+    );
   });
 }

@@ -60,11 +60,7 @@ Future<void> _deleteLooseGitObject({
   }
 
   if (Platform.isWindows) {
-    await Process.run(
-      'attrib',
-      ['-R', objectFile.path],
-      runInShell: true,
-    );
+    await Process.run('attrib', ['-R', objectFile.path], runInShell: true);
   }
 
   final attempts = Platform.isWindows ? 3 : 1;
@@ -221,9 +217,7 @@ void main() {
       });
 
       test('preserves reference lookup errors from install flow', () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_reference_error_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_reference_error');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -266,66 +260,65 @@ void main() {
       });
 
       test(
-          'preserves reference lookup errors after retrying from git cache to remote',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_reference_error_git_cache_',
-        );
-
-        try {
-          final remoteDir = await createLocalRemoteRepository(
-            root: tempDir,
-            name: 'flutter_origin',
+        'preserves reference lookup errors after retrying from git cache to remote',
+        () async {
+          final tempDir = createTempDir(
+            'fvm_flutter_service_reference_error_git_cache',
           );
 
-          final gitCachePath = p.join(tempDir.path, 'cache.git');
-          Directory(gitCachePath).parent.createSync(recursive: true);
-          await runGitCommand([
-            'clone',
-            '--mirror',
-            remoteDir.path,
-            gitCachePath,
-          ]);
+          try {
+            final remoteDir = await createLocalRemoteRepository(
+              root: tempDir,
+              name: 'flutter_origin',
+            );
 
-          final context = FvmContext.create(
-            isTest: true,
-            configOverrides: AppConfig(
-              cachePath: p.join(tempDir.path, '.fvm'),
-              gitCachePath: gitCachePath,
-              flutterUrl: remoteDir.path,
-              useGitCache: true,
-            ),
-          );
+            final gitCachePath = p.join(tempDir.path, 'cache.git');
+            Directory(gitCachePath).parent.createSync(recursive: true);
+            await runGitCommand([
+              'clone',
+              '--mirror',
+              remoteDir.path,
+              gitCachePath,
+            ]);
 
-          final service = FlutterService(context);
-          final version = FlutterVersion.parse('does-not-exist-1234');
+            final context = FvmContext.create(
+              isTest: true,
+              configOverrides: AppConfig(
+                cachePath: p.join(tempDir.path, '.fvm'),
+                gitCachePath: gitCachePath,
+                flutterUrl: remoteDir.path,
+                useGitCache: true,
+              ),
+            );
 
-          await expectLater(
-            service.install(version),
-            throwsA(
-              isA<AppException>().having(
-                (e) => e.message,
-                'message',
-                allOf(
-                  contains(
-                    'Reference "${version.version}" was not found in the Flutter repository.',
+            final service = FlutterService(context);
+            final version = FlutterVersion.parse('does-not-exist-1234');
+
+            await expectLater(
+              service.install(version),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  allOf(
+                    contains(
+                      'Reference "${version.version}" was not found in the Flutter repository.',
+                    ),
+                    contains('Repository URL: ${remoteDir.path}'),
                   ),
-                  contains('Repository URL: ${remoteDir.path}'),
                 ),
               ),
-            ),
-          );
-        } finally {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
+            );
+          } finally {
+            if (tempDir.existsSync()) {
+              tempDir.deleteSync(recursive: true);
+            }
           }
-        }
-      });
+        },
+      );
 
       test('clones from local git cache and rewrites origin URL', () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_git_cache_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_git_cache');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -361,21 +354,16 @@ void main() {
           final cacheService = context.get<CacheService>();
           final versionDir = cacheService.getVersionCacheDir(version);
 
-          final remoteResult = await runGitCommand(
-            ['remote', 'get-url', 'origin'],
-            workingDirectory: versionDir.path,
-          );
+          final remoteResult = await runGitCommand([
+            'remote',
+            'get-url',
+            'origin',
+          ], workingDirectory: versionDir.path);
 
           expect(remoteResult.stdout.toString().trim(), remoteDir.path);
 
           final alternatesFile = File(
-            p.join(
-              versionDir.path,
-              '.git',
-              'objects',
-              'info',
-              'alternates',
-            ),
+            p.join(versionDir.path, '.git', 'objects', 'info', 'alternates'),
           );
           expect(alternatesFile.existsSync(), isFalse);
         } finally {
@@ -387,9 +375,7 @@ void main() {
 
       test('removes stale git cache temp pack files before cache clone',
           () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_stale_pack_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_stale_pack');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -448,9 +434,7 @@ void main() {
       });
 
       test('clone from git cache waits for cache lock', () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_clone_lock_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_clone_lock');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -527,147 +511,155 @@ Future<void> main(List<String> args) async {
         }
       });
 
-      test('falls back to remote clone when local git cache is unavailable',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_fallback_',
-        );
+      test(
+        'falls back to remote clone when local git cache is unavailable',
+        () async {
+          final tempDir = createTempDir('fvm_flutter_service_fallback');
 
-        try {
-          final remoteDir = await createLocalRemoteRepository(
-            root: tempDir,
-            name: 'flutter_origin',
-          );
+          try {
+            final remoteDir = await createLocalRemoteRepository(
+              root: tempDir,
+              name: 'flutter_origin',
+            );
 
-          final cachePath = p.join(tempDir.path, '.fvm');
-          final gitCachePath = p.join(tempDir.path, 'missing', 'cache.git');
+            final cachePath = p.join(tempDir.path, '.fvm');
+            final gitCachePath = p.join(tempDir.path, 'missing', 'cache.git');
 
-          final context = FvmContext.create(
-            isTest: true,
-            configOverrides: AppConfig(
-              cachePath: cachePath,
-              gitCachePath: gitCachePath,
-              flutterUrl: remoteDir.path,
-              useGitCache: true,
-            ),
-          );
+            final context = FvmContext.create(
+              isTest: true,
+              configOverrides: AppConfig(
+                cachePath: cachePath,
+                gitCachePath: gitCachePath,
+                flutterUrl: remoteDir.path,
+                useGitCache: true,
+              ),
+            );
 
-          final service = FlutterService(context);
-          final version = FlutterVersion.parse('master');
+            final service = FlutterService(context);
+            final version = FlutterVersion.parse('master');
 
-          await service.install(version);
+            await service.install(version);
 
-          final cacheService = context.get<CacheService>();
-          final versionDir = cacheService.getVersionCacheDir(version);
+            final cacheService = context.get<CacheService>();
+            final versionDir = cacheService.getVersionCacheDir(version);
 
-          final remoteResult = await runGitCommand(
-            ['remote', 'get-url', 'origin'],
-            workingDirectory: versionDir.path,
-          );
+            final remoteResult = await runGitCommand([
+              'remote',
+              'get-url',
+              'origin',
+            ], workingDirectory: versionDir.path);
 
-          expect(remoteResult.stdout.toString().trim(), remoteDir.path);
+            expect(remoteResult.stdout.toString().trim(), remoteDir.path);
 
-          final logger = context.get<Logger>();
-          expect(
-            logger.outputs.any(
-              (entry) => entry.contains('Falling back to remote clone'),
-            ),
-            isTrue,
-          );
-        } finally {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
+            final logger = context.get<Logger>();
+            expect(
+              logger.outputs.any(
+                (entry) => entry.contains('Falling back to remote clone'),
+              ),
+              isTrue,
+            );
+          } finally {
+            if (tempDir.existsSync()) {
+              tempDir.deleteSync(recursive: true);
+            }
           }
-        }
-      });
+        },
+      );
 
-      test('retries with remote clone when git cache is missing reference',
-          () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_retry_',
-        );
+      test(
+        'retries with remote clone when git cache is missing reference',
+        () async {
+          final tempDir = createTempDir('fvm_flutter_service_retry');
 
-        try {
-          // Create remote and seed git cache before the new branch exists.
-          final remoteDir = await createLocalRemoteRepository(
-            root: tempDir,
-            name: 'flutter_origin',
-          );
+          try {
+            // Create remote and seed git cache before the new branch exists.
+            final remoteDir = await createLocalRemoteRepository(
+              root: tempDir,
+              name: 'flutter_origin',
+            );
 
-          final gitCachePath = p.join(tempDir.path, 'cache.git');
-          Directory(gitCachePath).parent.createSync(recursive: true);
-          await runGitCommand([
-            'clone',
-            '--mirror',
-            remoteDir.path,
-            gitCachePath,
-          ]);
+            final gitCachePath = p.join(tempDir.path, 'cache.git');
+            Directory(gitCachePath).parent.createSync(recursive: true);
+            await runGitCommand([
+              'clone',
+              '--mirror',
+              remoteDir.path,
+              gitCachePath,
+            ]);
 
-          // Add a new branch to the remote after the git cache was created so
-          // the cache does not contain the reference.
-          final workDir = Directory(p.join(tempDir.path, 'work'))..createSync();
-          await runGitCommand(['clone', remoteDir.path, workDir.path]);
-          await runGitCommand(
-            ['config', 'user.email', 'tests@fvm.app'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['config', 'user.name', 'FVM Tests'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['checkout', '-b', 'feature'],
-            workingDirectory: workDir.path,
-          );
-          File(p.join(workDir.path, 'FEATURE.md')).writeAsStringSync('feature');
-          await runGitCommand(['add', '.'], workingDirectory: workDir.path);
-          await runGitCommand(
-            ['commit', '-m', 'Add feature branch'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['push', 'origin', 'feature'],
-            workingDirectory: workDir.path,
-          );
+            // Add a new branch to the remote after the git cache was created so
+            // the cache does not contain the reference.
+            final workDir = Directory(p.join(tempDir.path, 'work'))
+              ..createSync();
+            await runGitCommand(['clone', remoteDir.path, workDir.path]);
+            await runGitCommand([
+              'config',
+              'user.email',
+              'tests@fvm.app',
+            ], workingDirectory: workDir.path);
+            await runGitCommand([
+              'config',
+              'user.name',
+              'FVM Tests',
+            ], workingDirectory: workDir.path);
+            await runGitCommand([
+              'checkout',
+              '-b',
+              'feature',
+            ], workingDirectory: workDir.path);
+            File(
+              p.join(workDir.path, 'FEATURE.md'),
+            ).writeAsStringSync('feature');
+            await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+            await runGitCommand([
+              'commit',
+              '-m',
+              'Add feature branch',
+            ], workingDirectory: workDir.path);
+            await runGitCommand([
+              'push',
+              'origin',
+              'feature',
+            ], workingDirectory: workDir.path);
 
-          final cachePath = p.join(tempDir.path, '.fvm');
+            final cachePath = p.join(tempDir.path, '.fvm');
 
-          final context = FvmContext.create(
-            isTest: true,
-            configOverrides: AppConfig(
-              cachePath: cachePath,
-              gitCachePath: gitCachePath,
-              flutterUrl: remoteDir.path,
-              useGitCache: true,
-            ),
-          );
+            final context = FvmContext.create(
+              isTest: true,
+              configOverrides: AppConfig(
+                cachePath: cachePath,
+                gitCachePath: gitCachePath,
+                flutterUrl: remoteDir.path,
+                useGitCache: true,
+              ),
+            );
 
-          final service = FlutterService(context);
-          final version = FlutterVersion.parse('feature');
+            final service = FlutterService(context);
+            final version = FlutterVersion.parse('feature');
 
-          await service.install(version);
+            await service.install(version);
 
-          final cacheService = context.get<CacheService>();
-          final versionDir = cacheService.getVersionCacheDir(version);
+            final cacheService = context.get<CacheService>();
+            final versionDir = cacheService.getVersionCacheDir(version);
 
-          final headResult = await runGitCommand(
-            ['rev-parse', '--abbrev-ref', 'HEAD'],
-            workingDirectory: versionDir.path,
-          );
+            final headResult = await runGitCommand([
+              'rev-parse',
+              '--abbrev-ref',
+              'HEAD',
+            ], workingDirectory: versionDir.path);
 
-          expect(headResult.stdout.toString().trim(), 'feature');
-        } finally {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
+            expect(headResult.stdout.toString().trim(), 'feature');
+          } finally {
+            if (tempDir.existsSync()) {
+              tempDir.deleteSync(recursive: true);
+            }
           }
-        }
-      });
+        },
+      );
 
       test('installs reachable commit hash from heads/tags git cache',
           () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_cached_commit_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_cached_commit');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -717,9 +709,7 @@ Future<void> main(List<String> args) async {
 
       test('retries remote clone when commit hash is missing from git cache',
           () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_missing_commit_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_missing_commit');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -768,8 +758,8 @@ Future<void> main(List<String> args) async {
       test(
           'ensure workflow does not install channel from stale preserved cache',
           () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_stale_preserved_cache_',
+        final tempDir = createTempDir(
+          'fvm_flutter_service_stale_preserved_cache',
         );
 
         try {
@@ -847,9 +837,7 @@ Future<void> main(List<String> args) async {
       });
 
       test('does not cache PR-only hidden refs by default', () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_pr_only_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_pr_only');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -910,9 +898,7 @@ Future<void> main(List<String> args) async {
       });
 
       test('falls back to remote when git cache has missing objects', () async {
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_flutter_service_missing_objects_',
-        );
+        final tempDir = createTempDir('fvm_flutter_service_missing_objects');
 
         try {
           final remoteDir = await createLocalRemoteRepository(
@@ -923,28 +909,33 @@ Future<void> main(List<String> args) async {
           // Create a feature branch in the remote.
           final workDir = Directory(p.join(tempDir.path, 'work'))..createSync();
           await runGitCommand(['clone', remoteDir.path, workDir.path]);
-          await runGitCommand(
-            ['config', 'user.email', 'tests@fvm.app'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['config', 'user.name', 'FVM Tests'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['checkout', '-b', 'feature'],
-            workingDirectory: workDir.path,
-          );
+          await runGitCommand([
+            'config',
+            'user.email',
+            'tests@fvm.app',
+          ], workingDirectory: workDir.path);
+          await runGitCommand([
+            'config',
+            'user.name',
+            'FVM Tests',
+          ], workingDirectory: workDir.path);
+          await runGitCommand([
+            'checkout',
+            '-b',
+            'feature',
+          ], workingDirectory: workDir.path);
           File(p.join(workDir.path, 'FEATURE.md')).writeAsStringSync('feature');
           await runGitCommand(['add', '.'], workingDirectory: workDir.path);
-          await runGitCommand(
-            ['commit', '-m', 'Add feature branch'],
-            workingDirectory: workDir.path,
-          );
-          await runGitCommand(
-            ['push', 'origin', 'feature'],
-            workingDirectory: workDir.path,
-          );
+          await runGitCommand([
+            'commit',
+            '-m',
+            'Add feature branch',
+          ], workingDirectory: workDir.path);
+          await runGitCommand([
+            'push',
+            'origin',
+            'feature',
+          ], workingDirectory: workDir.path);
 
           final gitCachePath = p.join(tempDir.path, 'cache.git');
           Directory(gitCachePath).parent.createSync(recursive: true);
@@ -955,10 +946,10 @@ Future<void> main(List<String> args) async {
             gitCachePath,
           ]);
 
-          final featureShaResult = await runGitCommand(
-            ['rev-parse', 'feature'],
-            workingDirectory: gitCachePath,
-          );
+          final featureShaResult = await runGitCommand([
+            'rev-parse',
+            'feature',
+          ], workingDirectory: gitCachePath);
           final featureSha = featureShaResult.stdout.toString().trim();
           await _deleteLooseGitObject(
             repoPath: gitCachePath,
@@ -983,10 +974,11 @@ Future<void> main(List<String> args) async {
 
           final cacheService = context.get<CacheService>();
           final versionDir = cacheService.getVersionCacheDir(version);
-          final headResult = await runGitCommand(
-            ['rev-parse', '--abbrev-ref', 'HEAD'],
-            workingDirectory: versionDir.path,
-          );
+          final headResult = await runGitCommand([
+            'rev-parse',
+            '--abbrev-ref',
+            'HEAD',
+          ], workingDirectory: versionDir.path);
 
           expect(headResult.stdout.toString().trim(), 'feature');
         } finally {
@@ -1116,10 +1108,7 @@ Future<void> main(List<String> args) async {
           directory: p.join(context.versionsCachePath, 'stable'),
         );
 
-        final result = await service.pubGet(
-          mockCacheVersion,
-          offline: true,
-        );
+        final result = await service.pubGet(mockCacheVersion, offline: true);
 
         expect(result.exitCode, equals(0));
         expect(processService.lastCommand, equals('flutter'));
