@@ -52,6 +52,20 @@ void main() {
       File(p.join(dir.path, 'payload.txt')).writeAsStringSync('data');
     });
 
+    test('TestFactory.context uses one temp root for cache and workspace', () {
+      final context = TestFactory.context(debugLabel: 'context_layout');
+      final cacheDir = Directory(context.fvmDir);
+      final workspaceDir = Directory(context.workingDirectory);
+      final contextRoot = p.dirname(cacheDir.path);
+
+      expect(cacheDir.existsSync(), isTrue);
+      expect(workspaceDir.existsSync(), isTrue);
+      expect(p.basename(cacheDir.path), 'cache');
+      expect(p.basename(workspaceDir.path), 'workspace');
+      expect(p.dirname(workspaceDir.path), contextRoot);
+      expect(p.basename(contextRoot), startsWith('context_layout_'));
+    });
+
     test('stale cleanup deletes only direct TEST_DIR children', () {
       final tempRoot = createTempDir('stale_cleanup_fixture');
       final staleDir = Directory(p.join(tempRoot.path, 'TEST_DIR_legacy'))

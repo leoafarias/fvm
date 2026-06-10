@@ -391,9 +391,14 @@ class TestFactory {
     debugLabel ??= _generateUuid();
 
     final globalConfig = LocalAppConfig.read();
+    final contextRoot = createTempDir(debugLabel);
+    final cacheDir = Directory(p.join(contextRoot.path, 'cache'))
+      ..createSync(recursive: true);
+    final workingDir = Directory(p.join(contextRoot.path, 'workspace'))
+      ..createSync(recursive: true);
 
     final config = AppConfig(
-      cachePath: createTempDir().path,
+      cachePath: cacheDir.path,
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
@@ -404,7 +409,7 @@ class TestFactory {
       debugLabel: debugLabel,
       configOverrides: config,
       logLevel: Level.verbose,
-      workingDirectoryOverride: createTempDir(debugLabel).path,
+      workingDirectoryOverride: workingDir.path,
       isTest: true,
       skipInput: skipInput ?? false,
       environmentOverrides: environmentOverrides,
