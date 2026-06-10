@@ -86,11 +86,13 @@ void main() {
           final versionDir = Directory(path.join(tempDir.path, version))
             ..createSync(recursive: true);
 
-          File(path.join(versionDir.path, 'version'))
-              .writeAsStringSync('$version (test)');
+          File(
+            path.join(versionDir.path, 'version'),
+          ).writeAsStringSync('$version (test)');
 
-          File(path.join(versionDir.path, 'bin', 'flutter'))
-              .createSync(recursive: true);
+          File(
+            path.join(versionDir.path, 'bin', 'flutter'),
+          ).createSync(recursive: true);
         }
 
         File(
@@ -119,7 +121,9 @@ void main() {
           final versionDir = Directory(path.join(tempDir.path, versionName))
             ..createSync(recursive: true);
 
-          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+          Directory(
+            path.join(versionDir.path, '.git'),
+          ).createSync(recursive: true);
           File(
             path.join(
               versionDir.path,
@@ -172,7 +176,6 @@ void main() {
           equals(CacheIntegrity.invalid),
         );
       });
-
     });
 
     group('moveToSdkVersionDirectory', () {
@@ -191,7 +194,6 @@ void main() {
           throwsA(isA<AppException>()),
         );
       });
-
     });
 
     group('Global version management:', () {
@@ -273,9 +275,7 @@ void main() {
       });
 
       test('getGlobalVersion falls back to basename for outside targets', () {
-        final outsideDir = Directory.systemTemp.createTempSync(
-          'fvm_outside_',
-        );
+        final outsideDir = createTempDir('fvm_outside');
         addTearDown(() => outsideDir.deleteSync(recursive: true));
         addTearDown(cacheService.unlinkGlobal);
 

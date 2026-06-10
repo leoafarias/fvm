@@ -85,9 +85,7 @@ void main() {
     group('Install from project configuration:', () {
       test('Install without version uses project config', () async {
         // Create a temporary directory for this test
-        final tempDir = Directory.systemTemp.createTempSync(
-          'fvm_install_test_',
-        );
+        final tempDir = createTempDir('fvm_install_test');
         final originalDir = Directory.current;
 
         try {

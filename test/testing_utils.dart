@@ -44,11 +44,186 @@ void forceUpdateFlutterSdkVersionFile(
 }
 
 const _kTempTestDirPrefix = 'TEST_DIR_';
+const _kManagedTempRootPrefix = '${_kTempTestDirPrefix}fvm_';
+const _kManagedTempRootMarker = '.fvm_test_temp_root.json';
+const _kLegacySystemTempStaleAge = Duration(hours: 4);
+
+final _testTempDirectoryManager = _TestTempDirectoryManager();
 
 Directory createTempDir([String prefix = '']) {
-  prefix = prefix.isEmpty ? '' : '_$prefix';
+  return _testTempDirectoryManager.create(prefix);
+}
 
-  return Directory.systemTemp.createTempSync('$_kTempTestDirPrefix$prefix');
+int cleanUpStaleFvmTestTempDirs({
+  Directory? tempRoot,
+  Directory? currentRoot,
+  DateTime? createdBefore,
+}) {
+  return _TestTempDirectoryManager.cleanUpStale(
+    tempRoot: tempRoot,
+    currentRoot: currentRoot,
+    createdBefore: createdBefore,
+  );
+}
+
+class _TestTempDirectoryManager {
+  final DateTime _createdAt = DateTime.now();
+
+  Directory? _root;
+  bool _staleDirsCleaned = false;
+
+  Directory create(String prefix) {
+    final root = _ensureRoot();
+    final dir = root.createTempSync(_childPrefix(prefix));
+    _registerCleanup(() => _tryDeleteDirectory(dir));
+
+    return dir;
+  }
+
+  static int cleanUpStale({
+    Directory? tempRoot,
+    Directory? currentRoot,
+    DateTime? createdBefore,
+  }) {
+    final root = tempRoot ?? Directory.systemTemp;
+    if (!root.existsSync()) return 0;
+
+    var removed = 0;
+    final cutoff = createdBefore ?? DateTime.now();
+
+    for (final entity in root.listSync(followLinks: false)) {
+      if (entity is! Directory) continue;
+      if (!_isOwnedTestTempDir(root, entity)) continue;
+      if (currentRoot != null && p.equals(entity.path, currentRoot.path)) {
+        continue;
+      }
+      if (_isActiveManagedRoot(entity)) continue;
+
+      final DateTime modified;
+      try {
+        modified = entity.statSync().modified;
+      } on FileSystemException {
+        continue;
+      }
+      if (!modified.isBefore(cutoff)) continue;
+
+      if (_tryDeleteDirectory(entity)) {
+        removed++;
+      }
+    }
+
+    return removed;
+  }
+
+  Directory _ensureRoot() {
+    final currentRoot = _root;
+    if (currentRoot != null && currentRoot.existsSync()) return currentRoot;
+
+    final tempRoot = _sharedTempDir;
+    tempRoot.createSync(recursive: true);
+
+    final root = tempRoot.createTempSync(_kManagedTempRootPrefix);
+    _root = root;
+    _writeMarker(root);
+    _registerCleanup(() {
+      _tryDeleteDirectory(root);
+      if (_root != null && p.equals(_root!.path, root.path)) {
+        _root = null;
+      }
+    });
+
+    if (!_staleDirsCleaned) {
+      _staleDirsCleaned = true;
+      cleanUpStale(
+        tempRoot: tempRoot,
+        currentRoot: root,
+        createdBefore: _createdAt,
+      );
+      cleanUpStale(
+        tempRoot: Directory.systemTemp,
+        // Legacy TEST_DIR_* roots have no marker file, so give active old-style
+        // test runs a grace period before reaping their directories.
+        createdBefore: _createdAt.subtract(_kLegacySystemTempStaleAge),
+      );
+    }
+
+    return root;
+  }
+
+  void _registerCleanup(void Function() callback) {
+    try {
+      addTearDown(callback);
+    } on StateError {
+      tearDownAll(callback);
+    }
+  }
+
+  void _writeMarker(Directory root) {
+    final marker = File(p.join(root.path, _kManagedTempRootMarker));
+    marker.writeAsStringSync(
+      jsonEncode({
+        'pid': pid,
+        'createdAt': DateTime.now().toUtc().toIso8601String(),
+      }),
+    );
+  }
+
+  static String _childPrefix(String prefix) {
+    final rawPrefix = prefix.isEmpty ? 'dir' : prefix;
+    final safePrefix = rawPrefix.replaceAll(RegExp(r'[^A-Za-z0-9_.-]'), '_');
+
+    return '${safePrefix}_';
+  }
+
+  static bool _isOwnedTestTempDir(Directory tempRoot, Directory dir) {
+    final rootPath = p.normalize(tempRoot.path);
+    final dirPath = p.normalize(dir.path);
+    final name = p.basename(dirPath);
+
+    return name.startsWith(_kTempTestDirPrefix) &&
+        p.equals(p.dirname(dirPath), rootPath);
+  }
+
+  static bool _isActiveManagedRoot(Directory dir) {
+    final marker = File(p.join(dir.path, _kManagedTempRootMarker));
+    if (!marker.existsSync()) return false;
+
+    try {
+      final decoded = jsonDecode(marker.readAsStringSync());
+      if (decoded is! Map<String, dynamic>) return false;
+      final ownerPid = decoded['pid'];
+      final ownerPidValue =
+          ownerPid is int ? ownerPid : int.tryParse(ownerPid?.toString() ?? '');
+      if (ownerPidValue == null) return false;
+
+      return _isProcessAlive(ownerPidValue);
+    } on FormatException {
+      return false;
+    } on FileSystemException {
+      return false;
+    }
+  }
+
+  static bool _isProcessAlive(int ownerPid) {
+    if (ownerPid == pid) return true;
+    if (Platform.isWindows) return true;
+
+    final result = Process.runSync('kill', ['-0', '$ownerPid']);
+
+    return result.exitCode == 0;
+  }
+
+  static bool _tryDeleteDirectory(Directory dir) {
+    if (!dir.existsSync()) return true;
+
+    try {
+      dir.deleteSync(recursive: true);
+
+      return true;
+    } on FileSystemException {
+      return false;
+    }
+  }
 }
 
 File createPubspecYaml(
@@ -307,9 +482,7 @@ class TempDirectoryTracker {
 
   void cleanUp() {
     for (final dir in _dirs) {
-      if (dir.existsSync()) {
-        dir.deleteSync(recursive: true);
-      }
+      _TestTempDirectoryManager._tryDeleteDirectory(dir);
     }
     _dirs.clear();
   }
@@ -355,28 +528,39 @@ Future<Directory> createLocalRemoteRepository({
 
   try {
     await runGitCommand(['init'], workingDirectory: seedDir.path);
-    await runGitCommand(
-      ['config', 'user.email', 'tests@fvm.app'],
-      workingDirectory: seedDir.path,
-    );
-    await runGitCommand(
-      ['config', 'user.name', 'FVM Tests'],
-      workingDirectory: seedDir.path,
-    );
+    await runGitCommand([
+      'config',
+      'user.email',
+      'tests@fvm.app',
+    ], workingDirectory: seedDir.path);
+    await runGitCommand([
+      'config',
+      'user.name',
+      'FVM Tests',
+    ], workingDirectory: seedDir.path);
     File(p.join(seedDir.path, 'README.md')).writeAsStringSync('seed data');
     await runGitCommand(['add', '.'], workingDirectory: seedDir.path);
-    await runGitCommand(['commit', '-m', 'seed'],
-        workingDirectory: seedDir.path);
-    await runGitCommand(['branch', '-M', branch],
-        workingDirectory: seedDir.path);
-    await runGitCommand(
-      ['remote', 'add', 'origin', remoteDir.path],
-      workingDirectory: seedDir.path,
-    );
-    await runGitCommand(
-      ['push', 'origin', branch],
-      workingDirectory: seedDir.path,
-    );
+    await runGitCommand([
+      'commit',
+      '-m',
+      'seed',
+    ], workingDirectory: seedDir.path);
+    await runGitCommand([
+      'branch',
+      '-M',
+      branch,
+    ], workingDirectory: seedDir.path);
+    await runGitCommand([
+      'remote',
+      'add',
+      'origin',
+      remoteDir.path,
+    ], workingDirectory: seedDir.path);
+    await runGitCommand([
+      'push',
+      'origin',
+      branch,
+    ], workingDirectory: seedDir.path);
   } finally {
     if (seedDir.existsSync()) {
       seedDir.deleteSync(recursive: true);
@@ -387,10 +571,10 @@ Future<Directory> createLocalRemoteRepository({
 }
 
 Future<bool> isBareGitRepository(String repoPath) async {
-  final result = await runGitCommand(
-    ['rev-parse', '--is-bare-repository'],
-    workingDirectory: repoPath,
-  );
+  final result = await runGitCommand([
+    'rev-parse',
+    '--is-bare-repository',
+  ], workingDirectory: repoPath);
 
   return result.stdout.toString().trim() == 'true';
 }
@@ -404,6 +588,7 @@ class MockFlutterService extends FlutterService {
 }
 
 final _sharedTestFvmDir = Directory(p.join(kUserHome, 'fvm_test_cache'));
+final _sharedTempDir = Directory(p.join(_sharedTestFvmDir.path, 'tmp'));
 final _sharedGitCacheDir = Directory(
   p.join(_sharedTestFvmDir.path, 'gitcache'),
 );
