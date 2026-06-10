@@ -103,11 +103,7 @@ class FakeFlutterSdkFixture {
 
     versionDir.createSync(recursive: true);
 
-    final legacyVersion = _legacyVersionForState(
-      fixture,
-      state,
-      mismatchCachedVersion: mismatchCachedVersion,
-    );
+    final legacyVersion = _legacyVersionForState(fixture, state);
 
     File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
 
@@ -197,9 +193,8 @@ class FakeFlutterSdkFixture {
 
   static String _legacyVersionForState(
     FlutterRootVersionFixture fixture,
-    FakeFlutterSdkState state, {
-    String? mismatchCachedVersion,
-  }) {
+    FakeFlutterSdkState state,
+  ) {
     if (state == FakeFlutterSdkState.versionMismatch) {
       return fixture.mismatchLegacyVersion ?? fixture.legacyVersion;
     }
