@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -11,12 +12,14 @@ void main() {
     late TestCommandRunner runner;
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      runner = TestFactory.fastCommandRunner();
     });
 
     group('Install command flags:', () {
       test('Install with --setup flag', () async {
         const version = 'stable';
+        final flutterService =
+            runner.context.get<FlutterService>() as FakeFlutterService;
 
         final exitCode = await runner.runOrThrow([
           'fvm',
@@ -32,10 +35,15 @@ void main() {
               FlutterVersion.parse(version),
             );
         expect(cacheVersion, isNotNull, reason: 'Install with setup failed');
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(flutterService.setupVersions, contains(version));
+        expect(cacheVersion!.isSetup, isTrue);
       });
 
       test('Install with --skip-pub-get flag', () async {
         const version = 'stable';
+        final flutterService =
+            runner.context.get<FlutterService>() as FakeFlutterService;
 
         final exitCode = await runner.runOrThrow([
           'fvm',
@@ -55,10 +63,14 @@ void main() {
           isNotNull,
           reason: 'Install with skip-pub-get failed',
         );
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(flutterService.pubGetCalls, isEmpty);
       });
 
       test('Install with both --setup and --skip-pub-get flags', () async {
         const version = 'beta';
+        final flutterService =
+            runner.context.get<FlutterService>() as FakeFlutterService;
 
         final exitCode = await runner.runOrThrow([
           'fvm',
@@ -79,6 +91,10 @@ void main() {
           isNotNull,
           reason: 'Install with multiple flags failed',
         );
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(flutterService.setupVersions, contains(version));
+        expect(flutterService.pubGetCalls, isEmpty);
+        expect(cacheVersion!.isSetup, isTrue);
       });
     });
 
@@ -98,9 +114,8 @@ void main() {
           configFile.writeAsStringSync('{"flutter": "$projectVersion"}');
 
           // Create a fresh runner in this directory
-          final testContext = FvmContext.create(
+          final testContext = TestFactory.fastContext(
             workingDirectoryOverride: tempDir.path,
-            isTest: true,
           );
           final localRunner = TestCommandRunner(testContext);
 

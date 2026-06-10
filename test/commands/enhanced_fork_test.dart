@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -11,7 +12,7 @@ void main() {
     const testForkUrl = 'https://github.com/leoafarias/flutter.git';
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      runner = TestFactory.fastCommandRunner();
 
       // Clean up any existing test fork
       LocalAppConfig.read()
@@ -48,15 +49,30 @@ void main() {
         expect(fork.url, testForkUrl);
 
         // Create a new runner to pick up the updated global config with forks
-        final installRunner = TestFactory.commandRunner();
+        final installRunner = TestFactory.fastCommandRunner();
+        final flutterService =
+            installRunner.context.get<FlutterService>() as FakeFlutterService;
+        final cacheService = installRunner.context.get<CacheService>();
+        const forkVersion = '$testForkName/leo-test-21';
 
         // Step 2: Install version from fork with specific branch
         final installExitCode = await installRunner.runOrThrow([
           'fvm',
           'install',
-          '$testForkName/leo-test-21',
+          forkVersion,
         ]);
         expect(installExitCode, ExitCode.success.code);
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(
+          flutterService.installedVersions.single.nameWithAlias,
+          equals(forkVersion),
+        );
+
+        final cacheVersion = cacheService.getVersion(
+          FlutterVersion.parse(forkVersion),
+        );
+        expect(cacheVersion, isNotNull);
+        expect(cacheVersion!.directory, contains('/$testForkName/leo-test-21'));
 
         // Step 3: Use version from fork
         final useExitCode = await installRunner.runOrThrow([
@@ -143,7 +159,13 @@ void main() {
         // Same fallback for the use command
         expect(
           () => runner.runOrThrow(
-            ['fvm', 'use', 'nonexistent/leo-test-21', '--force', '--skip-setup'],
+            [
+              'fvm',
+              'use',
+              'nonexistent/leo-test-21',
+              '--force',
+              '--skip-setup'
+            ],
           ),
           throwsA(
             predicate<Exception>(

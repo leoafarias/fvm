@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -9,12 +10,14 @@ void main() {
     late TestCommandRunner runner;
 
     setUp(() {
-      runner = TestFactory.commandRunner();
+      runner = TestFactory.fastCommandRunner();
     });
 
     group('Install command aliases:', () {
       test('fvm i works same as fvm install', () async {
         const version = 'stable';
+        final flutterService =
+            runner.context.get<FlutterService>() as FakeFlutterService;
 
         // Test that 'fvm i' works
         final exitCode = await runner.runOrThrow(['fvm', 'i', version]);
@@ -25,6 +28,10 @@ void main() {
               FlutterVersion.parse(version),
             );
         expect(cacheVersion, isNotNull, reason: 'Install via alias failed');
+        expect(flutterService.installedVersions, hasLength(1));
+        expect(flutterService.installedVersions.single.name, equals(version));
+        expect(flutterService.setupVersions, contains(version));
+        expect(cacheVersion!.isSetup, isTrue);
       });
 
       test('fvm i shows same help as fvm install', () async {
@@ -57,7 +64,7 @@ void main() {
 
     group('All command aliases verification:', () {
       test('All defined aliases are accessible', () async {
-        final runner = TestFactory.commandRunner();
+        final runner = TestFactory.fastCommandRunner();
 
         // Test install alias
         expect(runner.commands.containsKey('i'), isTrue);
