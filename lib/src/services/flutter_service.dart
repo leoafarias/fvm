@@ -372,8 +372,10 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool allowMirrorClone,
   }) async {
-    final useLocalMirror = context.gitCache && !version.fromFork;
+    final useLocalMirror =
+        allowMirrorClone && context.gitCache && !version.fromFork;
 
     if (useLocalMirror) {
       final mirrorResult = await _tryCloneFromMirror(
@@ -541,6 +543,7 @@ class FlutterService extends ContextualService {
   Future<void> install(
     FlutterVersion version, {
     bool useArchive = false,
+    bool allowMirrorClone = true,
   }) async {
     final versionDir = _setupCacheDirectories(version);
     if (useArchive) {
@@ -560,6 +563,7 @@ class FlutterService extends ContextualService {
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
+        allowMirrorClone: allowMirrorClone,
       );
 
       final isGit = await GitDir.isGitDir(versionDir.path);

@@ -71,7 +71,6 @@ void main() {
       expect(flutterService.lastInstallDirectory, isNotNull);
       expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
     });
-
   });
 
   group('Pin functionality:', () {

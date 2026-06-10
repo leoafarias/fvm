@@ -42,15 +42,15 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     required StreamChannel<String> channel,
     required this.fvm,
     required ProcessRunner runner,
-  }) : _runner = runner,
-       super.fromStreamChannel(
-         channel,
-         implementation: implementation,
-         instructions:
-             'Use tools under the fvm.* namespace. Read-only JSON via fvm api; '
-             'mutations are non-interactive where supported. '
-             'Server v${implementation.version}. Detected FVM: ${fvm.raw}.',
-       );
+  })  : _runner = runner,
+        super.fromStreamChannel(
+          channel,
+          implementation: implementation,
+          instructions:
+              'Use tools under the fvm.* namespace. Read-only JSON via fvm api; '
+              'mutations are non-interactive where supported. '
+              'Server v${implementation.version}. Detected FVM: ${fvm.raw}.',
+        );
 
   /// Create, detect FVM version, then return a ready server.
   static Future<FvmMcpServer> start({

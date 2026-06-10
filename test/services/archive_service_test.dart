@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -321,6 +322,40 @@ void main() {
       trackedArchiveTempDirs.every((dir) => !dir.existsSync()),
       isTrue,
     );
+  }
+
+  String archiveOperationKey(Directory versionDir) {
+    return sha256
+        .convert(
+          utf8.encode(path.normalize(versionDir.absolute.path)),
+        )
+        .toString();
+  }
+
+  Directory archiveOperationRoot(Directory versionDir) {
+    return Directory(path.join(versionDir.parent.path, '.archive'));
+  }
+
+  Directory archiveOperationDir(Directory versionDir, String suffix) {
+    return Directory(
+      path.join(
+        archiveOperationRoot(versionDir).path,
+        '${archiveOperationKey(versionDir)}.$suffix',
+      ),
+    );
+  }
+
+  void expectNoSiblingArchiveArtifacts(Directory versionDir) {
+    for (final suffix in [
+      'archive_lock',
+      'archive_staging',
+      'archive_backup',
+    ]) {
+      expect(
+        FileSystemEntity.typeSync('${versionDir.path}.$suffix'),
+        FileSystemEntityType.notFound,
+      );
+    }
   }
 
   group('ArchiveService', () {
@@ -815,8 +850,71 @@ void main() {
               throwsA(isA<AppException>()),
             );
 
-            final stagingDir = Directory('${versionDir.path}.archive_staging');
+            final stagingDir = archiveOperationDir(versionDir, 'staging');
             expect(stagingDir.existsSync(), isFalse);
+            expectNoSiblingArchiveArtifacts(versionDir);
+          },
+        );
+      });
+
+      test('stages archive install under hidden operation root', () async {
+        final archiveBytes = 'dummy-zip-data'.codeUnits;
+        final hash = sha256.convert(archiveBytes).toString();
+        final release = createTestRelease(sha256: hash);
+
+        final server = await _startArchiveServer(body: archiveBytes);
+        addTearDown(() => server.close(force: true));
+
+        final mockProcessService = MockProcessService();
+
+        when(() => mockReleaseClient.getLatestChannelRelease('stable'))
+            .thenAnswer((_) async => release);
+
+        await withArchiveTestZone(
+          port: server.port,
+          debugLabel: 'archive-hidden-operation-root',
+          extraGenerators: {ProcessService: (_) => mockProcessService},
+          body: (svc, versionDir) async {
+            when(
+              () => mockProcessService.run(
+                any(),
+                args: any(named: 'args'),
+                workingDirectory: any(named: 'workingDirectory'),
+                environment: any(named: 'environment'),
+                throwOnError: any(named: 'throwOnError'),
+                echoOutput: any(named: 'echoOutput'),
+              ),
+            ).thenAnswer(
+              (invocation) => _simulateExtraction(
+                invocation,
+                onPrepared: (targetDir, _, __) {
+                  expect(
+                    targetDir.path,
+                    archiveOperationDir(versionDir, 'staging').path,
+                  );
+                  expect(
+                    path.isWithin(
+                      archiveOperationRoot(versionDir).path,
+                      targetDir.path,
+                    ),
+                    isTrue,
+                  );
+                  expectNoSiblingArchiveArtifacts(versionDir);
+                },
+              ),
+            );
+
+            await svc.install(FlutterVersion.parse('stable'), versionDir);
+
+            expect(
+              archiveOperationDir(versionDir, 'staging').existsSync(),
+              isFalse,
+            );
+            expect(
+              archiveOperationDir(versionDir, 'backup').existsSync(),
+              isFalse,
+            );
+            expectNoSiblingArchiveArtifacts(versionDir);
           },
         );
       });
@@ -855,8 +953,9 @@ void main() {
             final marker = File(path.join(versionDir.path, 'existing.txt'));
             marker.writeAsStringSync('keep-me');
 
-            final backupPath = '${versionDir.path}.archive_backup';
-            File(backupPath).writeAsStringSync('block-rename');
+            final backupDir = archiveOperationDir(versionDir, 'backup');
+            backupDir.parent.createSync(recursive: true);
+            File(backupDir.path).writeAsStringSync('block-rename');
 
             await expectLater(
               svc.install(FlutterVersion.parse('stable'), versionDir),
@@ -873,7 +972,7 @@ void main() {
             expect(marker.existsSync(), isTrue);
             expect(marker.readAsStringSync(), equals('keep-me'));
             expect(
-              Directory('${versionDir.path}.archive_staging').existsSync(),
+              archiveOperationDir(versionDir, 'staging').existsSync(),
               isFalse,
             );
           },
@@ -917,7 +1016,7 @@ void main() {
             await svc.install(FlutterVersion.parse('stable'), versionDir);
 
             expect(
-              Directory('${versionDir.path}.archive_backup').existsSync(),
+              archiveOperationDir(versionDir, 'backup').existsSync(),
               isFalse,
             );
             expect(
@@ -935,7 +1034,7 @@ void main() {
             .thenAnswer((_) async => release);
 
         final versionDir = Directory(path.join(tempDir.path, 'stable'));
-        final backupDir = Directory('${versionDir.path}.archive_backup')
+        final backupDir = archiveOperationDir(versionDir, 'backup')
           ..createSync(recursive: true);
         File(path.join(backupDir.path, 'previous-sdk.txt'))
             .writeAsStringSync('rescued');
@@ -989,7 +1088,7 @@ void main() {
           extraGenerators: {ProcessService: (_) => mockProcessService},
           body: (svc, versionDir) async {
             // Simulate interrupted state: backup exists, versionDir does not
-            final backupDir = Directory('${versionDir.path}.archive_backup');
+            final backupDir = archiveOperationDir(versionDir, 'backup');
             backupDir.createSync(recursive: true);
             final marker = File(path.join(backupDir.path, 'previous-sdk.txt'));
             marker.writeAsStringSync('rescued');
@@ -1076,11 +1175,11 @@ void main() {
               isTrue,
             );
             expect(
-              Directory('${versionDir.path}.archive_staging').existsSync(),
+              archiveOperationDir(versionDir, 'staging').existsSync(),
               isFalse,
             );
             expect(
-              Directory('${versionDir.path}.archive_backup').existsSync(),
+              archiveOperationDir(versionDir, 'backup').existsSync(),
               isFalse,
             );
           },
@@ -1684,7 +1783,7 @@ void main() {
 
             expectTrackedArchiveTempDirsDeleted();
             expect(
-              Directory('${versionDir.path}.archive_staging').existsSync(),
+              archiveOperationDir(versionDir, 'staging').existsSync(),
               isFalse,
             );
           },
@@ -1724,7 +1823,7 @@ void main() {
 
             expectTrackedArchiveTempDirsDeleted();
             expect(
-              Directory('${versionDir.path}.archive_staging').existsSync(),
+              archiveOperationDir(versionDir, 'staging').existsSync(),
               isFalse,
             );
           },

@@ -14,13 +14,16 @@ void main() {
     final outName = Platform.isWindows ? 'fake_fvm.exe' : 'fake_fvm';
     final outPath = '${tmp.path}/$outName';
 
-    final result = await Process.run(Platform.resolvedExecutable, [
-      'compile',
-      'exe',
-      script,
-      '-o',
-      outPath,
-    ], runInShell: Platform.isWindows);
+    final result = await Process.run(
+        Platform.resolvedExecutable,
+        [
+          'compile',
+          'exe',
+          script,
+          '-o',
+          outPath,
+        ],
+        runInShell: Platform.isWindows);
     if (result.exitCode != 0) {
       throw StateError(
         'Failed to compile fake_fvm:\n${result.stdout}\n${result.stderr}',
@@ -30,11 +33,11 @@ void main() {
   }
 
   ProcessRunner runner({required bool hasSkipInput}) => ProcessRunner(
-    exe: fakeFvmExe,
-    hasSkipInput: hasSkipInput,
-    startMode: ProcessStartMode.normal,
-    runInShell: false,
-  );
+        exe: fakeFvmExe,
+        hasSkipInput: hasSkipInput,
+        startMode: ProcessStartMode.normal,
+        runInShell: false,
+      );
 
   String textFrom(CallToolResult result) {
     final contents = result.content.whereType<TextContent>();

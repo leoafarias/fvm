@@ -124,7 +124,6 @@ void main() {
       expect(flutterService.lastInstallDirectory, isNotNull);
       expect(flutterService.lastInstallDirectory!.existsSync(), isTrue);
     });
-
   });
 
   // Group 5: Forked versions

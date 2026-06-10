@@ -20,18 +20,16 @@ class ProcessRunner {
     ProcessStartMode? startMode,
     bool? runInShell,
     ProcessManager? processManager,
-  }) : startMode = startMode ?? ProcessStartMode.normal,
-       runInShell = runInShell ?? Platform.isWindows,
-       processManager = processManager ?? const LocalProcessManager();
+  })  : startMode = startMode ?? ProcessStartMode.normal,
+        runInShell = runInShell ?? Platform.isWindows,
+        processManager = processManager ?? const LocalProcessManager();
 
   String _formatCommand(List<String> args) {
-    return [exe, ...args]
-        .map((part) {
-          final escaped = part.replaceAll('"', r'\"');
+    return [exe, ...args].map((part) {
+      final escaped = part.replaceAll('"', r'\"');
 
-          return escaped.contains(' ') ? '"$escaped"' : escaped;
-        })
-        .join(' ');
+      return escaped.contains(' ') ? '"$escaped"' : escaped;
+    }).join(' ');
   }
 
   Future<CallToolResult> _runCore(
@@ -106,9 +104,8 @@ class ProcessRunner {
           progressToken: meta!.progressToken!,
           progress: 100,
           total: 100,
-          message: timedOut
-              ? '$progressLabel timed out'
-              : '$progressLabel done',
+          message:
+              timedOut ? '$progressLabel timed out' : '$progressLabel done',
         ),
       );
     }
@@ -158,13 +155,14 @@ class ProcessRunner {
     Duration timeout = const Duration(minutes: 2),
     String? progressLabel,
     MetaWithProgressToken? meta,
-  }) => _runCore(
-    args,
-    cwd: cwd,
-    timeout: timeout,
-    progressLabel: progressLabel,
-    meta: meta,
-  );
+  }) =>
+      _runCore(
+        args,
+        cwd: cwd,
+        timeout: timeout,
+        progressLabel: progressLabel,
+        meta: meta,
+      );
 
   Future<CallToolResult> run(
     List<String> args, {

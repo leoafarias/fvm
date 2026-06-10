@@ -2,11 +2,21 @@ import 'dart:io';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
+
+class _UpdateFailingGitService extends GitService {
+  _UpdateFailingGitService(super.context);
+
+  @override
+  Future<void> updateLocalMirror() async {
+    throw Exception('forced mirror update failure');
+  }
+}
 
 void main() {
   late TestCommandRunner runner;
@@ -243,6 +253,88 @@ void main() {
 
       expect(result, isNotNull);
       expect(flutterService.lastUseArchive, isTrue);
+    });
+  });
+
+  group('EnsureCache mirror fallback', () {
+    test('uses remote clone when mirror update fails for channel install',
+        () async {
+      final tempDir = tempDirs.create();
+      final remoteDir = await createLocalRemoteRepository(
+        root: tempDir,
+        name: 'flutter_remote',
+        branch: 'stable',
+      );
+      final remoteUrl = remoteDir.uri.toString();
+
+      final gitCachePath = path.join(tempDir.path, 'cache.git');
+      await runGitCommand(['clone', '--mirror', remoteUrl, gitCachePath]);
+      final staleHead = (await runGitCommand(
+        ['rev-parse', 'stable'],
+        workingDirectory: gitCachePath,
+      ))
+          .stdout
+          .toString()
+          .trim();
+
+      final workDir = Directory(path.join(tempDir.path, 'remote_work'));
+      await runGitCommand(['clone', '-b', 'stable', remoteUrl, workDir.path]);
+      await runGitCommand(
+        ['config', 'user.email', 'tests@fvm.app'],
+        workingDirectory: workDir.path,
+      );
+      await runGitCommand(
+        ['config', 'user.name', 'FVM Tests'],
+        workingDirectory: workDir.path,
+      );
+      File(path.join(workDir.path, 'REVISION')).writeAsStringSync('remote-b');
+      await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+      await runGitCommand(
+        ['commit', '-m', 'advance stable'],
+        workingDirectory: workDir.path,
+      );
+      await runGitCommand(
+        ['push', 'origin', 'stable'],
+        workingDirectory: workDir.path,
+      );
+
+      final latestHead = (await runGitCommand(
+        ['rev-parse', 'HEAD'],
+        workingDirectory: workDir.path,
+      ))
+          .stdout
+          .toString()
+          .trim();
+      expect(latestHead, isNot(staleHead));
+
+      final context = FvmContext.create(
+        isTest: true,
+        skipInput: true,
+        configOverrides: AppConfig(
+          cachePath: path.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteUrl,
+          useGitCache: true,
+        ),
+        generatorsOverride: {
+          GitService: _UpdateFailingGitService.new,
+        },
+      );
+
+      final result = await EnsureCacheWorkflow(context)(
+        FlutterVersion.parse('stable'),
+        shouldInstall: true,
+      );
+      final installedHead = (await runGitCommand(
+        ['rev-parse', 'HEAD'],
+        workingDirectory: result.directory,
+      ))
+          .stdout
+          .toString()
+          .trim();
+
+      expect(installedHead, latestHead);
+      expect(installedHead, isNot(staleHead));
     });
   });
 }

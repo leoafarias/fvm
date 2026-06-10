@@ -119,7 +119,8 @@ void main() {
           final versionDir = Directory(path.join(tempDir.path, versionName))
             ..createSync(recursive: true);
 
-          Directory(path.join(versionDir.path, '.git')).createSync(recursive: true);
+          Directory(path.join(versionDir.path, '.git'))
+              .createSync(recursive: true);
           File(
             path.join(
               versionDir.path,
@@ -137,49 +138,52 @@ void main() {
         },
       );
 
-      test('ignores archive operation directories', () async {
-        final stableDir = Directory(path.join(tempDir.path, 'stable'))
-          ..createSync(recursive: true);
-        File(path.join(stableDir.path, 'version')).writeAsStringSync('stable');
-        File(path.join(stableDir.path, 'bin', 'flutter'))
-            .createSync(recursive: true);
+      test('includes real SDK names that look like archive artifacts',
+          () async {
+        void createSdk(String relativePath, String versionName) {
+          final versionDir = Directory(path.join(tempDir.path, relativePath))
+            ..createSync(recursive: true);
+          File(path.join(versionDir.path, 'version'))
+              .writeAsStringSync(versionName);
+          File(
+            path.join(
+              versionDir.path,
+              'bin',
+              Platform.isWindows ? 'flutter.bat' : 'flutter',
+            ),
+          ).createSync(recursive: true);
+        }
 
-        final stagingDir = Directory(
-          path.join(tempDir.path, 'stable.archive_staging'),
-        )..createSync(recursive: true);
-        File(path.join(stagingDir.path, 'version'))
-            .writeAsStringSync('stable.archive_staging');
-        File(path.join(stagingDir.path, 'bin', 'flutter'))
-            .createSync(recursive: true);
-
-        final forkVersionDir = Directory(
-          path.join(tempDir.path, 'myfork', 'stable'),
-        )..createSync(recursive: true);
-        File(path.join(forkVersionDir.path, 'version'))
-            .writeAsStringSync('stable');
-        File(path.join(forkVersionDir.path, 'bin', 'flutter'))
-            .createSync(recursive: true);
-
-        final forkBackupDir = Directory(
-          path.join(tempDir.path, 'myfork', 'stable.archive_backup'),
-        )..createSync(recursive: true);
-        File(path.join(forkBackupDir.path, 'version'))
-            .writeAsStringSync('stable.archive_backup');
-        File(path.join(forkBackupDir.path, 'bin', 'flutter'))
-            .createSync(recursive: true);
+        createSdk('feature.archive_lock', 'feature.archive_lock');
+        createSdk('feature.archive_staging', 'feature.archive_staging');
+        createSdk(
+          path.join('acme.archive_backup', 'stable'),
+          'stable',
+        );
+        createSdk(
+          path.join('.archive', 'operation.archive_backup'),
+          'operation.archive_backup',
+        );
 
         final result = await cacheService.getAllVersions();
-        final standardVersion =
-            result.singleWhere((version) => !version.fromFork);
-        final forkedVersion = result.singleWhere((version) => version.fromFork);
 
+        expect(result, hasLength(3));
         expect(
-          result,
-          hasLength(2),
+          result.where((version) => version.name == 'feature.archive_lock'),
+          hasLength(1),
         );
-        expect(standardVersion.name, 'stable');
+        expect(
+          result.where((version) => version.name == 'feature.archive_staging'),
+          hasLength(1),
+        );
+
+        final forkedVersion = result.singleWhere(
+          (version) =>
+              version.fromFork &&
+              version.fork == 'acme.archive_backup' &&
+              version.name == 'stable',
+        );
         expect(forkedVersion.name, 'stable');
-        expect(forkedVersion.fork, 'myfork');
       });
     });
 
@@ -217,7 +221,6 @@ void main() {
           equals(CacheIntegrity.invalid),
         );
       });
-
     });
 
     group('moveToSdkVersionDirectory', () {
@@ -236,7 +239,6 @@ void main() {
           throwsA(isA<AppException>()),
         );
       });
-
     });
 
     group('Global version management:', () {

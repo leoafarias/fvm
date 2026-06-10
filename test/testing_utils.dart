@@ -400,6 +400,7 @@ Future<bool> isBareGitRepository(String repoPath) async {
 
 class MockFlutterService extends FlutterService {
   bool? lastUseArchive;
+  bool? lastAllowMirrorClone;
   FlutterVersion? lastInstallVersion;
   Directory? lastInstallDirectory;
 
@@ -413,8 +414,10 @@ class MockFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version, {
     bool useArchive = false,
+    bool allowMirrorClone = true,
   }) async {
     lastUseArchive = useArchive;
+    lastAllowMirrorClone = allowMirrorClone;
     lastInstallVersion = version;
 
     if (useArchive) {
@@ -447,7 +450,11 @@ class MockFlutterService extends FlutterService {
       return;
     }
 
-    await super.install(version, useArchive: useArchive);
+    await super.install(
+      version,
+      useArchive: useArchive,
+      allowMirrorClone: allowMirrorClone,
+    );
     final cacheService = get<CacheService>();
     lastInstallDirectory = cacheService.getVersionCacheDir(version);
   }

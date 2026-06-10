@@ -135,6 +135,7 @@ class EnsureCacheWorkflow extends Workflow {
     final gitService = get<GitService>();
 
     final cacheVersion = cacheService.getVersion(version);
+    var allowMirrorClone = true;
 
     // Migrate legacy non-bare caches if present.
     // Refresh the mirror only when we actually need to clone (cache miss).
@@ -146,6 +147,7 @@ class EnsureCacheWorkflow extends Workflow {
           await gitService.updateLocalMirror();
         }
       } on Exception catch (e) {
+        allowMirrorClone = false;
         logger.debug('Local cache setup exception: $e');
         logger.warn('Failed to setup local cache. Falling back to git clone.');
       }
@@ -206,7 +208,11 @@ class EnsureCacheWorkflow extends Workflow {
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
     try {
-      await flutterService.install(version, useArchive: useArchive);
+      await flutterService.install(
+        version,
+        useArchive: useArchive,
+        allowMirrorClone: allowMirrorClone,
+      );
 
       progress.complete(
         'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',

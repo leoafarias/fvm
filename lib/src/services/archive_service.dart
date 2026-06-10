@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -689,11 +690,23 @@ class ArchiveService extends ContextualService {
     );
   }
 
+  String _archiveOperationKey(Directory versionDir) {
+    final normalizedPath = path.normalize(versionDir.absolute.path);
+
+    return sha256.convert(utf8.encode(normalizedPath)).toString();
+  }
+
+  Directory _archiveOperationRoot() {
+    return Directory(path.join(context.versionsCachePath, '.archive'));
+  }
+
   Future<void> _installLocked(
     FlutterVersion version,
     Directory versionDir,
   ) async {
-    final lockFile = File('${versionDir.path}.archive_lock');
+    final operationRoot = _archiveOperationRoot();
+    final operationKey = _archiveOperationKey(versionDir);
+    final lockFile = File(path.join(operationRoot.path, '$operationKey.lock'));
     logger.debug('Acquiring archive install lock: ${lockFile.path}');
     final lockHandle = await _acquireInstallLock(lockFile);
 
@@ -704,8 +717,12 @@ class ArchiveService extends ContextualService {
       );
 
       // Use a staging directory so an existing cache survives failures
-      final stagingDir = Directory('${versionDir.path}.archive_staging');
-      final backupDir = Directory('${versionDir.path}.archive_backup');
+      final stagingDir = Directory(
+        path.join(operationRoot.path, '$operationKey.staging'),
+      );
+      final backupDir = Directory(
+        path.join(operationRoot.path, '$operationKey.backup'),
+      );
       await _prepareInstallDirectories(versionDir, stagingDir, backupDir);
 
       try {
