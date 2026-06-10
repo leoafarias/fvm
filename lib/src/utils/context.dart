@@ -113,7 +113,7 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
-  /// Whether to use the local git mirror cache.
+  /// Whether to use the local git cache.
   ///
   /// Explicit config/ENV opt-in/opt-out is always honoured.
   /// Default: enabled locally, disabled on CI.
@@ -121,6 +121,7 @@ class FvmContext with FvmContextMappable {
   bool get gitCache {
     final explicit = config.useGitCache;
     if (explicit != null) return explicit;
+
     return !isCI;
   }
 
