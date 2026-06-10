@@ -1,3 +1,4 @@
+@Tags(['sdk'])
 import 'dart:io';
 
 import 'package:fvm/src/services/project_service.dart';

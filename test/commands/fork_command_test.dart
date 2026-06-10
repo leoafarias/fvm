@@ -7,26 +7,18 @@ import '../testing_utils.dart';
 void main() {
   group('Fork commands:', () {
     late TestCommandRunner runner;
-    late LocalAppConfig originalConfig;
     const testForkName = 'testfork';
     const testForkUrl = 'https://github.com/testuser/flutter.git';
 
     setUp(() {
       runner = TestFactory.commandRunner();
-      // Save the original config to restore later
-      originalConfig = LocalAppConfig.read();
-    });
-
-    tearDown(() {
-      // Restore original config to avoid affecting other tests
-      originalConfig.save();
     });
 
     test('Add a fork', () async {
       // Make sure the fork doesn't exist first
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == testForkName)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
 
       final exitCode = await runner.runOrThrow([
         'fvm',
@@ -39,7 +31,7 @@ void main() {
       expect(exitCode, ExitCode.success.code);
 
       // Check that the fork was added correctly
-      final config = LocalAppConfig.read();
+      final config = LocalAppConfig.read(path: runner.context.appConfigPath);
       final fork = config.forks.firstWhere(
         (f) => f.name == testForkName,
         orElse: () => const FlutterFork(name: '', url: ''),
@@ -53,9 +45,9 @@ void main() {
       const alias = 'sshfork';
       const scpUrl = 'git@github.com:flutter/flutter.git';
 
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.removeWhere((f) => f.name == alias)
-        ..save();
+        ..save(path: runner.context.appConfigPath);
 
       final exitCode = await runner.runOrThrow([
         'fvm',
@@ -67,7 +59,7 @@ void main() {
 
       expect(exitCode, ExitCode.success.code);
 
-      final config = LocalAppConfig.read();
+      final config = LocalAppConfig.read(path: runner.context.appConfigPath);
       final fork = config.forks.firstWhere(
         (f) => f.name == alias,
         orElse: () => const FlutterFork(name: '', url: ''),
@@ -88,9 +80,9 @@ void main() {
 
     test('Accept valid alias formats', () async {
       for (final alias in ['my-fork', 'my_fork.v2', 'FORK123', 'a']) {
-        LocalAppConfig.read()
+        LocalAppConfig.read(path: runner.context.appConfigPath)
           ..forks.removeWhere((f) => f.name == alias)
-          ..save();
+          ..save(path: runner.context.appConfigPath);
 
         final exitCode = await runner.runOrThrow([
           'fvm',
@@ -102,9 +94,9 @@ void main() {
         expect(exitCode, ExitCode.success.code, reason: 'alias "$alias"');
 
         // Cleanup
-        LocalAppConfig.read()
+        LocalAppConfig.read(path: runner.context.appConfigPath)
           ..forks.removeWhere((f) => f.name == alias)
-          ..save();
+          ..save(path: runner.context.appConfigPath);
       }
     });
 
@@ -136,9 +128,9 @@ void main() {
 
     test('Reject duplicate fork name', () async {
       // Add a fork first
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))
-        ..save();
+        ..save(path: runner.context.appConfigPath);
 
       expect(
         () => runner.runOrThrow([
@@ -154,9 +146,9 @@ void main() {
 
     test('List forks', () async {
       // Add a test fork
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))
-        ..save();
+        ..save(path: runner.context.appConfigPath);
 
       final exitCode = await runner.runOrThrow(['fvm', 'fork', 'list']);
 
@@ -165,9 +157,9 @@ void main() {
 
     test('Remove a fork', () async {
       // Add a test fork first
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: runner.context.appConfigPath)
         ..forks.add(const FlutterFork(name: testForkName, url: testForkUrl))
-        ..save();
+        ..save(path: runner.context.appConfigPath);
 
       final exitCode = await runner.runOrThrow([
         'fvm',
@@ -179,7 +171,7 @@ void main() {
       expect(exitCode, ExitCode.success.code);
 
       // Check that the fork was removed
-      final config = LocalAppConfig.read();
+      final config = LocalAppConfig.read(path: runner.context.appConfigPath);
       final hasTestFork = config.forks.any((f) => f.name == testForkName);
 
       expect(hasTestFork, isFalse);

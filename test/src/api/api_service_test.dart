@@ -21,10 +21,9 @@ void main() {
   setUp(() {
     // Initialize all mocks
 
-    context = TestFactory.context(
+    context = TestFactory.fastContext(
       generators: {
         ProjectService: (_) => MockProjectService(),
-        // FlutterReleasesService: (_) => MockFlutterReleasesService(),
       },
     );
   });

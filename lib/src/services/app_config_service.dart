@@ -10,8 +10,8 @@ class AppConfigService {
   const AppConfigService._();
 
   /// Build FVM Config
-  static AppConfig buildConfig({AppConfig? overrides}) {
-    final globalConfig = LocalAppConfig.read();
+  static AppConfig buildConfig({AppConfig? overrides, String? appConfigPath}) {
+    final globalConfig = LocalAppConfig.read(path: appConfigPath);
     final envConfig = _loadEnvironment();
     final projectConfig = _loadProjectConfig();
 
