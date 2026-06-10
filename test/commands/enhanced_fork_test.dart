@@ -1,6 +1,7 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -72,7 +73,10 @@ void main() {
           FlutterVersion.parse(forkVersion),
         );
         expect(cacheVersion, isNotNull);
-        expect(cacheVersion!.directory, contains('/$testForkName/leo-test-21'));
+        expect(
+          cacheVersion!.directory,
+          endsWith(p.join(testForkName, 'leo-test-21')),
+        );
 
         // Step 3: Use version from fork
         final useExitCode = await installRunner.runOrThrow([

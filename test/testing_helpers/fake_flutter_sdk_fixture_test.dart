@@ -1,4 +1,5 @@
 import 'package:fvm/fvm.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -107,7 +108,7 @@ void main() {
         cacheService.getVersionCacheDir(version).path,
         equals(cacheVersion!.directory),
       );
-      expect(cacheVersion.directory, contains('/leo/leo-test-21'));
+      expect(cacheVersion.directory, endsWith(p.join('leo', 'leo-test-21')));
     });
 
     test('channel versions skip mismatch checks', () async {
