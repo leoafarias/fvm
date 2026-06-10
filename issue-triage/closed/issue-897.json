@@ -1,0 +1,12 @@
+{
+  "number": 897,
+  "title": "How to avoid warning of access .bash_profile?",
+  "triagedAt": "2025-10-30",
+  "priority": "p1-high",
+  "status": "closed",
+  "closedAt": "2025-12-09",
+  "resolution": "fixed",
+  "artifact": "../../artifacts/issue-897.md",
+  "url": "https://github.com/leoafarias/fvm/issues/897",
+  "notes": "Closed on GitHub after read-only shell profile handling was addressed by follow-up work (see PR alignment notes for #964)."
+}

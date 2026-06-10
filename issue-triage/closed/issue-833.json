@@ -1,0 +1,12 @@
+{
+  "number": 833,
+  "title": "[Feature Request] wild card",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "closed",
+  "artifact": "../../artifacts/issue-833.md",
+  "url": "https://github.com/leoafarias/fvm/issues/833",
+  "notes": "Implement wildcard expansion for fvm remove (e.g., 3.27.*).",
+  "closedAt": "2025-11-03",
+  "resolution": "fixed"
+}

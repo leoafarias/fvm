@@ -1,0 +1,12 @@
+{
+  "number": 933,
+  "title": "[Feature Request] give fvm a full name in package manager",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "closed",
+  "artifact": "../../artifacts/issue-933.md",
+  "url": "https://github.com/leoafarias/fvm/issues/933",
+  "notes": "Chocolatey nuspec title is 'fvm (Install)'; update to 'Flutter Version Manager (FVM)' and republish.",
+  "closedAt": "2025-11-03",
+  "resolution": "fixed"
+}

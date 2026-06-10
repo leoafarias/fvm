@@ -1,0 +1,12 @@
+{
+  "number": 820,
+  "title": "setup-flutter-fvm action - mainly for aarch64/arm64 builds.",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "closed",
+  "artifact": "../../artifacts/issue-820.md",
+  "url": "https://github.com/leoafarias/fvm/issues/820",
+  "notes": "Create reusable GitHub Action to install FVM/Flutter with arm support.",
+  "closedAt": "2025-11-23",
+  "resolution": "fixed"
+}

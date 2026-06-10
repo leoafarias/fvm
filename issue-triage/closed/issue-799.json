@@ -1,0 +1,11 @@
+{
+  "number": 799,
+  "title": "PathAccessException: Cannot open ~/.zshrc",
+  "triagedAt": "2025-10-31",
+  "status": "closed",
+  "artifact": "../../artifacts/issue-799.md",
+  "url": "https://github.com/leoafarias/fvm/issues/799",
+  "notes": "Duplicate of #897 (guard shell profile writes).",
+  "closedAt": "2025-11-04",
+  "resolution": "fixed"
+}
