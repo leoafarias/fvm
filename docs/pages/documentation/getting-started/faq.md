@@ -48,7 +48,6 @@ When running `dart pub global activate fvm`, pub will grab the latest FVM versio
 **Homebrew:**
 ```bash
 brew uninstall fvm
-brew untap leoafarias/fvm
 ```
 
 **Pub:**

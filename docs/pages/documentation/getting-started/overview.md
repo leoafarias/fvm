@@ -11,7 +11,6 @@ FVM ensures consistent app builds by managing Flutter SDK versions per project. 
 
 ```bash
 # Install FVM
-brew tap leoafarias/fvm
 brew install fvm
 
 # Set Flutter version for a project
