@@ -6,5 +6,5 @@
   "status": "validated",
   "artifact": "../../artifacts/issue-1014.md",
   "url": "https://github.com/leoafarias/fvm/issues/1014",
-  "notes": "Core install flow can fail post-clone with weak diagnostics; needs resilient retry/fallback and clearer failure context."
+  "notes": "Core install flow failed post-clone with weak diagnostics in v4.0.5; merged PR #1018 (2026-03-05) appears to add the mirror/retry recovery path, so this is pending verification/closure rather than new implementation work."
 }

@@ -6,4 +6,5 @@
   "status": "validated",
   "artifact": "../../artifacts/issue-914.md",
   "url": "https://github.com/leoafarias/fvm/issues/914",
-  "notes": "Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService."}
+  "notes": "Windows users still need manual git safe.directory guidance; recommended path is docs/doctor messaging plus optional explicit fix command (not silent auto-write)."
+}

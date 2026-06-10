@@ -12,8 +12,8 @@
 
 ### P1 - High (Installation/Major Issues)
 - [ ] #688 - FVM still performs Git installs; need archive-based strategy honoring FLUTTER_STORAGE_BASE_URL/FLUTTER_RELEASES_URL mirrors with checksum validation and docs.
-- [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
-- [ ] #1014 - `fvm install` can fail post-clone with “not a valid git repository” / “Unknown error”; add stronger diagnostics and retry without `--reference` fallback.
+- [ ] #914 - Windows installs still require manual git safe.directory config; improve doctor/docs guidance and offer optional explicit fix flow.
+- [ ] #1014 - `fvm install` can fail post-clone with “not a valid git repository” / “Unknown error”; PR #1018 merged on 2026-03-05 appears to implement the mirror/retry fix and needs verification before closure.
 
 ### P2 - Medium (Standard Bugs/Enhancements)
 - [ ] #577 - Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically.
@@ -215,6 +215,22 @@
 - #1015: Confirmed MCP docs gap and proposed dedicated guidance for `.fvm/flutter_sdk` integration (`artifacts/issue-1015.md`).
 - #1016: Validated minor-line patch resolution request (`3.38` -> latest `3.38.x`) as feature enhancement candidate (`artifacts/issue-1016.md`).
 - #1017: Marked as needs-info pending minimal reproduction; current logs indicate environment/PATH mismatch rather than core `fvm use` failure (`artifacts/issue-1017.md`).
+
+### Session 11: 2026-03-03 (P1 Accuracy Audit)
+- Re-validated active P1 set against live GitHub state: #688, #914, #1014 remain open and correctly prioritized.
+- Archived closed P1 items #783 and #897 from `validated/p1-high` into `closed/` so validated buckets now reflect only active backlog.
+- Updated #914 validated notes to match current recommendation (docs/doctor guidance + optional explicit fix command, not silent git config writes).
+
+### Session 12: 2026-03-03 (Full State Consistency Audit)
+- Re-synced pending issue/PR snapshots from GitHub (`53` open issues, `11` open PRs).
+- Audited every triage JSON against live GitHub state and moved closed-but-active entries into `closed/` (#388, #771, #786, #799, #801, #820, #825, #833, #880, #933).
+- Verified no remaining folder/state drift: active buckets (`validated/needs_info`) now contain only open issues, and `closed/` contains only closed issues.
+
+### Session 13: 2026-03-05 (Merged PR Audit)
+- Re-ran the GitHub sync; the backlog still stands at `53` open issues and `11` open PRs.
+- Audited merged PR #1018 (`refactor: git cache bare mirror architecture and hardened operations`) against the open backlog.
+- PR #1018 likely resolves #1014 by replacing `--reference` clone handling with mirror-first cloning, remote retry on missing refs/objects, cache self-healing, and new flutter/git service coverage for those failure modes.
+- No clear closure evidence for the other overlapping pending items: #688 and #914 are untouched, #1009's `0.0.0-unknown` list output is not directly addressed, and #731 still lacks enough reproducible detail to mark resolved.
 ---
 
 ## Summary Statistics
@@ -224,4 +240,4 @@
 - **P2 Medium**: 24
 - **P3 Low**: 17
 - **Needs Info**: 9
-- **Resolved/Archived**: 9
+- **Resolved/Archived**: 36

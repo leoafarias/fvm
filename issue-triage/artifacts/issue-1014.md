@@ -79,6 +79,7 @@ The install flow has limited diagnostics for clone edge-cases and no recovery pa
 
 ## Notes
 - Issue comments report cross-machine occurrence, increasing confidence this is not a single-user environment anomaly.
+- PR #1018 (`refactor: git cache bare mirror architecture and hardened operations`) merged on 2026-03-05 and appears to implement the planned mirror/retry recovery path on `main`; verify against `main` or the next release and close the issue if the reporter's repro no longer fails.
 
 ---
 **Validated by**: Code Agent  

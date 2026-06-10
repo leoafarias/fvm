@@ -13,7 +13,7 @@
     "labels": [],
     "number": 1013,
     "title": "fix: harden archive install with staging directory and network resilience",
-    "updatedAt": "2026-02-20T04:12:51Z",
+    "updatedAt": "2026-03-05T17:05:25Z",
     "url": "https://github.com/leoafarias/fvm/pull/1013"
   },
   {
@@ -66,23 +66,6 @@
     "title": "docs: add package manager installation in Linux section",
     "updatedAt": "2025-12-06T07:00:17Z",
     "url": "https://github.com/leoafarias/fvm/pull/990"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "Refactors git cache handling to create a validated bare mirror and migrate legacy caches safely. Flutter installs now clone from the local mirror first, rewrite origin to flutter.git, and fall back cleanly to remote. Adds migration and cloning tests plus test helpers for local git fixtures. Updates the changelog with the 4.0.2 notes.",
-    "createdAt": "2025-11-20T15:58:47Z",
-    "headRefName": "conductor/git-cache-review",
-    "labels": [],
-    "number": 976,
-    "title": "Refactor git cache to mirrored architecture",
-    "updatedAt": "2026-02-12T20:44:53Z",
-    "url": "https://github.com/leoafarias/fvm/pull/976"
   },
   {
     "author": {
