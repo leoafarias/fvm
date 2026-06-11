@@ -1,3 +1,7 @@
+## Unreleased
+
+* fix: avoid false cache version mismatches from parent git tags (#1030)
+
 ## 4.1.0
 
 * feat: opt out of update checks for quieter CI and offline runs (#994)

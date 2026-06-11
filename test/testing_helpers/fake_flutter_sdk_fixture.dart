@@ -8,7 +8,10 @@ import 'fixture_paths.dart';
 
 /// Layout state for a fake Flutter SDK directory in the test cache.
 enum FakeFlutterSdkState {
-  /// Installed clone with root `version` and executables only.
+  /// Installed clone with executables only.
+  ///
+  /// No SDK version metadata is written, matching a pre-setup cache entry where
+  /// FVM should not infer metadata from surrounding git tags.
   installedNotSetup,
 
   /// Fully set up SDK with JSON metadata and Dart SDK cache files.
@@ -102,10 +105,13 @@ class FakeFlutterSdkFixture {
     }
 
     versionDir.createSync(recursive: true);
+    Directory(p.join(versionDir.path, '.git')).createSync();
 
     final legacyVersion = _legacyVersionForState(fixture, state);
 
-    File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    if (_writesLegacyVersionFile(state)) {
+      File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    }
 
     if (state != FakeFlutterSdkState.invalidExecutable) {
       _writeExecutable(p.join(versionDir.path, 'bin', flutterExecFileName));
@@ -189,6 +195,10 @@ class FakeFlutterSdkFixture {
   static bool _writesSetupFiles(FakeFlutterSdkState state) {
     return state == FakeFlutterSdkState.installedSetup ||
         state == FakeFlutterSdkState.versionMismatch;
+  }
+
+  static bool _writesLegacyVersionFile(FakeFlutterSdkState state) {
+    return state != FakeFlutterSdkState.installedNotSetup;
   }
 
   static String _legacyVersionForState(

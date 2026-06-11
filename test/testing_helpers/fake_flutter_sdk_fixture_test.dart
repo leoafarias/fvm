@@ -26,7 +26,7 @@ void main() {
       final cacheVersion = cacheService.getVersion(version);
       expect(cacheVersion, isNotNull);
       expect(cacheVersion!.isSetup, isFalse);
-      expect(cacheVersion.flutterSdkVersion, equals('3.10.0'));
+      expect(cacheVersion.flutterSdkVersion, isNull);
 
       expect(
         await cacheService.verifyCacheIntegrity(cacheVersion),
