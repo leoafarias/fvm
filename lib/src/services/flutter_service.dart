@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
+import 'archive_service.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
@@ -371,8 +372,10 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool allowMirrorClone,
   }) async {
-    final useLocalMirror = context.gitCache && !version.fromFork;
+    final useLocalMirror =
+        allowMirrorClone && context.gitCache && !version.fromFork;
 
     if (useLocalMirror) {
       final mirrorResult = await _tryCloneFromMirror(
@@ -537,8 +540,18 @@ class FlutterService extends ContextualService {
     return run('flutter', args, version);
   }
 
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useArchive = false,
+    bool allowMirrorClone = true,
+  }) async {
     final versionDir = _setupCacheDirectories(version);
+    if (useArchive) {
+      final archiveService = get<ArchiveService>();
+      await archiveService.install(version, versionDir);
+
+      return;
+    }
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
     final echoOutput = !context.isTest && logger.isVerbose;
@@ -550,6 +563,7 @@ class FlutterService extends ContextualService {
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
+        allowMirrorClone: allowMirrorClone,
       );
 
       final isGit = await GitDir.isGitDir(versionDir.path);

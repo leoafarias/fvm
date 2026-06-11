@@ -34,7 +34,11 @@ class FakeFlutterService extends FlutterService {
       RegExp(r'^[0-9a-f]{7,40}$', caseSensitive: false);
 
   @override
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useArchive = false,
+    bool allowMirrorClone = true,
+  }) async {
     final key = version.nameWithAlias;
     final failure = installFailures[key] ?? installFailures[version.name];
     if (failure != null) throw failure;

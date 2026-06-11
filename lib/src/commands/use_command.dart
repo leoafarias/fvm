@@ -51,6 +51,12 @@ class UseCommand extends BaseFvmCommand {
         abbr: 's',
         help: 'Skips downloading SDK dependencies after switching versions',
         negatable: false,
+      )
+      ..addFlag(
+        'archive',
+        help: 'Install from a precompiled archive instead of cloning from git',
+        defaultsTo: false,
+        negatable: false,
       );
   }
   @override
@@ -60,6 +66,7 @@ class UseCommand extends BaseFvmCommand {
     final skipPubGet = boolArg('skip-pub-get');
     final flavorOption = stringArg('flavor');
     final skipSetup = boolArg('skip-setup');
+    final useArchive = boolArg('archive');
 
     String? version;
 
@@ -136,7 +143,11 @@ class UseCommand extends BaseFvmCommand {
 
     final flutterVersion = validateFlutterVersion(version);
 
-    final cacheVersion = await ensureCache(flutterVersion, force: forceOption);
+    final cacheVersion = await ensureCache(
+      flutterVersion,
+      force: forceOption,
+      useArchive: useArchive,
+    );
 
     /// Run use workflow
     await useVersion(

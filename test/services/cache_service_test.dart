@@ -140,6 +140,54 @@ void main() {
           expect(result.single.name, versionName);
         },
       );
+
+      test('includes real SDK names that look like archive artifacts',
+          () async {
+        void createSdk(String relativePath, String versionName) {
+          final versionDir = Directory(path.join(tempDir.path, relativePath))
+            ..createSync(recursive: true);
+          File(path.join(versionDir.path, 'version'))
+              .writeAsStringSync(versionName);
+          File(
+            path.join(
+              versionDir.path,
+              'bin',
+              Platform.isWindows ? 'flutter.bat' : 'flutter',
+            ),
+          ).createSync(recursive: true);
+        }
+
+        createSdk('feature.archive_lock', 'feature.archive_lock');
+        createSdk('feature.archive_staging', 'feature.archive_staging');
+        createSdk(
+          path.join('acme.archive_backup', 'stable'),
+          'stable',
+        );
+        createSdk(
+          path.join('.archive', 'operation.archive_backup'),
+          'operation.archive_backup',
+        );
+
+        final result = await cacheService.getAllVersions();
+
+        expect(result, hasLength(3));
+        expect(
+          result.where((version) => version.name == 'feature.archive_lock'),
+          hasLength(1),
+        );
+        expect(
+          result.where((version) => version.name == 'feature.archive_staging'),
+          hasLength(1),
+        );
+
+        final forkedVersion = result.singleWhere(
+          (version) =>
+              version.fromFork &&
+              version.fork == 'acme.archive_backup' &&
+              version.name == 'stable',
+        );
+        expect(forkedVersion.name, 'stable');
+      });
     });
 
     group('remove', () {

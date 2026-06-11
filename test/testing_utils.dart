@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/archive_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:io/io.dart';
@@ -415,6 +416,7 @@ class TestFactory {
   static FvmContext context({
     String? debugLabel,
     bool? privilegedAccess,
+    String? flutterUrl,
     Map<Type, Generator>? generators,
     bool? skipInput,
     Map<String, String>? environmentOverrides,
@@ -438,6 +440,7 @@ class TestFactory {
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
+      flutterUrl: flutterUrl,
       forks: globalConfig.forks,
     );
 
@@ -622,10 +625,64 @@ Future<bool> isBareGitRepository(String repoPath) async {
 }
 
 class MockFlutterService extends FlutterService {
+  bool? lastUseArchive;
+  bool? lastAllowMirrorClone;
+  FlutterVersion? lastInstallVersion;
+  Directory? lastInstallDirectory;
+
   MockFlutterService(super.context) {
     if (!_sharedTestFvmDir.existsSync()) {
       _sharedTestFvmDir.createSync(recursive: true);
     }
+  }
+
+  @override
+  Future<void> install(
+    FlutterVersion version, {
+    bool useArchive = false,
+    bool allowMirrorClone = true,
+  }) async {
+    lastUseArchive = useArchive;
+    lastAllowMirrorClone = allowMirrorClone;
+    lastInstallVersion = version;
+
+    if (useArchive) {
+      ArchiveService.validateArchiveInstallVersion(version);
+
+      final cacheService = get<CacheService>();
+      final versionDir = cacheService.getVersionCacheDir(version);
+
+      lastInstallDirectory = Directory(versionDir.path);
+
+      if (versionDir.existsSync()) {
+        versionDir.deleteSync(recursive: true);
+      }
+
+      versionDir.createSync(recursive: true);
+      Directory(p.join(versionDir.path, 'bin')).createSync(recursive: true);
+
+      final flutterExec = p.join(versionDir.path, 'bin', flutterExecFileName);
+
+      if (Platform.isWindows) {
+        File(flutterExec).writeAsStringSync('@echo off\necho Mock Flutter\n');
+      } else {
+        File(flutterExec).writeAsStringSync('#!/bin/sh\necho Mock Flutter\n');
+        Process.runSync('chmod', ['+x', flutterExec]);
+      }
+
+      File(p.join(versionDir.path, 'version'))
+          .writeAsStringSync(version.version);
+
+      return;
+    }
+
+    await super.install(
+      version,
+      useArchive: useArchive,
+      allowMirrorClone: allowMirrorClone,
+    );
+    final cacheService = get<CacheService>();
+    lastInstallDirectory = cacheService.getVersionCacheDir(version);
   }
 }
 
