@@ -88,6 +88,12 @@ class CacheFlutterVersion extends FlutterVersion
     );
   }
 
+  static String? _nonEmptyTrimmed(String? value) {
+    final trimmed = value?.trim();
+
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
   // Loads all version metadata from the given directory.
   static ({String? flutterVersion, String? dartVersion, bool isSetup})
       _loadMetadata(String directory) {
@@ -109,18 +115,18 @@ class CacheFlutterVersion extends FlutterVersion
     String? flutterVersion = rootMetadata?.primaryVersion;
 
     // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
-    flutterVersion ??= join(directory, 'version').file.read()?.trim();
+    flutterVersion ??= _nonEmptyTrimmed(
+      join(directory, 'version').file.read(),
+    );
 
     // --- Dart SDK version detection ---
     // Priority: JSON → dart-sdk version file
     // Note: Can be null even if isSetup=true (if version files are removed)
-    String? dartVersion = rootMetadata?.dartSdkVersion?.trim();
+    String? dartVersion = _nonEmptyTrimmed(rootMetadata?.dartSdkVersion);
 
-    if (dartVersion == null || dartVersion.isEmpty) {
-      // Dart SDK version file: $FLUTTER_ROOT/bin/cache/dart-sdk/version
-      final versionFile = join(dartSdkCache, 'version');
-      dartVersion = versionFile.file.read()?.trim();
-    }
+    // Dart SDK version file: $FLUTTER_ROOT/bin/cache/dart-sdk/version
+    final versionFile = join(dartSdkCache, 'version');
+    dartVersion ??= _nonEmptyTrimmed(versionFile.file.read());
 
     return (
       flutterVersion: flutterVersion,

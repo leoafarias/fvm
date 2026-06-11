@@ -112,5 +112,35 @@ void main() {
         CacheIntegrity.valid,
       );
     });
+
+    test(
+      'treats blank legacy version file as missing Flutter SDK metadata',
+      () async {
+        final flutterExecutable = File(
+          path.join(sdkDir.path, 'bin', flutterExecFileName),
+        )
+          ..createSync(recursive: true)
+          ..writeAsStringSync('');
+
+        File(path.join(sdkDir.path, 'version')).writeAsStringSync('  \n');
+
+        if (!Platform.isWindows) {
+          final result =
+              Process.runSync('chmod', ['755', flutterExecutable.path]);
+          expect(result.exitCode, 0, reason: result.stderr.toString());
+        }
+
+        final version = CacheFlutterVersion.fromVersion(
+          FlutterVersion.release('3.10.0'),
+          directory: sdkDir.path,
+        );
+
+        expect(version.flutterSdkVersion, isNull);
+        expect(
+          await cacheService.verifyCacheIntegrity(version),
+          CacheIntegrity.valid,
+        );
+      },
+    );
   });
 }
