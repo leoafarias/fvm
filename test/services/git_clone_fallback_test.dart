@@ -7,10 +7,26 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/exceptions.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
+
+Future<List<String>> _gitRefs(String repoPath) async {
+  final result = await runGitCommand(
+    ['for-each-ref', '--format=%(refname)'],
+    workingDirectory: repoPath,
+  );
+
+  return result.stdout
+      .toString()
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
+}
 
 void main() {
   group('Git cache auto-migration', () {
@@ -19,6 +35,7 @@ void main() {
     late FvmContext context;
     late GitService gitService;
     late List<CacheFlutterVersion> installedVersions;
+    late bool failSdkRemoval;
 
     setUp(() async {
       tempDir = createTempDir('fvm_git_cache_test');
@@ -29,18 +46,22 @@ void main() {
       );
 
       installedVersions = [];
+      failSdkRemoval = false;
 
       context = FvmContext.create(
         isTest: true,
         configOverrides: AppConfig(
           cachePath: p.join(tempDir.path, '.fvm'),
           gitCachePath: p.join(tempDir.path, 'cache.git'),
-          flutterUrl: remoteDir.path,
+          flutterUrl: Uri.file(remoteDir.path).toString(),
           useGitCache: true,
         ),
         generatorsOverride: {
-          CacheService: (ctx) =>
-              _StubCacheService(ctx, () => installedVersions),
+          CacheService: (ctx) => _StubCacheService(
+                ctx,
+                () => installedVersions,
+                shouldFailRemove: () => failSdkRemoval,
+              ),
         },
       );
 
@@ -53,7 +74,8 @@ void main() {
       }
     });
 
-    test('migrates working-tree cache to bare mirror', () async {
+    test('migrates working-tree cache to heads/tags cache and dissociates SDK',
+        () async {
       Directory(context.gitCachePath).parent.createSync(recursive: true);
       await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
 
@@ -83,27 +105,21 @@ void main() {
       // After migration, the cache should be bare
       expect(await isBareGitRepository(context.gitCachePath), isTrue);
 
-      // Alternates file should still exist with path rewritten to bare mirror
-      expect(alternatesFile.existsSync(), isTrue);
-      final rawAlternates = alternatesFile.readAsStringSync().trim();
-      final resolvedAlternatesPath = p.isAbsolute(rawAlternates)
-          ? rawAlternates
-          : p.join(alternatesFile.parent.path, rawAlternates);
-      // Resolve symlinks (macOS /var -> /private/var) for reliable comparison
-      final resolvedAlternates = p.normalize(
-        Directory(resolvedAlternatesPath).existsSync()
-            ? Directory(resolvedAlternatesPath).resolveSymbolicLinksSync()
-            : resolvedAlternatesPath,
+      final refs = await _gitRefs(context.gitCachePath);
+      expect(
+        refs.every(
+          (ref) =>
+              ref.startsWith('refs/heads/') || ref.startsWith('refs/tags/'),
+        ),
+        isTrue,
       );
-      final expectedObjectsDir = Directory(
-        p.join(context.gitCachePath, 'objects'),
+
+      // FVM-owned alternates are removed after objects are repacked locally.
+      expect(alternatesFile.existsSync(), isFalse);
+      await runGitCommand(
+        ['fsck', '--connectivity-only'],
+        workingDirectory: versionDir.path,
       );
-      final expectedAlternates = p.normalize(
-        expectedObjectsDir.existsSync()
-            ? expectedObjectsDir.resolveSymbolicLinksSync()
-            : expectedObjectsDir.path,
-      );
-      expect(resolvedAlternates, expectedAlternates);
 
       final legacyArtifacts = Directory(
         context.gitCachePath,
@@ -112,7 +128,7 @@ void main() {
     });
 
     test(
-      'does not rewrite alternates that point outside cache path boundary',
+      'does not remove alternates that point outside cache path boundary',
       () async {
         Directory(context.gitCachePath).parent.createSync(recursive: true);
         await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
@@ -147,16 +163,226 @@ void main() {
         );
       },
     );
+
+    test(
+      'removes only FVM-owned entries from multi-line alternates file',
+      () async {
+        Directory(context.gitCachePath).parent.createSync(recursive: true);
+        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+
+        final versionDir = Directory(
+          p.join(context.versionsCachePath, 'beta'),
+        );
+        versionDir.parent.createSync(recursive: true);
+
+        await runGitCommand([
+          'clone',
+          '--reference',
+          context.gitCachePath,
+          remoteDir.path,
+          versionDir.path,
+        ]);
+
+        final externalRepo = Directory(p.join(tempDir.path, 'external.git'));
+        await runGitCommand(['init', '--bare', externalRepo.path]);
+        final externalObjectsPath = p.join(externalRepo.path, 'objects');
+
+        final alternatesFile = File(
+          p.join(
+            versionDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        );
+        final fvmAlternateLine = alternatesFile.readAsStringSync().trim();
+        final relativeFvmAlternateLine = p.relative(
+          fvmAlternateLine,
+          from: p.join(versionDir.path, '.git', 'objects'),
+        );
+        alternatesFile.writeAsStringSync(
+          '$relativeFvmAlternateLine\n$externalObjectsPath\n',
+        );
+
+        installedVersions.add(
+          CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('beta'),
+            directory: versionDir.path,
+          ),
+        );
+
+        await gitService.updateLocalMirror();
+
+        expect(alternatesFile.existsSync(), isTrue);
+        final retainedLines = alternatesFile
+            .readAsLinesSync()
+            .where((line) => line.trim().isNotEmpty)
+            .toList();
+        expect(retainedLines, equals([externalObjectsPath]));
+        expect(
+          retainedLines.any((line) => line.contains(context.gitCachePath)),
+          isFalse,
+        );
+        await runGitCommand(
+          ['fsck', '--connectivity-only'],
+          workingDirectory: versionDir.path,
+        );
+      },
+    );
+
+    test(
+      'removes affected SDK when FVM-owned alternates cannot be dissociated',
+      () async {
+        Directory(context.gitCachePath).parent.createSync(recursive: true);
+        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+
+        final brokenVersionDir = Directory(
+          p.join(context.versionsCachePath, 'broken'),
+        );
+        final alternatesFile = File(
+          p.join(
+            brokenVersionDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        )..createSync(recursive: true);
+
+        final fvmObjectsPath = p.join(context.gitCachePath, '.git', 'objects');
+        alternatesFile.writeAsStringSync('$fvmObjectsPath\n');
+
+        installedVersions.add(
+          CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('broken'),
+            directory: brokenVersionDir.path,
+          ),
+        );
+
+        await gitService.updateLocalMirror();
+
+        expect(await isBareGitRepository(context.gitCachePath), isTrue);
+        expect(brokenVersionDir.existsSync(), isFalse);
+      },
+    );
+
+    test(
+      'aborts cache replacement when affected SDK cannot be removed',
+      () async {
+        Directory(context.gitCachePath).parent.createSync(recursive: true);
+        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+
+        final brokenVersionDir = Directory(
+          p.join(context.versionsCachePath, 'blocked'),
+        );
+        final alternatesFile = File(
+          p.join(
+            brokenVersionDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        )..createSync(recursive: true);
+
+        final fvmObjectsPath = p.join(context.gitCachePath, '.git', 'objects');
+        alternatesFile.writeAsStringSync('$fvmObjectsPath\n');
+
+        installedVersions.add(
+          CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('blocked'),
+            directory: brokenVersionDir.path,
+          ),
+        );
+        failSdkRemoval = true;
+
+        await expectLater(
+          EnsureCacheWorkflow(context).call(
+            FlutterVersion.parse('master'),
+            shouldInstall: true,
+          ),
+          throwsA(isA<GitCacheDependentSdkRemovalException>()),
+        );
+
+        expect(await isBareGitRepository(context.gitCachePath), isFalse);
+        expect(brokenVersionDir.existsSync(), isTrue);
+        final tempCacheDirs = Directory(context.gitCachePath)
+            .parent
+            .listSync()
+            .whereType<Directory>()
+            .where(
+              (dir) => p
+                  .basename(dir.path)
+                  .startsWith('${p.basename(context.gitCachePath)}.'),
+            )
+            .toList();
+        expect(tempCacheDirs, isEmpty);
+      },
+    );
+
+    test(
+      'removes affected SDK when alternates file cannot be read',
+      () async {
+        Directory(context.gitCachePath).parent.createSync(recursive: true);
+        await runGitCommand(['clone', remoteDir.path, context.gitCachePath]);
+
+        final brokenVersionDir = Directory(
+          p.join(context.versionsCachePath, 'unreadable'),
+        );
+        final alternatesFile = File(
+          p.join(
+            brokenVersionDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        )..createSync(recursive: true);
+
+        final fvmObjectsPath = p.join(context.gitCachePath, '.git', 'objects');
+        alternatesFile.writeAsStringSync('$fvmObjectsPath\n');
+        await Process.run('chmod', ['000', alternatesFile.path]);
+
+        installedVersions.add(
+          CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('unreadable'),
+            directory: brokenVersionDir.path,
+          ),
+        );
+
+        await gitService.updateLocalMirror();
+
+        await Process.run('chmod', ['600', alternatesFile.path]);
+        expect(await isBareGitRepository(context.gitCachePath), isTrue);
+        expect(brokenVersionDir.existsSync(), isFalse);
+      },
+      skip: Platform.isWindows ? 'POSIX file permissions required' : false,
+    );
   });
 }
 
 class _StubCacheService extends CacheService {
-  _StubCacheService(super.context, this._versionsProvider);
+  _StubCacheService(
+    super.context,
+    this._versionsProvider, {
+    required bool Function() shouldFailRemove,
+  }) : _shouldFailRemove = shouldFailRemove;
 
   final List<CacheFlutterVersion> Function() _versionsProvider;
+  final bool Function() _shouldFailRemove;
 
   @override
   Future<List<CacheFlutterVersion>> getAllVersions() async {
     return _versionsProvider();
+  }
+
+  @override
+  Future<void> remove(FlutterVersion version) async {
+    if (_shouldFailRemove()) {
+      throw const FileSystemException('blocked by test');
+    }
+
+    return super.remove(version);
   }
 }

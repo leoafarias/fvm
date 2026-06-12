@@ -40,6 +40,134 @@ class _FakeProcessService extends ProcessService {
   }
 }
 
+Future<List<String>> _gitConfigValues(String repoPath, String key) async {
+  final result = await runGitCommand(
+    ['config', '--get-all', key],
+    workingDirectory: repoPath,
+  );
+
+  return result.stdout
+      .toString()
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
+}
+
+Future<List<String>> _gitRefs(String repoPath) async {
+  final result = await runGitCommand(
+    ['for-each-ref', '--format=%(refname)'],
+    workingDirectory: repoPath,
+  );
+
+  return result.stdout
+      .toString()
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList();
+}
+
+Future<void> _addHiddenAndTagRefs(Directory remoteDir) async {
+  final headResult = await runGitCommand(
+    ['rev-parse', 'master'],
+    workingDirectory: remoteDir.path,
+  );
+  final headSha = headResult.stdout.toString().trim();
+
+  await runGitCommand(
+    ['update-ref', 'refs/tags/test-tag', headSha],
+    workingDirectory: remoteDir.path,
+  );
+  await runGitCommand(
+    ['update-ref', 'refs/pull/1/head', headSha],
+    workingDirectory: remoteDir.path,
+  );
+}
+
+Future<String> _pushBranchToRemote({
+  required Directory root,
+  required Directory remoteDir,
+  required String branchName,
+}) async {
+  final workDir = Directory(p.join(root.path, '${branchName}_work'))
+    ..createSync(recursive: true);
+
+  await runGitCommand(['clone', remoteDir.path, workDir.path]);
+  await runGitCommand(
+    ['config', 'user.email', 'tests@fvm.app'],
+    workingDirectory: workDir.path,
+  );
+  await runGitCommand(
+    ['config', 'user.name', 'FVM Tests'],
+    workingDirectory: workDir.path,
+  );
+  await runGitCommand(
+    ['checkout', '-b', branchName],
+    workingDirectory: workDir.path,
+  );
+  File(p.join(workDir.path, '$branchName.md')).writeAsStringSync(branchName);
+  await runGitCommand(['add', '.'], workingDirectory: workDir.path);
+  await runGitCommand(
+    ['commit', '-m', 'Add $branchName branch'],
+    workingDirectory: workDir.path,
+  );
+  await runGitCommand(
+    ['push', 'origin', branchName],
+    workingDirectory: workDir.path,
+  );
+
+  final revParse = await runGitCommand(
+    ['rev-parse', 'HEAD'],
+    workingDirectory: workDir.path,
+  );
+
+  return revParse.stdout.toString().trim();
+}
+
+Future<void> _expectHeadsTagsOnlyCache(String gitCachePath) async {
+  expect(await isBareGitRepository(gitCachePath), isTrue);
+
+  final refspecs = await _gitConfigValues(
+    gitCachePath,
+    'remote.origin.fetch',
+  );
+  expect(
+    refspecs,
+    unorderedEquals([
+      '+refs/heads/*:refs/heads/*',
+      '+refs/tags/*:refs/tags/*',
+    ]),
+  );
+
+  final tagOpt = await _gitConfigValues(gitCachePath, 'remote.origin.tagOpt');
+  expect(tagOpt, equals(['--no-tags']));
+
+  final mirrorConfig = await Process.run(
+    'git',
+    ['config', '--get-all', 'remote.origin.mirror'],
+    workingDirectory: gitCachePath,
+    runInShell: true,
+  );
+  expect(mirrorConfig.exitCode, isNot(0));
+
+  final refs = await _gitRefs(gitCachePath);
+  expect(
+    refs.every(
+      (ref) => ref.startsWith('refs/heads/') || ref.startsWith('refs/tags/'),
+    ),
+    isTrue,
+  );
+
+  final head = await runGitCommand(
+    ['symbolic-ref', '--quiet', 'HEAD'],
+    workingDirectory: gitCachePath,
+  );
+  final headRef = head.stdout.toString().trim();
+  expect(headRef, startsWith('refs/heads/'));
+  expect(refs, contains(headRef));
+}
+
 void main() {
   group('GitService', () {
     late FvmContext context;
@@ -138,7 +266,10 @@ void main() {
       }
     });
 
-    test('creates mirror when cache directory is missing', () async {
+    test('creates heads/tags git cache when cache directory is missing',
+        () async {
+      await _addHiddenAndTagRefs(remoteDir);
+
       final gitCachePath = p.join(tempDir.path, 'cache.git');
       final context = FvmContext.create(
         isTest: true,
@@ -156,14 +287,57 @@ void main() {
       await gitService.updateLocalMirror();
 
       expect(Directory(gitCachePath).existsSync(), isTrue);
-      expect(await isBareGitRepository(gitCachePath), isTrue);
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+
+      final refs = await _gitRefs(gitCachePath);
+      expect(refs, contains('refs/tags/test-tag'));
+      expect(refs, isNot(contains('refs/pull/1/head')));
     });
 
-    test('skips recreation when cache is already bare mirror', () async {
+    test(
+      'preserves overbroad mirror cache when rebuild fails against missing remote',
+      () async {
+        await _addHiddenAndTagRefs(remoteDir);
+        final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+        await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+        expect(await isBareGitRepository(gitCachePath), isTrue);
+
+        final refsBefore = await _gitRefs(gitCachePath);
+        expect(refsBefore, contains('refs/pull/1/head'));
+        expect(refsBefore, contains('refs/tags/test-tag'));
+
+        final missingRemote = p.join(tempDir.path, 'missing_remote');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm'),
+            gitCachePath: gitCachePath,
+            flutterUrl: missingRemote,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await expectLater(
+          gitService.updateLocalMirror(),
+          throwsA(isA<ProcessException>()),
+        );
+
+        expect(Directory(gitCachePath).existsSync(), isTrue);
+        final refsAfter = await _gitRefs(gitCachePath);
+        expect(refsAfter, contains('refs/pull/1/head'));
+        expect(refsAfter, contains('refs/tags/test-tag'));
+      },
+    );
+
+    test('replaces overbroad bare mirror with heads/tags git cache', () async {
+      await _addHiddenAndTagRefs(remoteDir);
       final gitCachePath = p.join(tempDir.path, 'cache.git');
 
       await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
       expect(await isBareGitRepository(gitCachePath), isTrue);
+      expect(await _gitRefs(gitCachePath), contains('refs/pull/1/head'));
 
       final context = FvmContext.create(
         isTest: true,
@@ -178,10 +352,77 @@ void main() {
       final gitService = GitService(context);
       await gitService.updateLocalMirror();
 
-      expect(await isBareGitRepository(gitCachePath), isTrue);
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+
+      final refs = await _gitRefs(gitCachePath);
+      expect(refs, contains('refs/tags/test-tag'));
+      expect(refs, isNot(contains('refs/pull/1/head')));
     });
 
-    test('recreates mirror when cache directory is invalid', () async {
+    test('treats leftover mirror config as not ready during migration',
+        () async {
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+      await runGitCommand(
+        ['config', 'remote.origin.mirror', 'true'],
+        workingDirectory: gitCachePath,
+      );
+
+      await gitService.ensureBareCacheIfPresent();
+
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+    });
+
+    test('preserves legacy remote-tracking branches during local migration',
+        () async {
+      final stableSha = await _pushBranchToRemote(
+        root: tempDir,
+        remoteDir: remoteDir,
+        branchName: 'stable',
+      );
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      await runGitCommand(['clone', remoteDir.path, gitCachePath]);
+
+      final remoteRefsBefore = await _gitRefs(gitCachePath);
+      expect(remoteRefsBefore, contains('refs/remotes/origin/stable'));
+      expect(remoteRefsBefore, isNot(contains('refs/heads/stable')));
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.ensureBareCacheIfPresent();
+
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+      final refs = await _gitRefs(gitCachePath);
+      expect(refs, contains('refs/heads/stable'));
+
+      final stableResult = await runGitCommand(
+        ['rev-parse', 'refs/heads/stable'],
+        workingDirectory: gitCachePath,
+      );
+      expect(stableResult.stdout.toString().trim(), stableSha);
+    });
+
+    test('recreates git cache when cache directory is invalid', () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');
 
       Directory(gitCachePath).createSync(recursive: true);
@@ -200,8 +441,89 @@ void main() {
       final gitService = GitService(context);
       await gitService.updateLocalMirror();
 
-      expect(await isBareGitRepository(gitCachePath), isTrue);
+      await _expectHeadsTagsOnlyCache(gitCachePath);
     });
+
+    test('sets bare HEAD to main when remote HEAD still points at master',
+        () async {
+      final mainRemoteDir = await createLocalRemoteRepository(
+        root: tempDir,
+        name: 'flutter_main_remote',
+        branch: 'main',
+      );
+      final gitCachePath = p.join(tempDir.path, 'main_cache.git');
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm_main'),
+          gitCachePath: gitCachePath,
+          flutterUrl: mainRemoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+      final head = await runGitCommand(
+        ['symbolic-ref', '--quiet', 'HEAD'],
+        workingDirectory: gitCachePath,
+      );
+      expect(head.stdout.toString().trim(), 'refs/heads/main');
+    });
+
+    test(
+      'withPreparedGitCacheForClone removes stale pack temp files before clone action',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'cache.git');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await gitService.updateLocalMirror();
+
+        final packDir = Directory(p.join(gitCachePath, 'objects', 'pack'))
+          ..createSync(recursive: true);
+        final oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 25),
+        );
+        final staleFiles = [
+          File(p.join(packDir.path, 'tmp_pack_stale')),
+          File(p.join(packDir.path, 'tmp_idx_stale')),
+          File(p.join(packDir.path, 'tmp_rev_stale')),
+        ];
+        for (final file in staleFiles) {
+          file.writeAsStringSync('stale');
+          file.setLastModifiedSync(oldTimestamp);
+        }
+
+        final freshTemp = File(p.join(packDir.path, 'tmp_pack_fresh'))
+          ..writeAsStringSync('fresh');
+        final oldNonMatching = File(p.join(packDir.path, 'pack_tmp_old'))
+          ..writeAsStringSync('old');
+        oldNonMatching.setLastModifiedSync(oldTimestamp);
+
+        await gitService.withPreparedGitCacheForClone(() async {
+          for (final file in staleFiles) {
+            expect(
+              file.existsSync(),
+              isFalse,
+              reason: 'cleanup runs before clone action',
+            );
+          }
+          expect(freshTemp.existsSync(), isTrue);
+          expect(oldNonMatching.existsSync(), isTrue);
+        });
+      },
+    );
 
     test('removeLocalMirror deletes git cache directory', () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');
