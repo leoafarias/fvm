@@ -18,11 +18,6 @@ import 'releases_service/releases_client.dart';
 
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
-  static final RegExp _gitCacheTempPackPattern = RegExp(
-    r'^(tmp_pack_|tmp_idx_|tmp_rev_)',
-  );
-  static const Duration _staleGitCacheTempAge = Duration(hours: 24);
-
   static const List<String> _gitObjectCorruptionMarkers = [
     'bad object',
     'loose object',
@@ -95,9 +90,8 @@ class FlutterService extends ContextualService {
     required bool echoOutput,
   }) async {
     try {
-      final result = await get<GitService>().withCacheMutationLock(() async {
-        _cleanupStaleGitCachePackTemps();
-
+      final result =
+          await get<GitService>().withPreparedGitCacheForClone(() async {
         return _cloneSdk(
           source: context.gitCachePath,
           versionDir: versionDir,
@@ -157,56 +151,6 @@ class FlutterService extends ContextualService {
       );
 
       return null;
-    }
-  }
-
-  void _cleanupStaleGitCachePackTemps() {
-    final packDir = Directory(
-      path.join(context.gitCachePath, 'objects', 'pack'),
-    );
-    if (!packDir.existsSync()) return;
-
-    final List<FileSystemEntity> entities;
-    try {
-      entities = packDir.listSync(followLinks: false);
-    } on FileSystemException catch (error) {
-      logger.warn(
-        'Unable to scan git cache temp files in ${packDir.path}: '
-        '${error.message}',
-      );
-
-      return;
-    }
-
-    final cutoff = DateTime.now().subtract(_staleGitCacheTempAge);
-    for (final entity in entities) {
-      if (entity is! File) continue;
-
-      final name = path.basename(entity.path);
-      if (!_gitCacheTempPackPattern.hasMatch(name)) continue;
-
-      final DateTime modified;
-      try {
-        modified = entity.statSync().modified;
-      } on FileSystemException catch (error) {
-        logger.warn(
-          'Unable to stat git cache temp file ${entity.path}: '
-          '${error.message}',
-        );
-        continue;
-      }
-
-      if (!modified.isBefore(cutoff)) continue;
-
-      try {
-        entity.deleteSync();
-        logger.debug('Removed stale git cache temp file ${entity.path}');
-      } on FileSystemException catch (error) {
-        logger.warn(
-          'Unable to delete stale git cache temp file ${entity.path}: '
-          '${error.message}',
-        );
-      }
     }
   }
 

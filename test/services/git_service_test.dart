@@ -294,6 +294,43 @@ void main() {
       expect(refs, isNot(contains('refs/pull/1/head')));
     });
 
+    test(
+      'preserves overbroad mirror cache when rebuild fails against missing remote',
+      () async {
+        await _addHiddenAndTagRefs(remoteDir);
+        final gitCachePath = p.join(tempDir.path, 'cache.git');
+
+        await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+        expect(await isBareGitRepository(gitCachePath), isTrue);
+
+        final refsBefore = await _gitRefs(gitCachePath);
+        expect(refsBefore, contains('refs/pull/1/head'));
+        expect(refsBefore, contains('refs/tags/test-tag'));
+
+        final missingRemote = p.join(tempDir.path, 'missing_remote');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm'),
+            gitCachePath: gitCachePath,
+            flutterUrl: missingRemote,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await expectLater(
+          gitService.updateLocalMirror(),
+          throwsA(isA<ProcessException>()),
+        );
+
+        expect(Directory(gitCachePath).existsSync(), isTrue);
+        final refsAfter = await _gitRefs(gitCachePath);
+        expect(refsAfter, contains('refs/pull/1/head'));
+        expect(refsAfter, contains('refs/tags/test-tag'));
+      },
+    );
+
     test('replaces overbroad bare mirror with heads/tags git cache', () async {
       await _addHiddenAndTagRefs(remoteDir);
       final gitCachePath = p.join(tempDir.path, 'cache.git');
@@ -435,6 +472,58 @@ void main() {
       );
       expect(head.stdout.toString().trim(), 'refs/heads/main');
     });
+
+    test(
+      'withPreparedGitCacheForClone removes stale pack temp files before clone action',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'cache.git');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await gitService.updateLocalMirror();
+
+        final packDir = Directory(p.join(gitCachePath, 'objects', 'pack'))
+          ..createSync(recursive: true);
+        final oldTimestamp = DateTime.now().subtract(
+          const Duration(hours: 25),
+        );
+        final staleFiles = [
+          File(p.join(packDir.path, 'tmp_pack_stale')),
+          File(p.join(packDir.path, 'tmp_idx_stale')),
+          File(p.join(packDir.path, 'tmp_rev_stale')),
+        ];
+        for (final file in staleFiles) {
+          file.writeAsStringSync('stale');
+          file.setLastModifiedSync(oldTimestamp);
+        }
+
+        final freshTemp = File(p.join(packDir.path, 'tmp_pack_fresh'))
+          ..writeAsStringSync('fresh');
+        final oldNonMatching = File(p.join(packDir.path, 'pack_tmp_old'))
+          ..writeAsStringSync('old');
+        oldNonMatching.setLastModifiedSync(oldTimestamp);
+
+        await gitService.withPreparedGitCacheForClone(() async {
+          for (final file in staleFiles) {
+            expect(
+              file.existsSync(),
+              isFalse,
+              reason: 'cleanup runs before clone action',
+            );
+          }
+          expect(freshTemp.existsSync(), isTrue);
+          expect(oldNonMatching.existsSync(), isTrue);
+        });
+      },
+    );
 
     test('removeLocalMirror deletes git cache directory', () async {
       final gitCachePath = p.join(tempDir.path, 'cache.git');

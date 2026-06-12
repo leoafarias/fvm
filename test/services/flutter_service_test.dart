@@ -217,48 +217,51 @@ void main() {
         );
       });
 
-      test('preserves reference lookup errors from install flow', () async {
-        final tempDir = createTempDir('fvm_flutter_service_reference_error');
+      test(
+        'preserves reference lookup errors from install flow',
+        () async {
+          final tempDir = createTempDir('fvm_flutter_service_reference_error');
 
-        try {
-          final remoteDir = await createLocalRemoteRepository(
-            root: tempDir,
-            name: 'flutter_origin',
-          );
+          try {
+            final remoteDir = await createLocalRemoteRepository(
+              root: tempDir,
+              name: 'flutter_origin',
+            );
 
-          final context = FvmContext.create(
-            isTest: true,
-            configOverrides: AppConfig(
-              cachePath: p.join(tempDir.path, '.fvm'),
-              flutterUrl: remoteDir.path,
-              useGitCache: false,
-            ),
-          );
+            final context = FvmContext.create(
+              isTest: true,
+              configOverrides: AppConfig(
+                cachePath: p.join(tempDir.path, '.fvm'),
+                flutterUrl: remoteDir.path,
+                useGitCache: false,
+              ),
+            );
 
-          final service = FlutterService(context);
-          final version = FlutterVersion.parse('does-not-exist-1234');
+            final service = FlutterService(context);
+            final version = FlutterVersion.parse('does-not-exist-1234');
 
-          await expectLater(
-            service.install(version),
-            throwsA(
-              isA<AppException>().having(
-                (e) => e.message,
-                'message',
-                allOf(
-                  contains(
-                    'Reference "${version.version}" was not found in the Flutter repository.',
+            await expectLater(
+              service.install(version),
+              throwsA(
+                isA<AppException>().having(
+                  (e) => e.message,
+                  'message',
+                  allOf(
+                    contains(
+                      'Reference "${version.version}" was not found in the Flutter repository.',
+                    ),
+                    contains('Repository URL: ${remoteDir.path}'),
                   ),
-                  contains('Repository URL: ${remoteDir.path}'),
                 ),
               ),
-            ),
-          );
-        } finally {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
+            );
+          } finally {
+            if (tempDir.existsSync()) {
+              tempDir.deleteSync(recursive: true);
+            }
           }
-        }
-      });
+        },
+      );
 
       test(
         'preserves reference lookup errors after retrying from git cache to remote',
@@ -374,65 +377,71 @@ void main() {
         }
       });
 
-      test('removes stale git cache temp pack files before cache clone',
-          () async {
-        final tempDir = createTempDir('fvm_flutter_service_stale_pack');
+      test(
+        'removes stale git cache temp pack files before cache clone through GitService wrapper',
+        () async {
+          final tempDir = createTempDir('fvm_flutter_service_stale_pack');
 
-        try {
-          final remoteDir = await createLocalRemoteRepository(
-            root: tempDir,
-            name: 'flutter_origin',
-          );
+          try {
+            final remoteDir = await createLocalRemoteRepository(
+              root: tempDir,
+              name: 'flutter_origin',
+            );
 
-          final cachePath = p.join(tempDir.path, '.fvm');
-          final gitCachePath = p.join(tempDir.path, 'cache.git');
-          final context = FvmContext.create(
-            isTest: true,
-            configOverrides: AppConfig(
-              cachePath: cachePath,
-              gitCachePath: gitCachePath,
-              flutterUrl: remoteDir.path,
-              useGitCache: true,
-            ),
-          );
+            final cachePath = p.join(tempDir.path, '.fvm');
+            final gitCachePath = p.join(tempDir.path, 'cache.git');
+            final context = FvmContext.create(
+              isTest: true,
+              configOverrides: AppConfig(
+                cachePath: cachePath,
+                gitCachePath: gitCachePath,
+                flutterUrl: remoteDir.path,
+                useGitCache: true,
+              ),
+            );
 
-          await context.get<GitService>().updateLocalMirror();
+            await context.get<GitService>().updateLocalMirror();
 
-          final packDir = Directory(p.join(gitCachePath, 'objects', 'pack'))
-            ..createSync(recursive: true);
-          final oldTimestamp = DateTime.now().subtract(
-            const Duration(hours: 25),
-          );
-          final staleFiles = [
-            File(p.join(packDir.path, 'tmp_pack_stale')),
-            File(p.join(packDir.path, 'tmp_idx_stale')),
-            File(p.join(packDir.path, 'tmp_rev_stale')),
-          ];
-          for (final file in staleFiles) {
-            file.writeAsStringSync('stale');
-            file.setLastModifiedSync(oldTimestamp);
+            final packDir = Directory(p.join(gitCachePath, 'objects', 'pack'))
+              ..createSync(recursive: true);
+            final oldTimestamp = DateTime.now().subtract(
+              const Duration(hours: 25),
+            );
+            final staleFiles = [
+              File(p.join(packDir.path, 'tmp_pack_stale')),
+              File(p.join(packDir.path, 'tmp_idx_stale')),
+              File(p.join(packDir.path, 'tmp_rev_stale')),
+            ];
+            for (final file in staleFiles) {
+              file.writeAsStringSync('stale');
+              file.setLastModifiedSync(oldTimestamp);
+            }
+
+            final freshTemp = File(p.join(packDir.path, 'tmp_pack_fresh'))
+              ..writeAsStringSync('fresh');
+            final oldNonMatching = File(p.join(packDir.path, 'pack_tmp_old'))
+              ..writeAsStringSync('old');
+            oldNonMatching.setLastModifiedSync(oldTimestamp);
+
+            final service = FlutterService(context);
+            await service.install(FlutterVersion.parse('master'));
+
+            for (final file in staleFiles) {
+              expect(
+                file.existsSync(),
+                isFalse,
+                reason: 'cleanup runs through install before cache clone',
+              );
+            }
+            expect(freshTemp.existsSync(), isTrue);
+            expect(oldNonMatching.existsSync(), isTrue);
+          } finally {
+            if (tempDir.existsSync()) {
+              tempDir.deleteSync(recursive: true);
+            }
           }
-
-          final freshTemp = File(p.join(packDir.path, 'tmp_pack_fresh'))
-            ..writeAsStringSync('fresh');
-          final oldNonMatching = File(p.join(packDir.path, 'pack_tmp_old'))
-            ..writeAsStringSync('old');
-          oldNonMatching.setLastModifiedSync(oldTimestamp);
-
-          final service = FlutterService(context);
-          await service.install(FlutterVersion.parse('master'));
-
-          for (final file in staleFiles) {
-            expect(file.existsSync(), isFalse);
-          }
-          expect(freshTemp.existsSync(), isTrue);
-          expect(oldNonMatching.existsSync(), isTrue);
-        } finally {
-          if (tempDir.existsSync()) {
-            tempDir.deleteSync(recursive: true);
-          }
-        }
-      });
+        },
+      );
 
       test('clone from git cache waits for cache lock', () async {
         final tempDir = createTempDir('fvm_flutter_service_clone_lock');

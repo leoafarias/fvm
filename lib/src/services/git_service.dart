@@ -27,6 +27,11 @@ class GitService extends ContextualService {
   static const _tagsRefspec = '+refs/tags/*:refs/tags/*';
   static const _allowedRefPrefixes = ['refs/heads/', 'refs/tags/'];
 
+  static final RegExp _gitCacheTempPackPattern = RegExp(
+    r'^(tmp_pack_|tmp_idx_|tmp_rev_)',
+  );
+  static const Duration _staleGitCacheTempAge = Duration(hours: 24);
+
   List<GitReference>? _referencesCache;
 
   GitService(super.context);
@@ -41,7 +46,8 @@ class GitService extends ContextualService {
         message.contains('being used by another process');
   }
 
-  Future<T> _withCacheMutationLock<T>(Future<T> Function() action) async {
+  /// Serializes git cache reads and writes through a single file lock.
+  Future<T> _withGitCacheLock<T>(Future<T> Function() action) async {
     final lockFile = File('${context.gitCachePath}.lock');
     if (!lockFile.parent.existsSync()) {
       lockFile.parent.createSync(recursive: true);
@@ -122,6 +128,56 @@ class GitService extends ContextualService {
             'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
           );
         }
+      }
+    }
+  }
+
+  void _cleanupStaleGitCachePackTemps() {
+    final packDir = Directory(
+      path.join(context.gitCachePath, 'objects', 'pack'),
+    );
+    if (!packDir.existsSync()) return;
+
+    final List<FileSystemEntity> entities;
+    try {
+      entities = packDir.listSync(followLinks: false);
+    } on FileSystemException catch (error) {
+      logger.warn(
+        'Unable to scan git cache temp files in ${packDir.path}: '
+        '${error.message}',
+      );
+
+      return;
+    }
+
+    final cutoff = DateTime.now().subtract(_staleGitCacheTempAge);
+    for (final entity in entities) {
+      if (entity is! File) continue;
+
+      final name = path.basename(entity.path);
+      if (!_gitCacheTempPackPattern.hasMatch(name)) continue;
+
+      final DateTime modified;
+      try {
+        modified = entity.statSync().modified;
+      } on FileSystemException catch (error) {
+        logger.warn(
+          'Unable to stat git cache temp file ${entity.path}: '
+          '${error.message}',
+        );
+        continue;
+      }
+
+      if (!modified.isBefore(cutoff)) continue;
+
+      try {
+        entity.deleteSync();
+        logger.debug('Removed stale git cache temp file ${entity.path}');
+      } on FileSystemException catch (error) {
+        logger.warn(
+          'Unable to delete stale git cache temp file ${entity.path}: '
+          '${error.message}',
+        );
       }
     }
   }
@@ -474,15 +530,13 @@ class GitService extends ContextualService {
     }
   }
 
-  Future<bool> _isHeadsTagsCacheReady(Directory repository) async {
+  Future<bool> _hasHeadsTagsCacheShape(Directory repository) async {
     if (!await _isBareRepository(repository.path)) return false;
     if (!await _hasExactCacheRefspecs(repository)) return false;
     if (!await _hasNoTagsTagOpt(repository)) return false;
     if (!await _hasNoMirrorConfig(repository)) return false;
     if (!await _hasValidBareHead(repository)) return false;
     if ((await _disallowedRefs(repository)).isNotEmpty) return false;
-
-    await _validateGitCache(repository);
 
     return true;
   }
@@ -568,7 +622,7 @@ class GitService extends ContextualService {
         return _GitCacheState.invalid;
       }
 
-      return await _isHeadsTagsCacheReady(gitCacheDir)
+      return await _hasHeadsTagsCacheShape(gitCacheDir)
           ? _GitCacheState.ready
           : _GitCacheState.overbroad;
     } on ProcessException catch (error) {
@@ -906,7 +960,7 @@ class GitService extends ContextualService {
           await setOriginUrl(repositoryPath: dir.path, url: context.flutterUrl);
         }
 
-        if (!await _isHeadsTagsCacheReady(dir)) {
+        if (!await _hasHeadsTagsCacheShape(dir)) {
           throw AppException('Rebuilt git cache is not ready for use.');
         }
       },
@@ -961,10 +1015,6 @@ class GitService extends ContextualService {
     return GitDir.fromExisting(versionDir.path);
   }
 
-  Future<T> withCacheMutationLock<T>(Future<T> Function() action) {
-    return _withCacheMutationLock(action);
-  }
-
   Future<void> setOriginUrl({
     required String repositoryPath,
     required String url,
@@ -976,11 +1026,23 @@ class GitService extends ContextualService {
     );
   }
 
+  /// Acquires the git cache lock, cleans stale pack temp files, then runs
+  /// [cloneAction] before releasing the lock.
+  Future<T> withPreparedGitCacheForClone<T>(
+    Future<T> Function() cloneAction,
+  ) {
+    return _withGitCacheLock(() async {
+      _cleanupStaleGitCachePackTemps();
+
+      return cloneAction();
+    });
+  }
+
   Future<bool> removeLocalMirror({
     bool requireSuccess = false,
     void Function(FileSystemException error)? onFinalError,
   }) {
-    return _withCacheMutationLock(() async {
+    return _withGitCacheLock(() async {
       final cacheDir = Directory(context.gitCachePath);
       if (cacheDir.existsSync()) {
         await _dissociateInstalledSdksFromGitCache();
@@ -1012,7 +1074,7 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() {
-    return _withCacheMutationLock(() async {
+    return _withGitCacheLock(() async {
       final gitCacheDir = Directory(context.gitCachePath);
 
       final cacheState = await _determineCacheState(gitCacheDir);
@@ -1042,7 +1104,7 @@ class GitService extends ContextualService {
   /// Migrates a legacy or overbroad cache to a heads/tags-only bare cache if
   /// present. Does not create or refresh the cache from remote.
   Future<void> ensureBareCacheIfPresent() {
-    return _withCacheMutationLock(() async {
+    return _withGitCacheLock(() async {
       final gitCacheDir = Directory(context.gitCachePath);
       if (!gitCacheDir.existsSync()) return;
 
