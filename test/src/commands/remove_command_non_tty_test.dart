@@ -50,9 +50,12 @@ void main() {
       // A spawned child's stdin is a pipe, not a terminal, so stdin.hasTerminal
       // is false. Do NOT use ProcessStartMode.inheritStdio: that would attach
       // the test runner's stdin (possibly a real TTY) and defeat the premise.
+      //
+      // Run the script directly instead of `dart run` so this regression guard
+      // cannot spend time on package resolution before reaching the prompt.
       final process = await Process.start(
-        'dart',
-        ['run', 'bin/main.dart', 'remove'],
+        Platform.resolvedExecutable,
+        ['bin/main.dart', 'remove'],
         environment: env,
         workingDirectory: Directory.current.path,
       );

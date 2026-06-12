@@ -236,5 +236,31 @@ void main() {
       expect(context.stdinHasTerminal, isFalse);
       expect(context.skipInput, isTrue);
     });
+
+    test('context serialization separates requested and effective skipInput',
+        () {
+      final context = FvmContext.raw(
+        debugLabel: null,
+        workingDirectory: '.',
+        config: const AppConfig(),
+        appConfigPath: '',
+        generators: <Type, Generator>{},
+        environment: const {},
+        skipInput: false,
+        stdinHasTerminal: false,
+      );
+
+      final map = context.toMap();
+
+      expect(map['skipInputRequested'], isFalse);
+      expect(map['skipInput'], isTrue);
+
+      final restored = FvmContextMapper.fromMap({...map, 'generators': {}});
+      expect(restored.stdinHasTerminal, isFalse);
+      expect(restored.skipInput, isTrue);
+
+      final restoredWithTerminal = restored.copyWith(stdinHasTerminal: true);
+      expect(restoredWithTerminal.skipInput, isFalse);
+    });
   });
 }

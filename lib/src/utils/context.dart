@@ -83,7 +83,7 @@ class FvmContext with FvmContextMappable {
     required this.appConfigPath,
     required Map<Type, Generator> generators,
     required this.environment,
-    required bool skipInput,
+    @MappableField(key: 'skipInputRequested') bool skipInput = false,
     this.stdinHasTerminal = true,
     this.isTest = false,
     this.logLevel = Level.info,

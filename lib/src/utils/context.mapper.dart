@@ -44,8 +44,9 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static const Field<FvmContext, Map<String, String>> _f$environment =
       Field('environment', _$environment);
   static bool _$_skipInput(FvmContext v) => v._skipInput;
-  static const Field<FvmContext, bool> _f$_skipInput =
-      Field('_skipInput', _$_skipInput, key: r'skipInput');
+  static const Field<FvmContext, bool> _f$_skipInput = Field(
+      '_skipInput', _$_skipInput,
+      key: r'skipInputRequested', opt: true, def: false);
   static bool _$stdinHasTerminal(FvmContext v) => v.stdinHasTerminal;
   static const Field<FvmContext, bool> _f$stdinHasTerminal =
       Field('stdinHasTerminal', _$stdinHasTerminal, opt: true, def: true);
