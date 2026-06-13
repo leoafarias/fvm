@@ -23,5 +23,8 @@
 
   "vscode": {
     "title": "VSCode Configuration"
+  },
+  "dart-mcp": {
+    "title": "Dart MCP Server"
   }
 }
