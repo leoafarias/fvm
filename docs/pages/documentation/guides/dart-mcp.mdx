@@ -1,0 +1,51 @@
+---
+id: dart-mcp
+title: Dart MCP Server
+---
+
+import { Callout } from "nextra/components";
+
+# Dart MCP Server
+
+## Overview
+
+The [Dart MCP server](https://dart.dev/tools/mcp-server) lets AI assistants and
+agentic tools interact with the Dart and Flutter toolchain. By default it
+resolves the Flutter SDK from your `PATH`, which is the globally installed
+Flutter — not the version pinned by FVM for your project.
+
+As a result, the MCP server may analyze your project against the wrong SDK
+version, leading to spurious errors or behavior that doesn't match what
+`fvm flutter` reports.
+
+## Pointing the MCP server at the FVM-pinned SDK
+
+FVM exposes the active project SDK through the `.fvm/flutter_sdk` symlink, which
+always points to the version pinned in your `.fvmrc`. Pass that path to the Dart
+MCP server with the `--flutter-sdk` flag so the server uses the same SDK as the
+rest of your project:
+
+```json
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server",
+        "--flutter-sdk",
+        ".fvm/flutter_sdk"
+      ]
+    }
+  }
+}
+```
+
+<Callout type="info">
+  The `.fvm/flutter_sdk` symlink is created when you pin a Flutter version with
+  `fvm use`. Make sure the version is installed and the project is configured
+  before starting the MCP server.
+</Callout>
+
+This is the same `.fvm/flutter_sdk` path that FVM uses for editor and tooling
+integrations (see [VSCode Configuration](/documentation/guides/vscode)), so the
+MCP server stays in sync with the SDK your IDE and terminal already use.
