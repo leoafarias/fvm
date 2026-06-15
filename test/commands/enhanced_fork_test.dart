@@ -93,8 +93,9 @@ void main() {
         expect(useExitCode, ExitCode.success.code);
 
         // Verify project is using fork version
-        final project =
-            installRunner.context.get<ProjectService>().findAncestor();
+        final project = installRunner.context
+            .get<ProjectService>()
+            .findAncestor();
         expect(
           project.pinnedVersion?.nameWithAlias,
           equals('$testForkName/leo-test-21'),
@@ -150,9 +151,8 @@ void main() {
         // but the error must be about the missing git ref, NOT about
         // an unconfigured fork alias.
         expect(
-          () => runner.runOrThrow(
-            ['fvm', 'install', 'nonexistent/leo-test-21'],
-          ),
+          () =>
+              runner.runOrThrow(['fvm', 'install', 'nonexistent/leo-test-21']),
           throwsA(
             predicate<Exception>(
               (e) =>
@@ -166,15 +166,13 @@ void main() {
       test('Use with slash unknownRef treats as git reference', () async {
         // Same fallback for the use command
         expect(
-          () => runner.runOrThrow(
-            [
-              'fvm',
-              'use',
-              'nonexistent/leo-test-21',
-              '--force',
-              '--skip-setup'
-            ],
-          ),
+          () => runner.runOrThrow([
+            'fvm',
+            'use',
+            'nonexistent/leo-test-21',
+            '--force',
+            '--skip-setup',
+          ]),
           throwsA(
             predicate<Exception>(
               (e) =>
@@ -192,8 +190,8 @@ void main() {
           throwsA(
             predicate<Exception>(
               (e) => e.toString().contains(
-                    'Fork "nonexistent" has not been configured',
-                  ),
+                'Fork "nonexistent" has not been configured',
+              ),
             ),
           ),
         );

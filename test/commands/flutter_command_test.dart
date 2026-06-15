@@ -34,8 +34,8 @@ void main() {
       // Get project and cache version
       final project = testRunner.context.get<ProjectService>().findAncestor();
       final cacheVersion = testRunner.context.get<CacheService>().getVersion(
-            FlutterVersion.parse(channel),
-          );
+        FlutterVersion.parse(channel),
+      );
 
       // Assertions on project version
       expect(project.pinnedVersion?.name, channel);
@@ -110,8 +110,8 @@ void main() {
       // Install specific version
       await testRunner.run(['fvm', 'install', installVersion, '--setup']);
       final cacheVersion = testRunner.context.get<CacheService>().getVersion(
-            FlutterVersion.parse(installVersion),
-          );
+        FlutterVersion.parse(installVersion),
+      );
 
       // Update environment variables
       final updatedEnvironments = updateEnvironmentVariables([
@@ -173,8 +173,8 @@ void main() {
       // Install specific version
       await testRunner.run(['fvm', 'install', versionNumber, '--setup']);
       final cacheVersion = testRunner.context.get<CacheService>().getVersion(
-            FlutterVersion.parse(versionNumber),
-          );
+        FlutterVersion.parse(versionNumber),
+      );
 
       expect(cacheVersion, isNotNull);
 

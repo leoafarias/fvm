@@ -271,8 +271,9 @@ void main() {
         }
 
         // Should process all percentage lines
-        final outputs =
-            logger.writtenLines.where((line) => line.contains('%')).toList();
+        final outputs = logger.writtenLines
+            .where((line) => line.contains('%'))
+            .toList();
         expect(
           outputs.length,
           greaterThanOrEqualTo(8),

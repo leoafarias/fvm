@@ -26,12 +26,12 @@ class FakeFlutterService extends FlutterService {
   static Set<String> get allowedReleaseVersions =>
       Set.unmodifiable(_allowedReleases);
 
-  static final _allowedForkRefs = <String>{
-    'leo-test-21',
-  };
+  static final _allowedForkRefs = <String>{'leo-test-21'};
 
-  static final _commitHashPattern =
-      RegExp(r'^[0-9a-f]{7,40}$', caseSensitive: false);
+  static final _commitHashPattern = RegExp(
+    r'^[0-9a-f]{7,40}$',
+    caseSensitive: false,
+  );
 
   @override
   Future<void> install(FlutterVersion version) async {

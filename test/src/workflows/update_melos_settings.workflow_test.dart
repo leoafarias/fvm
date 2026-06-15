@@ -44,15 +44,16 @@ packages:
       // Create a custom context with TestLogger that declines confirmation
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('configure melos.yaml', false),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setConfirmResponse('configure melos.yaml', false),
         },
       );
 
       final customRunner = TestCommandRunner(context);
       final project = customRunner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
@@ -91,8 +92,8 @@ sdkPath: /any/existing/path
       final originalContent = melosFile.readAsStringSync();
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -125,15 +126,16 @@ packages:
       // Create a custom context with TestLogger that declines confirmation
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('configure melos.yaml', false),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setConfirmResponse('configure melos.yaml', false),
         },
       );
 
       final customRunner = TestCommandRunner(context);
       final project = customRunner.context.get<ProjectService>().findAncestor(
-            directory: subDir,
-          );
+        directory: subDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
@@ -164,8 +166,8 @@ sdkPath: /usr/local/flutter
         final originalContent = melosFile.readAsStringSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateMelosSettingsWorkflow(runner.context);
 
         // Run workflow
@@ -203,15 +205,16 @@ packages:
       // Create a custom context with TestLogger that declines confirmation
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('configure melos.yaml', false),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setConfirmResponse('configure melos.yaml', false),
         },
       );
 
       final customRunner = TestCommandRunner(context);
       final project = customRunner.context.get<ProjectService>().findAncestor(
-            directory: nestedDir,
-          );
+        directory: nestedDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
       // Run workflow
@@ -239,8 +242,8 @@ packages:
       final originalContent = melosFile.readAsStringSync();
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -269,8 +272,8 @@ packages:
       final originalContent = melosFile.readAsStringSync();
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(runner.context);
 
       // Run workflow - should fail gracefully
@@ -303,15 +306,16 @@ sdkPath: .fvm/versions/3.10.0
         // Create a custom context with TestLogger that declines update
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('Update existing FVM path', false),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('Update existing FVM path', false),
           },
         );
 
         final customRunner = TestCommandRunner(context);
         final project = customRunner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
         // Run workflow
@@ -343,8 +347,8 @@ packages:
       final originalContent = melosFile.readAsStringSync();
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateMelosSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -374,8 +378,9 @@ packages:
           // Create a custom context with TestLogger
           final context = TestFactory.context(
             generators: {
-              Logger: (context) => TestLogger(context)
-                ..setConfirmResponse('configure melos.yaml', true),
+              Logger: (context) =>
+                  TestLogger(context)
+                    ..setConfirmResponse('configure melos.yaml', true),
             },
           );
 
@@ -430,15 +435,16 @@ sdkPath: .fvm/versions/3.10.0
         // Create a custom context with TestLogger that says Yes
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('Update existing FVM path', true),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('Update existing FVM path', true),
           },
         );
 
         final customRunner = TestCommandRunner(context);
         final project = customRunner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
 
         // Run workflow
@@ -476,15 +482,16 @@ packages:
         // Create a custom context with TestLogger that declines confirmation
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('configure melos.yaml', false),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('configure melos.yaml', false),
           },
         );
 
         final customRunner = TestCommandRunner(context);
         final project = customRunner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateMelosSettingsWorkflow(customRunner.context);
         final logger = customRunner.context.get<Logger>();
 

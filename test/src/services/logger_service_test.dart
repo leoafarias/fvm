@@ -189,11 +189,7 @@ void main() {
     test('includes fork aliases in options', () {
       final context = TestFactory.context();
       final logger = _SelectCaptureLogger(context);
-      final forkDir = path.join(
-        context.versionsCachePath,
-        'myfork',
-        'stable',
-      );
+      final forkDir = path.join(context.versionsCachePath, 'myfork', 'stable');
       final stableDir = path.join(context.versionsCachePath, 'stable');
       final versions = [
         CacheFlutterVersion.fromVersion(
