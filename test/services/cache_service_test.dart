@@ -125,12 +125,12 @@ void main() {
             path.join(versionDir.path, '.git'),
           ).createSync(recursive: true);
           File(
-            path.join(
-              versionDir.path,
-              'bin',
-              Platform.isWindows ? 'flutter.bat' : 'flutter',
-            ),
-          )
+              path.join(
+                versionDir.path,
+                'bin',
+                Platform.isWindows ? 'flutter.bat' : 'flutter',
+              ),
+            )
             ..createSync(recursive: true)
             ..writeAsStringSync('dummy');
 

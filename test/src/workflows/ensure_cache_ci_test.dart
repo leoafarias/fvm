@@ -18,103 +18,93 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
-    test(
-      'version mismatch in CI mode auto-selects safe default',
-      () async {
-        final context = TestFactory.fastContext(
-          environmentOverrides: {'CI': 'true'},
-        );
-        final flutterService =
-            context.get<FlutterService>() as FakeFlutterService;
+    test('version mismatch in CI mode auto-selects safe default', () async {
+      final context = TestFactory.fastContext(
+        environmentOverrides: {'CI': 'true'},
+      );
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
 
-        final version = FlutterVersion.parse('3.10.0');
-        final cacheService = context.get<CacheService>();
-        final ensureCache = EnsureCacheWorkflow(context);
+      final version = FlutterVersion.parse('3.10.0');
+      final cacheService = context.get<CacheService>();
+      final ensureCache = EnsureCacheWorkflow(context);
 
-        FakeFlutterSdkFixture.install(
-          context,
-          version,
-          state: FakeFlutterSdkState.versionMismatch,
-          mismatchCachedVersion: '3.10.5',
-        );
+      FakeFlutterSdkFixture.install(
+        context,
+        version,
+        state: FakeFlutterSdkState.versionMismatch,
+        mismatchCachedVersion: '3.10.5',
+      );
 
-        final mismatchedVersion = cacheService.getVersion(version);
-        expect(mismatchedVersion, isNotNull);
-        expect(
-          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
-          equals(CacheIntegrity.versionMismatch),
-        );
+      final mismatchedVersion = cacheService.getVersion(version);
+      expect(mismatchedVersion, isNotNull);
+      expect(
+        await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+        equals(CacheIntegrity.versionMismatch),
+      );
 
-        final installCountBefore = flutterService.installedVersions.length;
-        final result = await ensureCache(version);
+      final installCountBefore = flutterService.installedVersions.length;
+      final result = await ensureCache(version);
 
-        expect(result, isNotNull);
-        expect(result.name, equals('3.10.0'));
-        expect(
-          flutterService.installedVersions.length,
-          greaterThan(installCountBefore),
-        );
-        expect(flutterService.installedVersions.last.name, equals('3.10.0'));
+      expect(result, isNotNull);
+      expect(result.name, equals('3.10.0'));
+      expect(
+        flutterService.installedVersions.length,
+        greaterThan(installCountBefore),
+      );
+      expect(flutterService.installedVersions.last.name, equals('3.10.0'));
 
-        final output = context.get<Logger>().outputs.join('\n');
-        expect(
-          output,
-          contains(
-            'Cached SDK metadata reports 3.10.5, but FVM expected 3.10.0 for this cache entry.',
-          ),
-        );
-        expect(
-          output,
-          contains(
-            'This can happen when a cached SDK is upgraded or changed outside FVM.',
-          ),
-        );
-        expect(output, isNot(contains('manually run "flutter upgrade"')));
-      },
-    );
+      final output = context.get<Logger>().outputs.join('\n');
+      expect(
+        output,
+        contains(
+          'Cached SDK metadata reports 3.10.5, but FVM expected 3.10.0 for this cache entry.',
+        ),
+      );
+      expect(
+        output,
+        contains(
+          'This can happen when a cached SDK is upgraded or changed outside FVM.',
+        ),
+      );
+      expect(output, isNot(contains('manually run "flutter upgrade"')));
+    });
 
-    test(
-      '--fvm-skip-input flag handles version mismatch gracefully',
-      () async {
-        final context = TestFactory.fastContext(
-          skipInput: true,
-        );
-        final flutterService =
-            context.get<FlutterService>() as FakeFlutterService;
+    test('--fvm-skip-input flag handles version mismatch gracefully', () async {
+      final context = TestFactory.fastContext(skipInput: true);
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
 
-        final version = FlutterVersion.parse('3.10.0');
-        final cacheService = context.get<CacheService>();
-        final ensureCache = EnsureCacheWorkflow(context);
+      final version = FlutterVersion.parse('3.10.0');
+      final cacheService = context.get<CacheService>();
+      final ensureCache = EnsureCacheWorkflow(context);
 
-        FakeFlutterSdkFixture.install(
-          context,
-          version,
-          state: FakeFlutterSdkState.versionMismatch,
-          mismatchCachedVersion: '3.10.5',
-        );
+      FakeFlutterSdkFixture.install(
+        context,
+        version,
+        state: FakeFlutterSdkState.versionMismatch,
+        mismatchCachedVersion: '3.10.5',
+      );
 
-        final mismatchedVersion = cacheService.getVersion(version);
-        expect(
-          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
-          equals(CacheIntegrity.versionMismatch),
-        );
+      final mismatchedVersion = cacheService.getVersion(version);
+      expect(
+        await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+        equals(CacheIntegrity.versionMismatch),
+      );
 
-        final installCountBefore = flutterService.installedVersions.length;
-        final result = await ensureCache(version);
+      final installCountBefore = flutterService.installedVersions.length;
+      final result = await ensureCache(version);
 
-        expect(result, isNotNull);
-        expect(result.name, equals('3.10.0'));
-        expect(
-          flutterService.installedVersions.length,
-          greaterThan(installCountBefore),
-        );
-      },
-    );
+      expect(result, isNotNull);
+      expect(result.name, equals('3.10.0'));
+      expect(
+        flutterService.installedVersions.length,
+        greaterThan(installCountBefore),
+      );
+    });
 
     test('non-TTY mode handles version mismatch gracefully', () async {
-      final context = TestFactory.fastContext(
-        stdinHasTerminal: false,
-      );
+      final context = TestFactory.fastContext(stdinHasTerminal: false);
       final flutterService =
           context.get<FlutterService>() as FakeFlutterService;
 
@@ -157,42 +147,39 @@ void main() {
       );
     });
 
-    test(
-      'GitHub Actions environment handles version mismatch',
-      () async {
-        final context = TestFactory.fastContext(
-          environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
-        );
-        final flutterService =
-            context.get<FlutterService>() as FakeFlutterService;
+    test('GitHub Actions environment handles version mismatch', () async {
+      final context = TestFactory.fastContext(
+        environmentOverrides: {'GITHUB_ACTIONS': 'true', 'CI': 'true'},
+      );
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
 
-        final version = FlutterVersion.parse('3.10.0');
-        final cacheService = context.get<CacheService>();
-        final ensureCache = EnsureCacheWorkflow(context);
+      final version = FlutterVersion.parse('3.10.0');
+      final cacheService = context.get<CacheService>();
+      final ensureCache = EnsureCacheWorkflow(context);
 
-        FakeFlutterSdkFixture.install(
-          context,
-          version,
-          state: FakeFlutterSdkState.versionMismatch,
-          mismatchCachedVersion: '3.10.5',
-        );
+      FakeFlutterSdkFixture.install(
+        context,
+        version,
+        state: FakeFlutterSdkState.versionMismatch,
+        mismatchCachedVersion: '3.10.5',
+      );
 
-        final mismatchedVersion = cacheService.getVersion(version);
-        expect(
-          await cacheService.verifyCacheIntegrity(mismatchedVersion!),
-          equals(CacheIntegrity.versionMismatch),
-        );
+      final mismatchedVersion = cacheService.getVersion(version);
+      expect(
+        await cacheService.verifyCacheIntegrity(mismatchedVersion!),
+        equals(CacheIntegrity.versionMismatch),
+      );
 
-        final installCountBefore = flutterService.installedVersions.length;
-        final result = await ensureCache(version);
+      final installCountBefore = flutterService.installedVersions.length;
+      final result = await ensureCache(version);
 
-        expect(result, isNotNull);
-        expect(
-          flutterService.installedVersions.length,
-          greaterThan(installCountBefore),
-        );
-      },
-    );
+      expect(result, isNotNull);
+      expect(
+        flutterService.installedVersions.length,
+        greaterThan(installCountBefore),
+      );
+    });
 
     test(
       'CI environment variables properly detected from multiple sources',
@@ -252,30 +239,32 @@ void main() {
       expect(context.skipInput, isTrue);
     });
 
-    test('context serialization separates requested and effective skipInput',
-        () {
-      final context = FvmContext.raw(
-        debugLabel: null,
-        workingDirectory: '.',
-        config: const AppConfig(),
-        appConfigPath: '',
-        generators: <Type, Generator>{},
-        environment: const {},
-        skipInput: false,
-        stdinHasTerminal: false,
-      );
+    test(
+      'context serialization separates requested and effective skipInput',
+      () {
+        final context = FvmContext.raw(
+          debugLabel: null,
+          workingDirectory: '.',
+          config: const AppConfig(),
+          appConfigPath: '',
+          generators: <Type, Generator>{},
+          environment: const {},
+          skipInput: false,
+          stdinHasTerminal: false,
+        );
 
-      final map = context.toMap();
+        final map = context.toMap();
 
-      expect(map['skipInputRequested'], isFalse);
-      expect(map['skipInput'], isTrue);
+        expect(map['skipInputRequested'], isFalse);
+        expect(map['skipInput'], isTrue);
 
-      final restored = FvmContextMapper.fromMap({...map, 'generators': {}});
-      expect(restored.stdinHasTerminal, isFalse);
-      expect(restored.skipInput, isTrue);
+        final restored = FvmContextMapper.fromMap({...map, 'generators': {}});
+        expect(restored.stdinHasTerminal, isFalse);
+        expect(restored.skipInput, isTrue);
 
-      final restoredWithTerminal = restored.copyWith(stdinHasTerminal: true);
-      expect(restoredWithTerminal.skipInput, isFalse);
-    });
+        final restoredWithTerminal = restored.copyWith(stdinHasTerminal: true);
+        expect(restoredWithTerminal.skipInput, isFalse);
+      },
+    );
   });
 }

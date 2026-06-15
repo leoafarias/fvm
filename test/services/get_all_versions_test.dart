@@ -35,8 +35,9 @@ void main() {
       File(path.join(stableDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('stable');
-      File(path.join(stableDir.path, 'bin', 'flutter'))
-          .createSync(recursive: true);
+      File(
+        path.join(stableDir.path, 'bin', 'flutter'),
+      ).createSync(recursive: true);
 
       final forkedVersion = FlutterVersion.parse('testfork/master');
       final forkedVersionDir = cacheService.getVersionCacheDir(forkedVersion);
@@ -44,8 +45,9 @@ void main() {
       File(path.join(forkedVersionDir.path, 'version'))
         ..createSync()
         ..writeAsStringSync('master');
-      File(path.join(forkedVersionDir.path, 'bin', 'flutter'))
-          .createSync(recursive: true);
+      File(
+        path.join(forkedVersionDir.path, 'bin', 'flutter'),
+      ).createSync(recursive: true);
 
       final versions = await cacheService.getAllVersions();
 

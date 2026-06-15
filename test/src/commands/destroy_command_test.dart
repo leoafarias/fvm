@@ -12,8 +12,9 @@ void main() {
       // Create context with TestLogger that says Yes
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('destroy the FVM cache directory', true),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setConfirmResponse('destroy the FVM cache directory', true),
         },
         skipInput: false, // Allow user input for testing
       );
@@ -48,8 +49,9 @@ void main() {
       // Create context with TestLogger that says No
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('destroy the FVM cache directory', false),
+          Logger: (context) =>
+              TestLogger(context)
+                ..setConfirmResponse('destroy the FVM cache directory', false),
         },
         skipInput: false, // Allow user input for testing
       );

@@ -99,8 +99,9 @@ class CacheFlutterVersion extends FlutterVersion
       _loadMetadata(String directory) {
     // Load JSON metadata file: $FLUTTER_ROOT/bin/cache/flutter.version.json
     // This file exists after setup on Flutter 3.13+
-    final rootMetadata =
-        FlutterRootVersionFile.tryLoadFromRoot(Directory(directory));
+    final rootMetadata = FlutterRootVersionFile.tryLoadFromRoot(
+      Directory(directory),
+    );
 
     final dartSdkCache = join(directory, 'bin', 'cache', 'dart-sdk');
 

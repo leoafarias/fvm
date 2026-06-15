@@ -14,8 +14,9 @@ void main() {
         // Create context with TestLogger that says Yes
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('remove all versions', true),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('remove all versions', true),
           },
           skipInput: false, // Allow user input for testing
         );
@@ -56,8 +57,9 @@ void main() {
         // Create context with TestLogger that says No
         final context = TestFactory.context(
           generators: {
-            Logger: (context) => TestLogger(context)
-              ..setConfirmResponse('remove all versions', false),
+            Logger: (context) =>
+                TestLogger(context)
+                  ..setConfirmResponse('remove all versions', false),
           },
           skipInput: false, // Allow user input for testing
         );

@@ -23,8 +23,10 @@ class ProjectMapper extends ClassMapperBase<Project> {
   final String id = 'Project';
 
   static ProjectConfig? _$config(Project v) => v.config;
-  static const Field<Project, ProjectConfig> _f$config =
-      Field('config', _$config);
+  static const Field<Project, ProjectConfig> _f$config = Field(
+    'config',
+    _$config,
+  );
   static String _$path(Project v) => v.path;
   static const Field<Project, String> _f$path = Field('path', _$path);
   static Pubspec? _$pubspec(Project v) => v.pubspec;
@@ -32,52 +34,82 @@ class ProjectMapper extends ClassMapperBase<Project> {
   static String _$name(Project v) => v.name;
   static const Field<Project, String> _f$name = Field('name', _$name);
   static FlutterVersion? _$pinnedVersion(Project v) => v.pinnedVersion;
-  static const Field<Project, FlutterVersion> _f$pinnedVersion =
-      Field('pinnedVersion', _$pinnedVersion);
+  static const Field<Project, FlutterVersion> _f$pinnedVersion = Field(
+    'pinnedVersion',
+    _$pinnedVersion,
+  );
   static String? _$activeFlavor(Project v) => v.activeFlavor;
-  static const Field<Project, String> _f$activeFlavor =
-      Field('activeFlavor', _$activeFlavor);
+  static const Field<Project, String> _f$activeFlavor = Field(
+    'activeFlavor',
+    _$activeFlavor,
+  );
   static Map<String, String> _$flavors(Project v) => v.flavors;
-  static const Field<Project, Map<String, String>> _f$flavors =
-      Field('flavors', _$flavors);
+  static const Field<Project, Map<String, String>> _f$flavors = Field(
+    'flavors',
+    _$flavors,
+  );
   static String? _$dartToolGeneratorVersion(Project v) =>
       v.dartToolGeneratorVersion;
-  static const Field<Project, String> _f$dartToolGeneratorVersion =
-      Field('dartToolGeneratorVersion', _$dartToolGeneratorVersion);
+  static const Field<Project, String> _f$dartToolGeneratorVersion = Field(
+    'dartToolGeneratorVersion',
+    _$dartToolGeneratorVersion,
+  );
   static String? _$dartToolVersion(Project v) => v.dartToolVersion;
-  static const Field<Project, String> _f$dartToolVersion =
-      Field('dartToolVersion', _$dartToolVersion);
+  static const Field<Project, String> _f$dartToolVersion = Field(
+    'dartToolVersion',
+    _$dartToolVersion,
+  );
   static bool _$isFlutter(Project v) => v.isFlutter;
-  static const Field<Project, bool> _f$isFlutter =
-      Field('isFlutter', _$isFlutter);
+  static const Field<Project, bool> _f$isFlutter = Field(
+    'isFlutter',
+    _$isFlutter,
+  );
   static String _$localFvmPath(Project v) => v.localFvmPath;
-  static const Field<Project, String> _f$localFvmPath =
-      Field('localFvmPath', _$localFvmPath);
+  static const Field<Project, String> _f$localFvmPath = Field(
+    'localFvmPath',
+    _$localFvmPath,
+  );
   static String _$localVersionsCachePath(Project v) => v.localVersionsCachePath;
-  static const Field<Project, String> _f$localVersionsCachePath =
-      Field('localVersionsCachePath', _$localVersionsCachePath);
+  static const Field<Project, String> _f$localVersionsCachePath = Field(
+    'localVersionsCachePath',
+    _$localVersionsCachePath,
+  );
   static String _$localVersionSymlinkPath(Project v) =>
       v.localVersionSymlinkPath;
-  static const Field<Project, String> _f$localVersionSymlinkPath =
-      Field('localVersionSymlinkPath', _$localVersionSymlinkPath);
+  static const Field<Project, String> _f$localVersionSymlinkPath = Field(
+    'localVersionSymlinkPath',
+    _$localVersionSymlinkPath,
+  );
   static String _$gitIgnorePath(Project v) => v.gitIgnorePath;
-  static const Field<Project, String> _f$gitIgnorePath =
-      Field('gitIgnorePath', _$gitIgnorePath);
+  static const Field<Project, String> _f$gitIgnorePath = Field(
+    'gitIgnorePath',
+    _$gitIgnorePath,
+  );
   static String _$pubspecPath(Project v) => v.pubspecPath;
-  static const Field<Project, String> _f$pubspecPath =
-      Field('pubspecPath', _$pubspecPath);
+  static const Field<Project, String> _f$pubspecPath = Field(
+    'pubspecPath',
+    _$pubspecPath,
+  );
   static String _$configPath(Project v) => v.configPath;
-  static const Field<Project, String> _f$configPath =
-      Field('configPath', _$configPath);
+  static const Field<Project, String> _f$configPath = Field(
+    'configPath',
+    _$configPath,
+  );
   static String _$legacyConfigPath(Project v) => v.legacyConfigPath;
-  static const Field<Project, String> _f$legacyConfigPath =
-      Field('legacyConfigPath', _$legacyConfigPath);
+  static const Field<Project, String> _f$legacyConfigPath = Field(
+    'legacyConfigPath',
+    _$legacyConfigPath,
+  );
   static bool _$hasConfig(Project v) => v.hasConfig;
-  static const Field<Project, bool> _f$hasConfig =
-      Field('hasConfig', _$hasConfig);
+  static const Field<Project, bool> _f$hasConfig = Field(
+    'hasConfig',
+    _$hasConfig,
+  );
   static bool _$hasPubspec(Project v) => v.hasPubspec;
-  static const Field<Project, bool> _f$hasPubspec =
-      Field('hasPubspec', _$hasPubspec);
+  static const Field<Project, bool> _f$hasPubspec = Field(
+    'hasPubspec',
+    _$hasPubspec,
+  );
 
   @override
   final MappableFields<Project> fields = const {
@@ -104,9 +136,10 @@ class ProjectMapper extends ClassMapperBase<Project> {
 
   static Project _instantiate(DecodingData data) {
     return Project(
-        config: data.dec(_f$config),
-        path: data.dec(_f$path),
-        pubspec: data.dec(_f$pubspec));
+      config: data.dec(_f$config),
+      path: data.dec(_f$path),
+      pubspec: data.dec(_f$pubspec),
+    );
   }
 
   @override
@@ -123,18 +156,23 @@ class ProjectMapper extends ClassMapperBase<Project> {
 
 mixin ProjectMappable {
   String toJson() {
-    return ProjectMapper.ensureInitialized()
-        .encodeJson<Project>(this as Project);
+    return ProjectMapper.ensureInitialized().encodeJson<Project>(
+      this as Project,
+    );
   }
 
   Map<String, dynamic> toMap() {
-    return ProjectMapper.ensureInitialized()
-        .encodeMap<Project>(this as Project);
+    return ProjectMapper.ensureInitialized().encodeMap<Project>(
+      this as Project,
+    );
   }
 
   ProjectCopyWith<Project, Project, Project> get copyWith =>
       _ProjectCopyWithImpl<Project, Project>(
-          this as Project, $identity, $identity);
+        this as Project,
+        $identity,
+        $identity,
+      );
   @override
   String toString() {
     return ProjectMapper.ensureInitialized().stringifyValue(this as Project);
@@ -142,8 +180,10 @@ mixin ProjectMappable {
 
   @override
   bool operator ==(Object other) {
-    return ProjectMapper.ensureInitialized()
-        .equalsValue(this as Project, other);
+    return ProjectMapper.ensureInitialized().equalsValue(
+      this as Project,
+      other,
+    );
   }
 
   @override
@@ -177,16 +217,19 @@ class _ProjectCopyWithImpl<$R, $Out>
       $value.config?.copyWith.$chain((v) => call(config: v));
   @override
   $R call({Object? config = $none, String? path, Object? pubspec = $none}) =>
-      $apply(FieldCopyWithData({
-        if (config != $none) #config: config,
-        if (path != null) #path: path,
-        if (pubspec != $none) #pubspec: pubspec
-      }));
+      $apply(
+        FieldCopyWithData({
+          if (config != $none) #config: config,
+          if (path != null) #path: path,
+          if (pubspec != $none) #pubspec: pubspec,
+        }),
+      );
   @override
   Project $make(CopyWithData data) => Project(
-      config: data.get(#config, or: $value.config),
-      path: data.get(#path, or: $value.path),
-      pubspec: data.get(#pubspec, or: $value.pubspec));
+    config: data.get(#config, or: $value.config),
+    path: data.get(#path, or: $value.path),
+    pubspec: data.get(#pubspec, or: $value.pubspec),
+  );
 
   @override
   ProjectCopyWith<$R2, Project, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>

@@ -130,10 +130,7 @@ void main() {
       final project = Project.loadFromDirectory(tempDir);
 
       // Update without specifying updateVscodeSettings (should preserve false)
-      projectService.update(
-        project,
-        flutterSdkVersion: '3.16.0',
-      );
+      projectService.update(project, flutterSdkVersion: '3.16.0');
 
       // Read back the updated configuration
       final updatedProject = projectService.findAncestor(directory: tempDir);
@@ -153,9 +150,7 @@ void main() {
       fvmDir.createSync(recursive: true);
 
       final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
-      legacyConfigFile.writeAsStringSync(
-        '{"flutterSdkVersion": "3.38.3"}',
-      );
+      legacyConfigFile.writeAsStringSync('{"flutterSdkVersion": "3.38.3"}');
 
       final project = projectService.findAncestor(directory: tempDir);
 
@@ -170,17 +165,13 @@ void main() {
 
       // Create both new and legacy config files
       final newConfigFile = File(p.join(tempDir.path, '.fvmrc'));
-      newConfigFile.writeAsStringSync(
-        '{"flutter": "3.16.0"}',
-      );
+      newConfigFile.writeAsStringSync('{"flutter": "3.16.0"}');
 
       final fvmDir = Directory(p.join(tempDir.path, '.fvm'));
       fvmDir.createSync(recursive: true);
 
       final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
-      legacyConfigFile.writeAsStringSync(
-        '{"flutterSdkVersion": "3.38.3"}',
-      );
+      legacyConfigFile.writeAsStringSync('{"flutterSdkVersion": "3.38.3"}');
 
       final project = projectService.findAncestor(directory: tempDir);
 
@@ -199,9 +190,7 @@ void main() {
       fvmDir.createSync(recursive: true);
 
       final legacyConfigFile = File(p.join(fvmDir.path, 'fvm_config.json'));
-      legacyConfigFile.writeAsStringSync(
-        '{"flutterSdkVersion": "3.38.3"}',
-      );
+      legacyConfigFile.writeAsStringSync('{"flutterSdkVersion": "3.38.3"}');
 
       // Get the logger to check outputs
       final logger = context.get<Logger>();

@@ -217,11 +217,11 @@ class FlutterService extends ContextualService {
   }) {
     final message = version.fromFork
         ? 'Reference "${version.version}" was not found in fork "${version.fork}".\n'
-            'Please verify that this version exists in the forked repository.\n'
-            'Repository URL: $repoUrl'
+              'Please verify that this version exists in the forked repository.\n'
+              'Repository URL: $repoUrl'
         : 'Reference "${version.version}" was not found in the Flutter repository.\n'
-            'Please check that you have specified a valid version.\n'
-            'Repository URL: $repoUrl';
+              'Please check that you have specified a valid version.\n'
+              'Repository URL: $repoUrl';
 
     Error.throwWithStackTrace(AppException(message), stackTrace);
   }
@@ -586,8 +586,8 @@ class VersionRunner {
   const VersionRunner({
     required FvmContext context,
     required CacheFlutterVersion version,
-  })  : _context = context,
-        _version = version;
+  }) : _context = context,
+       _version = version;
 
   Map<String, String> _updateEnvironmentVariables(List<String> paths) {
     final uniquePaths = paths.toSet().toList();
@@ -612,11 +612,11 @@ class VersionRunner {
     ]);
 
     return _context.get<ProcessService>().run(
-          cmd,
-          args: args,
-          environment: environment,
-          throwOnError: throwOnError ?? false,
-          echoOutput: echoOutput ?? true,
-        );
+      cmd,
+      args: args,
+      environment: environment,
+      throwOnError: throwOnError ?? false,
+      echoOutput: echoOutput ?? true,
+    );
   }
 }

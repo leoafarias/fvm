@@ -102,26 +102,14 @@ void main() {
 
     test('Reject alias with slash', () async {
       expect(
-        () => runner.runOrThrow([
-          'fvm',
-          'fork',
-          'add',
-          'my/fork',
-          testForkUrl,
-        ]),
+        () => runner.runOrThrow(['fvm', 'fork', 'add', 'my/fork', testForkUrl]),
         throwsA(isA<Exception>()),
       );
     });
 
     test('Reject alias with spaces', () async {
       expect(
-        () => runner.runOrThrow([
-          'fvm',
-          'fork',
-          'add',
-          'my fork',
-          testForkUrl,
-        ]),
+        () => runner.runOrThrow(['fvm', 'fork', 'add', 'my fork', testForkUrl]),
         throwsA(isA<Exception>()),
       );
     });

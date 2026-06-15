@@ -98,9 +98,7 @@ class GitService extends ContextualService {
 
             if (!waitingLogged && elapsed >= waitLogThreshold) {
               waitingLogged = true;
-              logger.debug(
-                'Waiting for git cache lock at ${lockFile.path}...',
-              );
+              logger.debug('Waiting for git cache lock at ${lockFile.path}...');
             }
 
             await Future<void>.delayed(retryDelay);
@@ -229,9 +227,9 @@ class GitService extends ContextualService {
       processLogs.add(line);
     });
 
-    final stdoutDone = process.stdout.transform(utf8.decoder).forEach(
-          logger.info,
-        );
+    final stdoutDone = process.stdout
+        .transform(utf8.decoder)
+        .forEach(logger.info);
 
     final exitCode = await process.exitCode;
     await Future.wait([stderrDone, stdoutDone]);
@@ -396,9 +394,7 @@ class GitService extends ContextualService {
     final resolvedCachePath = cacheDir.existsSync()
         ? cacheDir.resolveSymbolicLinksSync()
         : context.gitCachePath;
-    final desiredPath = path.normalize(
-      path.join(resolvedCachePath, 'objects'),
-    );
+    final desiredPath = path.normalize(path.join(resolvedCachePath, 'objects'));
     final desiredParent = path.normalize(resolvedCachePath);
 
     // Platform-aware path comparison (Windows is case-insensitive)
@@ -434,9 +430,7 @@ class GitService extends ContextualService {
         if (comparable(currentNorm) == comparable(desiredPath)) continue;
 
         alternatesFile.writeAsStringSync('$desiredPath\n');
-        logger.info(
-          'Updated alternates for ${version.name} -> $desiredPath',
-        );
+        logger.info('Updated alternates for ${version.name} -> $desiredPath');
       } on FileSystemException catch (error) {
         logger.warn(
           'Unable to update alternates for ${version.name}: ${error.message}',
@@ -621,7 +615,8 @@ class GitService extends ContextualService {
       return deleteDirectoryWithRetry(
         cacheDir,
         requireSuccess: requireSuccess,
-        onFinalError: onFinalError ??
+        onFinalError:
+            onFinalError ??
             (error) {
               logger.warn(
                 'Unable to delete local mirror at ${cacheDir.path}: ${error.message}',
