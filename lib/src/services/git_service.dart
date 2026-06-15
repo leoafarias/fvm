@@ -36,6 +36,22 @@ class GitService extends ContextualService {
 
   GitService(super.context);
 
+  /// Returns the entity at [entityPath] based on its file system type,
+  /// or null if nothing exists there.
+  static FileSystemEntity? _entityAt(String entityPath) {
+    final type = FileSystemEntity.typeSync(entityPath, followLinks: false);
+    switch (type) {
+      case FileSystemEntityType.directory:
+        return Directory(entityPath);
+      case FileSystemEntityType.file:
+        return File(entityPath);
+      case FileSystemEntityType.link:
+        return Link(entityPath);
+      default:
+        return null;
+    }
+  }
+
   bool _isLockContentionError(FileSystemException error) {
     final message = error.message.toLowerCase();
 
@@ -836,22 +852,6 @@ class GitService extends ContextualService {
       throw AppException(
         'Git cache contains unsupported refs: ${extraRefs.join(', ')}',
       );
-    }
-  }
-
-  /// Returns the entity at [entityPath] based on its file system type,
-  /// or null if nothing exists there.
-  FileSystemEntity? _entityAt(String entityPath) {
-    final type = FileSystemEntity.typeSync(entityPath, followLinks: false);
-    switch (type) {
-      case FileSystemEntityType.directory:
-        return Directory(entityPath);
-      case FileSystemEntityType.file:
-        return File(entityPath);
-      case FileSystemEntityType.link:
-        return Link(entityPath);
-      default:
-        return null;
     }
   }
 

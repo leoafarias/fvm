@@ -52,8 +52,9 @@ class FlutterRootVersionFixture {
   }
 
   static FlutterRootVersionFixture fromJson(Map<String, dynamic> json) {
-    final flutterVersionJson =
-        Map<String, dynamic>.from(json['flutterVersionJson'] as Map);
+    final flutterVersionJson = Map<String, dynamic>.from(
+      json['flutterVersionJson'] as Map,
+    );
 
     return FlutterRootVersionFixture(
       name: json['name'] as String,
@@ -97,17 +98,14 @@ class FakeFlutterSdkFixture {
     final fixture = loadFixture(fixtureName ?? resolveFixtureName(version));
 
     if (version.fromFork) {
-      Directory(p.join(context.versionsCachePath, version.fork!))
-          .createSync(recursive: true);
+      Directory(
+        p.join(context.versionsCachePath, version.fork!),
+      ).createSync(recursive: true);
     }
 
     versionDir.createSync(recursive: true);
 
-    final legacyVersion = _legacyVersionForState(
-      fixture,
-      state,
-      mismatchCachedVersion: mismatchCachedVersion,
-    );
+    final legacyVersion = _legacyVersionForState(fixture, state);
 
     File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
 
@@ -146,10 +144,7 @@ class FakeFlutterSdkFixture {
       );
     }
 
-    return CacheFlutterVersion.fromVersion(
-      version,
-      directory: versionDir.path,
-    );
+    return CacheFlutterVersion.fromVersion(version, directory: versionDir.path);
   }
 
   static FlutterRootVersionFixture loadFixture(String name) {
@@ -179,9 +174,10 @@ class FakeFlutterSdkFixture {
     return switch (normalized) {
       '3.10.0' => 'stable_3_10_0',
       '3.10.5' => 'stable_3_10_5',
-      '3.19.0' => version.releaseChannel == FlutterChannel.beta
-          ? 'beta_3_19_0'
-          : 'stable_3_10_5',
+      '3.19.0' =>
+        version.releaseChannel == FlutterChannel.beta
+            ? 'beta_3_19_0'
+            : 'stable_3_10_5',
       '3.19.0@beta' => 'beta_3_19_0',
       _ => 'stable_3_10_0',
     };
@@ -197,9 +193,8 @@ class FakeFlutterSdkFixture {
 
   static String _legacyVersionForState(
     FlutterRootVersionFixture fixture,
-    FakeFlutterSdkState state, {
-    String? mismatchCachedVersion,
-  }) {
+    FakeFlutterSdkState state,
+  ) {
     if (state == FakeFlutterSdkState.versionMismatch) {
       return fixture.mismatchLegacyVersion ?? fixture.legacyVersion;
     }

@@ -194,8 +194,9 @@ class _TestTempDirectoryManager {
       final decoded = jsonDecode(marker.readAsStringSync());
       if (decoded is! Map<String, dynamic>) return false;
       final ownerPid = decoded['pid'];
-      final ownerPidValue =
-          ownerPid is int ? ownerPid : int.tryParse(ownerPid?.toString() ?? '');
+      final ownerPidValue = ownerPid is int
+          ? ownerPid
+          : int.tryParse(ownerPid?.toString() ?? '');
       if (ownerPidValue == null) return false;
 
       return _isProcessAlive(ownerPidValue);
@@ -288,11 +289,10 @@ String _replaceTempDirectory(String path) {
 Matcher isProjectMatcher({
   Directory? expectedDirectory,
   bool hasConfig = true,
-}) =>
-    _ProjectHasConfigMatcher(
-      expectedDirectory: expectedDirectory,
-      hasConfig: hasConfig,
-    );
+}) => _ProjectHasConfigMatcher(
+  expectedDirectory: expectedDirectory,
+  hasConfig: hasConfig,
+);
 
 class _ProjectHasConfigMatcher extends Matcher {
   final Directory? _expectedDirectory;
@@ -301,8 +301,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   _ProjectHasConfigMatcher({
     Directory? expectedDirectory,
     required bool hasConfig,
-  })  : _expectedDirectory = expectedDirectory,
-        _hasConfig = hasConfig;
+  }) : _expectedDirectory = expectedDirectory,
+       _hasConfig = hasConfig;
 
   String? get expectedConfigPath => p.join(_expectedDirectory!.path, '.fvmrc');
 
@@ -392,6 +392,7 @@ class TestFactory {
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
     bool? skipInput,
+    bool? stdinHasTerminal,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
     String? appConfigPath,
@@ -400,6 +401,7 @@ class TestFactory {
       debugLabel: debugLabel,
       privilegedAccess: privilegedAccess,
       skipInput: skipInput,
+      stdinHasTerminal: stdinHasTerminal,
       environmentOverrides: environmentOverrides,
       workingDirectoryOverride: workingDirectoryOverride,
       appConfigPath: appConfigPath,
@@ -417,6 +419,7 @@ class TestFactory {
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
     bool? skipInput,
+    bool? stdinHasTerminal,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
     String? appConfigPath,
@@ -449,6 +452,7 @@ class TestFactory {
       appConfigPath: configFilePath,
       isTest: true,
       skipInput: skipInput ?? false,
+      stdinHasTerminal: stdinHasTerminal,
       environmentOverrides: environmentOverrides,
       generatorsOverride: {FlutterService: _mockFlutterService, ...?generators},
     );

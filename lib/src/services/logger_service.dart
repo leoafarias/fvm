@@ -21,14 +21,12 @@ Level _toLogLevel(mason.Level level) {
 
 class Logger extends ContextualService {
   final mason.Logger _logger;
-  final bool _isCI;
   final bool _skipInput;
   final List<String> _outputs = [];
 
   Logger(super.context)
-      : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
-        _isCI = context.isCI,
-        _skipInput = context.skipInput;
+    : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
+      _skipInput = context.skipInput;
 
   bool get isVerbose => level == Level.verbose;
 
@@ -106,8 +104,9 @@ class Logger extends ContextualService {
 
     /// Ask which version to select
 
-    final versionsList =
-        versions.map((version) => version.nameWithAlias).toList();
+    final versionsList = versions
+        .map((version) => version.nameWithAlias)
+        .toList();
 
     final choice = select('Select a version: ', options: versionsList);
 
@@ -115,7 +114,7 @@ class Logger extends ContextualService {
   }
 
   bool confirm(String? message, {required bool defaultValue}) {
-    if (_isCI || _skipInput) {
+    if (_skipInput) {
       info(message ?? '');
       warn('Skipping input confirmation');
       warn('Using default value of $defaultValue');

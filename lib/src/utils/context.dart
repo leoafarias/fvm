@@ -64,6 +64,9 @@ class FvmContext with FvmContextMappable {
   /// Log level
   final Level logLevel;
 
+  /// True when stdin is attached to an interactive terminal.
+  final bool stdinHasTerminal;
+
   /// True if the `--fvm-skip-input` flag was passed to the command
   final bool _skipInput;
 
@@ -80,11 +83,12 @@ class FvmContext with FvmContextMappable {
     required this.appConfigPath,
     required Map<Type, Generator> generators,
     required this.environment,
-    required bool skipInput,
+    @MappableField(key: 'skipInputRequested') bool skipInput = false,
+    this.stdinHasTerminal = true,
     this.isTest = false,
     this.logLevel = Level.info,
-  })  : _skipInput = skipInput,
-        _generators = generators;
+  }) : _skipInput = skipInput,
+       _generators = generators;
 
   static FvmContext create({
     String? debugLabel,
@@ -94,6 +98,7 @@ class FvmContext with FvmContextMappable {
     Map<String, String>? environmentOverrides,
     String? appConfigPath,
     bool skipInput = false,
+    bool? stdinHasTerminal,
     Level? logLevel,
     bool isTest = false,
   }) {
@@ -113,6 +118,8 @@ class FvmContext with FvmContextMappable {
       environment: {...Platform.environment, ...?environmentOverrides},
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
+      stdinHasTerminal:
+          stdinHasTerminal ?? _detectStdinHasTerminal(isTest: isTest),
       isTest: isTest,
       generators: {..._defaultGenerators, ...?generatorsOverride},
     );
@@ -181,7 +188,7 @@ class FvmContext with FvmContextMappable {
   }
 
   @MappableField()
-  bool get skipInput => isCI || _skipInput;
+  bool get skipInput => isCI || _skipInput || !stdinHasTerminal;
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
@@ -204,6 +211,16 @@ class FvmContext with FvmContextMappable {
     }
 
     return fork.url;
+  }
+}
+
+bool _detectStdinHasTerminal({required bool isTest}) {
+  if (isTest) return true;
+
+  try {
+    return stdin.hasTerminal;
+  } on StdinException {
+    return false;
   }
 }
 

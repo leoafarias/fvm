@@ -13,10 +13,7 @@ Future<void> main(List<String> args) async {
   parser.commands['flutter-version']!
     ..addOption('flutter-root', mandatory: true)
     ..addOption('name', mandatory: true)
-    ..addOption(
-      'output',
-      defaultsTo: 'test/fixtures/flutter_root_versions',
-    );
+    ..addOption('output', defaultsTo: 'test/fixtures/flutter_root_versions');
 
   parser.commands['releases']!
     ..addOption('source', mandatory: true)
@@ -55,14 +52,14 @@ Future<void> _recordFlutterVersion(ArgResults command) async {
   }
 
   final rootMetadata = FlutterRootVersionFile.tryLoadFromRoot(flutterRoot);
-  final legacyVersion = _readOptionalTrimmed(
-        File(p.join(flutterRoot.path, 'version')),
-      ) ??
+  final legacyVersion =
+      _readOptionalTrimmed(File(p.join(flutterRoot.path, 'version'))) ??
       rootMetadata?.primaryVersion;
   final dartSdkVersionFile = File(
     p.join(flutterRoot.path, 'bin', 'cache', 'dart-sdk', 'version'),
   );
-  final dartSdkVersion = _nonEmpty(rootMetadata?.dartSdkVersion) ??
+  final dartSdkVersion =
+      _nonEmpty(rootMetadata?.dartSdkVersion) ??
       _readOptionalTrimmed(dartSdkVersionFile);
   final flutterVersionJson = rootMetadata?.toMap() ?? <String, dynamic>{};
 
@@ -126,14 +123,15 @@ Future<void> _recordReleases(ArgResults command) async {
 
   final rawJson = await _readSourceJson(source);
   final decoded = jsonDecode(rawJson) as Map<String, dynamic>;
-  final releases = (decoded['releases'] as List)
-      .whereType<Map<String, dynamic>>()
-      .where((release) => versions.contains(release['version'] as String))
-      .map(_normalizeRelease)
-      .toList()
-    ..sort(
-      (a, b) => (a['version'] as String).compareTo(b['version'] as String),
-    );
+  final releases =
+      (decoded['releases'] as List)
+          .whereType<Map<String, dynamic>>()
+          .where((release) => versions.contains(release['version'] as String))
+          .map(_normalizeRelease)
+          .toList()
+        ..sort(
+          (a, b) => (a['version'] as String).compareTo(b['version'] as String),
+        );
 
   if (releases.isEmpty) {
     stderr.writeln('No releases matched requested versions: $versions');

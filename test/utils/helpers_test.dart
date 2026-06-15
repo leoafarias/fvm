@@ -49,32 +49,17 @@ void main() {
     test('accepts common git transports with .git suffix', () {
       expect(isValidGitUrl('https://github.com/flutter/flutter.git'), isTrue);
       expect(isValidGitUrl('git://example.com/repo.git'), isTrue);
-      expect(
-        isValidGitUrl('ssh://git@github.com/flutter/flutter.git'),
-        isTrue,
-      );
-      expect(
-        isValidGitUrl('file:///Users/test/projects/flutter.git'),
-        isTrue,
-      );
+      expect(isValidGitUrl('ssh://git@github.com/flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('file:///Users/test/projects/flutter.git'), isTrue);
     });
 
     test('accepts scp-style git urls including ipv6 hosts', () {
-      expect(
-        isValidGitUrl('git@github.com:flutter/flutter.git'),
-        isTrue,
-      );
-      expect(
-        isValidGitUrl('git@[2001:db8::1]:owner/project.git'),
-        isTrue,
-      );
+      expect(isValidGitUrl('git@github.com:flutter/flutter.git'), isTrue);
+      expect(isValidGitUrl('git@[2001:db8::1]:owner/project.git'), isTrue);
     });
 
     test('accepts ssh urls that use scp-like namespace syntax', () {
-      expect(
-        isValidGitUrl('ssh://git@gitlab.com:group/project.git'),
-        isTrue,
-      );
+      expect(isValidGitUrl('ssh://git@gitlab.com:group/project.git'), isTrue);
       expect(
         isValidGitUrl('ssh://git@gitlab.com:7999/group/project.git'),
         isTrue,
@@ -108,18 +93,12 @@ void main() {
         isValidGitUrl('https://github.com/flutter/flutter.git?foo=1'),
         isFalse,
       );
-      expect(
-        isValidGitUrl('https://github.com/flutter/flutter#main'),
-        isFalse,
-      );
+      expect(isValidGitUrl('https://github.com/flutter/flutter#main'), isFalse);
       expect(
         isValidGitUrl('git@github.com:flutter/flutter.git?foo=1'),
         isFalse,
       );
-      expect(
-        isValidGitUrl('git@github.com:flutter/flutter.git#main'),
-        isFalse,
-      );
+      expect(isValidGitUrl('git@github.com:flutter/flutter.git#main'), isFalse);
     });
 
     test('accepts all valid git URL schemes', () {

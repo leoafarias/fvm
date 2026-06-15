@@ -1,3 +1,7 @@
+## Unreleased
+
+* fix: treat non-interactive stdin as skipped input so prompts use safe defaults instead of blocking.
+
 ## 4.1.0
 
 * feat: opt out of update checks for quieter CI and offline runs (#994)
