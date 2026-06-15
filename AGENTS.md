@@ -56,6 +56,6 @@ Developer docs in `.context/docs/`. Reference for specific tasks:
 - @CHANGELOG.md - Version history, breaking changes
 - @.github/workflows/README.md - CI/CD pipelines, deployment automation
 - @.context/docs/testing-methodology.md - Test patterns, TestFactory, mocking
-- @.context/docs/integration-tests.md - Integration test phases (38 tests)
+- @.context/docs/integration-tests.md - Real integration guardrails
 - @.context/docs/version-parsing.md - Version parsing regex and logic
 - @.context/docs/v4-release-notes.md - v4.0 architecture changes, migration

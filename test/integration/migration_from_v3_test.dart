@@ -1,4 +1,3 @@
-@Tags(['integration', 'migration'])
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
@@ -36,6 +35,7 @@ void main() {
         expect(true, isTrue);
       },
       skip: 'Set RUN_MIGRATION_IT=true to run migration integration test',
+      tags: ['integration', 'migration'],
     );
 
     return;
@@ -169,5 +169,6 @@ void main() {
     },
     // Windows CI is significantly slower for git operations and Flutter cloning
     timeout: Timeout(Duration(minutes: 45)),
+    tags: ['integration', 'migration'],
   );
 }
