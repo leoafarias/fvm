@@ -162,21 +162,22 @@ class _GitBranchCopyWithImpl<$R, $Out>
       GitBranchMapper.ensureInitialized();
   @override
   $R call({String? sha, String? name}) => $apply(
-    FieldCopyWithData({
-      if (sha != null) #sha: sha,
-      if (name != null) #name: name,
-    }),
-  );
+        FieldCopyWithData({
+          if (sha != null) #sha: sha,
+          if (name != null) #name: name,
+        }),
+      );
   @override
   GitBranch $make(CopyWithData data) => GitBranch(
-    sha: data.get(#sha, or: $value.sha),
-    name: data.get(#name, or: $value.name),
-  );
+        sha: data.get(#sha, or: $value.sha),
+        name: data.get(#name, or: $value.name),
+      );
 
   @override
   GitBranchCopyWith<$R2, GitBranch, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _GitBranchCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _GitBranchCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GitTagMapper extends ClassMapperBase<GitTag> {
@@ -265,16 +266,16 @@ class _GitTagCopyWithImpl<$R, $Out> extends ClassCopyWithBase<$R, GitTag, $Out>
   late final ClassMapperBase<GitTag> $mapper = GitTagMapper.ensureInitialized();
   @override
   $R call({String? sha, String? name}) => $apply(
-    FieldCopyWithData({
-      if (sha != null) #sha: sha,
-      if (name != null) #name: name,
-    }),
-  );
+        FieldCopyWithData({
+          if (sha != null) #sha: sha,
+          if (name != null) #name: name,
+        }),
+      );
   @override
   GitTag $make(CopyWithData data) => GitTag(
-    sha: data.get(#sha, or: $value.sha),
-    name: data.get(#name, or: $value.name),
-  );
+        sha: data.get(#sha, or: $value.sha),
+        name: data.get(#name, or: $value.name),
+      );
 
   @override
   GitTagCopyWith<$R2, GitTag, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>

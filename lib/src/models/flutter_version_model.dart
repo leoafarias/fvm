@@ -56,20 +56,20 @@ class FlutterVersion with FlutterVersionMappable {
   });
 
   FlutterVersion.gitReference(this.name, {this.fork})
-    : releaseChannel = null,
-      type = VersionType.unknownRef;
+      : releaseChannel = null,
+        type = VersionType.unknownRef;
 
   FlutterVersion.channel(this.name, {this.fork})
-    : releaseChannel = null,
-      type = VersionType.channel;
+      : releaseChannel = null,
+        type = VersionType.channel;
 
   const FlutterVersion.release(this.name, {this.releaseChannel, this.fork})
-    : type = VersionType.release;
+      : type = VersionType.release;
 
   const FlutterVersion.custom(this.name)
-    : releaseChannel = null,
-      fork = null,
-      type = VersionType.custom;
+      : releaseChannel = null,
+        fork = null,
+        type = VersionType.custom;
 
   factory FlutterVersion.parse(String version) {
     // Match pattern: [fork/]version[@channel]

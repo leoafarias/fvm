@@ -173,8 +173,7 @@ String? _dartToolGeneratorVersion(String projectPath) {
 
   return file.existsSync()
       ? (jsonDecode(file.readAsStringSync())
-                as Map<String, dynamic>)['generatorVersion']
-            as String?
+          as Map<String, dynamic>)['generatorVersion'] as String?
       : null;
 }
 

@@ -227,9 +227,8 @@ class GitService extends ContextualService {
       processLogs.add(line);
     });
 
-    final stdoutDone = process.stdout
-        .transform(utf8.decoder)
-        .forEach(logger.info);
+    final stdoutDone =
+        process.stdout.transform(utf8.decoder).forEach(logger.info);
 
     final exitCode = await process.exitCode;
     await Future.wait([stderrDone, stdoutDone]);
@@ -615,8 +614,7 @@ class GitService extends ContextualService {
       return deleteDirectoryWithRetry(
         cacheDir,
         requireSuccess: requireSuccess,
-        onFinalError:
-            onFinalError ??
+        onFinalError: onFinalError ??
             (error) {
               logger.warn(
                 'Unable to delete local mirror at ${cacheDir.path}: ${error.message}',

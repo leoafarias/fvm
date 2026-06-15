@@ -226,10 +226,10 @@ class _ProjectCopyWithImpl<$R, $Out>
       );
   @override
   Project $make(CopyWithData data) => Project(
-    config: data.get(#config, or: $value.config),
-    path: data.get(#path, or: $value.path),
-    pubspec: data.get(#pubspec, or: $value.pubspec),
-  );
+        config: data.get(#config, or: $value.config),
+        path: data.get(#path, or: $value.path),
+        pubspec: data.get(#pubspec, or: $value.pubspec),
+      );
 
   @override
   ProjectCopyWith<$R2, Project, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
