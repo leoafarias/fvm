@@ -144,16 +144,11 @@ mixin FlutterRootVersionFileMappable {
         .encodeMap<FlutterRootVersionFile>(this as FlutterRootVersionFile);
   }
 
-  FlutterRootVersionFileCopyWith<
-    FlutterRootVersionFile,
-    FlutterRootVersionFile,
-    FlutterRootVersionFile
-  >
-  get copyWith =>
-      _FlutterRootVersionFileCopyWithImpl<
-        FlutterRootVersionFile,
-        FlutterRootVersionFile
-      >(this as FlutterRootVersionFile, $identity, $identity);
+  FlutterRootVersionFileCopyWith<FlutterRootVersionFile, FlutterRootVersionFile,
+          FlutterRootVersionFile>
+      get copyWith => _FlutterRootVersionFileCopyWithImpl<
+              FlutterRootVersionFile, FlutterRootVersionFile>(
+          this as FlutterRootVersionFile, $identity, $identity);
   @override
   String toString() {
     return FlutterRootVersionFileMapper.ensureInitialized().stringifyValue(
@@ -180,17 +175,16 @@ mixin FlutterRootVersionFileMappable {
 extension FlutterRootVersionFileValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterRootVersionFile, $Out> {
   FlutterRootVersionFileCopyWith<$R, FlutterRootVersionFile, $Out>
-  get $asFlutterRootVersionFile => $base.as(
-    (v, t, t2) => _FlutterRootVersionFileCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asFlutterRootVersionFile => $base.as(
+            (v, t, t2) =>
+                _FlutterRootVersionFileCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class FlutterRootVersionFileCopyWith<
-  $R,
-  $In extends FlutterRootVersionFile,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+    $R,
+    $In extends FlutterRootVersionFile,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     String? frameworkVersion,
     String? flutterVersion,
@@ -233,50 +227,53 @@ class _FlutterRootVersionFileCopyWithImpl<$R, $Out>
     Object? engineBuildDate = $none,
     Object? dartSdkVersion = $none,
     Object? devToolsVersion = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (frameworkVersion != $none) #frameworkVersion: frameworkVersion,
-      if (flutterVersion != $none) #flutterVersion: flutterVersion,
-      if (channel != $none) #channel: channel,
-      if (repositoryUrl != $none) #repositoryUrl: repositoryUrl,
-      if (frameworkRevision != $none) #frameworkRevision: frameworkRevision,
-      if (frameworkCommitDate != $none)
-        #frameworkCommitDate: frameworkCommitDate,
-      if (engineRevision != $none) #engineRevision: engineRevision,
-      if (engineCommitDate != $none) #engineCommitDate: engineCommitDate,
-      if (engineContentHash != $none) #engineContentHash: engineContentHash,
-      if (engineBuildDate != $none) #engineBuildDate: engineBuildDate,
-      if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
-      if (devToolsVersion != $none) #devToolsVersion: devToolsVersion,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (frameworkVersion != $none) #frameworkVersion: frameworkVersion,
+          if (flutterVersion != $none) #flutterVersion: flutterVersion,
+          if (channel != $none) #channel: channel,
+          if (repositoryUrl != $none) #repositoryUrl: repositoryUrl,
+          if (frameworkRevision != $none) #frameworkRevision: frameworkRevision,
+          if (frameworkCommitDate != $none)
+            #frameworkCommitDate: frameworkCommitDate,
+          if (engineRevision != $none) #engineRevision: engineRevision,
+          if (engineCommitDate != $none) #engineCommitDate: engineCommitDate,
+          if (engineContentHash != $none) #engineContentHash: engineContentHash,
+          if (engineBuildDate != $none) #engineBuildDate: engineBuildDate,
+          if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
+          if (devToolsVersion != $none) #devToolsVersion: devToolsVersion,
+        }),
+      );
   @override
   FlutterRootVersionFile $make(CopyWithData data) => FlutterRootVersionFile(
-    frameworkVersion: data.get(#frameworkVersion, or: $value.frameworkVersion),
-    flutterVersion: data.get(#flutterVersion, or: $value.flutterVersion),
-    channel: data.get(#channel, or: $value.channel),
-    repositoryUrl: data.get(#repositoryUrl, or: $value.repositoryUrl),
-    frameworkRevision: data.get(
-      #frameworkRevision,
-      or: $value.frameworkRevision,
-    ),
-    frameworkCommitDate: data.get(
-      #frameworkCommitDate,
-      or: $value.frameworkCommitDate,
-    ),
-    engineRevision: data.get(#engineRevision, or: $value.engineRevision),
-    engineCommitDate: data.get(#engineCommitDate, or: $value.engineCommitDate),
-    engineContentHash: data.get(
-      #engineContentHash,
-      or: $value.engineContentHash,
-    ),
-    engineBuildDate: data.get(#engineBuildDate, or: $value.engineBuildDate),
-    dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
-    devToolsVersion: data.get(#devToolsVersion, or: $value.devToolsVersion),
-  );
+        frameworkVersion:
+            data.get(#frameworkVersion, or: $value.frameworkVersion),
+        flutterVersion: data.get(#flutterVersion, or: $value.flutterVersion),
+        channel: data.get(#channel, or: $value.channel),
+        repositoryUrl: data.get(#repositoryUrl, or: $value.repositoryUrl),
+        frameworkRevision: data.get(
+          #frameworkRevision,
+          or: $value.frameworkRevision,
+        ),
+        frameworkCommitDate: data.get(
+          #frameworkCommitDate,
+          or: $value.frameworkCommitDate,
+        ),
+        engineRevision: data.get(#engineRevision, or: $value.engineRevision),
+        engineCommitDate:
+            data.get(#engineCommitDate, or: $value.engineCommitDate),
+        engineContentHash: data.get(
+          #engineContentHash,
+          or: $value.engineContentHash,
+        ),
+        engineBuildDate: data.get(#engineBuildDate, or: $value.engineBuildDate),
+        dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
+        devToolsVersion: data.get(#devToolsVersion, or: $value.devToolsVersion),
+      );
 
   @override
   FlutterRootVersionFileCopyWith<$R2, FlutterRootVersionFile, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _FlutterRootVersionFileCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _FlutterRootVersionFileCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

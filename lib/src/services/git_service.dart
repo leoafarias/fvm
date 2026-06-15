@@ -205,15 +205,18 @@ class GitService extends ContextualService {
 
   Future<Directory> _cloneMirrorInto(Directory gitCacheDir) async {
     logger.info('Creating local mirror...');
-    final process = await Process.start('git', [
-      'clone',
-      '--mirror',
-      '--progress',
-      if (Platform.isWindows) '-c',
-      if (Platform.isWindows) 'core.longpaths=true',
-      context.flutterUrl,
-      gitCacheDir.path,
-    ], runInShell: true);
+    final process = await Process.start(
+        'git',
+        [
+          'clone',
+          '--mirror',
+          '--progress',
+          if (Platform.isWindows) '-c',
+          if (Platform.isWindows) 'core.longpaths=true',
+          context.flutterUrl,
+          gitCacheDir.path,
+        ],
+        runInShell: true);
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);
@@ -223,9 +226,8 @@ class GitService extends ContextualService {
       processLogs.add(line);
     });
 
-    final stdoutDone = process.stdout
-        .transform(utf8.decoder)
-        .forEach(logger.info);
+    final stdoutDone =
+        process.stdout.transform(utf8.decoder).forEach(logger.info);
 
     final exitCode = await process.exitCode;
     await Future.wait([stderrDone, stdoutDone]);
@@ -611,8 +613,7 @@ class GitService extends ContextualService {
       return deleteDirectoryWithRetry(
         cacheDir,
         requireSuccess: requireSuccess,
-        onFinalError:
-            onFinalError ??
+        onFinalError: onFinalError ??
             (error) {
               logger.warn(
                 'Unable to delete local mirror at ${cacheDir.path}: ${error.message}',

@@ -44,8 +44,8 @@ void checkIfUpgradeCommand(FvmContext context, List<String> args) {
 
   if (versionToCheck != null) {
     final version = context.get<ValidateFlutterVersionWorkflow>().call(
-      versionToCheck,
-    );
+          versionToCheck,
+        );
 
     // Only block upgrade for release versions, not channels
     if (!version.isChannel) {

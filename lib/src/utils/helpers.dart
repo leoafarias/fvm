@@ -258,9 +258,8 @@ bool _hasValidRepoPath(String? path) {
   if (path.contains('?') || path.contains('#')) return false;
 
   // Strip .git suffix for segment analysis
-  final cleanPath = path.endsWith('.git')
-      ? path.substring(0, path.length - 4)
-      : path;
+  final cleanPath =
+      path.endsWith('.git') ? path.substring(0, path.length - 4) : path;
 
   final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
 
@@ -410,8 +409,7 @@ Map<String, String> updateEnvironmentVariables(
   return updatedEnvironment;
 }
 
-const skipCopyWith =
-    GenerateMethods.decode |
+const skipCopyWith = GenerateMethods.decode |
     GenerateMethods.encode |
     GenerateMethods.stringify |
     GenerateMethods.equals;

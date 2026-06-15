@@ -45,9 +45,10 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   );
   static Map<Type, Contextual Function(FvmContext)> _$_generators(
     FvmContext v,
-  ) => v._generators;
+  ) =>
+      v._generators;
   static const Field<FvmContext, Map<Type, Contextual Function(FvmContext)>>
-  _f$_generators = Field('_generators', _$_generators, key: r'generators');
+      _f$_generators = Field('_generators', _$_generators, key: r'generators');
   static Map<String, String> _$environment(FvmContext v) => v.environment;
   static const Field<FvmContext, Map<String, String>> _f$environment = Field(
     'environment',
@@ -252,18 +253,13 @@ abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   AppConfigCopyWith<$R, AppConfig, AppConfig> get config;
   MapCopyWith<
-    $R,
-    Type,
-    Contextual Function(FvmContext),
-    ObjectCopyWith<
       $R,
+      Type,
       Contextual Function(FvmContext),
-      Contextual Function(FvmContext)
-    >
-  >
-  get _generators;
+      ObjectCopyWith<$R, Contextual Function(FvmContext),
+          Contextual Function(FvmContext)>> get _generators;
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
-  get environment;
+      get environment;
   $R call({
     String? debugLabel,
     String? workingDirectory,
@@ -292,27 +288,22 @@ class _FvmContextCopyWithImpl<$R, $Out>
       $value.config.copyWith.$chain((v) => call(config: v));
   @override
   MapCopyWith<
-    $R,
-    Type,
-    Contextual Function(FvmContext),
-    ObjectCopyWith<
       $R,
+      Type,
       Contextual Function(FvmContext),
-      Contextual Function(FvmContext)
-    >
-  >
-  get _generators => MapCopyWith(
-    $value._generators,
-    (v, t) => ObjectCopyWith(v, $identity, t),
-    (v) => call(generators: v),
-  );
+      ObjectCopyWith<$R, Contextual Function(FvmContext),
+          Contextual Function(FvmContext)>> get _generators => MapCopyWith(
+        $value._generators,
+        (v, t) => ObjectCopyWith(v, $identity, t),
+        (v) => call(generators: v),
+      );
   @override
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>
-  get environment => MapCopyWith(
-    $value.environment,
-    (v, t) => ObjectCopyWith(v, $identity, t),
-    (v) => call(environment: v),
-  );
+      get environment => MapCopyWith(
+            $value.environment,
+            (v, t) => ObjectCopyWith(v, $identity, t),
+            (v) => call(environment: v),
+          );
   @override
   $R call({
     Object? debugLabel = $none,
@@ -325,36 +316,40 @@ class _FvmContextCopyWithImpl<$R, $Out>
     bool? stdinHasTerminal,
     bool? isTest,
     Level? logLevel,
-  }) => $apply(
-    FieldCopyWithData({
-      if (debugLabel != $none) #debugLabel: debugLabel,
-      if (workingDirectory != null) #workingDirectory: workingDirectory,
-      if (config != null) #config: config,
-      if (appConfigPath != null) #appConfigPath: appConfigPath,
-      if (generators != null) #generators: generators,
-      if (environment != null) #environment: environment,
-      if (skipInput != null) #skipInput: skipInput,
-      if (stdinHasTerminal != null) #stdinHasTerminal: stdinHasTerminal,
-      if (isTest != null) #isTest: isTest,
-      if (logLevel != null) #logLevel: logLevel,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (debugLabel != $none) #debugLabel: debugLabel,
+          if (workingDirectory != null) #workingDirectory: workingDirectory,
+          if (config != null) #config: config,
+          if (appConfigPath != null) #appConfigPath: appConfigPath,
+          if (generators != null) #generators: generators,
+          if (environment != null) #environment: environment,
+          if (skipInput != null) #skipInput: skipInput,
+          if (stdinHasTerminal != null) #stdinHasTerminal: stdinHasTerminal,
+          if (isTest != null) #isTest: isTest,
+          if (logLevel != null) #logLevel: logLevel,
+        }),
+      );
   @override
   FvmContext $make(CopyWithData data) => FvmContext.raw(
-    debugLabel: data.get(#debugLabel, or: $value.debugLabel),
-    workingDirectory: data.get(#workingDirectory, or: $value.workingDirectory),
-    config: data.get(#config, or: $value.config),
-    appConfigPath: data.get(#appConfigPath, or: $value.appConfigPath),
-    generators: data.get(#generators, or: $value._generators),
-    environment: data.get(#environment, or: $value.environment),
-    skipInput: data.get(#skipInput, or: $value._skipInput),
-    stdinHasTerminal: data.get(#stdinHasTerminal, or: $value.stdinHasTerminal),
-    isTest: data.get(#isTest, or: $value.isTest),
-    logLevel: data.get(#logLevel, or: $value.logLevel),
-  );
+        debugLabel: data.get(#debugLabel, or: $value.debugLabel),
+        workingDirectory:
+            data.get(#workingDirectory, or: $value.workingDirectory),
+        config: data.get(#config, or: $value.config),
+        appConfigPath: data.get(#appConfigPath, or: $value.appConfigPath),
+        generators: data.get(#generators, or: $value._generators),
+        environment: data.get(#environment, or: $value.environment),
+        skipInput: data.get(#skipInput, or: $value._skipInput),
+        stdinHasTerminal:
+            data.get(#stdinHasTerminal, or: $value.stdinHasTerminal),
+        isTest: data.get(#isTest, or: $value.isTest),
+        logLevel: data.get(#logLevel, or: $value.logLevel),
+      );
 
   @override
   FvmContextCopyWith<$R2, FvmContext, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _FvmContextCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _FvmContextCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

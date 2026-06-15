@@ -48,8 +48,8 @@ void main() {
       createPubspecYaml(testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a version that is not setup (directory doesn't exist)
       final notSetupVersion = CacheFlutterVersion.fromVersion(
@@ -76,8 +76,8 @@ void main() {
         createPubspecYaml(testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create .dart_tool/version file in the PROJECT path (not testDir)
         final dartToolDir = Directory(p.join(project.path, '.dart_tool'));
@@ -126,8 +126,8 @@ void main() {
         createPubspecYaml(testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create .dart_tool/version file with Dart SDK version 3.1.0
         final dartToolDir = Directory(p.join(project.path, '.dart_tool'));
@@ -180,8 +180,8 @@ void main() {
       // Don't create pubspec.yaml
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a properly setup version
       final versionDir = tempDirs.create();
@@ -231,8 +231,8 @@ void main() {
       );
 
       final project = context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       final versionDir = tempDirs.create();
       final binDir = Directory(p.join(versionDir.path, 'bin'));
@@ -271,15 +271,16 @@ void main() {
       final context = TestFactory.context(
         generators: {
           Logger: (context) => TestLogger(
-            context,
-          )..setConfirmResponse('continue pinning this version anyway?', false),
+                context,
+              )..setConfirmResponse(
+                  'continue pinning this version anyway?', false),
           FlutterService: (context) => FailingFlutterService(context),
         },
       );
 
       final project = context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       final versionDir = tempDirs.create();
       final binDir = Directory(p.join(versionDir.path, 'bin'));
@@ -324,8 +325,8 @@ void main() {
       );
 
       final project = context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       final versionDir = tempDirs.create();
       final binDir = Directory(p.join(versionDir.path, 'bin'));

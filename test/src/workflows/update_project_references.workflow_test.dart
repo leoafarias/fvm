@@ -63,8 +63,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       expect(project.name, equals('test_project'));
 
       // Create cache version
@@ -115,8 +115,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         final versionDir = Directory(
           p.join(cacheDir.path, 'versions', 'stable'),
@@ -157,8 +157,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         final versionDir = Directory(
           p.join(cacheDir.path, 'versions', '3.10.0'),
@@ -202,8 +202,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
 
         // Create a fork version directory without version files
         const forkName = 'my-fork';
@@ -247,8 +247,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -279,8 +279,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final cacheVersion = createCacheVersion('3.10.0');
 
         // Ensure context has privilegedAccess set to true
@@ -313,8 +313,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final cacheVersion = createCacheVersion('3.10.0');
 
         // Create context with privilegedAccess set to false
@@ -377,8 +377,8 @@ void main() {
 
       // Now run the workflow with a different target
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final cacheVersion = createCacheVersion('3.10.0');
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -408,8 +408,8 @@ void main() {
 
       try {
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final cacheVersion = createCacheVersion('3.10.0');
 
         final workflow = UpdateProjectReferencesWorkflow(runner.context);
@@ -436,8 +436,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a fork version (e.g., my-fork/3.10.0)
       const forkName = 'my-fork';
@@ -524,8 +524,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       // Create a fork version
       const forkName = 'my-fork';
@@ -584,8 +584,8 @@ void main() {
       when(() => cacheVersion.directory).thenReturn(tempDirs.create().path);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
