@@ -315,9 +315,8 @@ class FlutterService extends ContextualService {
     final versionDir = get<CacheService>().getVersionCacheDir(version);
 
     if (version.fromFork) {
-      Directory(
-        path.join(context.versionsCachePath, version.fork!),
-      ).createSync(recursive: true);
+      Directory(path.join(context.versionsCachePath, version.fork!))
+          .createSync(recursive: true);
     }
 
     return versionDir;

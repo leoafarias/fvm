@@ -206,17 +206,18 @@ class GitService extends ContextualService {
   Future<Directory> _cloneMirrorInto(Directory gitCacheDir) async {
     logger.info('Creating local mirror...');
     final process = await Process.start(
-        'git',
-        [
-          'clone',
-          '--mirror',
-          '--progress',
-          if (Platform.isWindows) '-c',
-          if (Platform.isWindows) 'core.longpaths=true',
-          context.flutterUrl,
-          gitCacheDir.path,
-        ],
-        runInShell: true);
+      'git',
+      [
+        'clone',
+        '--mirror',
+        '--progress',
+        if (Platform.isWindows) '-c',
+        if (Platform.isWindows) 'core.longpaths=true',
+        context.flutterUrl,
+        gitCacheDir.path,
+      ],
+      runInShell: true,
+    );
 
     final processLogs = <String>[];
     final progressTracker = GitCloneProgressTracker(logger);

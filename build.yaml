@@ -3,4 +3,6 @@ targets:
     builders:
       # only to resolve build_runner conflicts
       dart_mappable_builder:
+        generate_for:
+          - lib/**
         options:

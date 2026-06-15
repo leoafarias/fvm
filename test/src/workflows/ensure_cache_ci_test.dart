@@ -53,6 +53,21 @@ void main() {
         greaterThan(installCountBefore),
       );
       expect(flutterService.installedVersions.last.name, equals('3.10.0'));
+
+      final output = context.get<Logger>().outputs.join('\n');
+      expect(
+        output,
+        contains(
+          'Cached SDK metadata reports 3.10.5, but FVM expected 3.10.0 for this cache entry.',
+        ),
+      );
+      expect(
+        output,
+        contains(
+          'This can happen when a cached SDK is upgraded or changed outside FVM.',
+        ),
+      );
+      expect(output, isNot(contains('manually run "flutter upgrade"')));
     });
 
     test('--fvm-skip-input flag handles version mismatch gracefully', () async {
