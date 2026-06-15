@@ -63,8 +63,9 @@ void main() {
 
       final versionDir = cacheService.getVersionCacheDir(forkVersion);
       versionDir.createSync(recursive: true);
-      File(path.join(versionDir.path, 'bin', 'flutter'))
-          .createSync(recursive: true);
+      File(
+        path.join(versionDir.path, 'bin', 'flutter'),
+      ).createSync(recursive: true);
 
       final forkDir = versionDir.parent;
       expect(forkDir.existsSync(), isTrue);
@@ -82,13 +83,15 @@ void main() {
 
       final versionDir1 = cacheService.getVersionCacheDir(forkVersion1);
       versionDir1.createSync(recursive: true);
-      File(path.join(versionDir1.path, 'bin', 'flutter'))
-          .createSync(recursive: true);
+      File(
+        path.join(versionDir1.path, 'bin', 'flutter'),
+      ).createSync(recursive: true);
 
       final versionDir2 = cacheService.getVersionCacheDir(forkVersion2);
       versionDir2.createSync(recursive: true);
-      File(path.join(versionDir2.path, 'bin', 'flutter'))
-          .createSync(recursive: true);
+      File(
+        path.join(versionDir2.path, 'bin', 'flutter'),
+      ).createSync(recursive: true);
 
       final forkDir = versionDir1.parent;
 
@@ -99,40 +102,42 @@ void main() {
       expect(versionDir2.existsSync(), isTrue);
     });
 
-    test('getAllVersions finds versions in both root and fork directories',
-        () async {
-      final regularVersion = FlutterVersion.parse('stable');
-      final forkVersion = FlutterVersion.parse('testfork/master');
+    test(
+      'getAllVersions finds versions in both root and fork directories',
+      () async {
+        final regularVersion = FlutterVersion.parse('stable');
+        final forkVersion = FlutterVersion.parse('testfork/master');
 
-      final regularDir = cacheService.getVersionCacheDir(regularVersion);
-      regularDir.createSync(recursive: true);
-      markAsSdk(regularDir);
+        final regularDir = cacheService.getVersionCacheDir(regularVersion);
+        regularDir.createSync(recursive: true);
+        markAsSdk(regularDir);
 
-      final forkDir = cacheService.getVersionCacheDir(forkVersion);
-      forkDir.createSync(recursive: true);
-      markAsSdk(forkDir);
+        final forkDir = cacheService.getVersionCacheDir(forkVersion);
+        forkDir.createSync(recursive: true);
+        markAsSdk(forkDir);
 
-      final versions = await cacheService.getAllVersions();
+        final versions = await cacheService.getAllVersions();
 
-      expect(
-        versions.length,
-        equals(2),
-        reason: 'Expected to find 2 versions, but found ${versions.length}',
-      );
+        expect(
+          versions.length,
+          equals(2),
+          reason: 'Expected to find 2 versions, but found ${versions.length}',
+        );
 
-      expect(
-        versions.any((v) => v.version == 'stable' && !v.fromFork),
-        isTrue,
-        reason: 'Standard version "stable" should be found',
-      );
+        expect(
+          versions.any((v) => v.version == 'stable' && !v.fromFork),
+          isTrue,
+          reason: 'Standard version "stable" should be found',
+        );
 
-      expect(
-        versions.any(
-          (v) => v.version == 'master' && v.fromFork && v.fork == 'testfork',
-        ),
-        isTrue,
-        reason: 'Forked version "testfork/master" should be found',
-      );
-    });
+        expect(
+          versions.any(
+            (v) => v.version == 'master' && v.fromFork && v.fork == 'testfork',
+          ),
+          isTrue,
+          reason: 'Forked version "testfork/master" should be found',
+        );
+      },
+    );
   });
 }

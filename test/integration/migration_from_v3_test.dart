@@ -59,23 +59,21 @@ void main() {
       'PUB_CACHE': p.join(tempHome.path, '.pub-cache'),
     };
     final binDir = p.join(env['PUB_CACHE']!, 'bin');
-    fvmLegacyExe =
-        Platform.isWindows ? p.join(binDir, 'fvm.bat') : p.join(binDir, 'fvm');
+    fvmLegacyExe = Platform.isWindows
+        ? p.join(binDir, 'fvm.bat')
+        : p.join(binDir, 'fvm');
     env['PATH'] =
         '$binDir${Platform.isWindows ? ';' : ':'}${Platform.environment['PATH'] ?? ''}';
 
     // Enable long paths on Windows to avoid checkout failures when cloning
     // Flutter (some golden file names exceed the legacy 260-char limit).
     if (Platform.isWindows) {
-      final result = Process.runSync(
-          'git',
-          [
-            'config',
-            '--global',
-            'core.longpaths',
-            'true',
-          ],
-          environment: env);
+      final result = Process.runSync('git', [
+        'config',
+        '--global',
+        'core.longpaths',
+        'true',
+      ], environment: env);
       if (result.exitCode != 0) {
         throw Exception('Failed to enable git longpaths: ${result.stderr}');
       }

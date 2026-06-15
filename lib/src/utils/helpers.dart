@@ -258,8 +258,9 @@ bool _hasValidRepoPath(String? path) {
   if (path.contains('?') || path.contains('#')) return false;
 
   // Strip .git suffix for segment analysis
-  final cleanPath =
-      path.endsWith('.git') ? path.substring(0, path.length - 4) : path;
+  final cleanPath = path.endsWith('.git')
+      ? path.substring(0, path.length - 4)
+      : path;
 
   final segments = cleanPath.split('/').where((s) => s.isNotEmpty).toList();
 
@@ -273,9 +274,7 @@ bool _isScpLikeGitUrl(String url) {
   // - : required colon separator (distinguishes from file paths)
   // - path: required path component
   // Examples: git@github.com:user/repo.git, [::1]:path/to/repo.git
-  final scpPattern = RegExp(
-    r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$',
-  );
+  final scpPattern = RegExp(r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$');
 
   return scpPattern.hasMatch(url);
 }
@@ -411,7 +410,8 @@ Map<String, String> updateEnvironmentVariables(
   return updatedEnvironment;
 }
 
-const skipCopyWith = GenerateMethods.decode |
+const skipCopyWith =
+    GenerateMethods.decode |
     GenerateMethods.encode |
     GenerateMethods.stringify |
     GenerateMethods.equals;

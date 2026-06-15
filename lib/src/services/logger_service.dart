@@ -25,8 +25,8 @@ class Logger extends ContextualService {
   final List<String> _outputs = [];
 
   Logger(super.context)
-      : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
-        _skipInput = context.skipInput;
+    : _logger = mason.Logger(level: _toMasonLevel(context.logLevel)),
+      _skipInput = context.skipInput;
 
   bool get isVerbose => level == Level.verbose;
 
@@ -104,8 +104,9 @@ class Logger extends ContextualService {
 
     /// Ask which version to select
 
-    final versionsList =
-        versions.map((version) => version.nameWithAlias).toList();
+    final versionsList = versions
+        .map((version) => version.nameWithAlias)
+        .toList();
 
     final choice = select('Select a version: ', options: versionsList);
 

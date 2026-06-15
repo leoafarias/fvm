@@ -24,39 +24,39 @@ void main() {
     // Valid minimal payload for reference
     // Note: Using explicit dynamic types to allow code to add 'active_channel': bool
     Map<String, dynamic> createValidPayload() => {
-          'base_url': 'https://storage.googleapis.com/flutter_infra_release',
-          'current_release': <String, dynamic>{
-            'stable': 'abc123',
-            'beta': 'def456',
-            'dev': 'ghi789',
-          },
-          'releases': <Map<String, dynamic>>[
-            <String, dynamic>{
-              'hash': 'abc123',
-              'channel': 'stable',
-              'version': '3.24.0',
-              'release_date': '2024-01-01T00:00:00.000Z',
-              'archive': 'stable/macos/flutter_macos_3.24.0-stable.zip',
-              'sha256': 'sha256hash',
-            },
-            <String, dynamic>{
-              'hash': 'def456',
-              'channel': 'beta',
-              'version': '3.25.0-0.1.pre',
-              'release_date': '2024-01-01T00:00:00.000Z',
-              'archive': 'beta/macos/flutter_macos_3.25.0-0.1.pre-beta.zip',
-              'sha256': 'sha256hash',
-            },
-            <String, dynamic>{
-              'hash': 'ghi789',
-              'channel': 'dev',
-              'version': '3.26.0-0.0.pre',
-              'release_date': '2024-01-01T00:00:00.000Z',
-              'archive': 'dev/macos/flutter_macos_3.26.0-0.0.pre-dev.zip',
-              'sha256': 'sha256hash',
-            },
-          ],
-        };
+      'base_url': 'https://storage.googleapis.com/flutter_infra_release',
+      'current_release': <String, dynamic>{
+        'stable': 'abc123',
+        'beta': 'def456',
+        'dev': 'ghi789',
+      },
+      'releases': <Map<String, dynamic>>[
+        <String, dynamic>{
+          'hash': 'abc123',
+          'channel': 'stable',
+          'version': '3.24.0',
+          'release_date': '2024-01-01T00:00:00.000Z',
+          'archive': 'stable/macos/flutter_macos_3.24.0-stable.zip',
+          'sha256': 'sha256hash',
+        },
+        <String, dynamic>{
+          'hash': 'def456',
+          'channel': 'beta',
+          'version': '3.25.0-0.1.pre',
+          'release_date': '2024-01-01T00:00:00.000Z',
+          'archive': 'beta/macos/flutter_macos_3.25.0-0.1.pre-beta.zip',
+          'sha256': 'sha256hash',
+        },
+        <String, dynamic>{
+          'hash': 'ghi789',
+          'channel': 'dev',
+          'version': '3.26.0-0.0.pre',
+          'release_date': '2024-01-01T00:00:00.000Z',
+          'archive': 'dev/macos/flutter_macos_3.26.0-0.0.pre-dev.zip',
+          'sha256': 'sha256hash',
+        },
+      ],
+    };
 
     test('parses valid payload successfully', () {
       final payload = createValidPayload();

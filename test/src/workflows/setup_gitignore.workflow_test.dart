@@ -31,8 +31,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
 
       expect(project.name, equals('test_project_2'));
 
@@ -58,8 +58,8 @@ void main() {
       createProjectConfig(ProjectConfig(updateGitIgnore: false), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -80,8 +80,8 @@ void main() {
       gitignore.writeAsStringSync('.fvm/\n');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -116,8 +116,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -162,8 +162,8 @@ void main() {
 
       try {
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = SetupGitIgnoreWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -224,8 +224,8 @@ void main() {
       );
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -242,42 +242,38 @@ void main() {
       expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
     });
 
-    test(
-      'should work with git repositories',
-      () async {
-        // Only run if git is available
-        final gitResult = await Process.run('git', ['--version']);
-        if (gitResult.exitCode != 0) {
-          return; // Skip if git is not available
-        }
+    test('should work with git repositories', () async {
+      // Only run if git is available
+      final gitResult = await Process.run('git', ['--version']);
+      if (gitResult.exitCode != 0) {
+        return; // Skip if git is not available
+      }
 
-        final testDir = tempDirs.create();
-        // Create test project
-        createPubspecYaml(testDir);
-        createProjectConfig(ProjectConfig(), testDir);
+      final testDir = tempDirs.create();
+      // Create test project
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(), testDir);
 
-        // Initialize git repository
-        await Process.run('git', ['init'], workingDirectory: testDir.path);
+      // Initialize git repository
+      await Process.run('git', ['init'], workingDirectory: testDir.path);
 
-        final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
-        final workflow = SetupGitIgnoreWorkflow(runner.context);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
+      final workflow = SetupGitIgnoreWorkflow(runner.context);
 
-        // Run workflow
-        final result = workflow.call(project);
-        expect(result, isTrue);
+      // Run workflow
+      final result = workflow.call(project);
+      expect(result, isTrue);
 
-        // Verify .gitignore was created
-        final gitignore = File(p.join(testDir.path, '.gitignore'));
-        expect(gitignore.existsSync(), isTrue);
+      // Verify .gitignore was created
+      final gitignore = File(p.join(testDir.path, '.gitignore'));
+      expect(gitignore.existsSync(), isTrue);
 
-        // Check content
-        final contents = gitignore.readAsLinesSync();
-        expect(contents, contains(SetupGitIgnoreWorkflow.kGitIgnoreHeading));
-        expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
-      },
-      tags: ['git'],
-    );
+      // Check content
+      final contents = gitignore.readAsLinesSync();
+      expect(contents, contains(SetupGitIgnoreWorkflow.kGitIgnoreHeading));
+      expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
+    }, tags: ['git']);
   });
 }

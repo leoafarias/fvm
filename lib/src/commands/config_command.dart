@@ -26,8 +26,9 @@ class ConfigCommand extends BaseFvmCommand {
   @override
   Future<int> run() async {
     // Flag if settings should be saved
-    final globalConfig =
-        LocalAppConfig.read(path: context.appConfigPath).toMap();
+    final globalConfig = LocalAppConfig.read(
+      path: context.appConfigPath,
+    ).toMap();
     bool hasChanges = false;
 
     void updateConfigKey<T>(ConfigOptions key, T value) {
