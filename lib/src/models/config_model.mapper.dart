@@ -200,26 +200,28 @@ class _EnvConfigCopyWithImpl<$R, $Out>
     Object? useGitCache = $none,
     Object? gitCachePath = $none,
     Object? flutterUrl = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (cachePath != $none) #cachePath: cachePath,
-      if (useGitCache != $none) #useGitCache: useGitCache,
-      if (gitCachePath != $none) #gitCachePath: gitCachePath,
-      if (flutterUrl != $none) #flutterUrl: flutterUrl,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (cachePath != $none) #cachePath: cachePath,
+          if (useGitCache != $none) #useGitCache: useGitCache,
+          if (gitCachePath != $none) #gitCachePath: gitCachePath,
+          if (flutterUrl != $none) #flutterUrl: flutterUrl,
+        }),
+      );
   @override
   EnvConfig $make(CopyWithData data) => EnvConfig(
-    cachePath: data.get(#cachePath, or: $value.cachePath),
-    useGitCache: data.get(#useGitCache, or: $value.useGitCache),
-    gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
-    flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-  );
+        cachePath: data.get(#cachePath, or: $value.cachePath),
+        useGitCache: data.get(#useGitCache, or: $value.useGitCache),
+        gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
+        flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
+      );
 
   @override
   EnvConfigCopyWith<$R2, EnvConfig, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _EnvConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _EnvConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class AppConfigMapper extends ClassMapperBase<AppConfig> {
@@ -445,57 +447,61 @@ class _AppConfigCopyWithImpl<$R, $Out>
     Object? updateVscodeSettings = $none,
     Object? updateGitIgnore = $none,
     Object? updateMelosSettings = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (disableUpdateCheck != $none) #disableUpdateCheck: disableUpdateCheck,
-      if (lastUpdateCheck != $none) #lastUpdateCheck: lastUpdateCheck,
-      if (forks != null) #forks: forks,
-      if (cachePath != $none) #cachePath: cachePath,
-      if (useGitCache != $none) #useGitCache: useGitCache,
-      if (gitCachePath != $none) #gitCachePath: gitCachePath,
-      if (flutterUrl != $none) #flutterUrl: flutterUrl,
-      if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
-      if (runPubGetOnSdkChanges != $none)
-        #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
-      if (updateVscodeSettings != $none)
-        #updateVscodeSettings: updateVscodeSettings,
-      if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
-      if (updateMelosSettings != $none)
-        #updateMelosSettings: updateMelosSettings,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (disableUpdateCheck != $none)
+            #disableUpdateCheck: disableUpdateCheck,
+          if (lastUpdateCheck != $none) #lastUpdateCheck: lastUpdateCheck,
+          if (forks != null) #forks: forks,
+          if (cachePath != $none) #cachePath: cachePath,
+          if (useGitCache != $none) #useGitCache: useGitCache,
+          if (gitCachePath != $none) #gitCachePath: gitCachePath,
+          if (flutterUrl != $none) #flutterUrl: flutterUrl,
+          if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
+          if (runPubGetOnSdkChanges != $none)
+            #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
+          if (updateVscodeSettings != $none)
+            #updateVscodeSettings: updateVscodeSettings,
+          if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+          if (updateMelosSettings != $none)
+            #updateMelosSettings: updateMelosSettings,
+        }),
+      );
   @override
   AppConfig $make(CopyWithData data) => AppConfig(
-    disableUpdateCheck: data.get(
-      #disableUpdateCheck,
-      or: $value.disableUpdateCheck,
-    ),
-    lastUpdateCheck: data.get(#lastUpdateCheck, or: $value.lastUpdateCheck),
-    forks: data.get(#forks, or: $value.forks),
-    cachePath: data.get(#cachePath, or: $value.cachePath),
-    useGitCache: data.get(#useGitCache, or: $value.useGitCache),
-    gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
-    flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-    privilegedAccess: data.get(#privilegedAccess, or: $value.privilegedAccess),
-    runPubGetOnSdkChanges: data.get(
-      #runPubGetOnSdkChanges,
-      or: $value.runPubGetOnSdkChanges,
-    ),
-    updateVscodeSettings: data.get(
-      #updateVscodeSettings,
-      or: $value.updateVscodeSettings,
-    ),
-    updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
-    updateMelosSettings: data.get(
-      #updateMelosSettings,
-      or: $value.updateMelosSettings,
-    ),
-  );
+        disableUpdateCheck: data.get(
+          #disableUpdateCheck,
+          or: $value.disableUpdateCheck,
+        ),
+        lastUpdateCheck: data.get(#lastUpdateCheck, or: $value.lastUpdateCheck),
+        forks: data.get(#forks, or: $value.forks),
+        cachePath: data.get(#cachePath, or: $value.cachePath),
+        useGitCache: data.get(#useGitCache, or: $value.useGitCache),
+        gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
+        flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
+        privilegedAccess:
+            data.get(#privilegedAccess, or: $value.privilegedAccess),
+        runPubGetOnSdkChanges: data.get(
+          #runPubGetOnSdkChanges,
+          or: $value.runPubGetOnSdkChanges,
+        ),
+        updateVscodeSettings: data.get(
+          #updateVscodeSettings,
+          or: $value.updateVscodeSettings,
+        ),
+        updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+        updateMelosSettings: data.get(
+          #updateMelosSettings,
+          or: $value.updateMelosSettings,
+        ),
+      );
 
   @override
   AppConfigCopyWith<$R2, AppConfig, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _AppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _AppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class LocalAppConfigMapper extends ClassMapperBase<LocalAppConfig> {
@@ -650,11 +656,12 @@ mixin LocalAppConfigMappable {
   }
 
   LocalAppConfigCopyWith<LocalAppConfig, LocalAppConfig, LocalAppConfig>
-  get copyWith => _LocalAppConfigCopyWithImpl<LocalAppConfig, LocalAppConfig>(
-    this as LocalAppConfig,
-    $identity,
-    $identity,
-  );
+      get copyWith =>
+          _LocalAppConfigCopyWithImpl<LocalAppConfig, LocalAppConfig>(
+            this as LocalAppConfig,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return LocalAppConfigMapper.ensureInitialized().stringifyValue(
@@ -728,57 +735,61 @@ class _LocalAppConfigCopyWithImpl<$R, $Out>
     Object? updateGitIgnore = $none,
     Object? updateMelosSettings = $none,
     Object? forks = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (disableUpdateCheck != $none) #disableUpdateCheck: disableUpdateCheck,
-      if (lastUpdateCheck != $none) #lastUpdateCheck: lastUpdateCheck,
-      if (cachePath != $none) #cachePath: cachePath,
-      if (useGitCache != $none) #useGitCache: useGitCache,
-      if (gitCachePath != $none) #gitCachePath: gitCachePath,
-      if (flutterUrl != $none) #flutterUrl: flutterUrl,
-      if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
-      if (runPubGetOnSdkChanges != $none)
-        #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
-      if (updateVscodeSettings != $none)
-        #updateVscodeSettings: updateVscodeSettings,
-      if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
-      if (updateMelosSettings != $none)
-        #updateMelosSettings: updateMelosSettings,
-      if (forks != $none) #forks: forks,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (disableUpdateCheck != $none)
+            #disableUpdateCheck: disableUpdateCheck,
+          if (lastUpdateCheck != $none) #lastUpdateCheck: lastUpdateCheck,
+          if (cachePath != $none) #cachePath: cachePath,
+          if (useGitCache != $none) #useGitCache: useGitCache,
+          if (gitCachePath != $none) #gitCachePath: gitCachePath,
+          if (flutterUrl != $none) #flutterUrl: flutterUrl,
+          if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
+          if (runPubGetOnSdkChanges != $none)
+            #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
+          if (updateVscodeSettings != $none)
+            #updateVscodeSettings: updateVscodeSettings,
+          if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+          if (updateMelosSettings != $none)
+            #updateMelosSettings: updateMelosSettings,
+          if (forks != $none) #forks: forks,
+        }),
+      );
   @override
   LocalAppConfig $make(CopyWithData data) => LocalAppConfig(
-    disableUpdateCheck: data.get(
-      #disableUpdateCheck,
-      or: $value.disableUpdateCheck,
-    ),
-    lastUpdateCheck: data.get(#lastUpdateCheck, or: $value.lastUpdateCheck),
-    cachePath: data.get(#cachePath, or: $value.cachePath),
-    useGitCache: data.get(#useGitCache, or: $value.useGitCache),
-    gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
-    flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-    privilegedAccess: data.get(#privilegedAccess, or: $value.privilegedAccess),
-    runPubGetOnSdkChanges: data.get(
-      #runPubGetOnSdkChanges,
-      or: $value.runPubGetOnSdkChanges,
-    ),
-    updateVscodeSettings: data.get(
-      #updateVscodeSettings,
-      or: $value.updateVscodeSettings,
-    ),
-    updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
-    updateMelosSettings: data.get(
-      #updateMelosSettings,
-      or: $value.updateMelosSettings,
-    ),
-    forks: data.get(#forks, or: $value.forks),
-  );
+        disableUpdateCheck: data.get(
+          #disableUpdateCheck,
+          or: $value.disableUpdateCheck,
+        ),
+        lastUpdateCheck: data.get(#lastUpdateCheck, or: $value.lastUpdateCheck),
+        cachePath: data.get(#cachePath, or: $value.cachePath),
+        useGitCache: data.get(#useGitCache, or: $value.useGitCache),
+        gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
+        flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
+        privilegedAccess:
+            data.get(#privilegedAccess, or: $value.privilegedAccess),
+        runPubGetOnSdkChanges: data.get(
+          #runPubGetOnSdkChanges,
+          or: $value.runPubGetOnSdkChanges,
+        ),
+        updateVscodeSettings: data.get(
+          #updateVscodeSettings,
+          or: $value.updateVscodeSettings,
+        ),
+        updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+        updateMelosSettings: data.get(
+          #updateMelosSettings,
+          or: $value.updateMelosSettings,
+        ),
+        forks: data.get(#forks, or: $value.forks),
+      );
 
   @override
   LocalAppConfigCopyWith<$R2, LocalAppConfig, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _LocalAppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _LocalAppConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ProjectConfigMapper extends ClassMapperBase<ProjectConfig> {
@@ -923,11 +934,11 @@ mixin ProjectConfigMappable {
   }
 
   ProjectConfigCopyWith<ProjectConfig, ProjectConfig, ProjectConfig>
-  get copyWith => _ProjectConfigCopyWithImpl<ProjectConfig, ProjectConfig>(
-    this as ProjectConfig,
-    $identity,
-    $identity,
-  );
+      get copyWith => _ProjectConfigCopyWithImpl<ProjectConfig, ProjectConfig>(
+            this as ProjectConfig,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return ProjectConfigMapper.ensureInitialized().stringifyValue(
@@ -960,7 +971,7 @@ extension ProjectConfigValueCopy<$R, $Out>
 abstract class ProjectConfigCopyWith<$R, $In extends ProjectConfig, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>?
-  get flavors;
+      get flavors;
   $R call({
     String? flutter,
     Map<String, String>? flavors,
@@ -987,13 +998,13 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
       ProjectConfigMapper.ensureInitialized();
   @override
   MapCopyWith<$R, String, String, ObjectCopyWith<$R, String, String>>?
-  get flavors => $value.flavors != null
-      ? MapCopyWith(
-          $value.flavors!,
-          (v, t) => ObjectCopyWith(v, $identity, t),
-          (v) => call(flavors: v),
-        )
-      : null;
+      get flavors => $value.flavors != null
+          ? MapCopyWith(
+              $value.flavors!,
+              (v, t) => ObjectCopyWith(v, $identity, t),
+              (v) => call(flavors: v),
+            )
+          : null;
   @override
   $R call({
     Object? flutter = $none,
@@ -1007,50 +1018,53 @@ class _ProjectConfigCopyWithImpl<$R, $Out>
     Object? updateVscodeSettings = $none,
     Object? updateGitIgnore = $none,
     Object? updateMelosSettings = $none,
-  }) => $apply(
-    FieldCopyWithData({
-      if (flutter != $none) #flutter: flutter,
-      if (flavors != $none) #flavors: flavors,
-      if (cachePath != $none) #cachePath: cachePath,
-      if (useGitCache != $none) #useGitCache: useGitCache,
-      if (gitCachePath != $none) #gitCachePath: gitCachePath,
-      if (flutterUrl != $none) #flutterUrl: flutterUrl,
-      if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
-      if (runPubGetOnSdkChanges != $none)
-        #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
-      if (updateVscodeSettings != $none)
-        #updateVscodeSettings: updateVscodeSettings,
-      if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
-      if (updateMelosSettings != $none)
-        #updateMelosSettings: updateMelosSettings,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (flutter != $none) #flutter: flutter,
+          if (flavors != $none) #flavors: flavors,
+          if (cachePath != $none) #cachePath: cachePath,
+          if (useGitCache != $none) #useGitCache: useGitCache,
+          if (gitCachePath != $none) #gitCachePath: gitCachePath,
+          if (flutterUrl != $none) #flutterUrl: flutterUrl,
+          if (privilegedAccess != $none) #privilegedAccess: privilegedAccess,
+          if (runPubGetOnSdkChanges != $none)
+            #runPubGetOnSdkChanges: runPubGetOnSdkChanges,
+          if (updateVscodeSettings != $none)
+            #updateVscodeSettings: updateVscodeSettings,
+          if (updateGitIgnore != $none) #updateGitIgnore: updateGitIgnore,
+          if (updateMelosSettings != $none)
+            #updateMelosSettings: updateMelosSettings,
+        }),
+      );
   @override
   ProjectConfig $make(CopyWithData data) => ProjectConfig(
-    flutter: data.get(#flutter, or: $value.flutter),
-    flavors: data.get(#flavors, or: $value.flavors),
-    cachePath: data.get(#cachePath, or: $value.cachePath),
-    useGitCache: data.get(#useGitCache, or: $value.useGitCache),
-    gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
-    flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
-    privilegedAccess: data.get(#privilegedAccess, or: $value.privilegedAccess),
-    runPubGetOnSdkChanges: data.get(
-      #runPubGetOnSdkChanges,
-      or: $value.runPubGetOnSdkChanges,
-    ),
-    updateVscodeSettings: data.get(
-      #updateVscodeSettings,
-      or: $value.updateVscodeSettings,
-    ),
-    updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
-    updateMelosSettings: data.get(
-      #updateMelosSettings,
-      or: $value.updateMelosSettings,
-    ),
-  );
+        flutter: data.get(#flutter, or: $value.flutter),
+        flavors: data.get(#flavors, or: $value.flavors),
+        cachePath: data.get(#cachePath, or: $value.cachePath),
+        useGitCache: data.get(#useGitCache, or: $value.useGitCache),
+        gitCachePath: data.get(#gitCachePath, or: $value.gitCachePath),
+        flutterUrl: data.get(#flutterUrl, or: $value.flutterUrl),
+        privilegedAccess:
+            data.get(#privilegedAccess, or: $value.privilegedAccess),
+        runPubGetOnSdkChanges: data.get(
+          #runPubGetOnSdkChanges,
+          or: $value.runPubGetOnSdkChanges,
+        ),
+        updateVscodeSettings: data.get(
+          #updateVscodeSettings,
+          or: $value.updateVscodeSettings,
+        ),
+        updateGitIgnore: data.get(#updateGitIgnore, or: $value.updateGitIgnore),
+        updateMelosSettings: data.get(
+          #updateMelosSettings,
+          or: $value.updateMelosSettings,
+        ),
+      );
 
   @override
   ProjectConfigCopyWith<$R2, ProjectConfig, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _ProjectConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _ProjectConfigCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

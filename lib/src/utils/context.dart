@@ -87,8 +87,8 @@ class FvmContext with FvmContextMappable {
     this.stdinHasTerminal = true,
     this.isTest = false,
     this.logLevel = Level.info,
-  }) : _skipInput = skipInput,
-       _generators = generators;
+  })  : _skipInput = skipInput,
+        _generators = generators;
 
   static FvmContext create({
     String? debugLabel,

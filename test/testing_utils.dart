@@ -194,9 +194,8 @@ class _TestTempDirectoryManager {
       final decoded = jsonDecode(marker.readAsStringSync());
       if (decoded is! Map<String, dynamic>) return false;
       final ownerPid = decoded['pid'];
-      final ownerPidValue = ownerPid is int
-          ? ownerPid
-          : int.tryParse(ownerPid?.toString() ?? '');
+      final ownerPidValue =
+          ownerPid is int ? ownerPid : int.tryParse(ownerPid?.toString() ?? '');
       if (ownerPidValue == null) return false;
 
       return _isProcessAlive(ownerPidValue);
@@ -289,10 +288,11 @@ String _replaceTempDirectory(String path) {
 Matcher isProjectMatcher({
   Directory? expectedDirectory,
   bool hasConfig = true,
-}) => _ProjectHasConfigMatcher(
-  expectedDirectory: expectedDirectory,
-  hasConfig: hasConfig,
-);
+}) =>
+    _ProjectHasConfigMatcher(
+      expectedDirectory: expectedDirectory,
+      hasConfig: hasConfig,
+    );
 
 class _ProjectHasConfigMatcher extends Matcher {
   final Directory? _expectedDirectory;
@@ -301,8 +301,8 @@ class _ProjectHasConfigMatcher extends Matcher {
   _ProjectHasConfigMatcher({
     Directory? expectedDirectory,
     required bool hasConfig,
-  }) : _expectedDirectory = expectedDirectory,
-       _hasConfig = hasConfig;
+  })  : _expectedDirectory = expectedDirectory,
+        _hasConfig = hasConfig;
 
   String? get expectedConfigPath => p.join(_expectedDirectory!.path, '.fvmrc');
 

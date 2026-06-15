@@ -48,8 +48,8 @@ class UpdateProjectReferencesWorkflow extends Workflow {
       final flutterSdkVersion = version.flutterSdkVersion?.trim();
       final versionFileContents =
           (flutterSdkVersion == null || flutterSdkVersion.isEmpty)
-          ? version.nameWithAlias
-          : flutterSdkVersion;
+              ? version.nameWithAlias
+              : flutterSdkVersion;
 
       sdkVersionFile.file.write(versionFileContents);
     });

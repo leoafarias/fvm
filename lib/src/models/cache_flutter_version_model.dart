@@ -91,7 +91,7 @@ class CacheFlutterVersion extends FlutterVersion
 
   // Loads all version metadata from the given directory.
   static ({String? flutterVersion, String? dartVersion, bool isSetup})
-  _loadMetadata(String directory) {
+      _loadMetadata(String directory) {
     // Load JSON metadata file: $FLUTTER_ROOT/bin/cache/flutter.version.json
     // This file exists after setup on Flutter 3.13+
     final rootMetadata = FlutterRootVersionFile.tryLoadFromRoot(
@@ -136,11 +136,14 @@ class CacheFlutterVersion extends FlutterVersion
   // Attempts to get version from git tags (for pre-setup SDKs).
   static String? _getVersionFromGit(String directory) {
     try {
-      final result = Process.runSync('git', [
-        'describe',
-        '--tags',
-        '--abbrev=0',
-      ], workingDirectory: directory);
+      final result = Process.runSync(
+          'git',
+          [
+            'describe',
+            '--tags',
+            '--abbrev=0',
+          ],
+          workingDirectory: directory);
       if (result.exitCode == 0) {
         final tag = (result.stdout as String).trim();
 
@@ -190,9 +193,9 @@ class CacheFlutterVersion extends FlutterVersion
   bool get isNotSetup => !isSetup;
 
   FlutterVersion toFlutterVersion() => FlutterVersion(
-    name,
-    releaseChannel: releaseChannel,
-    type: type,
-    fork: fork,
-  );
+        name,
+        releaseChannel: releaseChannel,
+        type: type,
+        fork: fork,
+      );
 }

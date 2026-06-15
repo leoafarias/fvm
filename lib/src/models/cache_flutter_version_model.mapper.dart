@@ -145,16 +145,10 @@ mixin CacheFlutterVersionMappable {
         .encodeMap<CacheFlutterVersion>(this as CacheFlutterVersion);
   }
 
-  CacheFlutterVersionCopyWith<
-    CacheFlutterVersion,
-    CacheFlutterVersion,
-    CacheFlutterVersion
-  >
-  get copyWith =>
-      _CacheFlutterVersionCopyWithImpl<
-        CacheFlutterVersion,
-        CacheFlutterVersion
-      >(this as CacheFlutterVersion, $identity, $identity);
+  CacheFlutterVersionCopyWith<CacheFlutterVersion, CacheFlutterVersion,
+      CacheFlutterVersion> get copyWith => _CacheFlutterVersionCopyWithImpl<
+          CacheFlutterVersion, CacheFlutterVersion>(
+      this as CacheFlutterVersion, $identity, $identity);
   @override
   String toString() {
     return CacheFlutterVersionMapper.ensureInitialized().stringifyValue(
@@ -181,17 +175,13 @@ mixin CacheFlutterVersionMappable {
 extension CacheFlutterVersionValueCopy<$R, $Out>
     on ObjectCopyWith<$R, CacheFlutterVersion, $Out> {
   CacheFlutterVersionCopyWith<$R, CacheFlutterVersion, $Out>
-  get $asCacheFlutterVersion => $base.as(
-    (v, t, t2) => _CacheFlutterVersionCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asCacheFlutterVersion => $base.as(
+            (v, t, t2) => _CacheFlutterVersionCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class CacheFlutterVersionCopyWith<
-  $R,
-  $In extends CacheFlutterVersion,
-  $Out
->
-    implements FlutterVersionCopyWith<$R, $In, $Out> {
+abstract class CacheFlutterVersionCopyWith<$R, $In extends CacheFlutterVersion,
+    $Out> implements FlutterVersionCopyWith<$R, $In, $Out> {
   @override
   $R call({
     String? name,
@@ -226,35 +216,36 @@ class _CacheFlutterVersionCopyWithImpl<$R, $Out>
     Object? flutterSdkVersion = $none,
     Object? dartSdkVersion = $none,
     bool? isSetup,
-  }) => $apply(
-    FieldCopyWithData({
-      if (name != null) #name: name,
-      if (releaseChannel != $none) #releaseChannel: releaseChannel,
-      if (type != null) #type: type,
-      if (fork != $none) #fork: fork,
-      if (directory != null) #directory: directory,
-      if (flutterSdkVersion != $none) #flutterSdkVersion: flutterSdkVersion,
-      if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
-      if (isSetup != null) #isSetup: isSetup,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (name != null) #name: name,
+          if (releaseChannel != $none) #releaseChannel: releaseChannel,
+          if (type != null) #type: type,
+          if (fork != $none) #fork: fork,
+          if (directory != null) #directory: directory,
+          if (flutterSdkVersion != $none) #flutterSdkVersion: flutterSdkVersion,
+          if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
+          if (isSetup != null) #isSetup: isSetup,
+        }),
+      );
   @override
   CacheFlutterVersion $make(CopyWithData data) => CacheFlutterVersion(
-    data.get(#name, or: $value.name),
-    releaseChannel: data.get(#releaseChannel, or: $value.releaseChannel),
-    type: data.get(#type, or: $value.type),
-    fork: data.get(#fork, or: $value.fork),
-    directory: data.get(#directory, or: $value.directory),
-    flutterSdkVersion: data.get(
-      #flutterSdkVersion,
-      or: $value.flutterSdkVersion,
-    ),
-    dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
-    isSetup: data.get(#isSetup, or: $value.isSetup),
-  );
+        data.get(#name, or: $value.name),
+        releaseChannel: data.get(#releaseChannel, or: $value.releaseChannel),
+        type: data.get(#type, or: $value.type),
+        fork: data.get(#fork, or: $value.fork),
+        directory: data.get(#directory, or: $value.directory),
+        flutterSdkVersion: data.get(
+          #flutterSdkVersion,
+          or: $value.flutterSdkVersion,
+        ),
+        dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
+        isSetup: data.get(#isSetup, or: $value.isSetup),
+      );
 
   @override
   CacheFlutterVersionCopyWith<$R2, CacheFlutterVersion, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _CacheFlutterVersionCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _CacheFlutterVersionCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

@@ -18,8 +18,7 @@ class IntegrationTestCommand extends BaseFvmCommand {
   final name = 'integration-test';
 
   @override
-  final description =
-      'Runs complete integration tests (hidden command)\n'
+  final description = 'Runs complete integration tests (hidden command)\n'
       'WARNING: This will destroy your FVM cache and reinstall Flutter versions!';
 
   @override
@@ -39,8 +38,8 @@ class IntegrationTestCommand extends BaseFvmCommand {
     // Just clean up any temporary test artifacts
     final tempDir = Directory.systemTemp;
     final testArtifacts = tempDir.listSync().where(
-      (item) => item.path.contains('fvm_test_artifacts_'),
-    );
+          (item) => item.path.contains('fvm_test_artifacts_'),
+        );
 
     for (final artifact in testArtifacts) {
       try {
@@ -414,10 +413,8 @@ class IntegrationTestRunner {
 
         // The destroy command should have cleared the versions directory
         if (versionsDir.existsSync() && versionsAfter > 0) {
-          final remaining = versionsDir
-              .listSync()
-              .map((e) => p.basename(e.path))
-              .join(', ');
+          final remaining =
+              versionsDir.listSync().map((e) => p.basename(e.path)).join(', ');
           logger.info('Note: Some versions remain after destroy: $remaining');
           logger.info(
             'This may be normal if versions were added during testing',

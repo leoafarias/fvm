@@ -93,9 +93,8 @@ void main() {
         expect(useExitCode, ExitCode.success.code);
 
         // Verify project is using fork version
-        final project = installRunner.context
-            .get<ProjectService>()
-            .findAncestor();
+        final project =
+            installRunner.context.get<ProjectService>().findAncestor();
         expect(
           project.pinnedVersion?.nameWithAlias,
           equals('$testForkName/leo-test-21'),
@@ -190,8 +189,8 @@ void main() {
           throwsA(
             predicate<Exception>(
               (e) => e.toString().contains(
-                'Fork "nonexistent" has not been configured',
-              ),
+                    'Fork "nonexistent" has not been configured',
+                  ),
             ),
           ),
         );
