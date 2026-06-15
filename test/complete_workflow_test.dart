@@ -23,17 +23,16 @@ void main() {
       // Helper function to get cache version
       Future<CacheFlutterVersion?> getCacheVersion() async {
         return testRunner.context.get<CacheService>().getVersion(
-          FlutterVersion.parse(channel),
-        );
+              FlutterVersion.parse(channel),
+            );
       }
 
       // Get the installed version
       var cacheVersion = await getCacheVersion();
 
       // Get the branch from Git
-      final existingChannel = await testRunner.context
-          .get<GitService>()
-          .getBranch(channel);
+      final existingChannel =
+          await testRunner.context.get<GitService>().getBranch(channel);
 
       // Verify installation succeeded
       expect(cacheVersion, isNotNull, reason: 'Install does not exist');
@@ -50,11 +49,11 @@ void main() {
         isTrue,
         reason: 'Version should be channel',
       );
-      // flutterSdkVersion can be detected via git tags even before setup
+      // flutterSdkVersion requires canonical SDK metadata.
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNotNull,
-        reason: 'Version should have flutter sdk version from git tags',
+        isNull,
+        reason: 'Version should not have flutter sdk version before setup',
       );
       // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(
@@ -94,11 +93,11 @@ void main() {
         true,
         reason: 'Version should be channel',
       );
-      // flutterSdkVersion can be detected via git tags even before setup
+      // flutterSdkVersion requires canonical SDK metadata.
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNotNull,
-        reason: 'Version should have flutter sdk version from git tags',
+        isNull,
+        reason: 'Version should not have flutter sdk version before setup',
       );
       // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(

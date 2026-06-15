@@ -75,7 +75,7 @@ class GetCacheVersionsResponseMapper
   static List<CacheFlutterVersion> _$versions(GetCacheVersionsResponse v) =>
       v.versions;
   static const Field<GetCacheVersionsResponse, List<CacheFlutterVersion>>
-  _f$versions = Field('versions', _$versions);
+      _f$versions = Field('versions', _$versions);
 
   @override
   final MappableFields<GetCacheVersionsResponse> fields = const {
@@ -113,16 +113,11 @@ mixin GetCacheVersionsResponseMappable {
         .encodeMap<GetCacheVersionsResponse>(this as GetCacheVersionsResponse);
   }
 
-  GetCacheVersionsResponseCopyWith<
-    GetCacheVersionsResponse,
-    GetCacheVersionsResponse,
-    GetCacheVersionsResponse
-  >
-  get copyWith =>
-      _GetCacheVersionsResponseCopyWithImpl<
-        GetCacheVersionsResponse,
-        GetCacheVersionsResponse
-      >(this as GetCacheVersionsResponse, $identity, $identity);
+  GetCacheVersionsResponseCopyWith<GetCacheVersionsResponse,
+          GetCacheVersionsResponse, GetCacheVersionsResponse>
+      get copyWith => _GetCacheVersionsResponseCopyWithImpl<
+              GetCacheVersionsResponse, GetCacheVersionsResponse>(
+          this as GetCacheVersionsResponse, $identity, $identity);
   @override
   String toString() {
     return GetCacheVersionsResponseMapper.ensureInitialized().stringifyValue(
@@ -149,23 +144,21 @@ mixin GetCacheVersionsResponseMappable {
 extension GetCacheVersionsResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetCacheVersionsResponse, $Out> {
   GetCacheVersionsResponseCopyWith<$R, GetCacheVersionsResponse, $Out>
-  get $asGetCacheVersionsResponse => $base.as(
-    (v, t, t2) => _GetCacheVersionsResponseCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asGetCacheVersionsResponse => $base.as(
+            (v, t, t2) =>
+                _GetCacheVersionsResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
 abstract class GetCacheVersionsResponseCopyWith<
-  $R,
-  $In extends GetCacheVersionsResponse,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<
     $R,
-    CacheFlutterVersion,
-    CacheFlutterVersionCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>
-  >
-  get versions;
+    $In extends GetCacheVersionsResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<
+      $R,
+      CacheFlutterVersion,
+      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
+          CacheFlutterVersion>> get versions;
   $R call({String? size, List<CacheFlutterVersion>? versions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
@@ -183,32 +176,31 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
       GetCacheVersionsResponseMapper.ensureInitialized();
   @override
   ListCopyWith<
-    $R,
-    CacheFlutterVersion,
-    CacheFlutterVersionCopyWith<$R, CacheFlutterVersion, CacheFlutterVersion>
-  >
-  get versions => ListCopyWith(
-    $value.versions,
-    (v, t) => v.copyWith.$chain(t),
-    (v) => call(versions: v),
-  );
+      $R,
+      CacheFlutterVersion,
+      CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
+          CacheFlutterVersion>> get versions => ListCopyWith(
+        $value.versions,
+        (v, t) => v.copyWith.$chain(t),
+        (v) => call(versions: v),
+      );
   @override
   $R call({String? size, List<CacheFlutterVersion>? versions}) => $apply(
-    FieldCopyWithData({
-      if (size != null) #size: size,
-      if (versions != null) #versions: versions,
-    }),
-  );
+        FieldCopyWithData({
+          if (size != null) #size: size,
+          if (versions != null) #versions: versions,
+        }),
+      );
   @override
   GetCacheVersionsResponse $make(CopyWithData data) => GetCacheVersionsResponse(
-    size: data.get(#size, or: $value.size),
-    versions: data.get(#versions, or: $value.versions),
-  );
+        size: data.get(#size, or: $value.size),
+        versions: data.get(#versions, or: $value.versions),
+      );
 
   @override
   GetCacheVersionsResponseCopyWith<$R2, GetCacheVersionsResponse, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _GetCacheVersionsResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _GetCacheVersionsResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {
@@ -274,16 +266,10 @@ mixin GetReleasesResponseMappable {
         .encodeMap<GetReleasesResponse>(this as GetReleasesResponse);
   }
 
-  GetReleasesResponseCopyWith<
-    GetReleasesResponse,
-    GetReleasesResponse,
-    GetReleasesResponse
-  >
-  get copyWith =>
-      _GetReleasesResponseCopyWithImpl<
-        GetReleasesResponse,
-        GetReleasesResponse
-      >(this as GetReleasesResponse, $identity, $identity);
+  GetReleasesResponseCopyWith<GetReleasesResponse, GetReleasesResponse,
+      GetReleasesResponse> get copyWith => _GetReleasesResponseCopyWithImpl<
+          GetReleasesResponse, GetReleasesResponse>(
+      this as GetReleasesResponse, $identity, $identity);
   @override
   String toString() {
     return GetReleasesResponseMapper.ensureInitialized().stringifyValue(
@@ -310,23 +296,16 @@ mixin GetReleasesResponseMappable {
 extension GetReleasesResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetReleasesResponse, $Out> {
   GetReleasesResponseCopyWith<$R, GetReleasesResponse, $Out>
-  get $asGetReleasesResponse => $base.as(
-    (v, t, t2) => _GetReleasesResponseCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asGetReleasesResponse => $base.as(
+            (v, t, t2) => _GetReleasesResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class GetReleasesResponseCopyWith<
-  $R,
-  $In extends GetReleasesResponse,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
-  ListCopyWith<
-    $R,
-    FlutterSdkRelease,
-    FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
-  >
-  get versions;
+abstract class GetReleasesResponseCopyWith<$R, $In extends GetReleasesResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
+      get versions;
   ChannelsCopyWith<$R, Channels, Channels> get channels;
   $R call({List<FlutterSdkRelease>? versions, Channels? channels});
   GetReleasesResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -343,36 +322,33 @@ class _GetReleasesResponseCopyWithImpl<$R, $Out>
   late final ClassMapperBase<GetReleasesResponse> $mapper =
       GetReleasesResponseMapper.ensureInitialized();
   @override
-  ListCopyWith<
-    $R,
-    FlutterSdkRelease,
-    FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
-  >
-  get versions => ListCopyWith(
-    $value.versions,
-    (v, t) => v.copyWith.$chain(t),
-    (v) => call(versions: v),
-  );
+  ListCopyWith<$R, FlutterSdkRelease,
+          FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>>
+      get versions => ListCopyWith(
+            $value.versions,
+            (v, t) => v.copyWith.$chain(t),
+            (v) => call(versions: v),
+          );
   @override
   ChannelsCopyWith<$R, Channels, Channels> get channels =>
       $value.channels.copyWith.$chain((v) => call(channels: v));
   @override
   $R call({List<FlutterSdkRelease>? versions, Channels? channels}) => $apply(
-    FieldCopyWithData({
-      if (versions != null) #versions: versions,
-      if (channels != null) #channels: channels,
-    }),
-  );
+        FieldCopyWithData({
+          if (versions != null) #versions: versions,
+          if (channels != null) #channels: channels,
+        }),
+      );
   @override
   GetReleasesResponse $make(CopyWithData data) => GetReleasesResponse(
-    versions: data.get(#versions, or: $value.versions),
-    channels: data.get(#channels, or: $value.channels),
-  );
+        versions: data.get(#versions, or: $value.versions),
+        channels: data.get(#channels, or: $value.channels),
+      );
 
   @override
   GetReleasesResponseCopyWith<$R2, GetReleasesResponse, $Out2>
-  $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
-      _GetReleasesResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+      $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
+          _GetReleasesResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GetProjectResponseMapper extends ClassMapperBase<GetProjectResponse> {
@@ -429,13 +405,9 @@ mixin GetProjectResponseMappable {
         .encodeMap<GetProjectResponse>(this as GetProjectResponse);
   }
 
-  GetProjectResponseCopyWith<
-    GetProjectResponse,
-    GetProjectResponse,
-    GetProjectResponse
-  >
-  get copyWith =>
-      _GetProjectResponseCopyWithImpl<GetProjectResponse, GetProjectResponse>(
+  GetProjectResponseCopyWith<GetProjectResponse, GetProjectResponse,
+      GetProjectResponse> get copyWith => _GetProjectResponseCopyWithImpl<
+          GetProjectResponse, GetProjectResponse>(
         this as GetProjectResponse,
         $identity,
         $identity,
@@ -466,17 +438,13 @@ mixin GetProjectResponseMappable {
 extension GetProjectResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetProjectResponse, $Out> {
   GetProjectResponseCopyWith<$R, GetProjectResponse, $Out>
-  get $asGetProjectResponse => $base.as(
-    (v, t, t2) => _GetProjectResponseCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asGetProjectResponse => $base.as(
+            (v, t, t2) => _GetProjectResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class GetProjectResponseCopyWith<
-  $R,
-  $In extends GetProjectResponse,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class GetProjectResponseCopyWith<$R, $In extends GetProjectResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   ProjectCopyWith<$R, Project, Project> get project;
   $R call({Project? project});
   GetProjectResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -505,7 +473,8 @@ class _GetProjectResponseCopyWithImpl<$R, $Out>
   @override
   GetProjectResponseCopyWith<$R2, GetProjectResponse, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _GetProjectResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _GetProjectResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GetContextResponseMapper extends ClassMapperBase<GetContextResponse> {
@@ -562,13 +531,9 @@ mixin GetContextResponseMappable {
         .encodeMap<GetContextResponse>(this as GetContextResponse);
   }
 
-  GetContextResponseCopyWith<
-    GetContextResponse,
-    GetContextResponse,
-    GetContextResponse
-  >
-  get copyWith =>
-      _GetContextResponseCopyWithImpl<GetContextResponse, GetContextResponse>(
+  GetContextResponseCopyWith<GetContextResponse, GetContextResponse,
+      GetContextResponse> get copyWith => _GetContextResponseCopyWithImpl<
+          GetContextResponse, GetContextResponse>(
         this as GetContextResponse,
         $identity,
         $identity,
@@ -599,17 +564,13 @@ mixin GetContextResponseMappable {
 extension GetContextResponseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, GetContextResponse, $Out> {
   GetContextResponseCopyWith<$R, GetContextResponse, $Out>
-  get $asGetContextResponse => $base.as(
-    (v, t, t2) => _GetContextResponseCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asGetContextResponse => $base.as(
+            (v, t, t2) => _GetContextResponseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class GetContextResponseCopyWith<
-  $R,
-  $In extends GetContextResponse,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class GetContextResponseCopyWith<$R, $In extends GetContextResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   FvmContextCopyWith<$R, FvmContext, FvmContext> get context;
   $R call({FvmContext? context});
   GetContextResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
@@ -638,5 +599,6 @@ class _GetContextResponseCopyWithImpl<$R, $Out>
   @override
   GetContextResponseCopyWith<$R2, GetContextResponse, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _GetContextResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _GetContextResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

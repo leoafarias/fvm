@@ -16,8 +16,8 @@ void main() {
 
     // Get the installed version from cache
     final cacheVersion = runner.context.get<CacheService>().getVersion(
-      FlutterVersion.parse(version),
-    );
+          FlutterVersion.parse(version),
+        );
 
     expect(cacheVersion, isNotNull, reason: 'Install does not exist');
     final installedVersion = cacheVersion!;
@@ -25,8 +25,8 @@ void main() {
     if (isFlutterChannel(version)) {
       // Channels should stay on the requested branch.
       final existingChannel = await runner.context.get<GitService>().getBranch(
-        version,
-      );
+            version,
+          );
       expect(existingChannel, version);
     } else {
       // Resolve the expected channel for version installs. For very old
@@ -46,8 +46,8 @@ void main() {
       }
 
       final existingChannel = await runner.context.get<GitService>().getBranch(
-        version,
-      );
+            version,
+          );
 
       if (expectedChannel != null) {
         expect(existingChannel, expectedChannel);
@@ -119,8 +119,8 @@ void main() {
         throwsA(
           predicate<Exception>(
             (e) => e.toString().contains(
-              'Fork "$testForkName" has not been configured',
-            ),
+                  'Fork "$testForkName" has not been configured',
+                ),
           ),
         ),
       );

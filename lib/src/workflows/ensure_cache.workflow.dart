@@ -52,10 +52,10 @@ class EnsureCacheWorkflow extends Workflow {
   ) async {
     logger
       ..notice(
-        'Version mismatch detected: cache version is ${version.flutterSdkVersion}, but expected ${version.name}.',
+        'Cached SDK metadata reports ${version.flutterSdkVersion}, but FVM expected ${version.name} for this cache entry.',
       )
       ..info(
-        'This can occur if you manually run "flutter upgrade" on a cached SDK.',
+        'This can happen when a cached SDK is upgraded or changed outside FVM.',
       )
       ..info();
 

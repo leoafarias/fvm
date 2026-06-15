@@ -132,17 +132,14 @@ mixin FlutterSdkReleaseMappable {
         .encodeMap<FlutterSdkRelease>(this as FlutterSdkRelease);
   }
 
-  FlutterSdkReleaseCopyWith<
-    FlutterSdkRelease,
-    FlutterSdkRelease,
-    FlutterSdkRelease
-  >
-  get copyWith =>
-      _FlutterSdkReleaseCopyWithImpl<FlutterSdkRelease, FlutterSdkRelease>(
-        this as FlutterSdkRelease,
-        $identity,
-        $identity,
-      );
+  FlutterSdkReleaseCopyWith<FlutterSdkRelease, FlutterSdkRelease,
+          FlutterSdkRelease>
+      get copyWith =>
+          _FlutterSdkReleaseCopyWithImpl<FlutterSdkRelease, FlutterSdkRelease>(
+            this as FlutterSdkRelease,
+            $identity,
+            $identity,
+          );
   @override
   String toString() {
     return FlutterSdkReleaseMapper.ensureInitialized().stringifyValue(
@@ -169,17 +166,13 @@ mixin FlutterSdkReleaseMappable {
 extension FlutterSdkReleaseValueCopy<$R, $Out>
     on ObjectCopyWith<$R, FlutterSdkRelease, $Out> {
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, $Out>
-  get $asFlutterSdkRelease => $base.as(
-    (v, t, t2) => _FlutterSdkReleaseCopyWithImpl<$R, $Out>(v, t, t2),
-  );
+      get $asFlutterSdkRelease => $base.as(
+            (v, t, t2) => _FlutterSdkReleaseCopyWithImpl<$R, $Out>(v, t, t2),
+          );
 }
 
-abstract class FlutterSdkReleaseCopyWith<
-  $R,
-  $In extends FlutterSdkRelease,
-  $Out
->
-    implements ClassCopyWith<$R, $In, $Out> {
+abstract class FlutterSdkReleaseCopyWith<$R, $In extends FlutterSdkRelease,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     String? hash,
     FlutterChannel? channel,
@@ -215,36 +208,38 @@ class _FlutterSdkReleaseCopyWithImpl<$R, $Out>
     Object? dartSdkArch = $none,
     Object? dartSdkVersion = $none,
     bool? activeChannel,
-  }) => $apply(
-    FieldCopyWithData({
-      if (hash != null) #hash: hash,
-      if (channel != null) #channel: channel,
-      if (version != null) #version: version,
-      if (releaseDate != null) #releaseDate: releaseDate,
-      if (archive != null) #archive: archive,
-      if (sha256 != null) #sha256: sha256,
-      if (dartSdkArch != $none) #dartSdkArch: dartSdkArch,
-      if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
-      if (activeChannel != null) #activeChannel: activeChannel,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (hash != null) #hash: hash,
+          if (channel != null) #channel: channel,
+          if (version != null) #version: version,
+          if (releaseDate != null) #releaseDate: releaseDate,
+          if (archive != null) #archive: archive,
+          if (sha256 != null) #sha256: sha256,
+          if (dartSdkArch != $none) #dartSdkArch: dartSdkArch,
+          if (dartSdkVersion != $none) #dartSdkVersion: dartSdkVersion,
+          if (activeChannel != null) #activeChannel: activeChannel,
+        }),
+      );
   @override
   FlutterSdkRelease $make(CopyWithData data) => FlutterSdkRelease(
-    hash: data.get(#hash, or: $value.hash),
-    channel: data.get(#channel, or: $value.channel),
-    version: data.get(#version, or: $value.version),
-    releaseDate: data.get(#releaseDate, or: $value.releaseDate),
-    archive: data.get(#archive, or: $value.archive),
-    sha256: data.get(#sha256, or: $value.sha256),
-    dartSdkArch: data.get(#dartSdkArch, or: $value.dartSdkArch),
-    dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
-    activeChannel: data.get(#activeChannel, or: $value.activeChannel),
-  );
+        hash: data.get(#hash, or: $value.hash),
+        channel: data.get(#channel, or: $value.channel),
+        version: data.get(#version, or: $value.version),
+        releaseDate: data.get(#releaseDate, or: $value.releaseDate),
+        archive: data.get(#archive, or: $value.archive),
+        sha256: data.get(#sha256, or: $value.sha256),
+        dartSdkArch: data.get(#dartSdkArch, or: $value.dartSdkArch),
+        dartSdkVersion: data.get(#dartSdkVersion, or: $value.dartSdkVersion),
+        activeChannel: data.get(#activeChannel, or: $value.activeChannel),
+      );
 
   @override
   FlutterSdkReleaseCopyWith<$R2, FlutterSdkRelease, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _FlutterSdkReleaseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _FlutterSdkReleaseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class ChannelsMapper extends ClassMapperBase<Channels> {
@@ -350,7 +345,7 @@ abstract class ChannelsCopyWith<$R, $In extends Channels, $Out>
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get beta;
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get dev;
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
-  get stable;
+      get stable;
   $R call({
     FlutterSdkRelease? beta,
     FlutterSdkRelease? dev,
@@ -369,34 +364,36 @@ class _ChannelsCopyWithImpl<$R, $Out>
       ChannelsMapper.ensureInitialized();
   @override
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
-  get beta => $value.beta.copyWith.$chain((v) => call(beta: v));
+      get beta => $value.beta.copyWith.$chain((v) => call(beta: v));
   @override
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease> get dev =>
       $value.dev.copyWith.$chain((v) => call(dev: v));
   @override
   FlutterSdkReleaseCopyWith<$R, FlutterSdkRelease, FlutterSdkRelease>
-  get stable => $value.stable.copyWith.$chain((v) => call(stable: v));
+      get stable => $value.stable.copyWith.$chain((v) => call(stable: v));
   @override
   $R call({
     FlutterSdkRelease? beta,
     FlutterSdkRelease? dev,
     FlutterSdkRelease? stable,
-  }) => $apply(
-    FieldCopyWithData({
-      if (beta != null) #beta: beta,
-      if (dev != null) #dev: dev,
-      if (stable != null) #stable: stable,
-    }),
-  );
+  }) =>
+      $apply(
+        FieldCopyWithData({
+          if (beta != null) #beta: beta,
+          if (dev != null) #dev: dev,
+          if (stable != null) #stable: stable,
+        }),
+      );
   @override
   Channels $make(CopyWithData data) => Channels(
-    beta: data.get(#beta, or: $value.beta),
-    dev: data.get(#dev, or: $value.dev),
-    stable: data.get(#stable, or: $value.stable),
-  );
+        beta: data.get(#beta, or: $value.beta),
+        dev: data.get(#dev, or: $value.dev),
+        stable: data.get(#stable, or: $value.stable),
+      );
 
   @override
   ChannelsCopyWith<$R2, Channels, $Out2> $chain<$R2, $Out2>(
     Then<$Out2, $R2> t,
-  ) => _ChannelsCopyWithImpl<$R2, $Out2>($value, $cast, t);
+  ) =>
+      _ChannelsCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }

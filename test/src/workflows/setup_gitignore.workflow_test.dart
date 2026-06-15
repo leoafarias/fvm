@@ -31,8 +31,8 @@ void main() {
       createProjectConfig(ProjectConfig(), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
 
       expect(project.name, equals('test_project_2'));
 
@@ -58,8 +58,8 @@ void main() {
       createProjectConfig(ProjectConfig(updateGitIgnore: false), testDir);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -80,8 +80,8 @@ void main() {
       gitignore.writeAsStringSync('.fvm/\n');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -116,8 +116,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -162,8 +162,8 @@ void main() {
 
       try {
         final project = runner.context.get<ProjectService>().findAncestor(
-          directory: testDir,
-        );
+              directory: testDir,
+            );
         final workflow = SetupGitIgnoreWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -224,8 +224,8 @@ void main() {
       );
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow
@@ -258,8 +258,8 @@ void main() {
       await Process.run('git', ['init'], workingDirectory: testDir.path);
 
       final project = runner.context.get<ProjectService>().findAncestor(
-        directory: testDir,
-      );
+            directory: testDir,
+          );
       final workflow = SetupGitIgnoreWorkflow(runner.context);
 
       // Run workflow

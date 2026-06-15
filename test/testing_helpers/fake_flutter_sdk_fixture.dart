@@ -8,7 +8,10 @@ import 'fixture_paths.dart';
 
 /// Layout state for a fake Flutter SDK directory in the test cache.
 enum FakeFlutterSdkState {
-  /// Installed clone with root `version` and executables only.
+  /// Installed clone with executables only.
+  ///
+  /// No SDK version metadata is written, matching a pre-setup cache entry where
+  /// FVM should not infer metadata from surrounding git tags.
   installedNotSetup,
 
   /// Fully set up SDK with JSON metadata and Dart SDK cache files.
@@ -104,10 +107,13 @@ class FakeFlutterSdkFixture {
     }
 
     versionDir.createSync(recursive: true);
+    Directory(p.join(versionDir.path, '.git')).createSync();
 
     final legacyVersion = _legacyVersionForState(fixture, state);
 
-    File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    if (_writesLegacyVersionFile(state)) {
+      File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    }
 
     if (state != FakeFlutterSdkState.invalidExecutable) {
       _writeExecutable(p.join(versionDir.path, 'bin', flutterExecFileName));
@@ -174,10 +180,9 @@ class FakeFlutterSdkFixture {
     return switch (normalized) {
       '3.10.0' => 'stable_3_10_0',
       '3.10.5' => 'stable_3_10_5',
-      '3.19.0' =>
-        version.releaseChannel == FlutterChannel.beta
-            ? 'beta_3_19_0'
-            : 'stable_3_10_5',
+      '3.19.0' => version.releaseChannel == FlutterChannel.beta
+          ? 'beta_3_19_0'
+          : 'stable_3_10_5',
       '3.19.0@beta' => 'beta_3_19_0',
       _ => 'stable_3_10_0',
     };
@@ -189,6 +194,10 @@ class FakeFlutterSdkFixture {
   static bool _writesSetupFiles(FakeFlutterSdkState state) {
     return state == FakeFlutterSdkState.installedSetup ||
         state == FakeFlutterSdkState.versionMismatch;
+  }
+
+  static bool _writesLegacyVersionFile(FakeFlutterSdkState state) {
+    return state != FakeFlutterSdkState.installedNotSetup;
   }
 
   static String _legacyVersionForState(

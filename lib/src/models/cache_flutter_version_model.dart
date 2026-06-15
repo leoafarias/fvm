@@ -28,7 +28,6 @@ class CacheFlutterVersion extends FlutterVersion
   /// Detection order (at construction time):
   /// 1. JSON metadata file (`bin/cache/flutter.version.json`) - Flutter 3.13+
   /// 2. Legacy version file (`version`) - Flutter <3.38
-  /// 3. Git tag via `git describe --tags` - for pre-setup SDKs
   @MappableField()
   final String? flutterSdkVersion;
 
@@ -89,9 +88,15 @@ class CacheFlutterVersion extends FlutterVersion
     );
   }
 
+  static String? _nonEmptyTrimmed(String? value) {
+    final trimmed = value?.trim();
+
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
   // Loads all version metadata from the given directory.
   static ({String? flutterVersion, String? dartVersion, bool isSetup})
-  _loadMetadata(String directory) {
+      _loadMetadata(String directory) {
     // Load JSON metadata file: $FLUTTER_ROOT/bin/cache/flutter.version.json
     // This file exists after setup on Flutter 3.13+
     final rootMetadata = FlutterRootVersionFile.tryLoadFromRoot(
@@ -107,54 +112,28 @@ class CacheFlutterVersion extends FlutterVersion
     final isSetup = dartSdkBinDir.existsSync();
 
     // --- Flutter SDK version detection ---
-    // Priority: JSON → legacy version file → git describe
+    // Priority: JSON → legacy version file
     String? flutterVersion = rootMetadata?.primaryVersion;
 
     // Legacy file: $FLUTTER_ROOT/version (exists in git repo for Flutter <3.38)
-    flutterVersion ??= join(directory, 'version').file.read()?.trim();
-
-    flutterVersion ??= _getVersionFromGit(directory);
+    flutterVersion ??= _nonEmptyTrimmed(
+      join(directory, 'version').file.read(),
+    );
 
     // --- Dart SDK version detection ---
     // Priority: JSON → dart-sdk version file
     // Note: Can be null even if isSetup=true (if version files are removed)
-    String? dartVersion = rootMetadata?.dartSdkVersion?.trim();
+    String? dartVersion = _nonEmptyTrimmed(rootMetadata?.dartSdkVersion);
 
-    if (dartVersion == null || dartVersion.isEmpty) {
-      // Dart SDK version file: $FLUTTER_ROOT/bin/cache/dart-sdk/version
-      final versionFile = join(dartSdkCache, 'version');
-      dartVersion = versionFile.file.read()?.trim();
-    }
+    // Dart SDK version file: $FLUTTER_ROOT/bin/cache/dart-sdk/version
+    final versionFile = join(dartSdkCache, 'version');
+    dartVersion ??= _nonEmptyTrimmed(versionFile.file.read());
 
     return (
       flutterVersion: flutterVersion,
       dartVersion: dartVersion,
       isSetup: isSetup,
     );
-  }
-
-  // Attempts to get version from git tags (for pre-setup SDKs).
-  static String? _getVersionFromGit(String directory) {
-    try {
-      final result = Process.runSync('git', [
-        'describe',
-        '--tags',
-        '--abbrev=0',
-      ], workingDirectory: directory);
-      if (result.exitCode == 0) {
-        final tag = (result.stdout as String).trim();
-
-        return tag.isNotEmpty ? tag : null;
-      }
-    } on ProcessException {
-      // Git not available or command execution failed
-      return null;
-    } on FileSystemException {
-      // Working directory missing or permission denied
-      return null;
-    }
-
-    return null;
   }
 
   /// The bin directory path for this cached version.
@@ -190,9 +169,9 @@ class CacheFlutterVersion extends FlutterVersion
   bool get isNotSetup => !isSetup;
 
   FlutterVersion toFlutterVersion() => FlutterVersion(
-    name,
-    releaseChannel: releaseChannel,
-    type: type,
-    fork: fork,
-  );
+        name,
+        releaseChannel: releaseChannel,
+        type: type,
+        fork: fork,
+      );
 }
