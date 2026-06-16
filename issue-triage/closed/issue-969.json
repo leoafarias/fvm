@@ -1,0 +1,12 @@
+{
+  "number": 969,
+  "title": "[BUG] RISC-V: Download the right dart SDK (and engine ?) for real RISC-V support",
+  "triagedAt": "2025-12-09",
+  "priority": "p2-medium",
+  "status": "closed",
+  "artifact": "../artifacts/issue-969.md",
+  "url": "https://github.com/leoafarias/fvm/issues/969",
+  "notes": "Closed as completed after reporter confirmed upstream Flutter now downloads the riscv64 Dart SDK on 3.42+ and fails in the expected upstream engine-support path. Removed from active P2 tracker during 2026-06-16 sync.",
+  "closedAt": "2026-06-11",
+  "resolution": "completed_upstream_flutter"
+}

@@ -6,4 +6,4 @@
   "status": "validated",
   "artifact": "../../artifacts/issue-914.md",
   "url": "https://github.com/leoafarias/fvm/issues/914",
-  "notes": "Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService."}
+  "notes": "Windows installs can still fail on Git safe.directory ownership checks. Docs now exist; remaining P1 scope is doctor detection, targeted CLI messaging, and an explicit opt-in fix path if desired."}

@@ -7,6 +7,11 @@
 - **Issue Type**: documentation
 - **URL**: https://github.com/leoafarias/fvm/issues/1015
 
+## 2026-06-16 Sync Update
+- Issue remains open.
+- PR #1038 (`docs: add guide for using FVM with the Dart MCP server`) is open and explicitly closes #1015 if merged.
+- Keep #1015 active in P3 until PR #1038 is merged and the issue closes on GitHub.
+
 ## Problem Summary
 Reporter requests official docs for configuring Dart MCP to point at the FVM-managed SDK (`.fvm/flutter_sdk`) so AI tooling uses project-pinned Flutter.
 
@@ -72,6 +77,7 @@ MCP usage is increasingly common but current docs do not include a canonical FVM
 
 ## Notes
 - Reporter linked a concrete MCP snippet that can seed the official example.
+- Open PR #1038 now implements the requested guide; re-sync after merge before closing this artifact.
 
 ---
 **Validated by**: Code Agent  

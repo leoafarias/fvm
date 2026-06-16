@@ -1,6 +1,40 @@
 [
   {
     "author": {
+      "id": "U_kgDOCY1DNA",
+      "is_bot": false,
+      "login": "rumitvn",
+      "name": "Rum Nguyen"
+    },
+    "baseRefName": "main",
+    "body": "Closes #1015\n\n### What\nAdds a **Dart MCP Server** guide under *Documentation › Guides* and registers it in the guides navigation.\n\n### Why\nThe [Dart MCP server](https://dart.dev/tools/mcp-server) resolves the Flutter SDK from `PATH` by default, so it uses the globally installed Flutter rather than the version FVM pins for the project. That causes the MCP server (and the AI tools using it) to analyze against the wrong SDK.\n\nThe guide shows how to point the server at the FVM-managed SDK via the `.fvm/flutter_sdk` symlink:\n\n```json\n{\n  \"mcpServers\": {\n    \"dart\": {\n      \"command\": \"dart\",\n      \"args\": [\"mcp-server\", \"--flutter-sdk\", \".fvm/flutter_sdk\"]\n    }\n  }\n}\n```\n\n`.fvm/flutter_sdk` is the symlink FVM maintains to the pinned SDK (same path used for the VSCode integration), so the MCP server stays in sync with the IDE and terminal.\n\nConfig and approach from the issue reporter (verified against [dart-lang/ai#319](https://github.com/dart-lang/ai/issues/319)). Docs-only change.",
+    "createdAt": "2026-06-13T05:15:47Z",
+    "headRefName": "docs/dart-mcp-fvm-sdk",
+    "labels": [],
+    "number": 1038,
+    "title": "docs: add guide for using FVM with the Dart MCP server",
+    "updatedAt": "2026-06-13T05:15:52Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1038"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjI0Mzk4NDM=",
+      "is_bot": false,
+      "login": "vladimir-ionita",
+      "name": "Vladimir Ionita"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\n\n- Bumps `pub_updater` from `^0.4.0` to `^0.5.0`\n- pub_updater 0.5.0 contains **no API changes** — only tightened dependency constraints in its `pubspec.yaml`\n- Resolves incompatibility with packages that depend on `pub_updater ^0.5.0` in Dart pub workspaces (single shared dependency resolution)\n\nCloses #1021\n\n## Verification\n\n- `dart pub get` succeeds\n- `dart analyze` reports no issues\n- All pub_updater 0.5.0 transitive dependency constraints are already satisfied by fvm's current lockfile (`http 1.3.0`, `json_annotation 4.9.0`, `process 5.0.3`, `pub_semver 2.2.0`)",
+    "createdAt": "2026-03-10T21:17:14Z",
+    "headRefName": "bump-pub-updater-0.5.0",
+    "labels": [],
+    "number": 1022,
+    "title": "chore: bump pub_updater to ^0.5.0",
+    "updatedAt": "2026-06-12T19:38:49Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1022"
+  },
+  {
+    "author": {
       "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
       "login": "leoafarias",
@@ -13,161 +47,8 @@
     "labels": [],
     "number": 1013,
     "title": "fix: harden archive install with staging directory and network resilience",
-    "updatedAt": "2026-02-20T04:12:51Z",
+    "updatedAt": "2026-06-10T23:35:20Z",
     "url": "https://github.com/leoafarias/fvm/pull/1013"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "- Add shell detection (bash/zsh/fish) for profile file discovery\n- Add automatic CI PATH configuration (GITHUB_PATH, BASH_ENV, Azure DevOps)\n- Add --auto-setup flag for interactive shell profile modification\n- Auto-detect if FVM is already configured in profile\n- In CI environments, automatically export PATH and configure CI-specific env files\n- Add helper to re-run with --auto-setup if manual setup desired\n\nThis allows the install script to work seamlessly in CI without requiring\nmanual PATH configuration steps after installation.",
-    "createdAt": "2025-12-28T00:19:04Z",
-    "headRefName": "claude/auto-detect-profile-setup-WIjgP",
-    "labels": [],
-    "number": 1006,
-    "title": "feat: add automatic profile setup for install script",
-    "updatedAt": "2025-12-28T16:09:31Z",
-    "url": "https://github.com/leoafarias/fvm/pull/1006"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjExNDM1MjY=",
-      "is_bot": false,
-      "login": "petetandon",
-      "name": "blorto"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\r\n\r\nThis PR aims to correct the windows PATH installation instruction in the docs.\r\n\r\nI recently got a new windows 11 laptop and while installing fvm via `choco install fvm` the PATH to it is not `%USERPROFILE%\\AppData\\Local\\Pub\\Cache\\bin` but instead `%USERPROFILE%\\fvm\\default\\bin`. \r\n\r\n## Changes\r\n * Update installation.mdx with windows PATH\r\n \r\n## Review Notes\r\nAll changes are text-only.\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
-    "createdAt": "2025-12-16T17:03:31Z",
-    "headRefName": "petetandon/update-windows-path",
-    "labels": [],
-    "number": 992,
-    "title": "docs: update windows path documentation",
-    "updatedAt": "2025-12-16T17:03:35Z",
-    "url": "https://github.com/leoafarias/fvm/pull/992"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjcxMTgwMDg3",
-      "is_bot": false,
-      "login": "Integral-Tech",
-      "name": "Integral"
-    },
-    "baseRefName": "main",
-    "body": "- Add a Repology badge to display the versions and up to date status of FVM in all known repositories.\r\n- Avoid marking install script as recommended, since using the package manager to install software is generally preferred on Linux.",
-    "createdAt": "2025-12-06T07:00:12Z",
-    "headRefName": "add-repology",
-    "labels": [],
-    "number": 990,
-    "title": "docs: add package manager installation in Linux section",
-    "updatedAt": "2025-12-06T07:00:17Z",
-    "url": "https://github.com/leoafarias/fvm/pull/990"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "Refactors git cache handling to create a validated bare mirror and migrate legacy caches safely. Flutter installs now clone from the local mirror first, rewrite origin to flutter.git, and fall back cleanly to remote. Adds migration and cloning tests plus test helpers for local git fixtures. Updates the changelog with the 4.0.2 notes.",
-    "createdAt": "2025-11-20T15:58:47Z",
-    "headRefName": "conductor/git-cache-review",
-    "labels": [],
-    "number": 976,
-    "title": "Refactor git cache to mirrored architecture",
-    "updatedAt": "2026-02-12T20:44:53Z",
-    "url": "https://github.com/leoafarias/fvm/pull/976"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\n\nThis PR implements comprehensive improvements to FVM's update check mechanism to enhance reliability, responsiveness, and user control.\n\n### Key Improvements\n\n- **Configurable Update Checks**: Users can now disable update checks via `fvm config --disable-update-check`\n- **Enhanced Reliability**: Network operations now have proper timeouts (10s) and graceful error handling\n- **Fixed First-Run Behavior**: Null timestamps now correctly trigger update checks on first run\n- **Smart Retry Logic**: Failed checks no longer block retries for 24 hours\n- **Race Condition Prevention**: File locking prevents config corruption in parallel execution scenarios\n- **Clock Change Safeguards**: Handles system clock changes gracefully\n- **Meta-Command Optimization**: Update checks are skipped for config, API, and completion commands\n\n### Changes\n\n#### Configuration\n- Added `disableUpdateCheck` to ConfigOptions enum\n- Removed redundant manual flag definition from config_command.dart\n- Flag now properly integrated into config processing loop\n\n#### Update Check Logic\n- Implemented 10-second timeout for network operations\n- Enhanced error handling with specific catch blocks for TimeoutException, SocketException, and FormatException\n- Timestamp recording moved to AFTER successful network validation\n- Added helper methods for better code organization\n\n#### Reliability & Safety\n- Race condition prevention with file locking using `context.createLock()`\n- Detection and handling of future timestamps (clock moved backward)\n- Debug logging when update checks are disabled\n\n#### Test Coverage\n- **runner_test.dart**: 9 comprehensive tests covering first-run detection, 24-hour caching, timeout handling, and error scenarios\n- **config_command_test.dart**: 11 tests for flag parsing, persistence, and integration with other settings\n\n### Technical Details\n\n- Non-breaking changes: existing configs continue to work\n- Backward compatible: maintains existing behavior\n- All dart analyze issues resolved\n- Constants added for timeout (10s) and check interval (1 day)\n\n## Test Plan\n\n- [x] Run dart analyze (all issues resolved)\n- [ ] Run test suite\n- [ ] Manual testing of update check scenarios\n- [ ] Verify config flag behavior\n- [ ] Test timeout and error handling",
-    "createdAt": "2025-11-14T22:35:18Z",
-    "headRefName": "feat/update-check-improvements",
-    "labels": [],
-    "number": 973,
-    "title": "feat: improve update check reliability and responsiveness",
-    "updatedAt": "2025-11-14T22:35:48Z",
-    "url": "https://github.com/leoafarias/fvm/pull/973"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\n\nAdds support for installing Flutter SDKs from pre-compiled archives using the `--archive` flag. This provides 2-3x faster installations compared to git clones and enables support for corporate mirrors behind firewalls.\n\n## Changes\n\n### New Features\n- ✨ New `--archive` flag for `fvm install` and `fvm use` commands\n- 📦 Archive download with progress tracking\n- 🔒 SHA256 checksum verification for security\n- 🌐 Support for `FLUTTER_STORAGE_BASE_URL` environment variable\n- 🚀 Cross-platform extraction (zip for Windows/macOS, tar.xz for Linux)\n\n### Implementation Details\n- **ArchiveService**: New service handling download, verification, and extraction\n- **Commands**: Updated `install_command` and `use_command` to accept `--archive` flag\n- **Workflow**: Modified `ensure_cache.workflow` to pass archive flag through\n- **Validation**: Clear error messages for unsupported scenarios (forks, commits, custom versions)\n\n### Supported Usage\n```bash\nfvm install stable --archive      # Install latest stable via archive\nfvm install 3.16.0 --archive      # Install specific version via archive\nfvm use stable --archive          # Switch to stable via archive (in project)\n```\n\n### Unsupported Scenarios\n- Fork versions (requires git clone)\n- Commit references (requires git clone)\n- Custom local versions\n- Master channel (only stable/beta/dev supported)\n\n## Testing\n\n- ✅ Unit tests for archive installation flow\n- ✅ Tests for unsupported version validation\n- ✅ Mock implementations for test isolation\n- ⏳ Manual testing across platforms (pending)\n\n## Benefits\n\n- **Speed**: 2-3x faster than git clone (no history download)\n- **Corporate Networks**: Works behind firewalls without GitHub access\n- **Reliability**: Single HTTP request with atomic download\n- **Security**: Mandatory SHA256 verification\n- **Disk I/O**: Less intensive than git operations\n\n## Migration Guide\n\n### Current (Git-based)\n```bash\nexport FVM_FLUTTER_URL=https://internal-mirror.corp/flutter.git\nfvm install stable\n```\n\n### New (Archive-based)\n```bash\nexport FLUTTER_STORAGE_BASE_URL=https://internal-mirror.corp/storage\nfvm install stable --archive\n```\n\n## Remaining Work\n\n- [ ] Additional manual testing on all platforms\n- [ ] Performance benchmarking documentation\n- [ ] Update README with archive installation examples\n- [ ] Consider making archive the default in future releases\n\n## Related\n\nResolves #688\n\n---\n\n**Note**: This PR is marked as draft while additional testing and validation is completed.",
-    "createdAt": "2025-11-05T15:43:30Z",
-    "headRefName": "issue-688",
-    "labels": [],
-    "number": 966,
-    "title": "feat: add archive-based installation support",
-    "updatedAt": "2026-02-12T19:01:56Z",
-    "url": "https://github.com/leoafarias/fvm/pull/966"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\nResolves Homebrew build failures caused by `pubspec_parse ^1.5.0` requiring Dart SDK >=3.6.0. The Homebrew formula currently bundles Dart SDK 3.2.6, which is incompatible with the newer constraint.\n\n## Changes Made\n\n### Core Fix\n- Pin `pubspec_parse` to `\">=1.2.0 <1.5.0\"` to support Dart SDK 3.2.0+\n- Simplifies pubspec serialization in `project_model.dart` to essential fields only\n- Removes newer `pubspec_parse` features not available in older versions:\n  - `executables`, `funding`, `topics`, `screenshots`\n  - `homepage`, `repository`, `issueTracker`, `documentation`, `publishTo`\n  - `dependencyOverrides`\n\n### Compatibility Improvements  \n- Fix ExitCode import conflicts by using `hide ExitCode` from `mason_logger`\n- Add null-safe environment access for compatibility with older `pubspec_parse` versions\n- Regenerate all mapper files with `build_runner`\n\n### CI/Testing\n- Add `test-min-sdk` job to automatically test with minimum SDK version\n- Add `scripts/get_min_sdk_version.sh` helper script\n- Prevents future SDK compatibility regressions\n\n## Impact\n- ✅ Works with Dart SDK 3.2.0+ (Homebrew's 3.2.6)\n- ✅ Works with Dart SDK 3.9.0+ (current stable)\n- ✅ All analyzer checks pass (warnings are false positives)\n- ✅ CI will catch future minimum SDK compatibility issues\n\n## Test Plan\n- [x] Run `dart pub get` with minimum SDK (3.2.0)\n- [x] Run `dart pub downgrade` to test minimum dependencies\n- [x] Run `dart analyze --fatal-infos` with both min and max dependencies\n- [x] Run `dart run build_runner build` to regenerate mappers\n- [x] Verify Homebrew compatibility (SDK constraint matches 3.2.6)\n\nFixes #940",
-    "createdAt": "2025-10-31T14:57:47Z",
-    "headRefName": "update-dart-sdk-constraint",
-    "labels": [],
-    "number": 948,
-    "title": "fix: maintain compatibility with Dart SDK 3.2.0+ for Homebrew builds",
-    "updatedAt": "2025-10-31T15:47:10Z",
-    "url": "https://github.com/leoafarias/fvm/pull/948"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "## Summary\n\nThis PR introduces comprehensive improvements to the testing infrastructure, focusing on parallel execution capabilities and CI optimization:\n\n• **Enhanced test configuration** with categorized timeouts and parallel execution support\n• **Fast integration tests** designed for efficient CI pipeline execution  \n• **Performance validation suite** for monitoring system performance metrics\n• **Optimized GitHub Actions workflow** with parallel job execution and caching improvements\n• **Comprehensive documentation** including migration guide and testing best practices\n\n## Key Features\n\n- Test categorization (parallel, serial, fast, slow, performance) with appropriate timeouts\n- Structured test reporting with JSON output and GitHub annotations\n- Parallel integration test runner for faster CI execution\n- Performance benchmarking capabilities\n- Enhanced caching strategies for dependencies and build artifacts\n\n## Test Plan\n\n- [ ] Verify new test categories run within expected timeouts\n- [ ] Confirm parallel integration tests execute correctly\n- [ ] Validate GitHub Actions workflow optimization\n- [ ] Check performance test baseline establishment\n- [ ] Review migration guide completeness",
-    "createdAt": "2025-09-25T19:04:13Z",
-    "headRefName": "cache-imrpovements",
-    "labels": [],
-    "number": 923,
-    "title": "feat: enhance testing infrastructure with parallel execution and CI optimization",
-    "updatedAt": "2025-09-25T19:05:04Z",
-    "url": "https://github.com/leoafarias/fvm/pull/923"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjc3ODExNDM=",
-      "is_bot": false,
-      "login": "AngeloAvv",
-      "name": "Angelo Cassano"
-    },
-    "baseRefName": "main",
-    "body": "Fixes #762\r\n\r\nBecause of the spreading of Arm64 machines (especially Ampere) on cloud platforms, it would be quite helpful to have a docker image targeting this architecture",
-    "createdAt": "2025-05-10T21:52:09Z",
-    "headRefName": "docker/add-support-to-arm64",
-    "labels": [],
-    "number": 845,
-    "title": "Added support to arm64 docker images",
-    "updatedAt": "2025-05-15T06:30:31Z",
-    "url": "https://github.com/leoafarias/fvm/pull/845"
   },
   {
     "author": {
@@ -183,24 +64,7 @@
     "labels": [],
     "number": 828,
     "title": "Added Dart SDK column in releases command output table",
-    "updatedAt": "2025-03-10T11:24:15Z",
+    "updatedAt": "2026-06-12T19:38:49Z",
     "url": "https://github.com/leoafarias/fvm/pull/828"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjcwMzg0NzI=",
-      "is_bot": false,
-      "login": "mikeborodin",
-      "name": "Mike Borodin"
-    },
-    "baseRefName": "main",
-    "body": "This PR adds nix \"flake\" configuration so that Nix users can easily use `fvm`\r\nWe use `devbox` which is an abstraction on top of nix to declaratively manage project dependencies. \r\nWith this adding `fvm` to the project dev environment is as easy as running `devbox add github:leoafarias/fvm`\r\nThis will result in the \"flake\" added to your `devbox.json` (where all the dependencies are declared): \r\n\r\n```json\r\n{\r\n  \"$schema\": \"https://raw.githubusercontent.com/jetify-com/devbox/0.12.0/.schema/devbox.schema.json\",\r\n  \"packages\": [\r\n    \"github:leoafarias/fvm\",\r\n  ],\r\n  \"shell\": {\r\n    \"init_hook\": [\r\n       \"fvm flutter doctor\"\r\n    ]\r\n  }\r\n}\r\n```\r\n\r\nThe benefit is this file is checked into the source control and everyone on the team will have fvm installed once they are in this dev environment :) \r\n\r\n### Testing steps for this pr\r\n\r\n```\r\n# install devbox\r\ndevbox init\r\ndevbox add github:mikeborodin/fvm/1eccdd2b3235b5455c613241f9ae78c7f1de2ae6\r\ndevbox shell\r\nfvm list\r\n```\r\n\r\nThis is my first PR here so let me know if I missed something 😊\r\n\r\nthanks",
-    "createdAt": "2024-09-04T10:33:56Z",
-    "headRefName": "feature/add-nix-flake-installation-option",
-    "labels": [],
-    "number": 775,
-    "title": "feature: add Nix Flake support",
-    "updatedAt": "2025-11-03T16:16:42Z",
-    "url": "https://github.com/leoafarias/fvm/pull/775"
   }
 ]

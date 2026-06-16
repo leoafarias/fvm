@@ -1,0 +1,10 @@
+{
+  "number": 1026,
+  "title": "[Feature Request] Per-project JDK configuration",
+  "triagedAt": "2026-06-10",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1026.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1026",
+  "notes": "Valid project toolchain isolation gap; FVM has no project-scoped JDK setting today."
+}

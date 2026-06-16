@@ -1,5 +1,7 @@
 # Action Item: Issue #688 – Honor `FLUTTER_STORAGE_BASE_URL` for SDK Downloads
 
+> Revalidated 2026-06-10 after merging `origin/main`: the P1 classification is still correct because installs remain git-only, while release metadata still exposes `archiveUrl` and `sha256`. Some command examples below predate the current `install` command defaults (`--setup` now defaults to true), so refresh exact signatures before implementing.
+
 ## Objective
 Allow FVM to install Flutter SDKs from pre-compiled archives using a `--archive` flag, enabling support for mirrored storage endpoints (e.g., corporate mirrors) and providing faster installation for all users.
 

@@ -1,0 +1,10 @@
+{
+  "number": 1024,
+  "title": "[Feature Request] Allow fvm use/install to function on windows without admin privileges.",
+  "triagedAt": "2026-06-10",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1024.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1024",
+  "notes": "Valid Windows no-admin usability/security request; current privilegedAccess=false option is a partial workaround but not automatic or prominent."
+}

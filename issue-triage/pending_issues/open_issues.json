@@ -2,6 +2,114 @@
   {
     "assignees": [],
     "author": {
+      "id": "U_kgDODD2l1w",
+      "is_bot": false,
+      "login": "Dan-Solopago",
+      "name": "Daniel Tovar"
+    },
+    "body": "# [Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows\n\n## Description\nFVM remains in a frozen state whenever it tries to initialize or use a Flutter version. The process hangs specifically after \"Starting to update environment variables...\" and during \"Downloading Dart SDK from Flutter engine...\". No error message is ever displayed, and the terminal becomes unresponsive.\n\n## Context\n- **FVM Version:** 4.0.5\n- **Operating System:** Windows 11 (Version 10.0.26200)\n- **Shell:** PowerShell 7.5.5 and CMD (tested on both)\n- **Global Dart SDK:** 3.11.4\n- **FVM Cache Path:** `C:\\Users\\Solopago\\fvm_cache`\n\n## Steps to Reproduce\n1. Install FVM on Windows.\n2. Run `fvm install stable` or `fvm use <version>`.\n3. The process reaches the \"Downloading Dart SDK...\" step and hangs indefinitely.\n\n## Troubleshooting Performed (What I've tried)\nDespite extensive debugging, the following actions did **not** resolve the issue:\n- **Permissions:** Ran terminal as Administrator and enabled Windows Developer Mode.\n- **Security:** Disabled Windows Defender Firewall and Ransomware \"Controlled Folder Access\".\n- **Manual execution:** Attempted to run `.\\flutter.bat doctor` directly from the `fvm_cache` internal folder. Even in a raw CMD environment, the command produces no output and hangs.\n- **Git:** Verified `git --version` works and responds instantly.\n- **Zombie Processes:** Cleared all `dart.exe` and `flutter.exe` processes from Task Manager between attempts.\n- **Manual Cache Cleanup:** Manually deleted the `fvm_cache` folder and re-ran `fvm install`.\n- **Dart Binary Test:** Running the managed `dart.exe --version` directly also results in a silent hang.\n\n## Expected Behavior\nThe process should download the Dart SDK, complete the environment setup, and allow Flutter commands to execute.\n\n## Actual Behavior\nThe process hangs silently.\n\n<img width=\"1104\" height=\"620\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/46fcd40f-6304-491f-9123-3fa928727949\" />",
+    "createdAt": "2026-04-21T20:03:31Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1028,
+    "title": "[Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows",
+    "updatedAt": "2026-06-04T18:15:16Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1028"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjI2MzA4MDEz",
+      "is_bot": false,
+      "login": "manmaor",
+      "name": ""
+    },
+    "body": "## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/#principles)\n\n**Is your feature request related to a problem? Please describe.**\nfvm flutter config --jdk-dir <path> sets the JDK path globally. and without it flutter gives preference to the configured Android SDK/JDK path over the system JAVA_HOME.\n\nWhen working on multiple projects that require different Java versions (e.g., an older project needing JDK 11 and a newer one needing JDK 17 or newer), running the config command in one project breaks the build environment for all others. FVM currently provides an isolated Flutter SDK environment, but the underlying Java requirement remains a \"global leak\" that requires manual intervention every time I switch projects.\n\n**Describe the solution you'd like**\nI would like FVM to manage the JDK path on a per-project basis, effectively \"localizing\" the --jdk-dir setting. \n\n**Describe alternatives you've considered**\n1. mainly manual toggling. Running fvm flutter config --jdk-dir every time I switch folders, which is tedious and prone to error. \n2. changing JAVA_HOME, but without jdk-dir flutter ignores the environment variable and defaults to the android SDK version\n\n**Additional context**\nThis would complete the \"project sandbox\" experience. Currently, FVM handles the SDK perfectly, but the Android build toolchain remains \"leaky\" because of how Flutter stores its JDK path globally.\n",
+    "createdAt": "2026-04-05T13:26:53Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 1026,
+    "title": "[Feature Request] Per-project JDK configuration",
+    "updatedAt": "2026-04-27T10:54:22Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1026"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjQzOTU5NjUy",
+      "is_bot": false,
+      "login": "TDuffinNTU",
+      "name": "Thomas Duffin"
+    },
+    "body": "## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/#principles)\n\n**Is your feature request related to a problem? Please describe.**\nWe shouldn't need to rely on user privilege escalation to install and manage FVM on Windows. It's a massive attack surface and opens up supply-change attacks from dependencies of FVM or the project itself. \n\nAnd sure, I can personally get my IT support to let me into admin for a day, but the moment I need to run `fvm use` again? I gotta make a new ticket!\n\nThe reliance on admin rights for FVM is largely moot, too, as there _are_ ways to create symlinks as unprivileged users on Windows, they simply rely on application devs to implement them instead of being backwards compatible (silly, I know).\n\n**Describe the solution you'd like**\nfvm install and use should not need to have admin rights to function on Windows. Whether this is implemented via symlinking changes to work for unprivileged accounts, or some other change (eg. fvm using an environment variable instead of a symlink at all) is not up to me, but I\n\n**Describe alternatives you've considered**\nI've written this small powershell script that I can use as a proxy for fvm commands. For `use` and `install` commands, it simply does the symlinking step itself afterwards. It'll still show the symlink error (I've tried to suppress this but it's more work than it's worth) and only works if your fvm cache is in ~/fvm/versions but otherwise seems to be fine for my usecase..? Not tested it much yet tbh\n\n```ps\n# Runs an FVM command, then attempts to symlink the cache to the project folder.\n# Only attempts symlinking if \"use\" or \"install\" commands are invoked.\nfunction Main {\n    fvm $args\n    if ($args[0] -eq \"use\") {\n        SymlinkManually\n    }\n    if ($args[0] -eq \"install\" -and $args.Length -lt 2) {\n        SymlinkManually\n    }\n}\n\n# Symlinks \".fvm/versions\" to \"~/fvm/versions\". \nfunction SymlinkManually {\n    Write-Output \"Symlinking manually...\"\n    Remove-Item .\\.fvm\\versions\n\n    # May not be correct for your configuration!\n    # Source: https://stackoverflow.com/questions/66609154/symlinks-cannot-be-created-in-powershell-5-1-but-can-be-created-by-powershell-7\n    cmd /c mklink /J .\\.fvm\\versions %USERPROFILE%\\fvm\\versions\n}\n\n\nMain @args\n```\n\n**Additional context**\n\nWorkaround | https://stackoverflow.com/questions/66609154/symlinks-cannot-be-created-in-powershell-5-1-but-can-be-created-by-powershell-7\n\nDiscussion over unprivileged symlinking support in Windows | https://superuser.com/questions/1274164/how-to-use-the-symlinks-without-elevation-feature-from-the-windows-10-creators",
+    "createdAt": "2026-03-13T13:32:16Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 1024,
+    "title": "[Feature Request] Allow fvm use/install to function on windows without admin privileges.",
+    "updatedAt": "2026-03-13T13:32:40Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1024"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjg2NjA3NTg5",
+      "is_bot": false,
+      "login": "i11010520",
+      "name": ""
+    },
+    "body": "```\n[N] at 23:19:19 ❯ fvm doctor\nFVM Doctor:                                                                                                                          \n-------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬────────────────┐\n│ Project                     │ work           │\n├─────────────────────────────┼────────────────┤\n│ Directory                   │ /Users/work    │\n├─────────────────────────────┼────────────────┤\n│ Active Flavor               │ None           │\n├─────────────────────────────┼────────────────┤\n│ Is Flutter Project          │ No             │\n├─────────────────────────────┼────────────────┤\n│ Dart Tool Generator Version │ Not available  │\n├─────────────────────────────┼────────────────┤\n│ Dart tool version           │ Not available  │\n├─────────────────────────────┼────────────────┤\n│ .gitignore Present          │ No             │\n├─────────────────────────────┼────────────────┤\n│ Config Present              │ No             │\n├─────────────────────────────┼────────────────┤\n│ Pinned Version              │ None           │\n├─────────────────────────────┼────────────────┤\n│ Config path                 │ .fvmrc         │\n├─────────────────────────────┼────────────────┤\n│ Local cache dir             │ .fvm/versions  │\n├─────────────────────────────┼────────────────┤\n│ Version symlink             │ .fvm/versions  │\n└─────────────────────────────┴────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬─────────────────────────────────────────────────────┐\n│ IDEs                           │ Value                                               │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │ No .vscode directory found                          │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No local.properties file found in android directory │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No .idea folder found                               │\n└────────────────────────────────┴─────────────────────────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬────────────────────────────────────────┐\n│ Environment Variables │ Value                                  │\n├───────────────────────┼────────────────────────────────────────┤\n│ Flutter PATH          │ /Users/work/fvm/default/bin/flutter │\n├───────────────────────┼────────────────────────────────────────┤\n│ Dart PATH             │ /Users/work/fvm/default/bin/dart    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_CACHE_PATH        │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_USE_GIT_CACHE     │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_FLUTTER_URL       │ N/A                                    │\n└───────────────────────┴────────────────────────────────────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ macos Version 26.3.1 (Build 25D2128)                             │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ zh-Hans-CN                                                       │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.11.0 (stable) (Mon Feb 9 00:38:07 2026 -0800) on \"macos_arm64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\n```\n```\n[N] at 23:19:20 ❯ fvm flutter upgrade\n```\n> Your flutter checkout has local changes that would be erased by upgrading. If you want to keep these changes, it is recommended that you stash them via \"git stash\" or else commit the changes to a local branch. If it is okay to remove local changes, then re-run this command with \"--force\".\n\n\nIs it normal? \nWhat is the right way to upgrade flutter installed by fvm?",
+    "createdAt": "2026-03-11T00:23:42Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1023,
+    "title": "[BUG] How to upgrade fvm flutter?",
+    "updatedAt": "2026-04-07T03:43:35Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1023"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjI0Mzk4NDM=",
+      "is_bot": false,
+      "login": "vladimir-ionita",
+      "name": "Vladimir Ionita"
+    },
+    "body": "## Problem\n\nfvm 4.0.5 depends on `pub_updater: ^0.4.0`. Other common dev tools (e.g., melos) have moved to `pub_updater: ^0.5.0`. Since these constraints are incompatible, fvm can't coexist as a dev_dependency in projects that also depend on packages requiring `pub_updater ^0.5.0`.\n\nThis is especially problematic with Dart pub workspaces (Dart 3.6+), where all packages in a monorepo share a single dependency resolution.\n\n## Proposed fix\n\nBump `pub_updater` from `^0.4.0` to `^0.5.0` in fvm's `pubspec.yaml`. The 0.5.0 release contains no breaking API changes — it was a \"tighten dependencies\" maintenance release.",
+    "createdAt": "2026-03-10T20:50:54Z",
+    "labels": [],
+    "number": 1021,
+    "title": "Bump pub_updater to ^0.5.0",
+    "updatedAt": "2026-03-10T20:50:54Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1021"
+  },
+  {
+    "assignees": [],
+    "author": {
       "id": "MDQ6VXNlcjUwODAyMDQ=",
       "is_bot": false,
       "login": "TheCarpetMerchant",
@@ -19,7 +127,7 @@
     ],
     "number": 1017,
     "title": "[BUG] fvm use doesn't work",
-    "updatedAt": "2026-03-02T08:16:37Z",
+    "updatedAt": "2026-03-06T07:15:52Z",
     "url": "https://github.com/leoafarias/fvm/issues/1017"
   },
   {
@@ -55,34 +163,18 @@
     },
     "body": "We use AI every day to develop Flutter apps. But I noticed the Dart MCP always fails to use the fvm. I have updated the MCP config from the official docs. It would be great if we could add this to the docs\n\nSource: https://github.com/dart-lang/ai/issues/319#issuecomment-3554308855\n\n```json\n{\n    \"mcpServers\": {\n        \"dart\": {\n            \"command\": \"dart\",\n            \"args\": [\n                \"mcp-server\",\n                \"--flutter-sdk\",\n                \".fvm/flutter_sdk\"\n            ]\n        }\n    }\n}\n```",
     "createdAt": "2026-02-18T08:09:48Z",
-    "labels": [],
-    "number": 1015,
-    "title": "Update docs to add info about using FVM with Dart MCP ",
-    "updatedAt": "2026-02-18T08:10:03Z",
-    "url": "https://github.com/leoafarias/fvm/issues/1015"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "U_kgDOD43x2Q",
-      "is_bot": false,
-      "login": "coups-cs",
-      "name": ""
-    },
-    "body": "**Describe the bug**\n\nWhen the fvm cli attempts to install a flutter SDK for the first time  there is an `Unknown error`\n<img width=\"854\" height=\"194\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/22a4db21-52f3-444d-aba3-321f531608ad\" />\n```bash\nProcessException: Unknown error\n     Command: git clone --progress -c advice.detachedHead=false -b stable --reference /Users/user/fvm/cache.git https://github.com/flutter/flutter.git /Users/user/fvm/versions/stable\n```\n\nThis is the state of the fvm folder in my user filesystem\n<img width=\"850\" height=\"35\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/dd8a81c8-24cd-4a63-82de-5675a0424678\" />\n\nIf I then attempt to install again it has an issue with the clone repo.\n<img width=\"857\" height=\"53\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/454a6084-3174-45ad-9abe-f8ac27fb242d\" />\n\nThis happens upon installing any version of the Flutter SDK\n<img width=\"852\" height=\"47\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/ed82d247-437e-41e8-83d3-6a40969fbdb3\" />\n\nThe issue appears **not** to be localised to my MacBook, I have found another user is experiencing the same issue.\n\nThere's a simple work around which I will post in this thread.\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Go to terminal.\n2. Run `fvm install stable` or `fvm install <Flutter SDK version number>`\n3. See error\n\n**Expected behavior**\nFlutter SDK version should install correctly into the version folder to be used in your project\n\n**Logs**\n<details>\n  <summary>fvm install 3.41.0 --verbose</summary>\n\n  ```bash\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: install\n\nSkipping git reference validation for version: 3.41.0\nUpdating local mirror...\nEnsuring clean working directory...\nPruning stale references...\nFetching all refs...\nChecking for uncommitted changes...\nNo uncommitted changes. Working directory is clean.\nLocal mirror updated successfully\nInstalling Flutter SDK: SDK Version : 3.41.0\nCloning into '/Users/samcoupland/fvm/versions/3.41.0'...\nUpdating files: 100% (15354/15354), done.\n✗ Failed to install 3.41.0 (0ms)\n✗ Flutter SDK is not a valid git repository after clone. Please try again.\n```\n\n</details>\n\n**Desktop (please complete the following information):**\n\n- OS: IOS\n- FVM Version: 4.0.5\n\n**Additional context**\n\nI have installed the latest version of FVM using brew, however I have experienced the same issue after installing it directly from fvm.app.\n\nI can confirm git is working correctly and I have also updated the git config to allow for larger packet sizes and to accommodate for large repos, but have not seen a change in this error.",
-    "createdAt": "2026-02-13T15:59:14Z",
     "labels": [
       {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
+        "id": "LA_kwDOCkCuKM8AAAACm0fBHg",
+        "name": "documentation",
+        "description": "",
+        "color": "ededed"
       }
     ],
-    "number": 1014,
-    "title": "[BUG] Installing a flutter SDK failing",
-    "updatedAt": "2026-02-13T16:12:10Z",
-    "url": "https://github.com/leoafarias/fvm/issues/1014"
+    "number": 1015,
+    "title": "Update docs to add info about using FVM with Dart MCP ",
+    "updatedAt": "2026-06-13T05:16:00Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1015"
   },
   {
     "assignees": [],
@@ -94,10 +186,17 @@
     },
     "body": "I am trying to get set up using a fork of Flutter in my own repo. I am having a similar issue to [this](https://github.com/leoafarias/fvm/issues/773). I am uncertain which approach is appropriate for my use case and am having little luck.\n\nUltimately, I need to setup a fork of Flutter with a patch fix that my project can use. This is a company project so the forked version needs to be accessible from any other dev's machine by running `fvm use`.\n\nI created a fork of the Flutter repo per [their instructions](https://github.com/flutter/flutter/blob/main/docs/contributing/Setting-up-the-Framework-development-environment.md). Since this is currently pointing to the latest flutter I created a new branch and associated tag for my target version 3.35.6 that is pulled from that flutter tag. I then created a new branch and tag for my patch fix 3.35.6-patch. \n\nI created a fork using the first approach: `fvm fork add my-fork`\nI installed it with: `fvm install my-fork/3.35.6-patch`\nI list my versions: `fvm list`\nFlutter Version is listed as \"0.0.0-unknown\"\n\nI also tried using the second approach but if I understand correctly this will only work locally. I happily welcome any guidance.",
     "createdAt": "2026-01-02T20:46:57Z",
-    "labels": [],
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
     "number": 1009,
     "title": "Custom fork issues",
-    "updatedAt": "2026-02-11T10:48:59Z",
+    "updatedAt": "2026-06-10T13:59:04Z",
     "url": "https://github.com/leoafarias/fvm/issues/1009"
   },
   {
@@ -131,29 +230,6 @@
       "login": "vhaudiquet",
       "name": "Valentin Haudiquet"
     },
-    "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n\n**Describe the bug**\nOn RISC-V, fvm downloads `arm64` version of the dart SDK. This will not work...\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Create a RISC-V VM (documentation is available, e.g. [here for Ubuntu](https://canonical-ubuntu-boards.readthedocs-hosted.com/en/latest/how-to/qemu-riscv/))\n2. Install unzip `apt update && apt install -y unzip` (cf. #968)\n3. Download fvm latest release and extract:\n```\ncurl -L -O https://github.com/leoafarias/fvm/releases/download/4.0.1/fvm-4.0.1-linux-riscv64.tar.gz\ntar xzf fvm-4.0.1-linux-riscv64.tar.gz\ncd fvm\n```\n3. Create `.fvmrc` file: `echo '{ \"flutter\": \"3.35.3\" }' > .fvmrc`\n4. Use `./fvm install`\n\n**Expected behavior**\nfvm downloads `riscv64` binaries, and not `arm64` ones.\n\n**Logs**\n```\nubuntu@ubuntu:~/fvm/test$ ../fvm install\n✓ Flutter SDK: SDK Version : 3.35.3 is already installed.\nSetting up Flutter SDK: 3.35.3\n\nDownloading Linux arm64 Dart SDK from Flutter engine ddf47dd3ff96dbde6d9c614db0d7f019d7c7a2b7...\n\n...\n\nBuilding flutter tool...\n/home/ubuntu/fvm/versions/3.35.3/bin/internal/shared.sh: line 23: /home/ubuntu/fvm/versions/3.35.3/bin/cache/dart-sdk/bin/dart: cannot execute binary file: Exec format error\n...\n```\n\n**Desktop (please complete the following information):**\n\n- OS: Ubuntu 26.04 Resolute Raccoon (Development Preview)\n- FVM Version: 4.0.1\n\n**Additional context**\n\nAlright, this is not easy.\nI think that there is no Flutter engine built by google for riscv64, and I've heard that the Google Flutter team doesn't want to build an engine for riscv64.\n\nMaybe that will make you want to drop risc-v support ?\n\nThe dart SDK builds binaries for riscv64, so a first step would be to download dart SDK binaries directly from upstream dart and not the flutter engine. But then we still miss the Flutter engine.\n\nAnother way is to use the patches mentioned in the articles linked in https://github.com/flutter/flutter/issues/99963. However I'm not sure if you want to do that, and there is still no flutter engine available in binary form.\n\nAnother way would be to use a flutter engine from another place than google, that would be maintained by the community or another organization. I plan to investigate building a flutter engine for riscv64, trying to automate that build, and we will see how that goes. I will communicate more when concrete plans are in place.\n\nI'm not sure what you think as a maintainer of fvm, whether that seems like a total waste of your time for 0.1% of users or if you are willing to introduce special cases and dedicate a bit of time for that. But I think that if you want to support RISC-V, it might be more complex than initially thought.",
-    "createdAt": "2025-11-12T16:59:32Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 969,
-    "title": "[BUG] RISC-V: Download the right dart SDK (and engine ?) for real RISC-V support",
-    "updatedAt": "2025-11-13T11:02:10Z",
-    "url": "https://github.com/leoafarias/fvm/issues/969"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjkyNzQwNzc=",
-      "is_bot": false,
-      "login": "vhaudiquet",
-      "name": "Valentin Haudiquet"
-    },
     "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n\n**Describe the bug**\nI'm on a riscv64 VM, testing the newly-added risc-v support :)\nI set up a .fvmrc with `{ \"flutter\": \"3.35.3\" }`, and try to run `fvm install`.\nEverything seems to work, but after download I get:\n```\n✓ Flutter SDK: SDK Version : 3.35.3 installed! (95.2s)\nSetting up Flutter SDK: 3.35.3\n\n\nMissing \"unzip\" tool. Unable to extract Dart SDK.\nConsider running \"sudo apt-get install unzip\".\n\n\n✓ Flutter SDK: SDK Version : 3.35.3 is setup\n[WARN] Flutter SDK is not setup, skipping resolve dependencies.\n✓ Project now uses Flutter SDK : SDK Version : 3.35.3\n```\n\nIt feels kind of weird that the SDK setup seems to fail, then gives me a checkmark that it works, then a warning  about it not being setup, and then a checkmark that everything works.\n\nIMHO this should fail more agressively ? Feel free to close if you don't think that this is relevant, but I feel like the current output is very confusing\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Set up a VM / container that does not have unzip\n2. Setup an fvmrc file\n3. Use fvm install\n\n**Expected behavior**\nThe program would fail with an error message telling me to fix dependencies, or end on a warning that the SDK is not setup, without ever telling me that it is setup with a checkmark.\n\n**Logs**\n\nSee above\n\n**Desktop (please complete the following information):**\n\n- OS: Ubuntu 26.04 Resolute Raccoon (Development Preview)\n- FVM Version: 4.0.1 (latest release)\n\n**Additional context**\n\nAfter installing unzip, the SDK setup takes place.\nHowever it downloads the arm64 sdk. This is a whole other bug... (#969)\n\nThank you for your work!\n",
     "createdAt": "2025-11-12T16:43:40Z",
     "labels": [
@@ -175,7 +251,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -219,7 +295,7 @@
     ],
     "number": 906,
     "title": "Very long wait when opening terminal in android studio",
-    "updatedAt": "2025-09-12T06:16:28Z",
+    "updatedAt": "2026-06-10T13:59:08Z",
     "url": "https://github.com/leoafarias/fvm/issues/906"
   },
   {
@@ -382,7 +458,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -481,7 +557,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -541,7 +617,7 @@
     ],
     "number": 767,
     "title": "[BUG] Android Studio cannot change the project's Flutter SDK path",
-    "updatedAt": "2024-12-04T09:15:28Z",
+    "updatedAt": "2026-05-14T18:31:11Z",
     "url": "https://github.com/leoafarias/fvm/issues/767"
   },
   {
@@ -986,7 +1062,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -1016,7 +1092,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -1037,7 +1113,7 @@
     ],
     "number": 648,
     "title": "Dart Version management improvements",
-    "updatedAt": "2024-05-21T22:15:13Z",
+    "updatedAt": "2026-05-31T23:58:23Z",
     "url": "https://github.com/leoafarias/fvm/issues/648"
   },
   {
@@ -1046,7 +1122,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {
@@ -1111,7 +1187,7 @@
         "id": "MDQ6VXNlcjc0MDc5MQ==",
         "login": "ManuelRauber",
         "name": "Manuel Rauber",
-        "databaseId": 0
+        "databaseId": 740791
       }
     ],
     "author": {
@@ -1141,7 +1217,7 @@
         "id": "MDQ6VXNlcjQzNTgzMw==",
         "login": "leoafarias",
         "name": "Leo Farias",
-        "databaseId": 0
+        "databaseId": 435833
       }
     ],
     "author": {

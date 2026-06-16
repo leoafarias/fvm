@@ -7,6 +7,12 @@
 - **Issue Type**: bug / platform support gap
 - **URL**: https://github.com/leoafarias/fvm/issues/969
 
+## Resolution Update
+- **Closed**: 2026-06-11
+- **Resolution**: completed/upstream Flutter behavior changed.
+- **Evidence**: reporter confirmed Flutter 3.42+ now attempts `riscv64` Dart SDK download and the remaining failure is the expected upstream engine/toolchain support path.
+- **Triage action**: moved from `validated/p2-medium/` to `closed/` during the 2026-06-16 sync.
+
 ## Problem Summary
 On Linux RISC-V, running setup after install downloads an `arm64` Dart SDK, causing runtime failure (`Exec format error`). Reporter later noted the download decision appears to happen inside Flutter tooling, not directly in FVM.
 
@@ -39,8 +45,8 @@ lib/src/services/releases_service/models/flutter_releases_model.dart:76-101
 - [lib/src/services/releases_service/models/flutter_releases_model.dart:76](../lib/src/services/releases_service/models/flutter_releases_model.dart#L76) - Architecture filtering assumptions.
 
 ## Current Status in v4.0.0
-- [x] Still reproducible (for RISC-V environments)
-- [ ] Already fixed
+- [ ] Still reproducible (for RISC-V environments)
+- [x] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 - [ ] Cannot reproduce
@@ -68,9 +74,9 @@ FVM can install/use a RISC-V FVM binary, but SDK setup remains dependent on Flut
 - [docs/public/install.sh](../docs/public/install.sh) - Public script mirror needs to stay in sync with `scripts/install.sh`.
 
 ## Recommendation
-**Action**: validate-p3
+**Action**: closed
 
-**Reason**: Real user impact on a niche platform, but mostly upstream/toolchain constrained; prioritize documentation and guardrails over core logic changes.
+**Reason**: GitHub issue #969 is closed as completed after reporter verification. The remaining failure mode belongs to upstream Flutter engine/toolchain availability rather than active FVM triage.
 
 ## Notes
 - Reporter explicitly acknowledged this may be upstream Flutter behavior and invited close/wontfix if FVM scope remains limited.

@@ -1,0 +1,12 @@
+{
+  "number": 1014,
+  "title": "[BUG] Installing a flutter SDK failing",
+  "triagedAt": "2026-03-03",
+  "closedAt": "2026-03-05",
+  "priority": "p1-high",
+  "status": "closed",
+  "resolution": "completed",
+  "artifact": "../artifacts/issue-1014.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1014",
+  "notes": "GitHub issue is closed as completed; removed from active P1 tracker during 2026-06-10 sync."
+}

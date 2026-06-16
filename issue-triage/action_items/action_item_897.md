@@ -1,5 +1,7 @@
 # Action Item: Issue #897 – Handle Read-Only Shell Profiles (Nix/Home Manager)
 
+> **ARCHIVED 2026-06-10**: GitHub issue #897 is closed as completed. This action item is retained as historical implementation context, not as an active follow-up.
+
 > **UPDATE 2025-12-09**: Previous analysis was incorrect. The error comes from the **Dart CLI** (`cli_completion` package), NOT the install script. See `issue-triage/artifacts/issue-897-fix-plan.md` for the correct fix.
 
 ## Objective

@@ -6,5 +6,5 @@
   "status": "validated",
   "artifact": "../../artifacts/issue-1015.md",
   "url": "https://github.com/leoafarias/fvm/issues/1015",
-  "notes": "Documentation gap: no MCP configuration guidance currently exists in docs for FVM-managed Flutter SDK usage."
+  "notes": "Documentation gap with open PR #1038 adding a Dart MCP guide. Keep active until PR #1038 merges and GitHub closes #1015."
 }

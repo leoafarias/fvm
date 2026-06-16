@@ -1,0 +1,11 @@
+{
+  "number": 1021,
+  "title": "Bump pub_updater to ^0.5.0",
+  "triagedAt": "2026-06-10",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1021.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1021",
+  "related_prs": [1022],
+  "notes": "Dependency compatibility issue for Dart pub workspaces; PR #1022 is open and directly addresses it."
+}

@@ -2,8 +2,8 @@
 
 **Started**: 2025-10-30
 **Current Version**: v4.0.0
-**Total Open Issues**: 53
-**Historical Issues Triaged**: 92
+**Total Open Issues**: 56
+**Historical Issues Triaged**: 103
 
 ## Progress Tracker
 
@@ -12,9 +12,8 @@
 
 ### P1 - High (Installation/Major Issues)
 - [ ] #688 - FVM still performs Git installs; need archive-based strategy honoring FLUTTER_STORAGE_BASE_URL/FLUTTER_RELEASES_URL mirrors with checksum validation and docs.
-- [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
-- [ ] #914 - Windows installs still require manual git safe.directory config; plan to auto-run git config in GitService.
-- [ ] #1014 - `fvm install` can fail post-clone with “not a valid git repository” / “Unknown error”; add stronger diagnostics and retry without `--reference` fallback.
+- [ ] #914 - Windows Git safe.directory docs now exist; remaining work is doctor detection, targeted CLI messaging, and optional explicit fix command.
+- [ ] #1028 - Install/use can appear frozen during setup or local mirror update; revalidate after PR #1037 git-cache changes, then add progress, timeout, and diagnostics around remaining long-running processes.
 
 ### P2 - Medium (Standard Bugs/Enhancements)
 - [ ] #577 - Allow `fvm install` to read `environment.flutter` from pubspec.yaml (via a new flag or fallback), resolve the constraint to a concrete release, and install that version automatically.
@@ -41,6 +40,9 @@
 - [ ] #894 - Add group-shared cache support (git core.sharedRepository, chmod g+rwX, optional cache group config).
 - [ ] #968 - Setup reports success even when required tools (e.g., unzip) are missing; fail fast when SDK remains not-setup after `flutter --version`.
 - [ ] #1008 - Extend Melos auto-update to support `pubspec.yaml`-based `melos.sdkPath` (not just `melos.yaml` root `sdkPath`).
+- [ ] #1021 - Bump `pub_updater` to `^0.5.0` so FVM can coexist with newer workspace tooling; PR #1022 is open.
+- [ ] #1024 - Make Windows no-admin use/install path automatic or obvious; `privilegedAccess: false` exists but is only a partial/manual workaround.
+- [ ] #1026 - Add or document per-project JDK configuration so Flutter's global `--jdk-dir` setting does not leak across projects.
 
 ### P3 - Low (Minor Issues/Feature Requests)
 - [ ] #575 - `fvm flavor <name> <command>` already proxies Flutter commands with the flavor's version without switching; document usage and close.
@@ -56,10 +58,10 @@
 - [ ] #784 - Consider `fvm env` command to print PATH exports for temporary sessions.
 - [ ] #787 - Assess packaging wrapper scripts; document current PATH-based workflow.
 - [ ] #791 - Fork names already namespace versions (alias/version syntax).
-- [ ] #969 - Clarify/guard RISC-V setup behavior (upstream Flutter limitation) and align architecture support messaging/docs.
 - [ ] #1009 - Improve custom fork docs/output for non-standard refs that show unknown Flutter version metadata.
-- [ ] #1015 - Add official docs for Dart MCP configuration using `.fvm/flutter_sdk`.
+- [ ] #1015 - Add official docs for Dart MCP configuration using `.fvm/flutter_sdk`; PR #1038 is open and should close this if merged.
 - [ ] #1016 - Consider partial-version install resolution (`3.38` -> latest `3.38.x`) behind explicit resolver behavior.
+- [ ] #1023 - Clarify how to upgrade FVM-managed Flutter SDKs; overlaps with the planned `fvm upgrade` workflow in #583.
 
 ### Needs More Info
 - [ ] #731 - Screenshot only; request commands and logs.
@@ -224,11 +226,45 @@
 - #1017: Marked as needs-info pending minimal reproduction; current logs indicate environment/PATH mismatch rather than core `fvm use` failure (`artifacts/issue-1017.md`).
 ---
 
+### Session 12: 2026-06-10 (Live GitHub Sync and Consistency Audit)
+- Ran `issue-triage/scripts/sync_github.sh`; pending snapshots now show 58 open issues and 10 open PRs.
+- Archived closed active items #897, #974, #1014, #783, and #820 into `closed/`; removed the duplicate P3 summary for #969 and kept the P2 classification.
+- Triaged newly open/unclassified issues: #1021 -> P2, #1023 -> P3, #1024 -> P2, #1026 -> P2, #1028 -> P1, and #1030 -> P1.
+- Verified the specialized `install_permission_issues/` research cluster is absent from the live open issue list and left it as a separate historical archive.
+- Synced stale auxiliary metadata: refreshed closed/merged states for comment logs #897, #920, #923, #956, and #960; marked the #897 action item as archived.
+- Rebuilt the Progress Tracker and Summary Statistics from active JSON folders so totals match the live open issue snapshot.
+---
+
+### Session 13: 2026-06-10 (Post-Main Priority Plan)
+- Re-ran the GitHub sync after merging `origin/main`; pending snapshots still show 58 open issues and 10 open PRs.
+- Verified active classification parity: every live open issue has exactly one active P0/P1/P2/P3/needs-info JSON summary, with no stale closed or duplicate active entries.
+- Rechecked all four P1 items against the latest code and docs. No P1 downgrades: #688, #1028, and #1030 remain unresolved in code; #914 docs now exist but doctor/CLI diagnostics remain open.
+- Added `artifacts/actionable-priority-plan-2026-06-10.md` as the execution handoff for actionable priorities and validation gates.
+- Added missing P1 action items for #1028 and #1030, and narrowed the #914 action item to current remaining scope.
+---
+
+### Session 14: 2026-06-16 (Post-Merge Issue Closure Sync)
+- Ran `issue-triage/scripts/sync_github.sh`; pending snapshots now show 56 open issues and 4 open PRs.
+- Moved #1030 from active P1 to `closed/` after GitHub closed it as completed by merged PR #1033 (`fix: avoid false cache version mismatches from git describe tags`).
+- Moved #969 from active P2 to `closed/` after GitHub closed it as completed; reporter confirmed Flutter 3.42+ now reaches the expected upstream RISC-V SDK/engine support path.
+- Left #1028 active in P1, but marked it for revalidation after pulling latest `main` because merged PR #1037 materially changed git-cache behavior without closing the issue.
+- Left #1015 active in P3 and noted open PR #1038, which closes #1015 if merged.
+- Verified no newly open issue is unclassified and no duplicate active classifications remain after the moves.
+---
+
+### Session 15: 2026-06-16 (Merged PR Issue Audit)
+- Audited all PRs merged since 2026-06-10: #1032, #1033, #1034, #1035, #1036, #1037, #1039, #1040, and #1041.
+- Confirmed only #1033 has a GitHub issue-closing reference, closing #1030; #1030 was already moved to `closed/` in Session 14.
+- Confirmed #1036 only references #1030 without closing it, and #1041 references PR numbers rather than additional issues.
+- Ran a closed-issue sweep for `closed:>=2026-06-10`; only #969 and #1030 were returned, and both are already in `closed/`.
+- Recorded the audit in `artifacts/merged-pr-issue-audit-2026-06-16.md`; no additional active issues need closure from merged PRs.
+---
+
 ## Summary Statistics
-- **Open Issues**: 53
+- **Open Issues**: 56
 - **P0 Critical**: 0
 - **P1 High**: 3
-- **P2 Medium**: 24
+- **P2 Medium**: 27
 - **P3 Low**: 17
 - **Needs Info**: 9
-- **Resolved/Archived**: 11
+- **Resolved/Archived**: 47

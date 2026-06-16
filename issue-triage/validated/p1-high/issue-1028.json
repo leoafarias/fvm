@@ -1,0 +1,10 @@
+{
+  "number": 1028,
+  "title": "[Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows",
+  "triagedAt": "2026-06-10",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1028.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1028",
+  "notes": "Install/use can appear frozen during setup or local mirror update; add progress, timeout, and diagnostics around long-running git/flutter processes."
+}

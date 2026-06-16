@@ -1,6 +1,8 @@
 # Action Item: Issue #914 – Documentation & Doctor Check for Git Safe Directory
 
 > ⚠️ **IMPORTANT**: See [action_item_914_docs_corrections.md](./action_item_914_docs_corrections.md) for verified paths and structure corrections after checking the actual FVM documentation setup.
+>
+> Revalidated 2026-06-10 after merging `origin/main`: the dedicated troubleshooting page, troubleshooting metadata, overview page, and FAQ cross-link now exist. Do not recreate the docs page. Remaining active scope is the `fvm doctor` diagnostic, targeted CLI error messaging, and any explicit opt-in fix command.
 
 ## Objective
 Improve discoverability and diagnosis of the Windows Git "unable to find git in your PATH" issue through enhanced documentation and a `fvm doctor` check.
@@ -9,7 +11,7 @@ Improve discoverability and diagnosis of the Windows Git "unable to find git in 
 Windows users with Git ≥2.35.2 frequently encounter "Unable to find git in your PATH" despite Git being installed. This is caused by Git's CVE-2022-24765 security fix that requires repositories to be marked as "safe". The workaround is documented in FAQ but buried and hard to discover.
 
 ## Goals
-1. Create a dedicated, searchable troubleshooting page for this specific issue
+1. Confirm the dedicated troubleshooting page stays linked and accurate
 2. Add a `fvm doctor` check that detects this condition and provides actionable guidance
 3. Update existing documentation to cross-reference the new page
 4. Improve SEO so users searching for the error find FVM's solution quickly
@@ -17,6 +19,14 @@ Windows users with Git ≥2.35.2 frequently encounter "Unable to find git in you
 ---
 
 ## Part 1: Documentation Improvements
+
+**Status**: Mostly completed on current `main`. Verified files:
+- `docs/pages/documentation/troubleshooting/git-safe-directory-windows.md`
+- `docs/pages/documentation/troubleshooting/_meta.json`
+- `docs/pages/documentation/troubleshooting/overview.md`
+- `docs/pages/documentation/getting-started/faq.md`
+
+Before closing #914, only re-check docs links and wording; do not duplicate this content.
 
 ### 1.1 Create New Troubleshooting Page
 

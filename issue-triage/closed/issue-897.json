@@ -1,0 +1,12 @@
+{
+  "number": 897,
+  "title": "How to avoid warning of access .bash_profile?",
+  "triagedAt": "2025-10-30",
+  "closedAt": "2025-12-09",
+  "priority": "p1-high",
+  "status": "closed",
+  "resolution": "completed",
+  "artifact": "../artifacts/issue-897.md",
+  "url": "https://github.com/leoafarias/fvm/issues/897",
+  "notes": "GitHub issue is closed as completed; shell profile write/access issue is no longer an active P1 triage item."
+}

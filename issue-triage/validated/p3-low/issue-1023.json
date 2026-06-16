@@ -1,0 +1,11 @@
+{
+  "number": 1023,
+  "title": "[BUG] How to upgrade fvm flutter?",
+  "triagedAt": "2026-06-10",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1023.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1023",
+  "related_issues": [583],
+  "notes": "Workflow/documentation confusion around fvm flutter upgrade; overlaps with the planned fvm upgrade command."
+}

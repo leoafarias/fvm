@@ -1,0 +1,12 @@
+{
+  "number": 1030,
+  "title": "[BUG] `version mismatch` prompt compares pubspec `version:` against `.fvmrc` SDK + blocks non-interactive callers",
+  "triagedAt": "2026-06-10",
+  "priority": "p1-high",
+  "status": "closed",
+  "artifact": "../artifacts/issue-1030.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1030",
+  "notes": "Closed as completed by merged PR #1033 (fix: avoid false cache version mismatches from git describe tags) on 2026-06-15. Removed from active P1 tracker during 2026-06-16 sync.",
+  "closedAt": "2026-06-15",
+  "resolution": "completed_by_pr_1033"
+}
