@@ -29,6 +29,13 @@ Pre-commit hooks run automatically. Before pushing:
 2. `dcm analyze lib` passes
 3. `dart test` passes
 
+For final review on changes that affect `GitService`, `FlutterService`,
+`EnsureCacheWorkflow`, install/use/global command behavior, prompt handling, or
+project SDK references, also run the manual branch smoke test in
+`docs/pages/documentation/guides/manual-smoke-test.md`. It uses isolated temp `HOME`,
+`FVM_CACHE_PATH`, and `FVM_GIT_CACHE_PATH` values and includes cleanup guidance
+for the temporary SDKs, git cache, project files, and config it creates.
+
 ## Architecture
 
 Commands → Workflows → Services → Models
@@ -50,12 +57,14 @@ Commands → Workflows → Services → Models
 
 ## Documentation
 
-Developer docs in `.context/docs/`. Reference for specific tasks:
+Developer docs live in `.context/docs/` and tracked guides under
+`docs/pages/documentation/guides/`. Reference for specific tasks:
 
 - @README.md - Project overview, release process
 - @CHANGELOG.md - Version history, breaking changes
 - @.github/workflows/README.md - CI/CD pipelines, deployment automation
 - @.context/docs/testing-methodology.md - Test patterns, TestFactory, mocking
 - @.context/docs/integration-tests.md - Real integration guardrails
+- @docs/pages/documentation/guides/manual-smoke-test.md - Isolated final smoke test for git cache, install/use, prompts, symlinks, Melos, VS Code, and cleanup
 - @.context/docs/version-parsing.md - Version parsing regex and logic
 - @.context/docs/v4-release-notes.md - v4.0 architecture changes, migration

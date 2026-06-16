@@ -1,3 +1,8 @@
+---
+id: manual-smoke-test
+title: Manual Branch Smoke Test
+---
+
 # Manual Branch Smoke Test
 
 Use this when an agent needs a quick end-to-end check of the current FVM branch without running the destructive real integration suite.
@@ -32,6 +37,11 @@ It should not mutate the user's normal FVM cache or global config. The temp dire
 
 `FVM_FLUTTER_URL` must be a valid Git URL. Use a `file://` URL for local remotes; a plain filesystem path is rejected by FVM URL validation.
 
+The SDK install, git cache, home directory, generated project, `.fvmrc`,
+`.gitignore`, VS Code settings, and Melos settings all live under the printed
+`Smoke root`. The install path is `$ROOT/fvm-cache/versions/stable`, not the
+user's normal FVM cache.
+
 The script uses `expect` for the interactive Melos confirmation path. macOS includes `/usr/bin/expect`; install it first if another environment does not have it.
 
 ## Command
@@ -41,14 +51,22 @@ Run from the repository root:
 ```bash
 set -euo pipefail
 
+command -v expect >/dev/null || {
+  echo "expect is required for the interactive Melos prompt check" >&2
+  exit 1
+}
+
 FVM_REPO="$(pwd)"
 ROOT="$(mktemp -d /tmp/fvm-branch-smoke.XXXXXX)"
+MARKER="$ROOT/.fvm-smoke-root"
 FAKE_REMOTE_WORK="$ROOT/flutter_seed"
 FAKE_REMOTE_BARE="$ROOT/flutter_remote.git"
 CACHE="$ROOT/fvm-cache"
 GIT_CACHE="$ROOT/cache.git"
 PROJECT="$ROOT/app"
 HOME_DIR="$ROOT/home"
+
+: > "$MARKER"
 
 mkdir -p \
   "$FAKE_REMOTE_WORK/bin" \
@@ -69,8 +87,20 @@ chmod +x bin/flutter bin/dart bin/cache/dart-sdk/bin/dart
 
 git add . >/dev/null
 git commit -m 'seed fake flutter' >/dev/null
+BASE_SHA="$(git rev-parse HEAD)"
+git tag smoke-tag "$BASE_SHA"
+
+git checkout --detach >/dev/null 2>&1
+printf 'hidden-only\n' > hidden_ref_only
+git add hidden_ref_only >/dev/null
+git commit -m 'seed hidden-only ref' >/dev/null
+HIDDEN_SHA="$(git rev-parse HEAD)"
+git update-ref refs/pull/1/head "$HIDDEN_SHA"
+git checkout stable >/dev/null 2>&1
+
 git clone --bare "$FAKE_REMOTE_WORK" "$FAKE_REMOTE_BARE" >/dev/null 2>&1
 git --git-dir="$FAKE_REMOTE_BARE" symbolic-ref HEAD refs/heads/stable
+git --git-dir="$FAKE_REMOTE_BARE" update-ref refs/pull/1/head "$HIDDEN_SHA"
 
 REMOTE_URL="file://$FAKE_REMOTE_BARE"
 
@@ -89,16 +119,28 @@ run_fvm_skip() {
 }
 
 run_fvm_interactive_with_yes() {
-  expect <<EOF
+  SMOKE_HOME="$HOME_DIR" \
+  SMOKE_CACHE="$CACHE" \
+  SMOKE_GIT_CACHE="$GIT_CACHE" \
+  SMOKE_REMOTE_URL="$REMOTE_URL" \
+  SMOKE_REPO="$FVM_REPO" \
+  expect <<'EOF'
 set timeout 90
-spawn env HOME=$HOME_DIR FVM_CACHE_PATH=$CACHE FVM_GIT_CACHE_PATH=$GIT_CACHE FVM_FLUTTER_URL=$REMOTE_URL FVM_USE_GIT_CACHE=true dart run $FVM_REPO/bin/main.dart use stable --force --skip-setup --skip-pub-get
+set main [file join $env(SMOKE_REPO) bin main.dart]
+spawn env \
+  "HOME=$env(SMOKE_HOME)" \
+  "FVM_CACHE_PATH=$env(SMOKE_CACHE)" \
+  "FVM_GIT_CACHE_PATH=$env(SMOKE_GIT_CACHE)" \
+  "FVM_FLUTTER_URL=$env(SMOKE_REMOTE_URL)" \
+  "FVM_USE_GIT_CACHE=true" \
+  dart run $main use stable --force --skip-setup --skip-pub-get
 expect {
   "Would you like to configure melos.yaml to use FVM-managed Flutter SDK?" { send "y\r" }
   timeout { puts "Timed out waiting for Melos prompt"; exit 124 }
 }
 expect eof
 catch wait result
-exit [lindex \$result 3]
+exit [lindex $result 3]
 EOF
 }
 
@@ -130,6 +172,12 @@ fi
 
 test -f .fvmrc
 grep -Fq '"flutter": "stable"' .fvmrc
+test -f .fvm/fvm_config.json
+grep -Fq '"flutterSdkVersion": "stable"' .fvm/fvm_config.json
+test -f .fvm/version
+grep -Fxq '3.99.0-smoke' .fvm/version
+test -f .fvm/release
+grep -Fxq 'stable' .fvm/release
 
 test -L .fvm/flutter_sdk
 FLUTTER_SDK_TARGET="$(readlink .fvm/flutter_sdk)"
@@ -161,11 +209,33 @@ case "$FLUTTER_OUTPUT" in
 esac
 
 printf '\n== fvm list ==\n'
-run_fvm_skip list
+LIST_OUTPUT="$(run_fvm_skip list)"
+printf '%s\n' "$LIST_OUTPUT"
+case "$LIST_OUTPUT" in
+  *"$CACHE/versions"*) ;;
+  *) echo "fvm list did not use the isolated cache path" >&2; exit 1 ;;
+esac
+case "$LIST_OUTPUT" in
+  *"stable"*) ;;
+  *) echo "fvm list did not include stable" >&2; exit 1 ;;
+esac
+case "$LIST_OUTPUT" in
+  *"3.99.0-smoke"*) ;;
+  *) echo "fvm list did not include the fake Flutter version" >&2; exit 1 ;;
+esac
 
 printf '\n== project files ==\n'
 printf '.fvmrc:\n'
 sed -n '1,20p' .fvmrc
+printf '\n'
+printf '.fvm/fvm_config.json:\n'
+sed -n '1,20p' .fvm/fvm_config.json
+printf '\n'
+printf '.fvm/version: '
+cat .fvm/version
+printf '\n'
+printf '.fvm/release: '
+cat .fvm/release
 printf '\n'
 printf 'flutter_sdk -> %s\n' "$FLUTTER_SDK_TARGET"
 printf 'version link -> %s\n' "$VERSION_LINK_TARGET"
@@ -188,6 +258,7 @@ case "$HEAD_REF" in
   refs/heads/*) ;;
   *) echo "Cache HEAD is not a branch" >&2; exit 1 ;;
 esac
+git --git-dir="$GIT_CACHE" show-ref --verify --quiet "$HEAD_REF"
 
 REFS="$(git --git-dir="$GIT_CACHE" for-each-ref --format='%(refname)')"
 printf '%s\n' "$REFS"
@@ -195,12 +266,27 @@ if printf '%s\n' "$REFS" | grep -Ev '^(refs/heads/|refs/tags/)' >/dev/null; then
   echo "Unexpected non heads/tags ref in git cache" >&2
   exit 1
 fi
+git --git-dir="$GIT_CACHE" show-ref --verify --quiet refs/tags/smoke-tag
+if git --git-dir="$GIT_CACHE" show-ref --verify --quiet refs/pull/1/head; then
+  echo "Unexpected hidden pull ref in git cache" >&2
+  exit 1
+fi
+if git --git-dir="$GIT_CACHE" cat-file -e "$HIDDEN_SHA^{commit}" 2>/dev/null; then
+  echo "Unexpected hidden-only commit object in git cache" >&2
+  exit 1
+fi
 
 FETCH_SPECS="$(git --git-dir="$GIT_CACHE" config --get-all remote.origin.fetch | sort)"
 printf 'fetch specs:\n%s\n' "$FETCH_SPECS"
+FETCH_SPEC_COUNT="$(printf '%s\n' "$FETCH_SPECS" | sed '/^$/d' | wc -l | tr -d '[:space:]')"
+test "$FETCH_SPEC_COUNT" = 2
 printf '%s\n' "$FETCH_SPECS" | grep -Fqx '+refs/heads/*:refs/heads/*'
 printf '%s\n' "$FETCH_SPECS" | grep -Fqx '+refs/tags/*:refs/tags/*'
-test "$(git --git-dir="$GIT_CACHE" config --get remote.origin.tagOpt)" = '--no-tags'
+
+TAG_OPTS="$(git --git-dir="$GIT_CACHE" config --get-all remote.origin.tagOpt)"
+TAG_OPT_COUNT="$(printf '%s\n' "$TAG_OPTS" | sed '/^$/d' | wc -l | tr -d '[:space:]')"
+test "$TAG_OPT_COUNT" = 1
+test "$TAG_OPTS" = '--no-tags'
 
 if git --git-dir="$GIT_CACHE" config --get remote.origin.mirror >/dev/null; then
   echo "Unexpected mirror config" >&2
@@ -223,7 +309,11 @@ Expected high-signal output:
 - The first `use stable --force --skip-setup --skip-pub-get` run uses `--fvm-skip-input`, emits the Melos prompt text, logs `Skipping input confirmation`, and keeps `melos.yaml` unchanged because the Melos confirmation default is `false`.
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
+- `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
 - `.fvmrc` contains `"flutter": "stable"`.
+- `.fvm/fvm_config.json` contains `"flutterSdkVersion": "stable"`.
+- `.fvm/version` contains `3.99.0-smoke`.
+- `.fvm/release` contains `stable`.
 - `.fvm/flutter_sdk` points to the isolated temp cache.
 - `.fvm/versions/stable` points to the isolated temp cache.
 - `.gitignore` contains `.fvm/`.
@@ -231,16 +321,49 @@ Expected high-signal output:
 - `melos.yaml` contains `sdkPath: .fvm/flutter_sdk`.
 - `cache.git` is bare.
 - `cache.git` `HEAD` is under `refs/heads/`.
+- `cache.git` `HEAD` points at an existing branch ref.
+- `cache.git` includes the fake tag `refs/tags/smoke-tag`.
+- `cache.git` excludes the fake hidden ref `refs/pull/1/head` and its hidden-only commit object.
 - `remote.origin.fetch` contains only:
   - `+refs/heads/*:refs/heads/*`
   - `+refs/tags/*:refs/tags/*`
-- `remote.origin.tagOpt` is `--no-tags`.
+- `remote.origin.tagOpt` is exactly one `--no-tags` value.
 - `remote.origin.mirror` is absent.
 - `git fsck --connectivity-only` passes.
 
+## Coverage Boundaries
+
+This smoke test should stay fast and isolated. It does not replace the targeted
+tests for stale cache clone fallback, missing-object fallback, invalid-cache
+recreation, cache migration, or real Flutter SDK setup. Keep running the focused
+unit/integration tests for those paths when touching `GitService`,
+`FlutterService`, or `EnsureCacheWorkflow`.
+
 ## Cleanup
 
-After inspection:
+After inspection, remove only the exact temp root printed by the run. Do not use
+`fvm remove`, `fvm destroy`, or ad hoc cache deletion for this cleanup, because
+running those outside the script environment could target the user's real FVM
+configuration.
+
+```bash
+SMOKE_ROOT="/tmp/fvm-branch-smoke.<suffix>"
+
+case "$SMOKE_ROOT" in
+  /tmp/fvm-branch-smoke.*) ;;
+  *) echo "Refusing to remove unexpected path: $SMOKE_ROOT" >&2; exit 1 ;;
+esac
+
+test -f "$SMOKE_ROOT/.fvm-smoke-root"
+
+rm -rf "$SMOKE_ROOT"
+```
+
+This removes the fake Flutter remote, isolated FVM home, isolated SDK install,
+isolated git cache, and throwaway project/config updates created by the smoke
+test. It should not remove anything outside the temp root.
+
+For older runs where only the suffix is known:
 
 ```bash
 rm -rf /tmp/fvm-branch-smoke.<suffix>
