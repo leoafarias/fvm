@@ -621,7 +621,10 @@ class GitService extends ContextualService {
     }
   }
 
-  Future<_GitCacheState> _determineCacheState(Directory gitCacheDir) async {
+  Future<_GitCacheState> _determineCacheState(
+    Directory gitCacheDir, {
+    bool deferReadyConnectivityValidation = false,
+  }) async {
     if (!gitCacheDir.existsSync()) {
       return _GitCacheState.missing;
     }
@@ -629,6 +632,11 @@ class GitService extends ContextualService {
     try {
       if (!await _isBareRepository(gitCacheDir.path)) {
         return _GitCacheState.legacy;
+      }
+
+      if (deferReadyConnectivityValidation &&
+          await _hasHeadsTagsCacheShape(gitCacheDir)) {
+        return _GitCacheState.ready;
       }
 
       try {
@@ -1081,7 +1089,10 @@ class GitService extends ContextualService {
     return _withGitCacheLock(() async {
       final gitCacheDir = Directory(context.gitCachePath);
 
-      final cacheState = await _determineCacheState(gitCacheDir);
+      final cacheState = await _determineCacheState(
+        gitCacheDir,
+        deferReadyConnectivityValidation: true,
+      );
 
       switch (cacheState) {
         case _GitCacheState.ready:

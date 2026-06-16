@@ -40,6 +40,44 @@ class _FakeProcessService extends ProcessService {
   }
 }
 
+class _CountingProcessService extends ProcessService {
+  _CountingProcessService(super.context);
+
+  int connectivityFsckCount = 0;
+
+  void reset() {
+    connectivityFsckCount = 0;
+  }
+
+  @override
+  Future<ProcessResult> run(
+    String command, {
+    List<String> args = const [],
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool throwOnError = true,
+    bool echoOutput = false,
+    bool runInShell = true,
+  }) {
+    if (command == 'git' &&
+        args.length == 2 &&
+        args[0] == 'fsck' &&
+        args[1] == '--connectivity-only') {
+      connectivityFsckCount++;
+    }
+
+    return super.run(
+      command,
+      args: args,
+      workingDirectory: workingDirectory,
+      environment: environment,
+      throwOnError: throwOnError,
+      echoOutput: echoOutput,
+      runInShell: runInShell,
+    );
+  }
+}
+
 Future<List<String>> _gitConfigValues(String repoPath, String key) async {
   final result = await runGitCommand(
     ['config', '--get-all', key],
@@ -473,6 +511,45 @@ void main() {
       );
       expect(head.stdout.toString().trim(), 'refs/heads/main');
     });
+
+    test(
+      'updateLocalMirror validates ready cache only after sync',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'counted_cache.git');
+        late _CountingProcessService processService;
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_counted'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+          generatorsOverride: {
+            ProcessService: (ctx) {
+              processService = _CountingProcessService(ctx);
+
+              return processService;
+            },
+          },
+        );
+
+        final gitService = GitService(context);
+        await gitService.updateLocalMirror();
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+
+        processService.reset();
+        await gitService.updateLocalMirror();
+
+        expect(processService.connectivityFsckCount, 1);
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+
+        processService.reset();
+        await gitService.ensureBareCacheIfPresent();
+
+        expect(processService.connectivityFsckCount, 1);
+      },
+    );
 
     test('rebuilds git cache when bare HEAD points at a tag', () async {
       await _addHiddenAndTagRefs(remoteDir);
