@@ -2,7 +2,7 @@
 
 Use this when an agent needs a quick end-to-end check of the current FVM branch without running the destructive real integration suite.
 
-This smoke test runs the branch CLI through a throwaway project and isolated cache. It uses a local fake Flutter Git remote, so it proves FVM command wiring, git-cache creation, install, project `use`, symlink creation, and `fvm flutter` proxy behavior without cloning the real Flutter repository.
+This smoke test runs the branch CLI through a throwaway project and isolated cache. It uses a local fake Flutter Git remote, so it proves FVM command wiring, git-cache creation, install, project `use`, prompt handling, project file writes, symlink creation, Melos/VS Code settings, and `fvm flutter` proxy behavior without cloning the real Flutter repository.
 
 ## When To Run
 
@@ -13,6 +13,8 @@ Run this before handoff when changes touch:
 - `EnsureCacheWorkflow`
 - install/use/global command behavior
 - project reference or SDK symlink behavior
+- non-interactive prompt handling
+- `.fvmrc`, `.gitignore`, Melos, or VS Code project updates
 
 This does not replace `dart test`, `dcm analyze lib`, or the real `fvm integration-test`. It is a fast manual confidence check between unit tests and the full destructive integration suite.
 
@@ -29,6 +31,8 @@ The script sets:
 It should not mutate the user's normal FVM cache or global config. The temp directory is left in place for inspection and printed as `Smoke root`; remove it manually after reviewing.
 
 `FVM_FLUTTER_URL` must be a valid Git URL. Use a `file://` URL for local remotes; a plain filesystem path is rejected by FVM URL validation.
+
+The script uses `expect` for the interactive Melos confirmation path. macOS includes `/usr/bin/expect`; install it first if another environment does not have it.
 
 ## Command
 
@@ -49,7 +53,7 @@ HOME_DIR="$ROOT/home"
 mkdir -p \
   "$FAKE_REMOTE_WORK/bin" \
   "$FAKE_REMOTE_WORK/bin/cache/dart-sdk/bin" \
-  "$PROJECT" \
+  "$PROJECT/.vscode" \
   "$HOME_DIR"
 
 cd "$FAKE_REMOTE_WORK"
@@ -72,8 +76,10 @@ REMOTE_URL="file://$FAKE_REMOTE_BARE"
 
 cd "$PROJECT"
 printf 'name: fvm_smoke_app\nenvironment:\n  sdk: ">=3.6.0 <4.0.0"\n' > pubspec.yaml
+printf 'name: fvm_smoke_workspace\npackages:\n  - .\n' > melos.yaml
+: > .gitignore
 
-run_fvm() {
+run_fvm_skip() {
   HOME="$HOME_DIR" \
   FVM_CACHE_PATH="$CACHE" \
   FVM_GIT_CACHE_PATH="$GIT_CACHE" \
@@ -82,17 +88,72 @@ run_fvm() {
   dart run "$FVM_REPO/bin/main.dart" --fvm-skip-input "$@"
 }
 
+run_fvm_interactive_with_yes() {
+  expect <<EOF
+set timeout 90
+spawn env HOME=$HOME_DIR FVM_CACHE_PATH=$CACHE FVM_GIT_CACHE_PATH=$GIT_CACHE FVM_FLUTTER_URL=$REMOTE_URL FVM_USE_GIT_CACHE=true dart run $FVM_REPO/bin/main.dart use stable --force --skip-setup --skip-pub-get
+expect {
+  "Would you like to configure melos.yaml to use FVM-managed Flutter SDK?" { send "y\r" }
+  timeout { puts "Timed out waiting for Melos prompt"; exit 124 }
+}
+expect eof
+catch wait result
+exit [lindex \$result 3]
+EOF
+}
+
 printf '\n== fvm version ==\n'
-run_fvm --version
+run_fvm_skip --version
 
 printf '\n== install stable --no-setup ==\n'
-run_fvm install stable --no-setup
+run_fvm_skip install stable --no-setup
 
-printf '\n== use stable ==\n'
-run_fvm use stable --force --skip-setup --skip-pub-get
+printf '\n== use stable, non-interactive default prompt path ==\n'
+USE_SKIP_OUTPUT="$(run_fvm_skip use stable --force --skip-setup --skip-pub-get 2>&1)"
+printf '%s\n' "$USE_SKIP_OUTPUT"
+case "$USE_SKIP_OUTPUT" in
+  *"Would you like to configure melos.yaml to use FVM-managed Flutter SDK?"*) ;;
+  *) echo "Melos prompt was not emitted under skip input" >&2; exit 1 ;;
+esac
+case "$USE_SKIP_OUTPUT" in
+  *"Skipping input confirmation"*) ;;
+  *) echo "Skip-input confirmation warning was not emitted" >&2; exit 1 ;;
+esac
+case "$USE_SKIP_OUTPUT" in
+  *"Using default value of false"*) ;;
+  *) echo "Skip-input default value was not reported as false" >&2; exit 1 ;;
+esac
+if grep -Fq 'sdkPath:' melos.yaml; then
+  echo "melos.yaml changed even though skip-input default is false" >&2
+  exit 1
+fi
+
+test -f .fvmrc
+grep -Fq '"flutter": "stable"' .fvmrc
+
+test -L .fvm/flutter_sdk
+FLUTTER_SDK_TARGET="$(readlink .fvm/flutter_sdk)"
+case "$FLUTTER_SDK_TARGET" in
+  "$CACHE/versions/stable") ;;
+  *) echo "Unexpected flutter_sdk symlink target: $FLUTTER_SDK_TARGET" >&2; exit 1 ;;
+esac
+
+test -L .fvm/versions/stable
+VERSION_LINK_TARGET="$(readlink .fvm/versions/stable)"
+case "$VERSION_LINK_TARGET" in
+  "$CACHE/versions/stable") ;;
+  *) echo "Unexpected version symlink target: $VERSION_LINK_TARGET" >&2; exit 1 ;;
+esac
+
+grep -Fxq '.fvm/' .gitignore
+grep -Fq '"dart.flutterSdkPath": ".fvm/versions/stable"' .vscode/settings.json
+
+printf '\n== use stable, interactive yes prompt path ==\n'
+run_fvm_interactive_with_yes
+grep -Fq 'sdkPath: .fvm/flutter_sdk' melos.yaml
 
 printf '\n== fvm flutter --version ==\n'
-FLUTTER_OUTPUT="$(run_fvm flutter --version)"
+FLUTTER_OUTPUT="$(run_fvm_skip flutter --version)"
 printf '%s\n' "$FLUTTER_OUTPUT"
 case "$FLUTTER_OUTPUT" in
   *"Flutter smoke 3.99.0"*) ;;
@@ -100,15 +161,23 @@ case "$FLUTTER_OUTPUT" in
 esac
 
 printf '\n== fvm list ==\n'
-run_fvm list
+run_fvm_skip list
 
 printf '\n== project files ==\n'
-test -f .fvmrc
-test -L .fvm/flutter_sdk
-printf '.fvmrc: '
+printf '.fvmrc:\n'
 sed -n '1,20p' .fvmrc
-printf 'flutter_sdk -> '
-readlink .fvm/flutter_sdk
+printf '\n'
+printf 'flutter_sdk -> %s\n' "$FLUTTER_SDK_TARGET"
+printf 'version link -> %s\n' "$VERSION_LINK_TARGET"
+printf '.gitignore:\n'
+sed -n '1,20p' .gitignore
+printf '\n'
+printf '.vscode/settings.json:\n'
+sed -n '1,40p' .vscode/settings.json
+printf '\n'
+printf 'melos.yaml:\n'
+sed -n '1,40p' melos.yaml
+printf '\n'
 
 printf '\n== git cache checks ==\n'
 test "$(git --git-dir="$GIT_CACHE" rev-parse --is-bare-repository)" = true
@@ -151,10 +220,15 @@ Expected high-signal output:
 
 - `fvm --version` prints the branch package version.
 - `install stable --no-setup` creates the local git cache and installs `stable`.
-- `use stable --force --skip-setup --skip-pub-get` updates the throwaway project.
+- The first `use stable --force --skip-setup --skip-pub-get` run uses `--fvm-skip-input`, emits the Melos prompt text, logs `Skipping input confirmation`, and keeps `melos.yaml` unchanged because the Melos confirmation default is `false`.
+- The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `.fvmrc` contains `"flutter": "stable"`.
 - `.fvm/flutter_sdk` points to the isolated temp cache.
+- `.fvm/versions/stable` points to the isolated temp cache.
+- `.gitignore` contains `.fvm/`.
+- `.vscode/settings.json` contains `"dart.flutterSdkPath": ".fvm/versions/stable"`.
+- `melos.yaml` contains `sdkPath: .fvm/flutter_sdk`.
 - `cache.git` is bare.
 - `cache.git` `HEAD` is under `refs/heads/`.
 - `remote.origin.fetch` contains only:
