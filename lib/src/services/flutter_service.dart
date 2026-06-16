@@ -81,27 +81,30 @@ class FlutterService extends ContextualService {
     );
   }
 
-  /// Attempts a clone from the local mirror. Returns null on failure so the
+  /// Attempts a clone from the local git cache. Returns null on failure so the
   /// caller can fall back to the remote.
-  Future<ProcessResult?> _tryCloneFromMirror({
+  Future<ProcessResult?> _tryCloneFromGitCache({
     required Directory versionDir,
     required FlutterVersion version,
     required String? channel,
     required bool echoOutput,
   }) async {
     try {
-      final result = await _cloneSdk(
-        source: context.gitCachePath,
-        versionDir: versionDir,
-        version: version,
-        channel: channel,
-        echoOutput: echoOutput,
-      );
+      final result =
+          await get<GitService>().withPreparedGitCacheForClone(() async {
+        return _cloneSdk(
+          source: context.gitCachePath,
+          versionDir: versionDir,
+          version: version,
+          channel: channel,
+          echoOutput: echoOutput,
+        );
+      });
       await _updateOriginToFlutter(versionDir);
 
       return result;
     } on ProcessException catch (error) {
-      final isLikelyCorruption = _isMirrorCorruptionError(error.message);
+      final isLikelyCorruption = _isGitCacheCorruptionError(error.message);
 
       if (isLikelyCorruption) {
         logger.warn(
@@ -110,9 +113,7 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        // Delete corrupted mirror so it can be recreated on next install.
-        // Wrapped in try/catch because removeLocalMirror acquires a file lock
-        // that can throw AppException — must not abort the remote fallback.
+        // Non-safety cleanup failures should not abort the remote fallback.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
           try {
@@ -130,8 +131,10 @@ class FlutterService extends ContextualService {
                 'Removed corrupted cache. It will be recreated on next install.',
               );
             }
+          } on GitCacheDependentSdkRemovalException {
+            rethrow;
           } catch (e) {
-            logger.debug('Failed to remove corrupted mirror: $e');
+            logger.debug('Failed to remove corrupted git cache: $e');
           }
         }
       } else {
@@ -192,18 +195,19 @@ class FlutterService extends ContextualService {
 
     return lower.contains('unknown revision') ||
         lower.contains('ambiguous argument') ||
+        lower.contains('could not parse object') ||
         (lower.contains('pathspec') && lower.contains('did not match'));
   }
 
   /// Detects git errors that indicate missing or unreadable objects in the
-  /// local mirror. These should trigger a retry from the remote.
+  /// local git cache. These should trigger a retry from the remote.
   bool _isMissingObjectError(String errorMessage) {
     final lower = errorMessage.toLowerCase();
 
     return _gitObjectErrorPatterns.any(lower.contains);
   }
 
-  bool _isMirrorCorruptionError(String errorMessage) {
+  bool _isGitCacheCorruptionError(String errorMessage) {
     final lower = errorMessage.toLowerCase();
 
     return _gitCorruptionKeywords.any(lower.contains) ||
@@ -234,7 +238,7 @@ class FlutterService extends ContextualService {
     required bool echoOutput,
   }) async {
     logger.warn(
-      'Reference "${version.version}" not found in local mirror. '
+      'Reference "${version.version}" not found in local git cache. '
       'Retrying clone from remote repository...',
     );
 
@@ -272,14 +276,14 @@ class FlutterService extends ContextualService {
       rethrow;
     }
 
-    // Bring the shared mirror up to date so future installs can use it.
+    // Bring the shared git cache up to date so future installs can use it.
     if (context.gitCache && !version.fromFork) {
       try {
         await get<GitService>().updateLocalMirror();
       } catch (e, stackTrace) {
-        logger.debug('Mirror refresh after fallback failed: $e');
+        logger.debug('Git cache refresh after fallback failed: $e');
         logger.warn(
-          'Failed to refresh local git mirror after remote clone; continuing. '
+          'Failed to refresh local git cache after remote clone; continuing. '
           'This may cause the next install to fetch from remote again.',
         );
         logger.debug(stackTrace.toString());
@@ -363,26 +367,28 @@ class FlutterService extends ContextualService {
     return repoUrl;
   }
 
-  /// Clones the SDK, trying the local mirror first when enabled.
-  /// Returns true if the clone came from the local mirror.
+  /// Clones the SDK, trying the local git cache first when enabled.
+  /// Returns true if the clone came from the local git cache.
   Future<bool> _executeClone({
     required FlutterVersion version,
     required Directory versionDir,
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool useGitCache,
   }) async {
-    final useLocalMirror = context.gitCache && !version.fromFork;
+    final useLocalGitCache =
+        useGitCache && context.gitCache && !version.fromFork;
 
-    if (useLocalMirror) {
-      final mirrorResult = await _tryCloneFromMirror(
+    if (useLocalGitCache) {
+      final gitCacheResult = await _tryCloneFromGitCache(
         versionDir: versionDir,
         version: version,
         channel: channel,
         echoOutput: echoOutput,
       );
 
-      if (mirrorResult != null) return true;
+      if (gitCacheResult != null) return true;
     }
 
     await _cloneSdk(
@@ -399,7 +405,7 @@ class FlutterService extends ContextualService {
   Future<void> _validateReference({
     required FlutterVersion version,
     required Directory versionDir,
-    required bool clonedFromMirror,
+    required bool clonedFromGitCache,
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
@@ -412,7 +418,7 @@ class FlutterService extends ContextualService {
       final isReferenceError = _isReferenceLookupError(e.message);
       final isMissingObject = _isMissingObjectError(e.message);
 
-      if (clonedFromMirror && (isReferenceError || isMissingObject)) {
+      if (clonedFromGitCache && (isReferenceError || isMissingObject)) {
         await _retryInstallFromRemote(
           version: version,
           versionDir: versionDir,
@@ -537,19 +543,23 @@ class FlutterService extends ContextualService {
     return run('flutter', args, version);
   }
 
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useGitCache = true,
+  }) async {
     final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
     final echoOutput = !context.isTest && logger.isVerbose;
 
     try {
-      final clonedFromMirror = await _executeClone(
+      final clonedFromGitCache = await _executeClone(
         version: version,
         versionDir: versionDir,
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
+        useGitCache: useGitCache,
       );
 
       final isGit = await GitDir.isGitDir(versionDir.path);
@@ -562,7 +572,7 @@ class FlutterService extends ContextualService {
       await _validateReference(
         version: version,
         versionDir: versionDir,
-        clonedFromMirror: clonedFromMirror,
+        clonedFromGitCache: clonedFromGitCache,
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,

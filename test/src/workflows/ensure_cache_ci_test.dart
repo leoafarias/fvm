@@ -1,5 +1,6 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:test/test.dart';
@@ -68,6 +69,27 @@ void main() {
         ),
       );
       expect(output, isNot(contains('manually run "flutter upgrade"')));
+    });
+
+    test('installs without git cache when git cache setup fails', () async {
+      final context = TestFactory.fastContext();
+      final gitService = context.get<GitService>() as FakeGitService;
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
+      gitService.updateLocalMirrorException = const AppException(
+        'setup failed',
+      );
+
+      final version = FlutterVersion.parse('3.10.0');
+      final result = await EnsureCacheWorkflow(context).call(
+        version,
+        shouldInstall: true,
+      );
+
+      expect(result.name, equals('3.10.0'));
+      expect(gitService.ensureBareCacheCalls, 1);
+      expect(gitService.updateLocalMirrorCalls, 1);
+      expect(flutterService.installUseGitCacheValues, equals([false]));
     });
 
     test('--fvm-skip-input flag handles version mismatch gracefully', () async {

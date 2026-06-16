@@ -8,6 +8,7 @@ Technical documentation for FVM developers.
 |------|-------------|
 | `testing-methodology.md` | Test patterns, TestFactory, mocking, best practices |
 | `integration-tests.md` | Real integration guardrails, safety notes, running tests |
+| `../../docs/pages/documentation/guides/manual-smoke-test.md` | Isolated branch smoke test for install/use/git-cache behavior |
 
 ## Architecture
 

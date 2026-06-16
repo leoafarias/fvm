@@ -149,7 +149,7 @@ void main() {
         cwd: cacheGitPath,
       );
       final isBare = (newBare.stdout as String?)?.trim().toLowerCase();
-      // Migration should produce a bare mirror
+      // Migration should produce a bare git cache.
       expect(isBare, 'true');
 
       // 5) git status clean in each version
