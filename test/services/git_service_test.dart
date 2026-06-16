@@ -300,7 +300,8 @@ void main() {
         await _addHiddenAndTagRefs(remoteDir);
         final gitCachePath = p.join(tempDir.path, 'cache.git');
 
-        await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+        await runGitCommand(
+            ['clone', '--mirror', remoteDir.path, gitCachePath]);
         expect(await isBareGitRepository(gitCachePath), isTrue);
 
         final refsBefore = await _gitRefs(gitCachePath);
@@ -471,6 +472,37 @@ void main() {
         workingDirectory: gitCachePath,
       );
       expect(head.stdout.toString().trim(), 'refs/heads/main');
+    });
+
+    test('rebuilds git cache when bare HEAD points at a tag', () async {
+      await _addHiddenAndTagRefs(remoteDir);
+
+      final gitCachePath = p.join(tempDir.path, 'tag_head_cache.git');
+      await runGitCommand(['clone', '--mirror', remoteDir.path, gitCachePath]);
+      await runGitCommand(
+        ['symbolic-ref', 'HEAD', 'refs/tags/test-tag'],
+        workingDirectory: gitCachePath,
+      );
+
+      final context = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm_tag_head'),
+          gitCachePath: gitCachePath,
+          flutterUrl: remoteDir.path,
+          useGitCache: true,
+        ),
+      );
+
+      final gitService = GitService(context);
+      await gitService.updateLocalMirror();
+
+      await _expectHeadsTagsOnlyCache(gitCachePath);
+      final head = await runGitCommand(
+        ['symbolic-ref', '--quiet', 'HEAD'],
+        workingDirectory: gitCachePath,
+      );
+      expect(head.stdout.toString().trim(), 'refs/heads/master');
     });
 
     test(

@@ -456,6 +456,10 @@ class GitService extends ContextualService {
     return _allowedRefPrefixes.any(ref.startsWith);
   }
 
+  bool _isAllowedCacheHeadRef(String ref) {
+    return ref.startsWith('refs/heads/');
+  }
+
   Future<List<String>> _disallowedRefs(Directory repository) async {
     final refs = await _listRefs(repository);
 
@@ -489,7 +493,7 @@ class GitService extends ContextualService {
         if (!trimmed.startsWith('ref:')) continue;
 
         final parts = trimmed.split(RegExp(r'\s+'));
-        if (parts.length >= 2 && _isAllowedCacheRef(parts[1])) {
+        if (parts.length >= 2 && _isAllowedCacheHeadRef(parts[1])) {
           return parts[1];
         }
       }
@@ -539,7 +543,7 @@ class GitService extends ContextualService {
       );
       final headRef = (result.stdout as String).trim();
 
-      return _isAllowedCacheRef(headRef) &&
+      return _isAllowedCacheHeadRef(headRef) &&
           await _refExists(repository, headRef);
     } on ProcessException {
       return false;

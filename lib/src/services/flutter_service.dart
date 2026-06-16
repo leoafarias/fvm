@@ -113,9 +113,7 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        // Delete corrupted git cache so it can be recreated on next install.
-        // Wrapped in try/catch because removeLocalMirror acquires a file lock
-        // that can throw AppException — must not abort the remote fallback.
+        // Non-safety cleanup failures should not abort the remote fallback.
         final cacheDir = Directory(context.gitCachePath);
         if (cacheDir.existsSync()) {
           try {
@@ -133,6 +131,8 @@ class FlutterService extends ContextualService {
                 'Removed corrupted cache. It will be recreated on next install.',
               );
             }
+          } on GitCacheDependentSdkRemovalException {
+            rethrow;
           } catch (e) {
             logger.debug('Failed to remove corrupted git cache: $e');
           }
@@ -375,8 +375,10 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool useGitCache,
   }) async {
-    final useLocalGitCache = context.gitCache && !version.fromFork;
+    final useLocalGitCache =
+        useGitCache && context.gitCache && !version.fromFork;
 
     if (useLocalGitCache) {
       final gitCacheResult = await _tryCloneFromGitCache(
@@ -541,7 +543,10 @@ class FlutterService extends ContextualService {
     return run('flutter', args, version);
   }
 
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useGitCache = true,
+  }) async {
     final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
@@ -554,6 +559,7 @@ class FlutterService extends ContextualService {
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
+        useGitCache: useGitCache,
       );
 
       final isGit = await GitDir.isGitDir(versionDir.path);

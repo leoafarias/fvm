@@ -765,6 +765,62 @@ Future<void> main(List<String> args) async {
         }
       });
 
+      test('install can bypass a stale local git cache', () async {
+        final tempDir = createTempDir('fvm_flutter_service_bypass_cache');
+
+        try {
+          final remoteDir = await createLocalRemoteRepository(
+            root: tempDir,
+            name: 'flutter_origin',
+          );
+          final oldShaResult = await runGitCommand(
+            ['rev-parse', 'master'],
+            workingDirectory: remoteDir.path,
+          );
+          final oldSha = oldShaResult.stdout.toString().trim();
+
+          final gitCachePath = p.join(tempDir.path, 'cache.git');
+          Directory(gitCachePath).parent.createSync(recursive: true);
+          await runGitCommand(['clone', remoteDir.path, gitCachePath]);
+
+          final newSha = await _commitToRemoteBranch(
+            root: tempDir,
+            remoteDir: remoteDir,
+            fileName: 'REMOTE_ONLY.md',
+          );
+
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: p.join(tempDir.path, '.fvm'),
+              gitCachePath: gitCachePath,
+              flutterUrl: Uri.file(remoteDir.path).toString(),
+              useGitCache: true,
+            ),
+          );
+
+          final service = FlutterService(context);
+          final version = FlutterVersion.parse('master');
+          await service.install(version, useGitCache: false);
+
+          final versionDir = context.get<CacheService>().getVersionCacheDir(
+                version,
+              );
+          final installedShaResult = await runGitCommand(
+            ['rev-parse', 'HEAD'],
+            workingDirectory: versionDir.path,
+          );
+          final installedSha = installedShaResult.stdout.toString().trim();
+
+          expect(installedSha, newSha);
+          expect(installedSha, isNot(oldSha));
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
+
       test(
           'ensure workflow does not install channel from stale preserved cache',
           () async {
@@ -997,6 +1053,39 @@ Future<void> main(List<String> args) async {
           }
         }
       });
+
+      test(
+          'rethrows dependent SDK removal failure during corrupted cache cleanup',
+          () async {
+        final tempDir = createTempDir('fvm_flutter_service_cleanup_blocked');
+
+        try {
+          final gitCachePath = p.join(tempDir.path, 'cache.git');
+          Directory(gitCachePath).createSync(recursive: true);
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: p.join(tempDir.path, '.fvm'),
+              gitCachePath: gitCachePath,
+              flutterUrl: 'https://example.com/flutter.git',
+              useGitCache: true,
+            ),
+            generatorsOverride: {
+              GitService: (ctx) => _GitCacheCleanupBlockedGitService(ctx),
+            },
+          );
+
+          final service = FlutterService(context);
+          await expectLater(
+            service.install(FlutterVersion.parse('master')),
+            throwsA(isA<GitCacheDependentSdkRemovalException>()),
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
     });
 
     group('setup method', () {
@@ -1152,4 +1241,23 @@ Future<void> main(List<String> args) async {
       });
     });
   });
+}
+
+class _GitCacheCleanupBlockedGitService extends GitService {
+  _GitCacheCleanupBlockedGitService(super.context);
+
+  @override
+  Future<T> withPreparedGitCacheForClone<T>(
+    Future<T> Function() action,
+  ) async {
+    throw ProcessException('git', const ['clone'], 'bad object', 128);
+  }
+
+  @override
+  Future<bool> removeLocalMirror({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) async {
+    throw const GitCacheDependentSdkRemovalException('blocked by test');
+  }
 }

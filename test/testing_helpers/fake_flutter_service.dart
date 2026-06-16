@@ -11,6 +11,7 @@ class FakeFlutterService extends FlutterService {
   FakeFlutterService(super.context);
 
   final installedVersions = <FlutterVersion>[];
+  final installUseGitCacheValues = <bool>[];
   final setupVersions = <String>[];
   final pubGetCalls = <({String version, bool offline})>[];
   final runCalls = <({String cmd, List<String> args, String version})>[];
@@ -34,7 +35,12 @@ class FakeFlutterService extends FlutterService {
   );
 
   @override
-  Future<void> install(FlutterVersion version) async {
+  Future<void> install(
+    FlutterVersion version, {
+    bool useGitCache = true,
+  }) async {
+    installUseGitCacheValues.add(useGitCache);
+
     final key = version.nameWithAlias;
     final failure = installFailures[key] ?? installFailures[version.name];
     if (failure != null) throw failure;
