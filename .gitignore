@@ -58,8 +58,6 @@ fvm
 # FVM Version Cache
 .fvm/
 
-test/fixtures/sample_app
-
 # Example app directory
 example_app/
 # Context folder (allow docs subfolder)

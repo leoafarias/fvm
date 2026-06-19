@@ -19,11 +19,11 @@ void main() {
 
   // Setup function that runs before each test
   setUp(() {
-    context = TestFactory.context(
+    context = TestFactory.fastContext(
       generators: {ApiService: (_) => _MockAPIService()},
     );
     // Initialize test runner first
-    runner = TestFactory.commandRunner(context: context);
+    runner = TestFactory.fastCommandRunner(context: context);
 
     // Initialize mocks with test runner's context
     apiService = context.get<ApiService>();

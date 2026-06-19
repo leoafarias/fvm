@@ -82,9 +82,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return null;
       }
 
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: context.appConfigPath)
         ..lastUpdateCheck = DateTime.now()
-        ..save();
+        ..save(path: context.appConfigPath);
 
       final isUpToDate = await _pubUpdater.isUpToDate(
         packageName: kPackageName,

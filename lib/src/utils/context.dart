@@ -55,11 +55,17 @@ class FvmContext with FvmContextMappable {
   /// App config
   final AppConfig config;
 
+  /// Global app config file path.
+  final String appConfigPath;
+
   /// Environment variables
   final Map<String, String> environment;
 
   /// Log level
   final Level logLevel;
+
+  /// True when stdin is attached to an interactive terminal.
+  final bool stdinHasTerminal;
 
   /// True if the `--fvm-skip-input` flag was passed to the command
   final bool _skipInput;
@@ -74,9 +80,11 @@ class FvmContext with FvmContextMappable {
     required this.debugLabel,
     required this.workingDirectory,
     required this.config,
+    required this.appConfigPath,
     required Map<Type, Generator> generators,
     required this.environment,
-    required bool skipInput,
+    @MappableField(key: 'skipInputRequested') bool skipInput = false,
+    this.stdinHasTerminal = true,
     this.isTest = false,
     this.logLevel = Level.info,
   })  : _skipInput = skipInput,
@@ -88,22 +96,30 @@ class FvmContext with FvmContextMappable {
     String? workingDirectoryOverride,
     Map<Type, Generator>? generatorsOverride,
     Map<String, String>? environmentOverrides,
+    String? appConfigPath,
     bool skipInput = false,
+    bool? stdinHasTerminal,
     Level? logLevel,
     bool isTest = false,
   }) {
+    final resolvedAppConfigPath = appConfigPath ?? kAppConfigFile;
+
     // Load all configs
     final builtConfig = AppConfigService.buildConfig(
       overrides: configOverrides,
+      appConfigPath: resolvedAppConfigPath,
     );
 
     return FvmContext.raw(
       debugLabel: debugLabel,
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: builtConfig,
+      appConfigPath: resolvedAppConfigPath,
       environment: {...Platform.environment, ...?environmentOverrides},
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
+      stdinHasTerminal:
+          stdinHasTerminal ?? _detectStdinHasTerminal(isTest: isTest),
       isTest: isTest,
       generators: {..._defaultGenerators, ...?generatorsOverride},
     );
@@ -113,7 +129,7 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   String get fvmDir => config.cachePath ?? kAppDirHome;
 
-  /// Whether to use the local git mirror cache.
+  /// Whether to use the local git cache.
   ///
   /// Explicit config/ENV opt-in/opt-out is always honoured.
   /// Default: enabled locally, disabled on CI.
@@ -121,6 +137,7 @@ class FvmContext with FvmContextMappable {
   bool get gitCache {
     final explicit = config.useGitCache;
     if (explicit != null) return explicit;
+
     return !isCI;
   }
 
@@ -171,7 +188,7 @@ class FvmContext with FvmContextMappable {
   }
 
   @MappableField()
-  bool get skipInput => isCI || _skipInput;
+  bool get skipInput => isCI || _skipInput || !stdinHasTerminal;
 
   T get<T>() {
     if (_dependencies.containsKey(T)) {
@@ -194,6 +211,16 @@ class FvmContext with FvmContextMappable {
     }
 
     return fork.url;
+  }
+}
+
+bool _detectStdinHasTerminal({required bool isTest}) {
+  if (isTest) return true;
+
+  try {
+    return stdin.hasTerminal;
+  } on StdinException {
+    return false;
   }
 }
 

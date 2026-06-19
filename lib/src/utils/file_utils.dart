@@ -18,12 +18,14 @@ Future<bool> deleteDirectoryWithRetry(
   for (var attempt = 1; attempt <= attempts; attempt++) {
     try {
       directory.deleteSync(recursive: true);
+
       return true;
     } on FileSystemException catch (error) {
       final isLastAttempt = attempt == attempts;
       if (isLastAttempt) {
         if (requireSuccess) rethrow;
         onFinalError?.call(error);
+
         return false;
       }
       await Future<void>.delayed(retryDelay * attempt);

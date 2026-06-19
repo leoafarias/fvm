@@ -94,6 +94,31 @@ void main() {
       );
     });
 
+    test('confirm with CI context logs messages and returns default', () {
+      final context = TestFactory.context(
+        environmentOverrides: const {'CI': 'true'},
+      );
+      final logger = Logger(context);
+
+      final result = logger.confirm("Confirm prompt", defaultValue: true);
+
+      expect(context.isCI, isTrue);
+      expect(context.skipInput, isTrue);
+      expect(result, isTrue);
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains("Skipping input confirmation"),
+        ),
+        isTrue,
+      );
+      expect(
+        logger.outputs.any(
+          (msg) => msg.contains("Using default value of true"),
+        ),
+        isTrue,
+      );
+    });
+
     test(
       'select with skipInput true returns default selection when provided',
       () {
@@ -105,6 +130,24 @@ void main() {
           options: ['one', 'two'],
           defaultSelection: 1,
         );
+        expect(result, equals('two'));
+      },
+    );
+
+    test(
+      'select with non-TTY stdin returns default selection when provided',
+      () {
+        final context = TestFactory.context(stdinHasTerminal: false);
+        final logger = Logger(context);
+
+        final result = logger.select(
+          "Select an option",
+          options: ['one', 'two'],
+          defaultSelection: 1,
+        );
+
+        expect(context.stdinHasTerminal, isFalse);
+        expect(context.skipInput, isTrue);
         expect(result, equals('two'));
       },
     );
@@ -146,11 +189,7 @@ void main() {
     test('includes fork aliases in options', () {
       final context = TestFactory.context();
       final logger = _SelectCaptureLogger(context);
-      final forkDir = path.join(
-        context.versionsCachePath,
-        'myfork',
-        'stable',
-      );
+      final forkDir = path.join(context.versionsCachePath, 'myfork', 'stable');
       final stableDir = path.join(context.versionsCachePath, 'stable');
       final versions = [
         CacheFlutterVersion.fromVersion(

@@ -1,3 +1,9 @@
+## 4.1.1
+
+* fix: prevent git cache bloat and stale SDK installs caused by outdated cache clones (#1037)
+* fix: fall back to safe defaults instead of hanging when prompts run without an interactive terminal, like CI or git hooks (#1036)
+* fix: stop false Flutter version-mismatch prompts when a project uses its own calendar-style git tags (#1033)
+
 ## 4.1.0
 
 * feat: opt out of update checks for quieter CI and offline runs (#994)

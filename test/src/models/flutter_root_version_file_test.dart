@@ -4,11 +4,16 @@ import 'package:fvm/src/models/flutter_root_version_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import '../../testing_utils.dart';
+
 void main() {
   group('FlutterRootVersionFile', () {
     test('parses sample file', () {
-      final fixturePath =
-          path.join('test', 'fixtures', 'flutter.version.example.json');
+      final fixturePath = path.join(
+        'test',
+        'fixtures',
+        'flutter.version.example.json',
+      );
       final file = File(fixturePath);
       expect(file.existsSync(), isTrue);
 
@@ -20,8 +25,9 @@ void main() {
     });
 
     test('falls back to frameworkVersion when flutterVersion missing', () {
-      final metadata =
-          FlutterRootVersionFile.fromMap({'frameworkVersion': '3.2.0'});
+      final metadata = FlutterRootVersionFile.fromMap({
+        'frameworkVersion': '3.2.0',
+      });
 
       expect(metadata.primaryVersion, '3.2.0');
     });
@@ -35,7 +41,7 @@ void main() {
     });
 
     test('returns null for malformed JSON', () {
-      final tempDir = Directory.systemTemp.createTempSync('malformed_');
+      final tempDir = createTempDir('malformed');
       final file = File(path.join(tempDir.path, 'flutter.version.json'));
       file.writeAsStringSync('{ invalid json }');
 
@@ -45,7 +51,7 @@ void main() {
     });
 
     test('returns null for JSON array instead of object', () {
-      final tempDir = Directory.systemTemp.createTempSync('array_');
+      final tempDir = createTempDir('array');
       final file = File(path.join(tempDir.path, 'flutter.version.json'));
       file.writeAsStringSync('["3.0.0"]');
 
@@ -55,7 +61,7 @@ void main() {
     });
 
     test('returns null for empty file', () {
-      final tempDir = Directory.systemTemp.createTempSync('empty_');
+      final tempDir = createTempDir('empty');
       final file = File(path.join(tempDir.path, 'flutter.version.json'));
       file.writeAsStringSync('');
 

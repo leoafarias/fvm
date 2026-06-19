@@ -11,8 +11,9 @@ const _owner = 'leoafarias';
 const _repo = 'fvm';
 
 final Directory _releaseToolRoot = Directory.current;
-final Directory _repoRoot =
-    Directory(p.normalize(p.join(_releaseToolRoot.path, '..', '..')));
+final Directory _repoRoot = Directory(
+  p.normalize(p.join(_releaseToolRoot.path, '..', '..')),
+);
 
 @visibleForTesting
 Directory? repoRootOverride;
@@ -102,9 +103,7 @@ Future<void> getReleases() async {
   } on GrinderException {
     rethrow;
   } catch (error, stackTrace) {
-    _fail(
-      'Failed to retrieve GitHub releases: $error\n$stackTrace',
-    );
+    _fail('Failed to retrieve GitHub releases: $error\n$stackTrace');
   }
 }
 
@@ -117,8 +116,10 @@ Future<String> _githubRequest(Uri uri) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(uri);
-    request.headers
-        .set(HttpHeaders.acceptHeader, 'application/vnd.github.v3+json');
+    request.headers.set(
+      HttpHeaders.acceptHeader,
+      'application/vnd.github.v3+json',
+    );
     final token = Platform.environment['GITHUB_TOKEN'];
     if (token != null && token.isNotEmpty) {
       request.headers.set(HttpHeaders.authorizationHeader, 'token $token');

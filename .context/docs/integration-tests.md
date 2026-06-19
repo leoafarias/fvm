@@ -1,217 +1,80 @@
-# FVM Integration Test Suite
+# FVM Real Integration Test Suite
 
-This directory contains end-to-end integration tests for FVM that validate real-world usage scenarios with actual Git operations and Flutter SDK installations.
+`fvm integration-test` is the protected real-world guardrail for FVM. It is intentionally separate from the fast mocked Dart suite: it performs real network calls, real Git operations, real Flutter SDK installs, real setup, symlink checks, cache recovery, and destructive cleanup scenarios.
 
-## Overview
+## Command Surface
 
-The integration test suite is designed to complement the existing fast unit tests by providing thorough validation of FVM's core workflows using real operations rather than mocks.
-
-## Test Structure
-
-### Main Integration Test Command
-- **`fvm integration-test`** - Comprehensive Dart command with 38 integration tests covering all major FVM workflows
-
-### Dart Integration Test Framework
-- **`integration_test_utils.dart`** - Utilities for creating isolated test environments
-- **`installation_workflow_test.dart`** - Dart-based installation workflow tests
-- **`project_lifecycle_test.dart`** - Project lifecycle and configuration tests
-
-## Test Coverage
-
-### Phase 1: Basic Command Interface (4 tests)
-- Help command functionality
-- Version display
-- Releases API access
-- List command operation
-
-### Phase 2: Installation Workflows (5 tests)
-- Channel installation (stable, beta, dev)
-- Release version installation
-- Git commit installation
-- Installation with setup flag
-- Project-based installation from .fvmrc
-
-### Phase 3: Project Lifecycle (8 tests)
-- Complete `fvm use` workflow
-- .fvmrc file generation and validation
-- .fvm directory structure creation
-- Symlink creation (when privileged access available)
-- Flavor configuration and switching
-- VS Code settings integration
-- .gitignore integration
-- Force flag handling
-
-### Phase 4: Version Management (3 tests)
-- Global version setting and verification
-- Version removal and cache cleanup
-- Doctor command diagnostics
-
-### Phase 5: Advanced Commands (5 tests)
-- Flutter proxy command (`fvm flutter`)
-- Dart proxy command (`fvm dart`)
-- Spawn command (`fvm spawn`)
-- Exec command (`fvm exec`)
-- Flavor command (`fvm flavor`)
-
-### Phase 6: API Commands (4 tests)
-- API list endpoint
-- API releases endpoint with filtering
-- API project endpoint
-- API context endpoint
-
-### Phase 7: Fork Management (3 tests)
-- Fork addition and registration
-- Fork listing and verification
-- Fork removal and cleanup
-
-### Phase 8: Configuration Management (2 tests)
-- Configuration display and validation
-- Configuration setting modification and persistence
-
-### Phase 9: Error Handling (3 tests)
-- Invalid version handling
-- Invalid command handling
-- Corrupted cache recovery
-
-### Phase 10: Cleanup Operations (2 tests)
-- Selective version removal
-- Destroy command with cache backup/restore
-
-### Phase 11: Final Validation (2 tests)
-- System state validation after all tests
-- Concurrent operation safety
-
-## Real-World Operations Tested
-
-### Actual Git Operations
-- Real Git clones from Flutter repository
-- Branch and tag checkout operations
-- Git commit hash resolution
-- Fork repository management
-
-### File System Changes
-- Symlink creation and validation
-- .fvmrc configuration file generation
-- .fvm directory structure creation
-- .gitignore modification
-- VS Code settings.json updates
-
-### Flutter SDK Management
-- Complete Flutter SDK installations
-- SDK setup and dependency downloads
-- Version switching and validation
-- Cache integrity verification
-
-### Configuration Persistence
-- Project configuration management
-- Global settings persistence
-- Flavor configuration handling
-- Cross-session state preservation
-
-## Running the Tests
-
-### Comprehensive Integration Test Suite
 ```bash
-# Run all 38 integration tests
+# Run the real integration workflow.
 fvm integration-test
 
-# Run in fast mode (skip heavy operations)
-fvm integration-test --fast
-
-# Run specific test phase (1-11)
-fvm integration-test --phase 3
-
-# Run specific test by number (1-38)
-fvm integration-test --test 15
-
-# List all available test phases
-fvm integration-test --list-phases
-
-# Run cleanup only
+# Remove temporary integration artifacts only.
 fvm integration-test --cleanup-only
 ```
 
-### Dart Integration Tests
-```bash
-# Run Dart-based integration tests
-dart test test/integration/
-```
+The command currently exposes only `--cleanup-only`. It does not provide `--fast`, `--phase`, `--test`, or `--list-phases`.
 
-## Test Environment
+## Trimmed Guardrails
 
-### Isolation
-- Each test runs in a clean, temporary environment
-- Separate cache directories for test isolation
-- Project-specific temporary directories
-- Automatic cleanup after test completion
+The trimmed suite keeps recipes that prove behavior the fast fake layer cannot prove. Labels in the runner use `// REAL INTEGRATION` for these guardrails.
 
-### Requirements
-- Real network access for Git operations
-- Sufficient disk space for Flutter SDK downloads
-- Privileged access for symlink creation (optional)
-- Git installed and configured
+### Phase 1: Network Release Metadata
+- Real releases network fetch through the production release client.
 
-### Performance Expectations
-- **Duration**: 10-30 minutes depending on network speed
-- **Disk Usage**: 2-5 GB for Flutter SDK downloads
-- **Network**: Significant bandwidth usage for Git clones
+### Phase 2: Real Installation Workflows
+- Real channel clone/install.
+- Real Git commit clone/install.
 
-## Error Handling
+### Phase 3: Project Lifecycle
+- Real `fvm use` workflow with project config and symlink validation.
 
-### Graceful Failures
-- Network timeout handling
-- Invalid version validation
-- Corrupted cache recovery
-- Permission error management
+### Phase 4: SDK Validation
+- Real `fvm flutter doctor` through an installed and set up SDK.
 
-### Safety Measures
-- Cache backup before destructive operations
-- Automatic cleanup on test failure
-- Isolated test environments
-- Non-interference with existing FVM installations
+### Phase 5: API Release Smoke
+- Real API releases smoke test, unless folded into the Phase 1 network check.
+
+### Phase 6: Recovery
+- Corrupted-cache recovery.
+- Git clone fallback with an isolated Git cache.
+
+### Phase 7: Destructive Cache Cleanup
+- Destroy command followed by reinstall validation.
+
+### Phase 8: Concurrency
+- Concurrent access/install safety over real installed versions.
+
+### Phase 9: Global Symlink
+- Global version setting and symlink validation.
+
+## What Was Cut
+
+The fast mocked test layer already covers command parsing, config-only flows, and fake SDK plumbing. The real integration runner should not duplicate those imitation checks.
+
+Cut recipes include help/version/list, remove/doctor without real SDK validation, dart/spawn/exec/flavor command plumbing, API list/project/context, fork add/list/remove, config get/set, invalid version/command, state recounting, and PATH log-only validation.
+
+## Environment And Safety
+
+The integration workflow is slow and can be destructive to the real FVM cache.
+
+Requirements:
+- Network access to Flutter release metadata and Git remotes.
+- Git installed and available on `PATH`.
+- Disk space for Flutter SDK clones and setup artifacts.
+- Symlink permissions for global and project SDK links.
+
+Expected local cost:
+- Duration: 10-30 minutes depending on network and disk.
+- Disk: several GB during SDK clone/setup.
+- Network: real Flutter repository and release metadata traffic.
+
+Run it locally only when you explicitly intend to exercise the real cache. CI jobs named `integration-test` and `migration-test` are the normal full proof path for pull requests.
 
 ## Maintenance
 
-### Updating Test Versions
-Update the test configuration constants in `lib/src/commands/integration_test_command.dart`:
-```dart
-static const testChannel = 'stable';
-static const testRelease = '3.19.0';
-static const testCommit = 'fb57da5f94';
-```
-
-### Adding New Tests
-1. Add new test phases to the IntegrationTestRunner class
-2. Follow the existing pattern with `_logTest` and `_logSuccess`
-3. Ensure proper cleanup and error handling
-4. Update the test summary section and phase mapping
-
-### Debugging Failed Tests
-- Check individual test output for specific failures
-- Verify network connectivity for Git operations
-- Ensure sufficient disk space for SDK downloads
-- Check permissions for symlink creation
-
-## Integration with CI/CD
-
-### GitHub Actions
-The integration tests can be run in CI environments with:
-- Ubuntu/macOS runners
-- Sufficient timeout (30+ minutes)
-- Network access for Git operations
-- Adequate disk space allocation
-
-### Local Development
-- Run before major releases
-- Use for regression testing
-- Validate new feature implementations
-- Test cross-platform compatibility
-
-## Contributing
-
-When adding new integration tests:
-1. Follow the existing test structure and naming conventions
-2. Ensure proper environment isolation and cleanup
-3. Add comprehensive validation of real file system changes
-4. Include both success and failure scenarios
-5. Update this README with new test descriptions
+When changing the runner:
+- Keep real guardrails labeled with `// REAL INTEGRATION`.
+- Preserve install dependency order. Later tests may reuse SDKs installed in earlier phases.
+- Do not remove borderline real recipes just because they look slow.
+- Keep the summary generated from runtime counters instead of hardcoded test counts.
+- Update this file whenever the kept integration guardrails change.
