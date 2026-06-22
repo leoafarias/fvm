@@ -3,9 +3,19 @@
   "current_release": {
     "beta": "2948345beccc28a13af34024f61080f62282b58b",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "c9a6c484230f8b5e408ec57be1ef71dee1e77020"
+    "stable": "e1fd963c6f6922bd32afde2e9698a363cd0406d2"
   },
   "releases": [
+    {
+      "hash": "e1fd963c6f6922bd32afde2e9698a363cd0406d2",
+      "channel": "stable",
+      "version": "3.44.3",
+      "dart_sdk_version": "3.12.2",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-06-22T17:06:19.640914Z",
+      "archive": "stable/windows/flutter_windows_3.44.3-stable.zip",
+      "sha256": "8ebf8bc70779e8bd7959175ebd3e77d5b1a6a8d2b1fa690fa9c2d4aa1aaa4154"
+    },
     {
       "hash": "c9a6c484230f8b5e408ec57be1ef71dee1e77020",
       "channel": "stable",
