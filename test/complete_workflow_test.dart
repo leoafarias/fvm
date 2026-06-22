@@ -49,11 +49,11 @@ void main() {
         isTrue,
         reason: 'Version should be channel',
       );
-      // flutterSdkVersion can be detected via git tags even before setup
+      // flutterSdkVersion requires canonical SDK metadata.
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNotNull,
-        reason: 'Version should have flutter sdk version from git tags',
+        isNull,
+        reason: 'Version should not have flutter sdk version before setup',
       );
       // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(
@@ -93,11 +93,11 @@ void main() {
         true,
         reason: 'Version should be channel',
       );
-      // flutterSdkVersion can be detected via git tags even before setup
+      // flutterSdkVersion requires canonical SDK metadata.
       expect(
         cacheVersion?.flutterSdkVersion,
-        isNotNull,
-        reason: 'Version should have flutter sdk version from git tags',
+        isNull,
+        reason: 'Version should not have flutter sdk version before setup',
       );
       // dartSdkVersion requires setup (Dart SDK must be downloaded)
       expect(

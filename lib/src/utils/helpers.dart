@@ -273,9 +273,7 @@ bool _isScpLikeGitUrl(String url) {
   // - : required colon separator (distinguishes from file paths)
   // - path: required path component
   // Examples: git@github.com:user/repo.git, [::1]:path/to/repo.git
-  final scpPattern = RegExp(
-    r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$',
-  );
+  final scpPattern = RegExp(r'^(?:[^@:/\s]+@)?(?:\[[^\]]+\]|[^:\s]+):[^\s]+$');
 
   return scpPattern.hasMatch(url);
 }

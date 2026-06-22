@@ -412,7 +412,8 @@ void main() {
       expect(
         contents,
         contains(
-            '"dart.flutterSdkPath": ".fvm/versions/$forkName/$versionName"'),
+          '"dart.flutterSdkPath": ".fvm/versions/$forkName/$versionName"',
+        ),
       );
       expect(contents, contains('"editor.formatOnSave": true'));
     });

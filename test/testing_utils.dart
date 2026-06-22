@@ -393,6 +393,7 @@ class TestFactory {
     bool? privilegedAccess,
     Map<Type, Generator>? generators,
     bool? skipInput,
+    bool? stdinHasTerminal,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
     String? appConfigPath,
@@ -401,6 +402,7 @@ class TestFactory {
       debugLabel: debugLabel,
       privilegedAccess: privilegedAccess,
       skipInput: skipInput,
+      stdinHasTerminal: stdinHasTerminal,
       environmentOverrides: environmentOverrides,
       workingDirectoryOverride: workingDirectoryOverride,
       appConfigPath: appConfigPath,
@@ -419,6 +421,7 @@ class TestFactory {
     String? flutterUrl,
     Map<Type, Generator>? generators,
     bool? skipInput,
+    bool? stdinHasTerminal,
     Map<String, String>? environmentOverrides,
     String? workingDirectoryOverride,
     String? appConfigPath,
@@ -452,6 +455,7 @@ class TestFactory {
       appConfigPath: configFilePath,
       isTest: true,
       skipInput: skipInput ?? false,
+      stdinHasTerminal: stdinHasTerminal,
       environmentOverrides: environmentOverrides,
       generatorsOverride: {FlutterService: _mockFlutterService, ...?generators},
     );
@@ -626,7 +630,7 @@ Future<bool> isBareGitRepository(String repoPath) async {
 
 class MockFlutterService extends FlutterService {
   bool? lastUseArchive;
-  bool? lastAllowMirrorClone;
+  bool? lastUseGitCache;
   FlutterVersion? lastInstallVersion;
   Directory? lastInstallDirectory;
 
@@ -640,10 +644,10 @@ class MockFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version, {
     bool useArchive = false,
-    bool allowMirrorClone = true,
+    bool useGitCache = true,
   }) async {
     lastUseArchive = useArchive;
-    lastAllowMirrorClone = allowMirrorClone;
+    lastUseGitCache = useGitCache;
     lastInstallVersion = version;
 
     if (useArchive) {
@@ -679,7 +683,7 @@ class MockFlutterService extends FlutterService {
     await super.install(
       version,
       useArchive: useArchive,
-      allowMirrorClone: allowMirrorClone,
+      useGitCache: useGitCache,
     );
     final cacheService = get<CacheService>();
     lastInstallDirectory = cacheService.getVersionCacheDir(version);

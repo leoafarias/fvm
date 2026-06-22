@@ -120,9 +120,9 @@ void main() {
         expect(exitCode, ExitCode.success.code);
 
         // Verify the project version was installed
-        final cacheVersion = localRunner.context
-            .get<CacheService>()
-            .getVersion(FlutterVersion.parse(projectVersion));
+        final cacheVersion = localRunner.context.get<CacheService>().getVersion(
+              FlutterVersion.parse(projectVersion),
+            );
         expect(
           cacheVersion != null,
           true,

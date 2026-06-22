@@ -11,6 +11,7 @@ class FakeFlutterService extends FlutterService {
   FakeFlutterService(super.context);
 
   final installedVersions = <FlutterVersion>[];
+  final installUseGitCacheValues = <bool>[];
   final setupVersions = <String>[];
   final pubGetCalls = <({String version, bool offline})>[];
   final runCalls = <({String cmd, List<String> args, String version})>[];
@@ -26,19 +27,21 @@ class FakeFlutterService extends FlutterService {
   static Set<String> get allowedReleaseVersions =>
       Set.unmodifiable(_allowedReleases);
 
-  static final _allowedForkRefs = <String>{
-    'leo-test-21',
-  };
+  static final _allowedForkRefs = <String>{'leo-test-21'};
 
-  static final _commitHashPattern =
-      RegExp(r'^[0-9a-f]{7,40}$', caseSensitive: false);
+  static final _commitHashPattern = RegExp(
+    r'^[0-9a-f]{7,40}$',
+    caseSensitive: false,
+  );
 
   @override
   Future<void> install(
     FlutterVersion version, {
     bool useArchive = false,
-    bool allowMirrorClone = true,
+    bool useGitCache = true,
   }) async {
+    installUseGitCacheValues.add(useGitCache);
+
     final key = version.nameWithAlias;
     final failure = installFailures[key] ?? installFailures[version.name];
     if (failure != null) throw failure;

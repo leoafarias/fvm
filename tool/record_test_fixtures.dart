@@ -13,10 +13,7 @@ Future<void> main(List<String> args) async {
   parser.commands['flutter-version']!
     ..addOption('flutter-root', mandatory: true)
     ..addOption('name', mandatory: true)
-    ..addOption(
-      'output',
-      defaultsTo: 'test/fixtures/flutter_root_versions',
-    );
+    ..addOption('output', defaultsTo: 'test/fixtures/flutter_root_versions');
 
   parser.commands['releases']!
     ..addOption('source', mandatory: true)
@@ -29,12 +26,13 @@ Future<void> main(List<String> args) async {
   if (command == null) {
     stderr.writeln(parser.usage);
     exitCode = 64;
+
     return;
   }
 
   switch (command.name) {
     case 'flutter-version':
-      await _recordFlutterVersion(command);
+      _recordFlutterVersion(command);
     case 'releases':
       await _recordReleases(command);
     default:
@@ -43,7 +41,7 @@ Future<void> main(List<String> args) async {
   }
 }
 
-Future<void> _recordFlutterVersion(ArgResults command) async {
+void _recordFlutterVersion(ArgResults command) {
   final flutterRoot = Directory(command['flutter-root'] as String);
   final name = command['name'] as String;
   final outputDir = Directory(command['output'] as String);
@@ -51,14 +49,14 @@ Future<void> _recordFlutterVersion(ArgResults command) async {
   if (!flutterRoot.existsSync()) {
     stderr.writeln('Flutter root does not exist: ${flutterRoot.path}');
     exitCode = 66;
+
     return;
   }
 
   final rootMetadata = FlutterRootVersionFile.tryLoadFromRoot(flutterRoot);
-  final legacyVersion = _readOptionalTrimmed(
-        File(p.join(flutterRoot.path, 'version')),
-      ) ??
-      rootMetadata?.primaryVersion;
+  final legacyVersion =
+      _readOptionalTrimmed(File(p.join(flutterRoot.path, 'version'))) ??
+          rootMetadata?.primaryVersion;
   final dartSdkVersionFile = File(
     p.join(flutterRoot.path, 'bin', 'cache', 'dart-sdk', 'version'),
   );
@@ -73,6 +71,7 @@ Future<void> _recordFlutterVersion(ArgResults command) async {
       'flutterVersion/frameworkVersion.',
     );
     exitCode = 66;
+
     return;
   }
 
@@ -83,6 +82,7 @@ Future<void> _recordFlutterVersion(ArgResults command) async {
       'bin/cache/dart-sdk/version.',
     );
     exitCode = 66;
+
     return;
   }
 
@@ -138,6 +138,7 @@ Future<void> _recordReleases(ArgResults command) async {
   if (releases.isEmpty) {
     stderr.writeln('No releases matched requested versions: $versions');
     exitCode = 66;
+
     return;
   }
 
@@ -216,7 +217,7 @@ Future<String> _readSourceJson(String source) async {
 }
 
 Map<String, dynamic> _normalizeRelease(Map<String, dynamic> release) {
-  final normalized = <String, dynamic>{
+  final normalized = {
     'archive': release['archive'],
     'channel': release['channel'],
     'hash': release['hash'],

@@ -26,6 +26,10 @@ class AppDetailedException extends AppException {
   String toString() => message;
 }
 
+class GitCacheDependentSdkRemovalException extends AppException {
+  const GitCacheDependentSdkRemovalException(super.message);
+}
+
 bool checkIfNeedsPrivilegePermission(FileSystemException err) {
   return err.osError?.errorCode == 1314 && Platform.isWindows;
 }

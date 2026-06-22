@@ -22,9 +22,7 @@ void main() {
     // Initialize all mocks
 
     context = TestFactory.fastContext(
-      generators: {
-        ProjectService: (_) => MockProjectService(),
-      },
+      generators: {ProjectService: (_) => MockProjectService()},
     );
   });
 

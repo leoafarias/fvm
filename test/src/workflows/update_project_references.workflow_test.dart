@@ -88,8 +88,10 @@ void main() {
         ),
       );
       expect(versionFile.existsSync(), isTrue);
-      expect(versionFile.readAsStringSync(),
-          equals(cacheVersion.flutterSdkVersion));
+      expect(
+        versionFile.readAsStringSync(),
+        equals(cacheVersion.flutterSdkVersion),
+      );
 
       final releaseFile = File(
         p.join(
@@ -105,133 +107,139 @@ void main() {
       expect(updatedProject.pinnedVersion, cacheVersion.toFlutterVersion());
     });
 
-    test('should fall back to nameWithAlias when flutter SDK version is absent',
-        () async {
-      final testDir = tempDirs.create();
-      createPubspecYaml(testDir, name: 'test_project');
-      createProjectConfig(ProjectConfig(), testDir);
+    test(
+      'should fall back to nameWithAlias when flutter SDK version is absent',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir, name: 'test_project');
+        createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        final project = runner.context.get<ProjectService>().findAncestor(
+              directory: testDir,
+            );
 
-      final versionDir = Directory(p.join(cacheDir.path, 'versions', 'stable'));
-      versionDir.createSync(recursive: true);
+        final versionDir = Directory(
+          p.join(cacheDir.path, 'versions', 'stable'),
+        );
+        versionDir.createSync(recursive: true);
 
-      // No flutter.version.json or version file to ensure flutterSdkVersion is null.
-      final cacheVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('stable'),
-        directory: versionDir.path,
-      );
+        // No flutter.version.json or version file to ensure flutterSdkVersion is null.
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('stable'),
+          directory: versionDir.path,
+        );
 
-      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+        final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
-      await workflow.call(project, cacheVersion, force: true);
+        await workflow.call(project, cacheVersion, force: true);
 
-      final versionFile = File(
-        p.join(
-          testDir.path,
-          '.fvm',
-          UpdateProjectReferencesWorkflow.versionFile,
-        ),
-      );
+        final versionFile = File(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.versionFile,
+          ),
+        );
 
-      expect(versionFile.existsSync(), isTrue);
-      expect(
-          versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
-    });
+        expect(versionFile.existsSync(), isTrue);
+        expect(
+          versionFile.readAsStringSync(),
+          equals(cacheVersion.nameWithAlias),
+        );
+      },
+    );
 
     test(
-        'should fall back to nameWithAlias when flutter SDK version is empty string',
-        () async {
-      final testDir = tempDirs.create();
-      createPubspecYaml(testDir, name: 'test_project');
-      createProjectConfig(ProjectConfig(), testDir);
+      'should fall back to nameWithAlias when flutter SDK version is empty string',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir, name: 'test_project');
+        createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        final project = runner.context.get<ProjectService>().findAncestor(
+              directory: testDir,
+            );
 
-      final versionDir = Directory(p.join(cacheDir.path, 'versions', '3.10.0'));
-      versionDir.createSync(recursive: true);
+        final versionDir = Directory(
+          p.join(cacheDir.path, 'versions', '3.10.0'),
+        );
+        versionDir.createSync(recursive: true);
 
-      // Create an empty version file (whitespace only) to test empty string fallback
-      File(p.join(versionDir.path, 'version')).writeAsStringSync('   ');
+        // Create an empty version file (whitespace only) to test empty string fallback
+        File(p.join(versionDir.path, 'version')).writeAsStringSync('   ');
 
-      final cacheVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
-        directory: versionDir.path,
-      );
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('3.10.0'),
+          directory: versionDir.path,
+        );
 
-      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+        final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
-      await workflow.call(project, cacheVersion, force: true);
+        await workflow.call(project, cacheVersion, force: true);
 
-      final versionFile = File(
-        p.join(
-          testDir.path,
-          '.fvm',
-          UpdateProjectReferencesWorkflow.versionFile,
-        ),
-      );
+        final versionFile = File(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.versionFile,
+          ),
+        );
 
-      // Should fall back to nameWithAlias when version is empty/whitespace
-      expect(versionFile.existsSync(), isTrue);
-      expect(
-          versionFile.readAsStringSync(), equals(cacheVersion.nameWithAlias));
-    });
+        // Should fall back to nameWithAlias when version is empty/whitespace
+        expect(versionFile.existsSync(), isTrue);
+        expect(
+          versionFile.readAsStringSync(),
+          equals(cacheVersion.nameWithAlias),
+        );
+      },
+    );
 
     test(
-        'should fall back to nameWithAlias for fork version when SDK version is absent',
-        () async {
-      final testDir = tempDirs.create();
-      createPubspecYaml(testDir, name: 'test_project');
-      createProjectConfig(ProjectConfig(), testDir);
+      'should fall back to nameWithAlias for fork version when SDK version is absent',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir, name: 'test_project');
+        createProjectConfig(ProjectConfig(), testDir);
 
-      final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        final project = runner.context.get<ProjectService>().findAncestor(
+              directory: testDir,
+            );
 
-      // Create a fork version directory without version files
-      const forkName = 'my-fork';
-      const versionName = 'stable';
-      final forkVersionDir = Directory(
-        p.join(cacheDir.path, 'versions', forkName, versionName),
-      );
-      forkVersionDir.createSync(recursive: true);
+        // Create a fork version directory without version files
+        const forkName = 'my-fork';
+        const versionName = 'stable';
+        final forkVersionDir = Directory(
+          p.join(cacheDir.path, 'versions', forkName, versionName),
+        );
+        forkVersionDir.createSync(recursive: true);
 
-      // No version files to ensure flutterSdkVersion is null
-      final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
-      final cacheVersion = CacheFlutterVersion.fromVersion(
-        flutterVersion,
-        directory: forkVersionDir.path,
-      );
+        // No version files to ensure flutterSdkVersion is null
+        final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          flutterVersion,
+          directory: forkVersionDir.path,
+        );
 
-      final workflow = UpdateProjectReferencesWorkflow(runner.context);
+        final workflow = UpdateProjectReferencesWorkflow(runner.context);
 
-      await workflow.call(project, cacheVersion, force: true);
+        await workflow.call(project, cacheVersion, force: true);
 
-      final versionFile = File(
-        p.join(
-          testDir.path,
-          '.fvm',
-          UpdateProjectReferencesWorkflow.versionFile,
-        ),
-      );
+        final versionFile = File(
+          p.join(
+            testDir.path,
+            '.fvm',
+            UpdateProjectReferencesWorkflow.versionFile,
+          ),
+        );
 
-      // Should contain full fork/version string (nameWithAlias)
-      expect(versionFile.existsSync(), isTrue);
+        // Should contain full fork/version string (nameWithAlias)
+        expect(versionFile.existsSync(), isTrue);
 
-      final versionFileContents = versionFile.readAsStringSync();
-      expect(
-        versionFileContents,
-        equals('$forkName/$versionName'),
-      );
-      expect(
-        cacheVersion.nameWithAlias,
-        equals('$forkName/$versionName'),
-      );
-    });
+        final versionFileContents = versionFile.readAsStringSync();
+        expect(versionFileContents, equals('$forkName/$versionName'));
+        expect(cacheVersion.nameWithAlias, equals('$forkName/$versionName'));
+      },
+    );
 
     test('should update with flavor when provided', () async {
       final testDir = tempDirs.create();
@@ -448,8 +456,9 @@ void main() {
       dartSdkDir.createSync(recursive: true);
 
       // Create version files
-      File(p.join(forkVersionDir.path, 'version'))
-          .writeAsStringSync(versionName);
+      File(
+        p.join(forkVersionDir.path, 'version'),
+      ).writeAsStringSync(versionName);
       File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('2.19.0');
 
       // Create a fork FlutterVersion
@@ -527,8 +536,9 @@ void main() {
       forkVersionDir.createSync(recursive: true);
 
       // Create version file
-      File(p.join(forkVersionDir.path, 'version'))
-          .writeAsStringSync(versionName);
+      File(
+        p.join(forkVersionDir.path, 'version'),
+      ).writeAsStringSync(versionName);
 
       final flutterVersion = FlutterVersion.parse('$forkName/$versionName');
       final cacheVersion = CacheFlutterVersion.fromVersion(

@@ -11,14 +11,19 @@ class FakeGitService extends GitService {
   int updateLocalMirrorCalls = 0;
   int removeLocalMirrorCalls = 0;
 
+  Exception? ensureBareCacheException;
+  Exception? updateLocalMirrorException;
+
   @override
   Future<void> ensureBareCacheIfPresent() async {
     ensureBareCacheCalls++;
+    if (ensureBareCacheException != null) throw ensureBareCacheException!;
   }
 
   @override
   Future<void> updateLocalMirror() async {
     updateLocalMirrorCalls++;
+    if (updateLocalMirrorException != null) throw updateLocalMirrorException!;
   }
 
   @override

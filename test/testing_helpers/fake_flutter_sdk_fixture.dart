@@ -8,7 +8,10 @@ import 'fixture_paths.dart';
 
 /// Layout state for a fake Flutter SDK directory in the test cache.
 enum FakeFlutterSdkState {
-  /// Installed clone with root `version` and executables only.
+  /// Installed clone with executables only.
+  ///
+  /// No SDK version metadata is written, matching a pre-setup cache entry where
+  /// FVM should not infer metadata from surrounding git tags.
   installedNotSetup,
 
   /// Fully set up SDK with JSON metadata and Dart SDK cache files.
@@ -52,8 +55,9 @@ class FlutterRootVersionFixture {
   }
 
   static FlutterRootVersionFixture fromJson(Map<String, dynamic> json) {
-    final flutterVersionJson =
-        Map<String, dynamic>.from(json['flutterVersionJson'] as Map);
+    final flutterVersionJson = Map<String, dynamic>.from(
+      json['flutterVersionJson'] as Map,
+    );
 
     return FlutterRootVersionFixture(
       name: json['name'] as String,
@@ -97,19 +101,19 @@ class FakeFlutterSdkFixture {
     final fixture = loadFixture(fixtureName ?? resolveFixtureName(version));
 
     if (version.fromFork) {
-      Directory(p.join(context.versionsCachePath, version.fork!))
-          .createSync(recursive: true);
+      Directory(
+        p.join(context.versionsCachePath, version.fork!),
+      ).createSync(recursive: true);
     }
 
     versionDir.createSync(recursive: true);
+    Directory(p.join(versionDir.path, '.git')).createSync();
 
-    final legacyVersion = _legacyVersionForState(
-      fixture,
-      state,
-      mismatchCachedVersion: mismatchCachedVersion,
-    );
+    final legacyVersion = _legacyVersionForState(fixture, state);
 
-    File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    if (_writesLegacyVersionFile(state)) {
+      File(p.join(versionDir.path, 'version')).writeAsStringSync(legacyVersion);
+    }
 
     if (state != FakeFlutterSdkState.invalidExecutable) {
       _writeExecutable(p.join(versionDir.path, 'bin', flutterExecFileName));
@@ -146,10 +150,7 @@ class FakeFlutterSdkFixture {
       );
     }
 
-    return CacheFlutterVersion.fromVersion(
-      version,
-      directory: versionDir.path,
-    );
+    return CacheFlutterVersion.fromVersion(version, directory: versionDir.path);
   }
 
   static FlutterRootVersionFixture loadFixture(String name) {
@@ -195,11 +196,14 @@ class FakeFlutterSdkFixture {
         state == FakeFlutterSdkState.versionMismatch;
   }
 
+  static bool _writesLegacyVersionFile(FakeFlutterSdkState state) {
+    return state != FakeFlutterSdkState.installedNotSetup;
+  }
+
   static String _legacyVersionForState(
     FlutterRootVersionFixture fixture,
-    FakeFlutterSdkState state, {
-    String? mismatchCachedVersion,
-  }) {
+    FakeFlutterSdkState state,
+  ) {
     if (state == FakeFlutterSdkState.versionMismatch) {
       return fixture.mismatchLegacyVersion ?? fixture.legacyVersion;
     }

@@ -225,10 +225,7 @@ void main() {
       final context = TestFactory.context(
         generators: {
           Logger: (context) => TestLogger(context)
-            ..setConfirmResponse(
-              'continue pinning this version anyway?',
-              true,
-            ),
+            ..setConfirmResponse('continue pinning this version anyway?', true),
           FlutterService: (context) => FailingFlutterService(context),
         },
       );
@@ -273,11 +270,10 @@ void main() {
 
       final context = TestFactory.context(
         generators: {
-          Logger: (context) => TestLogger(context)
-            ..setConfirmResponse(
-              'continue pinning this version anyway?',
-              false,
-            ),
+          Logger: (context) => TestLogger(
+                context,
+              )..setConfirmResponse(
+                  'continue pinning this version anyway?', false),
           FlutterService: (context) => FailingFlutterService(context),
         },
       );
