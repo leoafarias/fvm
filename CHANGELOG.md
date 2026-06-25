@@ -1,3 +1,7 @@
+## Unreleased
+
+* fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
+
 ## 4.1.1
 
 * fix: prevent git cache bloat and stale SDK installs caused by outdated cache clones (#1037)
