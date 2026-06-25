@@ -304,21 +304,28 @@ class GitService extends ContextualService {
     for (final refsDir in refsDirs) {
       if (!refsDir.existsSync()) continue;
 
-      await for (final entity
-          in refsDir.list(recursive: true, followLinks: false)) {
-        if (entity is! File) continue;
-        if (!_osMetadataFileNames.contains(path.basename(entity.path))) {
-          continue;
+      try {
+        await for (final entity
+            in refsDir.list(recursive: true, followLinks: false)) {
+          if (entity is! File) continue;
+          if (!_osMetadataFileNames.contains(path.basename(entity.path))) {
+            continue;
+          }
+          try {
+            entity.deleteSync();
+            logger.debug('Removed OS metadata file: ${entity.path}');
+          } on FileSystemException catch (error) {
+            logger.debug(
+              'Could not remove OS metadata file ${entity.path}: '
+              '${error.message}',
+            );
+          }
         }
-        try {
-          entity.deleteSync();
-          logger.debug('Removed OS metadata file: ${entity.path}');
-        } on FileSystemException catch (error) {
-          logger.debug(
-            'Could not remove OS metadata file ${entity.path}: '
-            '${error.message}',
-          );
-        }
+      } on FileSystemException catch (error) {
+        logger.debug(
+          'Could not scan refs directory ${refsDir.path} for OS metadata: '
+          '${error.message}',
+        );
       }
     }
   }
