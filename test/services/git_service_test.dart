@@ -721,5 +721,135 @@ Future<void> main(List<String> args) async {
         expect(completed, isTrue);
       },
     );
+
+    test(
+      'tolerates OS metadata files in refs and reuses the cache without '
+      'recreating it (issue #1043)',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'ds_store_cache.git');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_ds'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await gitService.updateLocalMirror();
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+        final refsBefore = await _gitRefs(gitCachePath);
+
+        // A marker at the cache root survives an in-place refresh but is lost
+        // if the cache is recreated via the atomic directory swap. Its survival
+        // proves the cache was reused, not rebuilt from scratch — which is the
+        // actual #1043 regression (forced recreation on every `fvm use`).
+        final reuseMarker = File(p.join(gitCachePath, '.fvm_reuse_marker'))
+          ..writeAsStringSync('reuse');
+
+        // Simulate macOS Finder / Windows Explorer writing metadata into the
+        // refs tree — the exact badRefName fsck failure from issue #1043.
+        final refsDsStore = File(p.join(gitCachePath, 'refs', '.DS_Store'))
+          ..writeAsStringSync('binary junk');
+        final headsDsStore =
+            File(p.join(gitCachePath, 'refs', 'heads', '.DS_Store'))
+              ..writeAsStringSync('binary junk');
+        final headsThumbsDb =
+            File(p.join(gitCachePath, 'refs', 'heads', 'Thumbs.db'))
+              ..writeAsStringSync('junk');
+
+        // Must succeed without recreating the cache.
+        await gitService.updateLocalMirror();
+
+        expect(
+          reuseMarker.existsSync(),
+          isTrue,
+          reason: 'cache must be refreshed in place, not recreated',
+        );
+        expect(refsDsStore.existsSync(), isFalse);
+        expect(headsDsStore.existsSync(), isFalse);
+        expect(headsThumbsDb.existsSync(), isFalse);
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+        expect(await _gitRefs(gitCachePath), unorderedEquals(refsBefore));
+      },
+    );
+
+    test(
+      'still detects genuine object corruption and self-heals the cache',
+      () async {
+        final gitCachePath = p.join(tempDir.path, 'corrupt_cache.git');
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_corrupt'),
+            gitCachePath: gitCachePath,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+
+        final gitService = GitService(context);
+        await gitService.updateLocalMirror();
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+
+        // OS metadata the purge SHOULD remove...
+        File(p.join(gitCachePath, 'refs', '.DS_Store'))
+            .writeAsStringSync('binary junk');
+
+        // ...alongside genuine corruption the purge must NOT mask: delete the
+        // loose object backing a reachable ref so fsck truly fails.
+        final headSha = (await runGitCommand(
+          ['rev-parse', 'refs/heads/master'],
+          workingDirectory: gitCachePath,
+        ))
+            .stdout
+            .toString()
+            .trim();
+        final looseObject = File(p.join(
+          gitCachePath,
+          'objects',
+          headSha.substring(0, 2),
+          headSha.substring(2),
+        ));
+        expect(
+          looseObject.existsSync(),
+          isTrue,
+          reason: 'fake remote should produce a loose HEAD object to corrupt',
+        );
+        looseObject.deleteSync();
+
+        // Sanity: the corruption is real — fsck now fails.
+        final corruptFsck = await Process.run(
+          'git',
+          ['fsck', '--connectivity-only'],
+          workingDirectory: gitCachePath,
+          runInShell: true,
+        );
+        expect(
+          corruptFsck.exitCode,
+          isNot(0),
+          reason: 'deleting a reachable object must break fsck',
+        );
+
+        // The real `fvm use` path must recover to a verified-healthy cache,
+        // proving the metadata purge did not suppress real corruption.
+        await gitService.updateLocalMirror();
+
+        final healedFsck = await Process.run(
+          'git',
+          ['fsck', '--connectivity-only'],
+          workingDirectory: gitCachePath,
+          runInShell: true,
+        );
+        expect(
+          healedFsck.exitCode,
+          0,
+          reason: 'cache must self-heal genuine corruption',
+        );
+        await _expectHeadsTagsOnlyCache(gitCachePath);
+      },
+    );
   });
 }
