@@ -32,6 +32,10 @@ class GitService extends ContextualService {
   );
   static const Duration _staleGitCacheTempAge = Duration(hours: 24);
 
+  /// OS-generated metadata files that tools like macOS Finder and Windows
+  /// Explorer drop into directories. They are never valid git refs.
+  static const _osMetadataFileNames = {'.DS_Store', 'Thumbs.db', 'desktop.ini'};
+
   List<GitReference>? _referencesCache;
 
   GitService(super.context);
@@ -283,8 +287,54 @@ class GitService extends ContextualService {
     return gitCacheDir;
   }
 
-  Future<void> _validateGitCache(Directory directory) {
-    return get<ProcessService>().run(
+  /// Removes OS-generated metadata files from the repository's refs tree so
+  /// that `git fsck` does not treat them as invalid ref names. macOS Finder
+  /// creates `.DS_Store` in any directory it visits; Windows Explorer writes
+  /// `Thumbs.db` and `desktop.ini`. These names are never valid Flutter refs,
+  /// so removing them cannot delete a real branch or tag.
+  ///
+  /// Handles both repository layouts: a bare cache keeps refs at `<repo>/refs`,
+  /// while a non-bare SDK clone keeps them at `<repo>/.git/refs`.
+  Future<void> _purgeOsMetadataFromRefs(Directory repository) async {
+    final refsDirs = [
+      Directory(path.join(repository.path, 'refs')),
+      Directory(path.join(repository.path, '.git', 'refs')),
+    ];
+
+    for (final refsDir in refsDirs) {
+      if (!refsDir.existsSync()) continue;
+
+      try {
+        await for (final entity
+            in refsDir.list(recursive: true, followLinks: false)) {
+          if (entity is! File) continue;
+          if (!_osMetadataFileNames.contains(path.basename(entity.path))) {
+            continue;
+          }
+          try {
+            entity.deleteSync();
+            logger.debug('Removed OS metadata file: ${entity.path}');
+          } on FileSystemException catch (error) {
+            logger.debug(
+              'Could not remove OS metadata file ${entity.path}: '
+              '${error.message}',
+            );
+          }
+        }
+      } on FileSystemException catch (error) {
+        logger.debug(
+          'Could not scan refs directory ${refsDir.path} for OS metadata: '
+          '${error.message}',
+        );
+      }
+    }
+  }
+
+  /// Purges OS metadata from the refs tree, then verifies object connectivity
+  /// with `git fsck`. Throws a [ProcessException] if the repository is corrupt.
+  Future<void> _validateGitCache(Directory directory) async {
+    await _purgeOsMetadataFromRefs(directory);
+    await get<ProcessService>().run(
       'git',
       args: ['fsck', '--connectivity-only'],
       workingDirectory: directory.path,
@@ -788,11 +838,7 @@ class GitService extends ContextualService {
 
       _writeAlternateLines(alternatesFile, retainedLines);
 
-      await get<ProcessService>().run(
-        'git',
-        args: ['fsck', '--connectivity-only'],
-        workingDirectory: version.directory,
-      );
+      await _validateGitCache(Directory(version.directory));
 
       logger.info('Dissociated ${version.name} from local git cache.');
 
