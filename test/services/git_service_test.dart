@@ -798,27 +798,13 @@ Future<void> main(List<String> args) async {
         File(p.join(gitCachePath, 'refs', '.DS_Store'))
             .writeAsStringSync('binary junk');
 
-        // ...alongside genuine corruption the purge must NOT mask: delete the
-        // loose object backing a reachable ref so fsck truly fails.
-        final headSha = (await runGitCommand(
-          ['rev-parse', 'refs/heads/master'],
-          workingDirectory: gitCachePath,
-        ))
-            .stdout
-            .toString()
-            .trim();
-        final looseObject = File(p.join(
-          gitCachePath,
-          'objects',
-          headSha.substring(0, 2),
-          headSha.substring(2),
-        ));
-        expect(
-          looseObject.existsSync(),
-          isTrue,
-          reason: 'fake remote should produce a loose HEAD object to corrupt',
-        );
-        looseObject.deleteSync();
+        // ...alongside genuine corruption the purge must NOT mask: write a ref
+        // that points at a non-existent object SHA so that
+        // `git fsck --connectivity-only` fails. This is format-agnostic and
+        // does not depend on whether git stored objects loose or in packfiles.
+        const fakeSha = '0000000000000000000000000000000000000001';
+        File(p.join(gitCachePath, 'refs', 'heads', 'corrupt-ref'))
+            .writeAsStringSync('$fakeSha\n');
 
         // Sanity: the corruption is real — fsck now fails.
         final corruptFsck = await Process.run(
@@ -830,7 +816,7 @@ Future<void> main(List<String> args) async {
         expect(
           corruptFsck.exitCode,
           isNot(0),
-          reason: 'deleting a reachable object must break fsck',
+          reason: 'a ref pointing at a non-existent object must break fsck',
         );
 
         // The real `fvm use` path must recover to a verified-healthy cache,
