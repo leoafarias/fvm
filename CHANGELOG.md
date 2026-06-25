@@ -1,4 +1,4 @@
-## Unreleased
+## 4.1.2
 
 * fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
 
