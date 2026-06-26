@@ -3,6 +3,8 @@ description: A simple cli to manage Flutter SDK versions per project. Support
   channels, releases, and local cache for fast switching between versions.
 version: 4.1.1
 homepage: https://github.com/leoafarias/fvm
+# Local preview branch only: needed while `muse` is consumed from a sibling path.
+publish_to: none
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -18,6 +20,9 @@ dependencies:
   io: ^1.0.4
   mason_logger: ^0.2.9
   meta: ^1.10.0
+  # Local preview dependency for the experimental `fvm tui` command.
+  muse:
+    path: ../../cli_ui
   path: ^1.9.0
   pub_semver: ^2.1.4
   pub_updater: ^0.4.0

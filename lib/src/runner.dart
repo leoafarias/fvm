@@ -24,6 +24,7 @@ import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
+import 'commands/tui_command.dart';
 import 'commands/use_command.dart';
 import 'models/config_model.dart';
 import 'models/log_level_model.dart';
@@ -67,6 +68,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(GlobalCommand(context));
     addCommand(FlavorCommand(context));
     addCommand(IntegrationTestCommand(context));
+    addCommand(TuiCommand(context));
   }
 
   /// Checks if the current version (set by the build runner on the

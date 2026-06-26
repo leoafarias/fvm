@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
+  code_assets:
+    dependency: transitive
+    description:
+      name: code_assets
+      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   code_builder:
     dependency: transitive
     description:
@@ -345,6 +353,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.5"
+  hooks:
+    dependency: transitive
+    description:
+      name: hooks
+      sha256: "9a62a50b50b769a737bc0a8ff381f333529df3ab746b2f6b02e83760231455ba"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.2"
   http:
     dependency: "direct dev"
     description:
@@ -469,10 +485,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: c82594181e3312f3d0695fc95aaaf7758d75b8d4ae2bbecf223b9fd5109a059d
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.18.3"
   mime:
     dependency: transitive
     description:
@@ -489,6 +505,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.4"
+  muse:
+    dependency: "direct main"
+    description:
+      path: "../../cli_ui"
+      relative: true
+    source: path
+    version: "0.1.0-dev.1"
   node_preamble:
     dependency: transitive
     description:
@@ -561,6 +584,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  record_use:
+    dependency: transitive
+    description:
+      name: record_use
+      sha256: "2551bd8eecfe95d14ae75f6021ad0248be5c27f138c2ec12fcb52b500b3ba1ed"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.0"
   scope:
     dependency: "direct main"
     description:
@@ -818,4 +849,4 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.6.0 <4.0.0"
+  dart: ">=3.10.0 <4.0.0"
