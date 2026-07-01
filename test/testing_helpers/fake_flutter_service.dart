@@ -37,6 +37,7 @@ class FakeFlutterService extends FlutterService {
   @override
   Future<void> install(
     FlutterVersion version, {
+    bool useArchive = false,
     bool useGitCache = true,
   }) async {
     installUseGitCacheValues.add(useGitCache);

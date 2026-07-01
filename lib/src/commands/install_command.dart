@@ -33,6 +33,12 @@ class InstallCommand extends BaseFvmCommand {
         help: 'Skip resolving dependencies after switching Flutter SDK',
         defaultsTo: false,
         negatable: false,
+      )
+      ..addFlag(
+        'archive',
+        help: 'Install from a precompiled archive instead of cloning from git',
+        defaultsTo: false,
+        negatable: false,
       );
   }
 
@@ -40,6 +46,7 @@ class InstallCommand extends BaseFvmCommand {
   Future<int> run() async {
     final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
+    final useArchive = boolArg('archive');
 
     final ensureCache = EnsureCacheWorkflow(context);
     final useVersion = UseVersionWorkflow(context);
@@ -66,6 +73,7 @@ class InstallCommand extends BaseFvmCommand {
       final cacheVersion = await ensureCache(
         resolvedVersion,
         shouldInstall: true,
+        useArchive: useArchive,
       );
 
       await useVersion(
@@ -82,7 +90,11 @@ class InstallCommand extends BaseFvmCommand {
 
     final flutterVersion = validateFlutterVersion(version);
 
-    final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
+    final cacheVersion = await ensureCache(
+      flutterVersion,
+      shouldInstall: true,
+      useArchive: useArchive,
+    );
 
     if (setup) {
       await setupFlutter(cacheVersion);
