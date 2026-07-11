@@ -434,7 +434,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     required String desc,
     ToolAnnotations? annotations,
     required ObjectSchema schema,
-    required Future<CallToolResult> Function(CallToolRequest call) run,
+    required FutureOr<CallToolResult> Function(CallToolRequest call) run,
   }) {
     registerTool(
       Tool(
