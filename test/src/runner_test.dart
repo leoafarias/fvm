@@ -1,7 +1,12 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:fvm/fvm.dart';
 import 'package:fvm/src/commands/api_command.dart';
+import 'package:fvm/src/runner.dart';
+import 'package:io/io.dart';
+import 'package:path/path.dart' as p;
+import 'package:pub_updater/pub_updater.dart';
 import 'package:test/test.dart';
 
 import '../testing_utils.dart';
@@ -20,6 +25,29 @@ void main() {
     final result = await runner.run(['fvm', 'api', _ExitCommand.commandName]);
 
     expect(result, 42);
+  });
+
+  test('update check does not overwrite malformed configuration', () async {
+    const malformedConfig = '{"lastUpdateCheck":';
+    final tempDir = createTempDir('runner-config');
+    final configFile = File(p.join(tempDir.path, 'config.json'));
+    final context = FvmContext.create(
+      appConfigPath: configFile.path,
+      configOverrides: AppConfig(lastUpdateCheck: DateTime(2000)),
+      workingDirectoryOverride: tempDir.path,
+      isTest: true,
+    );
+    configFile.writeAsStringSync(malformedConfig);
+    final updater = _TrackingPubUpdater();
+
+    final result = await FvmCommandRunner(
+      context,
+      pubUpdater: updater,
+    ).run(['--version']);
+
+    expect(result, ExitCode.success.code);
+    expect(configFile.readAsStringSync(), malformedConfig);
+    expect(updater.calls, 0);
   });
 
   group('TestCommandRunner.runOrThrow', () {
@@ -60,4 +88,17 @@ class _ExitCommand extends Command<int> {
 
   @override
   int run() => code;
+}
+
+class _TrackingPubUpdater extends PubUpdater {
+  int calls = 0;
+
+  @override
+  Future<bool> isUpToDate({
+    required String packageName,
+    required String currentVersion,
+  }) async {
+    calls++;
+    return true;
+  }
 }

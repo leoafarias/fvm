@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:fvm/fvm.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
@@ -67,6 +69,25 @@ void main() {
 
       expect(fork.name, alias);
       expect(fork.url, scpUrl);
+    });
+
+    test('does not overwrite malformed configuration when adding a fork',
+        () async {
+      const malformedConfig = '{"forks":';
+      final configFile = File(runner.context.appConfigPath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(malformedConfig);
+
+      final exitCode = await runner.run([
+        'fvm',
+        'fork',
+        'add',
+        testForkName,
+        testForkUrl,
+      ]);
+
+      expect(exitCode, ExitCode.data.code);
+      expect(configFile.readAsStringSync(), malformedConfig);
     });
 
     test('Reject invalid fork URL', () async {

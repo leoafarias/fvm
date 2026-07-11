@@ -76,7 +76,10 @@ class ForkAddCommand extends BaseFvmCommand {
     }
 
     // Check for duplicate alias
-    final config = LocalAppConfig.read(path: context.appConfigPath);
+    final config = LocalAppConfig.read(
+      path: context.appConfigPath,
+      requireValid: true,
+    );
     if (config.forks.any((f) => f.name == alias)) {
       throw UsageException(
         'Fork alias "$alias" already exists. Remove it first if you want to update.',
@@ -117,7 +120,7 @@ class ForkRemoveCommand extends BaseFvmCommand {
     }
     final alias = args[0];
 
-    LocalAppConfig.read(path: context.appConfigPath)
+    LocalAppConfig.read(path: context.appConfigPath, requireValid: true)
       ..forks.removeWhere((f) => f.name == alias)
       ..save(path: context.appConfigPath);
 

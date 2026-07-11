@@ -7,6 +7,7 @@ import 'package:path/path.dart' as p;
 
 import '../utils/change_case.dart';
 import '../utils/constants.dart';
+import '../utils/exceptions.dart';
 import '../utils/pretty_json.dart';
 import 'flutter_version_model.dart';
 
@@ -199,14 +200,32 @@ class LocalAppConfig with LocalAppConfigMappable implements AppConfig {
     this.forks = {...?forks};
   }
 
-  static LocalAppConfig read({String? path}) {
-    try {
-      final configFile = _configFile(path);
+  /// Loads the local configuration, returning an empty config when unavailable.
+  ///
+  /// When [requireValid] is true, malformed content throws an [AppException]
+  /// and filesystem failures propagate so callers cannot overwrite a config
+  /// they failed to read.
+  static LocalAppConfig read({String? path, bool requireValid = false}) {
+    final configFile = _configFile(path);
+    if (!configFile.existsSync()) return LocalAppConfig();
 
-      return configFile.existsSync()
-          ? LocalAppConfig.fromJson(configFile.readAsStringSync())
-          : LocalAppConfig();
-    } catch (e) {
+    try {
+      return LocalAppConfig.fromJson(configFile.readAsStringSync());
+    } on FileSystemException {
+      if (requireValid) rethrow;
+
+      return LocalAppConfig();
+    } catch (_, stackTrace) {
+      if (requireValid) {
+        Error.throwWithStackTrace(
+          AppException(
+            'FVM configuration file is invalid: "${configFile.path}". '
+            'Fix or remove it before changing settings.',
+          ),
+          stackTrace,
+        );
+      }
+
       return LocalAppConfig();
     }
   }

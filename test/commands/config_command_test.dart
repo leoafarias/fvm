@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/io.dart';
 import 'package:test/test.dart';
 
@@ -48,5 +51,21 @@ void main() {
         expect(updatedConfig.disableUpdateCheck, isFalse);
       },
     );
+
+    test('does not overwrite malformed configuration', () async {
+      const malformedConfig = '{"cachePath":';
+      final configFile = File(runner.context.appConfigPath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync(malformedConfig);
+
+      final exitCode = await runner.run(['fvm', 'config', '--no-update-check']);
+
+      expect(exitCode, ExitCode.data.code);
+      expect(configFile.readAsStringSync(), malformedConfig);
+      expect(
+        runner.context.get<Logger>().outputs.join('\n'),
+        contains('configuration file is invalid'),
+      );
+    });
   });
 }

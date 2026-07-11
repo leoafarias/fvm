@@ -82,7 +82,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return null;
       }
 
-      LocalAppConfig.read(path: context.appConfigPath)
+      LocalAppConfig.read(path: context.appConfigPath, requireValid: true)
         ..lastUpdateCheck = DateTime.now()
         ..save(path: context.appConfigPath);
 
