@@ -105,6 +105,27 @@ void main() {
       }
     });
 
+    test('should fail gracefully for main channel', () async {
+      final testDir = createTempDir();
+      createPubspecYaml(testDir);
+      final localRunner = TestFactory.fastCommandRunner(
+        context: TestFactory.fastContext(
+          workingDirectoryOverride: testDir.path,
+        ),
+      );
+
+      expect(
+        () => localRunner.runOrThrow(['fvm', 'use', 'main', '--pin']),
+        throwsA(
+          predicate<UsageException>(
+            (e) => e.message.contains(
+              'Cannot pin a version that is not in dev, beta or stable',
+            ),
+          ),
+        ),
+      );
+    });
+
     test('pin flag throws error for specific versions', () async {
       final testDir = createTempDir();
 

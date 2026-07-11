@@ -18,6 +18,7 @@
 * fix: preserve existing project SDK links when symlink access is unavailable
 * fix: clear global SDK links when their cached versions are removed
 * fix: show available channel updates in `fvm list` and clarify empty-cache output
+* fix: reject `fvm use main --pin` with the documented channel usage error
 
 ## 4.1.1
 

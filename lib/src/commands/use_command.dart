@@ -89,7 +89,8 @@ class UseCommand extends BaseFvmCommand {
 
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {
-      if (!isFlutterChannel(version) || version == 'master') {
+      const pinnableChannels = {'stable', 'beta', 'dev'};
+      if (!pinnableChannels.contains(version)) {
         throw UsageException(
           'Cannot pin a version that is not in dev, beta or stable channels.',
           usage,
