@@ -194,6 +194,75 @@ void main() {
           throwsA(isA<AppException>()),
         );
       });
+
+      test('moves a mismatched SDK into an available cache directory', () {
+        final sourceDir = Directory(path.join(tempDir.path, '3.10.0'))
+          ..createSync(recursive: true);
+        File(path.join(sourceDir.path, 'marker')).writeAsStringSync('moved');
+        final cacheVersion = CacheFlutterVersion(
+          '3.10.0',
+          type: VersionType.release,
+          directory: sourceDir.path,
+          flutterSdkVersion: '3.10.5',
+          dartSdkVersion: null,
+          isSetup: false,
+        );
+
+        cacheService.moveToSdkVersionDirectory(cacheVersion);
+
+        expect(sourceDir.existsSync(), isFalse);
+        expect(
+          File(path.join(tempDir.path, '3.10.5', 'marker')).readAsStringSync(),
+          'moved',
+        );
+      });
+
+      test('does not replace an existing SDK cache directory', () {
+        final sourceDir = Directory(path.join(tempDir.path, '3.10.0'))
+          ..createSync(recursive: true);
+        final targetDir = Directory(path.join(tempDir.path, '3.10.5'))
+          ..createSync(recursive: true);
+        File(path.join(sourceDir.path, 'source')).writeAsStringSync('source');
+        File(path.join(targetDir.path, 'target')).writeAsStringSync('target');
+        final cacheVersion = CacheFlutterVersion(
+          '3.10.0',
+          type: VersionType.release,
+          directory: sourceDir.path,
+          flutterSdkVersion: '3.10.5',
+          dartSdkVersion: null,
+          isSetup: false,
+        );
+
+        expect(
+          () => cacheService.moveToSdkVersionDirectory(cacheVersion),
+          throwsA(isA<AppException>()),
+        );
+        expect(File(path.join(sourceDir.path, 'source')).readAsStringSync(),
+            'source');
+        expect(File(path.join(targetDir.path, 'target')).readAsStringSync(),
+            'target');
+      });
+
+      test('does nothing when the SDK is already in the correct directory', () {
+        final versionDir = Directory(path.join(tempDir.path, '3.10.0'))
+          ..createSync(recursive: true);
+        final marker = File(path.join(versionDir.path, 'marker'))
+          ..writeAsStringSync('preserved');
+        final cacheVersion = CacheFlutterVersion(
+          '3.10.0',
+          type: VersionType.release,
+          directory: versionDir.path,
+          flutterSdkVersion: '3.10.0',
+          dartSdkVersion: null,
+          isSetup: false,
+        );
+
+        expect(
+          () => cacheService.moveToSdkVersionDirectory(cacheVersion),
+          returnsNormally,
+        );
+        expect(marker.readAsStringSync(), 'preserved');
+      });
     });
 
     group('Global version management:', () {

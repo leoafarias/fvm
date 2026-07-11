@@ -299,8 +299,14 @@ class CacheService extends ContextualService {
     final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 
+    if (path.equals(versionDir.path, newDir.path)) return;
+
     if (newDir.existsSync()) {
-      newDir.deleteSync(recursive: true);
+      throw AppException(
+        'Cannot move ${version.name} to ${targetVersion.nameWithAlias}: '
+        'the destination cache directory already exists. Existing cached '
+        'SDKs were preserved.',
+      );
     }
 
     // renameSync requires the parent directory to exist

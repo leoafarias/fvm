@@ -11,6 +11,7 @@
 * fix: apply injected environment values and Melos settings consistently to app configuration
 * fix: discover project configuration from the context working directory
 * fix: ignore non-executable files when resolving commands from `PATH`
+* fix: preserve existing SDK caches when repairing version-directory mismatches
 
 ## 4.1.1
 
