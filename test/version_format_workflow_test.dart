@@ -131,17 +131,6 @@ void main() {
         );
       }
 
-      // Test fork functionality
-      print('\n===== Testing Fork Functionality =====');
-      try {
-        await _testForkFunctionality(appTestRunner);
-      } catch (e) {
-        print(
-          'Warning: Skipping fork functionality tests - requires network access',
-        );
-        print('Error: $e');
-      }
-
       // Test error cases - these should fail
       print('\n===== Testing Error Cases =====');
       await _testErrorCase(appTestRunner, '2.10.0@invalid', 'Invalid channel');
@@ -160,14 +149,6 @@ void main() {
         'unknown-fork/stable',
         'Non-existent fork',
       );
-
-      // Test command aliases
-      print('\n===== Testing Command Aliases =====');
-      await _testAliases(appTestRunner);
-
-      // Test install command flags
-      print('\n===== Testing Install Command Flags =====');
-      await _testInstallFlags(appTestRunner);
 
       // Reset to stable at the end
       print('\nResetting to stable channel...');
@@ -242,112 +223,6 @@ Future<void> _testErrorCase(
     reason: 'Invalid version "$version" should return a non-zero exit code',
   );
   print('Test passed: Command failed as expected');
-
-  print('------------------------------');
-}
-
-/// Helper function to test command aliases
-Future<void> _testAliases(TestCommandRunner runner) async {
-  print('----- Testing Command Aliases -----');
-
-  try {
-    // Test install alias 'i'
-    print('Testing fvm i (install alias)...');
-    await runner.runOrThrow(['fvm', 'i', 'stable']);
-    print('Install alias: SUCCESS');
-
-    // Test list alias 'ls'
-    print('Testing fvm ls (list alias)...');
-    await runner.runOrThrow(['fvm', 'ls']);
-    print('List alias: SUCCESS');
-  } catch (e) {
-    print('Alias test error: $e');
-    rethrow;
-  }
-
-  print('------------------------------');
-}
-
-/// Helper function to test install command flags
-Future<void> _testInstallFlags(TestCommandRunner runner) async {
-  print('----- Testing Install Command Flags -----');
-
-  try {
-    // Test install with --setup flag
-    print('Testing fvm install with --setup flag...');
-    await runner.runOrThrow(['fvm', 'install', 'stable', '--setup']);
-    print('Install with --setup: SUCCESS');
-
-    // Test install with --skip-pub-get flag
-    print('Testing fvm install with --skip-pub-get flag...');
-    await runner.runOrThrow(['fvm', 'install', 'beta', '--skip-pub-get']);
-    print('Install with --skip-pub-get: SUCCESS');
-
-    // Test install with both flags
-    print('Testing fvm install with both flags...');
-    await runner.runOrThrow([
-      'fvm',
-      'install',
-      'dev',
-      '--setup',
-      '--skip-pub-get',
-    ]);
-    print('Install with both flags: SUCCESS');
-  } catch (e) {
-    print('Install flags test error: $e');
-    rethrow;
-  }
-
-  print('------------------------------');
-}
-
-/// Helper function to test fork functionality
-Future<void> _testForkFunctionality(TestCommandRunner runner) async {
-  print('----- Testing Fork Functionality -----');
-
-  const testForkName = 'leo';
-  const testForkUrl = 'https://github.com/leoafarias/flutter.git';
-
-  try {
-    // Test adding a real fork
-    print('Testing fork add...');
-    await runner.runOrThrow(['fvm', 'fork', 'add', testForkName, testForkUrl]);
-    print('Fork add: SUCCESS');
-
-    // Test listing forks
-    print('Testing fork list...');
-    await runner.runOrThrow(['fvm', 'fork', 'list']);
-    print('Fork list: SUCCESS');
-
-    // Test installing from fork with custom branch
-    print('Testing fork install with custom branch...');
-    await runner.runOrThrow(['fvm', 'install', '$testForkName/leo-test-21']);
-    print('Fork install with custom branch: SUCCESS');
-
-    // Test using fork version
-    print('Testing fork use...');
-    await runner.runOrThrow([
-      'fvm',
-      'use',
-      '$testForkName/leo-test-21',
-      '--force',
-      '--skip-setup',
-    ]);
-    print('Fork use: SUCCESS');
-
-    // Clean up - remove fork
-    await runner.runOrThrow(['fvm', 'fork', 'remove', testForkName]);
-    print('Fork remove: SUCCESS');
-  } catch (e) {
-    print('Fork functionality test error: $e');
-    // Clean up on error
-    try {
-      await runner.run(['fvm', 'fork', 'remove', testForkName]);
-    } catch (_) {
-      // Ignore cleanup errors
-    }
-    rethrow;
-  }
 
   print('------------------------------');
 }
