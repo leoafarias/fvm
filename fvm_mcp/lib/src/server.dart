@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:dart_mcp/server.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -456,11 +457,12 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
             isError: true,
             content: [TextContent(text: 'Invalid arguments: $e')],
           );
-        } catch (e, s) {
-          return CallToolResult(
-            isError: true,
-            content: [TextContent(text: 'Unhandled error: $e\n$s')],
-          );
+        } catch (error, stackTrace) {
+          stderr
+            ..writeln('Unhandled error while running $name: $error')
+            ..writeln(stackTrace);
+
+          return _error('Internal error while running $name.');
         }
       },
     );

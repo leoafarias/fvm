@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Keep unexpected tool stack traces server-side instead of returning them to clients.
 - Report sub-minute process timeout durations without rounding them to zero.
 - Fixed immediate-error tool handlers and added end-to-end server contract coverage.
 - Default server-reported version set to `0.0.1-alpha.1`.

@@ -88,6 +88,18 @@ void main() {
       'hadSkipInput': true,
       'args': ['flutter', '--version'],
     });
+
+    final missingDirectory =
+        '${Directory.systemTemp.path}'
+        '${Platform.pathSeparator}fvm_mcp_missing_${DateTime.now().microsecondsSinceEpoch}';
+    final failure = await harness.connection.callTool(
+      CallToolRequest(name: flutter.name, arguments: {'cwd': missingDirectory}),
+    );
+    expect(failure.isError, isTrue);
+    expect(
+      (failure.content.single as TextContent).text,
+      'Internal error while running fvm.flutter.',
+    );
   });
 
   test('gates JSON and mutating tools for older FVM versions', () async {
