@@ -57,52 +57,29 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     }
   }
 
-  /// Finds a VS Code workspace file in the project directory.
-  ///
-  /// Returns the most relevant workspace file or null if none is found.
-  /// Prioritizes files containing the project name if available.
-  File? _findWorkspaceFile(Project project) {
+  /// Finds every VS Code workspace file in the project directory.
+  List<File> _findWorkspaceFiles(Project project) {
     try {
-      final dirContents = Directory(project.path).listSync();
-      final workspaceFiles = <File>[];
+      final workspaceFiles = Directory(project.path)
+          .listSync()
+          .whereType<File>()
+          .where((file) => file.path.endsWith(kWorkspaceFileExt))
+          .toList()
+        ..sort((a, b) => a.path.compareTo(b.path));
 
-      // Collect all workspace files
-      for (final entity in dirContents) {
-        if (entity is File && entity.path.endsWith(kWorkspaceFileExt)) {
-          workspaceFiles.add(entity);
-        }
-      }
-
-      if (workspaceFiles.isEmpty) {
-        return null;
-      }
-
-      // Log all found workspace files
       if (workspaceFiles.length > 1) {
         logger.debug('Found ${workspaceFiles.length} workspace files');
-      } else {
+      } else if (workspaceFiles.length == 1) {
         logger.debug(
           'Found workspace file: ${p.basename(workspaceFiles.first.path)}',
         );
       }
 
-      // Prefer workspace files that might be related to the project
-      final projectName = p.basename(project.path).toLowerCase();
-      for (final file in workspaceFiles) {
-        final fileName = p.basenameWithoutExtension(file.path).toLowerCase();
-        if (fileName.contains(projectName) || projectName.contains(fileName)) {
-          logger.debug('Selected workspace file: ${p.basename(file.path)}');
-
-          return file;
-        }
-      }
-
-      // Fall back to the first workspace file
-      return workspaceFiles.first;
+      return workspaceFiles;
     } catch (e) {
       logger.debug('Error searching for workspace file: $e');
 
-      return null;
+      return const [];
     }
   }
 
@@ -178,9 +155,9 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
 
   /// Updates all found workspace files with the correct Flutter SDK path
   void _updateWorkspaceFiles(Project project) {
-    final workspaceFile = _findWorkspaceFile(project);
+    final workspaceFiles = _findWorkspaceFiles(project);
 
-    if (workspaceFile == null) {
+    if (workspaceFiles.isEmpty) {
       logger.debug('No $kVsCode workspace files found.');
 
       return;
@@ -189,6 +166,12 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     // Validate SDK path
     _validateSdkPath(project, 'workspace file');
 
+    for (final workspaceFile in workspaceFiles) {
+      _updateWorkspaceFile(project, workspaceFile);
+    }
+  }
+
+  void _updateWorkspaceFile(Project project, File workspaceFile) {
     try {
       // Read workspace file
       String contents = workspaceFile.readAsStringSync();
@@ -264,7 +247,7 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       // Check if project is using VS Code
       if (isVsCode() ||
           _hasVsCodeFiles(project) ||
-          _findWorkspaceFile(project) != null) {
+          _findWorkspaceFiles(project).isNotEmpty) {
         logger.warn(
           'You are using $kVsCode, but $kPackageName is '
           'not managing $kVsCode settings for this project. '

@@ -322,6 +322,37 @@ void main() {
       expect(contents, contains('"editor.formatOnSave": true'));
     });
 
+    test('should update every workspace file in the project root', () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(flutter: '3.9.0'), testDir);
+      final workspaceFiles = [
+        File(p.join(testDir.path, 'app.code-workspace')),
+        File(p.join(testDir.path, 'integration.code-workspace')),
+      ];
+      for (final file in workspaceFiles) {
+        file.writeAsStringSync('''
+{
+  "folders": [{"path": "."}],
+  "settings": {"editor.formatOnSave": true}
+}
+''');
+      }
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      await UpdateVsCodeSettingsWorkflow(runner.context)(project);
+
+      for (final file in workspaceFiles) {
+        expect(
+          file.readAsStringSync(),
+          contains('"dart.flutterSdkPath": ".fvm/versions/3.9.0"'),
+          reason: file.path,
+        );
+      }
+    });
+
     test('should correctly handle fork version in VS Code settings', () async {
       final testDir = tempDirs.create();
       // Create test project with fork version
