@@ -6,7 +6,6 @@ import '../services/cache_service.dart';
 import '../services/logger_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/models/flutter_releases_model.dart';
-import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
@@ -35,20 +34,18 @@ class ListCommand extends BaseFvmCommand {
       ..insertColumn(header: 'Dart Version', alignment: TextAlignment.left)
       ..insertColumn(header: 'Release Date', alignment: TextAlignment.left)
       ..insertColumn(header: 'Global', alignment: TextAlignment.left)
-      ..insertColumn(header: 'Local', alignment: TextAlignment.left);
+      ..insertColumn(header: 'Local', alignment: TextAlignment.left)
+      ..borderStyle = BorderStyle.square
+      ..borderColor = ConsoleColor.white
+      ..borderType = BorderType.grid
+      ..headerStyle = FontStyle.bold;
 
-    for (var version in cacheVersions) {
-      var printVersion = version.nameWithAlias;
-      FlutterSdkRelease? latestRelease;
-
-      // Get latest channel release for channels
-      if (version.isChannel && !version.isMain) {
-        if (version.releaseChannel != null) {
-          latestRelease = releases.latestChannelRelease(
-            version.releaseChannel!.name,
-          );
-        }
-      }
+    for (final version in cacheVersions) {
+      final printVersion = version.nameWithAlias;
+      final latestRelease =
+          version.isChannel && !version.isMain && !version.fromFork
+              ? releases.latestChannelRelease(version.name)
+              : null;
 
       // Look up release information
       final release = releases.fromVersion(version.flutterSdkVersion ?? '');
@@ -61,44 +58,35 @@ class ListCommand extends BaseFvmCommand {
         channel = release.channel.name;
       }
 
-      String flutterSdkVersion = version.flutterSdkVersion ?? '';
+      final flutterSdkVersion = version.flutterSdkVersion ?? '';
 
       // Generate version output with formatting
       String getVersionOutput() {
         if (version.isNotSetup) {
-          return flutterSdkVersion = '${yellow.wrap('Need setup*')}';
+          return '${yellow.wrap('Need setup*')}';
         }
-        if (latestRelease != null && version.isChannel) {
-          // If its not the latest version
-          if (latestRelease.version != version.flutterSdkVersion) {
-            return '$flutterSdkVersion ${Icons.arrowRight} ${(green.wrap(latestRelease.version))}';
-          }
-
-          return flutterSdkVersion;
+        if (latestRelease != null &&
+            latestRelease.version != version.flutterSdkVersion) {
+          return '$flutterSdkVersion ${Icons.arrowRight} ${green.wrap(latestRelease.version)}';
         }
 
         return flutterSdkVersion;
       }
 
       // Add row to the table with proper null safety
-      table
-        ..insertRows([
-          [
-            printVersion,
-            channel,
-            getVersionOutput(),
-            version.dartSdkVersion ?? '',
-            releaseDate,
-            globalVersion == version ? (green.wrap(Icons.circle) ?? '') : '',
-            localVersion == printVersion && localVersion != null
-                ? (green.wrap(Icons.circle) ?? '')
-                : '',
-          ],
-        ])
-        ..borderStyle = BorderStyle.square
-        ..borderColor = ConsoleColor.white
-        ..borderType = BorderType.grid
-        ..headerStyle = FontStyle.bold;
+      table.insertRows([
+        [
+          printVersion,
+          channel,
+          getVersionOutput(),
+          version.dartSdkVersion ?? '',
+          releaseDate,
+          globalVersion == version ? (green.wrap(Icons.circle) ?? '') : '',
+          localVersion == printVersion && localVersion != null
+              ? (green.wrap(Icons.circle) ?? '')
+              : '',
+        ],
+      ]);
     }
 
     logger.info(table.toString());
@@ -129,9 +117,10 @@ class ListCommand extends BaseFvmCommand {
 
     // Early return if no versions are installed
     if (cacheVersions.isEmpty) {
-      logger
-        ..info('No SDKs have been installed yet. Flutter. SDKs')
-        ..info('installed outside of fvm will not be displayed.');
+      logger.info(
+        'No SDKs have been installed yet. Flutter SDKs installed outside '
+        'of FVM will not be displayed.',
+      );
 
       return ExitCode.success.code;
     }
