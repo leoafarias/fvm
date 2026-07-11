@@ -78,12 +78,12 @@ Future<void> getReleases() async {
         continue;
       }
 
-      final tagName = release['tag_name'] as String?;
-      final date = release['published_at'] as String?;
+      final tagName = release['tag_name'];
+      final date = release['published_at'];
 
-      if (tagName == null || date == null) {
+      if (tagName is! String || date is! String) {
         log(
-          'Warning: skipping release with missing tag/date: '
+          'Warning: skipping release with missing or invalid tag/date: '
           '$release',
         );
         continue;

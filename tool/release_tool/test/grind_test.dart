@@ -59,6 +59,21 @@ void main() {
       expect(contents, contains('v0.9.0'));
     });
 
+    test('skips releases with invalid field types', () async {
+      grind.httpRequestOverride = (_) async => jsonEncode([
+        {'tag_name': 100, 'published_at': '2024-01-01T00:00:00Z'},
+        {'tag_name': 'v0.9.0', 'published_at': false},
+        {'tag_name': 'v0.8.0', 'published_at': '2023-11-01T00:00:00Z'},
+      ]);
+
+      await grind.getReleases();
+
+      final contents = File(
+        p.join(tempRepo.path, 'releases.txt'),
+      ).readAsStringSync();
+      expect(contents, 'Release: v0.8.0, Date: 2023-11-01T00:00:00Z\n');
+    });
+
     test('fails on invalid json', () async {
       grind.httpRequestOverride = (_) async => 'not-json';
 
