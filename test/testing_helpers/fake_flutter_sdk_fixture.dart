@@ -95,6 +95,7 @@ class FakeFlutterSdkFixture {
     FakeFlutterSdkState state = FakeFlutterSdkState.installedNotSetup,
     String? fixtureName,
     String? mismatchCachedVersion,
+    String? dartSdkVersion,
   }) {
     final cacheService = context.get<CacheService>();
     final versionDir = cacheService.getVersionCacheDir(version);
@@ -126,17 +127,19 @@ class FakeFlutterSdkFixture {
         state,
         mismatchCachedVersion: mismatchCachedVersion,
       );
+      final effectiveDartSdkVersion = dartSdkVersion ?? fixture.dartSdkVersion;
 
       _writeFlutterVersionJson(
         versionDir,
         fixture: fixture,
         flutterVersion: jsonVersion,
+        dartSdkVersion: effectiveDartSdkVersion,
       );
 
       final dartVersionFile = File(
         p.join(versionDir.path, 'bin', 'cache', 'dart-sdk', 'version'),
       )..createSync(recursive: true);
-      dartVersionFile.writeAsStringSync(fixture.dartSdkVersion);
+      dartVersionFile.writeAsStringSync(effectiveDartSdkVersion);
 
       _writeExecutable(
         p.join(
@@ -229,6 +232,7 @@ class FakeFlutterSdkFixture {
     Directory versionDir, {
     required FlutterRootVersionFixture fixture,
     required String flutterVersion,
+    required String dartSdkVersion,
   }) {
     final file = File(
       p.join(versionDir.path, 'bin', 'cache', 'flutter.version.json'),
@@ -236,6 +240,7 @@ class FakeFlutterSdkFixture {
 
     final payload = <String, dynamic>{
       ...fixture.flutterVersionJson,
+      'dartSdkVersion': dartSdkVersion,
       'frameworkVersion': flutterVersion,
       'flutterVersion': flutterVersion,
     };

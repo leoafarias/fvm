@@ -6,6 +6,7 @@ import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
+import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/resolve_project_deps.workflow.dart';
 import 'package:path/path.dart' as p;
@@ -27,6 +28,18 @@ class FailingFlutterService extends FlutterService {
     // Return a failing ProcessResult (exit code 1)
     return ProcessResult(0, 1, '', 'pub get failed (test mock)');
   }
+}
+
+CacheFlutterVersion _installSetupVersion(
+  FvmContext context, {
+  required String dartSdkVersion,
+}) {
+  return FakeFlutterSdkFixture.install(
+    context,
+    FlutterVersion.parse('3.10.0'),
+    state: FakeFlutterSdkState.installedSetup,
+    dartSdkVersion: dartSdkVersion,
+  );
 }
 
 void main() {
@@ -85,23 +98,9 @@ void main() {
         final versionFile = File(p.join(dartToolDir.path, 'version'));
         versionFile.writeAsStringSync('3.1.0');
 
-        // Create a properly setup version
-        final versionDir = tempDirs.create();
-        final binDir = Directory(p.join(versionDir.path, 'bin'));
-        binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
-        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        // Create Dart SDK cache version file (required for isSetup to be true)
-        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-        dartSdkDir.createSync(recursive: true);
-        // Create bin directory as it is used to check if isSetup
-        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.1.0');
-
-        final setupVersion = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
-          directory: versionDir.path,
+        final setupVersion = _installSetupVersion(
+          runner.context,
+          dartSdkVersion: '3.1.0',
         );
 
         final workflow = ResolveProjectDependenciesWorkflow(runner.context);
@@ -135,23 +134,9 @@ void main() {
         final versionFile = File(p.join(dartToolDir.path, 'version'));
         versionFile.writeAsStringSync('3.1.0');
 
-        // Create a properly setup version
-        final versionDir = tempDirs.create();
-        final binDir = Directory(p.join(versionDir.path, 'bin'));
-        binDir.createSync(recursive: true);
-        File(p.join(binDir.path, 'flutter')).createSync();
-        File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-        // Create Dart SDK cache with DIFFERENT version (3.2.0) to trigger mismatch
-        final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-        dartSdkDir.createSync(recursive: true);
-        Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-        // Different Dart SDK version than project's dart tool version
-        File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.2.0');
-
-        final setupVersion = CacheFlutterVersion.fromVersion(
-          FlutterVersion.parse('3.10.0'),
-          directory: versionDir.path,
+        final setupVersion = _installSetupVersion(
+          runner.context,
+          dartSdkVersion: '3.2.0',
         );
 
         final workflow = ResolveProjectDependenciesWorkflow(runner.context);
@@ -183,23 +168,9 @@ void main() {
             directory: testDir,
           );
 
-      // Create a properly setup version
-      final versionDir = tempDirs.create();
-      final binDir = Directory(p.join(versionDir.path, 'bin'));
-      binDir.createSync(recursive: true);
-      File(p.join(binDir.path, 'flutter')).createSync();
-      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      // Create Dart SDK cache version file (required for isSetup to be true)
-      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-      dartSdkDir.createSync(recursive: true);
-      // Create bin directory as it is used to check if isSetup
-      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      final setupVersion = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
-        directory: versionDir.path,
+      final setupVersion = _installSetupVersion(
+        runner.context,
+        dartSdkVersion: '3.10.0',
       );
 
       final workflow = ResolveProjectDependenciesWorkflow(runner.context);
@@ -234,21 +205,9 @@ void main() {
             directory: testDir,
           );
 
-      final versionDir = tempDirs.create();
-      final binDir = Directory(p.join(versionDir.path, 'bin'));
-      binDir.createSync(recursive: true);
-      File(p.join(binDir.path, 'flutter')).createSync();
-      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      // Create Dart SDK cache version file (required for isSetup to be true)
-      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-      dartSdkDir.createSync(recursive: true);
-      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
-        directory: versionDir.path,
+      final version = _installSetupVersion(
+        context,
+        dartSdkVersion: '3.10.0',
       );
 
       final workflow = ResolveProjectDependenciesWorkflow(context);
@@ -282,21 +241,9 @@ void main() {
             directory: testDir,
           );
 
-      final versionDir = tempDirs.create();
-      final binDir = Directory(p.join(versionDir.path, 'bin'));
-      binDir.createSync(recursive: true);
-      File(p.join(binDir.path, 'flutter')).createSync();
-      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      // Create Dart SDK cache version file (required for isSetup to be true)
-      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-      dartSdkDir.createSync(recursive: true);
-      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
-        directory: versionDir.path,
+      final version = _installSetupVersion(
+        context,
+        dartSdkVersion: '3.10.0',
       );
 
       final workflow = ResolveProjectDependenciesWorkflow(context);
@@ -328,21 +275,9 @@ void main() {
             directory: testDir,
           );
 
-      final versionDir = tempDirs.create();
-      final binDir = Directory(p.join(versionDir.path, 'bin'));
-      binDir.createSync(recursive: true);
-      File(p.join(binDir.path, 'flutter')).createSync();
-      File(p.join(versionDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      // Create Dart SDK cache version file (required for isSetup to be true)
-      final dartSdkDir = Directory(p.join(binDir.path, 'cache', 'dart-sdk'));
-      dartSdkDir.createSync(recursive: true);
-      Directory(p.join(dartSdkDir.path, 'bin')).createSync(recursive: true);
-      File(p.join(dartSdkDir.path, 'version')).writeAsStringSync('3.10.0');
-
-      final version = CacheFlutterVersion.fromVersion(
-        FlutterVersion.parse('3.10.0'),
-        directory: versionDir.path,
+      final version = _installSetupVersion(
+        context,
+        dartSdkVersion: '3.10.0',
       );
 
       final workflow = ResolveProjectDependenciesWorkflow(context);

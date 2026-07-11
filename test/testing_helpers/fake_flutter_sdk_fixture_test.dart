@@ -34,20 +34,21 @@ void main() {
       );
     });
 
-    test('installedSetup includes Dart metadata', () async {
+    test('installedSetup supports explicit Dart metadata', () async {
       final version = FlutterVersion.parse('3.10.0');
 
       FakeFlutterSdkFixture.install(
         context,
         version,
         state: FakeFlutterSdkState.installedSetup,
+        dartSdkVersion: '3.1.0',
       );
 
       final cacheVersion = cacheService.getVersion(version);
       expect(cacheVersion, isNotNull);
       expect(cacheVersion!.isSetup, isTrue);
       expect(cacheVersion.flutterSdkVersion, equals('3.10.0'));
-      expect(cacheVersion.dartSdkVersion, isNotEmpty);
+      expect(cacheVersion.dartSdkVersion, '3.1.0');
 
       expect(
         await cacheService.verifyCacheIntegrity(cacheVersion),
