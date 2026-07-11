@@ -104,17 +104,19 @@ class FvmContext with FvmContextMappable {
   }) {
     final resolvedAppConfigPath = appConfigPath ?? kAppConfigFile;
     final environment = {...Platform.environment, ...?environmentOverrides};
+    final workingDirectory = workingDirectoryOverride ?? Directory.current.path;
 
     // Load all configs
     final builtConfig = AppConfigService.buildConfig(
       overrides: configOverrides,
       appConfigPath: resolvedAppConfigPath,
       environment: environment,
+      workingDirectory: workingDirectory,
     );
 
     return FvmContext.raw(
       debugLabel: debugLabel,
-      workingDirectory: workingDirectoryOverride ?? Directory.current.path,
+      workingDirectory: workingDirectory,
       config: builtConfig,
       appConfigPath: resolvedAppConfigPath,
       environment: environment,

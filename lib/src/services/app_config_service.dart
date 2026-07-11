@@ -12,14 +12,18 @@ class AppConfigService {
   /// Builds the merged FVM configuration.
   ///
   /// [environment] defaults to the current process environment.
+  /// [workingDirectory] defaults to the current process directory.
   static AppConfig buildConfig({
     AppConfig? overrides,
     String? appConfigPath,
     Map<String, String>? environment,
+    String? workingDirectory,
   }) {
     final globalConfig = LocalAppConfig.read(path: appConfigPath);
     final envConfig = _loadEnvironment(environment ?? Platform.environment);
-    final projectConfig = _loadProjectConfig();
+    final projectConfig = _loadProjectConfig(
+      Directory(workingDirectory ?? Directory.current.path),
+    );
 
     final result = createAppConfig(
       globalConfig: globalConfig,
@@ -101,9 +105,9 @@ class AppConfigService {
     return appConfig;
   }
 
-  static ProjectConfig? _loadProjectConfig() {
+  static ProjectConfig? _loadProjectConfig(Directory directory) {
     return lookUpDirectoryAncestor(
-      directory: Directory.current,
+      directory: directory,
       validate: ProjectConfig.loadFromDirectory,
     );
   }

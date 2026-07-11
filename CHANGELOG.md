@@ -9,6 +9,7 @@
 * fix: avoid generating an empty/current-directory PATH entry for managed SDK commands
 * fix: describe `fvm destroy` as removing cached SDK versions, not all FVM data
 * fix: apply injected environment values and Melos settings consistently to app configuration
+* fix: discover project configuration from the context working directory
 
 ## 4.1.1
 

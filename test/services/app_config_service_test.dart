@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/app_config_service.dart';
+import 'package:fvm/src/utils/constants.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
@@ -80,7 +83,7 @@ void main() {
       });
     });
 
-    group('environment variable support', () {
+    group('configuration inputs', () {
       test('context environment overrides configure the app context', () {
         const flutterUrl = 'https://example.com/custom/flutter.git';
         final context = TestFactory.context(
@@ -88,6 +91,23 @@ void main() {
         );
 
         expect(context.environment['FVM_FLUTTER_URL'], flutterUrl);
+        expect(context.flutterUrl, flutterUrl);
+      });
+
+      test('context working directory determines project config', () {
+        const flutterUrl = 'https://example.com/project/flutter.git';
+        final projectDir = createTempDir();
+        final nestedDir = Directory(p.join(projectDir.path, 'packages', 'app'))
+          ..createSync(recursive: true);
+        File(p.join(projectDir.path, kFvmConfigFileName)).writeAsStringSync(
+          '{"flutterUrl":"$flutterUrl"}',
+        );
+
+        final context = TestFactory.context(
+          workingDirectoryOverride: nestedDir.path,
+        );
+
+        expect(context.workingDirectory, nestedDir.path);
         expect(context.flutterUrl, flutterUrl);
       });
 
