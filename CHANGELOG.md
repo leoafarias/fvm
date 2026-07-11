@@ -10,6 +10,7 @@
 * fix: describe `fvm destroy` as removing cached SDK versions, not all FVM data
 * fix: apply injected environment values and Melos settings consistently to app configuration
 * fix: discover project configuration from the context working directory
+* fix: ignore non-executable files when resolving commands from `PATH`
 
 ## 4.1.1
 
