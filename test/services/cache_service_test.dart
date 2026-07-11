@@ -158,6 +158,39 @@ void main() {
         final version = FlutterVersion.parse('non-existent');
         expect(cacheService.remove(version), completes);
       });
+
+      test('unlinks a removed global version', () async {
+        final version = FlutterVersion.parse('stable');
+        final versionDir = Directory(path.join(tempDir.path, version.name))
+          ..createSync(recursive: true);
+        final cacheVersion = CacheFlutterVersion.fromVersion(
+          version,
+          directory: versionDir.path,
+        );
+        cacheService.setGlobal(cacheVersion);
+        final globalLink = Link(context.globalCacheLink);
+
+        await cacheService.remove(version);
+
+        expect(versionDir.existsSync(), isFalse);
+        expect(globalLink.existsSync(), isFalse);
+      });
+
+      test('removeAll preserves a global link outside the versions cache',
+          () async {
+        final versionDir = Directory(path.join(tempDir.path, 'stable'))
+          ..createSync(recursive: true);
+        final outsideDir = createTempDir('external_global');
+        addTearDown(() => outsideDir.deleteSync(recursive: true));
+        final globalLink = Link(context.globalCacheLink)
+          ..createSync(outsideDir.path, recursive: true);
+
+        expect(await cacheService.removeAll(), isTrue);
+
+        expect(versionDir.existsSync(), isFalse);
+        expect(globalLink.existsSync(), isTrue);
+        expect(globalLink.targetSync(), outsideDir.path);
+      });
     });
 
     group('verifyCacheIntegrity', () {

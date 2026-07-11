@@ -95,6 +95,38 @@ class CacheService extends ContextualService {
     return hasGitDir && hasBin;
   }
 
+  String? _globalLinkTarget() {
+    if (!_globalCacheLink.existsSync()) {
+      return null;
+    }
+
+    try {
+      return _globalCacheLink.targetSync();
+    } on FileSystemException catch (e) {
+      logger.debug('Cannot verify if version is global: $e');
+
+      return null;
+    }
+  }
+
+  bool _globalLinkTargets(String targetPath) {
+    final globalTarget = _globalLinkTarget();
+
+    return globalTarget != null &&
+        path.equals(path.normalize(globalTarget), path.normalize(targetPath));
+  }
+
+  bool _globalLinkTargetsVersionCache() {
+    final globalTarget = _globalLinkTarget();
+    if (globalTarget == null) return false;
+
+    final normalizedRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(globalTarget);
+
+    return path.equals(normalizedRoot, normalizedTarget) ||
+        path.isWithin(normalizedRoot, normalizedTarget);
+  }
+
   Link get _globalCacheLink => Link(context.globalCacheLink);
 
   CacheFlutterVersion? getVersion(FlutterVersion version) {
@@ -168,6 +200,8 @@ class CacheService extends ContextualService {
       await deleteDirectoryWithRetry(versionDir);
     }
 
+    if (_globalLinkTargets(versionDir.path)) unlinkGlobal();
+
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
       final forkDir = Directory(
@@ -180,6 +214,20 @@ class CacheService extends ContextualService {
         }
       }
     }
+  }
+
+  /// Removes every cached SDK and clears a global link into that cache.
+  ///
+  /// Returns whether the versions directory existed and was removed.
+  @internal
+  Future<bool> removeAll() async {
+    final versionsDir = Directory(context.versionsCachePath);
+    final existed = versionsDir.existsSync();
+
+    if (existed) await deleteDirectoryWithRetry(versionsDir);
+    if (_globalLinkTargetsVersionCache()) unlinkGlobal();
+
+    return existed;
   }
 
   /// Returns the cache directory for [version].
@@ -243,17 +291,7 @@ class CacheService extends ContextualService {
   }
 
   bool isGlobal(CacheFlutterVersion version) {
-    if (!_globalCacheLink.existsSync()) {
-      return false;
-    }
-
-    try {
-      return _globalCacheLink.targetSync() == version.directory;
-    } on FileSystemException catch (e) {
-      logger.debug('Cannot verify if version is global: $e');
-
-      return false;
-    }
+    return _globalLinkTargets(version.directory);
   }
 
   /// Returns the global version name, or null if none is set.

@@ -5,7 +5,6 @@ import 'package:io/io.dart';
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../utils/constants.dart';
-import '../utils/file_utils.dart';
 import 'base_command.dart';
 
 /// Removes Flutter SDK
@@ -37,10 +36,9 @@ class RemoveCommand extends BaseFvmCommand {
         defaultValue: false,
       );
       if (confirmRemoval) {
+        final cacheService = get<CacheService>();
         final versionsCache = Directory(context.versionsCachePath);
-        if (versionsCache.existsSync()) {
-          await deleteDirectoryWithRetry(versionsCache);
-
+        if (await cacheService.removeAll()) {
           logger.success(
             '$kPackageName Directory ${versionsCache.path} has been deleted',
           );

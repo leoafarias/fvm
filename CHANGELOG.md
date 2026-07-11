@@ -16,6 +16,7 @@
 * fix: prevent config and fork updates from overwriting malformed global settings
 * fix: update every VS Code workspace file in a project, not only one
 * fix: preserve existing project SDK links when symlink access is unavailable
+* fix: clear global SDK links when their cached versions are removed
 
 ## 4.1.1
 

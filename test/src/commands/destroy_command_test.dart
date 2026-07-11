@@ -31,12 +31,15 @@ void main() {
       final gitCacheMarker = File('${context.gitCachePath}/marker');
       testFile.createSync(recursive: true);
       gitCacheMarker.createSync(recursive: true);
+      final globalLink = Link(context.globalCacheLink)
+        ..createSync(testFile.parent.path, recursive: true);
       expect(versionsDir.existsSync(), isTrue);
 
       await runnerZoned(customRunner, ['fvm', 'destroy']);
 
       expect(versionsDir.existsSync(), isFalse);
       expect(gitCacheMarker.existsSync(), isTrue);
+      expect(globalLink.existsSync(), isFalse);
 
       // Verify the confirmation prompt was shown
       final logger = customRunner.context.get<Logger>();

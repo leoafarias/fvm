@@ -28,11 +28,14 @@ void main() {
         final version2Dir = Directory('${cacheDir.path}/3.11.0');
         version1Dir.createSync(recursive: true);
         version2Dir.createSync(recursive: true);
+        final globalLink = Link(context.globalCacheLink)
+          ..createSync(version1Dir.path, recursive: true);
         expect(cacheDir.existsSync(), isTrue);
 
         await runnerZoned(customRunner, ['fvm', 'remove', '--all']);
 
         expect(cacheDir.existsSync(), isFalse);
+        expect(globalLink.existsSync(), isFalse);
 
         // Verify the confirmation prompt was shown
         final logger = customRunner.context.get<Logger>();
