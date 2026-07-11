@@ -43,6 +43,10 @@ bool? boolArg(CallToolRequest call, String key) {
 
 List<String> listArg(CallToolRequest call, String key) {
   final v = (call.arguments ?? const {})[key];
+  if (v == null) return const [];
+  if (v is! List || v.any((element) => element is! String)) {
+    throw ArgumentError.value(v, key, 'Expected List<String>');
+  }
 
-  return (v is List) ? v.whereType<String>().toList() : const [];
+  return v.cast<String>().toList(growable: false);
 }

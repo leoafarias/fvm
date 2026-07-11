@@ -27,4 +27,20 @@ void main() {
     expect(listArg(r, 'args'), equals(['--version']));
     expect(boolArg(r, 'all'), isTrue);
   });
+
+  test('list args reject invalid containers and elements', () {
+    expect(
+      () => listArg(_req({'args': '--version'}), 'args'),
+      throwsArgumentError,
+    );
+    expect(
+      () => listArg(
+        _req({
+          'args': ['--version', 42],
+        }),
+        'args',
+      ),
+      throwsArgumentError,
+    );
+  });
 }

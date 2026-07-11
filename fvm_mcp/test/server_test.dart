@@ -89,6 +89,16 @@ void main() {
       'args': ['flutter', '--version'],
     });
 
+    final invalidFlutterCall = await harness.connection.callTool(
+      CallToolRequest(
+        name: flutter.name,
+        arguments: {
+          'args': ['--version', 42],
+        },
+      ),
+    );
+    expect(invalidFlutterCall.isError, isTrue);
+
     final missingDirectory =
         '${Directory.systemTemp.path}'
         '${Platform.pathSeparator}fvm_mcp_missing_${DateTime.now().microsecondsSinceEpoch}';
