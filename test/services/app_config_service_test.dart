@@ -1,6 +1,9 @@
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/app_config_service.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import '../testing_utils.dart';
 
 void main() {
   group('AppConfigService', () {
@@ -62,26 +65,48 @@ void main() {
         // Global config should provide cachePath
         expect(result.cachePath, equals('/global/cache'));
       });
+
+      test('merges updateMelosSettings with project precedence', () {
+        final globalConfig = LocalAppConfig()..updateMelosSettings = false;
+
+        final result = AppConfigService.createAppConfig(
+          globalConfig: globalConfig,
+          envConfig: null,
+          projectConfig: const ProjectConfig(updateMelosSettings: true),
+          overrides: null,
+        );
+
+        expect(result.updateMelosSettings, isTrue);
+      });
     });
 
     group('environment variable support', () {
-      test('_loadEnvironment configuration exists', () {
-        // Test by creating config with environment that should be processed
-        final config = AppConfigService.buildConfig();
+      test('context environment overrides configure the app context', () {
+        const flutterUrl = 'https://example.com/custom/flutter.git';
+        final context = TestFactory.context(
+          environmentOverrides: const {'FVM_FLUTTER_URL': flutterUrl},
+        );
 
-        // This test verifies the config structure exists and can handle environment variables
-        expect(config, isA<AppConfig>());
-        expect(config.cachePath, isA<String?>());
+        expect(context.environment['FVM_FLUTTER_URL'], flutterUrl);
+        expect(context.flutterUrl, flutterUrl);
       });
 
-      test('FVM_HOME fallback logic exists in implementation', () {
-        // Since we can't easily mock Platform.environment in tests,
-        // this test verifies the structure supports environment variables.
-        // The actual FVM_HOME fallback logic is tested through manual verification.
+      test('FVM_CACHE_PATH takes precedence over legacy FVM_HOME', () {
+        final configFile = p.join(createTempDir().path, 'config.json');
+        final legacyConfig = AppConfigService.buildConfig(
+          appConfigPath: configFile,
+          environment: const {'FVM_HOME': '/legacy/cache'},
+        );
+        final currentConfig = AppConfigService.buildConfig(
+          appConfigPath: configFile,
+          environment: const {
+            'FVM_HOME': '/legacy/cache',
+            'FVM_CACHE_PATH': '/current/cache',
+          },
+        );
 
-        // Create a config and verify the structure
-        final config = AppConfigService.buildConfig();
-        expect(config, isA<AppConfig>());
+        expect(legacyConfig.cachePath, '/legacy/cache');
+        expect(currentConfig.cachePath, '/current/cache');
       });
     });
   });

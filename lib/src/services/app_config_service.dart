@@ -9,10 +9,16 @@ const String flutterGitUrl = 'FLUTTER_GIT_URL';
 class AppConfigService {
   const AppConfigService._();
 
-  /// Build FVM Config
-  static AppConfig buildConfig({AppConfig? overrides, String? appConfigPath}) {
+  /// Builds the merged FVM configuration.
+  ///
+  /// [environment] defaults to the current process environment.
+  static AppConfig buildConfig({
+    AppConfig? overrides,
+    String? appConfigPath,
+    Map<String, String>? environment,
+  }) {
     final globalConfig = LocalAppConfig.read(path: appConfigPath);
-    final envConfig = _loadEnvironment();
+    final envConfig = _loadEnvironment(environment ?? Platform.environment);
     final projectConfig = _loadProjectConfig();
 
     final result = createAppConfig(
@@ -56,6 +62,7 @@ class AppConfigService {
             runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
             updateVscodeSettings: config.updateVscodeSettings,
             updateGitIgnore: config.updateGitIgnore,
+            updateMelosSettings: config.updateMelosSettings,
             disableUpdateCheck: config.disableUpdateCheck,
             lastUpdateCheck: config.lastUpdateCheck,
             forks: config.forks,
@@ -74,6 +81,7 @@ class AppConfigService {
             runPubGetOnSdkChanges: config.runPubGetOnSdkChanges,
             updateVscodeSettings: config.updateVscodeSettings,
             updateGitIgnore: config.updateGitIgnore,
+            updateMelosSettings: config.updateMelosSettings,
           ),
         );
       }
@@ -100,9 +108,7 @@ class AppConfigService {
     );
   }
 
-  static Config _loadEnvironment() {
-    final environments = Platform.environment;
-
+  static Config _loadEnvironment(Map<String, String> environments) {
     var config = EnvConfig();
     // Default to Flutter's environment variable if present; can still be overridden
     if (environments.containsKey(flutterGitUrl)) {

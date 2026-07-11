@@ -8,6 +8,7 @@
 * fix: validate absolute VS Code SDK paths correctly in non-privileged mode
 * fix: avoid generating an empty/current-directory PATH entry for managed SDK commands
 * fix: describe `fvm destroy` as removing cached SDK versions, not all FVM data
+* fix: apply injected environment values and Melos settings consistently to app configuration
 
 ## 4.1.1
 

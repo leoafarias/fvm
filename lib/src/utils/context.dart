@@ -103,11 +103,13 @@ class FvmContext with FvmContextMappable {
     bool isTest = false,
   }) {
     final resolvedAppConfigPath = appConfigPath ?? kAppConfigFile;
+    final environment = {...Platform.environment, ...?environmentOverrides};
 
     // Load all configs
     final builtConfig = AppConfigService.buildConfig(
       overrides: configOverrides,
       appConfigPath: resolvedAppConfigPath,
+      environment: environment,
     );
 
     return FvmContext.raw(
@@ -115,7 +117,7 @@ class FvmContext with FvmContextMappable {
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: builtConfig,
       appConfigPath: resolvedAppConfigPath,
-      environment: {...Platform.environment, ...?environmentOverrides},
+      environment: environment,
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
       stdinHasTerminal:
