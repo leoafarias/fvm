@@ -8,33 +8,41 @@ import '../workflows/test_logger.dart';
 
 void main() {
   group('DestroyCommand', () {
-    test('should delete cache directory when user confirms', () async {
+    test('deletes only cached SDK versions when user confirms', () async {
       // Create context with TestLogger that says Yes
       final context = TestFactory.context(
         generators: {
           Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('destroy the FVM cache directory', true),
+            ..setConfirmResponse(
+                'delete all cached Flutter SDK versions', true),
         },
         skipInput: false, // Allow user input for testing
       );
 
       final customRunner = TestCommandRunner(context);
+      expect(
+        customRunner.commands['destroy']?.description,
+        'Removes all cached Flutter SDK versions',
+      );
 
-      // Create some test content in the cache directory
-      final cacheDir = Directory(context.versionsCachePath);
-      final testFile = File('${cacheDir.path}/test_version/flutter');
+      // Create an SDK plus a Git-cache marker outside the versions directory.
+      final versionsDir = Directory(context.versionsCachePath);
+      final testFile = File('${versionsDir.path}/test_version/flutter');
+      final gitCacheMarker = File('${context.gitCachePath}/marker');
       testFile.createSync(recursive: true);
-      expect(cacheDir.existsSync(), isTrue);
+      gitCacheMarker.createSync(recursive: true);
+      expect(versionsDir.existsSync(), isTrue);
 
       await runnerZoned(customRunner, ['fvm', 'destroy']);
 
-      expect(cacheDir.existsSync(), isFalse);
+      expect(versionsDir.existsSync(), isFalse);
+      expect(gitCacheMarker.existsSync(), isTrue);
 
       // Verify the confirmation prompt was shown
       final logger = customRunner.context.get<Logger>();
       expect(
         logger.outputs.any(
-          (msg) => msg.contains('Are you sure you want to destroy'),
+          (msg) => msg.contains('delete all cached Flutter SDK versions'),
         ),
         isTrue,
       );
@@ -49,7 +57,8 @@ void main() {
       final context = TestFactory.context(
         generators: {
           Logger: (context) => TestLogger(context)
-            ..setConfirmResponse('destroy the FVM cache directory', false),
+            ..setConfirmResponse(
+                'delete all cached Flutter SDK versions', false),
         },
         skipInput: false, // Allow user input for testing
       );
@@ -71,7 +80,7 @@ void main() {
       final logger = customRunner.context.get<Logger>();
       expect(
         logger.outputs.any(
-          (msg) => msg.contains('Are you sure you want to destroy'),
+          (msg) => msg.contains('delete all cached Flutter SDK versions'),
         ),
         isTrue,
       );
@@ -81,7 +90,7 @@ void main() {
       );
       // Should not see success message
       expect(
-        logger.outputs.any((msg) => msg.contains('has been deleted')),
+        logger.outputs.any((msg) => msg.contains('have been deleted')),
         isFalse,
       );
     });
@@ -107,13 +116,13 @@ void main() {
         // Verify success message was shown but no confirmation prompt
         final logger = customRunner.context.get<Logger>();
         expect(
-          logger.outputs.any((msg) => msg.contains('has been deleted')),
+          logger.outputs.any((msg) => msg.contains('have been deleted')),
           isTrue,
         );
         // Should not see confirmation prompt (since force was used)
         expect(
           logger.outputs.any(
-            (msg) => msg.contains('Are you sure you want to destroy'),
+            (msg) => msg.contains('delete all cached Flutter SDK versions'),
           ),
           isFalse,
         );

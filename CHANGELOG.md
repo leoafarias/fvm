@@ -7,6 +7,7 @@
 * fix: report invalid Dart tool metadata in `fvm doctor` instead of crashing
 * fix: validate absolute VS Code SDK paths correctly in non-privileged mode
 * fix: avoid generating an empty/current-directory PATH entry for managed SDK commands
+* fix: describe `fvm destroy` as removing cached SDK versions, not all FVM data
 
 ## 4.1.1
 

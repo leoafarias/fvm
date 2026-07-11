@@ -19,7 +19,7 @@ class IntegrationTestCommand extends BaseFvmCommand {
 
   @override
   final description = 'Runs complete integration tests (hidden command)\n'
-      'WARNING: This will destroy your FVM cache and reinstall Flutter versions!';
+      'WARNING: This deletes cached Flutter SDK versions and reinstalls them!';
 
   @override
   final hidden = true; // Hidden from help output
@@ -120,14 +120,14 @@ class IntegrationTestRunner {
     );
     logger.info('');
 
-    // Clean the cache to start with a clean state
-    logger.info('Cleaning FVM cache for a clean test environment...');
+    // Delete cached SDK versions to start with a clean state.
+    logger.info('Deleting cached SDK versions for a clean test environment...');
     await _cleanCache();
-    logger.success('Cache cleaned, starting with fresh state');
+    logger.success('Cached SDK versions deleted, starting with fresh state');
     logger.info('');
   }
 
-  /// Clean the cache by destroying all versions
+  /// Deletes all cached SDK versions.
   Future<void> _cleanCache() async {
     final cacheService = context.get<CacheService>();
 
@@ -136,15 +136,15 @@ class IntegrationTestRunner {
 
     if (versions.isNotEmpty) {
       logger.info(
-        'Found ${versions.length} installed versions, destroying cache...',
+        'Found ${versions.length} installed versions; deleting them...',
       );
 
-      // Use destroy command with --force flag to clean everything
+      // Use the destroy command to exercise its non-interactive path.
       await _runFvmCommand(['destroy', '--force']);
 
-      logger.info('Cache destroyed successfully');
+      logger.info('Cached SDK versions deleted successfully');
     } else {
-      logger.info('Cache is already empty');
+      logger.info('No cached SDK versions to delete');
     }
   }
 
@@ -359,7 +359,7 @@ class IntegrationTestRunner {
   /// Phase 7: Destructive Cache Cleanup
   Future<void> _runPhase7CleanupOperations() async {
     await _runPhase('Destructive Cache Cleanup', () async {
-      // REAL INTEGRATION: destroy real cache contents and reinstall guard SDK.
+      // REAL INTEGRATION: delete cached SDK versions and reinstall a guard SDK.
       _logTest('Testing destroy command and reinstall...');
       await _testDestroyCommandSafely();
       _logSuccess('Destroy command and reinstall completed');

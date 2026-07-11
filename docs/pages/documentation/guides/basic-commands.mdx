@@ -295,7 +295,8 @@ fvm dart run build_runner build
 
 ## destroy
 
-Removes the entire FVM cache and all installed versions.
+Removes all installed Flutter SDK versions from FVM's versions cache. FVM
+configuration and the Git cache are preserved.
 
 ```bash
 fvm destroy [options]
@@ -308,16 +309,17 @@ fvm destroy [options]
 ### Examples
 
 ```bash
-# Remove cache with confirmation prompt
+# Remove all cached Flutter SDK versions with a confirmation prompt
 fvm destroy
 
-# Remove cache without confirmation (dangerous)
+# Remove all cached Flutter SDK versions without confirmation (dangerous)
 fvm destroy --force
 ```
 
 ### Warning
 
-This action is irreversible and removes all cached Flutter SDKs.
+This action is irreversible and removes all cached Flutter SDKs. It does not
+remove FVM configuration or the Git cache.
 
 ## flavor
 
