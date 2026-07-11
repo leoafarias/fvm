@@ -15,6 +15,7 @@
 * fix: refresh SDK metadata after setup before resolving project dependencies
 * fix: prevent config and fork updates from overwriting malformed global settings
 * fix: update every VS Code workspace file in a project, not only one
+* fix: preserve existing project SDK links when symlink access is unavailable
 
 ## 4.1.1
 

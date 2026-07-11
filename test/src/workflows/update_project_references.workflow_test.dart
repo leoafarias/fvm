@@ -349,6 +349,39 @@ void main() {
       },
     );
 
+    test(
+      'should preserve existing flutter_sdk symlink without privileged access',
+      () async {
+        if (Platform.isWindows) return;
+
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+        createProjectConfig(ProjectConfig(), testDir);
+        final fvmDir = Directory(p.join(testDir.path, '.fvm'))..createSync();
+        final existingTarget = tempDirs.create();
+        final flutterSdkLink = Link(
+          p.join(
+            fvmDir.path,
+            UpdateProjectReferencesWorkflow.flutterSdkLink,
+          ),
+        )..createSync(existingTarget.path);
+        final project = runner.context.get<ProjectService>().findAncestor(
+              directory: testDir,
+            );
+        final cacheVersion = createCacheVersion('3.10.0');
+        final context = TestFactory.context(privilegedAccess: false);
+
+        await UpdateProjectReferencesWorkflow(context).call(
+          project,
+          cacheVersion,
+          force: true,
+        );
+
+        expect(flutterSdkLink.existsSync(), isTrue);
+        expect(flutterSdkLink.targetSync(), existingTarget.path);
+      },
+    );
+
     test('should clean up and recreate existing symlinks', () async {
       // Skip on Windows where symlinks require admin rights
       if (Platform.isWindows) {

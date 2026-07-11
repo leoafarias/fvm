@@ -96,16 +96,16 @@ class UpdateProjectReferencesWorkflow extends Workflow {
   ) {
     final currentSdkLink = p.join(project.localFvmPath, flutterSdkLink);
 
-    if (currentSdkLink.link.existsSync()) {
-      _withFsError('Failed to delete existing flutter_sdk symlink', () {
-        currentSdkLink.link.deleteSync();
-      });
-    }
-
     if (!context.privilegedAccess) {
       logger.debug('Skipping symlink creation: no privileged access');
 
       return;
+    }
+
+    if (currentSdkLink.link.existsSync()) {
+      _withFsError('Failed to delete existing flutter_sdk symlink', () {
+        currentSdkLink.link.deleteSync();
+      });
     }
 
     _withFsError('Failed to create flutter_sdk symlink', () {
