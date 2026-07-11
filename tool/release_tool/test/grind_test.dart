@@ -44,6 +44,37 @@ void main() {
       expect(contents, contains('Release: v0.9.0, Date: 2023-12-01T00:00:00Z'));
     });
 
+    test('requests every release page', () async {
+      final requests = <Uri>[];
+      grind.httpRequestOverride = (uri) async {
+        requests.add(uri);
+        if (requests.length == 1) {
+          return jsonEncode(
+            List.generate(
+              100,
+              (index) => {
+                'tag_name': 'v1.0.$index',
+                'published_at': '2024-01-01T00:00:00Z',
+              },
+            ),
+          );
+        }
+
+        return jsonEncode([
+          {'tag_name': 'v0.9.0', 'published_at': '2023-12-01T00:00:00Z'},
+        ]);
+      };
+
+      await grind.getReleases();
+
+      expect(requests, hasLength(2));
+      expect(requests.map((uri) => uri.queryParameters['page']), ['1', '2']);
+      final contents = File(
+        p.join(tempRepo.path, 'releases.txt'),
+      ).readAsStringSync();
+      expect(contents, contains('Release: v0.9.0'));
+    });
+
     test('skips releases missing required fields', () async {
       grind.httpRequestOverride = (_) async => jsonEncode([
         {'tag_name': 'v1.0.0'},

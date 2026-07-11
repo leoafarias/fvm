@@ -9,6 +9,7 @@ import 'package:meta/meta.dart';
 const _packageName = 'fvm';
 const _owner = 'leoafarias';
 const _repo = 'fvm';
+const _releasesPerPage = 100;
 
 final Directory _releaseToolRoot = Directory.current;
 final Directory _repoRoot = Directory(
@@ -52,24 +53,33 @@ void main(List<String> args) {
 @Task('Get all releases')
 Future<void> getReleases() async {
   try {
-    final response = await _githubRequest(
-      Uri.parse(
-        'https://api.github.com/repos/$_owner/$_repo/releases?per_page=100',
-      ),
-    );
-
-    final dynamic decoded = jsonDecode(response);
-
-    if (decoded is! List) {
-      _fail(
-        'Unexpected GitHub release response format. '
-        'Expected a JSON list but received ${decoded.runtimeType}.',
+    final releases = <Object?>[];
+    var page = 1;
+    while (true) {
+      final response = await _githubRequest(
+        Uri.https('api.github.com', '/repos/$_owner/$_repo/releases', {
+          'per_page': '$_releasesPerPage',
+          'page': '$page',
+        }),
       );
+
+      final dynamic decoded = jsonDecode(response);
+
+      if (decoded is! List) {
+        _fail(
+          'Unexpected GitHub release response format. '
+          'Expected a JSON list but received ${decoded.runtimeType}.',
+        );
+      }
+
+      releases.addAll(decoded);
+      if (decoded.length < _releasesPerPage) break;
+      page++;
     }
 
     final buffer = StringBuffer();
 
-    for (final release in decoded) {
+    for (final release in releases) {
       if (release is! Map<String, dynamic>) {
         log(
           'Warning: skipping unexpected release payload: '
