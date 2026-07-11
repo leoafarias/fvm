@@ -32,6 +32,20 @@ void main() {
     expect(envVars, isNot(newEnvVar));
   });
 
+  test('PATH prepending omits an empty inherited segment', () {
+    final pathValue = updateEnvironmentVariables(
+      ['/flutter/bin', '', '/flutter/bin', '/dart/bin'],
+      const {},
+    )['PATH'];
+    final separator = Platform.isWindows ? ';' : ':';
+
+    expect(pathValue, ['/flutter/bin', '/dart/bin'].join(separator));
+    expect(
+      updateEnvironmentVariables(const [], const {}),
+      isNot(contains('PATH')),
+    );
+  });
+
   test('Assigns version weights', () async {
     expect('500.0.0', assignVersionWeight('2da03e5'));
     expect('500.0.0', assignVersionWeight('ce18d702e9'));

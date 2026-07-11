@@ -397,14 +397,20 @@ Map<String, String> updateEnvironmentVariables(
   List<String> paths,
   Map<String, String> env,
 ) {
-  // Remove duplicates
-  paths = paths.toSet().toList();
-
   final updatedEnvironment = Map.of(env);
-  final envPath = env['PATH'] ?? '';
   final separator = Platform.isWindows ? ';' : ':';
+  final pathEntries = paths.where((path) => path.isNotEmpty).toSet().toList();
+  final inheritedPath = env['PATH'];
 
-  updatedEnvironment['PATH'] = paths.join(separator) + separator + envPath;
+  if (inheritedPath != null && inheritedPath.isNotEmpty) {
+    pathEntries.add(inheritedPath);
+  }
+
+  if (pathEntries.isEmpty) {
+    updatedEnvironment.remove('PATH');
+  } else {
+    updatedEnvironment['PATH'] = pathEntries.join(separator);
+  }
 
   return updatedEnvironment;
 }

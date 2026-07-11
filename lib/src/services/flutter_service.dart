@@ -10,6 +10,7 @@ import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
+import '../utils/helpers.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
@@ -599,27 +600,16 @@ class VersionRunner {
   })  : _context = context,
         _version = version;
 
-  Map<String, String> _updateEnvironmentVariables(List<String> paths) {
-    final uniquePaths = paths.toSet().toList();
-    final env = _context.environment;
-    final separator = Platform.isWindows ? ';' : ':';
-
-    return {
-      ...env,
-      'PATH': uniquePaths.join(separator) + separator + (env['PATH'] ?? ''),
-    };
-  }
-
   Future<ProcessResult> run(
     String cmd,
     List<String> args, {
     bool? echoOutput,
     bool? throwOnError,
   }) {
-    final environment = _updateEnvironmentVariables([
-      _version.binPath,
-      _version.dartBinPath,
-    ]);
+    final environment = updateEnvironmentVariables(
+      [_version.binPath, _version.dartBinPath],
+      _context.environment,
+    );
 
     return _context.get<ProcessService>().run(
           cmd,

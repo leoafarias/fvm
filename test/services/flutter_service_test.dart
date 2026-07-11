@@ -1223,8 +1223,18 @@ Future<void> main(List<String> args) async {
     });
 
     group('VersionRunner', () {
-      test('correctly sets up environment variables', () {
-        final context = TestFactory.context();
+      test('does not append an empty PATH segment', () async {
+        late _FakeProcessService processService;
+        final context = TestFactory.context(
+          environmentOverrides: const {'PATH': ''},
+          generators: {
+            ProcessService: (ctx) {
+              processService = _FakeProcessService(ctx);
+
+              return processService;
+            },
+          },
+        );
 
         final flutterVersion = FlutterVersion.parse('stable');
         final mockCacheVersion = CacheFlutterVersion.fromVersion(
@@ -1237,7 +1247,16 @@ Future<void> main(List<String> args) async {
           version: mockCacheVersion,
         );
 
-        expect(versionRunner, isA<VersionRunner>());
+        await versionRunner.run('flutter', const []);
+
+        final separator = Platform.isWindows ? ';' : ':';
+        expect(
+          processService.lastEnvironment?['PATH'],
+          {
+            mockCacheVersion.binPath,
+            mockCacheVersion.dartBinPath,
+          }.join(separator),
+        );
       });
     });
   });

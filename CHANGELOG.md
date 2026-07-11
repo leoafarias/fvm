@@ -6,6 +6,7 @@
 * fix: reject invalid API release limits and show the correct nested command usage
 * fix: report invalid Dart tool metadata in `fvm doctor` instead of crashing
 * fix: validate absolute VS Code SDK paths correctly in non-privileged mode
+* fix: avoid generating an empty/current-directory PATH entry for managed SDK commands
 
 ## 4.1.1
 
