@@ -98,6 +98,6 @@ void main() {
     expect(res.isError, isTrue);
     final text = textFrom(res);
     expect(text, contains('Command:'));
-    expect(text, contains('Timeout after 0m'));
+    expect(text, contains('Timeout after 100ms'));
   });
 }

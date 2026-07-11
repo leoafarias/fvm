@@ -34,6 +34,17 @@ class ProcessRunner {
         .join(' ');
   }
 
+  String _formatDuration(Duration duration) {
+    final parts = <String>[];
+    if (duration.inMinutes > 0) parts.add('${duration.inMinutes}m');
+    final seconds = duration.inSeconds.remainder(60);
+    if (seconds > 0) parts.add('${seconds}s');
+    final milliseconds = duration.inMilliseconds.remainder(1000);
+    if (milliseconds > 0) parts.add('${milliseconds}ms');
+
+    return parts.isEmpty ? '0ms' : parts.join(' ');
+  }
+
   Future<void> _drainStream(
     Stream<List<int>> stream,
     StringBuffer buffer,
@@ -123,7 +134,7 @@ class ProcessRunner {
 
     if (timedOut) {
       final message = StringBuffer()
-        ..writeln('Timeout after ${timeout.inMinutes}m')
+        ..writeln('Timeout after ${_formatDuration(timeout)}')
         ..writeln('Command: ${_formatCommand(args)}');
       if (stderrText.isNotEmpty) {
         message.writeln(stderrText);
