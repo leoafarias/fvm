@@ -1,6 +1,9 @@
 ## 4.1.2
 
 * fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
+* fix: report Flutter SDK setup failures instead of logging a false success
+* fix: preserve similarly named user patterns when normalizing FVM `.gitignore` entries
+* fix: reject invalid API release limits and show the correct nested command usage
 
 ## 4.1.1
 

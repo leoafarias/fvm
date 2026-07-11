@@ -1113,7 +1113,7 @@ Future<void> main(List<String> args) async {
         expect(processService.lastCommand, equals('flutter'));
         expect(processService.lastArgs, equals(['--version']));
         expect(processService.lastWorkingDirectory, isNull);
-        expect(processService.lastThrowOnError, isFalse);
+        expect(processService.lastThrowOnError, isTrue);
         expect(processService.lastEchoOutput, isTrue);
         final pathValue = processService.lastEnvironment?['PATH'];
         expect(pathValue, isNotNull);

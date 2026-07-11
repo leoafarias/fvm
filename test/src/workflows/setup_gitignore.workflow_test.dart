@@ -96,6 +96,37 @@ void main() {
       );
     });
 
+    test('preserves user patterns while replacing legacy FVM entries', () {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(ProjectConfig(), testDir);
+      final gitignore = File(p.join(testDir.path, '.gitignore'))
+        ..writeAsStringSync('''
+.fvmrc
+.fvm-backup/
+.fvm-custom/**
+.fvm
+.fvm/flutter_sdk
+.fvm/versions
+''');
+      final project = runner.context.get<ProjectService>().findAncestor(
+            directory: testDir,
+          );
+
+      final result = SetupGitIgnoreWorkflow(runner.context)(project);
+
+      expect(result, isTrue);
+      final contents = gitignore.readAsLinesSync();
+      expect(
+        contents,
+        containsAll(['.fvmrc', '.fvm-backup/', '.fvm-custom/**']),
+      );
+      expect(contents, isNot(contains('.fvm')));
+      expect(contents, isNot(contains('.fvm/flutter_sdk')));
+      expect(contents, isNot(contains('.fvm/versions')));
+      expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
+    });
+
     test('should handle and clean empty lines correctly', () {
       final testDir = tempDirs.create();
       // Create test project with .gitignore containing multiple empty lines

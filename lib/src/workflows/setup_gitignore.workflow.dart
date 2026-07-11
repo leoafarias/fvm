@@ -20,6 +20,13 @@ class SetupGitIgnoreWorkflow extends Workflow {
   /// This helps users understand why these entries are present.
   static const String kGitIgnoreHeading = '# FVM Version Cache';
 
+  static const _fvmManagedLinesToReplace = {
+    kGitIgnoreHeading,
+    kFvmDirName,
+    '$kFvmDirName/flutter_sdk',
+    '$kFvmDirName/versions',
+  };
+
   /// Creates a new [SetupGitIgnoreWorkflow] with the provided context.
   const SetupGitIgnoreWorkflow(super.context);
 
@@ -72,10 +79,7 @@ class SetupGitIgnoreWorkflow extends Workflow {
 
     // Remove any existing FVM-related entries
     lines = lines
-        .where(
-          (line) =>
-              !line.startsWith(kFvmDirName) && line.trim() != kGitIgnoreHeading,
-        )
+        .where((line) => !_fvmManagedLinesToReplace.contains(line.trim()))
         .toList();
 
     // Append the correct line at the end

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
@@ -36,6 +37,8 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
       }
 
       return ExitCode.success.code;
+    } on UsageException {
+      rethrow;
     } on Exception catch (e, stackTrace) {
       Error.throwWithStackTrace(
         AppDetailedException(
@@ -46,6 +49,9 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
       );
     }
   }
+
+  @override
+  String get invocation => 'fvm api $name';
 }
 
 /// Friendly JSON API for implementations with FVM
@@ -166,7 +172,7 @@ class APIReleasesCommand extends APISubCommand<GetReleasesResponse> {
 
   @override
   Future<GetReleasesResponse> runSubCommand() {
-    final limitArg = intArg('limit');
+    final limitArg = positiveIntArg('limit');
     final channelArg = stringArg('filter-channel');
 
     return get<ApiService>().getReleases(

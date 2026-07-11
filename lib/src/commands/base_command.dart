@@ -41,10 +41,20 @@ extension CommandExtension on Command {
     return arg;
   }
 
-  int? intArg(String name) {
-    final arg = stringArg(name);
+  /// Gets the parsed command-line option named [name] as a positive `int`.
+  int? positiveIntArg(String name) {
+    final arg = argResults![name] as String?;
+    if (arg == null) return null;
 
-    return arg == null ? null : int.tryParse(arg);
+    final value = int.tryParse(arg);
+    if (value == null || value < 1) {
+      throw UsageException(
+        'Option --$name must be a positive integer.',
+        usage,
+      );
+    }
+
+    return value;
   }
 
   /// Gets the parsed command-line option named [name] as `List<String>`.

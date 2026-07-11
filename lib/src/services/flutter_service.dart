@@ -533,7 +533,7 @@ class FlutterService extends ContextualService {
   }
 
   Future<ProcessResult> setup(CacheFlutterVersion version) {
-    return run('flutter', ['--version'], version);
+    return run('flutter', ['--version'], version, throwOnError: true);
   }
 
   Future<ProcessResult> runFlutter(

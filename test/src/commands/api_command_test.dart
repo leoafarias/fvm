@@ -4,6 +4,7 @@ import 'package:fvm/fvm.dart';
 import 'package:fvm/src/api/api_service.dart';
 import 'package:fvm/src/api/models/json_response.dart';
 import 'package:fvm/src/commands/api_command.dart';
+import 'package:io/io.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:test/test.dart';
 
@@ -242,6 +243,15 @@ void main() {
       expect(result[0], isExpectedJson(response.toPrettyJson()));
     });
 
+    test('uses the complete nested invocation in usage help', () {
+      final apiCommand = runner.commands['api'] as APICommand;
+
+      expect(
+        apiCommand.subcommands['releases']!.invocation,
+        'fvm api releases',
+      );
+    });
+
     test('returns limited releases', () async {
       final result = await runnerZoned(runner, [
         'fvm',
@@ -257,6 +267,27 @@ void main() {
       ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(response.toPrettyJson()));
+    });
+
+    test('rejects malformed and non-positive limits', () async {
+      for (final limit in ['not-a-number', 'null', '0', '-1']) {
+        final result = await runner.run([
+          'fvm',
+          'api',
+          'releases',
+          '--limit',
+          limit,
+        ]);
+
+        expect(result, ExitCode.usage.code, reason: 'limit: $limit');
+      }
+
+      verifyNever(
+        () => apiService.getReleases(
+          limit: any(named: 'limit'),
+          channelName: any(named: 'channelName'),
+        ),
+      );
     });
 
     test('returns filtered releases by channel', () async {
