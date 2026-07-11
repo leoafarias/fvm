@@ -45,6 +45,17 @@ void main() {
       ]);
     });
 
+    test('passes refreshed post-setup SDK metadata downstream', () async {
+      final harness = _UseHarness();
+
+      await harness.run();
+
+      final dependencyVersion = harness.dependencyVersions.single;
+      expect(dependencyVersion, isNot(same(harness.version)));
+      expect(dependencyVersion.isSetup, isTrue);
+      expect(dependencyVersion.dartSdkVersion, '3.10.0');
+    });
+
     test('stops after a critical project-reference failure', () async {
       final harness = _UseHarness(failReferences: true);
 
@@ -57,6 +68,7 @@ void main() {
 
 final class _UseHarness {
   final events = <String>[];
+  final dependencyVersions = <CacheFlutterVersion>[];
   late final FvmContext context;
   late final Project project;
   late final Project updatedProject;
@@ -65,6 +77,7 @@ final class _UseHarness {
   _UseHarness({bool failReferences = false, bool gitIgnoreResult = true}) {
     context = TestFactory.context(
       generators: {
+        CacheService: _RefreshingCacheService.new,
         SetupFlutterWorkflow: (context) => _Setup(context, events),
         VerifyProjectWorkflow: (context) => _Verify(context, events),
         UpdateProjectReferencesWorkflow: (context) => _References(
@@ -81,6 +94,7 @@ final class _UseHarness {
         ResolveProjectDependenciesWorkflow: (context) => _Dependencies(
               context,
               events,
+              dependencyVersions,
             ),
         UpdateVsCodeSettingsWorkflow: (context) => _VsCode(context, events),
         UpdateMelosSettingsWorkflow: (context) => _Melos(context, events),
@@ -114,7 +128,33 @@ final class _Setup extends SetupFlutterWorkflow {
   _Setup(super.context, this.events);
 
   @override
-  Future<void> call(CacheFlutterVersion version) async => events.add('setup');
+  Future<void> call(CacheFlutterVersion version) async {
+    events.add('setup');
+    (context.get<CacheService>() as _RefreshingCacheService).setupComplete =
+        true;
+  }
+}
+
+final class _RefreshingCacheService extends CacheService {
+  _RefreshingCacheService(super.context);
+
+  bool setupComplete = false;
+
+  @override
+  CacheFlutterVersion? getVersion(FlutterVersion version) {
+    if (!setupComplete) return null;
+
+    return CacheFlutterVersion(
+      version.name,
+      releaseChannel: version.releaseChannel,
+      type: version.type,
+      fork: version.fork,
+      directory: p.join(context.versionsCachePath, version.name),
+      flutterSdkVersion: '3.10.0',
+      dartSdkVersion: '3.10.0',
+      isSetup: true,
+    );
+  }
 }
 
 final class _Verify extends VerifyProjectWorkflow {
@@ -159,7 +199,8 @@ final class _GitIgnore extends SetupGitIgnoreWorkflow {
 
 final class _Dependencies extends ResolveProjectDependenciesWorkflow {
   final List<String> events;
-  _Dependencies(super.context, this.events);
+  final List<CacheFlutterVersion> versions;
+  _Dependencies(super.context, this.events, this.versions);
 
   @override
   Future<bool> call(
@@ -168,6 +209,7 @@ final class _Dependencies extends ResolveProjectDependenciesWorkflow {
     required bool force,
   }) async {
     events.add('dependencies:${project.config?.flutter}');
+    versions.add(version);
     return true;
   }
 }

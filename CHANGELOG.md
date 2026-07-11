@@ -12,6 +12,7 @@
 * fix: discover project configuration from the context working directory
 * fix: ignore non-executable files when resolving commands from `PATH`
 * fix: preserve existing SDK caches when repairing version-directory mismatches
+* fix: refresh SDK metadata after setup before resolving project dependencies
 
 ## 4.1.1
 
