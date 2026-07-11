@@ -4,6 +4,8 @@
 * fix: report Flutter SDK setup failures instead of logging a false success
 * fix: preserve similarly named user patterns when normalizing FVM `.gitignore` entries
 * fix: reject invalid API release limits and show the correct nested command usage
+* fix: report invalid Dart tool metadata in `fvm doctor` instead of crashing
+* fix: validate absolute VS Code SDK paths correctly in non-privileged mode
 
 ## 4.1.1
 

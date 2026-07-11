@@ -57,26 +57,6 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     }
   }
 
-  /// Resolves the Flutter SDK path for VSCode settings.
-  /// Returns relative path if privileged access, absolute path otherwise.
-  /// Always converts to POSIX format for JSON compatibility on Windows.
-  String _resolveSdkPath(Project project, {String? relativeTo}) {
-    String sdkPath;
-
-    if (context.privilegedAccess) {
-      sdkPath = p.relative(
-        project.localVersionSymlinkPath,
-        from: relativeTo ?? project.path,
-      );
-    } else {
-      sdkPath = project.localVersionSymlinkPath;
-    }
-
-    // Always convert to POSIX format for JSON compatibility
-    // This prevents double-escaping of Windows backslashes in JSON output
-    return convertToPosixPath(sdkPath);
-  }
-
   /// Finds a VS Code workspace file in the project directory.
   ///
   /// Returns the most relevant workspace file or null if none is found.
@@ -177,7 +157,11 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
     // Update Flutter SDK path setting only if there's a pinned version
     try {
       if (project.pinnedVersion != null) {
-        currentSettings["dart.flutterSdkPath"] = _resolveSdkPath(project);
+        currentSettings["dart.flutterSdkPath"] = resolveVsCodeSdkPath(
+          project.localVersionSymlinkPath,
+          privilegedAccess: context.privilegedAccess,
+          relativeTo: project.path,
+        );
         logger.success('Updated $kVsCode folder Flutter SDK path setting.');
       } else {
         logger.debug(
@@ -226,7 +210,11 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
       // Update Flutter SDK setting only if there's a pinned version
       if (project.pinnedVersion != null) {
         final workspaceDir = p.dirname(workspaceFile.path);
-        final sdkPath = _resolveSdkPath(project, relativeTo: workspaceDir);
+        final sdkPath = resolveVsCodeSdkPath(
+          project.localVersionSymlinkPath,
+          privilegedAccess: context.privilegedAccess,
+          relativeTo: workspaceDir,
+        );
         workspaceSettings['settings']['dart.flutterSdkPath'] = sdkPath;
       } else {
         logger.debug(

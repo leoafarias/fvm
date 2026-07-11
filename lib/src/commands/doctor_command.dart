@@ -10,6 +10,7 @@ import '../models/project_model.dart';
 import '../services/project_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
+import '../utils/convert_posix_path.dart';
 import '../utils/exceptions.dart';
 import '../utils/which.dart';
 import 'base_command.dart';
@@ -27,6 +28,16 @@ class DoctorCommand extends BaseFvmCommand {
 
   DoctorCommand(super.context);
 
+  String _dartToolGeneratorVersion(Project project) {
+    try {
+      return project.dartToolGeneratorVersion ?? 'Not available';
+    } on FormatException {
+      return 'Invalid .dart_tool/package_config.json';
+    } on TypeError {
+      return 'Invalid .dart_tool/package_config.json';
+    }
+  }
+
   void _printProject(Project project) {
     logger.info('Project:');
     final table = createTable(['Project', project.name]);
@@ -35,10 +46,7 @@ class DoctorCommand extends BaseFvmCommand {
       ['Directory', project.path],
       ['Active Flavor', project.activeFlavor ?? 'None'],
       ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
-      [
-        'Dart Tool Generator Version',
-        project.dartToolGeneratorVersion ?? 'Not available',
-      ],
+      ['Dart Tool Generator Version', _dartToolGeneratorVersion(project)],
       ['Dart tool version', project.dartToolVersion ?? 'Not available'],
       ['.gitignore Present', project.gitIgnoreFile.existsSync() ? 'Yes' : 'No'],
       ['Config Present', project.hasConfig ? 'Yes' : 'No'],
@@ -75,9 +83,10 @@ class DoctorCommand extends BaseFvmCommand {
         try {
           final settings = jsonc.decode(settingsFile.readAsStringSync());
 
-          final relativeSymlinkPath = p.relative(
+          final expectedSdkPath = resolveVsCodeSdkPath(
             project.localVersionSymlinkPath,
-            from: project.path,
+            privilegedAccess: context.privilegedAccess,
+            relativeTo: project.path,
           );
 
           final sdkPath = settings['dart.flutterSdkPath'];
@@ -85,7 +94,7 @@ class DoctorCommand extends BaseFvmCommand {
           table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
           table.insertRow([
             'Matches pinned version:',
-            sdkPath == relativeSymlinkPath,
+            sdkPath == expectedSdkPath,
           ]);
         } on FormatException catch (_, stackTrace) {
           logger

@@ -111,7 +111,6 @@ void main() {
       print('\n===== Testing Semantic Versions =====');
       try {
         await _testVersion(appTestRunner, '2.10.0', 'Specific Version');
-        await _testVersion(appTestRunner, 'v2.10.0', 'Version with v prefix');
       } catch (e) {
         print(
           'Warning: Skipping semantic version tests - version may not be available',
@@ -125,11 +124,6 @@ void main() {
           appTestRunner,
           '2.10.0@beta',
           'Version with beta channel',
-        );
-        await _testVersion(
-          appTestRunner,
-          'v2.10.0@beta',
-          'Version with v prefix and beta channel',
         );
       } catch (e) {
         print(

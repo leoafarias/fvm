@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fvm/fvm.dart';
+import 'package:fvm/src/services/logger_service.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -115,6 +117,66 @@ void main() {
       // Verify it completed successfully
       expect(exitCode, ExitCode.success.code);
     });
+
+    for (final entry in {
+      'malformed JSON': '{not-json',
+      'an unexpected root shape': '[]',
+      'a non-string generator version': '{"generatorVersion": 42}',
+    }.entries) {
+      test('reports package_config.json with ${entry.key}', () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+        final dartToolDir = Directory(p.join(testDir.path, '.dart_tool'))
+          ..createSync();
+        File(p.join(dartToolDir.path, 'package_config.json'))
+            .writeAsStringSync(entry.value);
+        final context = FvmContext.create(
+          workingDirectoryOverride: testDir.path,
+          isTest: true,
+        );
+
+        final exitCode = await TestCommandRunner(
+          context,
+        ).run(['fvm', 'doctor']);
+
+        expect(exitCode, ExitCode.success.code);
+        expect(
+          context.get<Logger>().outputs.join('\n'),
+          contains('Invalid .dart_tool/package_config.json'),
+        );
+      });
+    }
+
+    test(
+      'recognizes the absolute VS Code SDK path without privileged access',
+      () async {
+        final testDir = tempDirs.create();
+        createPubspecYaml(testDir);
+        createProjectConfig(const ProjectConfig(flutter: 'stable'), testDir);
+        final context = TestFactory.context(
+          privilegedAccess: false,
+          workingDirectoryOverride: testDir.path,
+        );
+        final project = context.get<ProjectService>().findAncestor();
+        final vscodeDir = Directory(p.join(testDir.path, '.vscode'))
+          ..createSync();
+        File(p.join(vscodeDir.path, 'settings.json')).writeAsStringSync(
+          jsonEncode({'dart.flutterSdkPath': project.localVersionSymlinkPath}),
+        );
+
+        final exitCode = await TestCommandRunner(
+          context,
+        ).run(['fvm', 'doctor']);
+
+        expect(exitCode, ExitCode.success.code);
+        expect(
+          context.get<Logger>().outputs.join('\n'),
+          contains(
+            RegExp(r'Matches pinned version:.*true'),
+          ),
+        );
+      },
+    );
 
     test(
       'should handle project without flutter.sdk in local.properties',
