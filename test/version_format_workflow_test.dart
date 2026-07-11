@@ -153,6 +153,11 @@ void main() {
       await _testErrorCase(appTestRunner, '2.10.0@invalid', 'Invalid channel');
       await _testErrorCase(
         appTestRunner,
+        'stable@beta',
+        'Channel with release channel',
+      );
+      await _testErrorCase(
+        appTestRunner,
         'custom_build@beta',
         'Custom version with channel',
       );
@@ -230,13 +235,19 @@ Future<void> _testErrorCase(
   print('----- Testing Error Case: $description -----');
   print('Command: fvm use $version');
 
-  // This should fail
-  try {
-    await runner.run(['fvm', 'use', version, '--skip-setup']);
-    print('Warning: Command should have failed but succeeded');
-  } catch (e) {
-    print('Test passed: Command failed as expected');
-  }
+  final exitCode = await runner.run([
+    'fvm',
+    'use',
+    version,
+    '--skip-setup',
+  ]);
+
+  expect(
+    exitCode,
+    isNot(0),
+    reason: 'Invalid version "$version" should return a non-zero exit code',
+  );
+  print('Test passed: Command failed as expected');
 
   print('------------------------------');
 }

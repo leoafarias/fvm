@@ -23,10 +23,18 @@ void main() {
 
     test('throwOnError=true throws on failure', () async {
       final processService = runner.context.get<ProcessService>();
+      final command = Platform.isWindows ? 'cmd' : 'sh';
+      final args = Platform.isWindows
+          ? ['/c', 'echo stdout & echo stderr 1>&2 & exit /b 23']
+          : ['-c', 'echo stdout; echo stderr >&2; exit 23'];
 
       expect(
-        () => processService.run('false', throwOnError: true),
-        throwsA(isA<ProcessException>()),
+        () => processService.run(command, args: args, throwOnError: true),
+        throwsA(
+          isA<ProcessException>()
+              .having((error) => error.errorCode, 'errorCode', 23)
+              .having((error) => error.message, 'message', 'stderr'),
+        ),
       );
     });
 

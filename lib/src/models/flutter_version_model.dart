@@ -100,6 +100,12 @@ class FlutterVersion with FlutterVersionMappable {
 
     // Handle channel versions
     if (isFlutterChannel(versionPart)) {
+      if (channelPart != null) {
+        throw FormatException(
+          'Channel versions cannot have a channel specification',
+        );
+      }
+
       return FlutterVersion.channel(versionPart, fork: forkName);
     }
 

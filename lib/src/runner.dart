@@ -238,16 +238,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..debug('')
       ..debug('Argument information:');
 
-    if (topLevelResults.command?.name == 'completion') {
-      super.runCommand(topLevelResults);
-
-      return ExitCode.success.code;
-    }
-
-    if (topLevelResults.command?.name == 'api') {
-      await super.runCommand(topLevelResults);
-
-      return ExitCode.success.code;
+    final commandName = topLevelResults.command?.name;
+    if (commandName == 'completion' || commandName == 'api') {
+      return await super.runCommand(topLevelResults) ?? ExitCode.success.code;
     }
 
     final hasTopLevelOption = topLevelResults.options.any(

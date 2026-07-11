@@ -10,27 +10,19 @@ class ProcessService extends ContextualService {
     String process,
     List<String> args,
   ) {
-    if (pr.exitCode != 0) {
-      final values = {
-        if (pr.stdout != null) 'stdout': pr.stdout.toString().trim(),
-        if (pr.stderr != null) 'stderr': pr.stderr.toString().trim(),
-      }..removeWhere((k, v) => v.isEmpty);
+    if (pr.exitCode == 0) return;
 
-      String message;
-      if (values.isEmpty) {
-        message = 'Unknown error';
-      } else if (values.length == 1) {
-        message = values.values.single;
-      } else {
-        if (values['stderr'] != null) {
-          message = values['stderr']!;
-        } else {
-          message = values['stdout']!;
-        }
-      }
+    final stderr = pr.stderr?.toString().trim();
+    final stdout = pr.stdout?.toString().trim();
 
-      throw ProcessException(process, args, message, pr.exitCode);
+    var message = 'Unknown error';
+    if (stderr?.isNotEmpty == true) {
+      message = stderr!;
+    } else if (stdout?.isNotEmpty == true) {
+      message = stdout!;
     }
+
+    throw ProcessException(process, args, message, pr.exitCode);
   }
 
   Future<ProcessResult> run(

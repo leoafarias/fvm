@@ -25,10 +25,7 @@ class TestCommandRunner extends FvmCommandRunner {
 
   @override
   Future<int> run(Iterable<String> args) async {
-    final firstArg = args.first;
-    if (firstArg != 'fvm') throw Exception('Include fvm in command');
-
-    final updatedArgs = args.skip(1).toList();
+    final updatedArgs = _withoutExecutable(args);
 
     assert(
       context.isTest == true,
@@ -39,9 +36,28 @@ class TestCommandRunner extends FvmCommandRunner {
   }
 
   Future<int> runOrThrow(Iterable<String> args) async {
-    final updatedArgs = args.skip(1).toList();
-    await runCommand(parse(updatedArgs));
-    return ExitCode.success.code;
+    final updatedArgs = _withoutExecutable(args);
+    final result =
+        await runCommand(parse(updatedArgs)) ?? ExitCode.success.code;
+    if (result != ExitCode.success.code) {
+      throw ProcessException(
+        'fvm',
+        updatedArgs,
+        'Command exited with code $result.',
+        result,
+      );
+    }
+
+    return result;
+  }
+
+  List<String> _withoutExecutable(Iterable<String> args) {
+    final command = args.toList(growable: false);
+    if (command.isEmpty || command.first != 'fvm') {
+      throw ArgumentError.value(command, 'args', 'Command must start with fvm');
+    }
+
+    return command.sublist(1);
   }
 }
 

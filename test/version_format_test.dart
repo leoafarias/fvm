@@ -172,6 +172,24 @@ void main() {
     });
 
     group('Error Cases', () {
+      test('Channel version with release channel', () {
+        for (final version in ['stable@beta', 'myfork/stable@beta']) {
+          expect(
+            () => FlutterVersion.parse(version),
+            throwsA(
+              isA<FormatException>().having(
+                (e) => e.message,
+                'message',
+                contains(
+                  'Channel versions cannot have a channel specification',
+                ),
+              ),
+            ),
+            reason: version,
+          );
+        }
+      });
+
       test('Invalid channel', () {
         expect(
           () => FlutterVersion.parse('2.10.0@invalid'),
