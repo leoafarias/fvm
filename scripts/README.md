@@ -46,7 +46,9 @@ Usage:
 ```
 
 ### install.ps1
-PowerShell installation script for Windows.
+Legacy PowerShell installer prototype. It is not covered by the installer CI
+pipeline; use the documented Chocolatey installation for supported Windows
+installs.
 
 ### install.md
 Documentation for the installation process.
@@ -75,7 +77,7 @@ Usage:
 
 ## Design Principles
 
-All scripts follow:
+Changes to maintained scripts should follow:
 - **KISS**: Simple, straightforward logic
 - **DRY**: No code duplication
 - **YAGNI**: Only essential features

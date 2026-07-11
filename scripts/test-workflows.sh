@@ -22,20 +22,6 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if act is installed
-if ! command -v act &> /dev/null; then
-    print_error "act is not installed. Please install it first:"
-    echo "  macOS: brew install act"
-    echo "  Linux: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash"
-    exit 1
-fi
-
-# Check if Docker is running
-if ! docker info &> /dev/null; then
-    print_error "Docker is not running. Please start Docker first."
-    exit 1
-fi
-
 # Default values
 WORKFLOW=""
 EVENT="push"
@@ -48,14 +34,17 @@ VERBOSE=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         -w|--workflow)
+            [[ $# -ge 2 ]] || { print_error "Missing value for $1"; exit 1; }
             WORKFLOW="$2"
             shift 2
             ;;
         -e|--event)
+            [[ $# -ge 2 ]] || { print_error "Missing value for $1"; exit 1; }
             EVENT="$2"
             shift 2
             ;;
         -j|--job)
+            [[ $# -ge 2 ]] || { print_error "Missing value for $1"; exit 1; }
             JOB="$2"
             shift 2
             ;;
@@ -98,51 +87,62 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Build act command
-ACT_CMD="act"
-
-# Add event
-ACT_CMD="$ACT_CMD $EVENT"
-
-# Add workflow if specified
-if [ -n "$WORKFLOW" ]; then
-    ACT_CMD="$ACT_CMD -W .github/workflows/$WORKFLOW"
+# Check if act is installed after parsing so --help works independently.
+if ! command -v act &> /dev/null; then
+    print_error "act is not installed. Please install it first:"
+    echo "  macOS: brew install act"
+    echo "  Linux: curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash"
+    exit 1
 fi
 
-# Add job if specified
-if [ -n "$JOB" ]; then
-    ACT_CMD="$ACT_CMD -j $JOB"
-fi
-
-# Add environment file
-if [ -f ".env.act" ]; then
-    ACT_CMD="$ACT_CMD --env-file .env.act"
-fi
-
-# Add secrets file if exists
-if [ -f ".secrets.act" ]; then
-    ACT_CMD="$ACT_CMD --secret-file .secrets.act"
-fi
-
-# Add verbose flag
-if [ "$VERBOSE" = true ]; then
-    ACT_CMD="$ACT_CMD --verbose"
-fi
-
-# Add dry run flag
-if [ "$DRY_RUN" = true ]; then
-    ACT_CMD="$ACT_CMD --dryrun"
-fi
-
-# List workflows and exit if requested
+# Listing workflows does not require Docker.
 if [ "$LIST_ONLY" = true ]; then
     print_info "Available workflows and jobs:"
     act -l
     exit 0
 fi
 
+if ! docker info &> /dev/null; then
+    print_error "Docker is not running. Please start Docker first."
+    exit 1
+fi
+
+# Build act command
+ACT_CMD=(act "$EVENT")
+
+# Add workflow if specified
+if [ -n "$WORKFLOW" ]; then
+    ACT_CMD+=(-W ".github/workflows/$WORKFLOW")
+fi
+
+# Add job if specified
+if [ -n "$JOB" ]; then
+    ACT_CMD+=(-j "$JOB")
+fi
+
+# Add environment file
+if [ -f ".env.act" ]; then
+    ACT_CMD+=(--env-file .env.act)
+fi
+
+# Add secrets file if exists
+if [ -f ".secrets.act" ]; then
+    ACT_CMD+=(--secret-file .secrets.act)
+fi
+
+# Add verbose flag
+if [ "$VERBOSE" = true ]; then
+    ACT_CMD+=(--verbose)
+fi
+
+# Add dry run flag
+if [ "$DRY_RUN" = true ]; then
+    ACT_CMD+=(--dryrun)
+fi
+
 # Show what will be run
-print_info "Running command: $ACT_CMD"
+printf -v ACT_DISPLAY '%q ' "${ACT_CMD[@]}"
+print_info "Running command: ${ACT_DISPLAY% }"
 
 # Create required directories
 mkdir -p /tmp/.pub-cache
@@ -150,14 +150,11 @@ mkdir -p /tmp/.pub-cache
 # Run act
 if [ "$DRY_RUN" = true ]; then
     print_info "Dry run mode - showing what would be executed:"
-    $ACT_CMD
 else
     print_info "Starting workflow execution..."
-    $ACT_CMD
 fi
 
-# Check exit code
-if [ $? -eq 0 ]; then
+if "${ACT_CMD[@]}"; then
     print_info "Workflow completed successfully!"
 else
     print_error "Workflow failed!"
