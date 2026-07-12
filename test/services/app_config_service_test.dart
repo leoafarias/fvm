@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/app_config_service.dart';
+import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/constants.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -109,6 +110,45 @@ void main() {
 
         expect(context.workingDirectory, nestedDir.path);
         expect(context.flutterUrl, flutterUrl);
+      });
+
+      test('relative context working directory discovers ancestor config', () {
+        const flutterUrl = 'https://example.com/relative/flutter.git';
+        final projectDir = createTempDir();
+        final nestedDir = Directory(p.join(projectDir.path, 'packages', 'app'))
+          ..createSync(recursive: true);
+        File(p.join(projectDir.path, kFvmConfigFileName)).writeAsStringSync(
+          '{"flutterUrl":"$flutterUrl"}',
+        );
+        final relativeNestedDir = p.relative(
+          nestedDir.path,
+          from: Directory.current.path,
+        );
+
+        final context = TestFactory.context(
+          workingDirectoryOverride: relativeNestedDir,
+        );
+
+        expect(context.workingDirectory, relativeNestedDir);
+        expect(context.flutterUrl, flutterUrl);
+        expect(
+          context.get<ProjectService>().findAncestor().path,
+          projectDir.path,
+        );
+      });
+
+      test('relative context working directory without config terminates', () {
+        final workingDir = createTempDir();
+        final relativeWorkingDir = p.relative(
+          workingDir.path,
+          from: Directory.current.path,
+        );
+
+        final context = TestFactory.context(
+          workingDirectoryOverride: relativeWorkingDir,
+        );
+
+        expect(context.workingDirectory, relativeWorkingDir);
       });
 
       test('FVM_CACHE_PATH takes precedence over legacy FVM_HOME', () {

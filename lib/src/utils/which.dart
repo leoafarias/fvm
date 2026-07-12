@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:path/path.dart';
 
-// POSIX owner, group, and other execute permission bits (0o111).
-const _executablePermissionBits = 0x49;
+// Unlike inspecting mode bits, `test -x` checks access for the current user.
+const _posixTestExecutable = '/bin/test';
 
 /// Finds [command] in the executable search path.
 ///
@@ -56,9 +56,14 @@ bool _isExecutable(File file) {
   try {
     final stat = file.statSync();
     if (stat.type != FileSystemEntityType.file) return false;
+    if (Platform.isWindows) return true;
 
-    return Platform.isWindows || (stat.mode & _executablePermissionBits) != 0;
+    final result = Process.runSync(_posixTestExecutable, ['-x', file.path]);
+
+    return result.exitCode == 0;
   } on FileSystemException {
+    return false;
+  } on ProcessException {
     return false;
   }
 }

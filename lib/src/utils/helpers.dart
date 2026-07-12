@@ -426,6 +426,7 @@ const skipCopyWith = GenerateMethods.decode |
 /// directory accepted by the [validate] callback, or reaches the root. The
 /// optional [debugPrinter] is invoked with debug messages at each step, and
 /// defaults to a no-op if not provided.
+/// Relative input paths are resolved before traversal.
 ///
 /// If no valid candidate is found, `null` is returned.
 T? lookUpDirectoryAncestor<T>({
@@ -433,16 +434,19 @@ T? lookUpDirectoryAncestor<T>({
   required T? Function(Directory) validate,
   void Function(String)? debugPrinter,
 }) {
+  final currentDirectory = Directory(p.normalize(directory.absolute.path));
+
   // ignore: no-empty-block
   debugPrinter ??= (String message) {};
-  debugPrinter('Looking up directory: ${directory.path}');
+  debugPrinter('Looking up directory: ${currentDirectory.path}');
   // Check if the current directory is the root
-  final isRootDir = p.rootPrefix(directory.path) == directory.path;
+  final isRootDir =
+      p.rootPrefix(currentDirectory.path) == currentDirectory.path;
 
-  final result = validate(directory);
+  final result = validate(currentDirectory);
 
   if (result != null) {
-    debugPrinter('Found valid candidate: ${directory.path}');
+    debugPrinter('Found valid candidate: ${currentDirectory.path}');
 
     return result;
   }
@@ -456,7 +460,7 @@ T? lookUpDirectoryAncestor<T>({
 
   // Otherwise, recursively search the parent directory
   return lookUpDirectoryAncestor(
-    directory: directory.parent,
+    directory: currentDirectory.parent,
     validate: validate,
     debugPrinter: debugPrinter,
   );

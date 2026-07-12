@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_service.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:fvm/src/workflows/verify_project.workflow.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -138,6 +141,41 @@ void main() {
           isTrue,
         );
       });
+
+      test(
+        'relative working directory treats local config as current project',
+        () {
+          final testDir = tempDirs.create();
+          createProjectConfig(ProjectConfig(flutter: '3.10.0'), testDir);
+          final relativeTestDir = p.relative(
+            testDir.path,
+            from: Directory.current.path,
+          );
+          final context = TestFactory.context(
+            workingDirectoryOverride: relativeTestDir,
+            generators: {
+              Logger: (context) => TestLogger(context)
+                ..setConfirmResponse('Would you like to continue?', false),
+            },
+            skipInput: false,
+          );
+          final project = context.get<ProjectService>().findAncestor();
+          final workflow = VerifyProjectWorkflow(context);
+
+          expect(project.path, testDir.path);
+          expect(
+            () => workflow(project, force: false),
+            throwsA(isA<ForceExit>()),
+          );
+          expect(
+            context
+                .get<Logger>()
+                .outputs
+                .any((message) => message.contains('No pubspec.yaml detected')),
+            isTrue,
+          );
+        },
+      );
 
       test(
         'should use correct default value (true) for non-destructive operation',

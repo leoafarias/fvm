@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+
 import '../models/project_model.dart';
 import '../utils/constants.dart';
 import '../utils/exceptions.dart';
@@ -9,7 +11,12 @@ class VerifyProjectWorkflow extends Workflow {
   void call(Project project, {required bool force}) {
     if (project.hasPubspec || force) return;
 
-    if (project.hasConfig && project.path != context.workingDirectory) {
+    final projectIsWorkingDirectory = p.equals(
+      p.normalize(p.absolute(project.path)),
+      p.normalize(p.absolute(context.workingDirectory)),
+    );
+
+    if (project.hasConfig && !projectIsWorkingDirectory) {
       logger
         ..info()
         ..info('Using $kFvmConfigFileName in ${project.path}')
