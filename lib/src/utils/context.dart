@@ -10,6 +10,7 @@ import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
+import '../services/fvm_release_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
 import '../services/process_service.dart';
@@ -248,6 +249,7 @@ const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
+  FvmReleaseService: FvmReleaseService.new,
   FlutterService: FlutterService.new,
   ApiService: ApiService.new,
   GitService: GitService.new,

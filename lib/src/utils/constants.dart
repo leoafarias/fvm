@@ -32,6 +32,16 @@ const kDefaultFlutterUrl = 'https://github.com/flutter/flutter.git';
 /// This file contains the configuration settings for FVM.
 const kFvmConfigFileName = '.fvmrc';
 
+/// The canonical GitHub repository for FVM releases and source code.
+const kFvmRepository = 'conceptadev/fvm';
+
+/// The canonical GitHub URL for FVM.
+const kFvmRepositoryUrl = 'https://github.com/$kFvmRepository';
+
+/// Migration guidance for standalone FVM releases.
+const kFvmMigrationGuideUrl =
+    '$kFvmDocsUrl/documentation/getting-started/installation';
+
 /// The legacy FVM configuration file name, used for backward compatibility.
 const kFvmLegacyConfigFileName = 'fvm_config.json';
 
