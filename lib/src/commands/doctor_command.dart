@@ -90,12 +90,11 @@ class DoctorCommand extends BaseFvmCommand {
           );
 
           final sdkPath = settings['dart.flutterSdkPath'];
+          final matchesPinnedVersion = sdkPath is String &&
+              convertToPosixPath(sdkPath) == expectedSdkPath;
 
           table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
-          table.insertRow([
-            'Matches pinned version:',
-            sdkPath == expectedSdkPath,
-          ]);
+          table.insertRow(['Matches pinned version:', matchesPinnedVersion]);
         } on FormatException catch (_, stackTrace) {
           logger
             ..err('Error parsing Vscode settings.json on ${settingsFile.path}')

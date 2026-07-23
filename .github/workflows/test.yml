@@ -52,7 +52,7 @@ concurrency:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
-  # Unit Tests - Run first for fast feedback
+  # Initial quality gate - all matrix jobs wait for this job to pass
   # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: Test
@@ -74,9 +74,8 @@ jobs:
         working-directory: fvm_mcp
         run: dart pub get
 
-      - uses: invertase/github-action-dart-analyzer@v1
-        with:
-          fatal-infos: false
+      - name: Analyze
+        run: dart analyze --fatal-infos
 
       # DCM >=1.38.2 refuses to run on CI without a license (DCM_CI_KEY and
       # DCM_EMAIL). Skip the steps when the repo has no license secrets; the
@@ -91,7 +90,7 @@ jobs:
       - name: Run DCM
         if: env.DCM_CI_KEY != '' && env.DCM_EMAIL != ''
         run: dcm analyze lib fvm_mcp/lib
-      
+
       - name: Install lcov
         run: sudo apt-get install lcov
 
@@ -142,6 +141,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 45
     runs-on: ${{ matrix.os }}
+    needs: test
     strategy:
       fail-fast: true
       matrix:
@@ -175,12 +175,12 @@ jobs:
         shell: bash
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Integration Tests - Run in parallel with unit tests
+  # Matrix checks - fan out after the initial quality gate
   # ─────────────────────────────────────────────────────────────────────────────
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, test-os]
+    needs: test
     timeout-minutes: 45
     # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
@@ -214,6 +214,7 @@ jobs:
   migration-test:
     name: Migration Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: test
     timeout-minutes: 60
 
     strategy:

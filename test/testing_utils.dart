@@ -457,6 +457,8 @@ class TestFactory {
       gitCachePath: _sharedGitCacheDir.path,
       privilegedAccess: privilegedAccess,
       useGitCache: true,
+      // Unit tests must not contact the external update source.
+      disableUpdateCheck: true,
       forks: globalConfig.forks,
     );
 
