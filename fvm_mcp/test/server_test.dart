@@ -12,18 +12,16 @@ void main() {
   late String fakeFvm;
   setUpAll(() async {
     tempDir = await Directory.systemTemp.createTemp('fvm_mcp_server_');
-    fakeFvm = '${tempDir.path}${Platform.pathSeparator}'
+    fakeFvm =
+        '${tempDir.path}${Platform.pathSeparator}'
         '${Platform.isWindows ? 'fvm.exe' : 'fvm'}';
-    final result = await Process.run(
-        Platform.resolvedExecutable,
-        [
-          'compile',
-          'exe',
-          'test/bin/fake_fvm.dart',
-          '-o',
-          fakeFvm,
-        ],
-        runInShell: Platform.isWindows);
+    final result = await Process.run(Platform.resolvedExecutable, [
+      'compile',
+      'exe',
+      'test/bin/fake_fvm.dart',
+      '-o',
+      fakeFvm,
+    ], runInShell: Platform.isWindows);
     if (result.exitCode != 0) {
       fail('Failed to compile fake FVM:\n${result.stdout}\n${result.stderr}');
     }
@@ -101,7 +99,8 @@ void main() {
     );
     expect(invalidFlutterCall.isError, isTrue);
 
-    final missingDirectory = '${Directory.systemTemp.path}'
+    final missingDirectory =
+        '${Directory.systemTemp.path}'
         '${Platform.pathSeparator}fvm_mcp_missing_${DateTime.now().microsecondsSinceEpoch}';
     final failure = await harness.connection.callTool(
       CallToolRequest(name: flutter.name, arguments: {'cwd': missingDirectory}),
