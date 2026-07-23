@@ -1,11 +1,51 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "677d472756f83c14371dd8cc624387065f3d32a7",
+    "beta": "bd1e75d918605c91b411e8789fb911e6c9a84534",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
-    "stable": "ee80f08bbf97172ec030b8751ceab557177a34a6"
+    "stable": "84fc5cbb223bc12f83d65b647ff8a56caf779ffd"
   },
   "releases": [
+    {
+      "hash": "84fc5cbb223bc12f83d65b647ff8a56caf779ffd",
+      "channel": "stable",
+      "version": "3.44.7",
+      "dart_sdk_version": "3.12.2",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-07-20T17:58:25.595914Z",
+      "archive": "stable/macos/flutter_macos_3.44.7-stable.zip",
+      "sha256": "5dbac1b8e3bd3a80fe21b027c7adf0820ca4259a0375d2381df3eb2644670d52"
+    },
+    {
+      "hash": "84fc5cbb223bc12f83d65b647ff8a56caf779ffd",
+      "channel": "stable",
+      "version": "3.44.7",
+      "dart_sdk_version": "3.12.2",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2026-07-20T17:52:28.662389Z",
+      "archive": "stable/macos/flutter_macos_arm64_3.44.7-stable.zip",
+      "sha256": "90d7b92b62d73e311b9a65e3631c905e944a3be3301a6f886751ceff5fd60572"
+    },
+    {
+      "hash": "bd1e75d918605c91b411e8789fb911e6c9a84534",
+      "channel": "beta",
+      "version": "3.47.0-0.1.pre",
+      "dart_sdk_version": "3.13.0 (build 3.13.0-282.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-07-13T18:08:49.816273Z",
+      "archive": "beta/macos/flutter_macos_3.47.0-0.1.pre-beta.zip",
+      "sha256": "60b11ec8b5540de339c2aeaf19814d86f1232017bf82d3dc06f9cdad68092c97"
+    },
+    {
+      "hash": "bd1e75d918605c91b411e8789fb911e6c9a84534",
+      "channel": "beta",
+      "version": "3.47.0-0.1.pre",
+      "dart_sdk_version": "3.13.0 (build 3.13.0-282.1.beta)",
+      "dart_sdk_arch": "arm64",
+      "release_date": "2026-07-13T17:59:36.302611Z",
+      "archive": "beta/macos/flutter_macos_arm64_3.47.0-0.1.pre-beta.zip",
+      "sha256": "688988016fa2f316963e12d993b5006541c2cdadfad3b9d9723da6ffaba16cd3"
+    },
     {
       "hash": "ee80f08bbf97172ec030b8751ceab557177a34a6",
       "channel": "stable",

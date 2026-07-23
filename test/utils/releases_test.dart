@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:fvm/src/services/releases_service/models/flutter_releases_model.dart';
 import 'package:fvm/src/utils/exceptions.dart';
 import 'package:mason_logger/mason_logger.dart';
@@ -58,6 +60,108 @@ void main() {
           ],
         };
 
+    Map<String, dynamic> createMultiArchitecturePayload() => {
+          'base_url': 'https://storage.googleapis.com/flutter_infra_release',
+          'current_release': <String, dynamic>{
+            'stable': 'stable_hash',
+            'beta': 'beta_hash',
+            'dev': 'dev_hash',
+          },
+          'releases': <Map<String, dynamic>>[
+            for (final release in [
+              (
+                hash: 'stable_hash',
+                channel: 'stable',
+                version: '3.44.0',
+                suffix: 'stable',
+              ),
+              (
+                hash: 'beta_hash',
+                channel: 'beta',
+                version: '3.45.0-0.1.pre',
+                suffix: 'beta',
+              ),
+              (
+                hash: 'dev_hash',
+                channel: 'dev',
+                version: '3.46.0-0.0.pre',
+                suffix: 'dev',
+              ),
+            ]) ...[
+              <String, dynamic>{
+                'hash': release.hash,
+                'channel': release.channel,
+                'version': release.version,
+                'release_date': '2026-01-01T00:00:00.000Z',
+                'archive':
+                    '${release.channel}/windows/flutter_windows_arm64_${release.version}-${release.suffix}.zip',
+                'sha256': 'sha256hash',
+                'dart_sdk_arch': 'arm64',
+              },
+              <String, dynamic>{
+                'hash': release.hash,
+                'channel': release.channel,
+                'version': release.version,
+                'release_date': '2026-01-01T00:00:00.000Z',
+                'archive':
+                    '${release.channel}/windows/flutter_windows_${release.version}-${release.suffix}.zip',
+                'sha256': 'sha256hash',
+                'dart_sdk_arch': 'x64',
+              },
+            ],
+            <String, dynamic>{
+              'hash': 'legacy_hash',
+              'channel': 'stable',
+              'version': '3.10.0',
+              'release_date': '2024-01-01T00:00:00.000Z',
+              'archive': 'stable/windows/flutter_windows_3.10.0-stable.zip',
+              'sha256': 'sha256hash',
+              'dart_sdk_arch': 'x64',
+            },
+          ],
+        };
+
+    Map<String, dynamic> createX64OnlyPayload({String os = 'windows'}) => {
+          'base_url': 'https://storage.googleapis.com/flutter_infra_release',
+          'current_release': <String, dynamic>{
+            'stable': 'stable_hash',
+            'beta': 'beta_hash',
+            'dev': 'dev_hash',
+          },
+          'releases': <Map<String, dynamic>>[
+            for (final release in [
+              (
+                hash: 'stable_hash',
+                channel: 'stable',
+                version: '3.44.0',
+                suffix: 'stable',
+              ),
+              (
+                hash: 'beta_hash',
+                channel: 'beta',
+                version: '3.45.0-0.1.pre',
+                suffix: 'beta',
+              ),
+              (
+                hash: 'dev_hash',
+                channel: 'dev',
+                version: '3.46.0-0.0.pre',
+                suffix: 'dev',
+              ),
+            ])
+              <String, dynamic>{
+                'hash': release.hash,
+                'channel': release.channel,
+                'version': release.version,
+                'release_date': '2026-01-01T00:00:00.000Z',
+                'archive':
+                    '${release.channel}/$os/flutter_${os}_${release.version}-${release.suffix}.zip',
+                'sha256': 'sha256hash',
+                'dart_sdk_arch': 'x64',
+              },
+          ],
+        };
+
     test('parses valid payload successfully', () {
       final payload = createValidPayload();
       final result = FlutterReleasesResponse.fromMap(payload);
@@ -65,6 +169,62 @@ void main() {
       expect(result.baseUrl, isNotEmpty);
       expect(result.versions, hasLength(3));
       expect(result.channels.stable.version, equals('3.24.0'));
+    });
+
+    test('prefers matching Windows ARM64 releases when available', () {
+      final payload = createMultiArchitecturePayload();
+
+      final result = FlutterReleasesResponse.fromMapForTesting(
+        payload,
+        abi: Abi.windowsArm64,
+      );
+
+      expect(result.channels.stable.dartSdkArch, 'arm64');
+      expect(result.channels.stable.archive, contains('flutter_windows_arm64'));
+      expect(result.fromVersion('3.44.0')?.dartSdkArch, 'arm64');
+    });
+
+    test('keeps Windows x64 current releases when no ARM64 row exists', () {
+      final payload = createX64OnlyPayload();
+
+      final result = FlutterReleasesResponse.fromMapForTesting(
+        payload,
+        abi: Abi.windowsArm64,
+      );
+
+      expect(result.channels.stable.dartSdkArch, 'x64');
+      expect(
+          result.channels.stable.archive, contains('flutter_windows_3.44.0'));
+      expect(result.containsVersion('3.44.0'), isTrue);
+    });
+
+    test('keeps macOS x64-only releases on Apple Silicon', () {
+      // Regression guard: the old macOS-only filter dropped foreign-arch rows
+      // outright, hiding releases that install fine via git clone.
+      final payload = createX64OnlyPayload(os: 'macos');
+
+      final result = FlutterReleasesResponse.fromMapForTesting(
+        payload,
+        abi: Abi.macosArm64,
+      );
+
+      expect(result.channels.stable.dartSdkArch, 'x64');
+      expect(result.containsVersion('3.44.0'), isTrue);
+    });
+
+    test('keeps unmatched Windows x64 releases on Windows ARM64', () {
+      final payload = createMultiArchitecturePayload();
+
+      final result = FlutterReleasesResponse.fromMapForTesting(
+        payload,
+        abi: Abi.windowsArm64,
+      );
+
+      expect(result.fromVersion('3.10.0')?.dartSdkArch, 'x64');
+      expect(
+        result.fromVersion('3.10.0')?.archive,
+        'stable/windows/flutter_windows_3.10.0-stable.zip',
+      );
     });
 
     test('throws on missing base_url', () {
