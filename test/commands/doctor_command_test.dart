@@ -148,7 +148,7 @@ void main() {
     }
 
     test(
-      'recognizes the absolute VS Code SDK path without privileged access',
+      'recognizes an absolute VS Code SDK path with Windows separators',
       () async {
         final testDir = tempDirs.create();
         createPubspecYaml(testDir);
@@ -161,7 +161,12 @@ void main() {
         final vscodeDir = Directory(p.join(testDir.path, '.vscode'))
           ..createSync();
         File(p.join(vscodeDir.path, 'settings.json')).writeAsStringSync(
-          jsonEncode({'dart.flutterSdkPath': project.localVersionSymlinkPath}),
+          jsonEncode({
+            'dart.flutterSdkPath': project.localVersionSymlinkPath.replaceAll(
+              '/',
+              r'\',
+            ),
+          }),
         );
 
         final exitCode = await TestCommandRunner(

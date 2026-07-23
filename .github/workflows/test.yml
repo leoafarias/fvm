@@ -52,12 +52,15 @@ concurrency:
 
 jobs:
   # ─────────────────────────────────────────────────────────────────────────────
-  # Unit Tests - Run first for fast feedback
+  # Initial quality gate - all matrix jobs wait for this job to pass
   # ─────────────────────────────────────────────────────────────────────────────
   test:
     name: Test
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    env:
+      DCM_CI_KEY: ${{ secrets.DCM_CI_KEY }}
+      DCM_EMAIL: ${{ secrets.DCM_EMAIL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,26 +74,22 @@ jobs:
         working-directory: fvm_mcp
         run: dart pub get
 
-      - uses: invertase/github-action-dart-analyzer@v1
-        with:
-          fatal-infos: false
+      - name: Analyze
+        run: dart analyze --fatal-infos
 
+      # DCM >=1.38.2 refuses to run on CI without a license (DCM_CI_KEY and
+      # DCM_EMAIL). Skip the steps when the repo has no license secrets; the
+      # pre-commit and pre-push hooks still run DCM locally.
       - name: Install DCM
+        if: env.DCM_CI_KEY != '' && env.DCM_EMAIL != ''
         uses: CQLabs/setup-dcm@v1
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Ensure DCM available
-        run: |
-          if ! command -v dcm >/dev/null 2>&1; then
-            dart pub global activate dart_code_metrics
-            echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
-          fi
-
       - name: Run DCM
-        run: dcm analyze lib fvm_mcp/lib
-      
+        if: env.DCM_CI_KEY != '' && env.DCM_EMAIL != ''
+        run: dcm analyze lib
+
       - name: Install lcov
         run: sudo apt-get install lcov
 
@@ -141,6 +140,7 @@ jobs:
     name: Test on ${{ matrix.os }}
     timeout-minutes: 45
     runs-on: ${{ matrix.os }}
+    needs: test
     strategy:
       fail-fast: true
       matrix:
@@ -174,12 +174,12 @@ jobs:
         shell: bash
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Integration Tests - Run in parallel with unit tests
+  # Matrix checks - fan out after the initial quality gate
   # ─────────────────────────────────────────────────────────────────────────────
   integration-test:
     name: Integration Tests on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    needs: [test, test-os]
+    needs: test
     timeout-minutes: 45
     # Skip heavy integration tests for the fvm-mcp PR branch (MCP-only changes).
     if: github.event_name != 'pull_request' || github.event.pull_request.head.ref != 'fvm-mcp'
@@ -213,6 +213,7 @@ jobs:
   migration-test:
     name: Migration Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    needs: test
     timeout-minutes: 60
 
     strategy:
