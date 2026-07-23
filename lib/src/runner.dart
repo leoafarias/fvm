@@ -6,7 +6,7 @@ import 'package:args/command_runner.dart';
 import 'package:cli_completion/cli_completion.dart';
 import 'package:io/ansi.dart';
 import 'package:io/io.dart';
-import 'package:pub_updater/pub_updater.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import 'commands/api_command.dart';
 import 'commands/config_command.dart';
@@ -27,6 +27,7 @@ import 'commands/spawn_command.dart';
 import 'commands/use_command.dart';
 import 'models/config_model.dart';
 import 'models/log_level_model.dart';
+import 'services/fvm_release_service.dart';
 import 'services/logger_service.dart';
 import 'utils/constants.dart';
 import 'utils/context.dart';
@@ -36,11 +37,12 @@ import 'version.dart';
 /// Command Runner for FVM
 class FvmCommandRunner extends CompletionCommandRunner<int> {
   final FvmContext context;
-  final PubUpdater _pubUpdater;
+  final FvmReleaseService _releaseService;
+  static const _updateCheckInterval = Duration(days: 1);
 
   /// Constructor
-  FvmCommandRunner(this.context, {PubUpdater? pubUpdater})
-      : _pubUpdater = pubUpdater ?? PubUpdater(),
+  FvmCommandRunner(this.context, {FvmReleaseService? releaseService})
+      : _releaseService = releaseService ?? context.get<FvmReleaseService>(),
         super(kPackageName, kDescription) {
     argParser
       ..addFlag('verbose', help: 'Print verbose output.', negatable: false)
@@ -69,49 +71,55 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(IntegrationTestCommand(context));
   }
 
-  /// Checks if the current version (set by the build runner on the
-  /// version.dart file) is the most recent one. If not, show a prompt to the
-  /// user.
-  Future<Function()?> _checkForUpdates() async {
+  /// Returns a notice when a newer stable FVM release is available.
+  Future<void Function()?> _checkForUpdates() async {
     try {
-      final lastUpdateCheck = context.lastUpdateCheck ?? DateTime.now();
       if (context.updateCheckDisabled) return null;
-      final oneDay = lastUpdateCheck.add(const Duration(days: 1));
 
-      if (DateTime.now().isBefore(oneDay)) {
+      final now = DateTime.now();
+      final lastUpdateCheck = context.lastUpdateCheck;
+      if (lastUpdateCheck != null &&
+          now.isBefore(lastUpdateCheck.add(_updateCheckInterval))) {
         return null;
       }
 
       LocalAppConfig.read(path: context.appConfigPath, requireValid: true)
-        ..lastUpdateCheck = DateTime.now()
+        ..lastUpdateCheck = now
         ..save(path: context.appConfigPath);
 
-      final isUpToDate = await _pubUpdater.isUpToDate(
-        packageName: kPackageName,
-        currentVersion: packageVersion,
-      );
+      final latestRelease = await _releaseService.getLatestStableRelease();
+      final currentVersion = Version.parse(packageVersion);
+      if (latestRelease.version.compareTo(currentVersion) <= 0) return null;
 
-      if (isUpToDate) return null;
-
-      final latestVersion = await _pubUpdater.getLatestVersion(kPackageName);
-
-      return () {
-        final updateAvailableLabel = lightYellow.wrap('Update available!');
-        final currentVersionLabel = lightCyan.wrap(packageVersion);
-        final latestVersionLabel = lightCyan.wrap(latestVersion);
-
-        logger
-          ..info()
-          ..info(
-            '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
-          )
-          ..info();
-      };
+      return () => _showUpdateNotice(latestRelease, currentVersion);
     } catch (_) {
-      return () {
-        logger.debug("Failed to check for updates.");
-      };
+      return () => logger.debug('Failed to check for updates.');
     }
+  }
+
+  void _showUpdateNotice(FvmRelease latestRelease, Version currentVersion) {
+    final updateAvailableLabel = lightYellow.wrap('Update available!');
+    final currentVersionLabel = lightCyan.wrap(packageVersion);
+    final latestVersionLabel = lightCyan.wrap(
+      latestRelease.version.toString(),
+    );
+
+    logger
+      ..info()
+      ..info(
+        '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
+      )
+      ..info();
+
+    if (latestRelease.version.major <= currentVersion.major) return;
+
+    logger
+      ..info(
+        'FVM ${latestRelease.version.major} is distributed as a standalone '
+        'CLI and is no longer published to pub.dev.',
+      )
+      ..info('Migration guide: $kFvmMigrationGuideUrl')
+      ..info();
   }
 
   /// Checks for deprecated environment variables and shows warnings
@@ -281,7 +289,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Check for deprecated environment variables
     _checkDeprecatedEnvironmentVariables();
 
-    final checkingForUpdate = _checkForUpdates();
+    final updateCheck = _checkForUpdates();
 
     // Run the command or show version
     final int? exitCode;
@@ -292,8 +300,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       exitCode = await super.runCommand(topLevelResults);
     }
 
-    final logOutput = await checkingForUpdate;
-    logOutput?.call();
+    final updateNotice = await updateCheck;
+    updateNotice?.call();
 
     return exitCode;
   }
