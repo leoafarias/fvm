@@ -1,11 +1,21 @@
 {
   "base_url": "https://storage.googleapis.com/flutter_infra_release/releases",
   "current_release": {
-    "beta": "bd1e75d918605c91b411e8789fb911e6c9a84534",
+    "beta": "9e68281b1f23c4a2a32c2255d7628ba2d58b7c4c",
     "dev": "13a2fb10b838971ce211230f8ffdd094c14af02c",
     "stable": "058e0af2c2b57e369d905a03ac9748b0ebf543c6"
   },
   "releases": [
+    {
+      "hash": "9e68281b1f23c4a2a32c2255d7628ba2d58b7c4c",
+      "channel": "beta",
+      "version": "3.47.0-0.2.pre",
+      "dart_sdk_version": "3.13.0 (build 3.13.0-282.3.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-07-27T22:44:40.149106Z",
+      "archive": "beta/linux/flutter_linux_3.47.0-0.2.pre-beta.tar.xz",
+      "sha256": "22d8885453da3f1b8ed8cf96945641628ee4d63abdf402cd7aac136de0b3b048"
+    },
     {
       "hash": "058e0af2c2b57e369d905a03ac9748b0ebf543c6",
       "channel": "stable",
