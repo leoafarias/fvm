@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import '../utils/exceptions.dart';
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
@@ -93,9 +94,13 @@ class ProcessService extends ContextualService {
       await sigintSubscription?.cancel();
     }
 
+    if (interrupted) {
+      throw ForceExit('', 128 + ProcessSignal.sigint.signalNumber);
+    }
+
     processResult = ProcessResult(
       process.pid,
-      interrupted ? 128 + ProcessSignal.sigint.signalNumber : processExitCode,
+      processExitCode,
       null,
       null,
     );

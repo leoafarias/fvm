@@ -1,5 +1,6 @@
 import '../models/cache_flutter_version_model.dart';
 import '../services/flutter_service.dart';
+import '../utils/exceptions.dart';
 import 'workflow.dart';
 
 class SetupFlutterWorkflow extends Workflow {
@@ -18,6 +19,8 @@ class SetupFlutterWorkflow extends Workflow {
       logger
         ..info()
         ..success('Flutter SDK: ${version.printFriendlyName} is setup');
+    } on ForceExit {
+      rethrow;
     } on Exception catch (_) {
       logger.err('Failed to setup Flutter SDK');
 
