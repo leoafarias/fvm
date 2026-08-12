@@ -46,7 +46,14 @@ If `.fvm/flutter_sdk` is missing, run `fvm use <version>` again from the project
 
 FVM automatically retargets `.fvm/flutter_sdk` when you run `fvm use`. Android Studio only follows that change when its project metadata preserves the symlink path instead of the resolved cache path.
 
-Run this command from the project root:
+The most reliable check is in Android Studio itself:
+
+1. Open **Settings → Languages & Frameworks → Flutter** and note the displayed SDK path and version.
+2. Run `fvm use <different-version>` from the project root.
+3. Reopen the Flutter settings without reselecting the SDK.
+4. If the displayed version changed, the IDE followed the FVM link. If it still shows the previous version or a path under `<FVM cache>/versions/<version>`, reselect the SDK manually.
+
+You can also inspect the saved project metadata with:
 
 ```bash
 fvm doctor
@@ -54,10 +61,14 @@ fvm doctor
 
 Check the **IntelliJ → SDK Path** result:
 
-- **SDK Path points to project directory**: the saved path contains `.fvm/flutter_sdk`, so the IDE can follow future `fvm use` changes.
+- **SDK Path points to project directory**: the saved metadata contains `.fvm/flutter_sdk`; confirm automatic switching with the Android Studio check above.
 - **SDK Path does not point to the project directory**: the IDE saved a concrete path such as `<FVM cache>/versions/<version>`, so it will not switch automatically.
 
 You can also inspect `.idea/libraries/Dart_SDK.xml`. Its SDK entries should contain `$PROJECT_DIR$/.fvm/flutter_sdk`; a direct cache-version path means the symlink was resolved.
+
+<Callout type="info">
+  `fvm doctor` checks the IDE metadata on disk. It does not execute Android Studio or prove that the running IDE refreshed after a version switch.
+</Callout>
 
 ## Configure the global SDK
 
@@ -87,7 +98,7 @@ After changing `PATH`, close and reopen Android Studio or IntelliJ. Run `command
   Some Android Studio and IntelliJ versions resolve an SDK symlink to its current cached version when saving the setting. After `fvm use` or `fvm global` switches versions, verify the version shown in the IDE and reselect the FVM SDK path if it is stale. This is tracked by [flutter-intellij#6616](https://github.com/flutter/flutter-intellij/issues/6616).
 </Callout>
 
-Typing or pasting the exact FVM path into the SDK field instead of selecting it with the folder browser can preserve the symlink in some IDE versions. Do not add a trailing slash, select **Apply**, and verify the result with `fvm doctor`. This is a best-effort workaround; if the IDE still resolves the path, reselect the FVM SDK after each version change.
+Typing or pasting the exact FVM path into the SDK field instead of selecting it with the folder browser can preserve the symlink in some IDE versions. Do not add a trailing slash, then select **Apply**. Check the path and version shown in Android Studio and use `fvm doctor` to inspect the saved metadata. This is a best-effort workaround; if the field changes to a concrete cache-version path, reselect the FVM SDK after each version change.
 
 ## Troubleshooting
 
