@@ -59,6 +59,26 @@ void main() {
     );
 
     test(
+      'falls back to mode bits when /bin/test is unavailable',
+      () async {
+        final binDir = createTempDir();
+        final executable = await _createExecutable(binDir, 'fvm-which-test');
+
+        expect(
+          which(
+            'fvm-which-test',
+            searchPath: binDir.path,
+            posixTestExecutable: p.join(binDir.path, 'missing-posix-test'),
+          ),
+          executable.absolute.path,
+        );
+      },
+      skip: Platform.isWindows
+          ? 'Windows executable lookup does not invoke /bin/test.'
+          : false,
+    );
+
+    test(
       'skips files whose execute bit does not apply to the current user',
       () async {
         final firstDir = createTempDir();

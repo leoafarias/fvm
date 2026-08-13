@@ -14,6 +14,7 @@ String? which(
   bool binDir = false,
   String? searchPath,
   String? pathExtensions,
+  String posixTestExecutable = _posixTestExecutable,
 }) {
   final pathEnv = searchPath ?? Platform.environment['PATH'];
   final pathExtEnv = Platform.isWindows
@@ -31,7 +32,7 @@ String? which(
     final fullPath = join(dir, command);
     var executable = File(fullPath);
 
-    if (_isExecutable(executable)) {
+    if (_isExecutable(executable, posixTestExecutable: posixTestExecutable)) {
       final execPath = executable.absolute.path;
 
       return binDir ? dirname(execPath) : execPath;
@@ -40,7 +41,10 @@ String? which(
     if (Platform.isWindows && pathExtEnv != null) {
       for (var ext in possibleExtensions) {
         executable = File('$fullPath$ext');
-        if (_isExecutable(executable)) {
+        if (_isExecutable(
+          executable,
+          posixTestExecutable: posixTestExecutable,
+        )) {
           final execPath = executable.absolute.path;
 
           return binDir ? dirname(execPath) : execPath;
@@ -52,18 +56,21 @@ String? which(
   return null;
 }
 
-bool _isExecutable(File file) {
+bool _isExecutable(File file, {required String posixTestExecutable}) {
   try {
     final stat = file.statSync();
     if (stat.type != FileSystemEntityType.file) return false;
     if (Platform.isWindows) return true;
 
-    final result = Process.runSync(_posixTestExecutable, ['-x', file.path]);
+    final result = Process.runSync(posixTestExecutable, ['-x', file.path]);
 
     return result.exitCode == 0;
   } on FileSystemException {
     return false;
   } on ProcessException {
-    return false;
+    // /bin/test is absent on some distros (NixOS, distroless images).
+    // Fall back to mode bits; less precise than `test -x` for the current
+    // user, but better than reporting every PATH entry as non-executable.
+    return file.statSync().mode & 0x49 != 0;
   }
 }
