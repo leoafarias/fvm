@@ -382,4 +382,4 @@ first and the branch becomes shippable as an alpha. Gate 3 is a small isolated
 fix. Gate 4 is best done now while the release service is still new, but does
 not block the alpha. Gate 5 and decisions D1/D3 can become follow-up issues.
 Item 19 is less a work item than a pre-tag checklist: re-read it immediately
-before pushing the tag, because the pipeline has no tag-vs-pubspec safety net.
+before pushing the tag, even with the pipeline's tag-vs-pubspec validation gate.
