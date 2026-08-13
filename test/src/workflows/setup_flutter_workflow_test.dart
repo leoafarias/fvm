@@ -14,6 +14,7 @@ class _FailingProcessService extends ProcessService {
   _FailingProcessService(super.context);
 
   bool? lastThrowOnError;
+  bool? lastRunInShell;
 
   @override
   Future<ProcessResult> run(
@@ -26,6 +27,7 @@ class _FailingProcessService extends ProcessService {
     bool runInShell = false,
   }) async {
     lastThrowOnError = throwOnError;
+    lastRunInShell = runInShell;
 
     if (throwOnError) {
       throw ProcessException(command, args, 'setup failed', 42);
@@ -64,6 +66,7 @@ void main() {
 
     final output = context.get<Logger>().outputs.join('\n');
     expect(processService.lastThrowOnError, isTrue);
+    expect(processService.lastRunInShell, isTrue);
     expect(output, contains('Failed to setup Flutter SDK'));
     expect(output, isNot(contains('is setup')));
   });
