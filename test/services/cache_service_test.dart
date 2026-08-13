@@ -46,6 +46,53 @@ void main() {
         final result = cacheService.getVersionCacheDir(version);
         expect(result.path, path.join(tempDir.path, 'stable'));
       });
+
+      test('preserves valid nested git refs and fork cache paths', () {
+        expect(
+          cacheService
+              .getVersionCacheDir(FlutterVersion.gitReference('feature/foo'))
+              .path,
+          path.join(tempDir.path, 'feature', 'foo'),
+        );
+        expect(
+          cacheService
+              .getVersionCacheDir(FlutterVersion.parse('company/stable'))
+              .path,
+          path.join(tempDir.path, 'company', 'stable'),
+        );
+      });
+
+      test('rejects unsafe version path components', () {
+        final existingEntry = Directory(path.join(tempDir.path, 'stable'))
+          ..createSync(recursive: true);
+        final marker = File(path.join(existingEntry.path, 'marker'))
+          ..writeAsStringSync('preserve');
+
+        for (final version in [
+          '',
+          '.',
+          '..',
+          'feature//foo',
+          'feature/',
+          '../outside',
+          r'..\outside',
+          r'feature\foo',
+          '/tmp/fvm-outside',
+          r'C:\fvm-outside',
+          'C:/fvm-outside',
+          r'\\server\share',
+        ]) {
+          expect(
+            () => cacheService.getVersionCacheDir(
+              FlutterVersion.gitReference(version),
+            ),
+            throwsA(isA<AppException>()),
+            reason: 'Expected "$version" to be rejected',
+          );
+        }
+
+        expect(marker.readAsStringSync(), 'preserve');
+      });
     });
 
     group('getVersion', () {
@@ -143,6 +190,21 @@ void main() {
     });
 
     group('remove', () {
+      test('rejects unsafe paths without deleting cache entries', () async {
+        final existingEntry = Directory(path.join(tempDir.path, 'stable'))
+          ..createSync(recursive: true);
+        final marker = File(path.join(existingEntry.path, 'marker'))
+          ..writeAsStringSync('preserve');
+
+        await expectLater(
+          cacheService.remove(FlutterVersion.gitReference('.')),
+          throwsA(isA<AppException>()),
+        );
+
+        expect(marker.readAsStringSync(), 'preserve');
+        expect(existingEntry.existsSync(), isTrue);
+      });
+
       test('removes version directory if it exists', () async {
         final version = FlutterVersion.parse('stable');
         final versionDir = Directory(path.join(tempDir.path, version.name))
@@ -299,6 +361,20 @@ void main() {
     });
 
     group('Global version management:', () {
+      test('rejects the versions root as a global SDK directory', () {
+        final rootVersion = CacheFlutterVersion.fromVersion(
+          FlutterVersion.parse('stable'),
+          directory: tempDir.path,
+        );
+        addTearDown(cacheService.unlinkGlobal);
+
+        expect(
+          () => cacheService.setGlobal(rootVersion),
+          throwsA(isA<AppException>()),
+        );
+        expect(Link(context.globalCacheLink).existsSync(), isFalse);
+      });
+
       test('complete global version lifecycle', () {
         final version = FlutterVersion.parse('3.10.0');
         final versionDir = Directory(path.join(tempDir.path, version.name))

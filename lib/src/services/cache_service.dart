@@ -51,15 +51,50 @@ class CacheService extends ContextualService {
 
   Directory _safeCacheDirectory(List<String> segments) {
     final cacheRoot = path.normalize(context.versionsCachePath);
+    for (final segment in segments) {
+      _validateCachePathSegment(segment);
+    }
     final targetPath = path.normalize(path.joinAll([cacheRoot, ...segments]));
 
-    if (!path.isWithin(cacheRoot, targetPath) && targetPath != cacheRoot) {
+    if (!path.isWithin(cacheRoot, targetPath)) {
       throw AppException(
-        'Invalid cache path computed outside of the cache directory.',
+        'Invalid cache version path. Version directories must be contained '
+        'within the versions cache directory.',
       );
     }
 
     return Directory(targetPath);
+  }
+
+  void _validateCachePathSegment(String segment) {
+    final components = segment.split('/');
+    final isAbsolute =
+        path.posix.isAbsolute(segment) || path.windows.isAbsolute(segment);
+    if (segment.isEmpty ||
+        segment.contains(r'\') ||
+        isAbsolute ||
+        components.any(
+          (component) =>
+              component.isEmpty || component == '.' || component == '..',
+        )) {
+      throw const AppException(
+        'Invalid cache version path. Version names must use relative, '
+        'non-empty path components.',
+      );
+    }
+  }
+
+  Directory _existingCacheVersionDirectory(String targetPath) {
+    final cacheRoot = path.normalize(context.versionsCachePath);
+    final normalizedTarget = path.normalize(targetPath);
+    if (!path.isWithin(cacheRoot, normalizedTarget)) {
+      throw const AppException(
+        'Invalid cache version path. Version directories must be contained '
+        'within the versions cache directory.',
+      );
+    }
+
+    return Directory(normalizedTarget);
   }
 
   Future<bool> _verifyIsExecutable(CacheFlutterVersion version) async {
@@ -204,9 +239,7 @@ class CacheService extends ContextualService {
 
     // If this is a fork version and the fork directory is now empty, clean it up
     if (version.fromFork) {
-      final forkDir = Directory(
-        path.join(context.versionsCachePath, version.fork!),
-      );
+      final forkDir = _safeCacheDirectory([version.fork!]);
       if (forkDir.existsSync()) {
         final entries = forkDir.listSync();
         if (entries.isEmpty) {
@@ -262,7 +295,9 @@ class CacheService extends ContextualService {
   }
 
   void setGlobal(CacheFlutterVersion version) {
-    _globalCacheLink.createLink(version.directory);
+    _globalCacheLink.createLink(
+      _existingCacheVersionDirectory(version.directory).path,
+    );
   }
 
   void unlinkGlobal() {
@@ -329,7 +364,7 @@ class CacheService extends ContextualService {
       );
     }
 
-    final versionDir = Directory(version.directory);
+    final versionDir = _existingCacheVersionDirectory(version.directory);
     if (!versionDir.existsSync()) return;
 
     final versionString =
@@ -349,9 +384,7 @@ class CacheService extends ContextualService {
 
     // renameSync requires the parent directory to exist
     if (targetVersion.fromFork) {
-      final forkDir = Directory(
-        path.join(context.versionsCachePath, targetVersion.fork!),
-      );
+      final forkDir = _safeCacheDirectory([targetVersion.fork!]);
       if (!forkDir.existsSync()) {
         forkDir.createSync(recursive: true);
       }

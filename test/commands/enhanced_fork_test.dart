@@ -1,3 +1,4 @@
+import 'package:args/command_runner.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:io/io.dart';
@@ -234,6 +235,22 @@ void main() {
     });
 
     group('Fork command validation:', () {
+      test('Fork add rejects dot path aliases', () async {
+        for (final alias in ['.', '..']) {
+          expect(
+            () => runner.runOrThrow([
+              'fvm',
+              'fork',
+              'add',
+              alias,
+              testForkUrl,
+            ]),
+            throwsA(isA<UsageException>()),
+            reason: 'Expected "$alias" to be rejected as a fork alias',
+          );
+        }
+      });
+
       test('Fork add requires both alias and URL', () async {
         expect(
           () => runner.runOrThrow(['fvm', 'fork', 'add']),

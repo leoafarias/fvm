@@ -56,11 +56,11 @@ class ForkAddCommand extends BaseFvmCommand {
 
     // Validate alias format
     final aliasPattern = RegExp(r'^[A-Za-z0-9._-]+$');
-    if (!aliasPattern.hasMatch(alias)) {
+    if (!aliasPattern.hasMatch(alias) || alias == '.' || alias == '..') {
       throw UsageException(
         'Invalid fork alias format: "$alias"\n'
-        'Alias must contain only letters, numbers, dots, hyphens, '
-        'and underscores.',
+        'Alias must contain only letters, numbers, dots, hyphens, and '
+        'underscores, and cannot be "." or "..".',
         usage,
       );
     }
