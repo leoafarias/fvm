@@ -35,6 +35,37 @@ void main() {
     expect(result, 42);
   });
 
+  for (final environment in <({String name, Map<String, String> values})>[
+    (name: 'deprecated', values: const {'FVM_GIT_CACHE': 'deprecated'}),
+    (name: 'legacy', values: const {'FVM_HOME': 'legacy'}),
+  ]) {
+    test(
+      'does not pollute API JSON stdout with ${environment.name} environment diagnostics',
+      () async {
+        final result =
+            await _runMachineOutputCommand('api', environment.values);
+
+        expect(result.exitCode, ExitCode.success.code);
+        expect(result.stdout, '{"result":"api"}\n');
+        expect(result.stderr, isEmpty);
+      },
+    );
+
+    test(
+      'does not pollute completion stdout with ${environment.name} environment diagnostics',
+      () async {
+        final result = await _runMachineOutputCommand(
+          'completion',
+          environment.values,
+        );
+
+        expect(result.exitCode, ExitCode.success.code);
+        expect(result.stdout, 'flutter\nflavor\n');
+        expect(result.stderr, isEmpty);
+      },
+    );
+  }
+
   test('update check does not overwrite malformed configuration', () async {
     const malformedConfig = '{"lastUpdateCheck":';
     final tempDir = createTempDir('runner-config');
@@ -627,6 +658,36 @@ class _SafeCompletionRunner extends FvmCommandRunner {
 }
 
 class _MockStdout extends Mock implements Stdout {}
+
+Future<ProcessResult> _runMachineOutputCommand(
+  String command,
+  Map<String, String> diagnosticsEnvironment,
+) async {
+  final tempDir = createTempDir('runner-machine-output');
+  final environment = Map<String, String>.from(Platform.environment)
+    ..remove('FVM_GIT_CACHE')
+    ..remove('FVM_HOME')
+    ..remove('FVM_CACHE_PATH')
+    ..['HOME'] = tempDir.path
+    ..['FVM_TEST_APP_CONFIG'] = p.join(tempDir.path, 'config.json')
+    ..addAll(diagnosticsEnvironment);
+
+  if (command == 'completion') {
+    environment.addAll(const {
+      'SHELL': '/bin/bash',
+      'COMP_LINE': 'fvm fl',
+      'COMP_POINT': '6',
+      'COMP_CWORD': '1',
+    });
+  }
+
+  return Process.run(
+    Platform.resolvedExecutable,
+    ['test/fixtures/runner_machine_output_worker.dart', command],
+    environment: environment,
+    workingDirectory: Directory.current.path,
+  );
+}
 
 class _InfoTrackingLogger extends Logger {
   final infoMessages = <String>[];

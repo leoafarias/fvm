@@ -49,6 +49,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     InstallCompletionFilesCommand.commandName,
     UnistallCompletionFilesCommand.commandName,
   };
+  static const _commandsWithoutEnvironmentDiagnostics = {
+    'api',
+    HandleCompletionRequestCommand.commandName,
+  };
 
   /// Constructor
   FvmCommandRunner(this.context, {FvmReleaseService? releaseService})
@@ -261,6 +265,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     final skipUpdateCheck =
         _commandsWithoutUpdateChecks.contains(commandName) &&
             topLevelResults['version'] != true;
+    final skipEnvironmentDiagnostics =
+        _commandsWithoutEnvironmentDiagnostics.contains(commandName) &&
+            topLevelResults['version'] != true;
 
     final hasTopLevelOption = topLevelResults.options.any(
       (e) => topLevelResults.wasParsed(e),
@@ -298,7 +305,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     }
 
     // Check for deprecated environment variables
-    _checkDeprecatedEnvironmentVariables();
+    if (!skipEnvironmentDiagnostics) {
+      _checkDeprecatedEnvironmentVariables();
+    }
 
     final updateCheck = skipUpdateCheck
         ? Future<void Function()?>.value(null)
