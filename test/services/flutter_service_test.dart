@@ -1086,6 +1086,48 @@ Future<void> main(List<String> args) async {
           }
         }
       });
+
+      test(
+          'requires deferred maintenance handling while an outer Git cache lock is held',
+          () async {
+        final tempDir = createTempDir('fvm_flutter_service_locked_cleanup');
+
+        try {
+          final gitCachePath = p.join(tempDir.path, 'cache.git');
+          Directory(gitCachePath).createSync(recursive: true);
+          final context = FvmContext.create(
+            isTest: true,
+            configOverrides: AppConfig(
+              cachePath: p.join(tempDir.path, '.fvm'),
+              gitCachePath: gitCachePath,
+              flutterUrl: 'https://example.com/flutter.git',
+              useGitCache: true,
+            ),
+            generatorsOverride: {
+              GitService: (ctx) => _GitCacheCleanupBlockedGitService(ctx),
+            },
+          );
+          final gitService = context.get<GitService>();
+          final service = FlutterService(context);
+
+          await expectLater(
+            gitService.withGitCacheLock(
+              () => service.install(FlutterVersion.parse('master')),
+            ),
+            throwsA(
+              isA<AppException>().having(
+                (error) => error.message,
+                'message',
+                contains('requires deferred Git cache maintenance handling'),
+              ),
+            ),
+          );
+        } finally {
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      });
     });
 
     group('setup method', () {

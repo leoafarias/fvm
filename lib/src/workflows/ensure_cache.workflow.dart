@@ -38,7 +38,6 @@ class EnsureCacheWorkflow extends Workflow {
     required bool shouldInstall,
     required bool force,
     required bool useGitCacheForInstall,
-    required bool gitCacheLockHeld,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
         onGitCacheMaintenanceDeferred,
@@ -68,7 +67,6 @@ class EnsureCacheWorkflow extends Workflow {
       shouldInstall: shouldInstall,
       force: force,
       useGitCacheForInstall: useGitCacheForInstall,
-      gitCacheLockHeld: gitCacheLockHeld,
       lockedVersionPaths: lockedVersionPaths,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       retryCount: retryCount + 1,
@@ -78,7 +76,6 @@ class EnsureCacheWorkflow extends Workflow {
   Future<_LockedCacheResult> _handleVersionMismatch(
     CacheFlutterVersion version, {
     required bool useGitCacheForInstall,
-    required bool gitCacheLockHeld,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
         onGitCacheMaintenanceDeferred,
@@ -123,7 +120,6 @@ class EnsureCacheWorkflow extends Workflow {
       version,
       shouldInstall: true,
       useGitCacheForInstall: useGitCacheForInstall,
-      gitCacheLockHeld: gitCacheLockHeld,
       lockedVersionPaths: lockedVersionPaths,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
     );
@@ -174,7 +170,6 @@ class EnsureCacheWorkflow extends Workflow {
   Future<_LockedCacheResult> _callLocked(
     FlutterVersion version, {
     required bool useGitCacheForInstall,
-    required bool gitCacheLockHeld,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
         onGitCacheMaintenanceDeferred,
@@ -197,7 +192,6 @@ class EnsureCacheWorkflow extends Workflow {
           shouldInstall: shouldInstall,
           force: force,
           useGitCacheForInstall: useGitCacheForInstall,
-          gitCacheLockHeld: gitCacheLockHeld,
           lockedVersionPaths: lockedVersionPaths,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
           retryCount: retryCount,
@@ -217,7 +211,6 @@ class EnsureCacheWorkflow extends Workflow {
         return _handleVersionMismatch(
           cacheVersion,
           useGitCacheForInstall: useGitCacheForInstall,
-          gitCacheLockHeld: gitCacheLockHeld,
           lockedVersionPaths: lockedVersionPaths,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
         );
@@ -259,8 +252,6 @@ class EnsureCacheWorkflow extends Workflow {
       await flutterService.install(
         version,
         useGitCache: useGitCacheForInstall,
-        gitCacheLockHeld: gitCacheLockHeld,
-        deferGitCacheMaintenance: gitCacheLockHeld,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
     } on Exception {
@@ -283,7 +274,6 @@ class EnsureCacheWorkflow extends Workflow {
     required int retryCount,
     required bool useGitCacheForInstall,
     required bool cacheMaintenanceLockHeld,
-    required bool gitCacheLockHeld,
     required void Function(GitCacheMaintenance maintenance)
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -298,7 +288,6 @@ class EnsureCacheWorkflow extends Workflow {
             force: force,
             retryCount: retryCount,
             useGitCacheForInstall: useGitCacheForInstall,
-            gitCacheLockHeld: gitCacheLockHeld,
             lockedVersionPaths: lockedVersionPaths,
             onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
           );
@@ -341,7 +330,6 @@ class EnsureCacheWorkflow extends Workflow {
         retryCount: retryCount,
         useGitCacheForInstall: useGitCacheForInstall,
         cacheMaintenanceLockHeld: false,
-        gitCacheLockHeld: false,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
     }
@@ -356,7 +344,6 @@ class EnsureCacheWorkflow extends Workflow {
           retryCount: retryCount,
           useGitCacheForInstall: useGitCacheForInstall,
           cacheMaintenanceLockHeld: true,
-          gitCacheLockHeld: true,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
         ),
       ),

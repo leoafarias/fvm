@@ -64,7 +64,7 @@ final class _CorruptCloneGitService extends GitService {
   Future<void> updateLocalMirror() async {}
 
   @override
-  Future<T> withPreparedGitCacheForCloneWhileGitCacheLocked<T>(
+  Future<T> withPreparedGitCacheForClone<T>(
     Future<T> Function() cloneAction,
   ) async {
     throw ProcessException('git', const ['clone'], 'bad object', 128);
@@ -82,19 +82,16 @@ final class _DeferredMaintenanceFailureFlutterService
   Future<void> install(
     FlutterVersion version, {
     bool useGitCache = true,
-    bool gitCacheLockHeld = false,
-    bool deferGitCacheMaintenance = false,
     void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
     await super.install(
       version,
       useGitCache: useGitCache,
-      gitCacheLockHeld: gitCacheLockHeld,
-      deferGitCacheMaintenance: deferGitCacheMaintenance,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
     );
-    if (!deferGitCacheMaintenance || onGitCacheMaintenanceDeferred == null) {
+    if (!get<GitService>().isGitCacheLockHeld ||
+        onGitCacheMaintenanceDeferred == null) {
       throw StateError('Expected Git-cache maintenance to be deferred.');
     }
     onGitCacheMaintenanceDeferred(

@@ -38,8 +38,6 @@ class FakeFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version, {
     bool useGitCache = true,
-    bool gitCacheLockHeld = false,
-    bool deferGitCacheMaintenance = false,
     void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {

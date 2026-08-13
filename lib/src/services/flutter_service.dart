@@ -88,6 +88,24 @@ class FlutterService extends ContextualService {
     }
   }
 
+  bool _deferGitCacheMaintenanceIfLocked(
+    GitCacheMaintenance maintenance,
+    void Function(GitCacheMaintenance maintenance)? onDeferred,
+  ) {
+    if (!get<GitService>().isGitCacheLockHeld) return false;
+
+    if (onDeferred == null) {
+      throw const AppException(
+        'Installing while holding the Git cache lock requires deferred Git '
+        'cache maintenance handling.',
+      );
+    }
+
+    onDeferred(maintenance);
+
+    return true;
+  }
+
   Future<ProcessResult> _cloneSdk({
     required String source,
     required Directory versionDir,
@@ -130,8 +148,6 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
     required bool echoOutput,
-    required bool gitCacheLockHeld,
-    required bool deferGitCacheMaintenance,
     required void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -147,10 +163,7 @@ class FlutterService extends ContextualService {
         );
       }
 
-      final result = gitCacheLockHeld
-          ? await gitService
-              .withPreparedGitCacheForCloneWhileGitCacheLocked(cloneAction)
-          : await gitService.withPreparedGitCacheForClone(cloneAction);
+      final result = await gitService.withPreparedGitCacheForClone(cloneAction);
       await _updateOriginToFlutter(versionDir);
 
       return result;
@@ -164,11 +177,10 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        if (deferGitCacheMaintenance && onGitCacheMaintenanceDeferred != null) {
-          onGitCacheMaintenanceDeferred(
-            GitCacheMaintenance.removeCorruptedMirror,
-          );
-        } else {
+        if (!_deferGitCacheMaintenanceIfLocked(
+          GitCacheMaintenance.removeCorruptedMirror,
+          onGitCacheMaintenanceDeferred,
+        )) {
           // Non-safety cleanup failures should not abort the remote fallback.
           await _removeCorruptedGitCache();
         }
@@ -271,7 +283,6 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
-    required bool deferGitCacheMaintenance,
     required void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -316,9 +327,10 @@ class FlutterService extends ContextualService {
 
     // Bring the shared git cache up to date so future installs can use it.
     if (context.gitCache && !version.fromFork) {
-      if (deferGitCacheMaintenance && onGitCacheMaintenanceDeferred != null) {
-        onGitCacheMaintenanceDeferred(GitCacheMaintenance.refreshMirror);
-
+      if (_deferGitCacheMaintenanceIfLocked(
+        GitCacheMaintenance.refreshMirror,
+        onGitCacheMaintenanceDeferred,
+      )) {
         return;
       }
 
@@ -410,8 +422,6 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
     required bool useGitCache,
-    required bool gitCacheLockHeld,
-    required bool deferGitCacheMaintenance,
     required void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -424,8 +434,6 @@ class FlutterService extends ContextualService {
         version: version,
         channel: channel,
         echoOutput: echoOutput,
-        gitCacheLockHeld: gitCacheLockHeld,
-        deferGitCacheMaintenance: deferGitCacheMaintenance,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
 
@@ -460,7 +468,6 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
-    required bool deferGitCacheMaintenance,
     required void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -479,7 +486,6 @@ class FlutterService extends ContextualService {
           repoUrl: repoUrl,
           channel: channel,
           echoOutput: echoOutput,
-          deferGitCacheMaintenance: deferGitCacheMaintenance,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
         );
       } else if (isReferenceError) {
@@ -612,8 +618,6 @@ class FlutterService extends ContextualService {
   Future<void> install(
     FlutterVersion version, {
     bool useGitCache = true,
-    bool gitCacheLockHeld = false,
-    bool deferGitCacheMaintenance = false,
     void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -630,8 +634,6 @@ class FlutterService extends ContextualService {
         channel: channel,
         echoOutput: echoOutput,
         useGitCache: useGitCache,
-        gitCacheLockHeld: gitCacheLockHeld,
-        deferGitCacheMaintenance: deferGitCacheMaintenance,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
 
@@ -649,7 +651,6 @@ class FlutterService extends ContextualService {
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
-        deferGitCacheMaintenance: deferGitCacheMaintenance,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
     } catch (error, stackTrace) {

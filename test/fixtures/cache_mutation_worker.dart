@@ -87,8 +87,6 @@ final class _ControllableFlutterService extends FlutterService {
   Future<void> install(
     FlutterVersion version, {
     bool useGitCache = true,
-    bool gitCacheLockHeld = false,
-    bool deferGitCacheMaintenance = false,
     void Function(GitCacheMaintenance maintenance)?
         onGitCacheMaintenanceDeferred,
   }) async {
@@ -106,8 +104,6 @@ final class _ControllableFlutterService extends FlutterService {
     await super.install(
       version,
       useGitCache: useGitCache,
-      gitCacheLockHeld: gitCacheLockHeld,
-      deferGitCacheMaintenance: deferGitCacheMaintenance,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
     );
   }

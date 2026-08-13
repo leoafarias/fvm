@@ -1,4 +1,5 @@
 @Tags(['git'])
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -77,6 +78,19 @@ class _CountingProcessService extends ProcessService {
       echoOutput: echoOutput,
       runInShell: runInShell,
     );
+  }
+}
+
+class _TrackingGitCacheLockService extends GitService {
+  _TrackingGitCacheLockService(super.context);
+
+  int lockBoundaryCalls = 0;
+
+  @override
+  Future<T> withGitCacheLock<T>(Future<T> Function() action) {
+    lockBoundaryCalls++;
+
+    return super.withGitCacheLock(action);
   }
 }
 
@@ -285,6 +299,100 @@ void main() {
       );
       expect(processService.lastWorkingDirectory, equals(repoPath));
       expect(processService.lastRunInShell, isFalse);
+    });
+
+    test('prepared clones use the single Git cache lock boundary', () async {
+      final trackingService = _TrackingGitCacheLockService(context);
+
+      await trackingService.withPreparedGitCacheForClone(() async {});
+
+      expect(trackingService.lockBoundaryCalls, 1);
+    });
+
+    test('nested Git cache work retains the outer process lock', () async {
+      final tempDir = createTempDir('fvm_nested_git_lock');
+      final gitCachePath = p.join(tempDir.path, 'cache.git');
+      final nestedContext = FvmContext.create(
+        isTest: true,
+        configOverrides: AppConfig(
+          cachePath: p.join(tempDir.path, '.fvm'),
+          gitCachePath: gitCachePath,
+          flutterUrl: context.flutterUrl,
+          useGitCache: true,
+        ),
+      );
+      final nestedService = GitService(nestedContext);
+      final attempting = File(p.join(tempDir.path, 'attempting'));
+      final acquired = File(p.join(tempDir.path, 'acquired'));
+      final helper = File(p.join(tempDir.path, 'probe_git_cache_lock.dart'))
+        ..writeAsStringSync('''
+import 'dart:io';
+
+Future<void> main(List<String> args) async {
+  final handle = await File(args[0]).open(mode: FileMode.write);
+  File(args[1]).writeAsStringSync('attempting');
+  while (true) {
+    try {
+      await handle.lock(FileLock.exclusive);
+      break;
+    } on FileSystemException {
+      await Future<void>.delayed(const Duration(milliseconds: 25));
+    }
+  }
+  File(args[2]).writeAsStringSync('acquired');
+  await handle.unlock();
+  await handle.close();
+}
+''');
+      Process? probe;
+      addTearDown(() => probe?.kill());
+
+      Future<void> waitFor(File marker) async {
+        for (var attempt = 0; attempt < 100; attempt++) {
+          if (marker.existsSync()) return;
+          await Future<void>.delayed(const Duration(milliseconds: 25));
+        }
+        fail('Timed out waiting for ${marker.path}');
+      }
+
+      await nestedService.withGitCacheLock(() async {
+        await nestedService.withPreparedGitCacheForClone(() async {});
+        probe = await Process.start(Platform.resolvedExecutable, [
+          helper.path,
+          '$gitCachePath.lock',
+          attempting.path,
+          acquired.path,
+        ]);
+        await waitFor(attempting);
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+
+        expect(
+          acquired.existsSync(),
+          isFalse,
+          reason: 'nested work must not release the outer Git cache lock',
+        );
+      }).timeout(const Duration(seconds: 5));
+
+      await waitFor(acquired);
+      expect(await probe!.exitCode.timeout(const Duration(seconds: 5)), 0);
+    });
+
+    test('released Git cache scopes are not inherited by escaped work',
+        () async {
+      final releaseEscapedWork = Completer<void>();
+      late Future<bool> escapedWork;
+
+      await gitService.withGitCacheLock(() async {
+        escapedWork = () async {
+          await releaseEscapedWork.future;
+
+          return gitService.isGitCacheLockHeld;
+        }();
+      });
+
+      releaseEscapedWork.complete();
+
+      expect(await escapedWork, isFalse);
     });
   });
 
