@@ -560,7 +560,6 @@ Future<ProcessResult> runGitCommand(
     'git',
     args,
     workingDirectory: workingDirectory,
-    runInShell: true,
   );
 
   if (result.exitCode != ExitCode.success.code) {

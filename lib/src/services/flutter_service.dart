@@ -691,6 +691,7 @@ class VersionRunner {
           environment: environment,
           throwOnError: throwOnError ?? false,
           echoOutput: echoOutput ?? true,
+          runInShell: true,
         );
   }
 }

@@ -34,7 +34,7 @@ class ProcessService extends ContextualService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool runInShell = false,
   }) async {
     logger
       ..debug('')

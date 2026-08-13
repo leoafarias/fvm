@@ -17,6 +17,7 @@ class _FakeProcessService extends ProcessService {
   String? lastCommand;
   List<String>? lastArgs;
   String? lastWorkingDirectory;
+  bool? lastRunInShell;
 
   @override
   Future<ProcessResult> run(
@@ -26,11 +27,12 @@ class _FakeProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool runInShell = false,
   }) async {
     lastCommand = command;
     lastArgs = args;
     lastWorkingDirectory = workingDirectory;
+    lastRunInShell = runInShell;
 
     if (exception != null) {
       throw exception!;
@@ -57,7 +59,7 @@ class _CountingProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool runInShell = false,
   }) {
     if (command == 'git' &&
         args.length == 2 &&
@@ -185,7 +187,6 @@ Future<void> _expectHeadsTagsOnlyCache(String gitCachePath) async {
     'git',
     ['config', '--get-all', 'remote.origin.mirror'],
     workingDirectory: gitCachePath,
-    runInShell: true,
   );
   expect(mirrorConfig.exitCode, isNot(0));
 
@@ -283,6 +284,7 @@ void main() {
         equals(['remote', 'set-url', 'origin', url]),
       );
       expect(processService.lastWorkingDirectory, equals(repoPath));
+      expect(processService.lastRunInShell, isFalse);
     });
   });
 
@@ -811,7 +813,6 @@ Future<void> main(List<String> args) async {
           'git',
           ['fsck', '--connectivity-only'],
           workingDirectory: gitCachePath,
-          runInShell: true,
         );
         expect(
           corruptFsck.exitCode,
@@ -827,7 +828,6 @@ Future<void> main(List<String> args) async {
           'git',
           ['fsck', '--connectivity-only'],
           workingDirectory: gitCachePath,
-          runInShell: true,
         );
         expect(
           healedFsck.exitCode,

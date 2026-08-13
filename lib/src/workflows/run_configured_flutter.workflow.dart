@@ -46,6 +46,6 @@ class RunConfiguredFlutterWorkflow extends Workflow {
     logger.debug('$kPackageName: Running Flutter version configured in PATH.');
     logger.debug('');
 
-    return get<ProcessService>().run(cmd, args: args);
+    return get<ProcessService>().run(cmd, args: args, runInShell: true);
   }
 }

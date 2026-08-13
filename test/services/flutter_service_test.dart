@@ -45,7 +45,6 @@ Future<void> _deleteLooseGitObject({
           'git',
           ['unpack-objects'],
           workingDirectory: repoPath,
-          runInShell: true,
         );
         await pack.openRead().pipe(process.stdin);
         final exitCode = await process.exitCode;
@@ -171,6 +170,7 @@ class _FakeProcessService extends ProcessService {
   Map<String, String>? lastEnvironment;
   bool? lastThrowOnError;
   bool? lastEchoOutput;
+  bool? lastRunInShell;
 
   @override
   Future<ProcessResult> run(
@@ -180,7 +180,7 @@ class _FakeProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool runInShell = false,
   }) async {
     lastCommand = command;
     lastArgs = args;
@@ -188,6 +188,7 @@ class _FakeProcessService extends ProcessService {
     lastEnvironment = environment;
     lastThrowOnError = throwOnError;
     lastEchoOutput = echoOutput;
+    lastRunInShell = runInShell;
 
     if (exception != null) {
       throw exception!;
@@ -941,7 +942,6 @@ Future<void> main(List<String> args) async {
             'git',
             ['cat-file', '-e', '$prOnlySha^{commit}'],
             workingDirectory: gitCachePath,
-            runInShell: true,
           );
           expect(catFileResult.exitCode, isNot(0));
 
@@ -1115,6 +1115,7 @@ Future<void> main(List<String> args) async {
         expect(processService.lastWorkingDirectory, isNull);
         expect(processService.lastThrowOnError, isTrue);
         expect(processService.lastEchoOutput, isTrue);
+        expect(processService.lastRunInShell, isTrue);
         final pathValue = processService.lastEnvironment?['PATH'];
         expect(pathValue, isNotNull);
         expect(pathValue, contains(mockCacheVersion.binPath));
@@ -1149,6 +1150,7 @@ Future<void> main(List<String> args) async {
         expect(processService.lastWorkingDirectory, isNull);
         expect(processService.lastThrowOnError, isFalse);
         expect(processService.lastEchoOutput, isTrue);
+        expect(processService.lastRunInShell, isTrue);
         final pathValue = processService.lastEnvironment?['PATH'];
         expect(pathValue, isNotNull);
         expect(pathValue, contains(mockCacheVersion.binPath));
@@ -1183,6 +1185,7 @@ Future<void> main(List<String> args) async {
         expect(processService.lastWorkingDirectory, isNull);
         expect(processService.lastThrowOnError, isFalse);
         expect(processService.lastEchoOutput, isTrue);
+        expect(processService.lastRunInShell, isTrue);
         final pathValue = processService.lastEnvironment?['PATH'];
         expect(pathValue, isNotNull);
         expect(pathValue, contains(mockCacheVersion.binPath));
@@ -1215,6 +1218,7 @@ Future<void> main(List<String> args) async {
         expect(processService.lastWorkingDirectory, isNull);
         expect(processService.lastThrowOnError, isFalse);
         expect(processService.lastEchoOutput, isFalse);
+        expect(processService.lastRunInShell, isTrue);
         final pathValue = processService.lastEnvironment?['PATH'];
         expect(pathValue, isNotNull);
         expect(pathValue, contains(mockCacheVersion.binPath));

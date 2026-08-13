@@ -23,7 +23,7 @@ class _FailingProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool runInShell = false,
   }) async {
     lastThrowOnError = throwOnError;
 
