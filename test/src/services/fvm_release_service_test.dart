@@ -25,18 +25,15 @@ void main() {
         requestedUri = uri;
         requestedHeaders = headers;
 
-        return FvmReleaseHttpResponse(
-          statusCode: 200,
-          body: jsonEncode([
-            _releaseJson('4.2.0'),
-            _releaseJson('fvm-mcp-v9.0.0'),
-            _releaseJson('5.1.0-beta.1', prerelease: true),
-            _releaseJson('9.0.0', draft: true),
-            _releaseJson('v5.0.0'),
-            _releaseJson('not-a-version'),
-            {..._releaseJson('99.0.0'), 'html_url': '/relative-release-url'},
-          ]),
-        );
+        return jsonEncode([
+          _releaseJson('4.2.0'),
+          _releaseJson('fvm-mcp-v9.0.0'),
+          _releaseJson('5.1.0-beta.1', prerelease: true),
+          _releaseJson('9.0.0', draft: true),
+          _releaseJson('v5.0.0'),
+          _releaseJson('not-a-version'),
+          {..._releaseJson('99.0.0'), 'html_url': '/relative-release-url'},
+        ]);
       },
     );
 
@@ -56,11 +53,18 @@ void main() {
   });
 
   test('rejects a non-successful GitHub response', () async {
+    final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+    addTearDown(() => server.close(force: true));
+    server.listen((request) async {
+      request.response
+        ..statusCode = HttpStatus.internalServerError
+        ..write(jsonEncode([_releaseJson('99.0.0')]))
+        ..close();
+    });
     final service = FvmReleaseService(
       TestFactory.fastContext(),
-      request: (_, __) async => FvmReleaseHttpResponse(
-        statusCode: 500,
-        body: jsonEncode([_releaseJson('99.0.0')]),
+      releasesUri: Uri.parse(
+        'http://${server.address.host}:${server.port}/releases?per_page=100',
       ),
     );
 
@@ -70,7 +74,7 @@ void main() {
         isA<FvmReleaseException>().having(
           (error) => error.message,
           'message',
-          contains('status 500'),
+          allOf(contains('request failed'), contains('HTTP 500')),
         ),
       ),
     );
@@ -79,10 +83,7 @@ void main() {
   test('reports malformed GitHub JSON as a release failure', () async {
     final service = FvmReleaseService(
       TestFactory.fastContext(),
-      request: (_, __) async => const FvmReleaseHttpResponse(
-        statusCode: 200,
-        body: 'not-json',
-      ),
+      request: (_, __) async => 'not-json',
     );
 
     expect(
@@ -100,13 +101,10 @@ void main() {
   test('rejects a response without a stable FVM CLI release', () async {
     final service = FvmReleaseService(
       TestFactory.fastContext(),
-      request: (_, __) async => FvmReleaseHttpResponse(
-        statusCode: 200,
-        body: jsonEncode([
-          _releaseJson('fvm-mcp-v1.0.0'),
-          _releaseJson('5.0.0-beta.1'),
-        ]),
-      ),
+      request: (_, __) async => jsonEncode([
+        _releaseJson('fvm-mcp-v1.0.0'),
+        _releaseJson('5.0.0-beta.1'),
+      ]),
     );
 
     expect(
@@ -124,10 +122,7 @@ void main() {
   test('rejects an empty GitHub release list', () async {
     final service = FvmReleaseService(
       TestFactory.fastContext(),
-      request: (_, __) async => const FvmReleaseHttpResponse(
-        statusCode: 200,
-        body: '[]',
-      ),
+      request: (_, __) async => '[]',
     );
 
     expect(
@@ -137,7 +132,7 @@ void main() {
   });
 
   test('reports a bounded request timeout as a release failure', () async {
-    final pendingResponse = Completer<FvmReleaseHttpResponse>();
+    final pendingResponse = Completer<String>();
     final service = FvmReleaseService(
       TestFactory.fastContext(),
       request: (_, __) => pendingResponse.future,
@@ -194,6 +189,23 @@ void main() {
 
     expect(release.version, Version(5, 0, 0));
   });
+
+  test(
+    'parses a live GitHub releases response',
+    () async {
+      final release = await FvmReleaseService(TestFactory.fastContext())
+          .getLatestStableRelease();
+
+      expect(release.version.isPreRelease, isFalse);
+      expect(release.url.scheme, 'https');
+      expect(release.url.host, 'github.com');
+      expect(
+        release.url.path,
+        startsWith('/conceptadev/fvm/releases/tag/'),
+      );
+    },
+    tags: ['network'],
+  );
 }
 
 Map<String, Object> _releaseJson(

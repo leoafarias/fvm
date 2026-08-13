@@ -1,35 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:pub_semver/pub_semver.dart';
 
 import '../utils/constants.dart';
+import '../utils/exceptions.dart';
+import '../utils/http.dart';
 import '../version.dart';
 import 'base_service.dart';
 
-typedef FvmReleaseRequest = Future<FvmReleaseHttpResponse> Function(
+typedef FvmReleaseRequest = Future<String> Function(
   Uri uri,
   Map<String, String> headers,
 );
 
-class FvmReleaseException implements Exception {
-  final String message;
-
-  const FvmReleaseException(this.message);
-
-  @override
-  String toString() => message;
-}
-
-class FvmReleaseHttpResponse {
-  final int statusCode;
-  final String body;
-
-  const FvmReleaseHttpResponse({
-    required this.statusCode,
-    required this.body,
-  });
+class FvmReleaseException extends AppException {
+  const FvmReleaseException(super.message);
 }
 
 class FvmRelease {
@@ -60,7 +46,8 @@ class FvmReleaseService extends ContextualService {
     FvmReleaseRequest? request,
     Uri? releasesUri,
     Duration timeout = const Duration(seconds: 5),
-  })  : _request = request ?? _httpRequest,
+  })  : _request = request ??
+            ((uri, headers) => httpRequest(uri.toString(), headers: headers)),
         _releasesUri = releasesUri ?? _defaultReleasesUri,
         _timeout = timeout;
 
@@ -111,39 +98,16 @@ class FvmReleaseService extends ContextualService {
     }
   }
 
-  static Future<FvmReleaseHttpResponse> _httpRequest(
-    Uri uri,
-    Map<String, String> headers,
-  ) async {
-    final client = HttpClient();
-    try {
-      final request = await client.getUrl(uri);
-      headers.forEach(request.headers.set);
-      final response = await request.close();
-      final body = await response.transform(utf8.decoder).join();
-
-      return FvmReleaseHttpResponse(
-        statusCode: response.statusCode,
-        body: body,
-      );
-    } finally {
-      client.close(force: true);
-    }
-  }
-
   Future<FvmRelease> getLatestStableRelease() async {
-    final FvmReleaseHttpResponse response;
+    final String body;
     try {
-      response =
-          await _request(_releasesUri, _requestHeaders).timeout(_timeout);
+      body = await _request(_releasesUri, _requestHeaders).timeout(_timeout);
     } on TimeoutException catch (_, stackTrace) {
       _throwReleaseException(
         'GitHub release request timed out after '
         '${_timeout.inSeconds} seconds.',
         stackTrace,
       );
-    } on FvmReleaseException {
-      rethrow;
     } catch (error, stackTrace) {
       _throwReleaseException(
         'GitHub release request failed: $error',
@@ -151,13 +115,7 @@ class FvmReleaseService extends ContextualService {
       );
     }
 
-    if (response.statusCode != 200) {
-      throw FvmReleaseException(
-        'GitHub release request failed with status ${response.statusCode}.',
-      );
-    }
-
-    final releases = _decodeReleaseList(response.body);
+    final releases = _decodeReleaseList(body);
     FvmRelease? latest;
 
     for (final entry in releases) {
