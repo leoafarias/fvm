@@ -13,6 +13,7 @@ import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
 
 const _installOperation = 'install';
+const _installCatchFailureOperation = 'install-catch-failure';
 const _installWithoutPreflightOperation = 'install-without-preflight';
 const _holdGitLockOperation = 'hold-git-lock';
 const _holdVersionLockOperation = 'hold-version-lock';
@@ -41,6 +42,10 @@ final class _SignalingLogger extends Logger {
     super.debug(message);
     if (message.contains('Waiting for git cache lock')) {
       _writeSignal('$signalPath.git-lock-wait');
+    } else if (message.contains('Waiting for SDK version cache lock')) {
+      _writeSignal('$signalPath.version-lock-wait');
+    } else if (message.contains('Waiting for SDK cache maintenance lock')) {
+      _writeSignal('$signalPath.cache-lock-wait');
     }
   }
 }
@@ -171,6 +176,20 @@ Future<void> main(List<String> args) async {
       case _installWithoutPreflightOperation:
         await EnsureCacheWorkflow(context).call(version, shouldInstall: true);
         stdout.writeln('installed');
+      case _installCatchFailureOperation:
+        try {
+          await EnsureCacheWorkflow(context).call(
+            version,
+            shouldInstall: true,
+          );
+          throw StateError('Expected the controlled installation to fail.');
+        } on AppException catch (error) {
+          stderr.writeln(error);
+          _writeSignal('$signalPath.failure-caught');
+          await _waitForFile('$signalPath.allow-exit');
+          stdout.writeln('installation failure caught');
+          exitCode = 42;
+        }
       case _holdGitLockOperation:
         if (releasePath == null) {
           throw const FormatException(

@@ -1,6 +1,7 @@
 @Tags(['git'])
 library;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -70,6 +71,68 @@ final class _CorruptCloneGitService extends GitService {
   }
 }
 
+final class _DeferredMaintenanceFailureFlutterService
+    extends FakeFlutterService {
+  _DeferredMaintenanceFailureFlutterService(super.context);
+
+  final maintenanceStarted = Completer<void>();
+  final releaseMaintenance = Completer<void>();
+
+  @override
+  Future<void> install(
+    FlutterVersion version, {
+    bool useGitCache = true,
+    bool gitCacheLockHeld = false,
+    bool deferGitCacheMaintenance = false,
+    void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
+  }) async {
+    await super.install(
+      version,
+      useGitCache: useGitCache,
+      gitCacheLockHeld: gitCacheLockHeld,
+      deferGitCacheMaintenance: deferGitCacheMaintenance,
+      onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+    );
+    if (!deferGitCacheMaintenance || onGitCacheMaintenanceDeferred == null) {
+      throw StateError('Expected Git-cache maintenance to be deferred.');
+    }
+    onGitCacheMaintenanceDeferred(
+      GitCacheMaintenance.removeCorruptedMirror,
+    );
+  }
+
+  @override
+  Future<void> performDeferredGitCacheMaintenance(
+    GitCacheMaintenance maintenance,
+  ) async {
+    maintenanceStarted.complete();
+    await releaseMaintenance.future;
+    throw const GitCacheDependentSdkRemovalException(
+      'Intentional deferred maintenance failure.',
+    );
+  }
+}
+
+final class _TrackingInvalidMirrorGitService extends GitService {
+  _TrackingInvalidMirrorGitService(super.context);
+
+  int invalidMirrorChecks = 0;
+
+  @override
+  Future<bool> removeLocalMirrorIfInvalid({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) {
+    invalidMirrorChecks++;
+
+    return super.removeLocalMirrorIfInvalid(
+      requireSuccess: requireSuccess,
+      onFinalError: onFinalError,
+    );
+  }
+}
+
 Future<Directory> _createFakeFlutterRemote(Directory root) async {
   final remote = await createLocalRemoteRepository(
     root: root,
@@ -126,16 +189,6 @@ Future<void> _waitForLog(Logger logger, String message) async {
   }
 }
 
-Future<bool> _completesWithin(Future<Object?> future, Duration duration) async {
-  final sentinel = Object();
-  final result = await Future.any<Object?>([
-    future,
-    Future<Object?>.delayed(duration, () => sentinel),
-  ]);
-
-  return !identical(result, sentinel);
-}
-
 void main() {
   group('SDK cache mutation process locks', () {
     late Directory tempDir;
@@ -176,9 +229,14 @@ void main() {
     });
 
     tearDown(() async {
-      for (final worker in workers) {
+      final testWorkers = workers.toList(growable: false);
+      workers.clear();
+      for (final worker in testWorkers) {
         worker.process.kill(ProcessSignal.sigkill);
       }
+      await Future.wait(testWorkers.map((worker) => worker.wait())).timeout(
+        const Duration(seconds: 10),
+      );
     });
 
     Future<_WorkerProcess> startWorker({
@@ -268,6 +326,72 @@ void main() {
     );
 
     test(
+      'deferred maintenance failure preserves an SDK observed after install',
+      () async {
+        final maintenanceContext = createContext(
+          useGitCache: true,
+          generators: {
+            FlutterService: (context) =>
+                _DeferredMaintenanceFailureFlutterService(context),
+            GitService: (context) => FakeGitService(context),
+          },
+        );
+        final flutterService = maintenanceContext.get<FlutterService>()
+            as _DeferredMaintenanceFailureFlutterService;
+        final version = FlutterVersion.parse('3.10.0');
+        final installation = EnsureCacheWorkflow(maintenanceContext).call(
+          version,
+          shouldInstall: true,
+        );
+
+        await flutterService.maintenanceStarted.future.timeout(
+          const Duration(seconds: 10),
+        );
+        final observed = await EnsureCacheWorkflow(maintenanceContext).call(
+          version,
+          shouldInstall: true,
+        );
+        final observedMarker = File(
+          path.join(observed.directory, 'observed-after-install'),
+        )..writeAsStringSync('keep');
+        final installationFailure = expectLater(
+          installation,
+          throwsA(isA<GitCacheDependentSdkRemovalException>()),
+        );
+
+        flutterService.releaseMaintenance.complete();
+        await installationFailure;
+
+        expect(maintenanceContext.get<CacheService>().getVersion(version),
+            isNotNull);
+        expect(observedMarker.existsSync(), isTrue);
+      },
+    );
+
+    test(
+      'deferred corruption cleanup revalidates a missing mirror under locks',
+      () async {
+        final cleanupContext = createContext(
+          useGitCache: true,
+          generators: {
+            GitService: (context) => _TrackingInvalidMirrorGitService(context),
+          },
+        );
+        final gitService = cleanupContext.get<GitService>()
+            as _TrackingInvalidMirrorGitService;
+
+        expect(Directory(gitCachePath).existsSync(), isFalse);
+        await cleanupContext
+            .get<FlutterService>()
+            .performDeferredGitCacheMaintenance(
+              GitCacheMaintenance.removeCorruptedMirror,
+            );
+
+        expect(gitService.invalidMirrorChecks, 1);
+      },
+    );
+
+    test(
       'git-cache clone acquires cache then Git then version locks',
       () async {
         final gitCacheContext = createContext(
@@ -293,7 +417,7 @@ void main() {
         );
         await _waitForFile(
           File(
-            path.join(tempDir.path, 'git-cache-installer.git-lock-attempt'),
+            path.join(tempDir.path, 'git-cache-installer.git-lock-wait'),
           ),
         );
 
@@ -314,14 +438,12 @@ void main() {
           File(path.join(tempDir.path, 'version-probe-acquired')),
         );
 
-        expect(
-          await _completesWithin(
-            versionProbeAcquired,
-            const Duration(seconds: 5),
+        await versionProbeAcquired.timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => fail(
+            'The install acquired its version lock before the contended Git '
+            'lock.',
           ),
-          isTrue,
-          reason: 'the install must not acquire its version lock until after '
-              'the contended Git lock',
         );
         File(releaseVersionProbe).writeAsStringSync('go');
         final probeResult = await versionProbe.wait();
@@ -345,17 +467,13 @@ void main() {
             path.join(tempDir.path, 'maintenance-probe-acquired.attempting'),
           ),
         );
-        final maintenanceProbeAcquired = _waitForFile(
-          File(path.join(tempDir.path, 'maintenance-probe-acquired')),
-        );
-        expect(
-          await _completesWithin(
-            maintenanceProbeAcquired,
-            const Duration(milliseconds: 500),
+        await _waitForFile(
+          File(
+            path.join(
+              tempDir.path,
+              'maintenance-probe-acquired.cache-lock-wait',
+            ),
           ),
-          isFalse,
-          reason: 'the install must hold its shared cache barrier before '
-              'waiting for the Git lock',
         );
 
         File(releaseGitLock).writeAsStringSync('go');
@@ -376,7 +494,9 @@ void main() {
               'stderr: ${installResult.stderr}',
         );
 
-        await maintenanceProbeAcquired;
+        await _waitForFile(
+          File(path.join(tempDir.path, 'maintenance-probe-acquired')),
+        );
         File(releaseMaintenanceProbe).writeAsStringSync('go');
         final maintenanceResult = await maintenanceProbe.wait();
         expect(
@@ -544,14 +664,11 @@ void main() {
         );
         final secondResult = second.wait();
 
-        expect(
-          await _completesWithin(
-            secondResult,
-            const Duration(milliseconds: 300),
-          ),
-          isFalse,
-          reason: 'the second process must wait for the active install',
+        await _waitForFile(
+          File(path.join(tempDir.path, 'second-ready.version-lock-wait')),
         );
+        expect(File(path.join(tempDir.path, 'second-ready')).existsSync(),
+            isFalse);
         File(path.join(tempDir.path, 'release-first')).writeAsStringSync('go');
 
         final results = await Future.wait([first.wait(), secondResult]);
@@ -600,9 +717,9 @@ void main() {
       await _waitForFile(File(path.join(tempDir.path, 'install-ready')));
 
       final removal = FvmCommandRunner(context).run(['remove', 'master']);
-      expect(
-        await _completesWithin(removal, const Duration(milliseconds: 300)),
-        isFalse,
+      await _waitForLog(
+        context.get<Logger>(),
+        'Waiting for SDK version cache lock',
       );
 
       File(path.join(tempDir.path, 'release-install')).writeAsStringSync('go');
@@ -640,9 +757,9 @@ void main() {
         },
       );
       final removal = FvmCommandRunner(removeContext).run(['remove', '--all']);
-      expect(
-        await _completesWithin(removal, const Duration(milliseconds: 300)),
-        isFalse,
+      await _waitForLog(
+        removeContext.get<Logger>(),
+        'Waiting for SDK cache maintenance lock',
       );
 
       File(path.join(tempDir.path, 'release-install')).writeAsStringSync('go');
@@ -652,8 +769,10 @@ void main() {
       expect(Directory(context.versionsCachePath).existsSync(), isFalse);
     });
 
-    test('locks release when an installation throws', () async {
+    test('exception unwinding releases locks while the worker remains alive',
+        () async {
       final failing = await startWorker(
+        operation: 'install-catch-failure',
         signalName: 'failing-ready',
         delay: 'fail-wait:${path.join(tempDir.path, 'release-failure')}',
       );
@@ -664,12 +783,18 @@ void main() {
         delay: '0',
       );
       final nextResult = next.wait();
-      expect(
-        await _completesWithin(nextResult, const Duration(milliseconds: 300)),
-        isFalse,
+      await _waitForFile(
+        File(path.join(tempDir.path, 'next-ready.version-lock-wait')),
       );
 
       File(path.join(tempDir.path, 'release-failure')).writeAsStringSync('go');
+      await _waitForFile(
+        File(path.join(tempDir.path, 'failing-ready.failure-caught')),
+      );
+      await _waitForFile(File(path.join(tempDir.path, 'next-ready')));
+      File(path.join(tempDir.path, 'failing-ready.allow-exit'))
+          .writeAsStringSync('go');
+
       final failure = await failing.wait();
       expect(failure.exitCode, 42, reason: failure.stderr);
       final success = await nextResult.timeout(const Duration(seconds: 10));
@@ -691,9 +816,8 @@ void main() {
         delay: '0',
       );
       final nextResult = next.wait();
-      expect(
-        await _completesWithin(nextResult, const Duration(milliseconds: 300)),
-        isFalse,
+      await _waitForFile(
+        File(path.join(tempDir.path, 'next-ready.version-lock-wait')),
       );
 
       expect(holding.process.kill(ProcessSignal.sigkill), isTrue);

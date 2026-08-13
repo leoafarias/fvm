@@ -52,7 +52,6 @@ class FlutterService extends ContextualService {
 
   Future<void> _removeCorruptedGitCache() async {
     final cacheDir = Directory(context.gitCachePath);
-    if (!cacheDir.existsSync()) return;
 
     try {
       final deleted = await get<GitService>().removeLocalMirrorIfInvalid(

@@ -382,17 +382,6 @@ class EnsureCacheWorkflow extends Workflow {
       return result.version;
     } catch (error, stackTrace) {
       result.progress?.fail('Failed to install ${requestedVersion.name}');
-      try {
-        await withVersionCacheMutationLock(
-          context,
-          requestedVersion,
-          () => get<CacheService>().remove(requestedVersion),
-        );
-      } catch (cleanupError) {
-        logger.debug(
-          'Cleanup after deferred Git cache maintenance failed: $cleanupError',
-        );
-      }
       Error.throwWithStackTrace(error, stackTrace);
     }
   }

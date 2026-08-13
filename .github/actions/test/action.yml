@@ -14,6 +14,10 @@ runs:
       run: dart test -x "sdk || network || git || integration || migration" --coverage=coverage
       shell: bash
 
+    - name: Run cache mutation lock tests
+      run: dart test test/integration/cache_mutation_lock_test.dart
+      shell: bash
+
     - name: Generate coverage report
       run: dart run grinder coverage
       shell: bash
