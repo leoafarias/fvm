@@ -1,6 +1,9 @@
 # Documentation website (Next.js) - not needed in Dart package
 docs/
 
+# Maintainer planning docs — not part of the published package
+internal/
+
 # Shell scripts and setup files - not needed in Dart package  
 scripts/
 setup.sh

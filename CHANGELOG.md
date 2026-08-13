@@ -1,6 +1,8 @@
-## 4.1.2
+## 5.0.0-alpha.0
 
-* fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
+* feat: discover FVM updates from GitHub Releases instead of pub.dev, drop `pub_updater`, and point major-version upgrades at the standalone installation guide
+* fix: fall back to execute-mode bits when `/bin/test` is missing, so PATH lookup still works on NixOS and distroless images
+* **BREAKING**: reject `<channel>@<channel>` values such as `stable@beta`. These previously parsed as the first channel with the suffix discarded, so an existing `.fvmrc` with that form now fails instead of silently pinning the wrong channel
 * fix: report Flutter SDK setup failures instead of logging a false success
 * fix: preserve similarly named user patterns when normalizing FVM `.gitignore` entries
 * fix: reject invalid API release limits and show the correct nested command usage
@@ -19,6 +21,10 @@
 * fix: clear global SDK links when their cached versions are removed
 * fix: show available channel updates in `fvm list` and clarify empty-cache output
 * fix: reject `fvm use main --pin` with the documented channel usage error
+
+## 4.1.2
+
+* fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
 
 ## 4.1.1
 
