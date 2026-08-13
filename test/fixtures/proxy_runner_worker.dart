@@ -6,7 +6,7 @@ import 'package:fvm/src/utils/constants.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-Future<void> main() async {
+Future<void> main(List<String> arguments) async {
   final environment = Platform.environment;
   final context = FvmContext.create(
     appConfigPath: environment['FVM_TEST_APP_CONFIG']!,
@@ -20,7 +20,7 @@ Future<void> main() async {
     ),
   );
 
-  exitCode = await runner.run(['flutter']);
+  exitCode = await runner.run(arguments);
 }
 
 class _MarkerReleaseService extends FvmReleaseService {

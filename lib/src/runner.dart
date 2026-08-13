@@ -50,6 +50,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     UnistallCompletionFilesCommand.commandName,
   };
   static const _commandsWithoutEnvironmentDiagnostics = {
+    'flutter',
+    'dart',
+    'exec',
+    'spawn',
     'api',
     HandleCompletionRequestCommand.commandName,
   };

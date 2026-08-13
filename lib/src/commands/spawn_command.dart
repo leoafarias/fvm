@@ -36,7 +36,7 @@ class SpawnCommand extends BaseFvmCommand {
     // Will install version if not already installed
     final cacheVersion = await ensureCache(flutterVersion);
     // Runs flutter command with pinned version
-    logger.info('Spawning version "$version"...');
+    logger.infoToStderr('Spawning version "$version"...');
 
     final results = await get<FlutterService>().runFlutter(
       flutterArgs,

@@ -381,78 +381,118 @@ void main() {
       expect(stderrLines, contains(_release(_nextPatchVersion).url.toString()));
     });
 
-    test('preserves proxy stdout byte-for-byte without a release request',
-        () async {
-      const expectedOutput = 'proxy line one\nproxy final byte';
-      final tempDir = createTempDir('runner-proxy-output');
-      final workspace = Directory(p.join(tempDir.path, 'workspace'))
-        ..createSync(recursive: true);
-      final home = Directory(p.join(tempDir.path, 'home'))
-        ..createSync(recursive: true);
-      final cachePath = p.join(tempDir.path, 'cache');
-      final flutterExecutable = File(
-        p.join(
-          cachePath,
-          'versions',
-          'stable',
-          'bin',
-          flutterExecFileName,
-        ),
-      )..createSync(recursive: true);
-      final payloadScript = File(p.join(tempDir.path, 'proxy_payload.dart'))
-        ..writeAsStringSync(
-          "import 'dart:io';\n"
-          "void main() => stdout.write('proxy line one\\nproxy final byte');\n",
+    for (final diagnosticEnvironment
+        in <({String name, Map<String, String> values})>[
+      (name: 'deprecated', values: const {'FVM_GIT_CACHE': 'deprecated'}),
+      (name: 'legacy', values: const {'FVM_HOME': 'legacy'}),
+    ]) {
+      for (final invocation in <List<String>>[
+        ['flutter'],
+        ['dart'],
+        ['exec', 'flutter'],
+        ['spawn', 'stable'],
+      ]) {
+        test(
+          'preserves ${invocation.first} proxy stdout byte-for-byte with '
+          '${diagnosticEnvironment.name} environment diagnostics',
+          () async {
+            const expectedOutput = 'proxy line one\nproxy final byte';
+            final tempDir = createTempDir('runner-proxy-output');
+            final workspace = Directory(p.join(tempDir.path, 'workspace'))
+              ..createSync(recursive: true);
+            final home = Directory(p.join(tempDir.path, 'home'))
+              ..createSync(recursive: true);
+            final cachePath = p.join(tempDir.path, 'cache');
+            final flutterExecutable = File(
+              p.join(
+                cachePath,
+                'versions',
+                'stable',
+                'bin',
+                flutterExecFileName,
+              ),
+            )..createSync(recursive: true);
+            final payloadScript =
+                File(p.join(tempDir.path, 'proxy_payload.dart'))
+                  ..writeAsStringSync(
+                    "import 'dart:io';\n"
+                    "void main() => stdout.write('proxy line one\\nproxy final byte');\n",
+                  );
+            flutterExecutable.writeAsStringSync(
+              Platform.isWindows
+                  ? '@echo off\r\n'
+                      '"${Platform.resolvedExecutable}" "${payloadScript.path}"'
+                  : '#!/bin/sh\n'
+                      'exec "${Platform.resolvedExecutable}" "${payloadScript.path}"',
+            );
+            if (!Platform.isWindows) {
+              final chmod =
+                  await Process.run('chmod', ['+x', flutterExecutable.path]);
+              expect(chmod.exitCode, ExitCode.success.code);
+            }
+            final dartExecutable = File(
+              p.join(
+                cachePath,
+                'versions',
+                'stable',
+                'bin',
+                dartExecFileName,
+              ),
+            )..createSync(recursive: true);
+            dartExecutable.writeAsStringSync(
+              Platform.isWindows
+                  ? '@echo off\r\n'
+                      '"${Platform.resolvedExecutable}" "${payloadScript.path}"'
+                  : '#!/bin/sh\n'
+                      'exec "${Platform.resolvedExecutable}" "${payloadScript.path}"',
+            );
+            if (!Platform.isWindows) {
+              final chmod =
+                  await Process.run('chmod', ['+x', dartExecutable.path]);
+              expect(chmod.exitCode, ExitCode.success.code);
+            }
+            File(
+              p.join(cachePath, 'versions', 'stable', 'version'),
+            ).writeAsStringSync('3.10.5');
+            createProjectConfig(
+                const ProjectConfig(flutter: 'stable'), workspace);
+            final releaseMarker =
+                File(p.join(tempDir.path, 'release-requested'));
+            final environment = Map<String, String>.from(Platform.environment)
+              ..remove('FVM_GIT_CACHE')
+              ..remove('FVM_HOME')
+              ..remove('FVM_CACHE_PATH')
+              ..['HOME'] = home.path
+              ..['FVM_GIT_CACHE_PATH'] = p.join(tempDir.path, 'cache.git')
+              ..['FVM_TEST_APP_CONFIG'] = p.join(tempDir.path, 'config.json')
+              ..['FVM_TEST_WORKSPACE'] = workspace.path
+              ..['FVM_TEST_RELEASE_MARKER'] = releaseMarker.path
+              ..addAll(diagnosticEnvironment.values);
+            if (diagnosticEnvironment.name == 'legacy') {
+              environment['FVM_HOME'] = cachePath;
+            } else {
+              environment['FVM_CACHE_PATH'] = cachePath;
+            }
+
+            final result = await Process.run(
+              Platform.resolvedExecutable,
+              ['test/fixtures/proxy_runner_worker.dart', ...invocation],
+              environment: environment,
+              workingDirectory: Directory.current.path,
+            );
+
+            expect(result.exitCode, ExitCode.success.code);
+            expect(result.stdout, expectedOutput);
+            if (invocation.first == 'spawn') {
+              expect(result.stderr, 'Spawning version "stable"...\n');
+            } else {
+              expect(result.stderr, isEmpty);
+            }
+            expect(releaseMarker.existsSync(), isFalse);
+          },
         );
-      flutterExecutable.writeAsStringSync(
-        Platform.isWindows
-            ? '@echo off\r\n'
-                '"${Platform.resolvedExecutable}" "${payloadScript.path}"'
-            : '#!/bin/sh\n'
-                'exec "${Platform.resolvedExecutable}" "${payloadScript.path}"',
-      );
-      if (!Platform.isWindows) {
-        final chmod =
-            await Process.run('chmod', ['+x', flutterExecutable.path]);
-        expect(chmod.exitCode, ExitCode.success.code);
       }
-      Directory(
-        p.join(
-          cachePath,
-          'versions',
-          'stable',
-          'bin',
-          'cache',
-          'dart-sdk',
-          'bin',
-        ),
-      ).createSync(recursive: true);
-      File(
-        p.join(cachePath, 'versions', 'stable', 'version'),
-      ).writeAsStringSync('3.10.5');
-      createProjectConfig(const ProjectConfig(flutter: 'stable'), workspace);
-      final releaseMarker = File(p.join(tempDir.path, 'release-requested'));
-      final environment = Map<String, String>.from(Platform.environment)
-        ..remove('FVM_HOME')
-        ..['HOME'] = home.path
-        ..['FVM_CACHE_PATH'] = cachePath
-        ..['FVM_GIT_CACHE_PATH'] = p.join(tempDir.path, 'cache.git')
-        ..['FVM_TEST_APP_CONFIG'] = p.join(tempDir.path, 'config.json')
-        ..['FVM_TEST_WORKSPACE'] = workspace.path
-        ..['FVM_TEST_RELEASE_MARKER'] = releaseMarker.path;
-
-      final result = await Process.run(
-        Platform.resolvedExecutable,
-        ['test/fixtures/proxy_runner_worker.dart'],
-        environment: environment,
-        workingDirectory: Directory.current.path,
-      );
-
-      expect(result.exitCode, ExitCode.success.code);
-      expect(result.stdout, expectedOutput);
-      expect(result.stderr, isEmpty);
-      expect(releaseMarker.existsSync(), isFalse);
-    });
+    }
   });
 
   group('TestCommandRunner.runOrThrow', () {
