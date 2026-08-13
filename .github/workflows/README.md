@@ -6,12 +6,15 @@
 **Trigger**: Git tag push with `v*` pattern + manual dispatch
 **Purpose**: Main deployment pipeline triggered by pushing a version tag
 **Process**:
-1. **Test** - Run all tests and quality checks
-2. **Release** - Create GitHub release and deploy core packages:
+1. **Validate** - Require `pubspec.yaml` and generated `packageVersion` to
+   agree; for tag events, require the version after the leading `v` to match
+   both files
+2. **Test** - Run all tests and quality checks
+3. **Release** - Create GitHub release and deploy core packages:
    - 📦 pub.dev
    - 🐧 GitHub Linux binaries
    - Uses cli_pkg's `pkg-github-release` to create GitHub release from CHANGELOG
-3. **Deploy** - Deploy to all platforms simultaneously:
+4. **Deploy** - Deploy to all platforms simultaneously after validation:
    - 🍎 GitHub macOS binaries + Homebrew
    - 🪟 GitHub Windows binaries + Chocolatey
    - 🐳 Docker Hub

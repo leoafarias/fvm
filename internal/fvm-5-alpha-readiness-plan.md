@@ -297,13 +297,13 @@ net-negative in line count. Roughly 40 lines total.
     the notice itself is provable only by its unit tests until after the first
     alpha is published.
 19. Know what pushing the tag does. `release.yml` fires on any `v*` tag push
-    with **no tag-vs-pubspec validation** (unlike `release-fvm-mcp.yml`, which
-    cross-checks tag, pubspec, and changelog), and its deploy chain publishes
-    unconditionally: pub.dev (`dart pub publish --force` via cli_pkg's
+    and now validates that the tag (without its leading `v`), `pubspec.yaml`,
+    and generated `lib/src/version.dart` all agree before any publishing job.
+    After validation and tests, its deploy chain publishes unconditionally:
+    pub.dev (`dart pub publish --force` via cli_pkg's
     `pkg-pub-deploy`), GitHub binaries, Homebrew (versioned formula),
-    Chocolatey, and Docker. Two consequences: Gate 1 must be fully done
-    *before* the tag is pushed — CI provides no safety net if pubspec and tag
-    disagree — and tagging publishes `5.0.0-alpha.0` to pub.dev before the D1
+    Chocolatey, and Docker. Gate 1 must still be fully done before the tag is
+    pushed, and tagging publishes `5.0.0-alpha.0` to pub.dev before the D1
     bridge exists. That ordering is precedented (`v3.0.0-beta.*` and
     `v4.0.0-beta.*` shipped through this same pipeline) but should be a
     conscious decision taken together with D1, not a surprise. Also note that
@@ -311,6 +311,23 @@ net-negative in line count. Roughly 40 lines total.
     now runs `dart analyze --fatal-infos` (previously the invertase action with
     `fatal-infos: false`) and gates `test-os`/`integration-test`/
     `migration-test` on `test`.
+
+## Post-readiness hardening (2026-08-13)
+
+The follow-up safety pass after the original readiness review is complete:
+
+- Pub packaging excludes the standalone `fvm_mcp/` package and repository-local
+  `AGENTS.md` / `CLAUDE.md` instructions while retaining root tests and supported
+  `tool/` assets.
+- The release workflow checks `pubspec.yaml`, generated `packageVersion`, and
+  tag identity before every pub.dev, GitHub, Homebrew, Chocolatey, or Docker
+  publishing job.
+- The alpha changelog now records cache-path validation, cache mutation locks,
+  git-cache opt-out behavior, clean proxy output, and invalid-invocation
+  handling.
+- The isolated branch smoke test now proves `remove .` is rejected without
+  damaging the installed SDK.
+- No release tag was created during this hardening pass.
 
 ## Note: what this branch silently repairs
 

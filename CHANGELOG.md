@@ -21,6 +21,11 @@
 * fix: clear global SDK links when their cached versions are removed
 * fix: show available channel updates in `fvm list` and clarify empty-cache output
 * fix: reject `fvm use main --pin` with the documented channel usage error
+* fix: reject unsafe SDK cache paths before reading, linking, moving, or deleting cached versions
+* fix: serialize concurrent SDK installs, repairs, and removals with cache-wide and per-version locks
+* fix: honor the git-cache opt-out during SDK installation without preparing or refreshing the local mirror
+* fix: keep proxy and machine-readable command output clean by suppressing update checks and routing informational notices to stderr
+* fix: reject extra or invalid command operands before prompts, cache changes, or configuration mutations
 
 ## 4.1.2
 

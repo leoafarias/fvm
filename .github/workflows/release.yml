@@ -13,6 +13,56 @@ env:
 
 jobs:
 
+  validate-release:
+    name: Validate release versions
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate version alignment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PUBSPEC_VERSION="$(awk '/^version:/ {print $2; exit}' pubspec.yaml)"
+          GENERATED_VERSION="$(awk -F"'" '/^const packageVersion = / {print $2; exit}' lib/src/version.dart)"
+
+          if [[ -z "$PUBSPEC_VERSION" ]]; then
+            echo "Unable to read version from pubspec.yaml" >&2
+            exit 1
+          fi
+
+          if [[ -z "$GENERATED_VERSION" ]]; then
+            echo "Unable to read packageVersion from lib/src/version.dart" >&2
+            exit 1
+          fi
+
+          if [[ "$PUBSPEC_VERSION" != "$GENERATED_VERSION" ]]; then
+            echo "pubspec version ($PUBSPEC_VERSION) does not match generated packageVersion ($GENERATED_VERSION)" >&2
+            exit 1
+          fi
+
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            case "$GITHUB_REF_NAME" in
+              v*) TAG_VERSION="${GITHUB_REF_NAME#v}" ;;
+              *)
+                echo "Release tag must begin with v: $GITHUB_REF_NAME" >&2
+                exit 1
+                ;;
+            esac
+
+            if [[ "$TAG_VERSION" != "$PUBSPEC_VERSION" ]]; then
+              echo "tag version ($TAG_VERSION) does not match pubspec version ($PUBSPEC_VERSION)" >&2
+              exit 1
+            fi
+
+            if [[ "$TAG_VERSION" != "$GENERATED_VERSION" ]]; then
+              echo "tag version ($TAG_VERSION) does not match generated packageVersion ($GENERATED_VERSION)" >&2
+              exit 1
+            fi
+          fi
+
   test:
     name: Test
     uses: ./.github/workflows/test.yml
@@ -22,7 +72,7 @@ jobs:
 
   release:
     name: Release
-    needs: test
+    needs: [test, validate-release]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -55,7 +105,7 @@ jobs:
   deploy-windows:
         name: Deploy Windows
         runs-on: windows-latest
-        needs: release
+        needs: [release, validate-release]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
@@ -86,7 +136,7 @@ jobs:
   deploy-macos:
       name: Deploy macOS
       runs-on: macos-latest
-      needs: release
+      needs: [release, validate-release]
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -125,7 +175,7 @@ jobs:
   deploy-docker:
     name: Deploy Docker
     runs-on: ubuntu-latest
-    needs: release
+    needs: [release, validate-release]
     steps:
       - name: Checkout
         uses: actions/checkout@v4

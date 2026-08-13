@@ -4,6 +4,11 @@ docs/
 # Maintainer planning docs — not part of the published package
 internal/
 
+# Repository-local agent instructions and the standalone MCP package
+AGENTS.md
+CLAUDE.md
+fvm_mcp/
+
 # Shell scripts and setup files - not needed in Dart package  
 scripts/
 setup.sh

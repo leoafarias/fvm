@@ -149,6 +149,15 @@ run_fvm_skip --version
 
 printf '\n== install stable --no-setup ==\n'
 run_fvm_skip install stable --no-setup
+test -x "$CACHE/versions/stable/bin/flutter"
+
+printf '\n== reject unsafe remove target ==\n'
+if REMOVE_DOT_OUTPUT="$(run_fvm_skip remove . 2>&1)"; then
+  echo 'remove . unexpectedly succeeded' >&2
+  exit 1
+fi
+printf '%s\n' "$REMOVE_DOT_OUTPUT"
+test -x "$CACHE/versions/stable/bin/flutter"
 
 printf '\n== use stable, non-interactive default prompt path ==\n'
 USE_SKIP_OUTPUT="$(run_fvm_skip use stable --force --skip-setup --skip-pub-get 2>&1)"
@@ -306,6 +315,7 @@ Expected high-signal output:
 
 - `fvm --version` prints the branch package version.
 - `install stable --no-setup` creates the local git cache and installs `stable`.
+- `remove .` fails and leaves the installed `stable` SDK executable intact.
 - The first `use stable --force --skip-setup --skip-pub-get` run uses `--fvm-skip-input`, emits the Melos prompt text, logs `Skipping input confirmation`, and keeps `melos.yaml` unchanged because the Melos confirmation default is `false`.
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
