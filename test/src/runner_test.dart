@@ -260,6 +260,30 @@ void main() {
       expect(fixture.service.calls, 0);
     });
 
+    test(
+      'treats top-level version before a proxy name as an FVM version request',
+      () async {
+        final fixture = _proxyUpdateFixture(
+          environmentOverrides: const {'FVM_GIT_CACHE': 'deprecated'},
+        );
+        final flutterService =
+            fixture.context.get<FlutterService>() as FakeFlutterService;
+
+        final result = await fixture.runner.run(['--version', 'flutter']);
+
+        expect(result, ExitCode.success.code);
+        expect(fixture.service.calls, 1);
+        expect(flutterService.runCalls, isEmpty);
+        expect(
+          fixture.context.get<Logger>().outputs,
+          containsAll([
+            packageVersion,
+            'Deprecated environment variables detected:',
+          ]),
+        );
+      },
+    );
+
     for (final invocation in <List<String>>[
       ['flutter', '--version'],
       ['dart', '--version'],
@@ -519,7 +543,9 @@ FvmContext _updateContext({
   );
 }
 
-_UpdateFixture _proxyUpdateFixture() {
+_UpdateFixture _proxyUpdateFixture({
+  Map<String, String>? environmentOverrides,
+}) {
   final tempDir = createTempDir('runner-proxy-update-check');
   final workspace = Directory(p.join(tempDir.path, 'workspace'))
     ..createSync(recursive: true);
@@ -533,6 +559,7 @@ _UpdateFixture _proxyUpdateFixture() {
     ),
     appConfigPath: configFile.path,
     workingDirectoryOverride: workspace.path,
+    environmentOverrides: environmentOverrides,
     generatorsOverride: {
       FlutterService: FakeFlutterService.new,
       FlutterReleaseClient: FakeFlutterReleaseClient.new,

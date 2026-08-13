@@ -258,9 +258,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..debug('Argument information:');
 
     final commandName = topLevelResults.command?.name;
-    if (_commandsWithoutUpdateChecks.contains(commandName)) {
-      return await super.runCommand(topLevelResults) ?? ExitCode.success.code;
-    }
+    final skipUpdateCheck =
+        _commandsWithoutUpdateChecks.contains(commandName) &&
+            topLevelResults['version'] != true;
 
     final hasTopLevelOption = topLevelResults.options.any(
       (e) => topLevelResults.wasParsed(e),
@@ -300,7 +300,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     // Check for deprecated environment variables
     _checkDeprecatedEnvironmentVariables();
 
-    final updateCheck = _checkForUpdates();
+    final updateCheck = skipUpdateCheck
+        ? Future<void Function()?>.value(null)
+        : _checkForUpdates();
 
     // Run the command or show version
     final int? exitCode;
