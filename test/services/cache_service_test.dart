@@ -264,6 +264,33 @@ void main() {
             : false,
       );
 
+      test(
+        'does not delete through a symlinked versions cache root',
+        () async {
+          final outside = createTempDir('external_versions_root_remove');
+          final outsideVersion = Directory(path.join(outside.path, 'stable'))
+            ..createSync(recursive: true);
+          final marker = File(path.join(outsideVersion.path, 'marker'))
+            ..writeAsStringSync('preserve');
+          Directory(path.dirname(tempDir.path)).createSync(recursive: true);
+          final linkedRoot = Link(tempDir.path)
+            ..createSync(outside.path, recursive: true);
+          addTearDown(() {
+            if (linkedRoot.existsSync()) linkedRoot.deleteSync();
+          });
+
+          await expectLater(
+            cacheService.remove(FlutterVersion.parse('stable')),
+            throwsA(isA<AppException>()),
+          );
+
+          expect(marker.readAsStringSync(), 'preserve');
+        },
+        skip: Platform.isWindows
+            ? 'Creating symlinks requires privileges on Windows.'
+            : false,
+      );
+
       test('does nothing if version directory does not exist', () {
         final version = FlutterVersion.parse('non-existent');
         expect(cacheService.remove(version), completes);
@@ -378,6 +405,42 @@ void main() {
           final cacheVersion = CacheFlutterVersion.fromVersion(
             FlutterVersion.parse('company/stable'),
             directory: path.join(tempDir.path, 'company', 'stable'),
+          );
+
+          expect(
+            () => cacheService.moveToSdkVersionDirectory(cacheVersion),
+            throwsA(isA<AppException>()),
+          );
+          expect(marker.readAsStringSync(), 'preserve');
+          expect(
+            Directory(path.join(outside.path, '3.10.5')).existsSync(),
+            isFalse,
+          );
+        },
+        skip: Platform.isWindows
+            ? 'Creating symlinks requires privileges on Windows.'
+            : false,
+      );
+
+      test(
+        'does not move an SDK through a symlinked versions cache root',
+        () {
+          final outside = createTempDir('external_versions_root_move');
+          final sourceDir = Directory(path.join(outside.path, 'stable'))
+            ..createSync(recursive: true);
+          final marker = File(path.join(sourceDir.path, 'marker'))
+            ..writeAsStringSync('preserve');
+          File(path.join(sourceDir.path, 'version'))
+              .writeAsStringSync('3.10.5');
+          Directory(path.dirname(tempDir.path)).createSync(recursive: true);
+          final linkedRoot = Link(tempDir.path)
+            ..createSync(outside.path, recursive: true);
+          addTearDown(() {
+            if (linkedRoot.existsSync()) linkedRoot.deleteSync();
+          });
+          final cacheVersion = CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('stable'),
+            directory: path.join(tempDir.path, 'stable'),
           );
 
           expect(

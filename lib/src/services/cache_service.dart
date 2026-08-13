@@ -69,6 +69,14 @@ class CacheService extends ContextualService {
   }
 
   void _rejectSymlinkedCacheDescendants(String cacheRoot, String targetPath) {
+    if (FileSystemEntity.typeSync(cacheRoot, followLinks: false) ==
+        FileSystemEntityType.link) {
+      throw const AppException(
+        'Invalid cache version path. The versions cache directory must not be '
+        'a symbolic link.',
+      );
+    }
+
     final relative = path.relative(targetPath, from: cacheRoot);
     var candidate = cacheRoot;
 
