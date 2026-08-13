@@ -109,6 +109,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..info(
         '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
       )
+      ..info(latestRelease.url.toString())
       ..info();
 
     if (latestRelease.version.major <= currentVersion.major) return;

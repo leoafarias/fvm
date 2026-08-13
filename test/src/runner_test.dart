@@ -78,6 +78,7 @@ void main() {
           contains('Update available!'),
           contains(packageVersion),
           contains(_nextPatchVersion.toString()),
+          contains(_release(_nextPatchVersion).url.toString()),
           isNot(contains(kFvmMigrationGuideUrl)),
         ),
       );
