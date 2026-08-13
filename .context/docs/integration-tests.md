@@ -53,6 +53,11 @@ The fast mocked test layer already covers command parsing, config-only flows, an
 
 Cut recipes include help/version/list, remove/doctor without real SDK validation, dart/spawn/exec/flavor command plumbing, API list/project/context, fork add/list/remove, config get/set, invalid version/command, state recounting, and PATH log-only validation.
 
+Real (non-fake) fork clone coverage is a known gap. `_testForkFunctionality` was
+removed from `test/version_format_workflow_test.dart`, and the fork recipes above
+were already cut. Nothing in this suite now proves a real fork clone against
+`GitService`. Restore one real fork recipe here if that path changes.
+
 ## Environment And Safety
 
 The integration workflow is slow and can be destructive to the real FVM cache.

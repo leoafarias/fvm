@@ -32,7 +32,10 @@ const kDefaultFlutterUrl = 'https://github.com/flutter/flutter.git';
 /// This file contains the configuration settings for FVM.
 const kFvmConfigFileName = '.fvmrc';
 
-/// The canonical GitHub repository for FVM releases and source code.
+/// Canonical GitHub slug for FVM releases. Deliberately `conceptadev/fvm`,
+/// not `leoafarias/fvm`: the latter 301-redirects here. Do not "fix" this to
+/// match the git remote or `tool/release_tool` (`_owner = 'leoafarias'`);
+/// release `html_url` validation uses this slug.
 const kFvmRepository = 'conceptadev/fvm';
 
 /// The canonical GitHub URL for FVM.
