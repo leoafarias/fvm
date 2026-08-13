@@ -587,6 +587,11 @@ void main() {
               ..setSelectResponse('How would you like to resolve this?', 0),
           },
         );
+        mismatchContext.environment.removeWhere(
+          (key, _) => kCiEnvironmentVariables.contains(key),
+        );
+        expect(mismatchContext.isCI, isFalse);
+        expect(mismatchContext.skipInput, isFalse);
         final expectedVersion = FlutterVersion.parse('3.10.0');
         final actualVersion = FlutterVersion.parse('3.10.5');
         final sourceDir = mismatchContext
