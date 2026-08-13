@@ -93,6 +93,28 @@ void main() {
 
         expect(marker.readAsStringSync(), 'preserve');
       });
+
+      test(
+        'rejects a cache path that traverses a symlinked ancestor',
+        () {
+          final outside = createTempDir('external_cache_ancestor');
+          final linkedFork = Link(path.join(tempDir.path, 'company'))
+            ..createSync(outside.path, recursive: true);
+          addTearDown(() {
+            if (linkedFork.existsSync()) linkedFork.deleteSync();
+          });
+
+          expect(
+            () => cacheService.getVersionCacheDir(
+              FlutterVersion.parse('company/stable'),
+            ),
+            throwsA(isA<AppException>()),
+          );
+        },
+        skip: Platform.isWindows
+            ? 'Creating symlinks requires privileges on Windows.'
+            : false,
+      );
     });
 
     group('getVersion', () {
@@ -216,6 +238,32 @@ void main() {
         expect(versionDir.existsSync(), isFalse);
       });
 
+      test(
+        'does not delete through a symlinked cache ancestor',
+        () async {
+          final outside = createTempDir('external_cache_remove');
+          final outsideVersion = Directory(path.join(outside.path, 'stable'))
+            ..createSync(recursive: true);
+          final marker = File(path.join(outsideVersion.path, 'marker'))
+            ..writeAsStringSync('preserve');
+          final linkedFork = Link(path.join(tempDir.path, 'company'))
+            ..createSync(outside.path, recursive: true);
+          addTearDown(() {
+            if (linkedFork.existsSync()) linkedFork.deleteSync();
+          });
+
+          await expectLater(
+            cacheService.remove(FlutterVersion.parse('company/stable')),
+            throwsA(isA<AppException>()),
+          );
+
+          expect(marker.readAsStringSync(), 'preserve');
+        },
+        skip: Platform.isWindows
+            ? 'Creating symlinks requires privileges on Windows.'
+            : false,
+      );
+
       test('does nothing if version directory does not exist', () {
         final version = FlutterVersion.parse('non-existent');
         expect(cacheService.remove(version), completes);
@@ -311,6 +359,41 @@ void main() {
           'moved',
         );
       });
+
+      test(
+        'does not move an SDK through a symlinked cache ancestor',
+        () {
+          final outside = createTempDir('external_cache_move');
+          final sourceDir = Directory(path.join(outside.path, 'stable'))
+            ..createSync(recursive: true);
+          final marker = File(path.join(sourceDir.path, 'marker'))
+            ..writeAsStringSync('preserve');
+          File(path.join(sourceDir.path, 'version'))
+              .writeAsStringSync('3.10.5');
+          final linkedFork = Link(path.join(tempDir.path, 'company'))
+            ..createSync(outside.path, recursive: true);
+          addTearDown(() {
+            if (linkedFork.existsSync()) linkedFork.deleteSync();
+          });
+          final cacheVersion = CacheFlutterVersion.fromVersion(
+            FlutterVersion.parse('company/stable'),
+            directory: path.join(tempDir.path, 'company', 'stable'),
+          );
+
+          expect(
+            () => cacheService.moveToSdkVersionDirectory(cacheVersion),
+            throwsA(isA<AppException>()),
+          );
+          expect(marker.readAsStringSync(), 'preserve');
+          expect(
+            Directory(path.join(outside.path, '3.10.5')).existsSync(),
+            isFalse,
+          );
+        },
+        skip: Platform.isWindows
+            ? 'Creating symlinks requires privileges on Windows.'
+            : false,
+      );
 
       test('does not replace an existing SDK cache directory', () {
         final sourceDir = Directory(path.join(tempDir.path, '3.10.0'))

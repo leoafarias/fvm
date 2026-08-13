@@ -63,7 +63,25 @@ class CacheService extends ContextualService {
       );
     }
 
+    _rejectSymlinkedCacheDescendants(cacheRoot, targetPath);
+
     return Directory(targetPath);
+  }
+
+  void _rejectSymlinkedCacheDescendants(String cacheRoot, String targetPath) {
+    final relative = path.relative(targetPath, from: cacheRoot);
+    var candidate = cacheRoot;
+
+    for (final component in path.split(relative)) {
+      candidate = path.join(candidate, component);
+      if (FileSystemEntity.typeSync(candidate, followLinks: false) ==
+          FileSystemEntityType.link) {
+        throw const AppException(
+          'Invalid cache version path. Version directories must not traverse '
+          'symbolic links inside the versions cache directory.',
+        );
+      }
+    }
   }
 
   void _validateCachePathSegment(String segment) {
@@ -93,6 +111,8 @@ class CacheService extends ContextualService {
         'within the versions cache directory.',
       );
     }
+
+    _rejectSymlinkedCacheDescendants(cacheRoot, normalizedTarget);
 
     return Directory(normalizedTarget);
   }
@@ -232,7 +252,9 @@ class CacheService extends ContextualService {
   Future<void> remove(FlutterVersion version) async {
     final versionDir = getVersionCacheDir(version);
     if (versionDir.existsSync()) {
-      await deleteDirectoryWithRetry(versionDir);
+      await deleteDirectoryWithRetry(
+        _existingCacheVersionDirectory(versionDir.path),
+      );
     }
 
     if (_globalLinkTargets(versionDir.path)) unlinkGlobal();
@@ -390,7 +412,13 @@ class CacheService extends ContextualService {
       }
     }
 
-    versionDir.renameSync(newDir.path);
+    _existingCacheVersionDirectory(versionDir.path).renameSync(
+      _safeCacheDirectory(
+        targetVersion.fromFork
+            ? [targetVersion.fork!, targetVersion.version]
+            : [targetVersion.name],
+      ).path,
+    );
   }
 
   /// Determines if [configured] and [cached] versions should be considered
