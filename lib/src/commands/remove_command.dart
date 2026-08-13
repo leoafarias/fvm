@@ -4,6 +4,7 @@ import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
+import '../utils/cache_mutation_lock.dart';
 import '../utils/constants.dart';
 import 'base_command.dart';
 
@@ -38,7 +39,10 @@ class RemoveCommand extends BaseFvmCommand {
       if (confirmRemoval) {
         final cacheService = get<CacheService>();
         final versionsCache = Directory(context.versionsCachePath);
-        if (await cacheService.removeAll()) {
+        if (await withAllVersionsCacheMutationLock(
+          context,
+          cacheService.removeAll,
+        )) {
           logger.success(
             '$kPackageName Directory ${versionsCache.path} has been deleted',
           );
@@ -57,26 +61,27 @@ class RemoveCommand extends BaseFvmCommand {
       version = argResults!.rest[0];
     }
     final validVersion = FlutterVersion.parse(version);
-    final cacheVersion = get<CacheService>().getVersion(validVersion);
+    final cacheService = get<CacheService>();
+    await withVersionCacheMutationLock(context, validVersion, () async {
+      final cacheVersion = cacheService.getVersion(validVersion);
 
-    // Check if version is installed
-    if (cacheVersion == null) {
-      logger.info('Flutter SDK: ${validVersion.name} is not installed');
+      // Check again after locking because an installation may have completed
+      // while this process waited.
+      if (cacheVersion == null) {
+        logger.info('Flutter SDK: ${validVersion.name} is not installed');
 
-      return ExitCode.success.code;
-    }
+        return;
+      }
 
-    final progress = logger.progress('Removing ${validVersion.name}...');
-    try {
-      /// Remove if version is cached
-
-      await get<CacheService>().remove(cacheVersion);
-
-      progress.complete('${validVersion.name} removed.');
-    } on Exception {
-      progress.fail('Could not remove $validVersion');
-      rethrow;
-    }
+      final progress = logger.progress('Removing ${validVersion.name}...');
+      try {
+        await cacheService.remove(cacheVersion);
+        progress.complete('${validVersion.name} removed.');
+      } on Exception {
+        progress.fail('Could not remove $validVersion');
+        rethrow;
+      }
+    });
 
     return ExitCode.success.code;
   }

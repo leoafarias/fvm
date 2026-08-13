@@ -1,6 +1,7 @@
 import 'package:io/io.dart';
 
 import '../services/cache_service.dart';
+import '../utils/cache_mutation_lock.dart';
 import 'base_command.dart';
 
 /// Deletes all cached Flutter SDK versions.
@@ -35,7 +36,11 @@ class DestroyCommand extends BaseFvmCommand {
         );
 
     if (shouldProceed) {
-      if (await get<CacheService>().removeAll()) {
+      final cacheService = get<CacheService>();
+      if (await withAllVersionsCacheMutationLock(
+        context,
+        cacheService.removeAll,
+      )) {
         logger.success(
           'Cached Flutter SDK versions in ${context.versionsCachePath} have been deleted',
         );

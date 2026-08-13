@@ -3,6 +3,7 @@ import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -90,6 +91,40 @@ void main() {
       expect(gitService.ensureBareCacheCalls, 1);
       expect(gitService.updateLocalMirrorCalls, 1);
       expect(flutterService.installUseGitCacheValues, equals([false]));
+    });
+
+    test('git-cache opt-out skips preparation and installs remotely', () async {
+      final root = tempDirs.create();
+      final context = FvmContext.create(
+        isTest: true,
+        workingDirectoryOverride: root.path,
+        appConfigPath: path.join(root.path, 'config', '.fvmrc'),
+        configOverrides: AppConfig(
+          cachePath: path.join(root.path, 'cache'),
+          gitCachePath: path.join(root.path, 'cache.git'),
+          flutterUrl: 'https://github.com/flutter/flutter.git',
+          useGitCache: false,
+          disableUpdateCheck: true,
+        ),
+        generatorsOverride: {
+          FlutterService: (context) => FakeFlutterService(context),
+          FlutterReleaseClient: (context) => FakeFlutterReleaseClient(context),
+          GitService: (context) => FakeGitService(context),
+        },
+      );
+      final gitService = context.get<GitService>() as FakeGitService;
+      final flutterService =
+          context.get<FlutterService>() as FakeFlutterService;
+
+      final result = await EnsureCacheWorkflow(context).call(
+        FlutterVersion.parse('3.10.0'),
+        shouldInstall: true,
+      );
+
+      expect(result.name, '3.10.0');
+      expect(gitService.ensureBareCacheCalls, 0);
+      expect(gitService.updateLocalMirrorCalls, 0);
+      expect(flutterService.installUseGitCacheValues, [false]);
     });
 
     test('--fvm-skip-input flag handles version mismatch gracefully', () async {

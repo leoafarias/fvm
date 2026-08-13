@@ -9,6 +9,7 @@ import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
+import '../utils/process_lock.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'process_service.dart';
@@ -56,100 +57,15 @@ class GitService extends ContextualService {
     }
   }
 
-  bool _isLockContentionError(FileSystemException error) {
-    final message = error.message.toLowerCase();
-
-    return message.contains('lock failed') ||
-        message.contains('resource temporarily unavailable') ||
-        message.contains('operation would block') ||
-        message.contains('already locked') ||
-        message.contains('being used by another process');
-  }
-
   /// Serializes git cache reads and writes through a single file lock.
-  Future<T> _withGitCacheLock<T>(Future<T> Function() action) async {
-    final lockFile = File('${context.gitCachePath}.lock');
-    if (!lockFile.parent.existsSync()) {
-      lockFile.parent.createSync(recursive: true);
-    }
-
-    RandomAccessFile? lockHandle;
-    var lockAcquired = false;
-    const retryDelay = Duration(milliseconds: 150);
-    const waitLogThreshold = Duration(seconds: 2);
-    const maxWait = Duration(minutes: 5);
-
-    try {
-      try {
-        lockHandle = await lockFile.open(mode: FileMode.write);
-
-        final lockWaitStart = DateTime.now();
-        var waitingLogged = false;
-
-        while (!lockAcquired) {
-          try {
-            await lockHandle.lock(FileLock.exclusive);
-            lockAcquired = true;
-          } on FileSystemException catch (error, stackTrace) {
-            if (!_isLockContentionError(error)) {
-              Error.throwWithStackTrace(
-                AppException(
-                  'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-                ),
-                stackTrace,
-              );
-            }
-
-            final elapsed = DateTime.now().difference(lockWaitStart);
-            if (elapsed > maxWait) {
-              Error.throwWithStackTrace(
-                AppException(
-                  'Timed out waiting for git cache lock at ${lockFile.path} after ${elapsed.inSeconds}s.',
-                ),
-                stackTrace,
-              );
-            }
-
-            if (!waitingLogged && elapsed >= waitLogThreshold) {
-              waitingLogged = true;
-              logger.debug(
-                'Waiting for git cache lock at ${lockFile.path}...',
-              );
-            }
-
-            await Future<void>.delayed(retryDelay);
-          }
-        }
-      } on FileSystemException catch (error, stackTrace) {
-        Error.throwWithStackTrace(
-          AppException(
-            'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',
-          ),
-          stackTrace,
-        );
-      }
-
-      return await action();
-    } finally {
-      if (lockHandle != null) {
-        if (lockAcquired) {
-          try {
-            await lockHandle.unlock();
-          } on FileSystemException catch (error) {
-            logger.warn(
-              'Failed to unlock git cache lock at ${lockFile.path}: ${error.message}',
-            );
-          }
-        }
-        try {
-          await lockHandle.close();
-        } on FileSystemException catch (error) {
-          logger.warn(
-            'Failed to close git cache lock at ${lockFile.path}: ${error.message}',
-          );
-        }
-      }
-    }
+  Future<T> _withGitCacheLock<T>(Future<T> Function() action) {
+    return withProcessFileLock(
+      lockFile: File('${context.gitCachePath}.lock'),
+      lockMode: FileLock.exclusive,
+      description: 'git cache',
+      logger: logger,
+      action: action,
+    );
   }
 
   void _cleanupStaleGitCachePackTemps() {
