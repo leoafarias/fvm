@@ -1279,4 +1279,12 @@ class _GitCacheCleanupBlockedGitService extends GitService {
   }) async {
     throw const GitCacheDependentSdkRemovalException('blocked by test');
   }
+
+  @override
+  Future<bool> removeLocalMirrorIfInvalid({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) async {
+    throw const GitCacheDependentSdkRemovalException('blocked by test');
+  }
 }

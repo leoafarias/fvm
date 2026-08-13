@@ -2,11 +2,13 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:git/git.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
 import '../models/git_reference_model.dart';
+import '../utils/cache_mutation_lock.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
 import '../utils/process_lock.dart';
@@ -1004,6 +1006,17 @@ class GitService extends ContextualService {
     return GitDir.fromExisting(versionDir.path);
   }
 
+  /// Runs [action] while holding the process-wide Git cache lock.
+  ///
+  /// Internal orchestration uses this after taking the cache maintenance lock
+  /// to retain the Git lock through version-lock acquisition and local clone.
+  /// Methods whose names end in `WhileGitCacheLocked` must only be called from
+  /// this action.
+  @internal
+  Future<T> withGitCacheLock<T>(Future<T> Function() action) {
+    return _withGitCacheLock(action);
+  }
+
   Future<void> setOriginUrl({
     required String repositoryPath,
     required String url,
@@ -1020,34 +1033,94 @@ class GitService extends ContextualService {
   Future<T> withPreparedGitCacheForClone<T>(
     Future<T> Function() cloneAction,
   ) {
-    return _withGitCacheLock(() async {
-      _cleanupStaleGitCachePackTemps();
+    return _withGitCacheLock(
+      () => withPreparedGitCacheForCloneWhileGitCacheLocked(cloneAction),
+    );
+  }
 
-      return cloneAction();
-    });
+  /// Cleans stale Git cache pack files and runs [cloneAction].
+  ///
+  /// The caller must already hold the Git cache lock through
+  /// [withGitCacheLock].
+  @internal
+  Future<T> withPreparedGitCacheForCloneWhileGitCacheLocked<T>(
+    Future<T> Function() cloneAction,
+  ) {
+    _cleanupStaleGitCachePackTemps();
+
+    return cloneAction();
   }
 
   Future<bool> removeLocalMirror({
     bool requireSuccess = false,
     void Function(FileSystemException error)? onFinalError,
   }) {
-    return _withGitCacheLock(() async {
-      final cacheDir = Directory(context.gitCachePath);
-      if (cacheDir.existsSync()) {
-        await _dissociateInstalledSdksFromGitCache();
-      }
+    return withAllVersionsCacheMutationLock(
+      context,
+      () => _withGitCacheLock(
+        () => removeLocalMirrorWhileGitCacheLocked(
+          requireSuccess: requireSuccess,
+          onFinalError: onFinalError,
+        ),
+      ),
+    );
+  }
 
-      return deleteDirectoryWithRetry(
-        cacheDir,
-        requireSuccess: requireSuccess,
-        onFinalError: onFinalError ??
-            (error) {
-              logger.warn(
-                'Unable to delete local git cache at ${cacheDir.path}: ${error.message}',
-              );
-            },
-      );
-    });
+  /// Removes the local mirror only if it is still invalid when cleanup runs.
+  ///
+  /// Deferred corruption cleanup can race with a queued operation that repairs
+  /// or replaces the mirror. Rechecking under the cache-wide and Git locks
+  /// prevents an older cleanup request from deleting that healthy replacement.
+  Future<bool> removeLocalMirrorIfInvalid({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) {
+    return withAllVersionsCacheMutationLock(
+      context,
+      () => _withGitCacheLock(() async {
+        final cacheDir = Directory(context.gitCachePath);
+        final cacheState = await _determineCacheState(cacheDir);
+        if (cacheState != _GitCacheState.invalid) {
+          logger.debug(
+            'Skipping deferred Git cache cleanup because the cache is no '
+            'longer invalid.',
+          );
+
+          return false;
+        }
+
+        return removeLocalMirrorWhileGitCacheLocked(
+          requireSuccess: requireSuccess,
+          onFinalError: onFinalError,
+        );
+      }),
+    );
+  }
+
+  /// Removes the Git cache while serializing every dependent SDK mutation.
+  ///
+  /// The caller must already hold both the exclusive cache maintenance lock
+  /// and the Git cache lock in that order.
+  @internal
+  Future<bool> removeLocalMirrorWhileGitCacheLocked({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) async {
+    final cacheDir = Directory(context.gitCachePath);
+    if (cacheDir.existsSync()) {
+      await _dissociateInstalledSdksFromGitCache();
+    }
+
+    return deleteDirectoryWithRetry(
+      cacheDir,
+      requireSuccess: requireSuccess,
+      onFinalError: onFinalError ??
+          (error) {
+            logger.warn(
+              'Unable to delete local git cache at ${cacheDir.path}: ${error.message}',
+            );
+          },
+    );
   }
 
   Future<bool> isGitReference(String version) async {
@@ -1063,65 +1136,85 @@ class GitService extends ContextualService {
   }
 
   Future<void> updateLocalMirror() {
-    return _withGitCacheLock(() async {
-      final gitCacheDir = Directory(context.gitCachePath);
+    return withAllVersionsCacheMutationLock(
+      context,
+      () => _withGitCacheLock(updateLocalMirrorWhileGitCacheLocked),
+    );
+  }
 
-      var cacheState = await _determineCacheShapeState(gitCacheDir);
-      if (cacheState != _GitCacheState.ready) {
-        cacheState = await _withConnectivityCheckedState(
-          gitCacheDir,
-          cacheState,
-        );
-      }
+  /// Updates or migrates the Git cache while serializing dependent SDKs.
+  ///
+  /// The caller must already hold both the exclusive cache maintenance lock
+  /// and the Git cache lock in that order.
+  @internal
+  Future<void> updateLocalMirrorWhileGitCacheLocked() async {
+    final gitCacheDir = Directory(context.gitCachePath);
 
-      switch (cacheState) {
-        case _GitCacheState.ready:
-          await _refreshExistingGitCache(gitCacheDir);
-          break;
-        case _GitCacheState.overbroad:
-          await _rebuildHeadsTagsGitCache(gitCacheDir);
-          break;
-        case _GitCacheState.legacy:
-          await _migrateCacheCloneToGitCache(gitCacheDir);
-          break;
-        case _GitCacheState.invalid:
-          logger.warn('Git cache is invalid; recreating from scratch...');
-          await _createLocalGitCache();
-          break;
-        case _GitCacheState.missing:
-          logger.debug('Git cache not found. Creating heads/tags cache...');
-          await _createLocalGitCache();
-          break;
-      }
-    });
+    var cacheState = await _determineCacheShapeState(gitCacheDir);
+    if (cacheState != _GitCacheState.ready) {
+      cacheState = await _withConnectivityCheckedState(
+        gitCacheDir,
+        cacheState,
+      );
+    }
+
+    switch (cacheState) {
+      case _GitCacheState.ready:
+        await _refreshExistingGitCache(gitCacheDir);
+        break;
+      case _GitCacheState.overbroad:
+        await _rebuildHeadsTagsGitCache(gitCacheDir);
+        break;
+      case _GitCacheState.legacy:
+        await _migrateCacheCloneToGitCache(gitCacheDir);
+        break;
+      case _GitCacheState.invalid:
+        logger.warn('Git cache is invalid; recreating from scratch...');
+        await _createLocalGitCache();
+        break;
+      case _GitCacheState.missing:
+        logger.debug('Git cache not found. Creating heads/tags cache...');
+        await _createLocalGitCache();
+        break;
+    }
   }
 
   /// Migrates a legacy or overbroad cache to a heads/tags-only bare cache if
   /// present. Does not create or refresh the cache from remote.
   Future<void> ensureBareCacheIfPresent() {
-    return _withGitCacheLock(() async {
-      final gitCacheDir = Directory(context.gitCachePath);
-      if (!gitCacheDir.existsSync()) return;
+    return withAllVersionsCacheMutationLock(
+      context,
+      () => _withGitCacheLock(ensureBareCacheIfPresentWhileGitCacheLocked),
+    );
+  }
 
-      final cacheState = await _determineCacheState(gitCacheDir);
-      switch (cacheState) {
-        case _GitCacheState.ready:
-        case _GitCacheState.missing:
-          break;
-        case _GitCacheState.overbroad:
-          await _rebuildHeadsTagsGitCache(gitCacheDir, updateRemote: false);
-          break;
-        case _GitCacheState.legacy:
-          await _migrateCacheCloneToGitCache(gitCacheDir, updateRemote: false);
-          break;
-        case _GitCacheState.invalid:
-          // Defer handling to install/update workflows to avoid heavy work here.
-          logger.debug(
-            'Git cache is invalid; skipping migration. It will be recreated on next install.',
-          );
-          break;
-      }
-    });
+  /// Migrates an existing Git cache while serializing dependent SDKs.
+  ///
+  /// The caller must already hold both the exclusive cache maintenance lock
+  /// and the Git cache lock in that order.
+  @internal
+  Future<void> ensureBareCacheIfPresentWhileGitCacheLocked() async {
+    final gitCacheDir = Directory(context.gitCachePath);
+    if (!gitCacheDir.existsSync()) return;
+
+    final cacheState = await _determineCacheState(gitCacheDir);
+    switch (cacheState) {
+      case _GitCacheState.ready:
+      case _GitCacheState.missing:
+        break;
+      case _GitCacheState.overbroad:
+        await _rebuildHeadsTagsGitCache(gitCacheDir, updateRemote: false);
+        break;
+      case _GitCacheState.legacy:
+        await _migrateCacheCloneToGitCache(gitCacheDir, updateRemote: false);
+        break;
+      case _GitCacheState.invalid:
+        // Defer handling to install/update workflows to avoid heavy work here.
+        logger.debug(
+          'Git cache is invalid; skipping migration. It will be recreated on next install.',
+        );
+        break;
+    }
   }
 
   /// Returns the branch name for a cached [version].

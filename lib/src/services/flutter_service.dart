@@ -17,6 +17,9 @@ import 'git_service.dart';
 import 'process_service.dart';
 import 'releases_service/releases_client.dart';
 
+/// Git-cache work that must run after releasing SDK cache mutation locks.
+enum GitCacheMaintenance { removeCorruptedMirror, refreshMirror }
+
 /// Helpers and tools to interact with Flutter sdk
 class FlutterService extends ContextualService {
   static const List<String> _gitObjectCorruptionMarkers = [
@@ -46,6 +49,45 @@ class FlutterService extends ContextualService {
   ];
 
   const FlutterService(super.context);
+
+  Future<void> _removeCorruptedGitCache() async {
+    final cacheDir = Directory(context.gitCachePath);
+    if (!cacheDir.existsSync()) return;
+
+    try {
+      final deleted = await get<GitService>().removeLocalMirrorIfInvalid(
+        requireSuccess: false,
+        onFinalError: (error) {
+          logger.warn(
+            'Could not remove corrupted cache: ${error.message}. '
+            'You may need to manually delete ${cacheDir.path}',
+          );
+        },
+      );
+      if (deleted) {
+        logger.info(
+          'Removed corrupted cache. It will be recreated on next install.',
+        );
+      }
+    } on GitCacheDependentSdkRemovalException {
+      rethrow;
+    } catch (error) {
+      logger.debug('Failed to remove corrupted git cache: $error');
+    }
+  }
+
+  Future<void> _refreshGitCacheAfterFallback() async {
+    try {
+      await get<GitService>().updateLocalMirror();
+    } catch (error, stackTrace) {
+      logger.debug('Git cache refresh after fallback failed: $error');
+      logger.warn(
+        'Failed to refresh local git cache after remote clone; continuing. '
+        'This may cause the next install to fetch from remote again.',
+      );
+      logger.debug(stackTrace.toString());
+    }
+  }
 
   Future<ProcessResult> _cloneSdk({
     required String source,
@@ -89,18 +131,27 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
     required bool echoOutput,
+    required bool gitCacheLockHeld,
+    required bool deferGitCacheMaintenance,
+    required void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
   }) async {
     try {
-      final result =
-          await get<GitService>().withPreparedGitCacheForClone(() async {
-        return _cloneSdk(
+      final gitService = get<GitService>();
+      Future<ProcessResult> cloneAction() async {
+        return await _cloneSdk(
           source: context.gitCachePath,
           versionDir: versionDir,
           version: version,
           channel: channel,
           echoOutput: echoOutput,
         );
-      });
+      }
+
+      final result = gitCacheLockHeld
+          ? await gitService
+              .withPreparedGitCacheForCloneWhileGitCacheLocked(cloneAction)
+          : await gitService.withPreparedGitCacheForClone(cloneAction);
       await _updateOriginToFlutter(versionDir);
 
       return result;
@@ -114,29 +165,13 @@ class FlutterService extends ContextualService {
           'Falling back to remote clone.',
         );
 
-        // Non-safety cleanup failures should not abort the remote fallback.
-        final cacheDir = Directory(context.gitCachePath);
-        if (cacheDir.existsSync()) {
-          try {
-            final deleted = await get<GitService>().removeLocalMirror(
-              requireSuccess: false,
-              onFinalError: (error) {
-                logger.warn(
-                  'Could not remove corrupted cache: ${error.message}. '
-                  'You may need to manually delete ${cacheDir.path}',
-                );
-              },
-            );
-            if (deleted) {
-              logger.info(
-                'Removed corrupted cache. It will be recreated on next install.',
-              );
-            }
-          } on GitCacheDependentSdkRemovalException {
-            rethrow;
-          } catch (e) {
-            logger.debug('Failed to remove corrupted git cache: $e');
-          }
+        if (deferGitCacheMaintenance && onGitCacheMaintenanceDeferred != null) {
+          onGitCacheMaintenanceDeferred(
+            GitCacheMaintenance.removeCorruptedMirror,
+          );
+        } else {
+          // Non-safety cleanup failures should not abort the remote fallback.
+          await _removeCorruptedGitCache();
         }
       } else {
         logger.warn(
@@ -237,6 +272,9 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool deferGitCacheMaintenance,
+    required void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
   }) async {
     logger.warn(
       'Reference "${version.version}" not found in local git cache. '
@@ -279,16 +317,13 @@ class FlutterService extends ContextualService {
 
     // Bring the shared git cache up to date so future installs can use it.
     if (context.gitCache && !version.fromFork) {
-      try {
-        await get<GitService>().updateLocalMirror();
-      } catch (e, stackTrace) {
-        logger.debug('Git cache refresh after fallback failed: $e');
-        logger.warn(
-          'Failed to refresh local git cache after remote clone; continuing. '
-          'This may cause the next install to fetch from remote again.',
-        );
-        logger.debug(stackTrace.toString());
+      if (deferGitCacheMaintenance && onGitCacheMaintenanceDeferred != null) {
+        onGitCacheMaintenanceDeferred(GitCacheMaintenance.refreshMirror);
+
+        return;
       }
+
+      await _refreshGitCacheAfterFallback();
     }
   }
 
@@ -369,7 +404,6 @@ class FlutterService extends ContextualService {
   }
 
   /// Clones the SDK, trying the local git cache first when enabled.
-  /// Returns true if the clone came from the local git cache.
   Future<bool> _executeClone({
     required FlutterVersion version,
     required Directory versionDir,
@@ -377,6 +411,10 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
     required bool useGitCache,
+    required bool gitCacheLockHeld,
+    required bool deferGitCacheMaintenance,
+    required void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
   }) async {
     final useLocalGitCache =
         useGitCache && context.gitCache && !version.fromFork;
@@ -387,9 +425,22 @@ class FlutterService extends ContextualService {
         version: version,
         channel: channel,
         echoOutput: echoOutput,
+        gitCacheLockHeld: gitCacheLockHeld,
+        deferGitCacheMaintenance: deferGitCacheMaintenance,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
 
       if (gitCacheResult != null) return true;
+
+      await _cloneSdk(
+        source: repoUrl,
+        versionDir: versionDir,
+        version: version,
+        channel: channel,
+        echoOutput: echoOutput,
+      );
+
+      return false;
     }
 
     await _cloneSdk(
@@ -410,6 +461,9 @@ class FlutterService extends ContextualService {
     required String repoUrl,
     required String? channel,
     required bool echoOutput,
+    required bool deferGitCacheMaintenance,
+    required void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
   }) async {
     if (version.isChannel) return;
 
@@ -426,6 +480,8 @@ class FlutterService extends ContextualService {
           repoUrl: repoUrl,
           channel: channel,
           echoOutput: echoOutput,
+          deferGitCacheMaintenance: deferGitCacheMaintenance,
+          onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
         );
       } else if (isReferenceError) {
         _throwReferenceLookupError(
@@ -544,9 +600,23 @@ class FlutterService extends ContextualService {
     return run('flutter', args, version);
   }
 
+  /// Runs Git-cache maintenance deferred by [install].
+  Future<void> performDeferredGitCacheMaintenance(
+    GitCacheMaintenance maintenance,
+  ) {
+    return switch (maintenance) {
+      GitCacheMaintenance.removeCorruptedMirror => _removeCorruptedGitCache(),
+      GitCacheMaintenance.refreshMirror => _refreshGitCacheAfterFallback(),
+    };
+  }
+
   Future<void> install(
     FlutterVersion version, {
     bool useGitCache = true,
+    bool gitCacheLockHeld = false,
+    bool deferGitCacheMaintenance = false,
+    void Function(GitCacheMaintenance maintenance)?
+        onGitCacheMaintenanceDeferred,
   }) async {
     final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
@@ -561,6 +631,9 @@ class FlutterService extends ContextualService {
         channel: channel,
         echoOutput: echoOutput,
         useGitCache: useGitCache,
+        gitCacheLockHeld: gitCacheLockHeld,
+        deferGitCacheMaintenance: deferGitCacheMaintenance,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
 
       final isGit = await GitDir.isGitDir(versionDir.path);
@@ -577,6 +650,8 @@ class FlutterService extends ContextualService {
         repoUrl: repoUrl,
         channel: channel,
         echoOutput: echoOutput,
+        deferGitCacheMaintenance: deferGitCacheMaintenance,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
     } catch (error, stackTrace) {
       await _handleCloneError(

@@ -8,9 +8,13 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/runner.dart';
 import 'package:fvm/src/services/cache_service.dart';
+import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/utils/constants.dart';
 import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/exceptions.dart';
+import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -46,6 +50,23 @@ final class _WorkerProcess {
       stdout: _stdout.toString(),
       stderr: _stderr.toString(),
     );
+  }
+}
+
+final class _CorruptCloneGitService extends GitService {
+  _CorruptCloneGitService(super.context);
+
+  @override
+  Future<void> ensureBareCacheIfPresent() async {}
+
+  @override
+  Future<void> updateLocalMirror() async {}
+
+  @override
+  Future<T> withPreparedGitCacheForCloneWhileGitCacheLocked<T>(
+    Future<T> Function() cloneAction,
+  ) async {
+    throw ProcessException('git', const ['clone'], 'bad object', 128);
   }
 }
 
@@ -95,6 +116,16 @@ Future<void> _waitForFile(File file) async {
   }
 }
 
+Future<void> _waitForLog(Logger logger, String message) async {
+  final deadline = DateTime.now().add(const Duration(seconds: 10));
+  while (!logger.outputs.any((output) => output.contains(message))) {
+    if (DateTime.now().isAfter(deadline)) {
+      fail('Timed out waiting for log message "$message".');
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 25));
+  }
+}
+
 Future<bool> _completesWithin(Future<Object?> future, Duration duration) async {
   final sentinel = Object();
   final result = await Future.any<Object?>([
@@ -114,23 +145,34 @@ void main() {
     late FvmContext context;
     final workers = <_WorkerProcess>[];
 
-    setUp(() async {
-      tempDir = createTempDir('fvm_cache_mutation_lock');
-      remote = await _createFakeFlutterRemote(tempDir);
-      fvmDir = path.join(tempDir.path, 'fvm');
-      gitCachePath = path.join(tempDir.path, 'cache.git');
-      context = FvmContext.create(
+    FvmContext createContext({
+      bool useGitCache = false,
+      bool skipInput = false,
+      String? flutterUrl,
+      Map<Type, Generator>? generators,
+    }) {
+      return FvmContext.create(
         isTest: true,
+        skipInput: skipInput,
         workingDirectoryOverride: tempDir.path,
         appConfigPath: path.join(tempDir.path, 'config', '.fvmrc'),
         configOverrides: AppConfig(
           cachePath: fvmDir,
           gitCachePath: gitCachePath,
-          flutterUrl: Uri.file(remote.path).toString(),
-          useGitCache: false,
+          flutterUrl: flutterUrl ?? Uri.file(remote.path).toString(),
+          useGitCache: useGitCache,
           disableUpdateCheck: true,
         ),
+        generatorsOverride: generators,
       );
+    }
+
+    setUp(() async {
+      tempDir = createTempDir('fvm_cache_mutation_lock');
+      remote = await _createFakeFlutterRemote(tempDir);
+      fvmDir = path.join(tempDir.path, 'fvm');
+      gitCachePath = path.join(tempDir.path, 'cache.git');
+      context = createContext();
     });
 
     tearDown(() async {
@@ -143,6 +185,8 @@ void main() {
       required String signalName,
       required String delay,
       String version = 'master',
+      String operation = 'install',
+      bool useGitCache = false,
     }) async {
       final workerPath = path.absolute(
         'test',
@@ -157,12 +201,14 @@ void main() {
       final process = await Process.start(Platform.resolvedExecutable, [
         '--packages=$packageConfig',
         workerPath,
+        operation,
         fvmDir,
         gitCachePath,
         Uri.file(remote.path).toString(),
         version,
         signalPath,
         delay,
+        '$useGitCache',
       ]);
       final worker = _WorkerProcess(process);
       workers.add(worker);
@@ -170,6 +216,318 @@ void main() {
 
       return worker;
     }
+
+    test(
+      'deferred corruption cleanup still runs when remote fallback fails',
+      () async {
+        final cacheDir = Directory(gitCachePath)..createSync(recursive: true);
+        File(path.join(cacheDir.path, 'corrupt-object'))
+            .writeAsStringSync('corrupt');
+        final missingRemote = path.join(tempDir.path, 'missing-remote.git');
+        final failingContext = createContext(
+          useGitCache: true,
+          flutterUrl: Uri.file(missingRemote).toString(),
+          generators: {
+            GitService: (context) => _CorruptCloneGitService(context),
+          },
+        );
+
+        await expectLater(
+          EnsureCacheWorkflow(failingContext).call(
+            FlutterVersion.parse('master'),
+            shouldInstall: true,
+          ),
+          throwsA(isA<AppException>()),
+        );
+
+        expect(
+          cacheDir.existsSync(),
+          isFalse,
+          reason:
+              'corruption cleanup must run after installation locks unwind, '
+              'even when the remote fallback also fails',
+        );
+      },
+    );
+
+    test(
+      'stale deferred corruption cleanup preserves a healthy replacement',
+      () async {
+        final gitCacheContext = createContext(useGitCache: true);
+        await gitCacheContext.get<GitService>().updateLocalMirror();
+
+        await gitCacheContext
+            .get<FlutterService>()
+            .performDeferredGitCacheMaintenance(
+              GitCacheMaintenance.removeCorruptedMirror,
+            );
+
+        expect(Directory(gitCachePath).existsSync(), isTrue);
+        expect(await isBareGitRepository(gitCachePath), isTrue);
+      },
+    );
+
+    test(
+      'git-cache clone acquires cache then Git then version locks',
+      () async {
+        final gitCacheContext = createContext(
+          useGitCache: true,
+          generators: {Logger: (context) => TestLogger(context)},
+        );
+        await gitCacheContext.get<GitService>().updateLocalMirror();
+
+        final releaseGitLock = path.join(tempDir.path, 'release-git-lock');
+        final gitLockHolder = await startWorker(
+          operation: 'hold-git-lock',
+          signalName: 'git-lock-held',
+          delay: 'wait:$releaseGitLock',
+          useGitCache: true,
+        );
+        await _waitForFile(File(path.join(tempDir.path, 'git-lock-held')));
+
+        final installer = await startWorker(
+          operation: 'install-without-preflight',
+          signalName: 'git-cache-installer',
+          delay: '0',
+          useGitCache: true,
+        );
+        await _waitForFile(
+          File(
+            path.join(tempDir.path, 'git-cache-installer.git-lock-attempt'),
+          ),
+        );
+
+        final releaseVersionProbe = path.join(
+          tempDir.path,
+          'release-version-probe',
+        );
+        final versionProbe = await startWorker(
+          operation: 'hold-version-lock',
+          signalName: 'version-probe-acquired',
+          delay: 'wait:$releaseVersionProbe',
+          useGitCache: true,
+        );
+        await _waitForFile(
+          File(path.join(tempDir.path, 'version-probe-acquired.attempting')),
+        );
+        final versionProbeAcquired = _waitForFile(
+          File(path.join(tempDir.path, 'version-probe-acquired')),
+        );
+
+        expect(
+          await _completesWithin(
+            versionProbeAcquired,
+            const Duration(seconds: 5),
+          ),
+          isTrue,
+          reason: 'the install must not acquire its version lock until after '
+              'the contended Git lock',
+        );
+        File(releaseVersionProbe).writeAsStringSync('go');
+        final probeResult = await versionProbe.wait();
+        expect(
+          probeResult.exitCode,
+          ExitCode.success.code,
+          reason: probeResult.stderr,
+        );
+
+        final releaseMaintenanceProbe = path.join(
+          tempDir.path,
+          'release-maintenance-probe',
+        );
+        final maintenanceProbe = await startWorker(
+          operation: 'hold-all-versions-lock',
+          signalName: 'maintenance-probe-acquired',
+          delay: 'wait:$releaseMaintenanceProbe',
+        );
+        await _waitForFile(
+          File(
+            path.join(tempDir.path, 'maintenance-probe-acquired.attempting'),
+          ),
+        );
+        final maintenanceProbeAcquired = _waitForFile(
+          File(path.join(tempDir.path, 'maintenance-probe-acquired')),
+        );
+        expect(
+          await _completesWithin(
+            maintenanceProbeAcquired,
+            const Duration(milliseconds: 500),
+          ),
+          isFalse,
+          reason: 'the install must hold its shared cache barrier before '
+              'waiting for the Git lock',
+        );
+
+        File(releaseGitLock).writeAsStringSync('go');
+        final gitHolderResult = await gitLockHolder.wait();
+        expect(
+          gitHolderResult.exitCode,
+          ExitCode.success.code,
+          reason: gitHolderResult.stderr,
+        );
+
+        final installResult = await installer.wait().timeout(
+              const Duration(seconds: 15),
+            );
+        expect(
+          installResult.exitCode,
+          ExitCode.success.code,
+          reason: 'stdout: ${installResult.stdout}\n'
+              'stderr: ${installResult.stderr}',
+        );
+
+        await maintenanceProbeAcquired;
+        File(releaseMaintenanceProbe).writeAsStringSync('go');
+        final maintenanceResult = await maintenanceProbe.wait();
+        expect(
+          maintenanceResult.exitCode,
+          ExitCode.success.code,
+          reason: maintenanceResult.stderr,
+        );
+      },
+    );
+
+    test(
+      'legacy git-cache migration waits for a dependent SDK version lock before deleting it',
+      () async {
+        final gitCacheContext = createContext(
+          useGitCache: true,
+          generators: {Logger: (context) => TestLogger(context)},
+        );
+        await runGitCommand([
+          'clone',
+          remote.path,
+          gitCachePath,
+        ]);
+
+        final dependentVersion = FlutterVersion.parse('broken');
+        final dependentDir = gitCacheContext
+            .get<CacheService>()
+            .getVersionCacheDir(dependentVersion);
+        final alternatesFile = File(
+          path.join(
+            dependentDir.path,
+            '.git',
+            'objects',
+            'info',
+            'alternates',
+          ),
+        )..createSync(recursive: true);
+        alternatesFile.writeAsStringSync(
+          '${path.join(gitCachePath, '.git', 'objects')}\n',
+        );
+        File(path.join(dependentDir.path, 'version'))
+            .writeAsStringSync('broken\n');
+
+        final releaseDependentLock = path.join(
+          tempDir.path,
+          'release-dependent-lock',
+        );
+        final dependentLockHolder = await startWorker(
+          operation: 'hold-version-lock',
+          signalName: 'dependent-lock-held',
+          delay: 'wait:$releaseDependentLock',
+          version: dependentVersion.name,
+          useGitCache: true,
+        );
+        await _waitForFile(
+          File(path.join(tempDir.path, 'dependent-lock-held')),
+        );
+
+        final migration =
+            gitCacheContext.get<GitService>().ensureBareCacheIfPresent();
+
+        await _waitForLog(
+          gitCacheContext.get<Logger>(),
+          'Waiting for SDK cache maintenance lock',
+        );
+        expect(dependentDir.existsSync(), isTrue);
+
+        File(releaseDependentLock).writeAsStringSync('go');
+        final holderResult = await dependentLockHolder.wait();
+        expect(
+          holderResult.exitCode,
+          ExitCode.success.code,
+          reason: holderResult.stderr,
+        );
+
+        await migration.timeout(const Duration(seconds: 15));
+        expect(dependentDir.existsSync(), isFalse);
+        expect(await isBareGitRepository(gitCachePath), isTrue);
+      },
+    );
+
+    test(
+      'version-mismatch move waits for the destination SDK version lock',
+      () async {
+        final mismatchContext = createContext(
+          generators: {
+            FlutterService: (context) => FakeFlutterService(context),
+            Logger: (context) => TestLogger(context)
+              ..setSelectResponse('How would you like to resolve this?', 0),
+          },
+        );
+        final expectedVersion = FlutterVersion.parse('3.10.0');
+        final actualVersion = FlutterVersion.parse('3.10.5');
+        final sourceDir = mismatchContext
+            .get<CacheService>()
+            .getVersionCacheDir(expectedVersion);
+        final targetDir = mismatchContext
+            .get<CacheService>()
+            .getVersionCacheDir(actualVersion);
+
+        FakeFlutterSdkFixture.install(
+          mismatchContext,
+          expectedVersion,
+          state: FakeFlutterSdkState.versionMismatch,
+          mismatchCachedVersion: actualVersion.name,
+        );
+        final sourceMarker = File(path.join(sourceDir.path, 'mismatch-marker'))
+          ..writeAsStringSync('move me');
+
+        final releaseTargetLock = path.join(
+          tempDir.path,
+          'release-mismatch-target-lock',
+        );
+        final targetLockHolder = await startWorker(
+          operation: 'hold-version-lock',
+          signalName: 'mismatch-target-lock-held',
+          delay: 'wait:$releaseTargetLock',
+          version: actualVersion.name,
+        );
+        await _waitForFile(
+          File(path.join(tempDir.path, 'mismatch-target-lock-held')),
+        );
+
+        final repair = EnsureCacheWorkflow(mismatchContext).call(
+          expectedVersion,
+          shouldInstall: true,
+        );
+
+        await _waitForLog(
+          mismatchContext.get<Logger>(),
+          'Waiting for SDK version cache lock',
+        );
+        expect(sourceMarker.existsSync(), isTrue);
+        expect(targetDir.existsSync(), isFalse);
+
+        File(releaseTargetLock).writeAsStringSync('go');
+        final holderResult = await targetLockHolder.wait();
+        expect(
+          holderResult.exitCode,
+          ExitCode.success.code,
+          reason: holderResult.stderr,
+        );
+
+        final result = await repair.timeout(const Duration(seconds: 15));
+        expect(result.name, expectedVersion.name);
+        expect(sourceDir.existsSync(), isTrue);
+        expect(
+          File(path.join(targetDir.path, 'mismatch-marker')).readAsStringSync(),
+          'move me',
+        );
+      },
+    );
 
     test(
       'two concurrent installs of one SDK both succeed with one valid checkout',

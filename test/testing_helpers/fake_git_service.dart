@@ -37,6 +37,16 @@ class FakeGitService extends GitService {
   }
 
   @override
+  Future<bool> removeLocalMirrorIfInvalid({
+    bool requireSuccess = false,
+    void Function(FileSystemException error)? onFinalError,
+  }) async {
+    removeLocalMirrorCalls++;
+
+    return true;
+  }
+
+  @override
   Future<String?> getBranch(String version) async {
     final flutterVersion = FlutterVersion.parse(version);
 

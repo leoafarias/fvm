@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:mason_logger/mason_logger.dart';
+import 'package:path/path.dart' as path;
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/flutter_version_model.dart';
@@ -12,14 +13,35 @@ import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
 import 'workflow.dart';
 
+sealed class _LockedCacheResult {
+  const _LockedCacheResult();
+}
+
+final class _CacheReady extends _LockedCacheResult {
+  final CacheFlutterVersion version;
+  final Progress? progress;
+
+  const _CacheReady(this.version, {this.progress});
+}
+
+final class _NeedsVersionLock extends _LockedCacheResult {
+  final FlutterVersion version;
+
+  const _NeedsVersionLock(this.version);
+}
+
 class EnsureCacheWorkflow extends Workflow {
   const EnsureCacheWorkflow(super.context);
 
-  Future<CacheFlutterVersion> _handleNonExecutable(
+  Future<_LockedCacheResult> _handleNonExecutable(
     CacheFlutterVersion version, {
     required bool shouldInstall,
     required bool force,
     required bool useGitCacheForInstall,
+    required bool gitCacheLockHeld,
+    required Set<String> lockedVersionPaths,
+    required void Function(GitCacheMaintenance maintenance)
+        onGitCacheMaintenanceDeferred,
     int retryCount = 0,
   }) async {
     const maxRetries = 2;
@@ -46,13 +68,20 @@ class EnsureCacheWorkflow extends Workflow {
       shouldInstall: shouldInstall,
       force: force,
       useGitCacheForInstall: useGitCacheForInstall,
+      gitCacheLockHeld: gitCacheLockHeld,
+      lockedVersionPaths: lockedVersionPaths,
+      onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       retryCount: retryCount + 1,
     );
   }
 
-  Future<CacheFlutterVersion> _handleVersionMismatch(
+  Future<_LockedCacheResult> _handleVersionMismatch(
     CacheFlutterVersion version, {
     required bool useGitCacheForInstall,
+    required bool gitCacheLockHeld,
+    required Set<String> lockedVersionPaths,
+    required void Function(GitCacheMaintenance maintenance)
+        onGitCacheMaintenanceDeferred,
   }) async {
     logger
       ..notice(
@@ -94,6 +123,28 @@ class EnsureCacheWorkflow extends Workflow {
       version,
       shouldInstall: true,
       useGitCacheForInstall: useGitCacheForInstall,
+      gitCacheLockHeld: gitCacheLockHeld,
+      lockedVersionPaths: lockedVersionPaths,
+      onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+    );
+  }
+
+  FlutterVersion _versionMismatchTarget(CacheFlutterVersion version) {
+    final sdkVersion = version.flutterSdkVersion;
+    if (sdkVersion == null) {
+      throw AppException(
+        'Cannot move to SDK version directory without a valid version',
+      );
+    }
+
+    return FlutterVersion.parse(
+      version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion,
+    );
+  }
+
+  String _versionLockIdentity(FlutterVersion version) {
+    return path.normalize(
+      get<CacheService>().getVersionCacheDir(version).path,
     );
   }
 
@@ -120,9 +171,13 @@ class EnsureCacheWorkflow extends Workflow {
     }
   }
 
-  Future<CacheFlutterVersion> _callLocked(
+  Future<_LockedCacheResult> _callLocked(
     FlutterVersion version, {
     required bool useGitCacheForInstall,
+    required bool gitCacheLockHeld,
+    required Set<String> lockedVersionPaths,
+    required void Function(GitCacheMaintenance maintenance)
+        onGitCacheMaintenanceDeferred,
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
@@ -142,6 +197,9 @@ class EnsureCacheWorkflow extends Workflow {
           shouldInstall: shouldInstall,
           force: force,
           useGitCacheForInstall: useGitCacheForInstall,
+          gitCacheLockHeld: gitCacheLockHeld,
+          lockedVersionPaths: lockedVersionPaths,
+          onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
           retryCount: retryCount,
         );
       }
@@ -149,9 +207,19 @@ class EnsureCacheWorkflow extends Workflow {
       if (integrity == CacheIntegrity.versionMismatch &&
           !force &&
           !version.isCustom) {
+        final targetVersion = _versionMismatchTarget(cacheVersion);
+        if (!lockedVersionPaths.contains(
+          _versionLockIdentity(targetVersion),
+        )) {
+          return _NeedsVersionLock(targetVersion);
+        }
+
         return _handleVersionMismatch(
           cacheVersion,
           useGitCacheForInstall: useGitCacheForInstall,
+          gitCacheLockHeld: gitCacheLockHeld,
+          lockedVersionPaths: lockedVersionPaths,
+          onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
         );
       } else if (force) {
         logger.warn(
@@ -170,7 +238,7 @@ class EnsureCacheWorkflow extends Workflow {
         );
       }
 
-      return cacheVersion;
+      return _CacheReady(cacheVersion);
     }
 
     if (version.isCustom) {
@@ -188,10 +256,12 @@ class EnsureCacheWorkflow extends Workflow {
       'Installing Flutter SDK: ${cyan.wrap(version.printFriendlyName)}',
     );
     try {
-      await flutterService.install(version, useGitCache: useGitCacheForInstall);
-
-      progress.complete(
-        'Flutter SDK: ${cyan.wrap(version.printFriendlyName)} installed!',
+      await flutterService.install(
+        version,
+        useGitCache: useGitCacheForInstall,
+        gitCacheLockHeld: gitCacheLockHeld,
+        deferGitCacheMaintenance: gitCacheLockHeld,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
       );
     } on Exception {
       progress.fail('Failed to install ${version.name}');
@@ -203,7 +273,128 @@ class EnsureCacheWorkflow extends Workflow {
       throw AppException('Could not verify cache version $version');
     }
 
-    return newCacheVersion;
+    return _CacheReady(newCacheVersion, progress: progress);
+  }
+
+  Future<_CacheReady> _callWithVersionLocks(
+    FlutterVersion version, {
+    required bool shouldInstall,
+    required bool force,
+    required int retryCount,
+    required bool useGitCacheForInstall,
+    required bool cacheMaintenanceLockHeld,
+    required bool gitCacheLockHeld,
+    required void Function(GitCacheMaintenance maintenance)
+        onGitCacheMaintenanceDeferred,
+  }) async {
+    var versionsToLock = [version];
+
+    while (true) {
+      final lockedVersionPaths =
+          versionsToLock.map(_versionLockIdentity).toSet();
+      Future<_LockedCacheResult> action() => _callLocked(
+            version,
+            shouldInstall: shouldInstall,
+            force: force,
+            retryCount: retryCount,
+            useGitCacheForInstall: useGitCacheForInstall,
+            gitCacheLockHeld: gitCacheLockHeld,
+            lockedVersionPaths: lockedVersionPaths,
+            onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          );
+      final result = cacheMaintenanceLockHeld
+          ? await withVersionCacheLocksWhileMaintenanceLocked(
+              context,
+              versionsToLock,
+              action,
+            )
+          : await withVersionCacheMutationLocks(
+              context,
+              versionsToLock,
+              action,
+            );
+
+      switch (result) {
+        case _CacheReady():
+          return result;
+        case _NeedsVersionLock(version: final additionalVersion):
+          versionsToLock = [version, additionalVersion];
+      }
+    }
+  }
+
+  Future<_CacheReady> _callWithMutationLocks(
+    FlutterVersion version, {
+    required bool shouldInstall,
+    required bool force,
+    required int retryCount,
+    required bool useGitCacheForInstall,
+    required void Function(GitCacheMaintenance maintenance)
+        onGitCacheMaintenanceDeferred,
+  }) {
+    final needsGitCacheLock = useGitCacheForInstall && !version.fromFork;
+    if (!needsGitCacheLock) {
+      return _callWithVersionLocks(
+        version,
+        shouldInstall: shouldInstall,
+        force: force,
+        retryCount: retryCount,
+        useGitCacheForInstall: useGitCacheForInstall,
+        cacheMaintenanceLockHeld: false,
+        gitCacheLockHeld: false,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+      );
+    }
+
+    return withSharedCacheMaintenanceLock(
+      context,
+      () => get<GitService>().withGitCacheLock(
+        () => _callWithVersionLocks(
+          version,
+          shouldInstall: shouldInstall,
+          force: force,
+          retryCount: retryCount,
+          useGitCacheForInstall: useGitCacheForInstall,
+          cacheMaintenanceLockHeld: true,
+          gitCacheLockHeld: true,
+          onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        ),
+      ),
+    );
+  }
+
+  Future<CacheFlutterVersion> _completeInstallation(
+    FlutterVersion requestedVersion,
+    _CacheReady result,
+    GitCacheMaintenance? maintenance,
+  ) async {
+    try {
+      if (maintenance != null) {
+        await get<FlutterService>().performDeferredGitCacheMaintenance(
+          maintenance,
+        );
+      }
+
+      result.progress?.complete(
+        'Flutter SDK: ${cyan.wrap(requestedVersion.printFriendlyName)} installed!',
+      );
+
+      return result.version;
+    } catch (error, stackTrace) {
+      result.progress?.fail('Failed to install ${requestedVersion.name}');
+      try {
+        await withVersionCacheMutationLock(
+          context,
+          requestedVersion,
+          () => get<CacheService>().remove(requestedVersion),
+        );
+      } catch (cleanupError) {
+        logger.debug(
+          'Cleanup after deferred Git cache maintenance failed: $cleanupError',
+        );
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
   }
 
   /// Ensures that the specified Flutter SDK version is cached locally.
@@ -242,16 +433,33 @@ class EnsureCacheWorkflow extends Workflow {
       }
     }
 
-    return withVersionCacheMutationLock(
-      context,
-      version,
-      () => _callLocked(
+    GitCacheMaintenance? deferredGitCacheMaintenance;
+    final _CacheReady result;
+    try {
+      result = await _callWithMutationLocks(
         version,
         shouldInstall: shouldInstall,
         force: force,
         retryCount: retryCount,
         useGitCacheForInstall: useGitCacheForInstall,
-      ),
+        onGitCacheMaintenanceDeferred: (maintenance) {
+          deferredGitCacheMaintenance = maintenance;
+        },
+      );
+    } catch (error, stackTrace) {
+      final maintenance = deferredGitCacheMaintenance;
+      if (maintenance != null) {
+        await get<FlutterService>().performDeferredGitCacheMaintenance(
+          maintenance,
+        );
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+
+    return _completeInstallation(
+      version,
+      result,
+      deferredGitCacheMaintenance,
     );
   }
 }
