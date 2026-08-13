@@ -2,6 +2,7 @@ import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 import 'package:mason_logger/mason_logger.dart';
 
+import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
@@ -89,7 +90,15 @@ class UseCommand extends BaseFvmCommand {
 
     // Get valid flutter version. Force version if is to be pinned.
     if (pinOption) {
-      const pinnableChannels = {'stable', 'beta', 'dev'};
+      // Rolling channels have no discrete release to pin (b85c2b19).
+      // Do not use FlutterChannel.values / kFlutterChannels as-is — both
+      // include main and master.
+      final pinnableChannels = {
+        for (final channel in FlutterChannel.values)
+          if (channel != FlutterChannel.main &&
+              channel != FlutterChannel.master)
+            channel.name,
+      };
       if (!pinnableChannels.contains(version)) {
         throw UsageException(
           'Cannot pin a version that is not in dev, beta or stable channels.',
