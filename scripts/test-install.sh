@@ -93,4 +93,46 @@ assert_contains "$sourced_output" "function"
 assert_not_contains "$sourced_output" "Fetching latest"
 
 echo ""
+echo "🧪 Testing pre-FVM-4 paths are left untouched"
+echo "=================================================="
+echo ""
+
+assert_legacy_path_preserved() {
+  local uninstall_command="$1"
+  local description="$2"
+  local test_root
+  local test_home
+  local install_base
+
+  test_root="$(mktemp -d 2>/dev/null || mktemp -d -t 'fvm_uninstall_test')"
+  test_home="${test_root}/home"
+  install_base="${test_home}/fvm-current"
+  mkdir -p "${test_home}/.fvm_flutter" "${install_base}/bin"
+  printf '%s\n' "preserve me" > "${test_home}/.fvm_flutter/marker"
+  printf '%s\n' "current install" > "${install_base}/bin/fvm"
+
+  HOME="${test_home}" FVM_INSTALL_DIR="${install_base}" \
+    bash -c "${uninstall_command}" >/dev/null 2>&1
+
+  if [ ! -f "${test_home}/.fvm_flutter/marker" ]; then
+    rm -rf "${test_root}"
+    fail "${description} removed the pre-FVM-4 directory"
+  fi
+  if [ -d "${install_base}/bin" ]; then
+    rm -rf "${test_root}"
+    fail "${description} did not remove the current install"
+  fi
+
+  rm -rf "${test_root}"
+  pass "${description} preserves pre-FVM-4 paths"
+}
+
+assert_legacy_path_preserved \
+  "./docs/public/install.sh --uninstall" \
+  "install.sh --uninstall"
+assert_legacy_path_preserved \
+  "./docs/public/uninstall.sh" \
+  "uninstall.sh"
+
+echo ""
 echo "✅ All tests passed!"

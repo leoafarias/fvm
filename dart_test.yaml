@@ -5,7 +5,6 @@ tags:
   network:
   git:
   integration:
-  migration:
 paths:
   - test/utils
   - test/src

@@ -2,14 +2,7 @@
 # =============================================================================
 # FVM Installer
 # =============================================================================
-# v2.0.0 (2025-12)
-#   - Install to ~/fvm/bin (no sudo required)
-#   - FVM_INSTALL_DIR for custom location
-#   - Auto-migrate from v1 (~/.fvm_flutter)
-#
-# v1.1.0
-#   - Install to ~/.fvm_flutter/bin with /usr/local/bin symlink
-#   - Auto-modify shell config
+# Installs to ~/fvm/bin by default, with FVM_INSTALL_DIR support.
 # =============================================================================
 # ---- installer metadata ----
 readonly INSTALLER_NAME="install_fvm.sh"
@@ -17,8 +10,6 @@ readonly INSTALLER_VERSION="2.0.0"
 
 # ---- config ----
 readonly REPO="leoafarias/fvm"
-readonly OLD_SYSTEM_PATH="/usr/local/bin/fvm"
-readonly OLD_USER_PATH="${HOME}/.fvm_flutter"
 
 UNINSTALL_ONLY=0
 REQUESTED_VERSION=""
@@ -232,71 +223,6 @@ is_ci() {
   [ -n "${JENKINS_URL:-}" ] || [ -n "${APPVEYOR:-}" ]
 }
 
-migrate_from_v1() {
-  local migrated=0
-
-  # 1. Remove old system symlink (v1 or v2 --system)
-  if [ -L "$OLD_SYSTEM_PATH" ]; then
-    echo "" >&2
-    echo "Detected old system installation at $OLD_SYSTEM_PATH" >&2
-
-    # Try to remove without sudo first (|| true prevents set -e exit)
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink" >&2
-      migrated=1
-    else
-      # Try with sudo if available
-      if command -v sudo >/dev/null 2>&1; then
-        sudo -n rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink (required sudo)" >&2
-          migrated=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH" >&2
-          echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (need sudo)" >&2
-        echo "  You may remove it manually: sudo rm $OLD_SYSTEM_PATH" >&2
-      fi
-    fi
-  elif [ -e "$OLD_SYSTEM_PATH" ]; then
-    echo "" >&2
-    echo "⚠ Detected existing non-symlink file at $OLD_SYSTEM_PATH" >&2
-    echo "  Not removing automatically. Remove it manually if it is an old FVM binary." >&2
-  fi
-
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
-  if [ -d "$OLD_USER_PATH" ]; then
-    echo "" >&2
-    echo "Detected old installation at $OLD_USER_PATH" >&2
-
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old user directory" >&2
-      migrated=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-      echo "  You may remove it manually: rm -rf $OLD_USER_PATH" >&2
-    fi
-  fi
-
-  # 3. Print PATH update notice if migrated
-  if [ "$migrated" -eq 1 ]; then
-    echo "" >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "⚠ ACTION REQUIRED: Update your shell PATH" >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-    echo "" >&2
-    echo "  Old: export PATH=\"\$HOME/.fvm_flutter/bin:\$PATH\"" >&2
-    echo "  New: export PATH=\"$BIN_DIR:\$PATH\"" >&2
-    echo "" >&2
-    echo "Your cached Flutter SDKs in $INSTALL_BASE/versions/ are preserved." >&2
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" >&2
-  fi
-}
-
 do_uninstall() {
   local removed_any=0
 
@@ -305,7 +231,7 @@ do_uninstall() {
 
   validate_install_base "$INSTALL_BASE"
 
-  # 1. Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
+  # Remove the install bin directory only (NOT entire install base - preserve cached SDKs)
   # Note: This removes the entire $BIN_DIR directory.
   if [ -d "$BIN_DIR" ]; then
     rm -rf "$BIN_DIR" 2>/dev/null || true
@@ -315,40 +241,6 @@ do_uninstall() {
     else
       echo "⚠ Could not remove $BIN_DIR (check permissions)" >&2
     fi
-  fi
-
-  # 2. Remove old user directory (~/.fvm_flutter) - safe to nuke entirely
-  if [ -d "$OLD_USER_PATH" ]; then
-    rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-    if [ ! -d "$OLD_USER_PATH" ]; then
-      echo "✓ Removed old directory: $OLD_USER_PATH" >&2
-      removed_any=1
-    else
-      echo "⚠ Could not remove $OLD_USER_PATH" >&2
-    fi
-  fi
-
-  # 3. Remove old system symlink (from v1/v2) — skip in CI (no legacy installs)
-  if ! is_ci && [ -L "$OLD_SYSTEM_PATH" ]; then
-    rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-    if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-      echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-      removed_any=1
-    else
-      if command -v sudo >/dev/null 2>&1; then
-        sudo -n rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-        if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-          echo "✓ Removed old system symlink: $OLD_SYSTEM_PATH" >&2
-          removed_any=1
-        else
-          echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-        fi
-      else
-        echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-      fi
-    fi
-  elif ! is_ci && [ -e "$OLD_SYSTEM_PATH" ]; then
-    echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
   fi
 
   if [ "$removed_any" -eq 0 ]; then
@@ -537,9 +429,6 @@ main() {
     cp -a "$FOUND" "${BIN_DIR}/fvm"
   fi
   chmod +x "${BIN_DIR}/fvm"
-
-  # ---- migrate from v1/v2 ----
-  migrate_from_v1
 
   # ---- verify and report ----
   echo ""

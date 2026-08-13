@@ -11,7 +11,7 @@ runs:
   using: "composite"
   steps:
     - name: Run tests
-      run: dart test -x "sdk || network || git || integration || migration" --coverage=coverage
+      run: dart test -x "sdk || network || git || integration" --coverage=coverage
       shell: bash
 
     - name: Run cache mutation lock tests

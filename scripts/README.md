@@ -12,7 +12,7 @@ Usage:
 curl -fsSL https://fvm.app/install.sh | bash
 
 # Install specific version
-curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 4.1.2
 
 # Uninstall FVM
 ./docs/public/install.sh --uninstall

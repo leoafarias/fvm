@@ -18,7 +18,7 @@ export PATH="$HOME/fvm/bin:$PATH"
 ### Install Specific Version
 
 ```bash
-curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
+curl -fsSL https://fvm.app/install.sh | bash -s 4.1.2
 ```
 
 ### Container/CI Installation

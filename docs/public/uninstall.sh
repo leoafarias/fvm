@@ -20,9 +20,6 @@ resolve_install_base() {
 INSTALL_BASE="$(resolve_install_base)"
 BIN_DIR="${INSTALL_BASE}/bin"
 
-OLD_USER_PATH="${HOME}/.fvm_flutter"
-OLD_SYSTEM_PATH="/usr/local/bin/fvm"
-
 validate_install_base() {
   local base="$1"
   local bin_dir="${base}/bin"
@@ -70,7 +67,7 @@ removed_any=0
 
 validate_install_base "$INSTALL_BASE"
 
-# 1. Remove install bin directory (NOT entire ~/fvm/)
+# Remove install bin directory (NOT entire ~/fvm/)
 if [ -d "$BIN_DIR" ]; then
   rm -rf "$BIN_DIR" 2>/dev/null || true
   if [ ! -d "$BIN_DIR" ]; then
@@ -79,33 +76,6 @@ if [ -d "$BIN_DIR" ]; then
   else
     echo "⚠ Could not remove $BIN_DIR" >&2
   fi
-fi
-
-# 2. Remove old user directory (safe to nuke - installer-controlled)
-if [ -d "$OLD_USER_PATH" ]; then
-  rm -rf "$OLD_USER_PATH" 2>/dev/null || true
-  if [ ! -d "$OLD_USER_PATH" ]; then
-    echo "✓ Removed $OLD_USER_PATH"
-    removed_any=1
-  else
-    echo "⚠ Could not remove $OLD_USER_PATH" >&2
-  fi
-fi
-
-# 3. Remove old system symlink
-if [ -L "$OLD_SYSTEM_PATH" ]; then
-  rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-  if [ -L "$OLD_SYSTEM_PATH" ] && command -v sudo >/dev/null 2>&1; then
-    sudo rm -f "$OLD_SYSTEM_PATH" 2>/dev/null || true
-  fi
-  if [ ! -e "$OLD_SYSTEM_PATH" ] && [ ! -L "$OLD_SYSTEM_PATH" ]; then
-    echo "✓ Removed $OLD_SYSTEM_PATH"
-    removed_any=1
-  else
-    echo "⚠ Could not remove $OLD_SYSTEM_PATH (may need sudo)" >&2
-  fi
-elif [ -e "$OLD_SYSTEM_PATH" ]; then
-  echo "⚠ Found existing non-symlink file at $OLD_SYSTEM_PATH; not removing automatically." >&2
 fi
 
 [ "$removed_any" -eq 0 ] && echo "No FVM installation found."

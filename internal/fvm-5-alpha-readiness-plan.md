@@ -281,7 +281,7 @@ net-negative in line count. Roughly 40 lines total.
     ```bash
     dart analyze --fatal-infos
     dcm analyze lib fvm_mcp/lib
-    dart test -x "sdk || network || git || integration || migration"
+    dart test -x "sdk || network || git || integration"
     ```
 17. Run the manual branch smoke test in
     `docs/pages/documentation/guides/manual-smoke-test.md`. Required here: the
@@ -309,8 +309,8 @@ net-negative in line count. Roughly 40 lines total.
     conscious decision taken together with D1, not a surprise. Also note that
     "green CI" on this branch is a stronger claim than on `main`: `test.yml`
     now runs `dart analyze --fatal-infos` (previously the invertase action with
-    `fatal-infos: false`) and gates `test-os`/`integration-test`/
-    `migration-test` on `test`.
+    `fatal-infos: false`) and gates `test-os`/`integration-test` on `test`.
+    The obsolete FVM 3 migration matrix is no longer part of the FVM 5 gate.
 
 ## Post-readiness hardening (2026-08-13)
 
@@ -366,7 +366,7 @@ changed.
   `releaseChannel` is hardcoded `null` for channel-type versions.
 - **CI enforcement tightened.** `test.yml`'s analyzer step went from the
   invertase action with `fatal-infos: false` to `dart analyze --fatal-infos`,
-  and `test-os`/`integration-test`/`migration-test` now all gate on `test`.
+  and `test-os`/`integration-test` now both gate on `test`.
 - **`fvm_mcp` was hardened beyond the compile fix** — unexpected tool stack
   traces now stay server-side instead of returning to MCP clients
   (`fvm_mcp/CHANGELOG.md:21`), and a 205-line end-to-end `server_test.dart`

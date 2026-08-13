@@ -42,7 +42,7 @@ jobs:
       - name: Test install.sh behavior (root warning, execution guard)
         run: ./scripts/test-install.sh
 
-  # Test install.sh (v2 - user-local only)
+  # Test the user-local installer
   test-install:
     name: Test install.sh - ${{ matrix.os }}
     needs: validate
@@ -84,15 +84,15 @@ jobs:
       - name: Test specific version installation
         run: |
           # Install specific version (use a known stable version)
-          ./docs/public/install.sh 3.2.1
+          ./docs/public/install.sh 4.1.2
 
           # Verify correct version installed
           export PATH="$HOME/fvm/bin:$PATH"
           fvm_version=$(fvm --version)
           echo "Installed version: $fvm_version"
 
-          # Version should contain 3.2.1
-          echo "$fvm_version" | grep -q "3.2.1" || { echo "❌ Wrong version installed"; exit 1; }
+          # Version should contain 4.1.2
+          echo "$fvm_version" | grep -q "4.1.2" || { echo "❌ Wrong version installed"; exit 1; }
           echo "✅ Specific version installation successful"
 
           # Clean up for next tests
@@ -122,83 +122,6 @@ jobs:
             exit 1
           fi
           echo "✅ Custom install location test successful"
-
-  # Test v1 to v2 migration
-  test-migration:
-    name: Test v1 to v2 Migration
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Simulate v1 installation
-        run: |
-          # Create old v1 structure
-          mkdir -p ~/.fvm_flutter/bin
-          echo '#!/bin/bash' > ~/.fvm_flutter/bin/fvm
-          echo 'echo "fake v1 fvm"' >> ~/.fvm_flutter/bin/fvm
-          chmod +x ~/.fvm_flutter/bin/fvm
-
-          # Create old system symlink (if sudo available)
-          if command -v sudo >/dev/null 2>&1; then
-            sudo ln -sf ~/.fvm_flutter/bin/fvm /usr/local/bin/fvm
-            echo "SYSTEM_SYMLINK_CREATED=true" >> $GITHUB_ENV
-            echo "✅ Created system symlink"
-          else
-            echo "SYSTEM_SYMLINK_CREATED=false" >> $GITHUB_ENV
-            echo "ℹ️ Skipping system symlink (no sudo)"
-          fi
-
-          # Create some cached SDKs (should survive)
-          mkdir -p ~/fvm/versions/stable
-          echo "cached sdk" > ~/fvm/versions/stable/marker
-
-          echo "✅ v1 simulation ready"
-          ls -la ~/.fvm_flutter/bin/
-          ls -la ~/fvm/versions/
-
-      - name: Run v3 installer (triggers migration)
-        run: |
-          ./docs/public/install.sh
-          echo "✅ Installation complete"
-
-      - name: Verify migration
-        run: |
-          # Old user directory should be removed
-          if [ -d ~/.fvm_flutter ]; then
-            echo "❌ Old ~/.fvm_flutter still exists"
-            exit 1
-          fi
-          echo "✅ Old user directory removed"
-
-          # Check system symlink only if it was created
-          if [ "$SYSTEM_SYMLINK_CREATED" = "true" ]; then
-            if [ -e /usr/local/bin/fvm ]; then
-              echo "⚠️ Old symlink still exists (may need sudo to remove)"
-            else
-              echo "✅ Old system symlink removed"
-            fi
-          else
-            echo "ℹ️ System symlink test skipped (wasn't created)"
-          fi
-
-          # New binary should exist
-          if [ ! -f ~/fvm/bin/fvm ]; then
-            echo "❌ New binary not found at ~/fvm/bin/fvm"
-            exit 1
-          fi
-          echo "✅ New binary installed at ~/fvm/bin/fvm"
-
-          # Cached SDKs should survive
-          if [ ! -f ~/fvm/versions/stable/marker ]; then
-            echo "❌ Cached SDKs were deleted!"
-            exit 1
-          fi
-          echo "✅ Cached SDKs preserved"
-
-          # Verify binary works
-          ~/fvm/bin/fvm --version
-          echo "✅ Migration test complete"
 
   # Test install.sh in container (root allowed with warning)
   test-container:

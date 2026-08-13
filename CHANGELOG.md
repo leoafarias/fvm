@@ -26,6 +26,7 @@
 * fix: honor the git-cache opt-out during SDK installation without preparing or refreshing the local mirror
 * fix: keep proxy and machine-readable command output clean by suppressing update checks and routing informational notices to stderr
 * fix: reject extra or invalid command operands before prompts, cache changes, or configuration mutations
+* chore: retire obsolete pre-FVM-4 installer migration paths and CI coverage while retaining FVM 4 cache-upgrade coverage
 
 ## 4.1.2
 
