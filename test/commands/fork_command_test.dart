@@ -185,5 +185,39 @@ void main() {
 
       expect(hasTestFork, isFalse);
     });
+
+    test('rejects invalid operand counts without changing configuration',
+        () async {
+      const existingFork = FlutterFork(
+        name: testForkName,
+        url: testForkUrl,
+      );
+      final invalidInvocations = <List<String>>[
+        ['fvm', 'fork', 'add'],
+        ['fvm', 'fork', 'add', 'newfork'],
+        ['fvm', 'fork', 'add', 'newfork', testForkUrl, 'extra'],
+        ['fvm', 'fork', 'remove'],
+        ['fvm', 'fork', 'remove', testForkName, 'extra'],
+        ['fvm', 'fork', 'list', 'extra'],
+      ];
+
+      for (final invocation in invalidInvocations) {
+        LocalAppConfig(forks: {existingFork}).save(
+          path: runner.context.appConfigPath,
+        );
+        final configBefore = File(
+          runner.context.appConfigPath,
+        ).readAsStringSync();
+
+        final exitCode = await runner.run(invocation);
+
+        expect(exitCode, ExitCode.usage.code, reason: invocation.join(' '));
+        expect(
+          File(runner.context.appConfigPath).readAsStringSync(),
+          configBefore,
+          reason: invocation.join(' '),
+        );
+      }
+    });
   });
 }

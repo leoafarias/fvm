@@ -56,6 +56,7 @@ class UseCommand extends BaseFvmCommand {
   }
   @override
   Future<int> run() async {
+    final versionArg = optionalSingleOperand;
     final forceOption = boolArg('force');
     final pinOption = boolArg('pin');
     final skipPubGet = boolArg('skip-pub-get');
@@ -70,22 +71,13 @@ class UseCommand extends BaseFvmCommand {
     final project = get<ProjectService>().findAncestor();
 
     // If no version was passed as argument check project config.
-    if (argResults!.rest.isEmpty) {
+    if (versionArg == null) {
       version = project.pinnedVersion?.nameWithAlias;
       final versions = await get<CacheService>().getAllVersions();
       // If no config found, ask which version to select.
       version ??= logger.cacheVersionSelector(versions);
     } else {
-      // Get version from first arg
-      version = firstRestArg;
-    }
-
-    // At this point, version could still be null, so we need to ensure it's not
-    if (version == null) {
-      throw UsageException(
-        'Please provide a Flutter SDK version or run in a project with FVM configured.',
-        usage,
-      );
+      version = versionArg;
     }
 
     // Get valid flutter version. Force version if is to be pinned.

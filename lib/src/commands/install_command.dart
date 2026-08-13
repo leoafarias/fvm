@@ -38,6 +38,7 @@ class InstallCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    final versionArg = optionalSingleOperand;
     final setup = boolArg('setup');
     final skipPubGet = boolArg('skip-pub-get');
 
@@ -47,7 +48,7 @@ class InstallCommand extends BaseFvmCommand {
     final validateFlutterVersion = ValidateFlutterVersionWorkflow(context);
 
     // If no version was passed as argument check project config.
-    if (argResults!.rest.isEmpty) {
+    if (versionArg == null) {
       final project = get<ProjectService>().findAncestor();
 
       final version = project.pinnedVersion;
@@ -78,9 +79,7 @@ class InstallCommand extends BaseFvmCommand {
 
       return ExitCode.success.code;
     }
-    final version = firstRestArg!;
-
-    final flutterVersion = validateFlutterVersion(version);
+    final flutterVersion = validateFlutterVersion(versionArg);
 
     final cacheVersion = await ensureCache(flutterVersion, shouldInstall: true);
 

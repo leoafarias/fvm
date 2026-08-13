@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:io/io.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -23,6 +27,8 @@ class _SelectCaptureLogger extends Logger {
   }
 }
 
+class _MockStdout extends Mock implements Stdout {}
+
 void main() {
   late Logger logger;
 
@@ -33,6 +39,26 @@ void main() {
     test('info adds message to outputs', () {
       logger.info("Test info message");
       expect(logger.outputs.contains("Test info message"), isTrue);
+    });
+
+    test('infoToStderr writes plain informational output only to stderr', () {
+      final stdout = _MockStdout();
+      final stderr = _MockStdout();
+      final context = TestFactory.context();
+
+      IOOverrides.runZoned(
+        () {
+          final logger = Logger(context);
+
+          logger.infoToStderr('Update available!');
+
+          verify(() => stderr.writeln('Update available!')).called(1);
+          verifyNever(() => stdout.writeln(any<dynamic>()));
+          expect(logger.outputs, contains('Update available!'));
+        },
+        stdout: () => stdout,
+        stderr: () => stderr,
+      );
     });
 
     test('success logs with success icon', () {
@@ -133,6 +159,25 @@ void main() {
         expect(result, equals('two'));
       },
     );
+
+    test('select with skipInput throws a usage ForceExit without a default',
+        () {
+      final context = TestFactory.context(skipInput: true);
+      final logger = Logger(context);
+
+      expect(
+        () => logger.select('Select an option', options: ['one', 'two']),
+        throwsA(
+          isA<ForceExit>()
+              .having(
+                (error) => error.exitCode,
+                'exitCode',
+                ExitCode.usage.code,
+              )
+              .having((error) => error.message, 'message', isEmpty),
+        ),
+      );
+    });
 
     test(
       'select with non-TTY stdin returns default selection when provided',

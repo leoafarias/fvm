@@ -39,6 +39,16 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   final FvmContext context;
   final FvmReleaseService _releaseService;
   static const _updateCheckInterval = Duration(days: 1);
+  static const _commandsWithoutUpdateChecks = {
+    'flutter',
+    'dart',
+    'exec',
+    'spawn',
+    'api',
+    HandleCompletionRequestCommand.commandName,
+    InstallCompletionFilesCommand.commandName,
+    UnistallCompletionFilesCommand.commandName,
+  };
 
   /// Constructor
   FvmCommandRunner(this.context, {FvmReleaseService? releaseService})
@@ -105,22 +115,22 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     );
 
     logger
-      ..info()
-      ..info(
+      ..infoToStderr()
+      ..infoToStderr(
         '$updateAvailableLabel $currentVersionLabel \u2192 $latestVersionLabel',
       )
-      ..info(latestRelease.url.toString())
-      ..info();
+      ..infoToStderr(latestRelease.url.toString())
+      ..infoToStderr();
 
     if (latestRelease.version.major <= currentVersion.major) return;
 
     logger
-      ..info(
+      ..infoToStderr(
         'FVM ${latestRelease.version.major} is distributed as a standalone '
         'CLI and is no longer published to pub.dev.',
       )
-      ..info('Migration guide: $kFvmMigrationGuideUrl')
-      ..info();
+      ..infoToStderr('Migration guide: $kFvmMigrationGuideUrl')
+      ..infoToStderr();
   }
 
   /// Checks for deprecated environment variables and shows warnings
@@ -175,7 +185,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
       return exitCode;
     } on ForceExit catch (e) {
-      logger.info(e.message);
+      if (e.message.isNotEmpty) logger.info(e.message);
 
       return e.exitCode;
     } on AppDetailedException catch (err, stackTrace) {
@@ -248,7 +258,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       ..debug('Argument information:');
 
     final commandName = topLevelResults.command?.name;
-    if (commandName == 'completion' || commandName == 'api') {
+    if (_commandsWithoutUpdateChecks.contains(commandName)) {
       return await super.runCommand(topLevelResults) ?? ExitCode.success.code;
     }
 

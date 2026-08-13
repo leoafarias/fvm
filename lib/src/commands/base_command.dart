@@ -60,7 +60,18 @@ extension CommandExtension on Command {
   /// Gets the parsed command-line option named [name] as `List<String>`.
   List<String?> stringsArg(String name) => (argResults![name] as List).cast();
 
-  /// Gets the first rest argument if available, otherwise returns null
-  String? get firstRestArg =>
-      argResults!.rest.isEmpty ? null : argResults!.rest[0];
+  /// Gets the single operand when present, otherwise returns null.
+  ///
+  /// Throws a [UsageException] when more than one operand was provided.
+  String? get optionalSingleOperand {
+    final operands = argResults!.rest;
+    if (operands.length > 1) {
+      throw UsageException(
+        'Expected at most one argument, but received ${operands.length}.',
+        usage,
+      );
+    }
+
+    return operands.firstOrNull;
+  }
 }

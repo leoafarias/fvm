@@ -12,13 +12,13 @@ import '../../testing_utils.dart';
 /// (`Logger.select` with no default selection). Before the fix, that entered
 /// `interact.Select`, whose `readKey()` loop spun forever on EOF when stdin was
 /// not a terminal — leaving a CPU-spinning orphan process. The fix makes
-/// `FvmContext.skipInput` true when stdin is not a TTY, so `select` exits with
-/// the usage code instead of blocking.
+/// `FvmContext.skipInput` true when stdin is not a TTY, so `select` throws a
+/// usage `ForceExit` that the runner returns instead of blocking.
 ///
 /// This is deliberately a black-box subprocess test: the failure mode is a
-/// *hang* (a wall-clock property a unit test cannot observe), and the no-default
-/// `select` path calls `exit()`, which tears down the VM and so cannot be
-/// exercised in-process.
+/// *hang* (a wall-clock property a unit test cannot observe), and this also
+/// proves `bin/main.dart` completes normal stream cleanup after the runner
+/// returns the usage status.
 void main() {
   test(
     'remove with no arg exits instead of hanging when stdin is not a TTY',

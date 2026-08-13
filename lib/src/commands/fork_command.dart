@@ -48,7 +48,7 @@ class ForkAddCommand extends BaseFvmCommand {
   @override
   Future<int> run() async {
     final args = argResults!.rest;
-    if (args.length < 2) {
+    if (args.length != 2) {
       throw UsageException('Usage: fvm fork add <alias> <url>', usage);
     }
     final alias = args[0];
@@ -114,8 +114,7 @@ class ForkRemoveCommand extends BaseFvmCommand {
   @override
   Future<int> run() async {
     final args = argResults!.rest;
-    if (args.isEmpty) {
-      // Show usage error
+    if (args.length != 1) {
       throw UsageException('Usage: fvm fork remove <alias>', usage);
     }
     final alias = args[0];
@@ -143,6 +142,10 @@ class ForkListCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    if (argResults!.rest.isNotEmpty) {
+      throw UsageException('Usage: fvm fork list', usage);
+    }
+
     final forks = LocalAppConfig.read(path: context.appConfigPath).forks;
     if (forks.isEmpty) {
       logger.info('No fork aliases found');

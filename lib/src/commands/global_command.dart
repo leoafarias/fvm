@@ -1,3 +1,4 @@
+import 'package:args/command_runner.dart';
 import 'package:mason_logger/mason_logger.dart';
 import 'package:tint/tint.dart';
 
@@ -39,6 +40,7 @@ class GlobalCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    final versionArg = optionalSingleOperand;
     final unlinkArg = boolArg('unlink');
     final forceArg = boolArg('force');
 
@@ -47,6 +49,13 @@ class GlobalCommand extends BaseFvmCommand {
     final cacheService = get<CacheService>();
 
     if (unlinkArg) {
+      if (versionArg != null) {
+        throw UsageException(
+          'Option --unlink does not accept a version argument.',
+          usage,
+        );
+      }
+
       final globalVersion = cacheService.getGlobal();
 
       if (globalVersion == null) {
@@ -66,12 +75,11 @@ class GlobalCommand extends BaseFvmCommand {
     String? version;
 
     // Show chooser if not version is provided
-    if (argResults!.rest.isEmpty) {
+    if (versionArg == null) {
       final versions = await cacheService.getAllVersions();
       version = logger.cacheVersionSelector(versions);
     } else {
-      // Get first arg if it was not empty
-      version = argResults!.rest[0];
+      version = versionArg;
     }
 
     final flutterVersion = validateFlutterVersion(version);

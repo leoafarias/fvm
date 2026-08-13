@@ -1,13 +1,18 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:cli_completion/cli_completion.dart';
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/commands/api_command.dart';
 import 'package:fvm/src/runner.dart';
+import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/fvm_release_service.dart';
+import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/version.dart';
 import 'package:io/io.dart';
+import 'package:mason_logger/mason_logger.dart' as mason;
+import 'package:mocktail/mocktail.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -54,6 +59,44 @@ void main() {
     expect(result, ExitCode.success.code);
     expect(configFile.readAsStringSync(), malformedConfig);
     expect(releaseService.calls, 0);
+  });
+
+  group('ForceExit handling', () {
+    test('returns usage without logging an empty selector message', () async {
+      late _InfoTrackingLogger logger;
+      final context = TestFactory.fastContext(
+        skipInput: true,
+        generators: {
+          Logger: (context) => logger = _InfoTrackingLogger(context),
+        },
+      );
+      final runner = TestCommandRunner(context);
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('stable'),
+      );
+
+      final result = await runner.run(['fvm', 'remove']);
+
+      expect(result, ExitCode.usage.code);
+      expect(logger.infoMessages, isEmpty);
+    });
+
+    test('returns the code and logs a non-empty message', () async {
+      late _InfoTrackingLogger logger;
+      final context = TestFactory.fastContext(
+        generators: {
+          Logger: (context) => logger = _InfoTrackingLogger(context),
+        },
+      );
+      final runner = FvmCommandRunner(context)
+        ..addCommand(_ForceExitCommand('stop', 42));
+
+      final result = await runner.run([_ForceExitCommand.commandName]);
+
+      expect(result, 42);
+      expect(logger.infoMessages, ['stop']);
+    });
   });
 
   group('GitHub release update checks', () {
@@ -216,6 +259,145 @@ void main() {
       expect(result, 42);
       expect(fixture.service.calls, 0);
     });
+
+    for (final invocation in <List<String>>[
+      ['flutter', '--version'],
+      ['dart', '--version'],
+      ['exec', 'flutter', '--version'],
+      ['spawn', 'stable', '--version'],
+    ]) {
+      test('does not check for ${invocation.first} proxy commands', () async {
+        final fixture = _proxyUpdateFixture();
+
+        final result = await fixture.runner.run(invocation);
+
+        expect(result, ExitCode.success.code);
+        expect(fixture.service.calls, 0);
+      });
+    }
+
+    for (final commandName in <String>[
+      HandleCompletionRequestCommand.commandName,
+      InstallCompletionFilesCommand.commandName,
+      UnistallCompletionFilesCommand.commandName,
+    ]) {
+      test('does not check for $commandName completion commands', () async {
+        final fixture = _updateFixture(
+          release: _release(_nextPatchVersion),
+        );
+        final runner = _SafeCompletionRunner(
+          fixture.context,
+          fixture.service,
+        );
+
+        final result = await runner.run([commandName]);
+
+        expect(result, ExitCode.success.code);
+        expect(fixture.service.calls, 0);
+      });
+    }
+
+    test('writes update notices to stderr instead of stdout', () async {
+      final fixture = _updateFixture(
+        release: _release(_nextPatchVersion),
+        logLevel: Level.info,
+      );
+      final stdout = _MockStdout();
+      final stderr = _MockStdout();
+      when(() => stdout.supportsAnsiEscapes).thenReturn(false);
+      when(() => stderr.supportsAnsiEscapes).thenReturn(false);
+
+      final result = await IOOverrides.runZoned(
+        () => fixture.runner.run(['--version']),
+        stdout: () => stdout,
+        stderr: () => stderr,
+      );
+      final stdoutLines = verify(
+        () => stdout.writeln(captureAny<dynamic>()),
+      ).captured.join('\n');
+      final stderrLines = verify(
+        () => stderr.writeln(captureAny<dynamic>()),
+      ).captured.join('\n');
+
+      expect(result, ExitCode.success.code);
+      expect(stdoutLines, contains(packageVersion));
+      expect(stdoutLines, isNot(contains('Update available!')));
+      expect(stderrLines, contains('Update available!'));
+      expect(stderrLines, contains(_release(_nextPatchVersion).url.toString()));
+    });
+
+    test('preserves proxy stdout byte-for-byte without a release request',
+        () async {
+      const expectedOutput = 'proxy line one\nproxy final byte';
+      final tempDir = createTempDir('runner-proxy-output');
+      final workspace = Directory(p.join(tempDir.path, 'workspace'))
+        ..createSync(recursive: true);
+      final home = Directory(p.join(tempDir.path, 'home'))
+        ..createSync(recursive: true);
+      final cachePath = p.join(tempDir.path, 'cache');
+      final flutterExecutable = File(
+        p.join(
+          cachePath,
+          'versions',
+          'stable',
+          'bin',
+          flutterExecFileName,
+        ),
+      )..createSync(recursive: true);
+      final payloadScript = File(p.join(tempDir.path, 'proxy_payload.dart'))
+        ..writeAsStringSync(
+          "import 'dart:io';\n"
+          "void main() => stdout.write('proxy line one\\nproxy final byte');\n",
+        );
+      flutterExecutable.writeAsStringSync(
+        Platform.isWindows
+            ? '@echo off\r\n'
+                '"${Platform.resolvedExecutable}" "${payloadScript.path}"'
+            : '#!/bin/sh\n'
+                'exec "${Platform.resolvedExecutable}" "${payloadScript.path}"',
+      );
+      if (!Platform.isWindows) {
+        final chmod =
+            await Process.run('chmod', ['+x', flutterExecutable.path]);
+        expect(chmod.exitCode, ExitCode.success.code);
+      }
+      Directory(
+        p.join(
+          cachePath,
+          'versions',
+          'stable',
+          'bin',
+          'cache',
+          'dart-sdk',
+          'bin',
+        ),
+      ).createSync(recursive: true);
+      File(
+        p.join(cachePath, 'versions', 'stable', 'version'),
+      ).writeAsStringSync('3.10.5');
+      createProjectConfig(const ProjectConfig(flutter: 'stable'), workspace);
+      final releaseMarker = File(p.join(tempDir.path, 'release-requested'));
+      final environment = Map<String, String>.from(Platform.environment)
+        ..remove('FVM_HOME')
+        ..['HOME'] = home.path
+        ..['FVM_CACHE_PATH'] = cachePath
+        ..['FVM_GIT_CACHE_PATH'] = p.join(tempDir.path, 'cache.git')
+        ..['FVM_TEST_APP_CONFIG'] = p.join(tempDir.path, 'config.json')
+        ..['FVM_TEST_WORKSPACE'] = workspace.path
+        ..['FVM_TEST_RELEASE_MARKER'] = releaseMarker.path;
+
+      final result = await Process.run(
+        Platform.resolvedExecutable,
+        ['test/fixtures/proxy_runner_worker.dart'],
+        environment: environment,
+        workingDirectory: Directory.current.path,
+      );
+
+      expect(result.exitCode, ExitCode.success.code);
+      expect(result.stdout, expectedOutput);
+      expect(result.stderr, isEmpty);
+      expect(releaseMarker.existsSync(), isFalse);
+    });
   });
 
   group('TestCommandRunner.runOrThrow', () {
@@ -258,6 +440,24 @@ class _ExitCommand extends Command<int> {
   int run() => code;
 }
 
+class _ForceExitCommand extends Command<int> {
+  static const commandName = 'force-exit';
+
+  final String message;
+  final int code;
+
+  _ForceExitCommand(this.message, this.code);
+
+  @override
+  String get description => 'Throws a ForceExit for testing';
+
+  @override
+  String get name => commandName;
+
+  @override
+  Never run() => throw ForceExit(message, code);
+}
+
 final _currentVersion = Version.parse(packageVersion);
 
 final _nextPatchVersion = Version(
@@ -277,10 +477,12 @@ _UpdateFixture _updateFixture({
   Object? failure,
   bool? disableUpdateCheck,
   DateTime? lastUpdateCheck,
+  Level? logLevel,
 }) {
   final context = _updateContext(
     disableUpdateCheck: disableUpdateCheck,
     lastUpdateCheck: lastUpdateCheck,
+    logLevel: logLevel,
   );
   final service = _TrackingReleaseService(
     context,
@@ -298,6 +500,7 @@ _UpdateFixture _updateFixture({
 FvmContext _updateContext({
   bool? disableUpdateCheck,
   DateTime? lastUpdateCheck,
+  Level? logLevel,
 }) {
   final tempDir = createTempDir('runner-update-check');
   final configFile = File(p.join(tempDir.path, 'config.json'));
@@ -311,7 +514,47 @@ FvmContext _updateContext({
   return FvmContext.create(
     appConfigPath: configFile.path,
     workingDirectoryOverride: tempDir.path,
+    logLevel: logLevel,
     isTest: true,
+  );
+}
+
+_UpdateFixture _proxyUpdateFixture() {
+  final tempDir = createTempDir('runner-proxy-update-check');
+  final workspace = Directory(p.join(tempDir.path, 'workspace'))
+    ..createSync(recursive: true);
+  final configFile = File(p.join(tempDir.path, 'config.json'));
+  final context = FvmContext.create(
+    configOverrides: AppConfig(
+      cachePath: p.join(tempDir.path, 'cache'),
+      gitCachePath: p.join(tempDir.path, 'cache.git'),
+      disableUpdateCheck: false,
+      useGitCache: true,
+    ),
+    appConfigPath: configFile.path,
+    workingDirectoryOverride: workspace.path,
+    generatorsOverride: {
+      FlutterService: FakeFlutterService.new,
+      FlutterReleaseClient: FakeFlutterReleaseClient.new,
+      GitService: FakeGitService.new,
+    },
+    isTest: true,
+  );
+  createProjectConfig(const ProjectConfig(flutter: 'stable'), workspace);
+  FakeFlutterSdkFixture.install(
+    context,
+    FlutterVersion.parse('stable'),
+    state: FakeFlutterSdkState.installedSetup,
+  );
+  final service = _TrackingReleaseService(
+    context,
+    release: _release(_nextPatchVersion),
+  );
+
+  return (
+    context: context,
+    service: service,
+    runner: FvmCommandRunner(context, releaseService: service),
   );
 }
 
@@ -340,5 +583,31 @@ class _TrackingReleaseService extends FvmReleaseService {
     if (failure != null) throw failure;
 
     return release!;
+  }
+}
+
+class _SafeCompletionRunner extends FvmCommandRunner {
+  _SafeCompletionRunner(
+    FvmContext context,
+    FvmReleaseService releaseService,
+  ) : super(context, releaseService: releaseService);
+
+  @override
+  void tryInstallCompletionFiles(mason.Level level, {bool force = false}) {}
+
+  @override
+  void tryUninstallCompletionFiles(mason.Level level) {}
+}
+
+class _MockStdout extends Mock implements Stdout {}
+
+class _InfoTrackingLogger extends Logger {
+  final infoMessages = <String>[];
+
+  _InfoTrackingLogger(super.context);
+
+  @override
+  void info([String message = '']) {
+    infoMessages.add(message);
   }
 }

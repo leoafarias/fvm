@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:args/command_runner.dart';
 import 'package:io/io.dart';
 
 import '../models/flutter_version_model.dart';
@@ -29,9 +30,17 @@ class RemoveCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
+    final versionArg = optionalSingleOperand;
     final all = boolArg('all');
 
     if (all) {
+      if (versionArg != null) {
+        throw UsageException(
+          'Option --all does not accept a version argument.',
+          usage,
+        );
+      }
+
       final confirmRemoval = logger.confirm(
         'Are you sure you want to remove all versions in your $kPackageName cache ?',
         defaultValue: false,
@@ -54,11 +63,11 @@ class RemoveCommand extends BaseFvmCommand {
 
     String? version;
 
-    if (argResults!.rest.isEmpty) {
+    if (versionArg == null) {
       final versions = await get<CacheService>().getAllVersions();
       version = logger.cacheVersionSelector(versions);
     } else {
-      version = argResults!.rest[0];
+      version = versionArg;
     }
     final validVersion = FlutterVersion.parse(version);
     final cacheService = get<CacheService>();

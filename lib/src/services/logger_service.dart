@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dart_console/dart_console.dart';
 import 'package:interact/interact.dart' as interact;
 import 'package:mason_logger/mason_logger.dart' as mason;
@@ -49,6 +47,11 @@ class Logger extends ContextualService {
 
   void info([String message = '']) {
     _logger.info(message);
+    _outputs.add(message);
+  }
+
+  void infoToStderr([String message = '']) {
+    _logger.err(message, style: _logger.theme.info);
     _outputs.add(message);
   }
 
@@ -136,7 +139,7 @@ class Logger extends ContextualService {
       if (defaultSelection != null) {
         return options[defaultSelection];
       }
-      exit(mason.ExitCode.usage.code);
+      throw ForceExit('', mason.ExitCode.usage.code);
     }
 
     final selection = interact.Select(
