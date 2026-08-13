@@ -117,19 +117,19 @@ final class _DeferredMaintenanceFailureFlutterService
 final class _TrackingInvalidMirrorGitService extends GitService {
   _TrackingInvalidMirrorGitService(super.context);
 
-  int invalidMirrorChecks = 0;
+  int completedInvalidMirrorRevalidations = 0;
 
   @override
   Future<bool> removeLocalMirrorIfInvalid({
     bool requireSuccess = false,
     void Function(FileSystemException error)? onFinalError,
-  }) {
-    invalidMirrorChecks++;
-
-    return super.removeLocalMirrorIfInvalid(
+  }) async {
+    final wasInvalid = await super.removeLocalMirrorIfInvalid(
       requireSuccess: requireSuccess,
       onFinalError: onFinalError,
     );
+    completedInvalidMirrorRevalidations++;
+    return wasInvalid;
   }
 }
 
@@ -387,7 +387,7 @@ void main() {
               GitCacheMaintenance.removeCorruptedMirror,
             );
 
-        expect(gitService.invalidMirrorChecks, 1);
+        expect(gitService.completedInvalidMirrorRevalidations, 1);
       },
     );
 
@@ -801,31 +801,34 @@ void main() {
       expect(success.exitCode, 0, reason: success.stderr);
     });
 
-    test('locks release when the holding child process is terminated',
-        () async {
-      if (Platform.isWindows) return;
+    test(
+      'locks release when the holding child process is terminated',
+      () async {
+        final holding = await startWorker(
+          signalName: 'holding-ready',
+          delay: 'wait:${path.join(tempDir.path, 'never-release')}',
+        );
+        await _waitForFile(File(path.join(tempDir.path, 'holding-ready')));
 
-      final holding = await startWorker(
-        signalName: 'holding-ready',
-        delay: 'wait:${path.join(tempDir.path, 'never-release')}',
-      );
-      await _waitForFile(File(path.join(tempDir.path, 'holding-ready')));
+        final next = await startWorker(
+          signalName: 'next-ready',
+          delay: '0',
+        );
+        final nextResult = next.wait();
+        await _waitForFile(
+          File(path.join(tempDir.path, 'next-ready.version-lock-wait')),
+        );
 
-      final next = await startWorker(
-        signalName: 'next-ready',
-        delay: '0',
-      );
-      final nextResult = next.wait();
-      await _waitForFile(
-        File(path.join(tempDir.path, 'next-ready.version-lock-wait')),
-      );
+        expect(holding.process.kill(ProcessSignal.sigkill), isTrue);
+        final killed = await holding.wait();
+        expect(killed.exitCode, isNot(0));
 
-      expect(holding.process.kill(ProcessSignal.sigkill), isTrue);
-      final killed = await holding.wait();
-      expect(killed.exitCode, isNot(0));
-
-      final success = await nextResult.timeout(const Duration(seconds: 10));
-      expect(success.exitCode, 0, reason: success.stderr);
-    });
+        final success = await nextResult.timeout(const Duration(seconds: 10));
+        expect(success.exitCode, 0, reason: success.stderr);
+      },
+      skip: Platform.isWindows
+          ? 'SIGKILL process-termination semantics are POSIX-only.'
+          : false,
+    );
   });
 }
