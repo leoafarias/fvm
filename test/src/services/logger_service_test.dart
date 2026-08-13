@@ -45,6 +45,8 @@ void main() {
       final stdout = _MockStdout();
       final stderr = _MockStdout();
       final context = TestFactory.context();
+      when(() => stdout.supportsAnsiEscapes).thenReturn(false);
+      when(() => stderr.supportsAnsiEscapes).thenReturn(false);
 
       IOOverrides.runZoned(
         () {
@@ -55,6 +57,33 @@ void main() {
           verify(() => stderr.writeln('Update available!')).called(1);
           verifyNever(() => stdout.writeln(any<dynamic>()));
           expect(logger.outputs, contains('Update available!'));
+        },
+        stdout: () => stdout,
+        stderr: () => stderr,
+      );
+    });
+
+    test('warnToStderr writes warning output only to stderr', () {
+      final stdout = _MockStdout();
+      final stderr = _MockStdout();
+      final context = TestFactory.context();
+      when(() => stdout.supportsAnsiEscapes).thenReturn(false);
+      when(() => stderr.supportsAnsiEscapes).thenReturn(false);
+
+      IOOverrides.runZoned(
+        () {
+          final logger = Logger(context);
+
+          logger.warnToStderr('Deprecated environment variables detected:');
+
+          verify(
+            () => stderr.writeln('Deprecated environment variables detected:'),
+          ).called(1);
+          verifyNever(() => stdout.writeln(any<dynamic>()));
+          expect(
+            logger.outputs,
+            contains('Deprecated environment variables detected:'),
+          );
         },
         stdout: () => stdout,
         stderr: () => stderr,

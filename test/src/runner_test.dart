@@ -483,11 +483,15 @@ void main() {
 
             expect(result.exitCode, ExitCode.success.code);
             expect(result.stdout, expectedOutput);
-            if (invocation.first == 'spawn') {
-              expect(result.stderr, 'Spawning version "stable"...\n');
-            } else {
-              expect(result.stderr, isEmpty);
-            }
+            final diagnostic = diagnosticEnvironment.name == 'deprecated'
+                ? 'Deprecated environment variables detected:\n'
+                    '  FVM_GIT_CACHE → Use FVM_FLUTTER_URL instead\n'
+                : 'Legacy environment variables detected:\n'
+                    '  FVM_HOME → Consider using FVM_CACHE_PATH\n';
+            final expectedStderr = invocation.first == 'spawn'
+                ? '$diagnostic\nSpawning version "stable"...\n'
+                : '$diagnostic\n';
+            expect(result.stderr, expectedStderr);
             expect(releaseMarker.existsSync(), isFalse);
           },
         );

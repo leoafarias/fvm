@@ -68,6 +68,11 @@ class Logger extends ContextualService {
     _outputs.add(message);
   }
 
+  void warnToStderr([String message = '']) {
+    _logger.err(message, style: _logger.theme.warn);
+    _outputs.add(message);
+  }
+
   void err([String message = '']) {
     _logger.err(message);
     _outputs.add(message);

@@ -50,13 +50,10 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     UnistallCompletionFilesCommand.commandName,
   };
   static const _commandsWithoutEnvironmentDiagnostics = {
-    'flutter',
-    'dart',
-    'exec',
-    'spawn',
     'api',
     HandleCompletionRequestCommand.commandName,
   };
+  static const _proxyCommands = {'flutter', 'dart', 'exec', 'spawn'};
 
   /// Constructor
   FvmCommandRunner(this.context, {FvmReleaseService? releaseService})
@@ -142,21 +139,37 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   }
 
   /// Checks for deprecated environment variables and shows warnings
-  void _checkDeprecatedEnvironmentVariables() {
+  void _checkDeprecatedEnvironmentVariables({bool writeToStderr = false}) {
     // Check for deprecated variables (no longer supported)
     final deprecatedVars = {'FVM_GIT_CACHE': 'FVM_FLUTTER_URL'};
 
     // Check for legacy variables (still supported but discouraged)
     final legacyVars = {'FVM_HOME': 'FVM_CACHE_PATH'};
 
+    void warn(String message) {
+      if (writeToStderr) {
+        logger.warnToStderr(message);
+      } else {
+        logger.warn(message);
+      }
+    }
+
+    void info(String message) {
+      if (writeToStderr) {
+        logger.infoToStderr(message);
+      } else {
+        logger.info(message);
+      }
+    }
+
     var hasDeprecated = false;
     for (final entry in deprecatedVars.entries) {
       if (context.environment.containsKey(entry.key)) {
         if (!hasDeprecated) {
-          logger.warn('Deprecated environment variables detected:');
+          warn('Deprecated environment variables detected:');
           hasDeprecated = true;
         }
-        logger.warn('  ${entry.key} → Use ${entry.value} instead');
+        warn('  ${entry.key} → Use ${entry.value} instead');
       }
     }
 
@@ -165,14 +178,14 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
       if (context.environment.containsKey(entry.key) &&
           !context.environment.containsKey(entry.value)) {
         if (!hasLegacy) {
-          logger.info('Legacy environment variables detected:');
+          info('Legacy environment variables detected:');
           hasLegacy = true;
         }
-        logger.info('  ${entry.key} → Consider using ${entry.value}');
+        info('  ${entry.key} → Consider using ${entry.value}');
       }
     }
 
-    if (hasDeprecated || hasLegacy) logger.info('');
+    if (hasDeprecated || hasLegacy) info('');
   }
 
   Logger get logger => context.get();
@@ -272,6 +285,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     final skipEnvironmentDiagnostics =
         _commandsWithoutEnvironmentDiagnostics.contains(commandName) &&
             topLevelResults['version'] != true;
+    final routeEnvironmentDiagnosticsToStderr =
+        _proxyCommands.contains(commandName) &&
+            topLevelResults['version'] != true;
 
     final hasTopLevelOption = topLevelResults.options.any(
       (e) => topLevelResults.wasParsed(e),
@@ -310,7 +326,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     // Check for deprecated environment variables
     if (!skipEnvironmentDiagnostics) {
-      _checkDeprecatedEnvironmentVariables();
+      _checkDeprecatedEnvironmentVariables(
+        writeToStderr: routeEnvironmentDiagnosticsToStderr,
+      );
     }
 
     final updateCheck = skipUpdateCheck
