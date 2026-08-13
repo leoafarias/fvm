@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
@@ -46,7 +47,7 @@ void main() {
             await _runMachineOutputCommand('api', environment.values);
 
         expect(result.exitCode, ExitCode.success.code);
-        expect(result.stdout, '{"result":"api"}\n');
+        expect(result.stdout, '{"result":"api"}${Platform.lineTerminator}');
         expect(result.stderr, isEmpty);
       },
     );
@@ -479,6 +480,8 @@ void main() {
               ['test/fixtures/proxy_runner_worker.dart', ...invocation],
               environment: environment,
               workingDirectory: Directory.current.path,
+              stdoutEncoding: utf8,
+              stderrEncoding: utf8,
             );
 
             expect(result.exitCode, ExitCode.success.code);
@@ -730,6 +733,8 @@ Future<ProcessResult> _runMachineOutputCommand(
     ['test/fixtures/runner_machine_output_worker.dart', command],
     environment: environment,
     workingDirectory: Directory.current.path,
+    stdoutEncoding: utf8,
+    stderrEncoding: utf8,
   );
 }
 
