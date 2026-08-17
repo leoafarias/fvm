@@ -39,12 +39,17 @@ final threeVersions = <TuiVersionItem>[
 final oneVersion = <TuiVersionItem>[threeVersions.first];
 
 final class FakeTuiPorts {
-  FakeTuiPorts({List<List<TuiVersionItem>>? versionBatches, this.versionsError})
-    : versionBatches = versionBatches ?? [threeVersions];
+  FakeTuiPorts({
+    List<List<TuiVersionItem>>? versionBatches,
+    List<TuiReleaseItem>? releaseItems,
+    this.versionsError,
+  }) : versionBatches = versionBatches ?? [threeVersions],
+       releaseItems = releaseItems ?? const [];
 
   factory FakeTuiPorts.withReadyData() => FakeTuiPorts();
 
   List<List<TuiVersionItem>> versionBatches;
+  final List<TuiReleaseItem> releaseItems;
   final Object? versionsError;
   int versionsLoadCount = 0;
   int releasesLoadCount = 0;
@@ -90,7 +95,7 @@ final class _FakeReleasesRepository implements ReleasesRepository {
   @override
   Future<List<TuiReleaseItem>> load() async {
     ports.releasesLoadCount += 1;
-    return const [];
+    return ports.releaseItems;
   }
 }
 
