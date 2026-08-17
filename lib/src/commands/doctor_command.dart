@@ -1,21 +1,13 @@
-import 'dart:io';
-
 import 'package:dart_console/dart_console.dart';
 import 'package:io/io.dart';
-import 'package:jsonc/jsonc.dart';
-import 'package:path/path.dart' as p;
+import 'package:path/path.dart' as path;
 
-import '../models/config_model.dart';
-import '../models/project_model.dart';
-import '../services/project_service.dart';
+import '../services/doctor_service.dart';
 import '../utils/console_utils.dart';
 import '../utils/constants.dart';
-import '../utils/convert_posix_path.dart';
-import '../utils/exceptions.dart';
-import '../utils/which.dart';
 import 'base_command.dart';
 
-/// Information about fvm environment
+/// Information about fvm environment.
 class DoctorCommand extends BaseFvmCommand {
   @override
   final name = 'doctor';
@@ -28,247 +20,87 @@ class DoctorCommand extends BaseFvmCommand {
 
   DoctorCommand(super.context);
 
-  String _dartToolGeneratorVersion(Project project) {
-    try {
-      return project.dartToolGeneratorVersion ?? 'Not available';
-    } on FormatException {
-      return 'Invalid .dart_tool/package_config.json';
-    } on TypeError {
-      return 'Invalid .dart_tool/package_config.json';
-    }
-  }
-
-  void _printProject(Project project) {
+  void _printProject(DoctorReportSection section) {
     logger.info('Project:');
-    final table = createTable(['Project', project.name]);
-
-    table.insertRows([
-      ['Directory', project.path],
-      ['Active Flavor', project.activeFlavor ?? 'None'],
-      ['Is Flutter Project', project.isFlutter ? 'Yes' : 'No'],
-      ['Dart Tool Generator Version', _dartToolGeneratorVersion(project)],
-      ['Dart tool version', project.dartToolVersion ?? 'Not available'],
-      ['.gitignore Present', project.gitIgnoreFile.existsSync() ? 'Yes' : 'No'],
-      ['Config Present', project.hasConfig ? 'Yes' : 'No'],
-      ['Pinned Version', project.pinnedVersion ?? 'None'],
-      ['Config path', p.relative(project.configPath, from: project.path)],
-      [
-        'Local cache dir',
-        p.relative(project.localVersionsCachePath, from: project.path),
-      ],
-      [
-        'Version symlink',
-        p.relative(project.localVersionSymlinkPath, from: project.path),
-      ],
-    ]);
-
-    logger.write(table.toString());
-    logger.info();
+    final directory = section.checks
+        .firstWhere((check) => check.label == 'Directory')
+        .value;
+    final table = createTable(['Project', path.basename(directory)]);
+    table.insertRows(
+      section.checks.map((check) => [check.label, check.value]).toList(),
+    );
+    logger
+      ..write(table.toString())
+      ..info();
   }
 
-  void _printIdeLinks(Project project) {
+  void _printIdeLinks(DoctorReportSection section) {
     logger
       ..info()
       ..info('IDEs:');
-    final table = createTable(['IDEs', 'Value']);
-
-    table.insertRow([kVsCode]);
-    // Check for .vscode directory
-    final vscodeDir = Directory(p.join(project.path, '.vscode'));
-    final settingsPath = p.join(vscodeDir.path, 'settings.json');
-    final settingsFile = File(settingsPath);
-
-    if (vscodeDir.existsSync()) {
-      if (settingsFile.existsSync()) {
-        try {
-          final settings = jsonc.decode(settingsFile.readAsStringSync());
-
-          final expectedSdkPath = resolveVsCodeSdkPath(
-            project.localVersionSymlinkPath,
-            privilegedAccess: context.privilegedAccess,
-            relativeTo: project.path,
-          );
-
-          final sdkPath = settings['dart.flutterSdkPath'];
-          final matchesPinnedVersion = sdkPath is String &&
-              convertToPosixPath(sdkPath) == expectedSdkPath;
-
-          table.insertRow(['dart.flutterSdkPath', sdkPath ?? 'None']);
-          table.insertRow(['Matches pinned version:', matchesPinnedVersion]);
-        } on FormatException catch (_, stackTrace) {
-          logger
-            ..err('Error parsing Vscode settings.json on ${settingsFile.path}')
-            ..err(
-              'Please use a tool like https://jsonformatter.curiousconcept.com to validate and fix it',
-            );
-          Error.throwWithStackTrace(
-            AppException(
-              'Could not get vscode settings, please check settings.json',
-            ),
-            stackTrace,
-          );
-        }
-      } else {
-        table.insertRow([kVsCode, 'Found .vscode, but no settings.json']);
-      }
-    } else {
-      table.insertRow([kVsCode, 'No .vscode directory found']);
+    final table = createTable(['IDEs', 'Value'])..insertRow([kVsCode]);
+    final vscodeChecks = section.checks.where(
+      (check) => check.label.startsWith('VS Code'),
+    );
+    for (final check in vscodeChecks) {
+      table.insertRow([_ideLabel(check.label), check.value]);
     }
 
     table.insertRow([kIntelliJ]);
-
-    // Get local properties file within flutter project
-    final localPropertiesFile = File(
-      p.join(project.path, 'android', 'local.properties'),
+    final intellijChecks = section.checks.where(
+      (check) => check.label.startsWith('IntelliJ'),
     );
-
-    if (localPropertiesFile.existsSync()) {
-      String? sdkPath;
-      final localProperties = localPropertiesFile.readAsLinesSync();
-      final sdkLines = localProperties.where(
-        (line) => line.startsWith('flutter.sdk'),
-      );
-
-      if (sdkLines.isEmpty) {
-        table.insertRow([
-          kIntelliJ,
-          'flutter.sdk not found in local.properties',
-        ]);
-      } else {
-        final parts = sdkLines.first.split('=');
-        if (parts.length < 2) {
-          table.insertRow([
-            'flutter.sdk',
-            'Malformed entry in local.properties',
-          ]);
-        } else {
-          final sdkValue = parts.sublist(1).join('=').trim();
-          if (sdkValue.isEmpty) {
-            table.insertRow([
-              'flutter.sdk',
-              'Malformed entry in local.properties',
-            ]);
-          } else {
-            sdkPath = sdkValue;
-            table.insertRow(['flutter.sdk', sdkPath]);
-          }
-        }
-
-        // Only attempt to resolve symlink if version is pinned
-        if (project.pinnedVersion == null) {
-          table.insertRow([
-            'Matches pinned version:',
-            'No version pinned - run "fvm use <version>"',
-          ]);
-        } else {
-          final cacheVersionLink = Link(project.localVersionSymlinkPath);
-
-          if (!cacheVersionLink.existsSync()) {
-            table.insertRow([
-              'Matches pinned version:',
-              'Version symlink missing - run "fvm use ${project.pinnedVersion?.nameWithAlias}"',
-            ]);
-          } else {
-            try {
-              final resolvedLink = cacheVersionLink.resolveSymbolicLinksSync();
-              table.insertRow([
-                'Matches pinned version:',
-                sdkPath == null
-                    ? 'Cannot validate - malformed flutter.sdk entry'
-                    : sdkPath == resolvedLink,
-              ]);
-            } on FileSystemException catch (_) {
-              table.insertRow([
-                'Matches pinned version:',
-                'Cannot resolve symlink - run "fvm use ${project.pinnedVersion?.nameWithAlias}"',
-              ]);
-            }
-          }
-        }
-      }
-    } else {
-      table.insertRow([
-        kIntelliJ,
-        'No local.properties file found in android directory',
-      ]);
+    for (final check in intellijChecks) {
+      table.insertRow([_ideLabel(check.label), check.value]);
     }
-
-    final dartSdkFile = File(
-      p.join(project.path, '.idea', 'libraries', 'Dart_SDK.xml'),
-    );
-
-    if (dartSdkFile.existsSync()) {
-      final dartSdk = dartSdkFile.readAsStringSync();
-      final containsUserHome = dartSdk.contains(r'$USER_HOME$');
-      final containsProjectDir = dartSdk.contains(r'$PROJECT_DIR$');
-      final containsSymLinkName = dartSdk.contains('.fvm/flutter_sdk');
-
-      if (!containsUserHome && containsProjectDir) {
-        if (containsSymLinkName) {
-          table.insertRow([
-            'SDK Path',
-            'SDK Path points to project directory. $kIntelliJ will dynamically switch SDK when using "fvm use"',
-          ]);
-        } else {
-          table.insertRow([
-            'SDK Path',
-            'SDK Path points to project directory, but does not use the flutter_sdk symlink. Using "fvm use" will break the project. Please consult documentation.',
-          ]);
-        }
-      } else {
-        table.insertRow([
-          'SDK Path',
-          'SDK Path does not point to the project directory. "fvm use" will not make $kIntelliJ switch Flutter version. Please consult documentation.',
-        ]);
-      }
-    } else {
-      table.insertRow([kIntelliJ, 'No .idea folder found']);
-    }
-
     logger.write(table.toString());
   }
 
-  void _printEnvironmentDetails(String? flutterWhich, String? dartWhich) {
+  String _ideLabel(String label) => switch (label) {
+    'VS Code' => kVsCode,
+    'VS Code settings' => 'settings.json',
+    'VS Code SDK path' => 'dart.flutterSdkPath',
+    'VS Code pinned version' ||
+    'IntelliJ pinned version' => 'Matches pinned version:',
+    'IntelliJ flutter.sdk' => 'flutter.sdk',
+    'IntelliJ SDK Path' => 'SDK Path',
+    _ => label,
+  };
+
+  void _printEnvironmentDetails(
+    DoctorReportSection environment,
+    DoctorReportSection runtime,
+  ) {
     logger
       ..info()
       ..info('Environment:');
 
-    var table = createTable(['Environment Variables', 'Value']);
+    final environmentTable = createTable(['Environment Variables', 'Value'])
+      ..insertRows(
+        environment.checks.map((check) => [check.label, check.value]).toList(),
+      );
+    logger.write(environmentTable.toString());
 
-    table.insertRows([
-      ['Flutter PATH', flutterWhich ?? 'Not found'],
-      ['Dart PATH', dartWhich ?? 'Not found'],
-    ]);
-
-    for (var key in ConfigOptions.values) {
-      table.insertRow([key.envKey, context.environment[key.envKey] ?? 'N/A']);
-    }
-
-    logger.write(table.toString());
-
-    table = createTable(['Platform', 'Value']);
-
-    table.insertRows([
-      ['OS', '${Platform.operatingSystem} ${Platform.operatingSystemVersion}'],
-      ['Dart Locale', Platform.localeName],
-      ['Dart runtime', Platform.version],
-    ]);
-
-    logger.write(table.toString());
+    final runtimeTable = createTable(['Platform', 'Value'])
+      ..insertRows(
+        runtime.checks.map((check) => [check.label, check.value]).toList(),
+      );
+    logger.write(runtimeTable.toString());
   }
 
   @override
   Future<int> run() async {
-    final project = get<ProjectService>().findAncestor();
-    final flutterWhich = which('flutter');
-    final dartWhich = which('dart');
+    final report = get<DoctorService>().inspect();
+    final sections = {
+      for (final section in report.sections) section.name: section,
+    };
 
     console.writeLine('FVM Doctor:');
     console.writeLine('-' * console.windowWidth);
 
-    _printProject(project);
-    _printIdeLinks(project);
-    _printEnvironmentDetails(flutterWhich, dartWhich);
+    _printProject(sections['Project']!);
+    _printIdeLinks(sections['IDEs']!);
+    _printEnvironmentDetails(sections['Environment']!, sections['Runtime']!);
 
     return ExitCode.success.code;
   }

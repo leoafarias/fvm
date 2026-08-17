@@ -9,6 +9,7 @@ import '../models/log_level_model.dart';
 import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/doctor_service.dart';
 import '../services/flutter_service.dart';
 import '../services/fvm_release_service.dart';
 import '../services/git_service.dart';
@@ -88,8 +89,8 @@ class FvmContext with FvmContextMappable {
     this.stdinHasTerminal = true,
     this.isTest = false,
     this.logLevel = Level.info,
-  })  : _skipInput = skipInput,
-        _generators = generators;
+  }) : _skipInput = skipInput,
+       _generators = generators;
 
   static FvmContext create({
     String? debugLabel,
@@ -248,6 +249,7 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   CacheService: CacheService.new,
+  DoctorService: DoctorService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
   FvmReleaseService: FvmReleaseService.new,
   FlutterService: FlutterService.new,
