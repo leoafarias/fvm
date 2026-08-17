@@ -2,6 +2,9 @@ import 'dart:io';
 
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
+import 'package:fvm/src/services/install_observer.dart';
+import 'package:fvm/src/services/process_service.dart';
+import 'package:fvm/src/utils/git_clone_progress_tracker.dart';
 
 import 'fake_flutter_release_client.dart';
 import 'fake_flutter_sdk_fixture.dart';
@@ -12,6 +15,7 @@ class FakeFlutterService extends FlutterService {
 
   final installedVersions = <FlutterVersion>[];
   final installUseGitCacheValues = <bool>[];
+  final installCancellations = <ProcessCancellation?>[];
   final setupVersions = <String>[];
   final pubGetCalls = <({String version, bool offline})>[];
   final runCalls = <({String cmd, List<String> args, String version})>[];
@@ -39,9 +43,23 @@ class FakeFlutterService extends FlutterService {
     FlutterVersion version, {
     bool useGitCache = true,
     void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    void Function(GitCloneProgress)? onGitProgress,
+    ProcessCancellation? cancellation,
+    InstallObserver? observer,
   }) async {
     installUseGitCacheValues.add(useGitCache);
+    installCancellations.add(cancellation);
+    if (cancellation?.isCancelled ?? false) {
+      throw const OperationCanceledException();
+    }
+
+    observer?.onUpdate((
+      phase: InstallObservationPhase.cloneSdk,
+      status: InstallObservationStatus.active,
+      detail: 'Cloning Flutter SDK',
+      gitProgress: null,
+    ));
 
     final key = version.nameWithAlias;
     final failure = installFailures[key] ?? installFailures[version.name];
@@ -61,6 +79,25 @@ class FakeFlutterService extends FlutterService {
       version,
       state: FakeFlutterSdkState.installedNotSetup,
     );
+    observer
+      ?..onUpdate((
+        phase: InstallObservationPhase.cloneSdk,
+        status: InstallObservationStatus.complete,
+        detail: 'Flutter SDK cloned',
+        gitProgress: null,
+      ))
+      ..onUpdate((
+        phase: InstallObservationPhase.validateRevision,
+        status: InstallObservationStatus.active,
+        detail: 'Validating Flutter revision',
+        gitProgress: null,
+      ))
+      ..onUpdate((
+        phase: InstallObservationPhase.validateRevision,
+        status: InstallObservationStatus.complete,
+        detail: 'Flutter revision validated',
+        gitProgress: null,
+      ));
   }
 
   bool _canInstall(FlutterVersion version) {

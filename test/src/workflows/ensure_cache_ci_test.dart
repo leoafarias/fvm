@@ -1,7 +1,9 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
+import 'package:fvm/src/services/install_observer.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -20,6 +22,48 @@ void main() {
   });
 
   group('EnsureCache CI/CD Behavior', () {
+    test(
+      'forwards exact install boundaries and explicit cache policy',
+      () async {
+        final context = TestFactory.fastContext();
+        final flutterService =
+            context.get<FlutterService>() as FakeFlutterService;
+        final updates = <InstallObservation>[];
+        final cancellation = ProcessCancellation();
+
+        await EnsureCacheWorkflow(context).call(
+          FlutterVersion.parse('3.10.0'),
+          shouldInstall: true,
+          useGitCache: false,
+          observer: CallbackInstallObserver(updates.add),
+          cancellation: cancellation,
+        );
+
+        expect(flutterService.installUseGitCacheValues, [false]);
+        expect(flutterService.installCancellations, [same(cancellation)]);
+        expect(updates.map((update) => (update.phase, update.status)), [
+          (
+            InstallObservationPhase.acquireLock,
+            InstallObservationStatus.active,
+          ),
+          (
+            InstallObservationPhase.acquireLock,
+            InstallObservationStatus.complete,
+          ),
+          (InstallObservationPhase.cloneSdk, InstallObservationStatus.active),
+          (InstallObservationPhase.cloneSdk, InstallObservationStatus.complete),
+          (
+            InstallObservationPhase.validateRevision,
+            InstallObservationStatus.active,
+          ),
+          (
+            InstallObservationPhase.validateRevision,
+            InstallObservationStatus.complete,
+          ),
+        ]);
+      },
+    );
+
     test('version mismatch in CI mode auto-selects safe default', () async {
       final context = TestFactory.fastContext(
         environmentOverrides: {'CI': 'true'},
@@ -82,10 +126,9 @@ void main() {
       );
 
       final version = FlutterVersion.parse('3.10.0');
-      final result = await EnsureCacheWorkflow(context).call(
-        version,
-        shouldInstall: true,
-      );
+      final result = await EnsureCacheWorkflow(
+        context,
+      ).call(version, shouldInstall: true);
 
       expect(result.name, equals('3.10.0'));
       expect(gitService.ensureBareCacheCalls, 1);
@@ -116,10 +159,9 @@ void main() {
       final flutterService =
           context.get<FlutterService>() as FakeFlutterService;
 
-      final result = await EnsureCacheWorkflow(context).call(
-        FlutterVersion.parse('3.10.0'),
-        shouldInstall: true,
-      );
+      final result = await EnsureCacheWorkflow(
+        context,
+      ).call(FlutterVersion.parse('3.10.0'), shouldInstall: true);
 
       expect(result.name, '3.10.0');
       expect(gitService.ensureBareCacheCalls, 0);

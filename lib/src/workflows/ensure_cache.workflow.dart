@@ -8,7 +8,9 @@ import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
+import '../services/install_observer.dart';
 import '../services/logger_service.dart';
+import '../services/process_service.dart';
 import '../utils/cache_mutation_lock.dart';
 import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
@@ -42,6 +44,8 @@ class EnsureCacheWorkflow extends Workflow {
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
     onGitCacheMaintenanceDeferred,
+    required InstallObserver? observer,
+    required ProcessCancellation? cancellation,
     int retryCount = 0,
   }) async {
     const maxRetries = 2;
@@ -70,6 +74,8 @@ class EnsureCacheWorkflow extends Workflow {
       useGitCacheForInstall: useGitCacheForInstall,
       lockedVersionPaths: lockedVersionPaths,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+      observer: observer,
+      cancellation: cancellation,
       retryCount: retryCount + 1,
     );
   }
@@ -80,6 +86,8 @@ class EnsureCacheWorkflow extends Workflow {
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
     onGitCacheMaintenanceDeferred,
+    required InstallObserver? observer,
+    required ProcessCancellation? cancellation,
   }) async {
     logger
       ..notice(
@@ -123,6 +131,8 @@ class EnsureCacheWorkflow extends Workflow {
       useGitCacheForInstall: useGitCacheForInstall,
       lockedVersionPaths: lockedVersionPaths,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+      observer: observer,
+      cancellation: cancellation,
     );
   }
 
@@ -172,6 +182,8 @@ class EnsureCacheWorkflow extends Workflow {
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
     onGitCacheMaintenanceDeferred,
+    required InstallObserver? observer,
+    required ProcessCancellation? cancellation,
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
@@ -193,6 +205,8 @@ class EnsureCacheWorkflow extends Workflow {
           useGitCacheForInstall: useGitCacheForInstall,
           lockedVersionPaths: lockedVersionPaths,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          observer: observer,
+          cancellation: cancellation,
           retryCount: retryCount,
         );
       }
@@ -210,6 +224,8 @@ class EnsureCacheWorkflow extends Workflow {
           useGitCacheForInstall: useGitCacheForInstall,
           lockedVersionPaths: lockedVersionPaths,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          observer: observer,
+          cancellation: cancellation,
         );
       } else if (force) {
         logger.warn(
@@ -250,6 +266,8 @@ class EnsureCacheWorkflow extends Workflow {
         version,
         useGitCache: useGitCacheForInstall,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        observer: observer,
+        cancellation: cancellation,
       );
     } on Exception {
       progress.fail('Failed to install ${version.name}');
@@ -273,6 +291,9 @@ class EnsureCacheWorkflow extends Workflow {
     required bool cacheMaintenanceLockHeld,
     required void Function(GitCacheMaintenance maintenance)
     onGitCacheMaintenanceDeferred,
+    required InstallObserver? observer,
+    required ProcessCancellation? cancellation,
+    required void Function() onLockAcquired,
   }) async {
     var versionsToLock = [version];
 
@@ -280,15 +301,22 @@ class EnsureCacheWorkflow extends Workflow {
       final lockedVersionPaths = versionsToLock
           .map(_versionLockIdentity)
           .toSet();
-      Future<_LockedCacheResult> action() => _callLocked(
-        version,
-        shouldInstall: shouldInstall,
-        force: force,
-        retryCount: retryCount,
-        useGitCacheForInstall: useGitCacheForInstall,
-        lockedVersionPaths: lockedVersionPaths,
-        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
-      );
+      Future<_LockedCacheResult> action() {
+        onLockAcquired();
+
+        return _callLocked(
+          version,
+          shouldInstall: shouldInstall,
+          force: force,
+          retryCount: retryCount,
+          useGitCacheForInstall: useGitCacheForInstall,
+          lockedVersionPaths: lockedVersionPaths,
+          onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          observer: observer,
+          cancellation: cancellation,
+        );
+      }
+
       final result = cacheMaintenanceLockHeld
           ? await withVersionCacheLocksWhileMaintenanceLocked(
               context,
@@ -318,6 +346,9 @@ class EnsureCacheWorkflow extends Workflow {
     required bool useGitCacheForInstall,
     required void Function(GitCacheMaintenance maintenance)
     onGitCacheMaintenanceDeferred,
+    required InstallObserver? observer,
+    required ProcessCancellation? cancellation,
+    required void Function() onLockAcquired,
   }) {
     final needsGitCacheLock = useGitCacheForInstall && !version.fromFork;
     if (!needsGitCacheLock) {
@@ -329,6 +360,9 @@ class EnsureCacheWorkflow extends Workflow {
         useGitCacheForInstall: useGitCacheForInstall,
         cacheMaintenanceLockHeld: false,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        observer: observer,
+        cancellation: cancellation,
+        onLockAcquired: onLockAcquired,
       );
     }
 
@@ -343,6 +377,9 @@ class EnsureCacheWorkflow extends Workflow {
           useGitCacheForInstall: useGitCacheForInstall,
           cacheMaintenanceLockHeld: true,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          observer: observer,
+          cancellation: cancellation,
+          onLockAcquired: onLockAcquired,
         ),
       ),
     );
@@ -379,6 +416,9 @@ class EnsureCacheWorkflow extends Workflow {
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
+    bool? useGitCache,
+    InstallObserver? observer,
+    ProcessCancellation? cancellation,
   }) async {
     _validateContext();
     _validateGit();
@@ -389,9 +429,9 @@ class EnsureCacheWorkflow extends Workflow {
 
     // Migrate legacy non-bare caches if present.
     // Refresh the git cache only when we actually need to clone (cache miss).
-    final useGitCache = context.gitCache;
-    var useGitCacheForInstall = useGitCache;
-    if (useGitCache && !version.fromFork) {
+    final shouldUseGitCache = useGitCache ?? context.gitCache;
+    var useGitCacheForInstall = shouldUseGitCache;
+    if (shouldUseGitCache && !version.fromFork) {
       try {
         await gitService.ensureBareCacheIfPresent();
         cacheVersion = cacheService.getVersion(version);
@@ -409,6 +449,24 @@ class EnsureCacheWorkflow extends Workflow {
 
     GitCacheMaintenance? deferredGitCacheMaintenance;
     final _CacheReady result;
+    observer?.onUpdate((
+      phase: InstallObservationPhase.acquireLock,
+      status: InstallObservationStatus.active,
+      detail: 'Waiting for cache mutation lock',
+      gitProgress: null,
+    ));
+    var reportedLockAcquired = false;
+    void onLockAcquired() {
+      if (reportedLockAcquired) return;
+      reportedLockAcquired = true;
+      observer?.onUpdate((
+        phase: InstallObservationPhase.acquireLock,
+        status: InstallObservationStatus.complete,
+        detail: 'Cache mutation lock acquired',
+        gitProgress: null,
+      ));
+    }
+
     try {
       result = await _callWithMutationLocks(
         version,
@@ -419,6 +477,9 @@ class EnsureCacheWorkflow extends Workflow {
         onGitCacheMaintenanceDeferred: (maintenance) {
           deferredGitCacheMaintenance = maintenance;
         },
+        observer: observer,
+        cancellation: cancellation,
+        onLockAcquired: onLockAcquired,
       );
     } catch (error, stackTrace) {
       final maintenance = deferredGitCacheMaintenance;

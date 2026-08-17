@@ -8,6 +8,7 @@ final class FvmTuiController extends ChangeNotifier {
   final FvmTuiDependencies _dependencies;
   final Set<FvmTuiRoute> _loadedRoutes = {};
   final List<String> _operationEvents = [];
+  final List<InstallProgressUpdate> _installProgress = [];
 
   FvmTuiRoute _route = FvmTuiRoute.versions;
   bool _loading = false;
@@ -93,6 +94,8 @@ final class FvmTuiController extends ChangeNotifier {
   int get selectedReleaseIndex => _selectedReleaseIndex;
   bool get hasActiveInstall => _activeInstallCancellation != null;
   List<String> get operationEvents => List.unmodifiable(_operationEvents);
+  List<InstallProgressUpdate> get installProgress =>
+      List.unmodifiable(_installProgress);
 
   Future<void> initialize() => _loadRoute(_route);
 
@@ -111,6 +114,38 @@ final class FvmTuiController extends ChangeNotifier {
     _operationEvents.clear();
     await _dependencies.useVersion.run(request, _recordOperationEvent);
   });
+
+  Future<void> install(InstallRequest request) async {
+    if (_disposed || _activeInstallCancellation != null) return;
+    final cancellation = _dependencies.install.createCancellation();
+    _activeInstallCancellation = cancellation;
+    _operationEvents.clear();
+    _installProgress.clear();
+    _error = null;
+    _route = FvmTuiRoute.installProgress;
+    notifyListeners();
+    try {
+      await _dependencies.install.run(
+        request,
+        cancellation: cancellation,
+        onProgress: (update) {
+          if (_disposed) return;
+          _installProgress.add(update);
+          if (update.detail.isNotEmpty) {
+            _operationEvents.add(update.detail);
+          }
+          notifyListeners();
+        },
+      );
+    } catch (error) {
+      _error = error;
+    } finally {
+      if (identical(_activeInstallCancellation, cancellation)) {
+        _activeInstallCancellation = null;
+      }
+      if (!_disposed) notifyListeners();
+    }
+  }
 
   void selectVersion(int index) {
     final length = _versions?.items.length ?? 0;

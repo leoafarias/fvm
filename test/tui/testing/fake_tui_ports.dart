@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fvm/src/services/operation_cancellation.dart';
 import 'package:fvm/src/tui/fvm_tui_dependencies.dart';
 import 'package:fvm/src/tui/fvm_tui_models.dart';
@@ -43,6 +45,7 @@ final class FakeTuiPorts {
     List<List<TuiVersionItem>>? versionBatches,
     List<TuiReleaseItem>? releaseItems,
     this.versionsError,
+    this.blockInstall = false,
   }) : versionBatches = versionBatches ?? [threeVersions],
        releaseItems = releaseItems ?? const [];
 
@@ -51,7 +54,12 @@ final class FakeTuiPorts {
   List<List<TuiVersionItem>> versionBatches;
   final List<TuiReleaseItem> releaseItems;
   final Object? versionsError;
+  final bool blockInstall;
   final List<UseVersionRequest> useRequests = [];
+  final List<InstallRequest> installRequests = [];
+  final installStarted = Completer<void>();
+  final _installCompletion = Completer<void>();
+  _FakeCancellation? _installCancellation;
   int versionsLoadCount = 0;
   int releasesLoadCount = 0;
 
@@ -59,10 +67,16 @@ final class FakeTuiPorts {
     versions: _FakeVersionsRepository(this),
     releases: _FakeReleasesRepository(this),
     useVersion: _FakeUseVersionRunner(this),
-    install: _FakeInstallRunner(),
+    install: _FakeInstallRunner(this),
     doctor: _FakeDoctorRepository(),
     configuration: _FakeConfigurationRepository(),
   );
+
+  bool get installCancelled => _installCancellation?.isCancelled ?? false;
+
+  void completeInstall() {
+    if (!_installCompletion.isCompleted) _installCompletion.complete();
+  }
 }
 
 final class _FakeVersionsRepository implements VersionsRepository {
@@ -116,15 +130,30 @@ final class _FakeUseVersionRunner implements UseVersionRunner {
 }
 
 final class _FakeInstallRunner implements InstallRunner {
+  _FakeInstallRunner(this.ports);
+
+  final FakeTuiPorts ports;
+
   @override
-  OperationCancellation createCancellation() => _FakeCancellation();
+  OperationCancellation createCancellation() =>
+      ports._installCancellation = _FakeCancellation();
 
   @override
   Future<void> run(
     InstallRequest request, {
     required void Function(InstallProgressUpdate) onProgress,
     required OperationCancellation cancellation,
-  }) async {}
+  }) async {
+    ports.installRequests.add(request);
+    if (!ports.installStarted.isCompleted) ports.installStarted.complete();
+    onProgress((
+      phase: InstallPhase.ensureCache,
+      status: OperationStatus.active,
+      detail: 'Preparing install',
+      exactPercent: null,
+    ));
+    if (ports.blockInstall) await ports._installCompletion.future;
+  }
 }
 
 final class _FakeDoctorRepository implements DoctorRepository {

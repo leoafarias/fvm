@@ -10,10 +10,12 @@ import '../models/flutter_version_model.dart';
 import '../utils/context.dart';
 import '../utils/exceptions.dart';
 import '../utils/file_utils.dart';
+import '../utils/git_clone_progress_tracker.dart';
 import '../utils/helpers.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 import 'git_service.dart';
+import 'install_observer.dart';
 import 'process_service.dart';
 import 'releases_service/releases_client.dart';
 
@@ -112,6 +114,8 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required String? channel,
     required bool echoOutput,
+    required void Function(GitCloneProgress)? onGitProgress,
+    required ProcessCancellation? cancellation,
   }) {
     // Pin git's working directory to the clone destination's parent so the
     // process is not sensitive to the global `Directory.current` (which
@@ -134,10 +138,27 @@ class FlutterService extends ContextualService {
       versionDir.path,
     ];
 
-    return runGit(
-      args,
-      echoOutput: echoOutput,
-      processWorkingDir: processCwd.path,
+    if (onGitProgress == null && cancellation == null) {
+      return runGit(
+        args,
+        echoOutput: echoOutput,
+        processWorkingDir: processCwd.path,
+      );
+    }
+
+    final progressTracker = GitCloneProgressTracker();
+
+    return get<ProcessService>().runStreaming(
+      'git',
+      args: args,
+      workingDirectory: processCwd.path,
+      cancellation: cancellation,
+      onStdoutLine: logger.debug,
+      onStderrLine: (line) {
+        logger.debug(line);
+        final progress = progressTracker.processLine(line);
+        if (progress != null) onGitProgress?.call(progress);
+      },
     );
   }
 
@@ -149,7 +170,9 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
     required void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    required void Function(GitCloneProgress)? onGitProgress,
+    required ProcessCancellation? cancellation,
   }) async {
     try {
       final gitService = get<GitService>();
@@ -160,6 +183,8 @@ class FlutterService extends ContextualService {
           version: version,
           channel: channel,
           echoOutput: echoOutput,
+          onGitProgress: onGitProgress,
+          cancellation: cancellation,
         );
       }
 
@@ -268,11 +293,11 @@ class FlutterService extends ContextualService {
   }) {
     final message = version.fromFork
         ? 'Reference "${version.version}" was not found in fork "${version.fork}".\n'
-            'Please verify that this version exists in the forked repository.\n'
-            'Repository URL: $repoUrl'
+              'Please verify that this version exists in the forked repository.\n'
+              'Repository URL: $repoUrl'
         : 'Reference "${version.version}" was not found in the Flutter repository.\n'
-            'Please check that you have specified a valid version.\n'
-            'Repository URL: $repoUrl';
+              'Please check that you have specified a valid version.\n'
+              'Repository URL: $repoUrl';
 
     Error.throwWithStackTrace(AppException(message), stackTrace);
   }
@@ -284,7 +309,9 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
     required void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    required void Function(GitCloneProgress)? onGitProgress,
+    required ProcessCancellation? cancellation,
   }) async {
     logger.warn(
       'Reference "${version.version}" not found in local git cache. '
@@ -303,6 +330,8 @@ class FlutterService extends ContextualService {
       version: version,
       channel: channel,
       echoOutput: echoOutput,
+      onGitProgress: onGitProgress,
+      cancellation: cancellation,
     );
 
     if (retryResult.exitCode != ExitCode.success.code) {
@@ -366,8 +395,9 @@ class FlutterService extends ContextualService {
     final versionDir = get<CacheService>().getVersionCacheDir(version);
 
     if (version.fromFork) {
-      Directory(path.join(context.versionsCachePath, version.fork!))
-          .createSync(recursive: true);
+      Directory(
+        path.join(context.versionsCachePath, version.fork!),
+      ).createSync(recursive: true);
     }
 
     return versionDir;
@@ -423,7 +453,9 @@ class FlutterService extends ContextualService {
     required bool echoOutput,
     required bool useGitCache,
     required void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    required void Function(GitCloneProgress)? onGitProgress,
+    required ProcessCancellation? cancellation,
   }) async {
     final useLocalGitCache =
         useGitCache && context.gitCache && !version.fromFork;
@@ -435,6 +467,8 @@ class FlutterService extends ContextualService {
         channel: channel,
         echoOutput: echoOutput,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        onGitProgress: onGitProgress,
+        cancellation: cancellation,
       );
 
       if (gitCacheResult != null) return true;
@@ -445,6 +479,8 @@ class FlutterService extends ContextualService {
         version: version,
         channel: channel,
         echoOutput: echoOutput,
+        onGitProgress: onGitProgress,
+        cancellation: cancellation,
       );
 
       return false;
@@ -456,6 +492,8 @@ class FlutterService extends ContextualService {
       version: version,
       channel: channel,
       echoOutput: echoOutput,
+      onGitProgress: onGitProgress,
+      cancellation: cancellation,
     );
 
     return false;
@@ -469,7 +507,9 @@ class FlutterService extends ContextualService {
     required String? channel,
     required bool echoOutput,
     required void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    required void Function(GitCloneProgress)? onGitProgress,
+    required ProcessCancellation? cancellation,
   }) async {
     if (version.isChannel) return;
 
@@ -487,6 +527,8 @@ class FlutterService extends ContextualService {
           channel: channel,
           echoOutput: echoOutput,
           onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+          onGitProgress: onGitProgress,
+          cancellation: cancellation,
         );
       } else if (isReferenceError) {
         _throwReferenceLookupError(
@@ -619,14 +661,34 @@ class FlutterService extends ContextualService {
     FlutterVersion version, {
     bool useGitCache = true,
     void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    void Function(GitCloneProgress)? onGitProgress,
+    ProcessCancellation? cancellation,
+    InstallObserver? observer,
   }) async {
     final versionDir = _setupCacheDirectories(version);
     final channel = await _resolveChannel(version);
     final repoUrl = _resolveRepositoryUrl(version);
     final echoOutput = !context.isTest && logger.isVerbose;
+    final progressCallback = onGitProgress == null && observer == null
+        ? null
+        : (GitCloneProgress progress) {
+            onGitProgress?.call(progress);
+            observer?.onUpdate((
+              phase: InstallObservationPhase.cloneSdk,
+              status: InstallObservationStatus.active,
+              detail: progress.line,
+              gitProgress: progress,
+            ));
+          };
 
     try {
+      observer?.onUpdate((
+        phase: InstallObservationPhase.cloneSdk,
+        status: InstallObservationStatus.active,
+        detail: 'Cloning Flutter SDK',
+        gitProgress: null,
+      ));
       final clonedFromGitCache = await _executeClone(
         version: version,
         versionDir: versionDir,
@@ -635,8 +697,22 @@ class FlutterService extends ContextualService {
         echoOutput: echoOutput,
         useGitCache: useGitCache,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        onGitProgress: progressCallback,
+        cancellation: cancellation,
       );
+      observer?.onUpdate((
+        phase: InstallObservationPhase.cloneSdk,
+        status: InstallObservationStatus.complete,
+        detail: 'Flutter SDK cloned',
+        gitProgress: null,
+      ));
 
+      observer?.onUpdate((
+        phase: InstallObservationPhase.validateRevision,
+        status: InstallObservationStatus.active,
+        detail: 'Validating Flutter revision',
+        gitProgress: null,
+      ));
       final isGit = await GitDir.isGitDir(versionDir.path);
       if (!isGit) {
         throw AppException(
@@ -652,7 +728,15 @@ class FlutterService extends ContextualService {
         channel: channel,
         echoOutput: echoOutput,
         onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+        onGitProgress: onGitProgress,
+        cancellation: cancellation,
       );
+      observer?.onUpdate((
+        phase: InstallObservationPhase.validateRevision,
+        status: InstallObservationStatus.complete,
+        detail: 'Flutter revision validated',
+        gitProgress: null,
+      ));
     } catch (error, stackTrace) {
       await _handleCloneError(
         error: error,
@@ -672,8 +756,8 @@ class VersionRunner {
   const VersionRunner({
     required FvmContext context,
     required CacheFlutterVersion version,
-  })  : _context = context,
-        _version = version;
+  }) : _context = context,
+       _version = version;
 
   Future<ProcessResult> run(
     String cmd,
@@ -681,18 +765,19 @@ class VersionRunner {
     bool? echoOutput,
     bool? throwOnError,
   }) {
+    final sdkPaths = [_version.binPath, _version.dartBinPath];
     final environment = updateEnvironmentVariables(
-      [_version.binPath, _version.dartBinPath],
+      sdkPaths,
       _context.environment,
     );
 
     return _context.get<ProcessService>().run(
-          cmd,
-          args: args,
-          environment: environment,
-          throwOnError: throwOnError ?? false,
-          echoOutput: echoOutput ?? true,
-          runInShell: true,
-        );
+      cmd,
+      args: args,
+      environment: environment,
+      throwOnError: throwOnError ?? false,
+      echoOutput: echoOutput ?? true,
+      runInShell: true,
+    );
   }
 }

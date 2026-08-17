@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -67,38 +68,92 @@ void main() {
 
     test('echoOutput is disabled in test mode', () async {
       final processService = runner.context.get<ProcessService>();
-      final result = await _runFixture(
-        processService,
-        'arguments',
-        ['test'],
-        echoOutput: true,
-      );
+      final result = await _runFixture(processService, 'arguments', [
+        'test',
+      ], echoOutput: true);
 
       expect(result.exitCode, equals(0));
     });
 
-    test('passes literal spaces and shell metacharacters to the executable',
-        () async {
-      final processService = runner.context.get<ProcessService>();
-      const arguments = [
-        'value with spaces',
-        r'$HOME',
-        r'$(whoami)',
-        ';',
-        '&&',
-        '|',
-        '>file',
-        '"quoted"',
-      ];
+    test(
+      'passes literal spaces and shell metacharacters to the executable',
+      () async {
+        final processService = runner.context.get<ProcessService>();
+        const arguments = [
+          'value with spaces',
+          r'$HOME',
+          r'$(whoami)',
+          ';',
+          '&&',
+          '|',
+          '>file',
+          '"quoted"',
+        ];
 
-      final result = await _runFixture(
+        final result = await _runFixture(
+          processService,
+          'arguments',
+          arguments,
+        );
+
+        expect(jsonDecode(result.stdout.toString()), equals(arguments));
+      },
+    );
+
+    test('runStreaming reports and captures both streams', () async {
+      final processService = runner.context.get<ProcessService>();
+      final stdoutLines = <String>[];
+      final stderrLines = <String>[];
+
+      final result = await _runStreamingFixture(
         processService,
-        'arguments',
-        arguments,
+        'streaming',
+        onStdoutLine: stdoutLines.add,
+        onStderrLine: stderrLines.add,
       );
 
-      expect(jsonDecode(result.stdout.toString()), equals(arguments));
+      expect(stdoutLines, ['stdout-1', 'stdout-2']);
+      expect(stderrLines, ['stderr-1', 'stderr-2']);
+      expect(result.stdout, 'stdout-1\nstdout-2\n');
+      expect(result.stderr, 'stderr-1\nstderr-2\n');
     });
+
+    test('runStreaming preserves throw-on-error behavior', () async {
+      final processService = runner.context.get<ProcessService>();
+
+      await expectLater(
+        _runStreamingFixture(processService, 'failure'),
+        throwsA(
+          isA<ProcessException>()
+              .having((error) => error.errorCode, 'errorCode', 23)
+              .having((error) => error.message, 'message', 'stderr'),
+        ),
+      );
+    });
+
+    test(
+      'runStreaming terminates an attached process on cancellation',
+      () async {
+        final processService = runner.context.get<ProcessService>();
+        final cancellation = ProcessCancellation();
+        final ready = Completer<void>();
+
+        final running = _runStreamingFixture(
+          processService,
+          'wait-for-cancel',
+          cancellation: cancellation,
+          onStdoutLine: (line) {
+            if (line == 'ready' && !ready.isCompleted) ready.complete();
+          },
+        );
+
+        await ready.future.timeout(const Duration(seconds: 10));
+        cancellation.cancel();
+
+        await expectLater(running, throwsA(isA<OperationCanceledException>()));
+        expect(cancellation.isCancelled, isTrue);
+      },
+    );
   });
 }
 
@@ -113,13 +168,43 @@ Future<ProcessResult> _runFixture(
   return processService.run(
     Platform.resolvedExecutable,
     args: [
-      p.join(Directory.current.path, 'test', 'fixtures',
-          'process_service_worker.dart'),
+      p.join(
+        Directory.current.path,
+        'test',
+        'fixtures',
+        'process_service_worker.dart',
+      ),
       operation,
       ...arguments,
     ],
     environment: environment,
     throwOnError: throwOnError,
     echoOutput: echoOutput,
+  );
+}
+
+Future<ProcessResult> _runStreamingFixture(
+  ProcessService processService,
+  String operation, {
+  bool throwOnError = true,
+  void Function(String)? onStdoutLine,
+  void Function(String)? onStderrLine,
+  ProcessCancellation? cancellation,
+}) {
+  return processService.runStreaming(
+    Platform.resolvedExecutable,
+    args: [
+      p.join(
+        Directory.current.path,
+        'test',
+        'fixtures',
+        'process_service_worker.dart',
+      ),
+      operation,
+    ],
+    throwOnError: throwOnError,
+    onStdoutLine: onStdoutLine,
+    onStderrLine: onStderrLine,
+    cancellation: cancellation,
   );
 }

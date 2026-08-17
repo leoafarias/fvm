@@ -4,10 +4,13 @@ import 'package:fvm/src/models/config_model.dart';
 import 'package:fvm/src/models/flutter_version_model.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
+import 'package:fvm/src/services/install_observer.dart';
 import 'package:fvm/src/services/logger_service.dart';
+import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/utils/cache_mutation_lock.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:fvm/src/utils/exceptions.dart';
+import 'package:fvm/src/utils/git_clone_progress_tracker.dart';
 import 'package:fvm/src/utils/process_lock.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:path/path.dart' as path;
@@ -88,7 +91,10 @@ final class _ControllableFlutterService extends FlutterService {
     FlutterVersion version, {
     bool useGitCache = true,
     void Function(GitCacheMaintenance maintenance)?
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
+    void Function(GitCloneProgress)? onGitProgress,
+    ProcessCancellation? cancellation,
+    InstallObserver? observer,
   }) async {
     _writeSignal(signalPath);
 
@@ -105,6 +111,9 @@ final class _ControllableFlutterService extends FlutterService {
       version,
       useGitCache: useGitCache,
       onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+      onGitProgress: onGitProgress,
+      cancellation: cancellation,
+      observer: observer,
     );
   }
 }
@@ -131,10 +140,12 @@ Future<void> main(List<String> args) async {
   final useGitCache = bool.parse(args[7]);
   final shouldFail = control.startsWith('fail-wait:');
   final releasePath = switch (control) {
-    final value when value.startsWith('wait:') =>
-      value.substring('wait:'.length),
-    final value when value.startsWith('fail-wait:') =>
-      value.substring('fail-wait:'.length),
+    final value when value.startsWith('wait:') => value.substring(
+      'wait:'.length,
+    ),
+    final value when value.startsWith('fail-wait:') => value.substring(
+      'fail-wait:'.length,
+    ),
     _ => null,
   };
   final delayMilliseconds = releasePath == null ? int.parse(control) : 0;
@@ -153,12 +164,12 @@ Future<void> main(List<String> args) async {
     ),
     generatorsOverride: {
       FlutterService: (context) => _ControllableFlutterService(
-            context,
-            signalPath: signalPath,
-            delay: delay,
-            fail: shouldFail,
-            releasePath: releasePath,
-          ),
+        context,
+        signalPath: signalPath,
+        delay: delay,
+        fail: shouldFail,
+        releasePath: releasePath,
+      ),
       Logger: (context) => _SignalingLogger(context, signalPath),
       if (operation == _installWithoutPreflightOperation)
         GitService: (context) => _NoOpPreflightGitService(context, signalPath),
@@ -174,10 +185,7 @@ Future<void> main(List<String> args) async {
         stdout.writeln('installed');
       case _installCatchFailureOperation:
         try {
-          await EnsureCacheWorkflow(context).call(
-            version,
-            shouldInstall: true,
-          );
+          await EnsureCacheWorkflow(context).call(version, shouldInstall: true);
           throw StateError('Expected the controlled installation to fail.');
         } on AppException catch (error) {
           stderr.writeln(error);

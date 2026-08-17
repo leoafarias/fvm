@@ -1,6 +1,8 @@
 import 'package:fvm/fvm.dart';
 import 'package:fvm/src/tui/adapters/context_use_version_runner.dart';
 import 'package:fvm/src/tui/adapters/fvm_context_handle.dart';
+import 'package:fvm/src/services/install_observer.dart';
+import 'package:fvm/src/services/process_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
 import 'package:fvm/src/workflows/use_version.workflow.dart';
 import 'package:path/path.dart' as path;
@@ -58,6 +60,9 @@ final class _FakeEnsureCache extends EnsureCacheWorkflow {
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
+    bool? useGitCache,
+    InstallObserver? observer,
+    ProcessCancellation? cancellation,
   }) async {
     requested = version;
     logger.info('ensuring ${version.name}');

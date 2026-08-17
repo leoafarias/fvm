@@ -1,9 +1,41 @@
+import 'dart:convert';
 import 'dart:io';
 
+import '../utils/exceptions.dart';
 import 'base_service.dart';
+import 'operation_cancellation.dart';
+
+final class OperationCanceledException extends AppException {
+  const OperationCanceledException() : super('Operation cancelled.');
+}
+
+final class ProcessCancellation implements OperationCancellation {
+  Process? _process;
+  bool _cancelled = false;
+
+  void attach(Process process) {
+    _process = process;
+    if (_cancelled) process.kill(ProcessSignal.sigterm);
+  }
+
+  void detach() => _process = null;
+
+  @override
+  void cancel() {
+    if (_cancelled) return;
+    _cancelled = true;
+    _process?.kill(ProcessSignal.sigterm);
+  }
+
+  @override
+  bool get isCancelled => _cancelled;
+}
 
 class ProcessService extends ContextualService {
   const ProcessService(super.context);
+
+  static String _linesToOutput(List<String> lines) =>
+      lines.isEmpty ? '' : '${lines.join('\n')}\n';
 
   void _throwIfProcessFailed(
     ProcessResult pr,
@@ -76,6 +108,71 @@ class ProcessService extends ContextualService {
     }
 
     return processResult;
+  }
+
+  Future<ProcessResult> runStreaming(
+    String command, {
+    List<String> args = const [],
+    String? workingDirectory,
+    Map<String, String>? environment,
+    bool throwOnError = true,
+    bool runInShell = false,
+    void Function(String)? onStdoutLine,
+    void Function(String)? onStderrLine,
+    ProcessCancellation? cancellation,
+  }) async {
+    logger
+      ..debug('')
+      ..debug('Running: $command')
+      ..debug('');
+
+    final process = await Process.start(
+      command,
+      args,
+      workingDirectory: workingDirectory,
+      environment: environment,
+      runInShell: runInShell,
+    );
+    cancellation?.attach(process);
+
+    final stdoutLines = <String>[];
+    final stderrLines = <String>[];
+    final stdoutDone = process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          stdoutLines.add(line);
+          onStdoutLine?.call(line);
+        })
+        .asFuture<void>();
+    final stderrDone = process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          stderrLines.add(line);
+          onStderrLine?.call(line);
+        })
+        .asFuture<void>();
+
+    try {
+      final exitCode = await process.exitCode;
+      await Future.wait([stdoutDone, stderrDone]);
+      if (cancellation?.isCancelled ?? false) {
+        throw const OperationCanceledException();
+      }
+
+      final result = ProcessResult(
+        process.pid,
+        exitCode,
+        _linesToOutput(stdoutLines),
+        _linesToOutput(stderrLines),
+      );
+      if (throwOnError) _throwIfProcessFailed(result, command, args);
+
+      return result;
+    } finally {
+      cancellation?.detach();
+    }
   }
 }
 
