@@ -51,13 +51,14 @@ final class FakeTuiPorts {
   List<List<TuiVersionItem>> versionBatches;
   final List<TuiReleaseItem> releaseItems;
   final Object? versionsError;
+  final List<UseVersionRequest> useRequests = [];
   int versionsLoadCount = 0;
   int releasesLoadCount = 0;
 
   late final FvmTuiDependencies dependencies = FvmTuiDependencies(
     versions: _FakeVersionsRepository(this),
     releases: _FakeReleasesRepository(this),
-    useVersion: _FakeUseVersionRunner(),
+    useVersion: _FakeUseVersionRunner(this),
     install: _FakeInstallRunner(),
     doctor: _FakeDoctorRepository(),
     configuration: _FakeConfigurationRepository(),
@@ -100,11 +101,18 @@ final class _FakeReleasesRepository implements ReleasesRepository {
 }
 
 final class _FakeUseVersionRunner implements UseVersionRunner {
+  _FakeUseVersionRunner(this.ports);
+
+  final FakeTuiPorts ports;
+
   @override
   Future<void> run(
     UseVersionRequest request,
     void Function(String) onEvent,
-  ) async {}
+  ) async {
+    ports.useRequests.add(request);
+    onEvent('using ${request.version}');
+  }
 }
 
 final class _FakeInstallRunner implements InstallRunner {

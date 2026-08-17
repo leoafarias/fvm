@@ -7,6 +7,7 @@ import 'fvm_tui_models.dart';
 final class FvmTuiController extends ChangeNotifier {
   final FvmTuiDependencies _dependencies;
   final Set<FvmTuiRoute> _loadedRoutes = {};
+  final List<String> _operationEvents = [];
 
   FvmTuiRoute _route = FvmTuiRoute.versions;
   bool _loading = false;
@@ -75,6 +76,12 @@ final class FvmTuiController extends ChangeNotifier {
     }
   }
 
+  void _recordOperationEvent(String event) {
+    if (_disposed) return;
+    _operationEvents.add(event);
+    notifyListeners();
+  }
+
   FvmTuiRoute get route => _route;
   bool get loading => _loading;
   Object? get error => _error;
@@ -85,6 +92,7 @@ final class FvmTuiController extends ChangeNotifier {
   int get selectedVersionIndex => _selectedVersionIndex;
   int get selectedReleaseIndex => _selectedReleaseIndex;
   bool get hasActiveInstall => _activeInstallCancellation != null;
+  List<String> get operationEvents => List.unmodifiable(_operationEvents);
 
   Future<void> initialize() => _loadRoute(_route);
 
@@ -98,6 +106,11 @@ final class FvmTuiController extends ChangeNotifier {
   }
 
   Future<void> refresh() => _loadRoute(_route, force: true);
+
+  Future<void> useVersion(UseVersionRequest request) => _run(() async {
+    _operationEvents.clear();
+    await _dependencies.useVersion.run(request, _recordOperationEvent);
+  });
 
   void selectVersion(int index) {
     final length = _versions?.items.length ?? 0;

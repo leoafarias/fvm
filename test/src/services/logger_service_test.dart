@@ -29,6 +29,36 @@ class _SelectCaptureLogger extends Logger {
 
 class _MockStdout extends Mock implements Stdout {}
 
+final class _RecordingSink implements LogSink {
+  final events = <LogEvent>[];
+  final progress = <String>[];
+
+  @override
+  void add(LogEvent event) => events.add(event);
+
+  @override
+  LogProgress startProgress(String message) {
+    progress.add('start:$message');
+
+    return _RecordingProgress(progress);
+  }
+}
+
+final class _RecordingProgress implements LogProgress {
+  _RecordingProgress(this.events);
+
+  final List<String> events;
+
+  @override
+  void cancel([String? message]) => events.add('cancel:${message ?? ''}');
+
+  @override
+  void complete([String? message]) => events.add('complete:${message ?? ''}');
+
+  @override
+  void fail([String? message]) => events.add('fail:${message ?? ''}');
+}
+
 void main() {
   late Logger logger;
 
@@ -189,24 +219,26 @@ void main() {
       },
     );
 
-    test('select with skipInput throws a usage ForceExit without a default',
-        () {
-      final context = TestFactory.context(skipInput: true);
-      final logger = Logger(context);
+    test(
+      'select with skipInput throws a usage ForceExit without a default',
+      () {
+        final context = TestFactory.context(skipInput: true);
+        final logger = Logger(context);
 
-      expect(
-        () => logger.select('Select an option', options: ['one', 'two']),
-        throwsA(
-          isA<ForceExit>()
-              .having(
-                (error) => error.exitCode,
-                'exitCode',
-                ExitCode.usage.code,
-              )
-              .having((error) => error.message, 'message', isEmpty),
-        ),
-      );
-    });
+        expect(
+          () => logger.select('Select an option', options: ['one', 'two']),
+          throwsA(
+            isA<ForceExit>()
+                .having(
+                  (error) => error.exitCode,
+                  'exitCode',
+                  ExitCode.usage.code,
+                )
+                .having((error) => error.message, 'message', isEmpty),
+          ),
+        );
+      },
+    );
 
     test(
       'select with non-TTY stdin returns default selection when provided',
@@ -238,6 +270,45 @@ void main() {
         isTrue,
       );
     });
+
+    test(
+      'zone sink captures nested output without writing to Mason IO',
+      () async {
+        final stdout = _MockStdout();
+        final stderr = _MockStdout();
+        final sink = _RecordingSink();
+        when(() => stdout.supportsAnsiEscapes).thenReturn(false);
+        when(() => stderr.supportsAnsiEscapes).thenReturn(false);
+
+        await IOOverrides.runZoned(
+          () async {
+            final zonedLogger = Logger(TestFactory.context());
+
+            await zonedLogger.runWithSink(sink, () async {
+              zonedLogger.info('info');
+              await Future<void>(() => zonedLogger.warn('warning'));
+              zonedLogger.err('error');
+              zonedLogger.progress('working').complete('done');
+            });
+
+            verifyNever(() => stdout.writeln(any<dynamic>()));
+            verifyNever(() => stderr.writeln(any<dynamic>()));
+            expect(sink.events, [
+              (level: LogEventLevel.info, message: 'info'),
+              (level: LogEventLevel.warning, message: 'warning'),
+              (level: LogEventLevel.error, message: 'error'),
+            ]);
+            expect(sink.progress, ['start:working', 'complete:done']);
+
+            zonedLogger.info('outside');
+            verify(() => stdout.writeln('outside')).called(1);
+            expect(sink.events, hasLength(3));
+          },
+          stdout: () => stdout,
+          stderr: () => stderr,
+        );
+      },
+    );
   });
 
   group('Interactive methods testing note', () {

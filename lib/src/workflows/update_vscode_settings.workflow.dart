@@ -60,12 +60,13 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
   /// Finds every VS Code workspace file in the project directory.
   List<File> _findWorkspaceFiles(Project project) {
     try {
-      final workspaceFiles = Directory(project.path)
-          .listSync()
-          .whereType<File>()
-          .where((file) => file.path.endsWith(kWorkspaceFileExt))
-          .toList()
-        ..sort((a, b) => a.path.compareTo(b.path));
+      final workspaceFiles =
+          Directory(project.path)
+              .listSync()
+              .whereType<File>()
+              .where((file) => file.path.endsWith(kWorkspaceFileExt))
+              .toList()
+            ..sort((a, b) => a.path.compareTo(b.path));
 
       if (workspaceFiles.length > 1) {
         logger.debug('Found ${workspaceFiles.length} workspace files');
@@ -228,9 +229,10 @@ class UpdateVsCodeSettingsWorkflow extends Workflow {
   /// If [updateVscodeSettings] is disabled in the project config, this operation is skipped.
   ///
   /// Returns void, but logs success or error messages.
-  FutureOr<void> call(Project project) {
+  FutureOr<void> call(Project project, {bool? enabled}) {
     // Check if VS Code settings management is enabled for this project
-    final updateVscodeSettings = project.config?.updateVscodeSettings ?? true;
+    final updateVscodeSettings =
+        enabled ?? project.config?.updateVscodeSettings ?? true;
 
     if (project.pinnedVersion == null) {
       logger.warn(

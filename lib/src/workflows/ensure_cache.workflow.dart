@@ -8,6 +8,7 @@ import '../models/flutter_version_model.dart';
 import '../services/cache_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
+import '../services/logger_service.dart';
 import '../utils/cache_mutation_lock.dart';
 import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
@@ -19,7 +20,7 @@ sealed class _LockedCacheResult {
 
 final class _CacheReady extends _LockedCacheResult {
   final CacheFlutterVersion version;
-  final Progress? progress;
+  final LogProgress? progress;
 
   const _CacheReady(this.version, {this.progress});
 }
@@ -40,7 +41,7 @@ class EnsureCacheWorkflow extends Workflow {
     required bool useGitCacheForInstall,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
     int retryCount = 0,
   }) async {
     const maxRetries = 2;
@@ -78,7 +79,7 @@ class EnsureCacheWorkflow extends Workflow {
     required bool useGitCacheForInstall,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
   }) async {
     logger
       ..notice(
@@ -139,9 +140,7 @@ class EnsureCacheWorkflow extends Workflow {
   }
 
   String _versionLockIdentity(FlutterVersion version) {
-    return path.normalize(
-      get<CacheService>().getVersionCacheDir(version).path,
-    );
+    return path.normalize(get<CacheService>().getVersionCacheDir(version).path);
   }
 
   void _validateContext() {
@@ -172,7 +171,7 @@ class EnsureCacheWorkflow extends Workflow {
     required bool useGitCacheForInstall,
     required Set<String> lockedVersionPaths,
     required void Function(GitCacheMaintenance maintenance)
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
@@ -202,9 +201,7 @@ class EnsureCacheWorkflow extends Workflow {
           !force &&
           !version.isCustom) {
         final targetVersion = _versionMismatchTarget(cacheVersion);
-        if (!lockedVersionPaths.contains(
-          _versionLockIdentity(targetVersion),
-        )) {
+        if (!lockedVersionPaths.contains(_versionLockIdentity(targetVersion))) {
           return _NeedsVersionLock(targetVersion);
         }
 
@@ -275,22 +272,23 @@ class EnsureCacheWorkflow extends Workflow {
     required bool useGitCacheForInstall,
     required bool cacheMaintenanceLockHeld,
     required void Function(GitCacheMaintenance maintenance)
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
   }) async {
     var versionsToLock = [version];
 
     while (true) {
-      final lockedVersionPaths =
-          versionsToLock.map(_versionLockIdentity).toSet();
+      final lockedVersionPaths = versionsToLock
+          .map(_versionLockIdentity)
+          .toSet();
       Future<_LockedCacheResult> action() => _callLocked(
-            version,
-            shouldInstall: shouldInstall,
-            force: force,
-            retryCount: retryCount,
-            useGitCacheForInstall: useGitCacheForInstall,
-            lockedVersionPaths: lockedVersionPaths,
-            onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
-          );
+        version,
+        shouldInstall: shouldInstall,
+        force: force,
+        retryCount: retryCount,
+        useGitCacheForInstall: useGitCacheForInstall,
+        lockedVersionPaths: lockedVersionPaths,
+        onGitCacheMaintenanceDeferred: onGitCacheMaintenanceDeferred,
+      );
       final result = cacheMaintenanceLockHeld
           ? await withVersionCacheLocksWhileMaintenanceLocked(
               context,
@@ -319,7 +317,7 @@ class EnsureCacheWorkflow extends Workflow {
     required int retryCount,
     required bool useGitCacheForInstall,
     required void Function(GitCacheMaintenance maintenance)
-        onGitCacheMaintenanceDeferred,
+    onGitCacheMaintenanceDeferred,
   }) {
     final needsGitCacheLock = useGitCacheForInstall && !version.fromFork;
     if (!needsGitCacheLock) {
@@ -432,10 +430,6 @@ class EnsureCacheWorkflow extends Workflow {
       Error.throwWithStackTrace(error, stackTrace);
     }
 
-    return _completeInstallation(
-      version,
-      result,
-      deferredGitCacheMaintenance,
-    );
+    return _completeInstallation(version, result, deferredGitCacheMaintenance);
   }
 }

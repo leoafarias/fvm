@@ -72,7 +72,12 @@ class UpdateMelosSettingsWorkflow extends Workflow {
   }
 
   /// Updates the melos.yaml file with the Flutter SDK path.
-  void _updateMelosFile(Project project, File melosFile) {
+  void _updateMelosFile(
+    Project project,
+    File melosFile, {
+    bool? configureMissing,
+    bool? updateExisting,
+  }) {
     try {
       final contents = melosFile.readAsStringSync();
       final yamlEditor = YamlEditor(contents);
@@ -85,10 +90,12 @@ class UpdateMelosSettingsWorkflow extends Workflow {
       if (currentSdkPath == null) {
         // Ask for confirmation before adding sdkPath
         logger.info('Detected melos.yaml without FVM configuration.');
-        final confirm = logger.confirm(
-          'Would you like to configure melos.yaml to use FVM-managed Flutter SDK?',
-          defaultValue: false,
-        );
+        final confirm =
+            configureMissing ??
+            logger.confirm(
+              'Would you like to configure melos.yaml to use FVM-managed Flutter SDK?',
+              defaultValue: false,
+            );
 
         if (!confirm) {
           logger.debug('User declined to configure melos.yaml for FVM.');
@@ -104,10 +111,12 @@ class UpdateMelosSettingsWorkflow extends Workflow {
         // Check if update needed
         if (currentSdkPath != expectedSdkPath) {
           // Ask for confirmation before updating existing FVM path
-          final confirm = logger.confirm(
-            'Update existing FVM path in melos.yaml from "$currentSdkPath" to "$expectedSdkPath"?',
-            defaultValue: false,
-          );
+          final confirm =
+              updateExisting ??
+              logger.confirm(
+                'Update existing FVM path in melos.yaml from "$currentSdkPath" to "$expectedSdkPath"?',
+                defaultValue: false,
+              );
 
           if (!confirm) {
             logger.debug('User declined to update FVM path in melos.yaml.');
@@ -149,9 +158,17 @@ class UpdateMelosSettingsWorkflow extends Workflow {
   /// If [updateMelosSettings] is disabled in the project config, this operation is skipped.
   ///
   /// Returns void, but logs success or error messages.
-  FutureOr<void> call(Project project) {
+  FutureOr<void> call(
+    Project project, {
+    bool? configureMissing,
+    bool? updateExisting,
+  }) {
     // Check if Melos settings management is enabled for this project
-    final updateMelosSettings = project.config?.updateMelosSettings ?? true;
+    final hasExplicitPolicy =
+        configureMissing != null || updateExisting != null;
+    final updateMelosSettings = hasExplicitPolicy
+        ? true
+        : (project.config?.updateMelosSettings ?? true);
 
     if (!updateMelosSettings) {
       logger.debug(
@@ -179,6 +196,11 @@ class UpdateMelosSettingsWorkflow extends Workflow {
     }
 
     // Update melos.yaml
-    _updateMelosFile(project, melosFile);
+    _updateMelosFile(
+      project,
+      melosFile,
+      configureMissing: configureMissing,
+      updateExisting: updateExisting,
+    );
   }
 }

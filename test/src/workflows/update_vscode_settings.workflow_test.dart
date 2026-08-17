@@ -37,8 +37,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
 
         // Test with privileged access
 
@@ -88,8 +88,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         expect(project.name, equals('test_project_2'));
 
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -123,8 +123,8 @@ void main() {
         vscodeDir.createSync();
 
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
         // Run workflow
@@ -145,8 +145,8 @@ void main() {
         createProjectConfig(ProjectConfig(), testDir);
 
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
 
         // Create workflow with test context that doesn't simulate VS Code environment
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
@@ -194,8 +194,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -231,8 +231,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow - should fail gracefully
@@ -266,8 +266,8 @@ void main() {
 
       try {
         final project = runner.context.get<ProjectService>().findAncestor(
-              directory: testDir,
-            );
+          directory: testDir,
+        );
         final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
         // Run workflow - should fail gracefully
@@ -306,8 +306,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -339,8 +339,8 @@ void main() {
 ''');
       }
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
 
       await UpdateVsCodeSettingsWorkflow(runner.context)(project);
 
@@ -369,8 +369,8 @@ void main() {
       vscodeDir.createSync();
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
 
       // Verify the project correctly parsed the fork version
       expect(project.pinnedVersion?.fromFork, isTrue);
@@ -431,8 +431,8 @@ void main() {
 ''');
 
       final project = runner.context.get<ProjectService>().findAncestor(
-            directory: testDir,
-          );
+        directory: testDir,
+      );
       final workflow = UpdateVsCodeSettingsWorkflow(runner.context);
 
       // Run workflow
@@ -447,6 +447,29 @@ void main() {
         ),
       );
       expect(contents, contains('"editor.formatOnSave": true'));
+    });
+
+    test('explicit enable overrides a disabled project setting', () async {
+      final testDir = tempDirs.create();
+      createPubspecYaml(testDir);
+      createProjectConfig(
+        const ProjectConfig(flutter: '3.10.0', updateVscodeSettings: false),
+        testDir,
+      );
+      Directory(p.join(testDir.path, '.vscode')).createSync(recursive: true);
+      final project = runner.context.get<ProjectService>().findAncestor(
+        directory: testDir,
+      );
+
+      await UpdateVsCodeSettingsWorkflow(runner.context)(
+        project,
+        enabled: true,
+      );
+
+      final settings = File(
+        p.join(testDir.path, '.vscode', 'settings.json'),
+      ).readAsStringSync();
+      expect(settings, contains('dart.flutterSdkPath'));
     });
 
     test('should handle non-existent parent directories correctly', () async {

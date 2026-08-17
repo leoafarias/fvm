@@ -14,22 +14,24 @@ import '../../testing_utils.dart';
 
 void main() {
   group('UseVersionWorkflow', () {
-    test('runs phases in order and passes updated project downstream',
-        () async {
-      final harness = _UseHarness(gitIgnoreResult: false);
+    test(
+      'runs phases in order and passes updated project downstream',
+      () async {
+        final harness = _UseHarness(gitIgnoreResult: false);
 
-      await harness.run();
+        await harness.run();
 
-      expect(harness.events, [
-        'setup',
-        'verify',
-        'references',
-        'gitignore:original',
-        'dependencies:stable',
-        'vscode:stable',
-        'melos:stable',
-      ]);
-    });
+        expect(harness.events, [
+          'setup',
+          'verify',
+          'references',
+          'gitignore:original',
+          'dependencies:stable',
+          'vscode:stable',
+          'melos:stable',
+        ]);
+      },
+    );
 
     test('honors setup and dependency skip flags', () async {
       final harness = _UseHarness();
@@ -63,6 +65,20 @@ void main() {
 
       expect(harness.events, ['setup', 'verify', 'references']);
     });
+
+    test('passes explicit editor and Melos policies', () async {
+      final harness = _UseHarness();
+
+      await harness.run(
+        updateVscodeSettings: true,
+        updateMelosSettings: true,
+        configureMissingMelos: true,
+        updateExistingMelos: false,
+      );
+
+      expect(harness.events, contains('vscode:stable:true'));
+      expect(harness.events, contains('melos:stable:true:false'));
+    });
   });
 }
 
@@ -81,27 +97,24 @@ final class _UseHarness {
         SetupFlutterWorkflow: (context) => _Setup(context, events),
         VerifyProjectWorkflow: (context) => _Verify(context, events),
         UpdateProjectReferencesWorkflow: (context) => _References(
-              context,
-              events,
-              () => updatedProject,
-              fail: failReferences,
-            ),
-        SetupGitIgnoreWorkflow: (context) => _GitIgnore(
-              context,
-              events,
-              result: gitIgnoreResult,
-            ),
-        ResolveProjectDependenciesWorkflow: (context) => _Dependencies(
-              context,
-              events,
-              dependencyVersions,
-            ),
+          context,
+          events,
+          () => updatedProject,
+          fail: failReferences,
+        ),
+        SetupGitIgnoreWorkflow: (context) =>
+            _GitIgnore(context, events, result: gitIgnoreResult),
+        ResolveProjectDependenciesWorkflow: (context) =>
+            _Dependencies(context, events, dependencyVersions),
         UpdateVsCodeSettingsWorkflow: (context) => _VsCode(context, events),
         UpdateMelosSettingsWorkflow: (context) => _Melos(context, events),
       },
     );
-    project =
-        Project(config: null, path: context.workingDirectory, pubspec: null);
+    project = Project(
+      config: null,
+      path: context.workingDirectory,
+      pubspec: null,
+    );
     updatedProject = Project(
       config: const ProjectConfig(flutter: 'stable'),
       path: project.path,
@@ -113,12 +126,23 @@ final class _UseHarness {
     );
   }
 
-  Future<void> run({bool skipSetup = false, bool skipPubGet = false}) {
+  Future<void> run({
+    bool skipSetup = false,
+    bool skipPubGet = false,
+    bool? updateVscodeSettings,
+    bool? updateMelosSettings,
+    bool? configureMissingMelos,
+    bool? updateExistingMelos,
+  }) {
     return context.get<UseVersionWorkflow>()(
       version: version,
       project: project,
       skipSetup: skipSetup,
       skipPubGet: skipPubGet,
+      updateVscodeSettings: updateVscodeSettings,
+      updateMelosSettings: updateMelosSettings,
+      configureMissingMelos: configureMissingMelos,
+      updateExistingMelos: updateExistingMelos,
     );
   }
 }
@@ -169,8 +193,12 @@ final class _References extends UpdateProjectReferencesWorkflow {
   final List<String> events;
   final Project Function() updatedProject;
   final bool fail;
-  _References(super.context, this.events, this.updatedProject,
-      {this.fail = false});
+  _References(
+    super.context,
+    this.events,
+    this.updatedProject, {
+    this.fail = false,
+  });
 
   @override
   Future<Project> call(
@@ -219,8 +247,10 @@ final class _VsCode extends UpdateVsCodeSettingsWorkflow {
   _VsCode(super.context, this.events);
 
   @override
-  Future<void> call(Project project) async {
-    events.add('vscode:${project.config?.flutter}');
+  Future<void> call(Project project, {bool? enabled}) async {
+    events.add(
+      'vscode:${project.config?.flutter}${enabled == null ? '' : ':$enabled'}',
+    );
   }
 }
 
@@ -229,7 +259,14 @@ final class _Melos extends UpdateMelosSettingsWorkflow {
   _Melos(super.context, this.events);
 
   @override
-  Future<void> call(Project project) async {
-    events.add('melos:${project.config?.flutter}');
+  Future<void> call(
+    Project project, {
+    bool? configureMissing,
+    bool? updateExisting,
+  }) async {
+    final policies = configureMissing == null && updateExisting == null
+        ? ''
+        : ':$configureMissing:$updateExisting';
+    events.add('melos:${project.config?.flutter}$policies');
   }
 }

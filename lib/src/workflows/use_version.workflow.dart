@@ -26,6 +26,10 @@ class UseVersionWorkflow extends Workflow {
     bool skipSetup = false,
     bool skipPubGet = false,
     String? flavor,
+    bool? updateVscodeSettings,
+    bool? updateMelosSettings,
+    bool? configureMissingMelos,
+    bool? updateExistingMelos,
   }) async {
     if (!skipSetup) {
       await get<SetupFlutterWorkflow>()(version);
@@ -51,9 +55,20 @@ class UseVersionWorkflow extends Workflow {
       );
     }
 
-    await get<UpdateVsCodeSettingsWorkflow>()(updatedProject);
+    if (updateVscodeSettings != false) {
+      await get<UpdateVsCodeSettingsWorkflow>()(
+        updatedProject,
+        enabled: updateVscodeSettings,
+      );
+    }
 
-    await get<UpdateMelosSettingsWorkflow>()(updatedProject);
+    if (updateMelosSettings != false) {
+      await get<UpdateMelosSettingsWorkflow>()(
+        updatedProject,
+        configureMissing: configureMissingMelos,
+        updateExisting: updateExistingMelos,
+      );
+    }
 
     final versionLabel = cyan.wrap(version.printFriendlyName);
     // Different message if configured environment
