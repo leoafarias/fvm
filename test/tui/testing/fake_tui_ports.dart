@@ -39,12 +39,13 @@ final threeVersions = <TuiVersionItem>[
 final oneVersion = <TuiVersionItem>[threeVersions.first];
 
 final class FakeTuiPorts {
-  FakeTuiPorts({List<List<TuiVersionItem>>? versionBatches})
+  FakeTuiPorts({List<List<TuiVersionItem>>? versionBatches, this.versionsError})
     : versionBatches = versionBatches ?? [threeVersions];
 
   factory FakeTuiPorts.withReadyData() => FakeTuiPorts();
 
   List<List<TuiVersionItem>> versionBatches;
+  final Object? versionsError;
   int versionsLoadCount = 0;
   int releasesLoadCount = 0;
 
@@ -65,6 +66,8 @@ final class _FakeVersionsRepository implements VersionsRepository {
 
   @override
   Future<TuiVersionsData> load() async {
+    final error = ports.versionsError;
+    if (error != null) throw error;
     final index = ports.versionsLoadCount.clamp(
       0,
       ports.versionBatches.length - 1,
