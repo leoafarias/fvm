@@ -44,7 +44,7 @@ on:
 
 env:
   SDK_VERSION: "3.10.0"
-  RELEASE_DART_SDK: "3.9.0"
+  RELEASE_DART_SDK: "3.10.0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

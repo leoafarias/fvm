@@ -45,11 +45,11 @@ FVM uses GitHub releases to trigger automated deployments across all platforms:
    - Monitor progress in [Actions tab](https://github.com/leoafarias/fvm/actions)
 
 > **Dart SDK requirements:** Day-to-day development now targets the
-> repository SDK constraint (`>=3.6.0 <4.0.0`). Release automation lives under
-> `tool/release_tool/` and requires Dart SDK `>=3.8.0`. CI pins this higher tool
-> chain via the `RELEASE_DART_SDK` environment variable (currently `3.9.0`) so
+> repository SDK constraint (`>=3.10.0 <4.0.0`). Release automation lives under
+> `tool/release_tool/`. CI pins the toolchain via the `RELEASE_DART_SDK`
+> environment variable (currently `3.10.0`) so
 > it matches the versions packaged for Homebrew and other installers.
-> If you run release tasks locally, switch to a Dart SDK `3.8.0` or newer
+> If you run release tasks locally, switch to a Dart SDK `3.10.0` or newer
 > before executing commands from `tool/release_tool/`.
 
 ### Emergency Releases

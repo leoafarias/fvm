@@ -10,7 +10,7 @@ jobs:
     env:
       PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_DART_SDK: "3.9.0"
+      RELEASE_DART_SDK: "3.10.0"
 
     steps:
       - name: Checkout

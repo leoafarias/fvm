@@ -1,5 +1,6 @@
 ## 5.0.0-alpha.0
 
+* feat: add an opt-in terminal UI powered by Noir; the v5 TUI requires Dart 3.10 because Noir uses Dart native assets
 * feat: discover FVM updates from GitHub Releases instead of pub.dev, drop `pub_updater`, and point major-version upgrades at the standalone installation guide
 * fix: fall back to execute-mode bits when `/bin/test` is missing, so PATH lookup still works on NixOS and distroless images
 * **BREAKING**: reject `<channel>@<channel>` values such as `stable@beta`. These previously parsed as the first channel with the suffix discarded, so an existing `.fvmrc` with that form now fails instead of silently pinning the wrong channel

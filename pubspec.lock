@@ -185,6 +185,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.2"
+  code_assets:
+    dependency: transitive
+    description:
+      name: code_assets
+      sha256: bf394f466ba9205f1812a0433b392d6af280f155f56651eda7c18cc32ed493b8
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   code_builder:
     dependency: transitive
     description:
@@ -345,6 +353,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.9.5"
+  hooks:
+    dependency: transitive
+    description:
+      name: hooks
+      sha256: "03a564c3704524ee0f7fc56fc621e8796cc2eb8c24d1f1a33b34979815b285c4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.0"
   http:
     dependency: "direct dev"
     description:
@@ -469,10 +485,10 @@ packages:
     dependency: "direct main"
     description:
       name: meta
-      sha256: e3641ec5d63ebf0d9b41bd43201a66e3fc79a65db5f61fc181f04cd27aab950c
+      sha256: "307249ce4ff29d58a18e97f6345f539382eb9c9c29ecda628900f31de0443dd9"
       url: "https://pub.dev"
     source: hosted
-    version: "1.16.0"
+    version: "1.19.0"
   mime:
     dependency: transitive
     description:
@@ -497,6 +513,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.2"
+  noir:
+    dependency: "direct main"
+    description:
+      name: noir
+      sha256: "71f8c0f029ec11d6e891161f375aa41a9ca86cf325740e249466c817659a2338"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.1-alpha.1"
   package_config:
     dependency: transitive
     description:
@@ -537,6 +561,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.5.0"
+  record_use:
+    dependency: transitive
+    description:
+      name: record_use
+      sha256: "3b4ab682aff40175afca6ff090cc5aa7ce9dafe8dfbae1537a6c678e6678baee"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   scope:
     dependency: "direct main"
     description:
@@ -794,4 +826,4 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.6.0 <4.0.0"
+  dart: ">=3.10.0 <4.0.0"

@@ -19,11 +19,10 @@
    - 🪟 GitHub Windows binaries + Chocolatey
    - 🐳 Docker Hub
 
-> Release Grinder tasks now live in `tool/release_tool` and require Dart SDK ≥ 3.8.
+> Release Grinder tasks now live in `tool/release_tool`; the repository requires Dart SDK ≥ 3.10.
 > Run release commands from that directory (e.g. `cd tool/release_tool && dart pub get && dart run grinder pkg-github-release`).
-> CI pins this toolchain via the `RELEASE_DART_SDK` environment variable (currently `3.9.0`,
-> aligned with our Homebrew formula) while the rest of the repo targets the
-> lower (`>=3.6.0`) constraint for everyday development.
+> CI pins this toolchain via the `RELEASE_DART_SDK` environment variable (currently `3.10.0`,
+> aligned with the root package and our Homebrew formula).
 
 **Usage**:
 1. Update `pubspec.yaml` version

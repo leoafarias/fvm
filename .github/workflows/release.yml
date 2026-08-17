@@ -9,7 +9,7 @@ on:
 env:
   PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  RELEASE_DART_SDK: "3.9.0" # Release tool requires Dart >=3.8; pinned for reproducibility
+  RELEASE_DART_SDK: "3.10.0" # Pinned to the root package minimum for reproducibility
 
 jobs:
 

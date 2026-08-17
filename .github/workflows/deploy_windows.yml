@@ -10,7 +10,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       CHOCOLATEY_TOKEN: ${{ secrets.CHOCOLATEY_TOKEN }}
-      RELEASE_DART_SDK: "3.9.0"
+      RELEASE_DART_SDK: "3.10.0"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
