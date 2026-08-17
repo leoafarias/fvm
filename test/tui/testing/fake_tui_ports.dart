@@ -1,0 +1,146 @@
+import 'package:fvm/src/services/operation_cancellation.dart';
+import 'package:fvm/src/tui/fvm_tui_dependencies.dart';
+import 'package:fvm/src/tui/fvm_tui_models.dart';
+import 'package:fvm/src/tui/fvm_tui_ports.dart';
+
+final threeVersions = <TuiVersionItem>[
+  (
+    id: 'stable',
+    version: '3.35.1',
+    channel: 'stable',
+    metadata: 'global',
+    installed: true,
+    isGlobal: true,
+    isProject: false,
+    needsSetup: false,
+  ),
+  (
+    id: 'beta',
+    version: '3.36.0-0.1.pre',
+    channel: 'beta',
+    metadata: 'preview',
+    installed: true,
+    isGlobal: false,
+    isProject: false,
+    needsSetup: false,
+  ),
+  (
+    id: '3.32.8',
+    version: '3.32.8',
+    channel: 'release',
+    metadata: 'project',
+    installed: true,
+    isGlobal: false,
+    isProject: true,
+    needsSetup: false,
+  ),
+];
+
+final oneVersion = <TuiVersionItem>[threeVersions.first];
+
+final class FakeTuiPorts {
+  FakeTuiPorts({List<List<TuiVersionItem>>? versionBatches})
+    : versionBatches = versionBatches ?? [threeVersions];
+
+  factory FakeTuiPorts.withReadyData() => FakeTuiPorts();
+
+  List<List<TuiVersionItem>> versionBatches;
+  int versionsLoadCount = 0;
+  int releasesLoadCount = 0;
+
+  late final FvmTuiDependencies dependencies = FvmTuiDependencies(
+    versions: _FakeVersionsRepository(this),
+    releases: _FakeReleasesRepository(this),
+    useVersion: _FakeUseVersionRunner(),
+    install: _FakeInstallRunner(),
+    doctor: _FakeDoctorRepository(),
+    configuration: _FakeConfigurationRepository(),
+  );
+}
+
+final class _FakeVersionsRepository implements VersionsRepository {
+  _FakeVersionsRepository(this.ports);
+
+  final FakeTuiPorts ports;
+
+  @override
+  Future<TuiVersionsData> load() async {
+    final index = ports.versionsLoadCount.clamp(
+      0,
+      ports.versionBatches.length - 1,
+    );
+    ports.versionsLoadCount += 1;
+    return (
+      items: ports.versionBatches[index],
+      cachePath: '/tmp/fvm/versions',
+      cacheBytes: 0,
+      updateMessage: null,
+    );
+  }
+}
+
+final class _FakeReleasesRepository implements ReleasesRepository {
+  _FakeReleasesRepository(this.ports);
+
+  final FakeTuiPorts ports;
+
+  @override
+  Future<List<TuiReleaseItem>> load() async {
+    ports.releasesLoadCount += 1;
+    return const [];
+  }
+}
+
+final class _FakeUseVersionRunner implements UseVersionRunner {
+  @override
+  Future<void> run(
+    UseVersionRequest request,
+    void Function(String) onEvent,
+  ) async {}
+}
+
+final class _FakeInstallRunner implements InstallRunner {
+  @override
+  OperationCancellation createCancellation() => _FakeCancellation();
+
+  @override
+  Future<void> run(
+    InstallRequest request, {
+    required void Function(InstallProgressUpdate) onProgress,
+    required OperationCancellation cancellation,
+  }) async {}
+}
+
+final class _FakeDoctorRepository implements DoctorRepository {
+  @override
+  Future<TuiDoctorReport> load() async =>
+      (sections: const <DoctorSection>[], recommendations: const <String>[]);
+}
+
+final class _FakeConfigurationRepository implements ConfigurationRepository {
+  @override
+  Future<TuiConfiguration> load(ConfigurationScope scope) async => (
+    scope: scope,
+    cachePath: '/tmp/fvm/versions',
+    gitCachePath: '/tmp/fvm/git',
+    runPubGetOnSdkChanges: true,
+    updateVscodeSettings: true,
+    updateGitIgnore: true,
+    updateMelosSettings: true,
+    useGitCache: true,
+    updateCheckEnabled: scope == ConfigurationScope.global ? true : null,
+    overriddenFields: const <TuiConfigurationField>{},
+  );
+
+  @override
+  Future<TuiConfiguration> save(TuiConfigurationPatch patch) =>
+      load(patch.scope);
+}
+
+final class _FakeCancellation implements OperationCancellation {
+  @override
+  bool isCancelled = false;
+
+  @override
+  void cancel() => isCancelled = true;
+}
