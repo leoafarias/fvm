@@ -3,6 +3,7 @@ import 'package:io/io.dart';
 import 'package:yaml_writer/yaml_writer.dart';
 
 import '../models/config_model.dart';
+import '../services/configuration_service.dart';
 import 'base_command.dart';
 
 /// Fvm Config
@@ -23,53 +24,61 @@ class ConfigCommand extends BaseFvmCommand {
     );
   }
 
+  String? _parsedString(ConfigOptions option) => wasParsed(option.paramKey)
+      ? argResults![option.paramKey] as String?
+      : null;
+
+  bool? _parsedBool(ConfigOptions option) =>
+      wasParsed(option.paramKey) ? argResults![option.paramKey] as bool? : null;
+
   @override
   Future<int> run() async {
-    // Flag if settings should be saved
-    final globalConfig = LocalAppConfig.read(
+    final current = LocalAppConfig.read(
       path: context.appConfigPath,
       requireValid: true,
-    ).toMap();
-    bool hasChanges = false;
+    );
+    final cachePath = _parsedString(ConfigOptions.cachePath);
+    final gitCachePath = _parsedString(ConfigOptions.gitCachePath);
+    final flutterUrl = _parsedString(ConfigOptions.flutterUrl);
+    final useGitCache = _parsedBool(ConfigOptions.useGitCache);
+    final updateCheckEnabled = wasParsed('update-check')
+        ? argResults!['update-check'] as bool
+        : null;
 
-    void updateConfigKey<T>(ConfigOptions key, T value) {
-      if (wasParsed(key.paramKey)) {
-        logger.info(
-          'Setting ${key.paramKey} to: ${yellow.wrap(value.toString())}',
-        );
-
-        if (globalConfig[key.name] != value) {
-          globalConfig[key.name] = value;
-          hasChanges = true;
-        }
-      }
-    }
-
-    for (var key in ConfigOptions.values) {
-      updateConfigKey(key, argResults![key.paramKey]);
-    }
-
-    if (wasParsed('update-check')) {
-      final updateCheckEnabled = argResults!['update-check'] as bool;
-      final disableUpdateCheck = !updateCheckEnabled;
-
+    final changes = <String, Object?>{
+      if (cachePath != null && cachePath != current.cachePath)
+        ConfigOptions.cachePath.paramKey: cachePath,
+      if (gitCachePath != null && gitCachePath != current.gitCachePath)
+        ConfigOptions.gitCachePath.paramKey: gitCachePath,
+      if (flutterUrl != null && flutterUrl != current.flutterUrl)
+        ConfigOptions.flutterUrl.paramKey: flutterUrl,
+      if (useGitCache != null && useGitCache != current.useGitCache)
+        ConfigOptions.useGitCache.paramKey: useGitCache,
+      if (updateCheckEnabled != null &&
+          !updateCheckEnabled != current.disableUpdateCheck)
+        'update-check': updateCheckEnabled,
+    };
+    for (final entry in changes.entries) {
       logger.info(
-        'Setting update-check to: ${yellow.wrap(updateCheckEnabled.toString())}',
+        'Setting ${entry.key} to: ${yellow.wrap(entry.value?.toString())}',
       );
-
-      if (globalConfig['disableUpdateCheck'] != disableUpdateCheck) {
-        globalConfig['disableUpdateCheck'] = disableUpdateCheck;
-        hasChanges = true;
-      }
     }
 
-    // Save
-    if (hasChanges) {
+    if (changes.isNotEmpty) {
       logger.info('');
       final updateProgress = logger.progress('Saving settings');
-      // Update settings
       try {
-        LocalAppConfig.fromMap(globalConfig).save(path: context.appConfigPath);
+        get<ConfigurationService>().save(ConfigurationTarget.global, (
+          cachePath: cachePath,
+          gitCachePath: gitCachePath,
+          flutterUrl: flutterUrl,
+          runPubGetOnSdkChanges: null,
+          updateVscodeSettings: null,
+          updateGitIgnore: null,
+          updateMelosSettings: null,
+          useGitCache: useGitCache,
+          updateCheckEnabled: updateCheckEnabled,
+        ));
       } catch (error) {
         updateProgress.fail('Failed to save settings');
         rethrow;
@@ -79,23 +88,18 @@ class ConfigCommand extends BaseFvmCommand {
       return ExitCode.success.code;
     }
 
-    final config = LocalAppConfig.read(path: context.appConfigPath);
-
     logger
       ..info('FVM Configuration:')
       ..info('Located at ${context.appConfigPath}')
       ..info('');
 
-    if (config.isEmpty) {
+    if (current.isEmpty) {
       logger.info('No settings have been configured.');
 
       return ExitCode.success.code;
     }
 
-    final yamlWriter = YamlWriter();
-    final yamlString = yamlWriter.write(config.toMap());
-
-    logger.info(yamlString);
+    logger.info(YamlWriter().write(current.toMap()));
 
     return ExitCode.success.code;
   }

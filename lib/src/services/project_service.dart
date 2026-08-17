@@ -75,7 +75,13 @@ class ProjectService extends ContextualService {
     Project project, {
     Map<String, String>? flavors,
     String? flutterSdkVersion,
+    bool? useGitCache,
+    String? cachePath,
+    String? gitCachePath,
+    bool? runPubGetOnSdkChanges,
     bool? updateVscodeSettings,
+    bool? updateGitIgnore,
+    bool? updateMelosSettings,
   }) {
     final currentConfig = project.config ?? ProjectConfig();
 
@@ -88,7 +94,13 @@ class ProjectService extends ContextualService {
       ProjectConfig(
         flutter: flutterSdkVersion,
         flavors: mergedFlavors?.isNotEmpty == true ? mergedFlavors : null,
+        useGitCache: useGitCache,
+        cachePath: cachePath,
+        gitCachePath: gitCachePath,
+        runPubGetOnSdkChanges: runPubGetOnSdkChanges,
         updateVscodeSettings: updateVscodeSettings,
+        updateGitIgnore: updateGitIgnore,
+        updateMelosSettings: updateMelosSettings,
       ),
     );
 

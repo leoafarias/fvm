@@ -57,6 +57,7 @@ final class FakeTuiPorts {
   final bool blockInstall;
   final List<UseVersionRequest> useRequests = [];
   final List<InstallRequest> installRequests = [];
+  final List<TuiConfigurationPatch> configurationPatches = [];
   final installStarted = Completer<void>();
   final _installCompletion = Completer<void>();
   _FakeCancellation? _installCancellation;
@@ -69,7 +70,7 @@ final class FakeTuiPorts {
     useVersion: _FakeUseVersionRunner(this),
     install: _FakeInstallRunner(this),
     doctor: _FakeDoctorRepository(),
-    configuration: _FakeConfigurationRepository(),
+    configuration: _FakeConfigurationRepository(this),
   );
 
   bool get installCancelled => _installCancellation?.isCancelled ?? false;
@@ -163,6 +164,10 @@ final class _FakeDoctorRepository implements DoctorRepository {
 }
 
 final class _FakeConfigurationRepository implements ConfigurationRepository {
+  _FakeConfigurationRepository(this.ports);
+
+  final FakeTuiPorts ports;
+
   @override
   Future<TuiConfiguration> load(ConfigurationScope scope) async => (
     scope: scope,
@@ -174,12 +179,17 @@ final class _FakeConfigurationRepository implements ConfigurationRepository {
     updateMelosSettings: true,
     useGitCache: true,
     updateCheckEnabled: scope == ConfigurationScope.global ? true : null,
-    overriddenFields: const <TuiConfigurationField>{},
+    overriddenFields: scope == ConfigurationScope.project
+        ? const <TuiConfigurationField>{TuiConfigurationField.cachePath}
+        : TuiConfigurationField.values.toSet(),
   );
 
   @override
-  Future<TuiConfiguration> save(TuiConfigurationPatch patch) =>
-      load(patch.scope);
+  Future<TuiConfiguration> save(TuiConfigurationPatch patch) async {
+    ports.configurationPatches.add(patch);
+
+    return load(patch.scope);
+  }
 }
 
 final class _FakeCancellation implements OperationCancellation {

@@ -115,6 +115,14 @@ final class FvmTuiController extends ChangeNotifier {
     await _dependencies.useVersion.run(request, _recordOperationEvent);
   });
 
+  Future<void> loadConfiguration(ConfigurationScope scope) => _run(() async {
+    _configuration = await _dependencies.configuration.load(scope);
+  });
+
+  Future<void> saveConfiguration(TuiConfigurationPatch patch) => _run(
+    () async => _configuration = await _dependencies.configuration.save(patch),
+  );
+
   Future<void> install(InstallRequest request) async {
     if (_disposed || _activeInstallCancellation != null) return;
     final cancellation = _dependencies.install.createCancellation();

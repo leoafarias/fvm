@@ -67,5 +67,35 @@ void main() {
         contains('configuration file is invalid'),
       );
     });
+
+    test(
+      'preserves unrelated global values when changing flutter URL',
+      () async {
+        final before = LocalAppConfig(
+          useGitCache: false,
+          disableUpdateCheck: true,
+          forks: {
+            const FlutterFork(name: 'team', url: 'https://example.com/team'),
+          },
+        )..save(path: runner.context.appConfigPath);
+
+        final exitCode = await runner.runOrThrow([
+          'fvm',
+          'config',
+          '--flutter-url',
+          'https://example.com/flutter.git',
+        ]);
+        final after = LocalAppConfig.read(
+          path: runner.context.appConfigPath,
+          requireValid: true,
+        );
+
+        expect(exitCode, ExitCode.success.code);
+        expect(before.useGitCache, after.useGitCache);
+        expect(before.disableUpdateCheck, after.disableUpdateCheck);
+        expect(before.forks, after.forks);
+        expect(after.flutterUrl, 'https://example.com/flutter.git');
+      },
+    );
   });
 }

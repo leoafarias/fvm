@@ -142,6 +142,45 @@ void main() {
       expect(updatedConfig.updateVscodeSettings, isFalse);
     });
 
+    test(
+      'update merges every supported preference without dropping SDK data',
+      () {
+        final tempDir = tempDirs.create();
+        createProjectConfig(
+          const ProjectConfig(
+            flutter: '3.35.1',
+            flavors: {'production': '3.35.1'},
+            flutterUrl: 'https://example.com/flutter.git',
+          ),
+          tempDir,
+        );
+        createPubspecYaml(tempDir);
+
+        projectService.update(
+          Project.loadFromDirectory(tempDir),
+          cachePath: '/project/cache',
+          gitCachePath: '/project/git',
+          useGitCache: false,
+          runPubGetOnSdkChanges: false,
+          updateVscodeSettings: false,
+          updateGitIgnore: false,
+          updateMelosSettings: false,
+        );
+
+        final config = Project.loadFromDirectory(tempDir).config!;
+        expect(config.flutter, '3.35.1');
+        expect(config.flavors, {'production': '3.35.1'});
+        expect(config.flutterUrl, 'https://example.com/flutter.git');
+        expect(config.cachePath, '/project/cache');
+        expect(config.gitCachePath, '/project/git');
+        expect(config.useGitCache, isFalse);
+        expect(config.runPubGetOnSdkChanges, isFalse);
+        expect(config.updateVscodeSettings, isFalse);
+        expect(config.updateGitIgnore, isFalse);
+        expect(config.updateMelosSettings, isFalse);
+      },
+    );
+
     test('findAncestor loads legacy .fvm/fvm_config.json file', () {
       final tempDir = tempDirs.create();
 
