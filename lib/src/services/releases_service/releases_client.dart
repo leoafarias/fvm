@@ -11,7 +11,7 @@ class FlutterReleaseClient extends ContextualService {
   // Constants
   static const String _defaultStorageUrl = 'https://storage.googleapis.com';
   static const String _githubRawUrl =
-      'https://raw.githubusercontent.com/leoafarias/fvm/main';
+      'https://raw.githubusercontent.com/conceptadev/fvm/main';
 
   // Instance-level cache instead of static
   FlutterReleasesResponse? _cachedReleases;

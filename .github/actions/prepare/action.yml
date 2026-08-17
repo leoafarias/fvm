@@ -5,8 +5,8 @@ inputs:
   sdk-version:
     description: "Dart SDK version"
     required: false
-    # 3.10.0 required for latest win32/archive/file compatibility
-    default: "3.10.0"
+    # Keep the default exact so local and release artifacts use the same SDK.
+    default: "3.13.0"
 
 runs:
   using: "composite"

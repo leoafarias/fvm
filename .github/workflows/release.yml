@@ -9,7 +9,7 @@ on:
 env:
   PUB_CREDENTIALS: ${{ secrets.PUB_CREDENTIALS }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  RELEASE_DART_SDK: "3.9.0" # Release tool requires Dart >=3.8; pinned for reproducibility
+  RELEASE_DART_SDK: "3.13.0" # Pinned for reproducible release artifacts
 
 jobs:
 
@@ -38,7 +38,7 @@ jobs:
 
       - name: Get release tool dependencies
         working-directory: tool/release_tool
-        run: dart pub get
+        run: dart pub get --enforce-lockfile
 
       - name: Deploy Github
         working-directory: tool/release_tool
@@ -73,7 +73,7 @@ jobs:
 
           - name: Get release tool dependencies
             working-directory: tool/release_tool
-            run: dart pub get
+            run: dart pub get --enforce-lockfile
 
           - name: Deploy Github Windows
             working-directory: tool/release_tool
@@ -81,7 +81,7 @@ jobs:
 
           - name: Deploy Chocolatey
             working-directory: tool/release_tool
-            run: dart run grinder pkg-chocolatey-deploy
+            run: dart run grinder fvm-chocolatey-deploy
 
   deploy-macos:
       name: Deploy macOS
@@ -104,7 +104,7 @@ jobs:
 
       - name: Get release tool dependencies
         working-directory: tool/release_tool
-        run: dart pub get
+        run: dart pub get --enforce-lockfile
 
       - name: Deploy Github Mac
         working-directory: tool/release_tool

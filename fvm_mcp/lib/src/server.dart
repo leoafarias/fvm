@@ -227,7 +227,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           },
           additionalProperties: false,
         ),
-        run: (call) {
+        run: (call) async {
           final all = boolArg(call, 'all') ?? false;
           final version = stringArg(call, 'version');
           if (all) {
@@ -308,7 +308,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
           },
           additionalProperties: false,
         ),
-        run: (call) {
+        run: (call) async {
           final unlink = boolArg(call, 'unlink') == true;
           final version = stringArg(call, 'version');
           final target = unlink ? '--unlink' : version;
@@ -382,7 +382,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         },
         additionalProperties: false,
       ),
-      run: (call) {
+      run: (call) async {
         final command = stringArg(call, 'command');
         if (command == null) {
           return _error('Missing args: set non-empty "command".');
@@ -411,7 +411,7 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
         },
         additionalProperties: false,
       ),
-      run: (call) {
+      run: (call) async {
         final version = stringArg(call, 'version');
         if (version == null) {
           return _error('Missing args: set non-empty "version".');

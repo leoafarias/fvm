@@ -7,7 +7,7 @@ on:
         description: "Dart SDK version"
         type: string
         required: false
-        default: "3.10.0"
+        default: "3.13.0"
 
   pull_request:
     paths-ignore:
@@ -43,14 +43,132 @@ on:
   workflow_dispatch:
 
 env:
-  SDK_VERSION: "3.10.0"
-  RELEASE_DART_SDK: "3.9.0"
+  SDK_VERSION: "3.13.0"
+  RELEASE_DART_SDK: "3.13.0"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
+  minimum-sdk:
+    name: Minimum SDK (${{ matrix.package }})
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: fvm
+            directory: .
+            sdk: "3.6.0"
+          - package: fvm_mcp
+            directory: fvm_mcp
+            sdk: "3.9.0"
+          - package: release tool
+            directory: tool/release_tool
+            sdk: "3.8.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup minimum Dart SDK
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: ${{ matrix.sdk }}
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.directory }}
+        run: dart pub get
+
+      - name: Analyze
+        working-directory: ${{ matrix.directory }}
+        run: dart analyze --fatal-infos
+
+      - name: Test
+        working-directory: ${{ matrix.directory }}
+        run: dart test
+
+  downgraded-dependencies:
+    name: Downgraded dependencies on minimum SDK
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+        with:
+          sdk: "3.6.0"
+
+      - name: Resolve minimum dependency versions
+        run: dart pub downgrade
+
+      - name: Analyze
+        run: dart analyze --fatal-infos
+
+      - name: Test
+        run: dart test
+
+  chocolatey-package:
+    name: Chocolatey package
+    timeout-minutes: 30
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare environment
+        uses: ./.github/actions/prepare
+        with:
+          sdk-version: ${{ env.RELEASE_DART_SDK }}
+
+      - name: Install release tool dependencies
+        working-directory: tool/release_tool
+        run: dart pub get --enforce-lockfile
+
+      - name: Build Windows x64 release archive
+        working-directory: tool/release_tool
+        run: dart run grinder pkg-standalone-windows-x64
+
+      - name: Build Chocolatey package
+        working-directory: tool/release_tool
+        run: dart run grinder fvm-chocolatey-pack
+
+      - name: Verify Chocolatey install and shim
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $versionLine = Select-String -Path pubspec.yaml -Pattern '^version:'
+          $version = ($versionLine.Line -split ':', 2)[1].Trim()
+
+          try {
+            choco install fvm --version $version --source "${{ github.workspace }}\build" --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "choco install failed" }
+
+            $actualVersion = (fvm --version).Trim()
+            if ($actualVersion -ne $version) {
+              throw "Expected FVM $version, got $actualVersion"
+            }
+
+            $installedNuspec = Join-Path $env:ChocolateyInstall 'lib\fvm\fvm.nuspec'
+            if (Select-String -Path $installedNuspec -Pattern 'dart-sdk' -Quiet) {
+              throw 'Chocolatey package unexpectedly depends on dart-sdk'
+            }
+
+            if (-not (Get-Command fvm -ErrorAction SilentlyContinue)) {
+              throw 'Chocolatey did not create the fvm command shim'
+            }
+          } finally {
+            choco uninstall fvm --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw "choco uninstall failed" }
+          }
+
+          if (Get-Command fvm -ErrorAction SilentlyContinue) {
+            throw 'Chocolatey did not remove the fvm command shim'
+          }
+
   # ─────────────────────────────────────────────────────────────────────────────
   # Unit Tests - Run first for fast feedback
   # ─────────────────────────────────────────────────────────────────────────────
@@ -122,7 +240,7 @@ jobs:
 
       - name: Release tool | Install dependencies
         working-directory: tool/release_tool
-        run: dart pub get
+        run: dart pub get --enforce-lockfile
 
       - name: Release tool | Analyze
         working-directory: tool/release_tool

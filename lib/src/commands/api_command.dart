@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:io/io.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/io.dart' as io;
 
 import '../api/api_service.dart';
 import '../api/models/json_response.dart';
@@ -35,7 +34,7 @@ abstract class APISubCommand<T extends APIResponse> extends BaseFvmCommand {
         print(prettyJson(response.toMap()));
       }
 
-      return ExitCode.success.code;
+      return io.ExitCode.success.code;
     } on Exception catch (e, stackTrace) {
       Error.throwWithStackTrace(
         AppDetailedException(

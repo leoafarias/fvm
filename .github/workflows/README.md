@@ -18,7 +18,7 @@
 
 > Release Grinder tasks now live in `tool/release_tool` and require Dart SDK ≥ 3.8.
 > Run release commands from that directory (e.g. `cd tool/release_tool && dart pub get && dart run grinder pkg-github-release`).
-> CI pins this toolchain via the `RELEASE_DART_SDK` environment variable (currently `3.9.0`,
+> CI pins this toolchain via the `RELEASE_DART_SDK` environment variable (currently `3.13.0`,
 > aligned with our Homebrew formula) while the rest of the repo targets the
 > lower (`>=3.6.0`) constraint for everyday development.
 
@@ -90,7 +90,7 @@
 3. **Automatic Deployment**
    - `release.yml` triggers automatically on tag push
    - cli_pkg creates GitHub release from CHANGELOG content
-   - Monitor progress in [Actions](https://github.com/leoafarias/fvm/actions)
+   - Monitor progress in [Actions](https://github.com/conceptadev/fvm/actions)
    - All platforms deployed simultaneously
 
 ### 🧩 FVM MCP Release (Standalone)

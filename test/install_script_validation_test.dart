@@ -40,7 +40,7 @@ void main() {
       final dockerfileContent = await dockerfile.readAsString();
 
       const expectedUrl =
-          'https://raw.githubusercontent.com/leoafarias/fvm/main/docs/public/install.sh';
+          'https://raw.githubusercontent.com/conceptadev/fvm/main/docs/public/install.sh';
       expect(
         dockerfileContent.contains(expectedUrl),
         isTrue,

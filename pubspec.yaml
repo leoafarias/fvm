@@ -2,7 +2,7 @@ name: fvm
 description: A simple cli to manage Flutter SDK versions per project. Support
   channels, releases, and local cache for fast switching between versions.
 version: 4.1.2
-homepage: https://github.com/leoafarias/fvm
+homepage: https://github.com/conceptadev/fvm
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -32,20 +32,28 @@ dependencies:
   dart_mappable: ^4.2.2
   cli_completion: ^0.5.0
   yaml_writer: ^2.1.0
-  win32: ^5.0.0
+  # 5.5.1 removed UnmodifiableUint8ListView, which is unavailable on Dart 3.6.
+  win32: ^5.5.1
 
 dev_dependencies:
+  # Required by package:test when validating downgraded dependencies on Dart 3.6.
+  # Version 4 supports the AOT frontend-server snapshot shipped by modern SDKs.
+  frontend_server_client: ^4.0.0
   grinder: ^0.9.5
-  test: ^1.24.6
+  test: ^1.25.15
   lints: ^2.1.1
   crypto: ^3.0.3
+  file: ^7.0.1
   http: ^1.1.0
+  # Older releases reference the removed Platform.packageRoot API.
+  platform: ^3.1.0
   dart_code_metrics_presets: ^2.9.0
   build_runner: ^2.4.8
   dart_mappable_builder: ^4.2.3
   build_verify: ^3.1.0
   build_version: ^2.1.1
   mocktail: ^1.0.4
+  watcher: ^1.1.1
   husky: ^0.1.7
   lint_staged: ^0.5.1
 

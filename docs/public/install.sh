@@ -16,7 +16,7 @@ readonly INSTALLER_NAME="install_fvm.sh"
 readonly INSTALLER_VERSION="2.0.0"
 
 # ---- config ----
-readonly REPO="leoafarias/fvm"
+readonly REPO="conceptadev/fvm"
 readonly OLD_SYSTEM_PATH="/usr/local/bin/fvm"
 readonly OLD_USER_PATH="${HOME}/.fvm_flutter"
 

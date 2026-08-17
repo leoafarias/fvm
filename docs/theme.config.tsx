@@ -26,7 +26,7 @@ const themeConfig = {
   },
   logo: logo,
   project: {
-    link: "https://github.com/leoafarias/fvm",
+    link: "https://github.com/conceptadev/fvm",
   },
   // banner: {
   //   key: "1.0-beta-doc-wip-notice",
@@ -37,7 +37,7 @@ const themeConfig = {
   //     </a>
   //   ),
   // },
-  docsRepositoryBase: "https://github.com/leoafarias/fvm/blob/main/docs",
+  docsRepositoryBase: "https://github.com/conceptadev/fvm/blob/main/docs",
   search: {
     component: <CustomSearch />,
   },

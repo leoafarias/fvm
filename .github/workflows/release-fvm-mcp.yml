@@ -12,7 +12,7 @@ on:
       - "fvm-mcp-v*"
 
 env:
-  SDK_VERSION: "3.10.0"
+  SDK_VERSION: "3.13.0"
 
 permissions:
   contents: write

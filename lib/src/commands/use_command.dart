@@ -1,6 +1,5 @@
 import 'package:args/command_runner.dart';
-import 'package:io/io.dart';
-import 'package:mason_logger/mason_logger.dart';
+import 'package:io/io.dart' as io;
 
 import '../services/cache_service.dart';
 import '../services/project_service.dart';
@@ -148,7 +147,7 @@ class UseCommand extends BaseFvmCommand {
       flavor: flavorOption,
     );
 
-    return ExitCode.success.code;
+    return io.ExitCode.success.code;
   }
 
   @override

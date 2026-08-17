@@ -1,4 +1,4 @@
-# Copilot Instructions for `leoafarias/fvm`
+# Copilot Instructions for `conceptadev/fvm`
 
 ## Project overview
 - FVM is a Dart CLI that manages Flutter SDK versions per project.

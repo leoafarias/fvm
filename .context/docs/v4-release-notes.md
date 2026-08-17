@@ -124,8 +124,8 @@ This release was made possible by contributions from the Flutter community. Spec
 
 ## 🐛 Bug Reports
 
-Found an issue? Please report it on our [issue tracker](https://github.com/leoafarias/fvm/issues).
+Found an issue? Please report it on our [issue tracker](https://github.com/conceptadev/fvm/issues).
 
 ---
 
-**Full Changelog**: https://github.com/leoafarias/fvm/compare/3.2.1...4.0.0
+**Full Changelog**: https://github.com/conceptadev/fvm/compare/3.2.1...4.0.0

@@ -34,7 +34,7 @@ ARG HOME=/home/flutter
 ENV PATH=$HOME/fvm:$HOME/.pub-cache/bin:$HOME/fvm/default/bin:${PATH}
 
 RUN cd $HOME \
-  && wget https://github.com/leoafarias/fvm/releases/download/${FVM_VERSION}/fvm-${FVM_VERSION}-linux-x64.tar.gz \
+  && wget https://github.com/conceptadev/fvm/releases/download/${FVM_VERSION}/fvm-${FVM_VERSION}-linux-x64.tar.gz \
   && tar -xf fvm-${FVM_VERSION}-linux-x64.tar.gz \
   && rm fvm-${FVM_VERSION}-linux-x64.tar.gz \
   && fvm --version
