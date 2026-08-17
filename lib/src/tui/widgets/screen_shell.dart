@@ -111,7 +111,7 @@ final class _Footer extends StatelessWidget {
       spacing: 2,
       children: [
         KeyHint(keyLabel: 'Tab', description: 'focus'),
-        KeyHint(keyLabel: 'Ctrl+Q', description: 'quit'),
+        KeyHint(keyLabel: 'Ctrl+Q/X', description: 'quit'),
       ],
     ),
   );

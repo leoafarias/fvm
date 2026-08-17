@@ -15,6 +15,7 @@ title: Quick Reference
 | `fvm global [version]` | Set system default | `fvm global 3.19.0` |
 | `fvm flutter [cmd]` | Run Flutter commands | `fvm flutter doctor` |
 | `fvm dart [cmd]` | Run Dart commands | `fvm dart pub get` |
+| `fvm tui` | Open the interactive terminal interface | `fvm tui` |
 
 ## Version Formats
 
@@ -80,6 +81,7 @@ myproject/
 
 ## Tips
 
+- Use `fvm tui` for keyboard-driven version, release, Doctor, and configuration workflows
 - Use `fvm doctor` to troubleshoot issues
 - Add `.fvm/flutter_sdk` to `.gitignore`
 - Commit `.fvmrc` for team consistency

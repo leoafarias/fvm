@@ -1,0 +1,70 @@
+---
+id: tui
+title: Terminal Interface
+---
+
+# FVM Terminal Interface
+
+FVM includes an opt-in terminal interface for managing Flutter SDKs without
+leaving your shell. Start it from an interactive terminal:
+
+```bash
+fvm tui
+```
+
+The interface lets you browse installed versions and available releases, use
+or install a version, inspect FVM Doctor results, and edit global or project
+configuration. Press `Ctrl+Q` to close it and return to your shell. If the
+terminal or host application reserves `Ctrl+Q`, use `Ctrl+X` instead.
+
+## Keyboard controls
+
+| Key | Action |
+| --- | --- |
+| `1`–`4` | Open Versions, Releases, Doctor, or Configuration |
+| Arrow keys | Move through lists and options |
+| `Enter` | Open details, begin editing, save, or run the current action |
+| `Escape` | Cancel the current edit or return to the previous view |
+| `Space` | Toggle the selected option |
+| `Tab` / `Shift+Tab` | Move focus forward or backward |
+| `U` | Open Use options from an installed-version detail |
+| `I` | Open Install options from a version or release view |
+| `Ctrl+C` | Cancel the active install safely |
+| `Ctrl+Q` / `Ctrl+X` | Quit the interface (`Ctrl+X` is the fallback when `Ctrl+Q` is reserved) |
+
+Mouse input is enabled when the terminal supports it, but every action remains
+available from the keyboard.
+
+## Layout
+
+FVM selects the layout when it starts:
+
+- Terminals at least 100 columns wide use the wide layout.
+- Narrower terminals use the compact layout.
+
+The interface remains readable when its current layout is resized. Crossing
+the 100-column threshold takes effect the next time you launch `fvm tui`.
+
+## Screens
+
+- **Versions** shows cached SDKs, project/global usage, setup state, and channel
+  updates.
+- **Releases** shows Flutter releases and a detail view before installation.
+- **Use version** applies explicit pub-get, VS Code, Melos, and pin choices to
+  the current project.
+- **Install** runs one installation at a time and shows its ordered phases.
+  Exact percentages appear only while Git reports clone progress.
+- **Doctor** presents read-only Project, IDE, Environment, and Runtime checks.
+  Recommendations are guidance; the interface does not apply fixes.
+- **Configuration** edits global defaults or project overrides. Project values
+  that are not explicitly present in `.fvmrc` are labeled as inherited, and
+  update checking remains a global-only setting.
+
+## Requirements and current status
+
+The terminal interface requires Dart 3.10 or newer. It is built with the
+prerelease `noir 0.0.1-alpha.1` terminal UI package, so its surface may evolve
+before FVM v5 is stable.
+
+For contributors, the visual contract is the
+[FVM Terminal Experience — Noir Concept](https://www.figma.com/design/fxVrfvHZ9SE2xlxSwWIQMf).

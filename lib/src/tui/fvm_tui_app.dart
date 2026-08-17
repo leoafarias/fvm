@@ -4,6 +4,13 @@ import 'package:noir/noir.dart';
 
 import 'fvm_tui_controller.dart';
 import 'fvm_tui_models.dart';
+import 'screens/configuration_screen.dart';
+import 'screens/doctor_screen.dart';
+import 'screens/install_options_screen.dart';
+import 'screens/install_progress_screen.dart';
+import 'screens/releases_screen.dart';
+import 'screens/use_version_screen.dart';
+import 'screens/versions_screen.dart';
 import 'theme/fvm_tui_theme.dart';
 import 'widgets/screen_shell.dart';
 
@@ -24,41 +31,133 @@ final class FvmTuiApp extends StatefulWidget {
 }
 
 final class _FvmTuiAppState extends State<FvmTuiApp> {
+  final _rootFocusNode = FocusNode(debugLabel: 'fvm-tui-root');
   var _controllerRevision = 0;
+  late FvmTuiRoute _activeRoute;
+  String? _installVersion;
+  FvmTuiRoute _installReturnRoute = FvmTuiRoute.versions;
 
   @override
   void initState() {
     super.initState();
+    _activeRoute = widget.controller.route;
     widget.controller.addListener(_handleControllerChanged);
   }
 
   void _handleControllerChanged() {
-    if (mounted) setState(() => _controllerRevision += 1);
+    if (!mounted) return;
+    final routeChanged = _activeRoute != widget.controller.route;
+    _activeRoute = widget.controller.route;
+    setState(() => _controllerRevision += 1);
+    if (routeChanged) {
+      scheduleMicrotask(() {
+        if (mounted && _rootFocusNode.isAttached) {
+          _rootFocusNode.requestFocus();
+        }
+      });
+    }
   }
 
-  Widget _content() {
-    if (widget.controller.loading) {
-      return Text('Loading…', style: FvmTuiTextStyles.muted);
-    }
-    final error = widget.controller.error;
-    if (error != null) {
-      return Text(
-        'Error: $error',
-        style: FvmTuiTextStyles.forTone(TuiTone.error),
-      );
-    }
+  TuiVersionItem? _selectedVersion() {
+    final items = widget.controller.versions?.items;
+    if (items == null || items.isEmpty) return null;
 
-    final title = switch (widget.controller.route) {
-      FvmTuiRoute.versions => 'Installed Flutter SDKs',
-      FvmTuiRoute.releases => 'Flutter releases',
-      FvmTuiRoute.useVersion => 'Use a Flutter version',
-      FvmTuiRoute.installOptions => 'Install options',
-      FvmTuiRoute.installProgress => 'Install progress',
-      FvmTuiRoute.doctor => 'FVM Doctor',
-      FvmTuiRoute.configuration => 'FVM Configuration',
+    return items[widget.controller.selectedVersionIndex];
+  }
+
+  TuiReleaseItem? _selectedRelease() {
+    final releases = widget.controller.releases;
+    if (releases == null || releases.isEmpty) return null;
+
+    return releases[widget.controller.selectedReleaseIndex];
+  }
+
+  Widget _unavailable(String message) =>
+      Text(message, style: FvmTuiTextStyles.forTone(TuiTone.warning));
+
+  Widget _content() => switch (widget.controller.route) {
+    FvmTuiRoute.versions => VersionsScreen(
+      controller: widget.controller,
+      layoutMode: widget.layoutMode,
+      onUse: _openUseVersion,
+      onInstall: _openInstall,
+    ),
+    FvmTuiRoute.releases => ReleasesScreen(
+      controller: widget.controller,
+      layoutMode: widget.layoutMode,
+      onInstall: _openInstall,
+    ),
+    FvmTuiRoute.useVersion => switch (_selectedVersion()) {
+      final version? => UseVersionScreen(
+        controller: widget.controller,
+        version: version,
+        onBack: () => _navigate(FvmTuiRoute.versions),
+      ),
+      null => _unavailable('Select an installed Flutter SDK first.'),
+    },
+    FvmTuiRoute.installOptions => switch (_installVersion) {
+      final version? => InstallOptionsScreen(
+        controller: widget.controller,
+        version: version,
+        onBack: () => _navigate(_installReturnRoute),
+      ),
+      null => _unavailable('Select a Flutter SDK to install first.'),
+    },
+    FvmTuiRoute.installProgress => InstallProgressScreen(
+      controller: widget.controller,
+    ),
+    FvmTuiRoute.doctor => switch (widget.controller.doctor) {
+      final report? => DoctorScreen(
+        report: report,
+        layoutMode: widget.layoutMode,
+      ),
+      null when widget.controller.loading => Text(
+        'Running diagnostics…',
+        style: FvmTuiTextStyles.muted,
+      ),
+      null => _unavailable('Diagnostics are not available.'),
+    },
+    FvmTuiRoute.configuration => switch (widget.controller.configuration) {
+      final configuration? => ConfigurationScreen(
+        key: ValueKey(configuration.scope),
+        controller: widget.controller,
+        onBack: () => _navigate(FvmTuiRoute.versions),
+      ),
+      null when widget.controller.loading => Text(
+        'Loading configuration…',
+        style: FvmTuiTextStyles.muted,
+      ),
+      null => _unavailable('Configuration is not available.'),
+    },
+  };
+
+  void _navigate(FvmTuiRoute route) {
+    if (!mounted) return;
+    unawaited(widget.controller.goTo(route));
+  }
+
+  void _openUseVersion() {
+    if (_selectedVersion() == null) return;
+    _navigate(FvmTuiRoute.useVersion);
+  }
+
+  void _openInstall() {
+    final route = widget.controller.route;
+    final version = switch (route) {
+      FvmTuiRoute.versions => _selectedVersion()?.id,
+      FvmTuiRoute.releases => _selectedRelease()?.version,
+      FvmTuiRoute.useVersion ||
+      FvmTuiRoute.installOptions ||
+      FvmTuiRoute.installProgress ||
+      FvmTuiRoute.doctor ||
+      FvmTuiRoute.configuration => null,
     };
-
-    return Text(title, style: FvmTuiTextStyles.heading);
+    if (version == null) return;
+    setState(() {
+      _installVersion = version;
+      _installReturnRoute = route;
+    });
+    _navigate(FvmTuiRoute.installOptions);
   }
 
   @override
@@ -72,13 +171,30 @@ final class _FvmTuiAppState extends State<FvmTuiApp> {
   @override
   void dispose() {
     widget.controller.removeListener(_handleControllerChanged);
+    _rootFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) => Shortcuts(
-    shortcuts: const {
+    shortcuts: {
       SingleActivator(LogicalKeyboardKey.keyQ, control: true): _QuitIntent(),
+      SingleActivator(LogicalKeyboardKey.keyX, control: true): _QuitIntent(),
+      if (widget.controller.route == FvmTuiRoute.installProgress)
+        SingleActivator(LogicalKeyboardKey.keyC, control: true):
+            _CancelInstallIntent(),
+      SingleActivator(LogicalKeyboardKey.digit1): _NavigateIntent(
+        FvmTuiRoute.versions,
+      ),
+      SingleActivator(LogicalKeyboardKey.digit2): _NavigateIntent(
+        FvmTuiRoute.releases,
+      ),
+      SingleActivator(LogicalKeyboardKey.digit3): _NavigateIntent(
+        FvmTuiRoute.doctor,
+      ),
+      SingleActivator(LogicalKeyboardKey.digit4): _NavigateIntent(
+        FvmTuiRoute.configuration,
+      ),
     },
     child: Actions(
       actions: {
@@ -87,15 +203,33 @@ final class _FvmTuiAppState extends State<FvmTuiApp> {
 
           return KeyEventResult.handled;
         }),
+        _CancelInstallIntent: CallbackAction<_CancelInstallIntent>((
+          intent,
+          context,
+        ) {
+          if (widget.controller.hasActiveInstall) {
+            widget.controller.cancelInstall();
+          } else {
+            widget.onQuit();
+          }
+
+          return KeyEventResult.handled;
+        }),
+        _NavigateIntent: CallbackAction<_NavigateIntent>((intent, context) {
+          _navigate(intent.route);
+
+          return KeyEventResult.handled;
+        }),
       },
       child: Focus(
+        focusNode: _rootFocusNode,
         autofocus: true,
         child: ScreenShell(
           layoutMode: widget.layoutMode,
           route: widget.controller.route,
           content: _content(),
-          onNavigate: (route) => unawaited(widget.controller.goTo(route)),
-          onBack: () => unawaited(widget.controller.goTo(FvmTuiRoute.versions)),
+          onNavigate: _navigate,
+          onBack: () => _navigate(FvmTuiRoute.versions),
         ),
       ),
     ),
@@ -104,4 +238,14 @@ final class _FvmTuiAppState extends State<FvmTuiApp> {
 
 final class _QuitIntent extends Intent {
   const _QuitIntent();
+}
+
+final class _CancelInstallIntent extends Intent {
+  const _CancelInstallIntent();
+}
+
+final class _NavigateIntent extends Intent {
+  final FvmTuiRoute route;
+
+  const _NavigateIntent(this.route);
 }

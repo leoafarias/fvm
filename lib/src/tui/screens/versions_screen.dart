@@ -9,11 +9,15 @@ final class VersionsScreen extends StatefulWidget {
   const VersionsScreen({
     required this.controller,
     required this.layoutMode,
+    this.onUse,
+    this.onInstall,
     super.key,
   });
 
   final FvmTuiController controller;
   final FvmTuiLayoutMode layoutMode;
+  final VoidCallback? onUse;
+  final VoidCallback? onInstall;
 
   @override
   State<VersionsScreen> createState() => _VersionsScreenState();
@@ -31,6 +35,22 @@ final class _VersionsScreenState extends State<VersionsScreen> {
 
   void _handleControllerChanged() {
     if (mounted) setState(() => _controllerRevision += 1);
+  }
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (!event.isPress || !_detailOpen) return KeyEventResult.ignored;
+    if (event.logicalKey == LogicalKeyboardKey.keyU) {
+      widget.onUse?.call();
+
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyI) {
+      widget.onInstall?.call();
+
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
   }
 
   Widget _buildList(TuiVersionsData data) => Select(
@@ -154,20 +174,26 @@ final class _VersionsScreenState extends State<VersionsScreen> {
             ],
           );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 1,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Installed SDKs', style: FvmTuiTextStyles.heading),
-            Text('${data.items.length} cached', style: FvmTuiTextStyles.muted),
-          ],
-        ),
-        if (update != null) StatusMarker(label: update, tone: TuiTone.info),
-        Expanded(child: body),
-      ],
+    return Focus(
+      onKeyEvent: _handleKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 1,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Installed SDKs', style: FvmTuiTextStyles.heading),
+              Text(
+                '${data.items.length} cached',
+                style: FvmTuiTextStyles.muted,
+              ),
+            ],
+          ),
+          if (update != null) StatusMarker(label: update, tone: TuiTone.info),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 }

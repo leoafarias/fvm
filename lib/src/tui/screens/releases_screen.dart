@@ -11,11 +11,13 @@ final class ReleasesScreen extends StatefulWidget {
   const ReleasesScreen({
     required this.controller,
     required this.layoutMode,
+    this.onInstall,
     super.key,
   });
 
   final FvmTuiController controller;
   final FvmTuiLayoutMode layoutMode;
+  final VoidCallback? onInstall;
 
   @override
   State<ReleasesScreen> createState() => ReleasesScreenState();
@@ -40,6 +42,16 @@ final class ReleasesScreenState extends State<ReleasesScreen> {
   KeyEventResult _handleDetailKey(FocusNode node, KeyEvent event) {
     if (event.isPress && event.logicalKey == LogicalKeyboardKey.escape) {
       showList();
+
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  KeyEventResult _handleKey(FocusNode node, KeyEvent event) {
+    if (event.isPress && event.logicalKey == LogicalKeyboardKey.keyI) {
+      widget.onInstall?.call();
 
       return KeyEventResult.handled;
     }
@@ -144,19 +156,25 @@ final class ReleasesScreenState extends State<ReleasesScreen> {
         ? _buildDetail(releases)
         : _buildList(releases);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: 1,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Flutter releases', style: FvmTuiTextStyles.heading),
-            Text('${releases.length} available', style: FvmTuiTextStyles.muted),
-          ],
-        ),
-        Expanded(child: body),
-      ],
+    return Focus(
+      onKeyEvent: _handleKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: 1,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Flutter releases', style: FvmTuiTextStyles.heading),
+              Text(
+                '${releases.length} available',
+                style: FvmTuiTextStyles.muted,
+              ),
+            ],
+          ),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 }

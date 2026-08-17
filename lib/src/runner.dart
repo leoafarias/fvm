@@ -24,6 +24,7 @@ import 'commands/list_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
+import 'commands/tui_command.dart';
 import 'commands/use_command.dart';
 import 'models/config_model.dart';
 import 'models/log_level_model.dart';
@@ -45,6 +46,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     'exec',
     'spawn',
     'api',
+    'tui',
     HandleCompletionRequestCommand.commandName,
     InstallCompletionFilesCommand.commandName,
     UnistallCompletionFilesCommand.commandName,
@@ -57,8 +59,8 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
   /// Constructor
   FvmCommandRunner(this.context, {FvmReleaseService? releaseService})
-      : _releaseService = releaseService ?? context.get<FvmReleaseService>(),
-        super(kPackageName, kDescription) {
+    : _releaseService = releaseService ?? context.get<FvmReleaseService>(),
+      super(kPackageName, kDescription) {
     argParser
       ..addFlag('verbose', help: 'Print verbose output.', negatable: false)
       ..addFlag(
@@ -84,6 +86,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(GlobalCommand(context));
     addCommand(FlavorCommand(context));
     addCommand(IntegrationTestCommand(context));
+    addCommand(TuiCommand(context));
   }
 
   /// Returns a notice when a newer stable FVM release is available.
@@ -115,9 +118,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
   void _showUpdateNotice(FvmRelease latestRelease, Version currentVersion) {
     final updateAvailableLabel = lightYellow.wrap('Update available!');
     final currentVersionLabel = lightCyan.wrap(packageVersion);
-    final latestVersionLabel = lightCyan.wrap(
-      latestRelease.version.toString(),
-    );
+    final latestVersionLabel = lightCyan.wrap(latestRelease.version.toString());
 
     logger
       ..infoToStderr()
@@ -281,13 +282,13 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     final commandName = topLevelResults.command?.name;
     final skipUpdateCheck =
         _commandsWithoutUpdateChecks.contains(commandName) &&
-            topLevelResults['version'] != true;
+        topLevelResults['version'] != true;
     final skipEnvironmentDiagnostics =
         _commandsWithoutEnvironmentDiagnostics.contains(commandName) &&
-            topLevelResults['version'] != true;
+        topLevelResults['version'] != true;
     final routeEnvironmentDiagnosticsToStderr =
         _proxyCommands.contains(commandName) &&
-            topLevelResults['version'] != true;
+        topLevelResults['version'] != true;
 
     final hasTopLevelOption = topLevelResults.options.any(
       (e) => topLevelResults.wasParsed(e),

@@ -11,6 +11,15 @@
 
 FVM manages Flutter SDK versions per project. Switch between Flutter versions instantly without reinstalling, making it easy to test new releases and maintain consistent builds across your team.
 
+## Interactive Terminal Interface
+
+Run `fvm tui` in an interactive terminal to browse installed SDKs and Flutter
+releases, select or install a version, inspect Doctor diagnostics, and edit
+global or project configuration. Press `Ctrl+Q` (or `Ctrl+X` when the terminal
+reserves `Ctrl+Q`) to exit. See the
+[terminal interface guide](https://fvm.app/documentation/guides/tui) for the
+complete keyboard map and current limitations.
+
 ## Why FVM?
 
 - Need for simultaneous use of multiple Flutter SDKs.
