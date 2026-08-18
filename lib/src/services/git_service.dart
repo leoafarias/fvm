@@ -1211,10 +1211,33 @@ class GitService extends ContextualService {
     return references.any((reference) => reference.name == version);
   }
 
+  /// Verifies [path] is the root of a git working tree.
+  ///
+  /// Replaces the validation `GitDir.fromExisting` performed for the call
+  /// sites converted to [ProcessService]: without it, running a mutating
+  /// git command in a directory that is not a repository root would let
+  /// repository discovery walk up and target an ancestor repository.
+  Future<void> verifyWorkingTreeRoot(String path) async {
+    final result = await get<ProcessService>().run(
+      'git',
+      args: ['rev-parse', '--git-dir'],
+      workingDirectory: path,
+    );
+    if ((result.stdout as String).trim() != '.git') {
+      throw AppException(
+        'Directory $path is not the root of a git repository.',
+      );
+    }
+  }
+
   /// Resets to specific reference
   Future<void> resetHard(String path, String reference) async {
-    final gitDir = await GitDir.fromExisting(path);
-    await gitDir.runCommand(['reset', '--hard', reference]);
+    await verifyWorkingTreeRoot(path);
+    await get<ProcessService>().run(
+      'git',
+      args: ['reset', '--hard', reference],
+      workingDirectory: path,
+    );
   }
 
   Future<void> updateLocalMirror() {

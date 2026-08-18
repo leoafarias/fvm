@@ -892,6 +892,36 @@ Future<void> main(List<String> args) async {
     );
 
     test(
+      'resetHard refuses a directory that is not a repository root',
+      () async {
+        final victimDir = await _createVictimRepository(
+          tempDir,
+          'victim_reset',
+        );
+        final nestedDir = Directory(p.join(victimDir.path, 'nested'))
+          ..createSync(recursive: true);
+
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_reset'),
+            gitCachePath: p.join(tempDir.path, 'reset_cache.git'),
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+        final gitService = GitService(context);
+
+        await expectLater(
+          gitService.resetHard(nestedDir.path, 'HEAD'),
+          throwsA(isA<AppException>()),
+        );
+
+        await _expectVictimRepositoryIntact(victimDir);
+      },
+    );
+
+    test(
       'treats non-repository cache directory inside another repository as '
       'invalid',
       () async {
