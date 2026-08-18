@@ -1126,24 +1126,6 @@ class GitService extends ContextualService {
   }) async {
     logger.info('Migrating cache clone to heads/tags-only git cache...');
 
-    final processService = get<ProcessService>();
-
-    // Clean the legacy clone to release file locks and normalize state.
-    for (final args in [
-      ['reset', '--hard', 'HEAD'],
-      ['clean', '-fdx'],
-    ]) {
-      try {
-        await processService.run(
-          'git',
-          args: args,
-          workingDirectory: legacyDir.path,
-        );
-      } on ProcessException catch (e) {
-        logger.debug('${args.first} failed (${e.message}), continuing...');
-      }
-    }
-
     await _rebuildHeadsTagsGitCache(legacyDir, updateRemote: updateRemote);
   }
 
