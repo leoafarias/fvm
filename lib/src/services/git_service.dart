@@ -15,7 +15,7 @@ import 'process_service.dart';
 
 /// Cache state for migration decisions.
 /// - missing: no cache directory
-/// - invalid: exists but not a git repo
+/// - invalid: exists but is not a git repo rooted at the cache path
 /// - legacy: non-bare clone (needs migration)
 /// - overbroad: valid bare repo but not a heads/tags-only cache
 /// - ready: bare heads/tags-only cache, ready for use
@@ -339,6 +339,68 @@ class GitService extends ContextualService {
       args: ['fsck', '--connectivity-only'],
       workingDirectory: directory.path,
     );
+  }
+
+  /// Git resolves commands through repository discovery (upward directory
+  /// walk, gitfile redirects, `core.worktree`), so a command run inside a
+  /// cache directory that is not a repository rooted at that exact path can
+  /// silently target an unrelated repository. Verify the discovered
+  /// repository actually lives at [gitCacheDir] before trusting any other
+  /// git output about it.
+  Future<bool> _isRepositoryRootedAt(Directory gitCacheDir) async {
+    final String absoluteGitDir;
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--absolute-git-dir'],
+        workingDirectory: gitCacheDir.path,
+      );
+      absoluteGitDir = (result.stdout as String).trim();
+    } on ProcessException {
+      return false;
+    }
+
+    // `--absolute-git-dir` output is canonicalized, so resolve symlinks on
+    // our side too (e.g. `/var` -> `/private/var` on macOS).
+    final resolvedGitDir = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(absoluteGitDir),
+    );
+    final resolvedCacheDir = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(gitCacheDir.path),
+    );
+
+    // Bare cache: the repository is the cache directory itself.
+    if (resolvedGitDir == resolvedCacheDir) return true;
+
+    // Legacy clone: the git dir must be a real `.git` directory directly
+    // under the cache path. A `.git` file or symlink redirects elsewhere.
+    final dotGitPath = path.join(gitCacheDir.path, '.git');
+    if (FileSystemEntity.typeSync(dotGitPath, followLinks: false) !=
+        FileSystemEntityType.directory) {
+      return false;
+    }
+    final resolvedDotGit = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(dotGitPath),
+    );
+    if (resolvedGitDir != resolvedDotGit) return false;
+
+    // `core.worktree` can still point the work tree at another directory,
+    // so any work-tree command run against the cache would mutate that
+    // directory instead.
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--show-toplevel'],
+        workingDirectory: gitCacheDir.path,
+      );
+      final resolvedTopLevel = _normalizeComparablePath(
+        _resolveExistingPathOrNormalize((result.stdout as String).trim()),
+      );
+
+      return resolvedTopLevel == resolvedCacheDir;
+    } on ProcessException {
+      return false;
+    }
   }
 
   Future<bool> _isBareRepository(String path) async {
@@ -679,6 +741,15 @@ class GitService extends ContextualService {
     }
 
     try {
+      if (!await _isRepositoryRootedAt(gitCacheDir)) {
+        logger.debug(
+          'Git cache at ${gitCacheDir.path} is not a repository rooted at '
+          'the cache path; treating it as invalid.',
+        );
+
+        return _GitCacheState.invalid;
+      }
+
       if (!await _isBareRepository(gitCacheDir.path)) {
         return _GitCacheState.legacy;
       }

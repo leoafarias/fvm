@@ -163,6 +163,59 @@ Future<String> _pushBranchToRemote({
   return revParse.stdout.toString().trim();
 }
 
+/// Creates a repository with committed history, a staged change, and an
+/// untracked file -- state that a stray `reset --hard` / `clean -fdx` from a
+/// misdirected cache migration would destroy.
+Future<Directory> _createVictimRepository(Directory root, String name) async {
+  final victimDir = Directory(p.join(root.path, name))
+    ..createSync(recursive: true);
+  await runGitCommand(['init'], workingDirectory: victimDir.path);
+  await runGitCommand(
+    ['config', 'user.email', 'tests@fvm.app'],
+    workingDirectory: victimDir.path,
+  );
+  await runGitCommand(
+    ['config', 'user.name', 'FVM Tests'],
+    workingDirectory: victimDir.path,
+  );
+  File(p.join(victimDir.path, 'tracked.txt')).writeAsStringSync('original');
+  await runGitCommand(['add', '.'], workingDirectory: victimDir.path);
+  await runGitCommand(
+    ['commit', '-m', 'seed'],
+    workingDirectory: victimDir.path,
+  );
+  File(p.join(victimDir.path, 'tracked.txt')).writeAsStringSync('staged');
+  await runGitCommand(
+    ['add', 'tracked.txt'],
+    workingDirectory: victimDir.path,
+  );
+  File(p.join(victimDir.path, 'untracked.txt')).writeAsStringSync('untracked');
+
+  return victimDir;
+}
+
+Future<void> _expectVictimRepositoryIntact(Directory victimDir) async {
+  final staged = await runGitCommand(
+    ['diff', '--cached', '--name-only'],
+    workingDirectory: victimDir.path,
+  );
+  expect(
+    staged.stdout.toString().trim(),
+    'tracked.txt',
+    reason: 'staged change must survive',
+  );
+  expect(
+    File(p.join(victimDir.path, 'tracked.txt')).readAsStringSync(),
+    'staged',
+    reason: 'working tree must survive',
+  );
+  expect(
+    File(p.join(victimDir.path, 'untracked.txt')).existsSync(),
+    isTrue,
+    reason: 'untracked file must survive',
+  );
+}
+
 Future<void> _expectHeadsTagsOnlyCache(String gitCachePath) async {
   expect(await isBareGitRepository(gitCachePath), isTrue);
 
@@ -835,6 +888,121 @@ Future<void> main(List<String> args) async {
           reason: 'cache must self-heal genuine corruption',
         );
         await _expectHeadsTagsOnlyCache(gitCachePath);
+      },
+    );
+
+    test(
+      'treats non-repository cache directory inside another repository as '
+      'invalid',
+      () async {
+        final victimDir = await _createVictimRepository(
+          tempDir,
+          'victim_ancestor',
+        );
+        // Mirrors e.g. `~/fvm/cache.git` when `$HOME` itself is a git
+        // repository: the cache path exists but is not a repository, so git
+        // repository discovery walks up to the victim.
+        final gitCacheDir =
+            Directory(p.join(victimDir.path, 'fvm', 'cache.git'))
+              ..createSync(recursive: true);
+        File(p.join(gitCacheDir.path, 'junk.txt')).writeAsStringSync('junk');
+
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_ancestor'),
+            gitCachePath: gitCacheDir.path,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+        final gitService = GitService(context);
+
+        await gitService.ensureBareCacheIfPresent();
+
+        await _expectVictimRepositoryIntact(victimDir);
+        // Invalid caches are skipped here, not migrated in place.
+        expect(File(p.join(gitCacheDir.path, 'junk.txt')).existsSync(), isTrue);
+
+        await gitService.updateLocalMirror();
+
+        await _expectVictimRepositoryIntact(victimDir);
+        await _expectHeadsTagsOnlyCache(gitCacheDir.path);
+      },
+    );
+
+    test(
+      'treats cache directory whose gitfile redirects to another repository '
+      'as invalid',
+      () async {
+        final victimDir = await _createVictimRepository(
+          tempDir,
+          'victim_gitfile',
+        );
+        final gitCacheDir = Directory(p.join(tempDir.path, 'gitfile_cache.git'))
+          ..createSync(recursive: true);
+        File(p.join(gitCacheDir.path, '.git')).writeAsStringSync(
+          'gitdir: ${p.join(victimDir.path, '.git')}\n',
+        );
+
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_gitfile'),
+            gitCachePath: gitCacheDir.path,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+        final gitService = GitService(context);
+
+        await gitService.ensureBareCacheIfPresent();
+
+        await _expectVictimRepositoryIntact(victimDir);
+
+        await gitService.updateLocalMirror();
+
+        await _expectVictimRepositoryIntact(victimDir);
+        await _expectHeadsTagsOnlyCache(gitCacheDir.path);
+      },
+    );
+
+    test(
+      'treats cache repository whose core.worktree points at another '
+      'directory as invalid',
+      () async {
+        final victimDir = await _createVictimRepository(
+          tempDir,
+          'victim_worktree',
+        );
+        final gitCacheDir =
+            Directory(p.join(tempDir.path, 'worktree_cache.git'))
+              ..createSync(recursive: true);
+        await runGitCommand(['init'], workingDirectory: gitCacheDir.path);
+        await runGitCommand(
+          ['config', 'core.worktree', victimDir.path],
+          workingDirectory: gitCacheDir.path,
+        );
+
+        final context = FvmContext.create(
+          isTest: true,
+          configOverrides: AppConfig(
+            cachePath: p.join(tempDir.path, '.fvm_worktree'),
+            gitCachePath: gitCacheDir.path,
+            flutterUrl: remoteDir.path,
+            useGitCache: true,
+          ),
+        );
+        final gitService = GitService(context);
+
+        await gitService.ensureBareCacheIfPresent();
+
+        await _expectVictimRepositoryIntact(victimDir);
+
+        await gitService.updateLocalMirror();
+
+        await _expectVictimRepositoryIntact(victimDir);
+        await _expectHeadsTagsOnlyCache(gitCacheDir.path);
       },
     );
   });
