@@ -26,14 +26,17 @@ terminal or host application reserves `Ctrl+Q`, use `Ctrl+X` instead.
 | `Enter` | Open details, begin editing, save, or run the current action |
 | `Escape` | Cancel the current edit or return to the previous view |
 | `Space` | Toggle the selected option |
-| `Tab` / `Shift+Tab` | Move focus forward or backward |
+| `Tab` / `Shift+Tab` | Move focus when the terminal host forwards Tab |
+| `Left` / `Right` | Select Global or Project scope on Configuration |
 | `U` | Open Use options from an installed-version detail |
 | `I` | Open Install options from a version or release view |
 | `Ctrl+C` | Cancel the active install safely |
 | `Ctrl+Q` / `Ctrl+X` | Quit the interface (`Ctrl+X` is the fallback when `Ctrl+Q` is reserved) |
 
 Mouse input is enabled when the terminal supports it, but every action remains
-available from the keyboard.
+available from the keyboard. VS Code can reserve Tab for workbench focus
+traversal; essential FVM actions do not depend on it, and Configuration scope
+remains available through `Left` and `Right`.
 
 ## Layout
 

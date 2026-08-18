@@ -110,7 +110,7 @@ final class _Footer extends StatelessWidget {
     child: const Row(
       spacing: 2,
       children: [
-        KeyHint(keyLabel: 'Tab', description: 'focus'),
+        KeyHint(keyLabel: '1–4', description: 'screens'),
         KeyHint(keyLabel: 'Ctrl+Q/X', description: 'quit'),
       ],
     ),

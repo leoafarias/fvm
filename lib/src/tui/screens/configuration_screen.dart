@@ -246,6 +246,16 @@ final class ConfigurationScreenState extends State<ConfigurationScreen> {
       return KeyEventResult.handled;
     }
     if (_editingPath != null) return KeyEventResult.ignored;
+    if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+      unawaited(switchScope(ConfigurationScope.global));
+
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      unawaited(switchScope(ConfigurationScope.project));
+
+      return KeyEventResult.handled;
+    }
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       setState(
         () => _selectedFieldIndex = (_selectedFieldIndex - 1).clamp(0, 7),
@@ -359,6 +369,7 @@ final class ConfigurationScreenState extends State<ConfigurationScreen> {
               value: _value(field),
               focused: _selectedFieldIndex == field.index,
             ),
+          const KeyHint(keyLabel: 'Left/Right', description: 'scope'),
           const KeyHint(keyLabel: 'Space', description: 'toggle'),
           const KeyHint(keyLabel: 'Enter', description: 'edit or save'),
           const KeyHint(keyLabel: 'Escape', description: 'cancel or back'),
