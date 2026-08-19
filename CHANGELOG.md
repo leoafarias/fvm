@@ -1,3 +1,8 @@
+## 4.1.3
+
+* fix: stop git-cache maintenance from running destructive git commands against repositories FVM does not own (#1060)
+* Behavior change: FVM now clears repository-scoped git environment variables (`GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, and the rest of the `git rev-parse --local-env-vars` set) when it runs `git`, `flutter`, or `dart`. Tools launched through FVM from inside a git hook, such as `fvm dart run` in a pre-commit hook, no longer see the hook's repository variables and will read the real index instead of the hook's staged index. Transport and auth variables like `GIT_SSH_COMMAND` and `GIT_ASKPASS` are preserved. (#1060)
+
 ## 4.1.2
 
 * fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
