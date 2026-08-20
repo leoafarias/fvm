@@ -1,0 +1,62 @@
+---
+id: dart-mcp
+title: Dart MCP Server
+---
+
+import { Callout } from "nextra/components";
+
+# Dart MCP Server
+
+## Overview
+
+The [Dart MCP server](https://docs.flutter.dev/ai/mcp-server) gives AI assistants
+access to the Dart and Flutter toolchain. By default it finds Flutter from the
+`FLUTTER_SDK` environment variable, or by searching up from the Dart SDK that
+started it — usually the globally installed Flutter, not the version FVM pins for
+your project.
+
+When that happens, the server analyzes and runs against the wrong SDK, so its
+results won't match what `fvm flutter` reports.
+
+## Point the server at the FVM-pinned SDK
+
+`fvm use` creates a `.fvm/flutter_sdk` symlink that always points to the SDK
+pinned in your `.fvmrc`. Pass it to the server with `--flutter-sdk`:
+
+```json
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": ["mcp-server", "--flutter-sdk", ".fvm/flutter_sdk"]
+    }
+  }
+}
+```
+
+The server then uses the same Flutter SDK as your editor and `fvm flutter`. Run
+`fvm use` before starting the server so the symlink exists.
+
+<Callout type="info">
+  `.fvm/flutter_sdk` is a relative path, so the MCP client must start the server
+  from the project root — the default for project-scoped config. For user-level or
+  shared config, pass the SDK's absolute path instead.
+</Callout>
+
+## When the symlink isn't available
+
+FVM skips the symlink when it can't create one — for example, on Windows without
+Developer Mode or administrator rights (`privilegedAccess: false`). Point
+`--flutter-sdk` at the SDK's absolute path in the FVM cache instead; run
+`fvm list` to find it:
+
+```json
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": ["mcp-server", "--flutter-sdk", "C:\\Users\\you\\fvm\\versions\\3.x.x"]
+    }
+  }
+}
+```

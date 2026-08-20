@@ -74,10 +74,11 @@ class FlutterService extends ContextualService {
       versionDir.path,
     ];
 
-    return runGit(
-      args,
+    return get<ProcessService>().run(
+      'git',
+      args: args,
+      workingDirectory: processCwd.path,
       echoOutput: echoOutput,
-      processWorkingDir: processCwd.path,
     );
   }
 
@@ -295,20 +296,24 @@ class FlutterService extends ContextualService {
     required FlutterVersion version,
     required Directory gitVersionDir,
   }) async {
-    final gitDir = await GitDir.fromExisting(gitVersionDir.path);
+    final processService = get<ProcessService>();
 
     // Check if version is a remote branch
-    final branchResult = await gitDir.runCommand([
-      'branch',
-      '-r',
-      '--list',
-      'origin/${version.version}',
-    ]);
+    final branchResult = await processService.run(
+      'git',
+      args: ['branch', '-r', '--list', 'origin/${version.version}'],
+      workingDirectory: gitVersionDir.path,
+    );
 
     final isBranch = (branchResult.stdout as String).trim().isNotEmpty;
 
     if (isBranch) {
-      await gitDir.runCommand(['checkout', version.version]);
+      await get<GitService>().verifyWorkingTreeRoot(gitVersionDir.path);
+      await processService.run(
+        'git',
+        args: ['checkout', version.version],
+        workingDirectory: gitVersionDir.path,
+      );
       logger.debug('Checked out branch: ${version.version}');
     } else {
       await get<GitService>().resetHard(gitVersionDir.path, version.version);

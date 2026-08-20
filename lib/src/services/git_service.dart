@@ -15,7 +15,7 @@ import 'process_service.dart';
 
 /// Cache state for migration decisions.
 /// - missing: no cache directory
-/// - invalid: exists but not a git repo
+/// - invalid: exists but is not a git repo rooted at the cache path
 /// - legacy: non-bare clone (needs migration)
 /// - overbroad: valid bare repo but not a heads/tags-only cache
 /// - ready: bare heads/tags-only cache, ready for use
@@ -31,6 +31,10 @@ class GitService extends ContextualService {
     r'^(tmp_pack_|tmp_idx_|tmp_rev_)',
   );
   static const Duration _staleGitCacheTempAge = Duration(hours: 24);
+
+  /// OS-generated metadata files that tools like macOS Finder and Windows
+  /// Explorer drop into directories. They are never valid git refs.
+  static const _osMetadataFileNames = {'.DS_Store', 'Thumbs.db', 'desktop.ini'};
 
   List<GitReference>? _referencesCache;
 
@@ -283,12 +287,120 @@ class GitService extends ContextualService {
     return gitCacheDir;
   }
 
-  Future<void> _validateGitCache(Directory directory) {
-    return get<ProcessService>().run(
+  /// Removes OS-generated metadata files from the repository's refs tree so
+  /// that `git fsck` does not treat them as invalid ref names. macOS Finder
+  /// creates `.DS_Store` in any directory it visits; Windows Explorer writes
+  /// `Thumbs.db` and `desktop.ini`. These names are never valid Flutter refs,
+  /// so removing them cannot delete a real branch or tag.
+  ///
+  /// Handles both repository layouts: a bare cache keeps refs at `<repo>/refs`,
+  /// while a non-bare SDK clone keeps them at `<repo>/.git/refs`.
+  Future<void> _purgeOsMetadataFromRefs(Directory repository) async {
+    final refsDirs = [
+      Directory(path.join(repository.path, 'refs')),
+      Directory(path.join(repository.path, '.git', 'refs')),
+    ];
+
+    for (final refsDir in refsDirs) {
+      if (!refsDir.existsSync()) continue;
+
+      try {
+        await for (final entity
+            in refsDir.list(recursive: true, followLinks: false)) {
+          if (entity is! File) continue;
+          if (!_osMetadataFileNames.contains(path.basename(entity.path))) {
+            continue;
+          }
+          try {
+            entity.deleteSync();
+            logger.debug('Removed OS metadata file: ${entity.path}');
+          } on FileSystemException catch (error) {
+            logger.debug(
+              'Could not remove OS metadata file ${entity.path}: '
+              '${error.message}',
+            );
+          }
+        }
+      } on FileSystemException catch (error) {
+        logger.debug(
+          'Could not scan refs directory ${refsDir.path} for OS metadata: '
+          '${error.message}',
+        );
+      }
+    }
+  }
+
+  /// Purges OS metadata from the refs tree, then verifies object connectivity
+  /// with `git fsck`. Throws a [ProcessException] if the repository is corrupt.
+  Future<void> _validateGitCache(Directory directory) async {
+    await _purgeOsMetadataFromRefs(directory);
+    await get<ProcessService>().run(
       'git',
       args: ['fsck', '--connectivity-only'],
       workingDirectory: directory.path,
     );
+  }
+
+  /// Git resolves commands through repository discovery (upward directory
+  /// walk, gitfile redirects, `core.worktree`), so a command run inside a
+  /// cache directory that is not a repository rooted at that exact path can
+  /// silently target an unrelated repository. Verify the discovered
+  /// repository actually lives at [gitCacheDir] before trusting any other
+  /// git output about it.
+  Future<bool> _isRepositoryRootedAt(Directory gitCacheDir) async {
+    final String absoluteGitDir;
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--absolute-git-dir'],
+        workingDirectory: gitCacheDir.path,
+      );
+      absoluteGitDir = (result.stdout as String).trim();
+    } on ProcessException {
+      return false;
+    }
+
+    // `--absolute-git-dir` output is canonicalized, so resolve symlinks on
+    // our side too (e.g. `/var` -> `/private/var` on macOS).
+    final resolvedGitDir = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(absoluteGitDir),
+    );
+    final resolvedCacheDir = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(gitCacheDir.path),
+    );
+
+    // Bare cache: the repository is the cache directory itself.
+    if (resolvedGitDir == resolvedCacheDir) return true;
+
+    // Legacy clone: the git dir must be a real `.git` directory directly
+    // under the cache path. A `.git` file or symlink redirects elsewhere.
+    final dotGitPath = path.join(gitCacheDir.path, '.git');
+    if (FileSystemEntity.typeSync(dotGitPath, followLinks: false) !=
+        FileSystemEntityType.directory) {
+      return false;
+    }
+    final resolvedDotGit = _normalizeComparablePath(
+      _resolveExistingPathOrNormalize(dotGitPath),
+    );
+    if (resolvedGitDir != resolvedDotGit) return false;
+
+    // `core.worktree` can still point the work tree at another directory,
+    // so any work-tree command run against the cache would mutate that
+    // directory instead.
+    try {
+      final result = await get<ProcessService>().run(
+        'git',
+        args: ['rev-parse', '--show-toplevel'],
+        workingDirectory: gitCacheDir.path,
+      );
+      final resolvedTopLevel = _normalizeComparablePath(
+        _resolveExistingPathOrNormalize((result.stdout as String).trim()),
+      );
+
+      return resolvedTopLevel == resolvedCacheDir;
+    } on ProcessException {
+      return false;
+    }
   }
 
   Future<bool> _isBareRepository(String path) async {
@@ -629,6 +741,15 @@ class GitService extends ContextualService {
     }
 
     try {
+      if (!await _isRepositoryRootedAt(gitCacheDir)) {
+        logger.debug(
+          'Git cache at ${gitCacheDir.path} is not a repository rooted at '
+          'the cache path; treating it as invalid.',
+        );
+
+        return _GitCacheState.invalid;
+      }
+
       if (!await _isBareRepository(gitCacheDir.path)) {
         return _GitCacheState.legacy;
       }
@@ -788,11 +909,7 @@ class GitService extends ContextualService {
 
       _writeAlternateLines(alternatesFile, retainedLines);
 
-      await get<ProcessService>().run(
-        'git',
-        args: ['fsck', '--connectivity-only'],
-        workingDirectory: version.directory,
-      );
+      await _validateGitCache(Directory(version.directory));
 
       logger.info('Dissociated ${version.name} from local git cache.');
 
@@ -1009,24 +1126,6 @@ class GitService extends ContextualService {
   }) async {
     logger.info('Migrating cache clone to heads/tags-only git cache...');
 
-    final processService = get<ProcessService>();
-
-    // Clean the legacy clone to release file locks and normalize state.
-    for (final args in [
-      ['reset', '--hard', 'HEAD'],
-      ['clean', '-fdx'],
-    ]) {
-      try {
-        await processService.run(
-          'git',
-          args: args,
-          workingDirectory: legacyDir.path,
-        );
-      } on ProcessException catch (e) {
-        logger.debug('${args.first} failed (${e.message}), continuing...');
-      }
-    }
-
     await _rebuildHeadsTagsGitCache(legacyDir, updateRemote: updateRemote);
   }
 
@@ -1094,10 +1193,33 @@ class GitService extends ContextualService {
     return references.any((reference) => reference.name == version);
   }
 
+  /// Verifies [path] is the root of a git working tree.
+  ///
+  /// Replaces the validation `GitDir.fromExisting` performed for the call
+  /// sites converted to [ProcessService]: without it, running a mutating
+  /// git command in a directory that is not a repository root would let
+  /// repository discovery walk up and target an ancestor repository.
+  Future<void> verifyWorkingTreeRoot(String path) async {
+    final result = await get<ProcessService>().run(
+      'git',
+      args: ['rev-parse', '--git-dir'],
+      workingDirectory: path,
+    );
+    if ((result.stdout as String).trim() != '.git') {
+      throw AppException(
+        'Directory $path is not the root of a git repository.',
+      );
+    }
+  }
+
   /// Resets to specific reference
   Future<void> resetHard(String path, String reference) async {
-    final gitDir = await GitDir.fromExisting(path);
-    await gitDir.runCommand(['reset', '--hard', reference]);
+    await verifyWorkingTreeRoot(path);
+    await get<ProcessService>().run(
+      'git',
+      args: ['reset', '--hard', reference],
+      workingDirectory: path,
+    );
   }
 
   Future<void> updateLocalMirror() {

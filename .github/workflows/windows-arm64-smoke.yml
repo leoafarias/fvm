@@ -1,0 +1,74 @@
+name: Windows ARM64 Smoke
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  latest-release-arm64:
+    name: Latest release archive
+    runs-on: windows-11-arm
+
+    steps:
+      - name: Download latest Windows ARM64 release
+        shell: pwsh
+        run: |
+          $release = Invoke-RestMethod `
+            -Headers @{ Accept = 'application/vnd.github+json' } `
+            -Uri 'https://api.github.com/repos/leoafarias/fvm/releases/latest'
+
+          $asset = $release.assets |
+            Where-Object { $_.name -match '^fvm-.+-windows-arm64\.zip$' } |
+            Select-Object -First 1
+
+          if (-not $asset) {
+            throw "No windows-arm64 asset found on latest release $($release.tag_name)"
+          }
+
+          "FVM_RELEASE_TAG=$($release.tag_name)" >> $env:GITHUB_ENV
+          "FVM_RELEASE_ASSET=$($asset.name)" >> $env:GITHUB_ENV
+
+          Invoke-WebRequest -Uri $asset.browser_download_url -OutFile fvm-windows-arm64.zip
+          Expand-Archive -Path fvm-windows-arm64.zip -DestinationPath . -Force
+
+      - name: Verify executable architecture
+        shell: pwsh
+        run: |
+          # cli_pkg cross-builds the Windows arm64 package as fvm.bat plus a
+          # bundled Dart runtime (src\dart.exe) and snapshot; a native fvm.exe
+          # only exists when the package is compiled on a matching host.
+          $exe = @(
+            (Join-Path $PWD 'fvm\fvm.exe'),
+            (Join-Path $PWD 'fvm\src\dart.exe')
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $exe) {
+            throw "Expected fvm\fvm.exe or fvm\src\dart.exe in the archive"
+          }
+
+          $bytes = [System.IO.File]::ReadAllBytes($exe)
+          $peHeaderOffset = [BitConverter]::ToInt32($bytes, 0x3C)
+          $machine = [BitConverter]::ToUInt16($bytes, $peHeaderOffset + 4)
+
+          $machineName = switch ($machine) {
+            0xAA64 { 'arm64' }
+            0x8664 { 'x64' }
+            0x014C { 'x86' }
+            default { "unknown-0x{0:X4}" -f $machine }
+          }
+
+          "Release: $env:FVM_RELEASE_TAG"
+          "Asset: $env:FVM_RELEASE_ASSET"
+          "Checked: $exe"
+          "Machine: $machineName"
+
+          if ($machineName -ne 'arm64') {
+            throw "Expected ARM64 fvm.exe, got $machineName"
+          }
+
+      - name: Run FVM
+        shell: pwsh
+        run: |
+          $env:PATH = "$(Join-Path $PWD 'fvm');$env:PATH"
+          fvm --version
