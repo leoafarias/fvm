@@ -4,7 +4,7 @@
   "triagedAt": "2025-10-31",
   "status": "validated",
   "artifact": "../../artifacts/issue-757.md",
-  "url": "https://github.com/leoafarias/fvm/issues/757",
-  "notes": "Use fvm config --flutter-url or fvm fork add to point to Shorebird repo.",
+  "url": "https://github.com/conceptadev/fvm/issues/757",
+  "notes": "Generic forks do not cover Shorebird's separate CLI, SDK distribution, executable, and cache lifecycle; coordinate provider-scope decision with #1042.",
   "priority": "p3-low"
 }

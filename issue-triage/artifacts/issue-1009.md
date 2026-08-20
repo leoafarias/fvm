@@ -37,9 +37,9 @@ docs/pages/documentation/advanced/custom-version.mdx:53-61
 ```
 
 **Files/Code References:**
-- [lib/src/models/flutter_version_model.dart:121](../lib/src/models/flutter_version_model.dart#L121) - Version classification fallback.
-- [lib/src/commands/list_command.dart:64](../lib/src/commands/list_command.dart#L64) - Displayed Flutter version source.
-- [docs/pages/documentation/advanced/custom-version.mdx:53](../docs/pages/documentation/advanced/custom-version.mdx#L53) - Custom version guidance.
+- [lib/src/models/flutter_version_model.dart:121](../../lib/src/models/flutter_version_model.dart#L121) - Version classification fallback.
+- [lib/src/commands/list_command.dart:64](../../lib/src/commands/list_command.dart#L64) - Displayed Flutter version source.
+- [docs/pages/documentation/advanced/custom-version.mdx:53](../../docs/pages/documentation/advanced/custom-version.mdx#L53) - Custom version guidance.
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
@@ -69,8 +69,8 @@ The issue appears to be mostly about fork naming/version metadata expectations. 
 - Fork metadata is partially controlled by Flutter tooling behavior.
 
 ### Related Code Locations
-- [docs/pages/documentation/guides/basic-commands.mdx:351](../docs/pages/documentation/guides/basic-commands.mdx#L351) - Fork command docs.
-- [lib/src/services/flutter_service.dart:212](../lib/src/services/flutter_service.dart#L212) - Checkout/reset behavior for non-channel refs.
+- [docs/pages/documentation/guides/basic-commands.mdx:351](../../docs/pages/documentation/guides/basic-commands.mdx#L351) - Fork command docs.
+- [lib/src/services/flutter_service.dart:212](../../lib/src/services/flutter_service.dart#L212) - Checkout/reset behavior for non-channel refs.
 
 ## Recommendation
 **Action**: validate-p3

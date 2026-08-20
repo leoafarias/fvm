@@ -1,0 +1,10 @@
+{
+  "number": 1048,
+  "title": "[BUG] Do not warn when VS Code settings management is disabled",
+  "triagedAt": "2026-07-18",
+  "priority": "p3-low",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1048.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1048",
+  "notes": "Explicit updateVscodeSettings:false correctly skips writes but still emits WARN; remove warn for intentional opt-out."
+}

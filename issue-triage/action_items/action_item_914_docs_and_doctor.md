@@ -3,6 +3,10 @@
 > ⚠️ **IMPORTANT**: See [action_item_914_docs_corrections.md](./action_item_914_docs_corrections.md) for verified paths and structure corrections after checking the actual FVM documentation setup.
 >
 > Revalidated 2026-06-10 after merging `origin/main`: the dedicated troubleshooting page, troubleshooting metadata, overview page, and FAQ cross-link now exist. Do not recreate the docs page. Remaining active scope is the `fvm doctor` diagnostic, targeted CLI error messaging, and any explicit opt-in fix command.
+>
+> Revalidated 2026-06-22 after FVM 4.1.1: this is P2 diagnostic/UX work, not active P1. Keep the docs/workaround, add targeted detection/messaging if implemented, and do not silently mutate global Git config.
+>
+> Closure note 2026-06-22: #914 was closed as documented/not planned for automatic Git config mutation. This action item is inactive unless maintainers open a separate diagnostics-only issue.
 
 ## Objective
 Improve discoverability and diagnosis of the Windows Git "unable to find git in your PATH" issue through enhanced documentation and a `fvm doctor` check.

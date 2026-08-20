@@ -27,7 +27,7 @@ docs/pages/documentation/guides/running-flutter.mdx:69-77  // Uses ${@:1} causin
 ```
 
 **Files/Code References:**
-- [docs/pages/documentation/guides/running-flutter.mdx:69](../docs/pages/documentation/guides/running-flutter.mdx#L69) – Doc snippet that must be updated to `"$@"`.
+- [docs/pages/documentation/guides/running-flutter.mdx:69](../../docs/pages/documentation/guides/running-flutter.mdx#L69) – Doc snippet that must be updated to `"$@"`.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -54,7 +54,7 @@ Documentation uses bash-specific parameter expansion inside scripts likely execu
 - Documentation update only.
 
 ### Related Code Locations
-- [docs/pages/documentation/guides/running-flutter.mdx](../docs/pages/documentation/guides/running-flutter.mdx) – Single place requiring the edit.
+- [docs/pages/documentation/guides/running-flutter.mdx](../../docs/pages/documentation/guides/running-flutter.mdx) – Single place requiring the edit.
 
 ## Recommendation
 **Action**: validate-p2  

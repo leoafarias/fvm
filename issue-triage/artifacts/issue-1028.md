@@ -12,6 +12,21 @@
 - PR #1037 (`Fix git cache bloat and stale cache clones`) merged on 2026-06-16 and touched `GitService`, `FlutterService`, and `EnsureCacheWorkflow`.
 - PR #1037 does not close #1028. Revalidate the hang/progress findings after pulling latest `main`, because git-cache behavior changed materially.
 
+## 2026-06-22 Revalidation Update
+- Issue remains open, but it is not a confirmed current P1 after FVM 4.1.1.
+- Reported version: FVM 4.0.5. Latest release: FVM 4.1.1, published 2026-06-16. All issue comments predate 4.1.1.
+- FVM 4.1.1 includes relevant git-cache and non-interactive hang work from PRs #1037, #1036, and #1033.
+- Later issue evidence from 2026-06-04 pointed to silent git-cache mirror updates as one likely freeze path. Current code now uses narrower heads/tags cache fetch behavior instead of the older full mirror behavior.
+- The original Windows report also says direct `flutter.bat doctor` and managed `dart.exe --version` hang, which may be Flutter/Dart bootstrap or local Windows environment rather than FVM git-cache behavior.
+- Current `ProcessService.run` still has no generic stall timeout/heartbeat, so the broader UX concern remains valid if a 4.1.1 reproduction exists.
+- Reclassification: move from P1 to needs-info/revalidation. Ask reporters to retest on 4.1.1 with a clean cache and with `FVM_USE_GIT_CACHE=false` before scheduling implementation.
+
+## 2026-06-22 Closure Update
+- Closed on GitHub at 2026-06-22T16:37:02Z.
+- Closing comment explains that FVM 4.1.1 is expected to address the git-cache/non-interactive hang paths via PRs #1037, #1036, and #1033.
+- Reporters were asked to retest on FVM 4.1.1 with a clean cache and `FVM_USE_GIT_CACHE=false`.
+- If a current 4.1.1 reproduction appears, reopen or split the remaining Flutter/Dart bootstrap path from the git-cache issue.
+
 ## Problem Summary
 Multiple users report `fvm install` or `fvm use` appearing to hang while Flutter setup reports "Downloading Dart SDK from Flutter engine...". Later comments show at least one reproducible path where FVM is silently updating the large local Flutter git mirror, making the command look frozen.
 
@@ -76,9 +91,9 @@ There are likely two contributing paths. First, Flutter bootstrap can hang insid
 - [../../lib/src/services/process_service.dart](../../lib/src/services/process_service.dart) - shared process wrapper.
 
 ## Recommendation
-**Action**: validate-p1
+**Action**: closed
 
-**Reason**: Install/use can appear stuck indefinitely for multiple users, blocking setup. The latest evidence points to missing progress/diagnostics around long-running mirror/setup operations.
+**Reason**: The issue was reported on FVM 4.0.5, and 4.1.1 shipped relevant git-cache/non-interactive hang fixes after all issue comments. The closing comment asks for a current 4.1.1 retest before reopening.
 
 ## Notes
 The 2026-06-04 comment gives a likely workaround: manually run `git fetch --verbose --prune origin` inside the local cache, then rerun install. That workaround should be documented if the fix is not immediate.

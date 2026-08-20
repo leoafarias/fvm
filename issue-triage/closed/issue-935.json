@@ -6,7 +6,7 @@
   "status": "closed",
   "closedAt": "2025-10-30",
   "resolvedBy": "pr-946",
-  "artifact": "../../artifacts/issue-935.md",
+  "artifact": "../artifacts/issue-935.md",
   "url": "https://github.com/leoafarias/fvm/issues/935",
   "notes": "Fixed by PR #946. RISC-V (riscv64) architecture support added to install scripts."
 }

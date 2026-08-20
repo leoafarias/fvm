@@ -29,8 +29,8 @@ $ sed -n '198,210p' docs/pages/documentation/guides/workflows.mdx
 ```
 
 **Files/Code References:**
-- [docs/pages/documentation/guides/workflows.mdx#L198](../docs/pages/documentation/guides/workflows.mdx#L198) – Needs richer guidance.
-- [docs/pages/documentation/getting-started/configuration.mdx](../docs/pages/documentation/getting-started/configuration.mdx) – No Android Studio/IntelliJ detail.
+- [docs/pages/documentation/guides/workflows.mdx#L198](../../docs/pages/documentation/guides/workflows.mdx#L198) – Needs richer guidance.
+- [docs/pages/documentation/getting-started/configuration.mdx](../../docs/pages/documentation/getting-started/configuration.mdx) – No Android Studio/IntelliJ detail.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible (docs lack detail)

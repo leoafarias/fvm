@@ -46,7 +46,7 @@ _No repro logs available; issue only contains screenshots._
 ### Dependencies & Risks
 - Requires reporter collaboration; without logs, risk misdiagnosing.
 
-## Classification Recommendation
+## Recommendation
 - Folder: `needs_info`
 - Priority: TBD once reproduced
 

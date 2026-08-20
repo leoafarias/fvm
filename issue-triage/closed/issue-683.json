@@ -6,7 +6,7 @@
   "status": "closed",
   "closedAt": "2025-11-01",
   "resolution": "fixed",
-  "artifact": "../../artifacts/issue-683.md",
+  "artifact": "../artifacts/issue-683.md",
   "url": "https://github.com/leoafarias/fvm/issues/683",
   "notes": "Closed after upstream `pubspec` fix; sanitized overrides without explicit versions no longer crash FVM when loading project metadata."
 }

@@ -5,21 +5,22 @@
 - **Created**: 2024-07-31
 - **Reported Version**: n/a (feature request)
 - **Issue Type**: enhancement
-- **URL**: https://github.com/leoafarias/fvm/issues/757
+- **URL**: https://github.com/conceptadev/fvm/issues/757
 
 ## Problem Summary
 The reporter wants to point FVM at Shorebird’s Flutter fork. They were unsure whether `fvm config --flutter-url` could swap the SDK source, and requested a first-party way to configure alternative repositories.
 
 ## Version Context
 - Reported against: v3.x
-- Current version: v4.0.0
+- Current version: v4.1.2
 - Version-specific: no
 - Reason: FVM already supports custom Git remotes both globally (`fvm config --flutter-url`) and per-project flavors/forks.
 
 ## Validation Steps
 1. Confirmed `fvm config --flutter-url <git>` updates the global repository URL (`lib/src/services/app_config_service.dart:128-134`, `lib/src/utils/context.dart:149`).
 2. Verified docs demonstrate using custom Git remotes and fork aliases (`docs/pages/documentation/guides/basic-commands.mdx:400-434`, `docs/pages/documentation/advanced/custom-version.mdx:96-129`).
-3. Checked that Shorebird instructions align with pointing to a custom Git repo—no code changes required.
+3. Re-read the issue discussion: Shorebird releases its own CLI and manages modified Flutter SDK binaries/directories; it is not merely a Flutter Git remote.
+4. Correlated with #1042, where an alternate SDK executable also breaks FVM's standard-`flutter` assumptions.
 
 ## Evidence
 ```
@@ -30,12 +31,12 @@ docs/pages/documentation/advanced/custom-version.mdx:96-129 // Detailed example 
 ```
 
 **Files/Code References:**
-- [lib/src/services/app_config_service.dart:128](../lib/src/services/app_config_service.dart#L128) – Persists `--flutter-url` option.
-- [docs/pages/documentation/advanced/custom-version.mdx:96](../docs/pages/documentation/advanced/custom-version.mdx#L96) – Example of configuring an alternate Flutter repo.
+- [lib/src/services/app_config_service.dart:128](../../lib/src/services/app_config_service.dart#L128) – Persists `--flutter-url` option.
+- [docs/pages/documentation/advanced/custom-version.mdx:96](../../docs/pages/documentation/advanced/custom-version.mdx#L96) – Example of configuring an alternate Flutter repo.
 
-## Current Status in v4.0.0
-- [ ] Still reproducible
-- [x] Already fixed
+## Current Status in v4.1.2
+- [x] Still unresolved as a first-class Shorebird integration
+- [ ] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 - [ ] Cannot reproduce
@@ -43,11 +44,13 @@ docs/pages/documentation/advanced/custom-version.mdx:96-129 // Detailed example 
 ## Troubleshooting/Implementation Plan
 
 ### Root Cause Analysis
-Feature already exists; confusion stems from lack of explicit Shorebird example in docs.
+Generic Flutter Git forks are supported, but Shorebird owns a separate CLI, distribution flow, modified SDK binaries, and cache layout. `--flutter-url` cannot point at a releases page or make Shorebird consume an FVM-managed SDK automatically.
 
 ### Proposed Solution
-1. Close the issue with instructions showing how to point `fvm config --flutter-url` at the Shorebird repo and/or add a fork alias.
-2. Optionally add a Shorebird example to the custom version docs.
+1. Document that `--flutter-url` expects a Flutter-compatible Git repository, not a release page or third-party CLI distribution.
+2. Define whether FVM wants to manage external SDK families/providers at all; coordinate this decision with #1042.
+3. If supported, design a provider contract for download metadata, executable names, cache paths, setup, and version detection rather than hard-coding Shorebird.
+4. If out of scope, close with explicit rationale and point users to Shorebird's own SDK management.
 
 ### Alternative Approaches
 - Provide shorthand `fvm config --source shorebird` aliases, but current flexibility is broader and already available.
@@ -56,11 +59,11 @@ Feature already exists; confusion stems from lack of explicit Shorebird example 
 - Documentation only.
 
 ### Related Code Locations
-- [lib/src/services/flutter_service.dart:174-195](../lib/src/services/flutter_service.dart#L174) – Uses the configured URL when cloning/downloads.
+- [lib/src/services/flutter_service.dart:174-195](../../lib/src/services/flutter_service.dart#L174) – Uses the configured URL when cloning/downloads.
 
 ## Recommendation
-**Action**: resolved  
-**Reason**: Custom Flutter repositories are already supported; respond with usage guidance and close.
+**Action**: validate-p3
+**Reason**: Generic forks do not fully solve Shorebird's separate CLI/SDK distribution lifecycle. This is valid ecosystem design work, but not core FVM urgency.
 
 ## Draft Reply
 ```

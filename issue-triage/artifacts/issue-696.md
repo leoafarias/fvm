@@ -39,8 +39,8 @@ There are two main parts...
 ```
 
 **Files/Code References:**
-- [lib/src/models/project_model.dart#L98](../lib/src/models/project_model.dart#L98) – Hardcodes `.fvm` relative to the project root.
-- [docs/pages/documentation/getting-started/configuration.mdx#L20](../docs/pages/documentation/getting-started/configuration.mdx#L20) – Documents a `cachePath` option that should enable this feature but currently doesn’t.
+- [lib/src/models/project_model.dart#L98](../../lib/src/models/project_model.dart#L98) – Hardcodes `.fvm` relative to the project root.
+- [docs/pages/documentation/getting-started/configuration.mdx#L20](../../docs/pages/documentation/getting-started/configuration.mdx#L20) – Documents a `cachePath` option that should enable this feature but currently doesn’t.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -70,8 +70,8 @@ The `Project` model ignores the `cachePath` override in `.fvmrc`, so every workf
 - Sharing one `.fvm` directory across multiple projects could introduce race conditions when switching versions; document best practices and consider future locking.
 
 ### Related Code Locations
-- [lib/src/workflows/update_project_references.workflow.dart#L26](../lib/src/workflows/update_project_references.workflow.dart#L26) – Creates `.fvm` contents; should work transparently once `localFvmPath` is configurable.
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L131](../lib/src/workflows/update_vscode_settings.workflow.dart#L131) – Reads `.fvm/flutter_sdk`; relies on the same getters.
+- [lib/src/workflows/update_project_references.workflow.dart#L26](../../lib/src/workflows/update_project_references.workflow.dart#L26) – Creates `.fvm` contents; should work transparently once `localFvmPath` is configurable.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L131](../../lib/src/workflows/update_vscode_settings.workflow.dart#L131) – Reads `.fvm/flutter_sdk`; relies on the same getters.
 
 ## Recommendation
 **Action**: validate-p2

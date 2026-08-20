@@ -1,0 +1,11 @@
+{
+  "number": 1058,
+  "title": "[BUG] FVM not compatible with dart-sdk v3.13.0 (Chocolatey exact dart-sdk pin)",
+  "triagedAt": "2026-08-19",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1058.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1058",
+  "related_issues": [1050, 826, 933],
+  "notes": "Packaging defect, not FVM runtime. cli_pkg's pkg-chocolatey-deploy injects <dependency id=\"dart-sdk\" version=\"[<build version>]\"/> because the Chocolatey artifact is a Dart snapshot; the repo's own fvm.nuspec has its dependencies block commented out. NuGet treats the bracket as exact, so choco cannot upgrade dart-sdk past 3.9.0 while fvm is installed. Real fix is shipping the native Windows executable, which folds into the #1050 packaging workstream."
+}

@@ -29,9 +29,9 @@ lib/src/models/flutter_version_model.dart:142-170  // Parses fork prefix and exp
 ```
 
 **Files/Code References:**
-- [lib/src/services/cache_service.dart:140](../lib/src/services/cache_service.dart#L140) – Cache directory layout for forks.
-- [lib/src/services/cache_service.dart:223](../lib/src/services/cache_service.dart#L223) – Preserves fork metadata.
-- [lib/src/models/flutter_version_model.dart:142](../lib/src/models/flutter_version_model.dart#L142) – Fork-aware parsing helpers.
+- [lib/src/services/cache_service.dart:140](../../lib/src/services/cache_service.dart#L140) – Cache directory layout for forks.
+- [lib/src/services/cache_service.dart:223](../../lib/src/services/cache_service.dart#L223) – Preserves fork metadata.
+- [lib/src/models/flutter_version_model.dart:142](../../lib/src/models/flutter_version_model.dart#L142) – Fork-aware parsing helpers.
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
@@ -56,7 +56,7 @@ Feature already exists; the issue stemmed from uncertainty about how to address 
 - Documentation clarity only.
 
 ### Related Code Locations
-- [docs/pages/documentation/advanced/custom-version.mdx](../docs/pages/documentation/advanced/custom-version.mdx) – Shows fork commands users can follow.
+- [docs/pages/documentation/advanced/custom-version.mdx](../../docs/pages/documentation/advanced/custom-version.mdx) – Shows fork commands users can follow.
 
 ## Recommendation
 **Action**: resolved  
@@ -78,3 +78,7 @@ Because the behavior you requested is already in place I’m going to close this
 ---
 **Validated by**: Code Agent  
 **Date**: 2025-10-31
+
+## Closure Outcome
+
+Closed on GitHub on 2026-08-11 as completed after documenting the current fork alias and `alias/version` workflow.

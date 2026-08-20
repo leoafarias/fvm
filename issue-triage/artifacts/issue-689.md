@@ -46,9 +46,9 @@ Table createTable([List<String> columns = const []]) {
 ```
 
 **Files/Code References:**
-- [lib/src/commands/list_command.dart#L20](../lib/src/commands/list_command.dart#L20) – Always renders the seven-column grid with borders/icons.
-- [lib/src/utils/console_utils.dart#L1](../lib/src/utils/console_utils.dart#L1) – Helper hardcodes grid styling for other commands (doctor, releases).
-- [lib/src/services/logger_service.dart#L137](../lib/src/services/logger_service.dart#L137) – Logger has no toggle for plain output; even notices/important messages are boxed.
+- [lib/src/commands/list_command.dart#L20](../../lib/src/commands/list_command.dart#L20) – Always renders the seven-column grid with borders/icons.
+- [lib/src/utils/console_utils.dart#L1](../../lib/src/utils/console_utils.dart#L1) – Helper hardcodes grid styling for other commands (doctor, releases).
+- [lib/src/services/logger_service.dart#L137](../../lib/src/services/logger_service.dart#L137) – Logger has no toggle for plain output; even notices/important messages are boxed.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -79,9 +79,9 @@ The CLI redesign standardized on `dart_console.Table` with heavy borders but omi
 - Coordinate with doc updates and release notes to set expectations for the new flags/config options.
 
 ### Related Code Locations
-- [lib/src/utils/console_utils.dart#L1](../lib/src/utils/console_utils.dart#L1) – Centralize style selection here.
-- [lib/src/services/logger_service.dart#L151](../lib/src/services/logger_service.dart#L151) – Update notice/important boxes to respect plain style.
-- [lib/src/models/config_model.dart#L17](../lib/src/models/config_model.dart#L17) – Extend config schema for new console style field.
+- [lib/src/utils/console_utils.dart#L1](../../lib/src/utils/console_utils.dart#L1) – Centralize style selection here.
+- [lib/src/services/logger_service.dart#L151](../../lib/src/services/logger_service.dart#L151) – Update notice/important boxes to respect plain style.
+- [lib/src/models/config_model.dart#L17](../../lib/src/models/config_model.dart#L17) – Extend config schema for new console style field.
 
 ## Recommendation
 **Action**: validate-p2

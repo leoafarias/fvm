@@ -12,8 +12,21 @@ On Windows, FVM users repeatedly hit `Error: Unable to find git in your PATH.` w
 
 ## Version Context
 - Reported against: FVM 3.x (persists through v4.0.0)
-- Current version: v4.0.0
+- Current version: v4.1.1
 - Version-specific: no — Windows + modern Git remain affected
+
+## 2026-06-22 Revalidation Update
+- Issue remains open, but it is no longer a confirmed P1 urgency item.
+- The current release is FVM 4.1.1, published 2026-06-16. This issue was opened on 2025-09-18 and does not report a 4.1.1 regression.
+- Current docs already cover the exact symptom and workaround in the FAQ and dedicated troubleshooting page.
+- Current code still only validates `git --version`; it does not detect Git `safe.directory`, `dubious ownership`, or the misleading Flutter "Unable to find git in your PATH" message.
+- Maintainer guidance from 2025-11-04 indicates FVM should not silently change global Git config for security reasons.
+- Reclassification: move from P1 to P2. The remaining work is diagnostic/UX improvement, not an urgent release blocker.
+
+## 2026-06-22 Closure Update
+- Closed on GitHub at 2026-06-22T16:37:04Z.
+- Closing reason: documented / not planned for automatic mutation of global Git config.
+- The closing comment points to the current docs/FAQ workaround and notes that future `fvm doctor` diagnostics or an explicit opt-in fix command can be tracked separately.
 
 ## Validation Steps
 1. Reviewed `docs/pages/documentation/getting-started/faq.md`, which now links to a dedicated troubleshooting guide and documents the manual workaround (`git config --global --add safe.directory "*"`)
@@ -56,8 +69,8 @@ Given the security implications of writing to users’ global Git config, the te
 - Some organizations restrict global config writes; log a warning if the command fails and fall back to current guidance.
 
 ## Classification Recommendation
-- Priority: **P1 - High** (blocks Windows installs out of the box)
-- Suggested Folder: `validated/p1-high/`
+- Priority: **Closed** (documented/not planned for automatic Git config mutation)
+- Suggested Folder: `closed/`
 
 ## Notes for Follow-up
 - Documentation is now present on `main`; remaining closure criteria are doctor detection and targeted CLI messaging.

@@ -1,0 +1,11 @@
+{
+  "number": 1043,
+  "title": "[BUG] Forced recreation of git cache on Mac everytime",
+  "triagedAt": "2026-07-18",
+  "closedAt": "2026-06-25T16:28:33Z",
+  "priority": "closed",
+  "status": "closed",
+  "artifact": "../artifacts/issue-1043.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1043",
+  "notes": "Closed as fixed: macOS .DS_Store in git cache refs caused repeated fsck failures and full cache recreation."
+}

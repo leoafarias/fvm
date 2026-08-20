@@ -5,16 +5,36 @@
 - **Created**: 2024-03-09
 - **Reported Version**: 3.0.x
 - **Issue Type**: enhancement
-- **URL**: https://github.com/leoafarias/fvm/issues/688
+- **URL**: https://github.com/conceptadev/fvm/issues/688
 
 ## Problem Summary
 Organizations that mirror Flutter SDK archives internally set `FLUTTER_STORAGE_BASE_URL` so the official `flutter` tool downloads engines and releases from their own origin. FVM, however, still clones Flutter from GitHub and fetches metadata from external domains, so installs fail in locked-down environments without GitHub/Google access. Users need FVM to honor their mirrored storage for the actual SDK payloads, not just metadata.
 
 ## Version Context
 - Reported against: FVM 3.0.13
-- Current version: v4.0.0
-- Version-specific: no — v4 still clones from GitHub regardless of storage override.
+- Current version: v4.1.2
+- Version-specific: no — v4.1.2 still clones from GitHub regardless of storage override.
 - Reason: The install workflow is still Git-only; archive downloads via `FLUTTER_STORAGE_BASE_URL` are unsupported.
+
+## 2026-06-22 Revalidation Update
+- Issue remains open and unresolved in FVM 4.1.1, published 2026-06-16.
+- Current `main` has no `ArchiveService` and no install flag/path that consumes `FlutterSdkRelease.archiveUrl`.
+- Current code honors `FLUTTER_STORAGE_BASE_URL` for release metadata/archive URL construction, but install still routes through Git clone behavior.
+- PR #1013 implements archive-install work, but it remains open and is not included in `main` or release 4.1.1.
+- Classification remains P1 because restricted-network and mirrored-storage users cannot use FVM without GitHub clone access.
+
+## 2026-07-18 Revalidation Update
+- FVM 4.1.2 still has no archive installation service or install/use archive path in `origin/main`.
+- Live GitHub still reports #688 open and PR #1013 open/mergeable.
+- PR #1013 has one failing Linux `Test` check; macOS, Windows, and migration checks pass. The PR must be updated from current `main`, narrowed/reviewed for drift, and returned to green before merge.
+- #688 remains the only P1 and there are no P0 issues in the live queue.
+
+## 2026-06-22 Maintainer Comment
+- Commented on GitHub that #688 remains the tracking issue for archive-based installs.
+- Clarified that `FLUTTER_GIT_URL` covers custom framework git repositories, but not mirrored SDK archive/custom engine use cases.
+- Pointed users to PR #1013 as the active implementation path.
+- Left the issue open until #1013 passes CI, is reviewed, merged, and released.
+- Current PR #1013 blocker: GitHub `Test` job fails in the `fvm_mcp | Format check`; `dart format --output=none --set-exit-if-changed .` would change `fvm_mcp/lib/src/process_runner.dart`, `fvm_mcp/lib/src/server.dart`, and `fvm_mcp/test/process_runner_test.dart`.
 
 ## Validation Steps
 1. Reviewed `lib/src/services/flutter_service.dart` — `install()` always performs a `git clone` from `context.flutterUrl` (default `https://github.com/flutter/flutter.git`), with no branch for archive downloads.
@@ -42,11 +62,11 @@ $ sed -n '1,60p' lib/src/services/releases_service/models/version_model.dart
 ```
 
 **Files/Code References:**
-- [lib/src/services/flutter_service.dart#L167](../lib/src/services/flutter_service.dart#L167) – Git clone is the only installation mechanism.
-- [lib/src/services/releases_service/models/version_model.dart#L54](../lib/src/services/releases_service/models/version_model.dart#L54) – Archive URL respects `FLUTTER_STORAGE_BASE_URL` but is unused.
-- [lib/src/services/releases_service/releases_client.dart#L24](../lib/src/services/releases_service/releases_client.dart#L24) – Metadata download still attempts GitHub before mirrored storage, causing failures behind firewalls.
+- [lib/src/services/flutter_service.dart#L167](../../lib/src/services/flutter_service.dart#L167) – Git clone is the only installation mechanism.
+- [lib/src/services/releases_service/models/version_model.dart#L54](../../lib/src/services/releases_service/models/version_model.dart#L54) – Archive URL respects `FLUTTER_STORAGE_BASE_URL` but is unused.
+- [lib/src/services/releases_service/releases_client.dart#L24](../../lib/src/services/releases_service/releases_client.dart#L24) – Metadata download still attempts GitHub before mirrored storage, causing failures behind firewalls.
 
-## Current Status in v4.0.0
+## Current Status in v4.1.2
 - [x] Still reproducible
 - [ ] Already fixed
 - [ ] Not applicable to v4.0.0
@@ -83,9 +103,9 @@ FVM’s cache strategy is Git-centric. Even though the release metadata exposes 
 - Documentation must caution about keeping mirrored metadata in sync with archives to avoid checksum mismatches.
 
 ### Related Code Locations
-- [lib/src/services/cache_service.dart#L198](../lib/src/services/cache_service.dart#L198) – Determines cache directories; extend to accommodate archive installs.
-- [lib/src/services/releases_service/releases_client.dart#L41](../lib/src/services/releases_service/releases_client.dart#L41) – Add option to bypass GitHub cache when custom URLs are provided.
-- [docs/pages/documentation/getting-started/configuration.mdx#L70](../docs/pages/documentation/getting-started/configuration.mdx#L70) – Document new storage settings and strategies.
+- [lib/src/services/cache_service.dart#L198](../../lib/src/services/cache_service.dart#L198) – Determines cache directories; extend to accommodate archive installs.
+- [lib/src/services/releases_service/releases_client.dart#L41](../../lib/src/services/releases_service/releases_client.dart#L41) – Add option to bypass GitHub cache when custom URLs are provided.
+- [docs/pages/documentation/getting-started/configuration.mdx#L70](../../docs/pages/documentation/getting-started/configuration.mdx#L70) – Document new storage settings and strategies.
 
 ## Recommendation
 **Action**: validate-p1
@@ -98,4 +118,4 @@ FVM’s cache strategy is Git-centric. Even though the release metadata exposes 
 
 ---
 **Validated by**: Code Agent
-**Date**: 2025-10-31
+**Date**: 2026-07-18

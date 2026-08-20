@@ -29,9 +29,9 @@ docs/pages/documentation/guides/basic-commands.mdx:321-343  // User-facing docs 
 ```
 
 **Files/Code References:**
-- [lib/src/commands/flavor_command.dart:10](../lib/src/commands/flavor_command.dart#L10) – Implementation of `fvm flavor`.
-- [lib/src/runner.dart:68](../lib/src/runner.dart#L68) – Command registration.
-- [docs/pages/documentation/guides/basic-commands.mdx:321](../docs/pages/documentation/guides/basic-commands.mdx#L321) – Documentation section covering the workflow.
+- [lib/src/commands/flavor_command.dart:10](../../lib/src/commands/flavor_command.dart#L10) – Implementation of `fvm flavor`.
+- [lib/src/runner.dart:68](../../lib/src/runner.dart#L68) – Command registration.
+- [docs/pages/documentation/guides/basic-commands.mdx:321](../../docs/pages/documentation/guides/basic-commands.mdx#L321) – Documentation section covering the workflow.
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
@@ -57,7 +57,7 @@ The capability exists; users may have missed it due to earlier documentation gap
 - Documentation-only. No code changes.
 
 ### Related Code Locations
-- [docs/pages/documentation/guides/project-flavors.md:46](../docs/pages/documentation/guides/project-flavors.md#L46) – Additional examples for flavor workflows.
+- [docs/pages/documentation/guides/project-flavors.md:46](../../docs/pages/documentation/guides/project-flavors.md#L46) – Additional examples for flavor workflows.
 
 ## Recommendation
 **Action**: resolved  
@@ -85,3 +85,7 @@ Because the command fully covers this request I’m going to close the issue, bu
 ---
 **Validated by**: Code Agent  
 **Date**: 2025-10-31
+
+## Closure Outcome
+
+Closed on GitHub on 2026-08-11 as completed after posting the current `fvm flavor <name> <flutter command>` workflow.

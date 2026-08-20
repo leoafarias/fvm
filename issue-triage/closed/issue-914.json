@@ -1,0 +1,13 @@
+{
+  "number": 914,
+  "title": "[BUG] Error: Unable to find git in your PATH.",
+  "triagedAt": "2025-10-30",
+  "revalidatedAt": "2026-06-22",
+  "closedAt": "2026-06-22T16:37:04Z",
+  "priority": "p2-medium",
+  "status": "closed",
+  "artifact": "../artifacts/issue-914.md",
+  "url": "https://github.com/leoafarias/fvm/issues/914",
+  "resolution": "documented-not-planned",
+  "notes": "Closed as documented/not planned for automatic mutation of global Git config. Current docs and FAQ cover Windows Git safe.directory workaround; future doctor diagnostics can be tracked separately."
+}

@@ -1,0 +1,11 @@
+{
+  "number": 1046,
+  "title": "[BUG] FVM leaves fish terminal wedged in raw mode after Ctrl+C mid-command",
+  "triagedAt": "2026-07-18",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1046.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1046",
+  "related_issues": [801, 1030],
+  "notes": "Fish-only post-4.1.2 terminal raw-mode after Ctrl+C on fvm flutter; inheritStdio insufficient; runInShell default and restored TTY state are primary investigation targets."
+}

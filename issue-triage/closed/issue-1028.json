@@ -1,0 +1,13 @@
+{
+  "number": 1028,
+  "title": "[Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows",
+  "triagedAt": "2026-06-10",
+  "revalidatedAt": "2026-06-22",
+  "closedAt": "2026-06-22T16:37:02Z",
+  "priority": "needs-info",
+  "status": "closed",
+  "artifact": "../artifacts/issue-1028.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1028",
+  "resolvedBy": "v4.1.1-prs-1037-1036-1033",
+  "notes": "Closed with retest instructions because FVM 4.1.1 shipped relevant git-cache and non-interactive hang fixes after all issue comments. Reporters were asked to retest on 4.1.1 with a clean cache and FVM_USE_GIT_CACHE=false."
+}

@@ -1,0 +1,14 @@
+{
+  "number": 1047,
+  "title": "[Feature Request] Support Windows on arm64",
+  "triagedAt": "2026-07-18",
+  "priority": "p2-medium",
+  "status": "closed",
+  "closedAt": "2026-07-18",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-1047.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1047",
+  "related_issues": [826, 794, 1050],
+  "closing_pr": 1049,
+  "notes": "Closed after PR #1049 documented the native windows-arm64 release zip, improved release parsing, and added a passing Windows ARM64 smoke workflow. Package-manager delivery remains open in #1050."
+}

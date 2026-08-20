@@ -40,8 +40,8 @@ $ sed -n '52,120p' lib/src/commands/use_command.dart
 ```
 
 **Files/Code References:**
-- [lib/src/commands/use_command.dart#L52](../lib/src/commands/use_command.dart#L52) – Example of flag propagation.
-- [lib/src/utils/context.dart#L1](../lib/src/utils/context.dart#L1) – Context currently lacks runtime option storage.
+- [lib/src/commands/use_command.dart#L52](../../lib/src/commands/use_command.dart#L52) – Example of flag propagation.
+- [lib/src/utils/context.dart#L1](../../lib/src/utils/context.dart#L1) – Context currently lacks runtime option storage.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -81,8 +81,8 @@ Without a central registry, every workflow must receive flags explicitly. This l
 - Commands that spawn other FVM commands (integration tests) must propagate or isolate options intentionally.
 
 ### Related Code Locations
-- [lib/src/workflows/use_version.workflow.dart#L21](../lib/src/workflows/use_version.workflow.dart#L21) – Candidate for reading flags from context instead of parameters.
-- [lib/src/commands/destroy_command.dart#L27](../lib/src/commands/destroy_command.dart#L27) – Another example of manual flag handling.
+- [lib/src/workflows/use_version.workflow.dart#L21](../../lib/src/workflows/use_version.workflow.dart#L21) – Candidate for reading flags from context instead of parameters.
+- [lib/src/commands/destroy_command.dart#L27](../../lib/src/commands/destroy_command.dart#L27) – Another example of manual flag handling.
 
 ## Recommendation
 **Action**: validate-p2

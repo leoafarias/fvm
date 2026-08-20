@@ -1,5 +1,5 @@
 {
-  "issue_number": 974,
+  "number": 974,
   "title": "[BUG] Put the binary in a user directory, then expose it via a system-wide symlink will create many issues",
   "url": "https://github.com/leoafarias/fvm/issues/974",
   "reporter": "zhengpenghou",
@@ -21,7 +21,7 @@
   "resolution_pr": 967,
   "resolution_status": "GitHub issue is closed as completed",
   "security_classifications": ["CWE-668", "CWE-362"],
-  "artifact": "issue-triage/artifacts/issue-974-validation.md",
+  "artifact": "../artifacts/issue-974-validation.md",
   "validated_date": "2025-12-08",
   "validated_by": "Code Agent",
   "sync_note": "Archived during 2026-06-10 live GitHub sync because the issue is no longer open."

@@ -34,8 +34,8 @@ $ sed -n '34,80p' lib/src/commands/install_command.dart
 ```
 
 **Files/Code References:**
-- [lib/src/commands/install_command.dart#L34](../lib/src/commands/install_command.dart#L34) – Throws when `.fvmrc` absent.
-- [lib/src/models/project_model.dart#L40](../lib/src/models/project_model.dart#L40) – `Project` keeps the parsed pubspec.
+- [lib/src/commands/install_command.dart#L34](../../lib/src/commands/install_command.dart#L34) – Throws when `.fvmrc` absent.
+- [lib/src/models/project_model.dart#L40](../../lib/src/models/project_model.dart#L40) – `Project` keeps the parsed pubspec.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -64,8 +64,8 @@ $ sed -n '34,80p' lib/src/commands/install_command.dart
 - Need to avoid unexpected behavior in projects with very loose constraints; guarding behind a flag (e.g., `--from-pubspec`) may be safer initially.
 
 ### Related Code Locations
-- [lib/src/services/releases_service/releases_client.dart](../lib/src/services/releases_service/releases_client.dart) – Source of release data.
-- [docs/pages/documentation/getting-started/configuration.mdx](../docs/pages/documentation/getting-started/configuration.mdx) – Update instructions.
+- [lib/src/services/releases_service/releases_client.dart](../../lib/src/services/releases_service/releases_client.dart) – Source of release data.
+- [docs/pages/documentation/getting-started/configuration.mdx](../../docs/pages/documentation/getting-started/configuration.mdx) – Update instructions.
 
 ## Recommendation
 **Action**: validate-p2

@@ -28,8 +28,8 @@ docs/pages/documentation/getting-started/installation.mdx:90-93   // Callout to 
 ```
 
 **Files/Code References:**
-- [docs/pages/documentation/getting-started/installation.mdx:73](../docs/pages/documentation/getting-started/installation.mdx#L73) – Install script workflow (no Xcode dependency).
-- [docs/pages/documentation/getting-started/installation.mdx:90](../docs/pages/documentation/getting-started/installation.mdx#L90) – Link to download prebuilt binaries.
+- [docs/pages/documentation/getting-started/installation.mdx:73](../../docs/pages/documentation/getting-started/installation.mdx#L73) – Install script workflow (no Xcode dependency).
+- [docs/pages/documentation/getting-started/installation.mdx:90](../../docs/pages/documentation/getting-started/installation.mdx#L90) – Link to download prebuilt binaries.
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
@@ -55,7 +55,7 @@ Homebrew enforces minimum Xcode versions for formula compilation. FVM cannot cha
 - Documentation / support only.
 
 ### Related Code Locations
-- [docs/public/install.sh](../docs/public/install.sh) – Script delivering prebuilt binaries.
+- [docs/public/install.sh](../../docs/public/install.sh) – Script delivering prebuilt binaries.
 
 ## Recommendation
 **Action**: resolved  
@@ -80,3 +80,7 @@ Given that FVM itself doesn’t depend on the newer Xcode, I’ll close this out
 ---
 **Validated by**: Code Agent  
 **Date**: 2025-10-31
+
+## Closure Outcome
+
+Closed on GitHub on 2026-08-11 as not planned/working as intended because the Xcode requirement belongs to Homebrew; the prebuilt installer and release archives are the supported workaround.

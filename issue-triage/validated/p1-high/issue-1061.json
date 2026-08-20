@@ -1,0 +1,11 @@
+{
+  "number": 1061,
+  "title": "[BUG] fvm flutter / fvm dart add ~4s per invocation (git fsck --connectivity-only on cache.git)",
+  "triagedAt": "2026-08-19",
+  "priority": "p1-high",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1061.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1061",
+  "related_issues": [1018, 1043, 370],
+  "notes": "Confirmed by code inspection on v4.1.4. EnsureCacheWorkflow calls ensureBareCacheIfPresent() on every non-fork command regardless of context.gitCache, and _determineCacheState always runs git fsck --connectivity-only over the whole bare cache. The result cannot change the outcome: ready, missing, and invalid all take the same no-op branch, and the acting branches (overbroad, legacy) come from the shape check alone. Fix is to use _determineCacheShapeState at that call site; updateLocalMirror already guards the same check."
+}

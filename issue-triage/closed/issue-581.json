@@ -4,7 +4,7 @@
   "triagedAt": "2025-10-31",
   "priority": "p1-high",
   "status": "closed",
-  "artifact": "../../artifacts/issue-581.md",
+  "artifact": "../artifacts/issue-581.md",
   "url": "https://github.com/leoafarias/fvm/issues/581",
   "notes": "Maintainers acknowledged Alpine image limitation; users should leverage community multi-arch images (e.g., rodrigodornelles/sdkman) or install via install.sh.",
   "closedAt": "2025-11-01",

@@ -34,9 +34,9 @@ lib/src/workflows/resolve_project_deps.workflow.dart:18-21
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/setup_flutter.workflow.dart:16](../lib/src/workflows/setup_flutter.workflow.dart#L16) - Setup success logging path.
-- [lib/src/models/cache_flutter_version_model.dart:76](../lib/src/models/cache_flutter_version_model.dart#L76) - Setup completeness check.
-- [lib/src/workflows/resolve_project_deps.workflow.dart:18](../lib/src/workflows/resolve_project_deps.workflow.dart#L18) - Follow-up warning behavior.
+- [lib/src/workflows/setup_flutter.workflow.dart:16](../../lib/src/workflows/setup_flutter.workflow.dart#L16) - Setup success logging path.
+- [lib/src/models/cache_flutter_version_model.dart:76](../../lib/src/models/cache_flutter_version_model.dart#L76) - Setup completeness check.
+- [lib/src/workflows/resolve_project_deps.workflow.dart:18](../../lib/src/workflows/resolve_project_deps.workflow.dart#L18) - Follow-up warning behavior.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -51,7 +51,7 @@ lib/src/workflows/resolve_project_deps.workflow.dart:18-21
 `SetupFlutterWorkflow` treats a successful `flutter --version` process as equivalent to completed setup. On missing host dependencies, Flutter can still return output while setup remains incomplete, so FVM prints success and only later detects `isNotSetup`.
 
 ### Proposed Solution
-1. In [lib/src/workflows/setup_flutter.workflow.dart](../lib/src/workflows/setup_flutter.workflow.dart), re-read cache metadata after setup and verify `isSetup`.
+1. In [lib/src/workflows/setup_flutter.workflow.dart](../../lib/src/workflows/setup_flutter.workflow.dart), re-read cache metadata after setup and verify `isSetup`.
 2. If setup is incomplete, throw an `AppException` with actionable instructions (for example, install `unzip` on Linux).
 3. Add a focused test covering "setup command returns but version file missing" and assert failure messaging.
 4. Keep existing dependency warning as secondary guard, but avoid reporting setup success first.
@@ -64,8 +64,8 @@ lib/src/workflows/resolve_project_deps.workflow.dart:18-21
 - Keep non-interactive/CI behavior deterministic (fail fast with explicit message).
 
 ### Related Code Locations
-- [lib/src/services/flutter_service.dart:126](../lib/src/services/flutter_service.dart#L126) - Setup command invocation.
-- [lib/src/commands/list_command.dart:118](../lib/src/commands/list_command.dart#L118) - Existing "Need setup" warning surfaced in list output.
+- [lib/src/services/flutter_service.dart:126](../../lib/src/services/flutter_service.dart#L126) - Setup command invocation.
+- [lib/src/commands/list_command.dart:118](../../lib/src/commands/list_command.dart#L118) - Existing "Need setup" warning surfaced in list output.
 
 ## Recommendation
 **Action**: validate-p2

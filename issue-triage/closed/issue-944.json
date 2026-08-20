@@ -6,7 +6,7 @@
   "status": "closed",
   "closedAt": "2025-10-30",
   "resolvedBy": "pr-937",
-  "artifact": "../../artifacts/issue-944.md",
+  "artifact": "../artifacts/issue-944.md",
   "url": "https://github.com/leoafarias/fvm/issues/944",
   "notes": "Fixed by PR #937. Documentation links now correctly resolve to installation guide."
 }

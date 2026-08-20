@@ -1,0 +1,12 @@
+{
+  "number": 748,
+  "title": "[Question] I cannot to setup fvm global stable in windows",
+  "triagedAt": "2025-10-30",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "priority": "needs-info",
+  "artifact": "../artifacts/issue-748.md",
+  "url": "https://github.com/conceptadev/fvm/issues/748",
+  "notes": "Closed as answered after reiterating the Windows global PATH setup and current `fvm doctor --verbose` verification path; a new textual reproduction was invited."
+}

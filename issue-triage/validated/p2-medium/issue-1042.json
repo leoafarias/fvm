@@ -1,0 +1,10 @@
+{
+  "number": 1042,
+  "title": "[Feature Request] Support to Flutter-Tizen, Flutter-TVOS and future custom SDK",
+  "triagedAt": "2026-06-19",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1042.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1042",
+  "notes": "Valid multi-SDK-family architecture enhancement. Existing fork aliases support one custom Flutter repository, but FVM does not currently model multiple SDK families in one .fvmrc."
+}

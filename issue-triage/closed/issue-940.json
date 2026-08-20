@@ -6,6 +6,6 @@
   "status": "closed",
   "closedAt": "2025-11-01",
   "resolution": "fixed",
-  "artifact": "../../artifacts/issue-940.md",
+  "artifact": "../artifacts/issue-940.md",
   "url": "https://github.com/leoafarias/fvm/issues/940",
   "notes": "Homebrew tap PR #22 now bundles Dart 3.6.0 alongside FVM 4.0.0; reinstall after `brew update` to resolve the solver error."}

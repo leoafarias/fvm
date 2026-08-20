@@ -1,0 +1,13 @@
+{
+  "number": 720,
+  "title": "[Feature Request] Automatically install required Flutter version",
+  "triagedAt": "2025-10-30",
+  "priority": "p3-low",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "not_planned",
+  "artifact": "../artifacts/issue-720.md",
+  "url": "https://github.com/conceptadev/fvm/issues/720",
+  "relatedIssue": 577,
+  "notes": "Closed with the duplicate label: no-argument `fvm install` implements the .fvmrc workflow, while the remaining pubspec fallback is tracked in #577."
+}

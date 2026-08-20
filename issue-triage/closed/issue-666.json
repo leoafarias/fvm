@@ -6,7 +6,7 @@
   "status": "closed",
   "closedAt": "2025-11-01",
   "resolution": "fixed",
-  "artifact": "../../artifacts/issue-666.md",
+  "artifact": "../artifacts/issue-666.md",
   "url": "https://github.com/leoafarias/fvm/issues/666",
   "notes": "Resolved by PR #955 (Improve cache version matching), which semantically compares cached and configured versions and eliminates false mismatch prompts."
 }

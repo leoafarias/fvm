@@ -1,0 +1,12 @@
+{
+  "number": 1023,
+  "title": "[BUG] How to upgrade fvm flutter?",
+  "triagedAt": "2026-06-10",
+  "closedAt": "2026-06-25T16:37:18Z",
+  "priority": "p3-low",
+  "status": "closed",
+  "artifact": "../artifacts/issue-1023.md",
+  "url": "https://github.com/leoafarias/fvm/issues/1023",
+  "related_issues": [583],
+  "notes": "Closed on GitHub after community guidance: fvm flutter upgrade on dirty cache is expected Flutter behavior; prefer fvm remove + fvm use for pinned releases. Overlaps planned fvm upgrade (#583)."
+}

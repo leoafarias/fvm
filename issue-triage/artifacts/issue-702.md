@@ -34,8 +34,8 @@ $ sed -n '209,240p' lib/src/workflows/update_vscode_settings.workflow.dart
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L209](../lib/src/workflows/update_vscode_settings.workflow.dart#L209) – Sets `dart.flutterSdkPath` at workspace scope, clobbering other folders.
-- [docs/pages/documentation/guides/vscode.mdx#L1](../docs/pages/documentation/guides/vscode.mdx#L1) – Current VS Code docs lacking multi-root guidance.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L209](../../lib/src/workflows/update_vscode_settings.workflow.dart#L209) – Sets `dart.flutterSdkPath` at workspace scope, clobbering other folders.
+- [docs/pages/documentation/guides/vscode.mdx#L1](../../docs/pages/documentation/guides/vscode.mdx#L1) – Current VS Code docs lacking multi-root guidance.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -65,8 +65,8 @@ FVM’s VS Code workflow updates both folder-level settings and any `.code-works
 - Documentation update should avoid conflicting guidance once the command-based integration ships.
 
 ### Related Code Locations
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L130](../lib/src/workflows/update_vscode_settings.workflow.dart#L130) – Folder-level settings update that should remain authoritative.
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L259](../lib/src/workflows/update_vscode_settings.workflow.dart#L259) – Workflow entry point where detection logic can branch.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L130](../../lib/src/workflows/update_vscode_settings.workflow.dart#L130) – Folder-level settings update that should remain authoritative.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L259](../../lib/src/workflows/update_vscode_settings.workflow.dart#L259) – Workflow entry point where detection logic can branch.
 
 ## Recommendation
 **Action**: validate-p2

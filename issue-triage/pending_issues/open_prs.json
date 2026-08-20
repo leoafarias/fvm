@@ -1,20 +1,71 @@
 [
   {
     "author": {
-      "id": "U_kgDOCY1DNA",
+      "id": "MDQ6VXNlcjQzNTgzMw==",
       "is_bot": false,
-      "login": "rumitvn",
-      "name": "Rum Nguyen"
+      "login": "leoafarias",
+      "name": "Leo Farias"
     },
     "baseRefName": "main",
-    "body": "Closes #1015\n\n### What\nAdds a **Dart MCP Server** guide under *Documentation › Guides* and registers it in the guides navigation.\n\n### Why\nThe [Dart MCP server](https://dart.dev/tools/mcp-server) resolves the Flutter SDK from `PATH` by default, so it uses the globally installed Flutter rather than the version FVM pins for the project. That causes the MCP server (and the AI tools using it) to analyze against the wrong SDK.\n\nThe guide shows how to point the server at the FVM-managed SDK via the `.fvm/flutter_sdk` symlink:\n\n```json\n{\n  \"mcpServers\": {\n    \"dart\": {\n      \"command\": \"dart\",\n      \"args\": [\"mcp-server\", \"--flutter-sdk\", \".fvm/flutter_sdk\"]\n    }\n  }\n}\n```\n\n`.fvm/flutter_sdk` is the symlink FVM maintains to the pinned SDK (same path used for the VSCode integration), so the MCP server stays in sync with the IDE and terminal.\n\nConfig and approach from the issue reporter (verified against [dart-lang/ai#319](https://github.com/dart-lang/ai/issues/319)). Docs-only change.",
-    "createdAt": "2026-06-13T05:15:47Z",
-    "headRefName": "docs/dart-mcp-fvm-sdk",
+    "body": "## Summary\n- add a dedicated Android Studio and IntelliJ guide for project-pinned and global FVM SDK paths\n- explain JetBrains symlink resolution, distinguish Android Studio verification from the `fvm doctor` metadata check, and document the manual fallback when the IDE stays on an old SDK\n- link the guide from global configuration, project configuration, common workflows, and the FAQ\n\nRelated to #697, #724, and #767.\n\n## Validation\n- `cd docs && yarn build` — passed; generated 23 static pages, including `/documentation/guides/android-studio`\n- `git diff --check origin/main...HEAD` — passed\n- Android Studio Quail 2 (2026.1.2), Flutter plugin 95.0.0 — the SDK field resolved `.fvm/flutter_sdk` to Flutter 3.41.2; after `fvm use 3.44.6`, the link changed to 3.44.6 while the IDE metadata remained on 3.41.2\n- Vercel preview deployment — passed\n- browser verification at 1440×900 and 390×844 — navigation, internal links, headings, and paths rendered correctly with no page overflow or console errors\n",
+    "createdAt": "2026-08-12T00:56:39Z",
+    "headRefName": "agent/android-studio-guide",
     "labels": [],
-    "number": 1038,
-    "title": "docs: add guide for using FVM with the Dart MCP server",
-    "updatedAt": "2026-06-13T05:15:52Z",
-    "url": "https://github.com/leoafarias/fvm/pull/1038"
+    "number": 1056,
+    "title": "docs: add Android Studio SDK setup guide",
+    "updatedAt": "2026-08-12T01:35:32Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1056"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjM3OTk4NTYy",
+      "is_bot": false,
+      "login": "zHElEARN",
+      "name": "Zachary Liu"
+    },
+    "baseRefName": "main",
+    "body": "## Summary\r\n\r\n- Keep FVM alive until the proxied Flutter process finishes its SIGINT cleanup.\r\n- Exit with code 130 and stop workflows from continuing after interruption.\r\n- Add a POSIX PTY regression test for terminal and process cleanup.\r\n\r\nThis prevents fish from being left in an unusable terminal state after pressing Ctrl+C during a Flutter command.\r\n\r\nFixes #1046\r\n\r\n## Testing\r\n\r\n- `dart analyze --fatal-infos`\r\n- Unit and PTY tests\r\n- Manual verification with `fvm flutter doctor -v` in fish",
+    "createdAt": "2026-07-31T10:29:20Z",
+    "headRefName": "fix/flutter-interrupt-cleanup",
+    "labels": [],
+    "number": 1054,
+    "title": "fix: wait for Flutter cleanup after SIGINT",
+    "updatedAt": "2026-07-31T10:29:26Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1054"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjc3ODExNDM=",
+      "is_bot": false,
+      "login": "AngeloAvv",
+      "name": "Angelo Cassano"
+    },
+    "baseRefName": "main",
+    "body": "Enables linux/arm64/v8 alongside linux/amd64 in both docker build-push steps so fvm's Docker image runs natively on arm64 hosts (Ampere, Apple Silicon, etc). Realigns conceptadev/fvm#845 on top of current main.\r\n\r\nFixes #762",
+    "createdAt": "2026-07-24T15:31:09Z",
+    "headRefName": "docker/add-support-to-arm64",
+    "labels": [],
+    "number": 1053,
+    "title": "fix: add arm64 platform support to docker image builds",
+    "updatedAt": "2026-07-24T15:31:16Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1053"
+  },
+  {
+    "author": {
+      "id": "MDQ6VXNlcjgwMzAzOTg=",
+      "is_bot": false,
+      "login": "chreck",
+      "name": "Christoph Eck"
+    },
+    "baseRefName": "main",
+    "body": "If I remove the .fvm folder and run `fvm use` in the root project folder it sets .fvm/ in .gitignore.",
+    "createdAt": "2026-07-21T07:41:37Z",
+    "headRefName": "patch-2",
+    "labels": [],
+    "number": 1051,
+    "title": "Update .gitignore entry for FVM directory",
+    "updatedAt": "2026-07-21T07:41:43Z",
+    "url": "https://github.com/leoafarias/fvm/pull/1051"
   },
   {
     "author": {
@@ -32,23 +83,6 @@
     "title": "chore: bump pub_updater to ^0.5.0",
     "updatedAt": "2026-06-12T19:38:49Z",
     "url": "https://github.com/leoafarias/fvm/pull/1022"
-  },
-  {
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "baseRefName": "main",
-    "body": "This PR mirrors #966 on a fresh head branch so tooling can re-associate the PR correctly.\\n\\nIncludes:\\n- Staging-directory archive install to prevent cache loss on failures\\n- HTTP connection timeout for archive downloads\\n- Improved TLS handshake error guidance\\n- Expanded archive service test coverage",
-    "createdAt": "2026-02-12T19:08:15Z",
-    "headRefName": "issue-688-relink",
-    "labels": [],
-    "number": 1013,
-    "title": "fix: harden archive install with staging directory and network resilience",
-    "updatedAt": "2026-06-10T23:35:20Z",
-    "url": "https://github.com/leoafarias/fvm/pull/1013"
   },
   {
     "author": {

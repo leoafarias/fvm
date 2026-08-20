@@ -34,9 +34,9 @@ docs/pages/documentation/guides/basic-commands.mdx:79
 ```
 
 **Files/Code References:**
-- [lib/src/models/flutter_version_model.dart:121](../lib/src/models/flutter_version_model.dart#L121) - Semver validation behavior.
-- [lib/src/services/flutter_service.dart:158](../lib/src/services/flutter_service.dart#L158) - Release-channel lookup with exact version.
-- [docs/pages/documentation/guides/basic-commands.mdx:79](../docs/pages/documentation/guides/basic-commands.mdx#L79) - Current install argument documentation.
+- [lib/src/models/flutter_version_model.dart:121](../../lib/src/models/flutter_version_model.dart#L121) - Semver validation behavior.
+- [lib/src/services/flutter_service.dart:158](../../lib/src/services/flutter_service.dart#L158) - Release-channel lookup with exact version.
+- [docs/pages/documentation/guides/basic-commands.mdx:79](../../docs/pages/documentation/guides/basic-commands.mdx#L79) - Current install argument documentation.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -68,8 +68,8 @@ Current parser and install flow are designed for full semantic versions/channels
 - Must avoid breaking existing workflows that rely on git-ref interpretation.
 
 ### Related Code Locations
-- [lib/src/workflows/validate_flutter_version.workflow.dart:9](../lib/src/workflows/validate_flutter_version.workflow.dart#L9) - Entry point for version validation.
-- [lib/src/services/releases_service/releases_client.dart:95](../lib/src/services/releases_service/releases_client.dart#L95) - Release retrieval API.
+- [lib/src/workflows/validate_flutter_version.workflow.dart:9](../../lib/src/workflows/validate_flutter_version.workflow.dart#L9) - Entry point for version validation.
+- [lib/src/services/releases_service/releases_client.dart:95](../../lib/src/services/releases_service/releases_client.dart#L95) - Release retrieval API.
 
 ## Recommendation
 **Action**: validate-p3

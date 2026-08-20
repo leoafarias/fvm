@@ -34,9 +34,9 @@ docs/pages/documentation/guides/monorepo.md:18-24
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/update_melos_settings.workflow.dart:24](../lib/src/workflows/update_melos_settings.workflow.dart#L24) - File discovery behavior.
-- [lib/src/workflows/update_melos_settings.workflow.dart:82](../lib/src/workflows/update_melos_settings.workflow.dart#L82) - Existing update target.
-- [docs/pages/documentation/guides/monorepo.md:18](../docs/pages/documentation/guides/monorepo.md#L18) - Documented behavior scope.
+- [lib/src/workflows/update_melos_settings.workflow.dart:24](../../lib/src/workflows/update_melos_settings.workflow.dart#L24) - File discovery behavior.
+- [lib/src/workflows/update_melos_settings.workflow.dart:82](../../lib/src/workflows/update_melos_settings.workflow.dart#L82) - Existing update target.
+- [docs/pages/documentation/guides/monorepo.md:18](../../docs/pages/documentation/guides/monorepo.md#L18) - Documented behavior scope.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -65,8 +65,8 @@ FVM currently assumes Melos configuration is expressed in `melos.yaml`. Workspac
 - Must avoid rewriting unrelated `pubspec.yaml` sections.
 
 ### Related Code Locations
-- [lib/src/workflows/use_version.workflow.dart:54](../lib/src/workflows/use_version.workflow.dart#L54) - Melos workflow invocation.
-- [lib/src/models/project_model.dart:25](../lib/src/models/project_model.dart#L25) - Pubspec is already loaded and available for reuse.
+- [lib/src/workflows/use_version.workflow.dart:54](../../lib/src/workflows/use_version.workflow.dart#L54) - Melos workflow invocation.
+- [lib/src/models/project_model.dart:25](../../lib/src/models/project_model.dart#L25) - Pubspec is already loaded and available for reuse.
 
 ## Recommendation
 **Action**: validate-p2

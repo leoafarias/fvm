@@ -1,0 +1,12 @@
+{
+  "number": 1055,
+  "title": "How to check latest version of fvm and how to update fvm to latest version?",
+  "triagedAt": "2026-08-11",
+  "priority": "p3-low",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-1055.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1055",
+  "notes": "Closed as answered with `fvm --version`, the latest release page, installation-method-specific update commands, and PATH diagnostics."
+}

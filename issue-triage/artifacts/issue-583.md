@@ -36,9 +36,9 @@ $ sed -n '1,80p' lib/src/commands/remove_command.dart
 ```
 
 **Files/Code References:**
-- [lib/src/commands/global_command.dart](../lib/src/commands/global_command.dart) – Handles global version selection today.
-- [lib/src/services/releases_service/releases_client.dart](../lib/src/services/releases_service/releases_client.dart) – Provides latest channel releases.
-- [lib/src/commands/remove_command.dart](../lib/src/commands/remove_command.dart) – Interactive removal only.
+- [lib/src/commands/global_command.dart](../../lib/src/commands/global_command.dart) – Handles global version selection today.
+- [lib/src/services/releases_service/releases_client.dart](../../lib/src/services/releases_service/releases_client.dart) – Provides latest channel releases.
+- [lib/src/commands/remove_command.dart](../../lib/src/commands/remove_command.dart) – Interactive removal only.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible (feature missing)
@@ -70,8 +70,8 @@ $ sed -n '1,80p' lib/src/commands/remove_command.dart
 - Provide clear messaging when already up to date.
 
 ### Related Code Locations
-- [lib/src/workflows/ensure_cache.workflow.dart](../lib/src/workflows/ensure_cache.workflow.dart) – Already handles installs.
-- [lib/src/services/cache_service.dart](../lib/src/services/cache_service.dart) – Used to remove versions.
+- [lib/src/workflows/ensure_cache.workflow.dart](../../lib/src/workflows/ensure_cache.workflow.dart) – Already handles installs.
+- [lib/src/services/cache_service.dart](../../lib/src/services/cache_service.dart) – Used to remove versions.
 
 ## Recommendation
 **Action**: validate-p2

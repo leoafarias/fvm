@@ -1,6 +1,10 @@
 # Action Item: Issue #1028 - Long-Running Install/Use Appears Frozen
 
 > Revalidation note 2026-06-16: PR #1037 merged substantial git-cache changes but did not close #1028. Before implementing this action item, pull latest `main` and re-check whether the remaining hang is setup-only, mirror-update-only, or both.
+>
+> Revalidation note 2026-06-22: FVM 4.1.1 includes the relevant git-cache/non-interactive hang changes and all #1028 comments predate that release. Do not execute this as active P1 work until a reporter retests on 4.1.1 with a clean cache and with `FVM_USE_GIT_CACHE=false`.
+>
+> Closure note 2026-06-22: #1028 was closed with retest instructions. This action item is inactive unless the issue is reopened with a current 4.1.1 reproduction.
 
 ## Objective
 Make `fvm install` and `fvm use` visibly progress, diagnose stalls, and fail with actionable guidance when local mirror refresh or Flutter setup takes too long.

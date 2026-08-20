@@ -83,9 +83,9 @@ The CLI only understands explicit Flutter versions. Constraint metadata (`dart_s
 - Fallback to Flutter’s Dart must handle Windows symlink requirements and unusual PATH setups gracefully.
 
 ### Related Code Locations
-- [lib/src/services/releases_service/releases_client.dart](../lib/src/services/releases_service/releases_client.dart) – Data source for Flutter/Dart mapping.
-- [lib/src/commands/exec_command.dart](../lib/src/commands/exec_command.dart) – Candidate for adding `--min-sdk`/`--max-sdk`.
-- [lib/src/workflows/run_configured_flutter.workflow.dart](../lib/src/workflows/run_configured_flutter.workflow.dart) – Update fallback resolution logic.
+- [lib/src/services/releases_service/releases_client.dart](../../lib/src/services/releases_service/releases_client.dart) – Data source for Flutter/Dart mapping.
+- [lib/src/commands/exec_command.dart](../../lib/src/commands/exec_command.dart) – Candidate for adding `--min-sdk`/`--max-sdk`.
+- [lib/src/workflows/run_configured_flutter.workflow.dart](../../lib/src/workflows/run_configured_flutter.workflow.dart) – Update fallback resolution logic.
 
 ## Recommendation
 **Action**: validate-p2

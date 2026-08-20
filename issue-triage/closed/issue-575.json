@@ -1,0 +1,12 @@
+{
+  "number": 575,
+  "title": "[Feature Request] Spawn on a flavor",
+  "triagedAt": "2025-10-31",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-575.md",
+  "url": "https://github.com/conceptadev/fvm/issues/575",
+  "notes": "Closed after documenting that `fvm flavor <name> <command>` already proxies Flutter commands with the flavor's version without switching.",
+  "priority": "p3-low"
+}

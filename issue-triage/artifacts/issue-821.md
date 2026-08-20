@@ -5,7 +5,7 @@
 - **Created**: 2025-02-13
 - **Reported Version**: FVM 3.x
 - **Issue Type**: feature request
-- **URL**: https://github.com/leoafarias/fvm/issues/821
+- **URL**: https://github.com/conceptadev/fvm/issues/821
 
 ## Problem Summary
 The VS Code Dart extension added `getFlutterSdkCommand`/`getDartSdkCommand` hooks. FVM currently rewrites `dart.flutterSdkPath` directly, forcing path updates after every Flutter switch. Integrating with the command-based API could eliminate manual edits.
@@ -18,7 +18,19 @@ The VS Code Dart extension added `getFlutterSdkCommand`/`getDartSdkCommand` hook
 1. Confirmed `UpdateVsCodeSettingsWorkflow` writes `dart.flutterSdkPath` (string) with no support for command settings.
 2. Reviewed Dart-Code change (commit b1f79dbd0d66128059cac40ff0dca01d4dd5dca7) describing the new command contract.
 
-## Proposed Implementation Plan
+## Evidence
+```text
+origin/main still writes dart.flutterSdkPath from project.localVersionSymlinkPath.
+No FVM path/which/where command exists.
+No getFlutterSdkCommand or getDartSdkCommand setting is emitted.
+```
+
+## Current Status in v4.1.2
+- [x] Still unresolved
+- [ ] Already implemented
+- [ ] Needs more information
+
+## Troubleshooting/Implementation Plan
 1. Introduce a lightweight CLI command, e.g., `fvm path --json`, returning the current project's Flutter/Dart SDK paths.
 2. When updating VS Code settings, optionally configure:
    ```json
@@ -31,8 +43,9 @@ The VS Code Dart extension added `getFlutterSdkCommand`/`getDartSdkCommand` hook
 3. Provide opt-in via `.fvmrc` (e.g., `useGetFlutterSdkCommand: true`) to avoid breaking existing setups.
 4. Update docs explaining VS Code integration and fallback to path-based configuration.
 5. Add tests ensuring the workflow writes the new settings when enabled.
+6. Coordinate with #743 so FVM chooses one stable default rather than maintaining two competing VS Code strategies indefinitely.
 
-## Classification Recommendation
+## Recommendation
 - Priority: **P2 - Medium** (improves IDE integration)
 - Suggested Folder: `validated/p2-medium/`
 

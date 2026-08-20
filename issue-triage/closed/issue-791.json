@@ -1,0 +1,12 @@
+{
+  "number": 791,
+  "title": "[Feature Request] Namespace versions and branches for Flutter forks",
+  "triagedAt": "2025-10-31",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-791.md",
+  "url": "https://github.com/conceptadev/fvm/issues/791",
+  "notes": "Closed as completed because fork aliases and alias/version cache namespacing implement the requested behavior.",
+  "priority": "p3-low"
+}

@@ -2,13 +2,13 @@
   {
     "assignees": [],
     "author": {
-      "id": "U_kgDODD2l1w",
+      "id": "MDQ6VXNlcjI3NjgxNjM=",
       "is_bot": false,
-      "login": "Dan-Solopago",
-      "name": "Daniel Tovar"
+      "login": "jlafazia-figure",
+      "name": "Jacobus LaFazia"
     },
-    "body": "# [Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows\n\n## Description\nFVM remains in a frozen state whenever it tries to initialize or use a Flutter version. The process hangs specifically after \"Starting to update environment variables...\" and during \"Downloading Dart SDK from Flutter engine...\". No error message is ever displayed, and the terminal becomes unresponsive.\n\n## Context\n- **FVM Version:** 4.0.5\n- **Operating System:** Windows 11 (Version 10.0.26200)\n- **Shell:** PowerShell 7.5.5 and CMD (tested on both)\n- **Global Dart SDK:** 3.11.4\n- **FVM Cache Path:** `C:\\Users\\Solopago\\fvm_cache`\n\n## Steps to Reproduce\n1. Install FVM on Windows.\n2. Run `fvm install stable` or `fvm use <version>`.\n3. The process reaches the \"Downloading Dart SDK...\" step and hangs indefinitely.\n\n## Troubleshooting Performed (What I've tried)\nDespite extensive debugging, the following actions did **not** resolve the issue:\n- **Permissions:** Ran terminal as Administrator and enabled Windows Developer Mode.\n- **Security:** Disabled Windows Defender Firewall and Ransomware \"Controlled Folder Access\".\n- **Manual execution:** Attempted to run `.\\flutter.bat doctor` directly from the `fvm_cache` internal folder. Even in a raw CMD environment, the command produces no output and hangs.\n- **Git:** Verified `git --version` works and responds instantly.\n- **Zombie Processes:** Cleared all `dart.exe` and `flutter.exe` processes from Task Manager between attempts.\n- **Manual Cache Cleanup:** Manually deleted the `fvm_cache` folder and re-ran `fvm install`.\n- **Dart Binary Test:** Running the managed `dart.exe --version` directly also results in a silent hang.\n\n## Expected Behavior\nThe process should download the Dart SDK, complete the environment setup, and allow Flutter commands to execute.\n\n## Actual Behavior\nThe process hangs silently.\n\n<img width=\"1104\" height=\"620\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/46fcd40f-6304-491f-9123-3fa928727949\" />",
-    "createdAt": "2026-04-21T20:03:31Z",
+    "body": "**Before creating a bug report please make check the following**\n\n- [X] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [X] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [X] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\nOn FVM 4.1.2 (macOS), every `fvm flutter` / `fvm dart` invocation adds ~4 seconds of overhead before the SDK starts. The same command through the project symlink (`.fvm/flutter_sdk/bin/flutter`) is ~0.4s.\n\nThis is not install/fetch delay. The pinned SDK is already present. `fvm --verbose` prints `Skipping git reference validation for version: 3.44.6`, then still runs several git commands against the local bare mirror, including `git fsck --connectivity-only`. On this machine `~/fvm/cache.git` is a 512MB bare repo; that `fsck` alone takes ~3.1s.\n\nScripts that call `fvm flutter` many times (for example `gen-l10n` once per localization folder) pay this cost on every process. 17 folders ≈ 70–90s of wrapper overhead.\n\n`FVM_USE_GIT_CACHE=false` does not remove the per-command cost (~3.8s still).\n\n4.1.0 dropped `fsck` from the mirror refresh hot path ([_refreshExistingMirror/_refreshExistingGitCache](https://github.com/conceptadev/fvm/blob/6365c4372e52e3331bd145e0f42b86a13f7be0e0/lib/src/services/git_service.dart#L730)). This looks like a remaining per-command validation path. Related but different: #1043 (cache recreate because of `refs/.DS_Store`); #370 (old Windows `fvm flutter` slowness).\n\n**To Reproduce**\nSteps to reproduce the behavior:\n\n1. Go to terminal..\n2. Install FVM 4.1.2 (Homebrew) on macOS with an existing git cache (`~/fvm/cache.git`).\n3. In a project with a pinned SDK already installed, run `fvm use` if needed.\n4. Run:\n```shell\ntime fvm flutter --version\ntime .fvm/flutter_sdk/bin/flutter --version\ntime fvm dart --version\ntime .fvm/flutter_sdk/bin/dart --version\ntime env FVM_USE_GIT_CACHE=false fvm flutter --version\n``` \n5. Run `fvm --verbose flutter --version` and note the `Running: git` lines before Flutter starts.\n\n**Expected behavior**\n`fvm flutter` / `fvm dart` should add negligible overhead when the pin is already installed and the `.fvm` symlink is valid. Integrity checks like `git fsck --connectivity-only` should not run on every command. `fvm doctor` (or install/repair) is a better place for that.\n\n**Logs**\n<details>\n<summary>fvm doctor</summary>\n\n```text\nFVM Doctor:                                                                                                                                                                                                                                        \n---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬───────────────────────────────────────────────┐\n│ Project                     │ <project_name>                                │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Directory                   │ /Users/.../GitHub/<project_name> │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Active Flavor               │ None                                          │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Is Flutter Project          │ Yes                                           │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Dart Tool Generator Version │ 3.12.2                                        │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Dart tool version           │ 3.44.6                                        │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ .gitignore Present          │ Yes                                           │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Config Present              │ Yes                                           │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Pinned Version              │ 3.44.6                                        │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Config path                 │ .fvmrc                                        │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Local cache dir             │ .fvm/versions                                 │\n├─────────────────────────────┼───────────────────────────────────────────────┤\n│ Version symlink             │ .fvm/versions/3.44.6                          │\n└─────────────────────────────┴───────────────────────────────────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐\n│ IDEs                           │ Value                                                                                                                 │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ VSCode                         │                                                                                                                       │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ dart.flutterSdkPath            │ .fvm/versions/3.44.6                                                                                                  │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Matches pinned version:        │ true                                                                                                                  │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                                                                                                       │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ flutter.sdk                    │ /Users/.../fvm/versions/3.44.6                                                                             │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ Matches pinned version:        │ true                                                                                                                  │\n├────────────────────────────────┼───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤\n│ SDK Path                       │ SDK Path points to project directory. IntelliJ (Android Studio, ...) will dynamically switch SDK when using \"fvm use\" │\n└────────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬───────────────────────────────────────────────┐\n│ Environment Variables │ Value                                         │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ Flutter PATH          │ /Users/.../fvm/default/bin/flutter │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ Dart PATH             │ /Users/.../fvm/default/bin/dart    │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ FVM_CACHE_PATH        │ N/A                                           │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ FVM_USE_GIT_CACHE     │ N/A                                           │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A                                           │\n├───────────────────────┼───────────────────────────────────────────────┤\n│ FVM_FLUTTER_URL       │ N/A                                           │\n└───────────────────────┴───────────────────────────────────────────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ macos Version 26.6.1 (Build 25G76)                               │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ en-US                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.13.0 (stable) (Wed Aug 5 00:28:05 2026 -0700) on \"macos_arm64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\n```\n\n</details>\n\nTimings (project root, Flutter 3.44.6 already installed):\n\nCommand | Real time\n-- | --\n`fvm flutter --version` | 5.13s (warm retry 4.04s)\n`.fvm/flutter_sdk/bin/flutter --version` | 0.37s\n`FVM_USE_GIT_CACHE=false fvm flutter --version` | 3.78s\n`fvm dart --version` | 3.84s\n`.fvm/flutter_sdk/bin/dart --version` | 0.14s\n`git --git-dir=\"$HOME/fvm/cache.git\" fsck --connectivity-only` | 3.13s\n\n`fvm --verbose flutter --version` (trimmed):\n```console\n$ fvm --verbose flutter --version\nArgument information:\n  Top level options:\n  - verbose: true\n\nCommand: flutter\n\nLooking up directory: /Users/.../<project_directory>\nFound valid candidate: /Users/.../<project_directory>\nSkipping git reference validation for version: 3.44.6\n\nRunning: git   # repeated 9 times\n\nfvm: Running Flutter from version \"3.44.6\"\nRunning: flutter\n\nFlutter 3.44.6 • channel stable • https://github.com/flutter/flutter.git\nTools • Dart 3.12.2 • DevTools 2.57.0\n``` \n> [!NOTE]\n> A `PATH` shim is needed to see `fsck --connectivity-only`. `--verbose` hides the expensive command. \n<details>\n<summary>Example `PATH` shim</summary>\n\nIn a terminal, from the project root, paste this block to log the `git argv`\n\n```console\nshim_dir=$(mktemp -d)\nreal_git=$(command -v git)\nlog=/tmp/fvm-git-shim.log\n\ncat > \"$shim_dir/git\" <<EOF\n#!/bin/sh\necho \"GIT: git \\$*\" >> \"$log\"\nexec \"$real_git\" \"\\$@\"\nEOF\nchmod +x \"$shim_dir/git\"\n\n: > \"$log\"\necho \"shim git is: $(PATH=\"$shim_dir:$PATH\" command -v git)\"\n\nPATH=\"$shim_dir:/opt/homebrew/bin:$PATH\" command fvm --verbose flutter --version\necho\necho \"=== captured git argv ===\"\ncat \"$log\"\n```\n\n</details>\n\n<details>\n<summary>Output using the PATH shim</summary>\n\n```shell\n=== captured git argv ===\nGIT: git --version\nGIT: git config --bool core.bare\nGIT: git config --bool core.bare\nGIT: git config --get-all remote.origin.fetch\nGIT: git config --get-all remote.origin.tagOpt\nGIT: git config --get-all remote.origin.mirror\nGIT: git symbolic-ref --quiet HEAD\nGIT: git show-ref --verify --quiet refs/heads/master\nGIT: git for-each-ref --format=%(refname)\nGIT: git fsck --connectivity-only\nGIT: git -C /Users/<user>/fvm/versions/3.44.6 ls-files bin/internal/engine.version\nGIT: git -C /Users/<user>/fvm/versions/3.44.6 rev-parse HEAD\nGIT: git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso\nGIT: git -c log.showSignature=false log -n 1 --pretty=format:%ar\n``` \n\n</details>\n\n**Desktop (please complete the following information):**\n\n- OS: macOS 26.6.1 (Build 25G76), Apple Silicon\n- FVM Version: 4.1.2 (Homebrew: `fvm 4.1.2_1`, `/opt/homebrew/bin/fvm`)\n- If Windows: N/A\n- Git: 2.50.1 (Apple Git-155)\n- Pinned Flutter: 3.44.6\n- FVM Dart runtime: 3.13.0 (stable) on `macos_arm64`\n\n**Additional context**\nThis is per-command overhead on an already-installed SDK, not a failed install or cache recreate. `fvm use` / `fvm flutter --version` succeed; the wrapper just spends ~4s in git before exec.\n\n`~/fvm/cache.git` is a 512MB bare mirror. A PATH shim on `fvm flutter --version` showed FVM running several git config/ref checks, then `git fsck --connectivity-only`. That `fsck` alone was 3.13s. `FVM_USE_GIT_CACHE=false` still took 3.78s, so the env var does not skip this path.\n\n`fvm --verbose` only logs `Running: git` (no argv). That comes from `ProcessService.run` in [lib/src/services/process_service.dart](https://github.com/conceptadev/fvm/blob/6365c4372e52e3331bd145e0f42b86a13f7be0e0/lib/src/services/process_service.dart#L36) (`Running: $command`). The expensive invocation is `_validateGitCache` in [lib/src/services/git_service.dart](https://github.com/conceptadev/fvm/blob/6365c4372e52e3331bd145e0f42b86a13f7be0e0/lib/src/services/git_service.dart#L335). 4.1.0 removed `fsck` from the [_refreshExistingMirror / _refreshExistingGitCache](https://github.com/conceptadev/fvm/blob/6365c4372e52e3331bd145e0f42b86a13f7be0e0/lib/src/services/git_service.dart#L730) install-refresh path ([#1029](https://github.com/conceptadev/fvm/pull/1029)); it still runs on every `fvm flutter` / `fvm dart`.\n\nScripts that call `fvm flutter` many times (e.g. `gen-l10n` once per ARB folder) multiply this. 17 folders → ~80–90s of wrapper time vs ~8–10s via `.fvm/flutter_sdk/bin/flutter`.\n\nRelated but different:\n[#1043](https://github.com/conceptadev/fvm/issues/1043) — macOS `.DS_Store` made fsck fail and recreate the cache. Here fsck passes; it is just slow.\n[#370](https://github.com/conceptadev/fvm/issues/370) — older Windows “`fvm flutter` is slower than `flutter`”; different era/cause.\n[#906](https://github.com/conceptadev/fvm/issues/906) — long wait opening an Android Studio terminal, not every command.\n",
+    "createdAt": "2026-08-18T19:34:25Z",
     "labels": [
       {
         "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
@@ -17,10 +17,125 @@
         "color": "d73a4a"
       }
     ],
-    "number": 1028,
-    "title": "[Bug] FVM hangs indefinitely at \"Downloading Dart SDK from Flutter engine...\" on Windows",
-    "updatedAt": "2026-06-04T18:15:16Z",
-    "url": "https://github.com/leoafarias/fvm/issues/1028"
+    "number": 1061,
+    "title": "[BUG] fvm flutter / fvm dart add ~4s per invocation (git fsck --connectivity-only on cache.git)",
+    "updatedAt": "2026-08-18T19:49:57Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1061"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "U_kgDOCM29kQ",
+      "is_bot": false,
+      "login": "stan-at-work",
+      "name": "Stan"
+    },
+    "body": "You have dart-sdk v3.9.0 installed. Version 3.13.0 is available based on your source(s).\n[NuGet] One or more unresolved package dependency constraints detected in the Chocolatey lib folder. All dependency constraints must be resolved to add or update packages. If these packages are being updated this message may be ignored, if not the following error(s) may be blocking the current package operation: 'fvm 4.1.2 constraint: dart-sdk (= 3.9.0)'\nRe-attempting package dependency resolution using additional available package information...\n[NuGet] One or more unresolved package dependency constraints detected in the Chocolatey lib folder. All dependency constraints must be resolved to add or update packages. If these packages are being updated this message may be ignored, if not the following error(s) may be blocking the current package operation: 'fvm 4.1.2 constraint: dart-sdk (= 3.9.0)'",
+    "createdAt": "2026-08-17T13:06:12Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1058,
+    "title": "[BUG] FVM not comparable with dart-sdk v3.13.0",
+    "updatedAt": "2026-08-17T13:18:51Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1058"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjQzNTgzMw==",
+      "is_bot": false,
+      "login": "leoafarias",
+      "name": "Leo Farias"
+    },
+    "body": "Follow-up to #1047 / #1049.\n\nGitHub Releases have shipped native `windows-arm64` zips since 4.0.5, they're now documented in the installation guide, and the **Windows ARM64 Smoke** workflow verifies the shipped binary is native arm64 on a real `windows-11-arm` runner ([passing run](https://github.com/conceptadev/fvm/actions/runs/29661718962)).\n\nThe remaining gap is package-manager delivery: `choco install fvm` compiles `fvm.exe` at install time using Chocolatey's x64 Dart SDK, so Windows ARM64 users who install via Chocolatey get an x64 binary under emulation. That also cascades into x64 Flutter SDK setups, because Flutter's `update_dart_sdk.ps1` picks the Dart SDK via `PROCESSOR_ARCHITECTURE`, which reports `AMD64` inside an emulated process chain.\n\nOptions:\n\n1. **winget manifest** with per-architecture installers pointing at the existing GitHub release zips — winget supports arch selection natively, so this is likely the cleanest path.\n2. **Arch-aware Chocolatey package**: replace the cli_pkg compile-from-source install script with one that downloads the matching GitHub release zip for the host architecture.\n3. Optionally add a `choco install fvm` job to `windows-arm64-smoke.yml` on `windows-11-arm` to track current Chocolatey behavior in CI.",
+    "createdAt": "2026-07-18T21:34:08Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 1050,
+    "title": "Windows: deliver native arm64 builds through package managers (winget, Chocolatey)",
+    "updatedAt": "2026-07-18T21:34:08Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1050"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjY2ODk0MDk=",
+      "is_bot": false,
+      "login": "woteska",
+      "name": ""
+    },
+    "body": "## Description\n\nOur repository supports both Android Studio and VS Code, and both `.idea` and `.vscode` are intentionally version-controlled.\n\nWe explicitly disable FVM's VS Code settings management:\n\n```json\n{\n  \"flutter\": \"3.44.2\",\n  \"updateVscodeSettings\": false\n}\n```\n\nVS Code already uses the stable FVM symlink:\n\n```json\n{\n  \"dart.flutterSdkPath\": \".fvm/flutter_sdk\"\n}\n```\n\nHowever, every `fvm use` prints this warning locally and in CI:\n\n```text\n[WARN] You are using VSCode, but fvm is not managing VSCode settings for this project. Please remove \"updateVscodeSettings: false\" from .fvmrc\n```\n\nThis is intentional configuration, not an error. The warning creates noise and may incorrectly suggest that the project or CI is misconfigured.\n\n## Expected behavior\n\nWhen `updateVscodeSettings` is explicitly `false`, FVM should not modify VS Code settings and should not warn about not managing them.\n\nIf removing the warning by default is not considered appropriate, please add an `.fvmrc` option to suppress it explicitly, for example:\n\n```json\n{\n  \"flutter\": \"3.44.2\",\n  \"updateVscodeSettings\": false,\n  \"warnOnUnmanagedVscodeSettings\": false\n}\n```\n\n## Environment\n\n- FVM: 4.1.2\n- Flutter: 3.44.2\n- IDEs: Android Studio and VS Code\n- Affected environments: local development and CI\n",
+    "createdAt": "2026-07-16T12:23:41Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1048,
+    "title": "[BUG] Do not warn when VS Code settings management is disabled",
+    "updatedAt": "2026-07-16T12:27:28Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1048"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjM3OTk4NTYy",
+      "is_bot": false,
+      "login": "zHElEARN",
+      "name": "Zachary Liu"
+    },
+    "body": "**Before creating a bug report please make check the following**\n\n- [x] You have read our [FAQ](https://fvm.app/documentation/getting-started/faq)\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\n- [ ] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\n- [x] Run `fvm doctor` if possible and add the output to the issue.\n\n**Describe the bug**\n\nWhen running any Flutter subcommand through FVM in the **fish** shell (`fvm flutter doctor -v`, `fvm flutter pub get`, `fvm flutter attach`, …) and interrupting it with `Ctrl+C` while it is still running, the terminal is left in a broken state and becomes completely unusable:\n\n- Pressing `Enter` prints `^M` instead of submitting a line.\n- Pressing `Ctrl+C` prints `^[[99;5u` instead of interrupting.\n- Any other keypress is echoed literally on the screen; no command can be executed.\n- `clear` + Enter, `exit` + Enter, etc. all just show as literal characters.\n- The only recovery is to close the terminal/pane and open a new one.\n\nAfter the prompt returns, leftover output and escape sequences from the interrupted Flutter process also keep appearing on the terminal (e.g. `[!] Android toolchain …`, and bytes like `^[[?62;22;52c`, `^[]11;rgb:2828/2c2c/3434^[\\`).\n\n**To Reproduce**\n\nSteps to reproduce the behavior:\n\n1. Open a **fish** shell on macOS.\n2. `cd` into a project that has an FVM-pinned Flutter version.\n3. Run `fvm flutter doctor -v`.\n4. While the command is still running, press `Ctrl+C`.\n5. The shell prompt returns, but the terminal is wedged: every key you type (including `Enter` and `Ctrl+C`) is printed literally and nothing executes.\n\nSame happens with any subcommand interrupted mid-run, e.g. `fvm flutter pub get` or `fvm flutter attach`.\n\n**Expected behavior**\n\n`Ctrl+C` should interrupt the command cleanly and return the shell to a fully usable, normal interactive state — the same as it behaves in **zsh**, and the same as when running the Flutter binary directly without going through FVM.\n\n**Logs**\n\n```\nzhelearn on ap-mba-m5 in ~\n❯ fvm flutter doctor -v --verbose\n[✓] Flutter (Channel stable, 3.44.3, on macOS 26.4 25E246 darwin-arm64, locale zh-Hans-CN) [648ms]\n    • Flutter version 3.44.3 on channel stable at /Users/zhelearn/fvm/versions/stable\n    • Upstream repository https://github.com/flutter/flutter.git\n    • Framework revision e1fd963c6f (13 天前), 2026-06-18 14:59:18 -0700\n    • Engine revision a4ce257c68\n    • Dart version 3.12.2\n    • DevTools version 2.57.0\n    • Feature flags: enable-web, enable-linux-desktop, enable-macos-desktop, enable-windows-desktop,\n      enable-android, enable-ios, cli-animations, enable-native-assets, enable-swift-package-manager,\n      omit-legacy-version-file, enable-lldb-debugging, enable-uiscene-migration\n\n⡿^C⏎                                                                                                        zhelearn on ap-mba-m5 in ~ took 5s last failed:130\n❯[!] Android toolchain - develop for Android devices (Android SDK version 36.1.0) [1,196ms]\n    • Android SDK at /Users/zhelearn/Library/Android/sdk\n    • Emulator version 36.6.11.0 (build_id 15507667) (CL:N/A)\n    • Platform android-36.1, build-tools 36.1.0\n    • Java binary at: /opt/homebrew/Cellar/openjdk@17/17.0.19/libexec/openjdk.jdk/Contents/Home/bin/java\n      This JDK is specified in your Flutter configuration.\n      To change the current JDK, run: `flutter config --jdk-dir=\"path/to/jdk\"`.\n    • Java version OpenJDK Runtime Environment Homebrew (build 17.0.19+0)\n    ✗ Android license status unknown.\n      Run `flutter doctor --android-licenses` to accept the SDK licenses.\n      See https://flutter.dev/to/macos-android-setup for more details.\n\n[!] Xcode - develop for iOS and macOS (Xcode 26.5) [1,192ms]\n    • Xcode at /Applications/Xcode.app/Contents/Developer\n    • Build 17F42\n    ! CocoaPods installed but not working.\n        You appear to have CocoaPods installed but it is not working.\n        This can happen if the version of Ruby that CocoaPods was installed with is different from the one\n        being used to invoke it.\n        This can usually be fixed by re-installing CocoaPods.\n      For re-installation instructions, see\n      https://guides.cocoapods.org/using/getting-started.html#installation\n\n[✓] Chrome - develop for the web [6ms]\n    • Chrome at /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n\n⣯^[[99;5u^[[99;5u^[[99;5u^[[106;5u^[[100;5uexit^Mclear^M^M^M^M^[[100;5u^[[100;5u^[[100;5uclear^M^[[99;5u\n```\n\nKey differentiators that may help narrow it down:\n\n- **Does NOT reproduce in zsh** on the same machine, same FVM, same command — `Ctrl+C` works normally and the terminal stays usable.\n- **Does NOT reproduce when running Flutter directly** (bypassing FVM) in fish: `~/fvm/versions/3.38.10/bin/flutter doctor -v` → `Ctrl+C` (or letting it finish) leaves the terminal fine.\n- Only `fvm flutter …` + fish + `Ctrl+C` mid-run triggers the wedge.\n\n**Desktop (please complete the following information):**\n\n- OS: macOS 26.4 (build 25E246, Apple Silicon / darwin-arm64)\n- FVM Version: 4.1.2\n- Shell: fish (reproduces) — zsh is fine on the same setup\n- Flutter: 3.38.10 (stable), managed via FVM at `~/fvm/versions/3.38.10`\n\n**Additional context**\n\n- This appears to be the same issue as #801, which was closed as \"Fixed in FVM 4.0.0\". The problem still reproduces on 4.1.2, so it does not seem to be resolved.\n- Screenshots / screen recording of the wedged terminal attached.\n\nhttps://github.com/user-attachments/assets/90ca203e-131b-4d0e-9f5a-b28e77bcf4a3\nhttps://github.com/user-attachments/assets/63a7e603-164f-4025-a8bc-7a51e96622b2\n\n- `fvm doctor`:\n\n```\nLast login: Thu Jul  2 15:58:03 on ttys004\nWelcome to fish, the friendly interactive shell\nType help for instructions on how to use fish\nzhelearn on ap-mba-m5 in ~\n❯ fvm doctor\nFVM Doctor:\n------------------------------------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬─────────────────┐\n│ Project                     │ zhelearn        │\n├─────────────────────────────┼─────────────────┤\n│ Directory                   │ /Users/zhelearn │\n├─────────────────────────────┼─────────────────┤\n│ Active Flavor               │ None            │\n├─────────────────────────────┼─────────────────┤\n│ Is Flutter Project          │ No              │\n├─────────────────────────────┼─────────────────┤\n│ Dart Tool Generator Version │ Not available   │\n├─────────────────────────────┼─────────────────┤\n│ Dart tool version           │ Not available   │\n├─────────────────────────────┼─────────────────┤\n│ .gitignore Present          │ No              │\n├─────────────────────────────┼─────────────────┤\n│ Config Present              │ No              │\n├─────────────────────────────┼─────────────────┤\n│ Pinned Version              │ None            │\n├─────────────────────────────┼─────────────────┤\n│ Config path                 │ .fvmrc          │\n├─────────────────────────────┼─────────────────┤\n│ Local cache dir             │ .fvm/versions   │\n├─────────────────────────────┼─────────────────┤\n│ Version symlink             │ .fvm/versions   │\n└─────────────────────────────┴─────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬─────────────────────────────────────────────────────┐\n│ IDEs                           │ Value                                               │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │ Found .vscode, but no settings.json                 │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No local.properties file found in android directory │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No .idea folder found                               │\n└────────────────────────────────┴─────────────────────────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬───────────┐\n│ Environment Variables │ Value     │\n├───────────────────────┼───────────┤\n│ Flutter PATH          │ Not found │\n├───────────────────────┼───────────┤\n│ Dart PATH             │ Not found │\n├───────────────────────┼───────────┤\n│ FVM_CACHE_PATH        │ N/A       │\n├───────────────────────┼───────────┤\n│ FVM_USE_GIT_CACHE     │ N/A       │\n├───────────────────────┼───────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A       │\n├───────────────────────┼───────────┤\n│ FVM_FLUTTER_URL       │ N/A       │\n└───────────────────────┴───────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ macos Version 26.4 (Build 25E246)                                │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ zh-Hans-CN                                                       │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.12.2 (stable) (Tue Jun 9 01:11:39 2026 -0700) on \"macos_arm64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\nzhelearn on ap-mba-m5 in ~\n❯\n```",
+    "createdAt": "2026-07-02T08:03:38Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
+        "name": "bug",
+        "description": "Something isn't working",
+        "color": "d73a4a"
+      }
+    ],
+    "number": 1046,
+    "title": "[BUG] FVM leaves fish terminal wedged in raw mode after Ctrl+C mid-command",
+    "updatedAt": "2026-07-07T07:34:55Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1046"
+  },
+  {
+    "assignees": [],
+    "author": {
+      "id": "MDQ6VXNlcjIxMDExNjQx",
+      "is_bot": false,
+      "login": "deandreamatias",
+      "name": "Matias de Andrea"
+    },
+    "body": "**Is your feature request related to a problem? Please describe.**\nShould be useful had a way to use FVM to manage different popular \"forks\" that supported other platforms. For now, [flutter-tizen](https://github.com/flutter-tizen/flutter-tizen) and [flutter-tvos](https://github.com/fluttertv/flutter-tvos), but maybe LG SDK in the near future.\n\n**Describe the solution you'd like**\nSimilar how handle Flutter SDK versions, handle the versions of other SDK.\n\n**Describe alternatives you've considered**\nA new parameter on .fvmrc\n```\n{\n  \"flutter\": \"stable\"\n  \"flutter-tizen\": \"stable\"\n}\n```\n\n**Additional context**\nAdd any other context or screenshots about the feature request here.\n",
+    "createdAt": "2026-06-19T11:52:25Z",
+    "labels": [
+      {
+        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
+        "name": "enhancement",
+        "description": "New feature or request",
+        "color": "a2eeef"
+      }
+    ],
+    "number": 1042,
+    "title": "[Feature Request] Support to Flutter-Tizen, Flutter-TVOS and future custom SDK",
+    "updatedAt": "2026-07-01T14:38:40Z",
+    "url": "https://github.com/leoafarias/fvm/issues/1042"
   },
   {
     "assignees": [],
@@ -67,29 +182,6 @@
     "title": "[Feature Request] Allow fvm use/install to function on windows without admin privileges.",
     "updatedAt": "2026-03-13T13:32:40Z",
     "url": "https://github.com/leoafarias/fvm/issues/1024"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjg2NjA3NTg5",
-      "is_bot": false,
-      "login": "i11010520",
-      "name": ""
-    },
-    "body": "```\n[N] at 23:19:19 ❯ fvm doctor\nFVM Doctor:                                                                                                                          \n-------------------------------------------------------------------------------------------------------------------------------------\nProject:\n┌─────────────────────────────┬────────────────┐\n│ Project                     │ work           │\n├─────────────────────────────┼────────────────┤\n│ Directory                   │ /Users/work    │\n├─────────────────────────────┼────────────────┤\n│ Active Flavor               │ None           │\n├─────────────────────────────┼────────────────┤\n│ Is Flutter Project          │ No             │\n├─────────────────────────────┼────────────────┤\n│ Dart Tool Generator Version │ Not available  │\n├─────────────────────────────┼────────────────┤\n│ Dart tool version           │ Not available  │\n├─────────────────────────────┼────────────────┤\n│ .gitignore Present          │ No             │\n├─────────────────────────────┼────────────────┤\n│ Config Present              │ No             │\n├─────────────────────────────┼────────────────┤\n│ Pinned Version              │ None           │\n├─────────────────────────────┼────────────────┤\n│ Config path                 │ .fvmrc         │\n├─────────────────────────────┼────────────────┤\n│ Local cache dir             │ .fvm/versions  │\n├─────────────────────────────┼────────────────┤\n│ Version symlink             │ .fvm/versions  │\n└─────────────────────────────┴────────────────┘\n\n\nIDEs:\n┌────────────────────────────────┬─────────────────────────────────────────────────────┐\n│ IDEs                           │ Value                                               │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ VSCode                         │ No .vscode directory found                          │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │                                                     │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No local.properties file found in android directory │\n├────────────────────────────────┼─────────────────────────────────────────────────────┤\n│ IntelliJ (Android Studio, ...) │ No .idea folder found                               │\n└────────────────────────────────┴─────────────────────────────────────────────────────┘\n\nEnvironment:\n┌───────────────────────┬────────────────────────────────────────┐\n│ Environment Variables │ Value                                  │\n├───────────────────────┼────────────────────────────────────────┤\n│ Flutter PATH          │ /Users/work/fvm/default/bin/flutter │\n├───────────────────────┼────────────────────────────────────────┤\n│ Dart PATH             │ /Users/work/fvm/default/bin/dart    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_CACHE_PATH        │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_USE_GIT_CACHE     │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_GIT_CACHE_PATH    │ N/A                                    │\n├───────────────────────┼────────────────────────────────────────┤\n│ FVM_FLUTTER_URL       │ N/A                                    │\n└───────────────────────┴────────────────────────────────────────┘\n┌──────────────┬──────────────────────────────────────────────────────────────────┐\n│ Platform     │ Value                                                            │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ OS           │ macos Version 26.3.1 (Build 25D2128)                             │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart Locale  │ zh-Hans-CN                                                       │\n├──────────────┼──────────────────────────────────────────────────────────────────┤\n│ Dart runtime │ 3.11.0 (stable) (Mon Feb 9 00:38:07 2026 -0800) on \"macos_arm64\" │\n└──────────────┴──────────────────────────────────────────────────────────────────┘\n```\n```\n[N] at 23:19:20 ❯ fvm flutter upgrade\n```\n> Your flutter checkout has local changes that would be erased by upgrading. If you want to keep these changes, it is recommended that you stash them via \"git stash\" or else commit the changes to a local branch. If it is okay to remove local changes, then re-run this command with \"--force\".\n\n\nIs it normal? \nWhat is the right way to upgrade flutter installed by fvm?",
-    "createdAt": "2026-03-11T00:23:42Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 1023,
-    "title": "[BUG] How to upgrade fvm flutter?",
-    "updatedAt": "2026-04-07T03:43:35Z",
-    "url": "https://github.com/leoafarias/fvm/issues/1023"
   },
   {
     "assignees": [],
@@ -156,29 +248,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjM4MzgwMDQw",
-      "is_bot": false,
-      "login": "Harishwarrior",
-      "name": "Harish Anbalagan"
-    },
-    "body": "We use AI every day to develop Flutter apps. But I noticed the Dart MCP always fails to use the fvm. I have updated the MCP config from the official docs. It would be great if we could add this to the docs\n\nSource: https://github.com/dart-lang/ai/issues/319#issuecomment-3554308855\n\n```json\n{\n    \"mcpServers\": {\n        \"dart\": {\n            \"command\": \"dart\",\n            \"args\": [\n                \"mcp-server\",\n                \"--flutter-sdk\",\n                \".fvm/flutter_sdk\"\n            ]\n        }\n    }\n}\n```",
-    "createdAt": "2026-02-18T08:09:48Z",
-    "labels": [
-      {
-        "id": "LA_kwDOCkCuKM8AAAACm0fBHg",
-        "name": "documentation",
-        "description": "",
-        "color": "ededed"
-      }
-    ],
-    "number": 1015,
-    "title": "Update docs to add info about using FVM with Dart MCP ",
-    "updatedAt": "2026-06-13T05:16:00Z",
-    "url": "https://github.com/leoafarias/fvm/issues/1015"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "U_kgDOBpcoyQ",
       "is_bot": false,
       "login": "patrick-billingsley",
@@ -219,7 +288,7 @@
     ],
     "number": 1008,
     "title": "[BUG] versions not auto update",
-    "updatedAt": "2025-12-31T03:45:57Z",
+    "updatedAt": "2026-06-25T16:37:22Z",
     "url": "https://github.com/leoafarias/fvm/issues/1008"
   },
   {
@@ -246,36 +315,6 @@
     "url": "https://github.com/leoafarias/fvm/issues/968"
   },
   {
-    "assignees": [
-      {
-        "id": "MDQ6VXNlcjQzNTgzMw==",
-        "login": "leoafarias",
-        "name": "Leo Farias",
-        "databaseId": 435833
-      }
-    ],
-    "author": {
-      "id": "MDQ6VXNlcjE4NDg4Mzg=",
-      "is_bot": false,
-      "login": "kuguma",
-      "name": "Kai Aoki"
-    },
-    "body": "This is the same issue as in the following tickets. While a workaround has been found, I don’t think the problem itself has been resolved.\n\n- #789\n- #589\n- #569\n\nWhen developing Flutter on Windows, we will inevitably encounter this issue during setup (unless using a very old version of Git). At the moment, every Windows user of fvm runs into this puzzling message first, and has to waste time discovering the workaround.\n\nAt the very least, this situation is not “Closed.”\n\nfvm is supposed to provide convenience (it even has features like automatically editing .gitignore). From the perspective of its purpose, fvm should provide a way to automatically avoid this issue.",
-    "createdAt": "2025-09-18T08:41:05Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 914,
-    "title": "[BUG] Error: Unable to find git in your PATH.",
-    "updatedAt": "2025-11-06T19:54:26Z",
-    "url": "https://github.com/leoafarias/fvm/issues/914"
-  },
-  {
     "assignees": [],
     "author": {
       "id": "U_kgDOBdNltg",
@@ -295,7 +334,7 @@
     ],
     "number": 906,
     "title": "Very long wait when opening terminal in android studio",
-    "updatedAt": "2026-06-10T13:59:08Z",
+    "updatedAt": "2026-06-25T12:35:37Z",
     "url": "https://github.com/leoafarias/fvm/issues/906"
   },
   {
@@ -350,7 +389,7 @@
       "id": "MDQ6VXNlcjE3NjU3MDE0",
       "is_bot": false,
       "login": "danilofuchs",
-      "name": "Danilo Campana Fuchs"
+      "name": "Danilo Fuchs"
     },
     "body": "## Before creating a feature request make sure the suggestion fit within our [principles](https://fvm.app/docs/#principles)\n\n**Is your feature request related to a problem? Please describe.**\n\nOn each flutter update, fvm must change .vscode/settings.json\n```jsonc\n  // settings.json\n  \"dart.flutterSdkPath\": \".fvm/versions/3.29.0\",\n```\n\n**Describe the solution you'd like**\nDart Code introduced a new configuration: \n\n`getFlutterSdkCommand` and `getDartSdkCommand`\nhttps://github.com/Dart-Code/Dart-Code/commit/b1f79dbd0d66128059cac40ff0dca01d4dd5dca7\n\nIf fvm implements a simples `fvm path`, `fvm which` or `fvm where`, it would simplify setup IMHO",
     "createdAt": "2025-02-13T13:09:13Z",
@@ -435,52 +474,6 @@
     "title": "[BUG] env: bash\\r: No such file or directory",
     "updatedAt": "2024-11-12T07:37:40Z",
     "url": "https://github.com/leoafarias/fvm/issues/797"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjIxMTcyODU1",
-      "is_bot": false,
-      "login": "vanlooverenkoen",
-      "name": "Koen Van Looveren"
-    },
-    "body": "It would be nice to have an easy way to install `fvm` on a raspberry pi so we can use fvm to install the global version\r\n\r\nHomebrew & the install script do not work on a `ARM processors`\r\n\r\nInstalling homebrew\r\n```\r\nHomebrew on Linux is not supported on ARM processors.\r\n```\r\n\r\nRunning the install script:\r\n```\r\nUnsupported architecture\r\n```\r\n\r\nPossible quick fix:\r\n- Have a script that just downloads stable\r\n- then installs fvm with (`dart pub global activate fvm`)\r\n- install the stable version of flutter with fvm\r\n- then remove the just downloaded stable version of flutter (without fvm)\r\n- add it to your path",
-    "createdAt": "2024-11-06T14:21:58Z",
-    "labels": [],
-    "number": 794,
-    "title": "Feedback for “Installation”",
-    "updatedAt": "2024-11-06T14:27:23Z",
-    "url": "https://github.com/leoafarias/fvm/issues/794"
-  },
-  {
-    "assignees": [
-      {
-        "id": "MDQ6VXNlcjQzNTgzMw==",
-        "login": "leoafarias",
-        "name": "Leo Farias",
-        "databaseId": 435833
-      }
-    ],
-    "author": {
-      "id": "MDQ6VXNlcjQzNTgzMw==",
-      "is_bot": false,
-      "login": "leoafarias",
-      "name": "Leo Farias"
-    },
-    "body": "Currently, FVM allows the use of forks; however, versions and release channels will be pulled from the configured fork, which could cause conflicts. To avoid that, we will create a namespace to be able to have the same channel or version for many different forks.",
-    "createdAt": "2024-11-04T18:48:00Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
-      }
-    ],
-    "number": 791,
-    "title": "[Feature Request] Namespace versions and branches for Flutter forks",
-    "updatedAt": "2024-11-04T18:48:01Z",
-    "url": "https://github.com/leoafarias/fvm/issues/791"
   },
   {
     "assignees": [],
@@ -584,22 +577,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjQ1MzM0OTMx",
-      "is_bot": false,
-      "login": "msarkrish",
-      "name": "Krishnakumar R"
-    },
-    "body": "### Discussed in https://github.com/leoafarias/fvm/discussions/770\r\n\r\n<div type='discussions-op-text'>\r\n\r\n<sup>Originally posted by **msarkrish** August 28, 2024</sup>\r\nI'm using [rps](https://pub.dev/packages/rps) for running scripts which is defined in pubspec.yaml file.\r\n\r\nI'm using a mac system and i haven't added the flutter path to zshrc file.\r\n\r\nInside Android Studio settings, I have mentioned the specific flutter version. I use fvm use command to specify specific version for each project and using fvm flutter command to run the application from command prompt.\r\n\r\nEverything is working fine, till i started to use rps. After defined the scripts in pubspec yaml file, i try to run it using rps command but it is not working and it saying that\r\n\r\n> /Users/username/.pub-cache/bin/rps: line 8: dart: command not found\r\n\r\nIf I add the flutter path to zshrc file then rps command is working. But If i add specific flutter version to zshrc file then if i run another flutter project then also it will take the same version.\r\n\r\nIs there any way to resolve this?</div>",
-    "createdAt": "2024-08-30T18:33:59Z",
-    "labels": [],
-    "number": 774,
-    "title": "dart: command not found error while using rps package",
-    "updatedAt": "2024-08-30T18:33:59Z",
-    "url": "https://github.com/leoafarias/fvm/issues/774"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "MDQ6VXNlcjI1MDI5MzA5",
       "is_bot": false,
       "login": "EthanZhuGit",
@@ -617,7 +594,7 @@
     ],
     "number": 767,
     "title": "[BUG] Android Studio cannot change the project's Flutter SDK path",
-    "updatedAt": "2026-05-14T18:31:11Z",
+    "updatedAt": "2026-06-24T08:42:11Z",
     "url": "https://github.com/leoafarias/fvm/issues/767"
   },
   {
@@ -738,22 +715,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjUzNDA1ODEz",
-      "is_bot": false,
-      "login": "devaashis",
-      "name": ""
-    },
-    "body": "Mac Version: macOS Monterey Version 12.7.5\r\nMacBook Pro (Retina, 15-inch, Mid 2015)\r\n\r\nError :\r\nInstalling fvm from leoafarias/fvm\r\nWarning: Your Xcode (13.4.1) is outdated.\r\nPlease update to Xcode 14.2 (or delete it).\r\nXcode can be updated from the App Store.\r\n\r\nxcrun: error: active developer path (\"/Applications/Xcode14.app/Contents/Developer\") does not exist\r\nUse `sudo xcode-select --switch path/to/Xcode.app` to specify the Xcode that you wish to use for command line developer tools, or use `xcode-select --install` to install the standalone command line developer tools.\r\nSee `man xcode-select` for more details.\r\nError: An exception occurred within a child process:\r\n  CompilerSelectionError: leoafarias/fvm/fvm cannot be built with any available compilers.\r\n  \r\nI got this error while trying to install FVM. Looking for workaround. I am unable to upgrade xcode to 14 due to macOS limitation.\r\n",
-    "createdAt": "2024-07-25T17:04:30Z",
-    "labels": [],
-    "number": 754,
-    "title": "Feedback for “Installing FVM in Mac Issue”",
-    "updatedAt": "2024-07-25T17:04:30Z",
-    "url": "https://github.com/leoafarias/fvm/issues/754"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "U_kgDOBkgZ_A",
       "is_bot": false,
       "login": "MiniSuperDev",
@@ -779,29 +740,6 @@
     "title": "[Feature Request] Support range versions",
     "updatedAt": "2024-07-30T21:14:22Z",
     "url": "https://github.com/leoafarias/fvm/issues/751"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjUxMjU3NTIw",
-      "is_bot": false,
-      "login": "Bellukchips",
-      "name": "bellukchips"
-    },
-    "body": "![image](https://github.com/leoafarias/fvm/assets/51257520/93659f7c-6a65-40ee-baf7-3a864b70c23b)",
-    "createdAt": "2024-07-01T04:23:12Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzg2",
-        "name": "question",
-        "description": "Further information is requested",
-        "color": "d876e3"
-      }
-    ],
-    "number": 748,
-    "title": "[Question] I cannot to setup fvm global stable in windows",
-    "updatedAt": "2024-07-03T14:28:36Z",
-    "url": "https://github.com/leoafarias/fvm/issues/748"
   },
   {
     "assignees": [],
@@ -898,29 +836,6 @@
   {
     "assignees": [],
     "author": {
-      "id": "MDQ6VXNlcjI1Njg2ODAz",
-      "is_bot": false,
-      "login": "Islam-alshiki",
-      "name": "Islam alshiki"
-    },
-    "body": "\r\n**Describe the solution you'd like**\r\nI would like to propose the addition of a new command that automatically checks the Flutter version required by the app itself and installs it if it does not exist.\r\n\r\n**Describe alternatives you've considered**\r\n FVM need to manually check the required Flutter version, install it ",
-    "createdAt": "2024-05-06T14:24:36Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
-      }
-    ],
-    "number": 720,
-    "title": "[Feature Request] Automatically install required version or use it ",
-    "updatedAt": "2024-06-05T09:03:30Z",
-    "url": "https://github.com/leoafarias/fvm/issues/720"
-  },
-  {
-    "assignees": [],
-    "author": {
       "id": "MDQ6VXNlcjU0Mjc1NTA4",
       "is_bot": false,
       "login": "MobiliteDev",
@@ -940,29 +855,6 @@
     "title": "[Feature Request] Manage Workspace with multiple projects in VSCode",
     "updatedAt": "2024-05-10T06:54:25Z",
     "url": "https://github.com/leoafarias/fvm/issues/702"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "U_kgDOB0esLw",
-      "is_bot": false,
-      "login": "laterdayi",
-      "name": ""
-    },
-    "body": "**Before creating a bug report please make check the following**\r\n\r\n- [x] You have read our [FAQ](https://fvm.app/docs/guides/faq)\r\n- [x] If you have used flutter. Please install correctly, run `pub cache repair`. Close the terminal and try again.\r\n- [x] If you are on Windows. Make sure you are running the terminal as `administrator` or with `developer` permissions.\r\n- [x] Run `fvm doctor` if possible and add the output to the issue.\r\n\r\n**Describe the bug**\r\nCurrently, some projects use fvm and can switch versions normally, but some open source projects do not require fvm to control the version. When I clone it, I will be prompted Could not find a Flutter SDK. Please download, or, if already downloaded, click 'Locate SDK '. I have set the fvm global state\r\n\r\n\r\n![image](https://github.com/leoafarias/fvm/assets/122137647/cdf7b7b6-b9c6-47f3-816e-7f947441eeb6)\r\n\r\n\r\nHow to avoid this prompt, if the project that does not use fvm points to stable by default\r\n\r\n**Desktop (please complete the following information):**\r\n\r\nwindows\r\n\r\nfvm 3.1\r\n\r\n\r\n**Additional context**\r\nAdd any other context about the problem here.\r\n",
-    "createdAt": "2024-03-22T03:10:47Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc0",
-        "name": "bug",
-        "description": "Something isn't working",
-        "color": "d73a4a"
-      }
-    ],
-    "number": 697,
-    "title": "[BUG] Could not find a Flutter SDK. Please download, or, if already downloaded, click 'Locate SDK'.",
-    "updatedAt": "2024-09-25T13:03:25Z",
-    "url": "https://github.com/leoafarias/fvm/issues/697"
   },
   {
     "assignees": [],
@@ -1030,7 +922,7 @@
     ],
     "number": 688,
     "title": "Support a custom FLUTTER_STORAGE_BASE_URL as the source for Flutter package downloads",
-    "updatedAt": "2025-09-02T18:05:07Z",
+    "updatedAt": "2026-06-22T16:37:00Z",
     "url": "https://github.com/leoafarias/fvm/issues/688"
   },
   {
@@ -1315,34 +1207,5 @@
     "title": "[Feature Request] Use the flutter version defined in pubspec.yaml when running `fvm install`",
     "updatedAt": "2024-09-05T08:44:46Z",
     "url": "https://github.com/leoafarias/fvm/issues/577"
-  },
-  {
-    "assignees": [],
-    "author": {
-      "id": "MDQ6VXNlcjI0MjU5MjQ1",
-      "is_bot": false,
-      "login": "martin-braun",
-      "name": "Martin Braun"
-    },
-    "body": "**Is your feature request related to a problem? Please describe.**\r\nI'd like to run a `flutter` command on a specific version defined in the `fvm_config.json` under `flavors`.\r\n\r\n**Describe the solution you'd like**\r\nI'm not sure what the best practice would be, as flavor names and versions could collide. Maybe the most straight forward solution would be to allow `fvm flavor` to accept a command without switching.\r\n\r\nHaving this `fvm_config.json`:\r\n\r\n```json\r\n{\r\n  \"flutterSdkVersion\": \"stable\",\r\n  \"flavors\": {\r\n    \"lts\": \"3.16.1\",\r\n    \"main\": \"stable\",\r\n    \"edge\": \"beta\"\r\n  }\r\n}\r\n```\r\n\r\nRunning my app on `3.16.1` as in `fvm spawn 3.16.1 run`, but using flavors, maybe `fvm flavor lts run` could be a possible solution. The idea is to only switch the version temporary in the same way `fvm spawn` does it.\r\n\r\n**Describe alternatives you've considered**\r\n`fvm flavor lts && fvm flutter run; fvm flavor main`, but it has several problems:\r\n- It would not preserve `$?` (exit code) of `fvm flutter run` while staying that short (there are ugly work-arounds though)\r\n- It might end up in a different flavor than we started from.\r\n",
-    "createdAt": "2023-11-29T22:08:56Z",
-    "labels": [
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzc3",
-        "name": "enhancement",
-        "description": "New feature or request",
-        "color": "a2eeef"
-      },
-      {
-        "id": "MDU6TGFiZWwxMjQzODI3Nzgy",
-        "name": "good first issue",
-        "description": "Good for newcomers",
-        "color": "7057ff"
-      }
-    ],
-    "number": 575,
-    "title": "[Feature Request] Spawn on a flavor",
-    "updatedAt": "2024-02-13T15:20:19Z",
-    "url": "https://github.com/leoafarias/fvm/issues/575"
   }
 ]

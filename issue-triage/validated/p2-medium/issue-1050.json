@@ -1,0 +1,11 @@
+{
+  "number": 1050,
+  "title": "Windows: deliver native arm64 builds through package managers (winget, Chocolatey)",
+  "triagedAt": "2026-07-23",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-1050.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1050",
+  "related_issues": [826, 1047],
+  "notes": "Native Windows ARM64 archives are already published and smoke-tested; remaining work is architecture-aware Winget/Chocolatey delivery."
+}

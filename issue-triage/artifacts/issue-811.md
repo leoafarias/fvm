@@ -54,7 +54,7 @@ The release automation never produces or publishes a Nix derivation. Without an 
 - Maintaining `sha256` hashes per release requires automation; failing to update breaks installs.
 - Need to ensure license metadata matches nixpkgs requirements (`license = licenses.mit;`).
 
-## Classification Recommendation
+## Recommendation
 - Priority: **P2 - Medium** (extends distribution to Nix ecosystems)
 - Suggested Folder: `validated/p2-medium/`
 

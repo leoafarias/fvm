@@ -4,7 +4,7 @@
   "triagedAt": "2025-10-31",
   "priority": "p2-medium",
   "status": "closed",
-  "artifact": "../../artifacts/issue-421.md",
+  "artifact": "../artifacts/issue-421.md",
   "url": "https://github.com/leoafarias/fvm/issues/421",
   "notes": "Won't implement partial-version inference; upgrade to FVM 4.0.0+ and install exact releases (e.g., fvm install 2.10.5).",
   "closedAt": "2025-11-01",

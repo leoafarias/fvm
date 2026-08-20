@@ -52,7 +52,7 @@ The cache is cloned with default Git permissions that mirror the invoking userâ€
 - Need to ensure Windows behavior unaffected (skip chmod). Use `Platform.isWindows` guards.
 - Setting permissions programmatically requires invoking `chmod`/`chgrp` (POSIX only); ensure failures degrade gracefully.
 
-## Classification Recommendation
+## Recommendation
 - Priority: **P2 - Medium** (enhancement improving multi-user environments)
 - Suggested Folder: `validated/p2-medium/`
 

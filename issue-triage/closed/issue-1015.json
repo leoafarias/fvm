@@ -1,0 +1,12 @@
+{
+  "number": 1015,
+  "title": "Update docs to add info about using FVM with Dart MCP ",
+  "triagedAt": "2026-03-03",
+  "closedAt": "2026-06-19T16:29:10Z",
+  "priority": "delegated-mcp",
+  "status": "closed",
+  "artifact": "../artifacts/issue-1015.md",
+  "url": "https://github.com/conceptadev/fvm/issues/1015",
+  "resolvedBy": "pr-1038",
+  "notes": "PR #1038 merged on 2026-06-19T16:29:09Z and closed the Dart MCP docs issue. Archived out of delegated MCP queue during 2026-06-22 sync."
+}

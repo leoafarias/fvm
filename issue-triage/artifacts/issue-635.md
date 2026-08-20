@@ -37,8 +37,8 @@ String prettyJson(Map<String, dynamic> json) {
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L147](../lib/src/workflows/update_vscode_settings.workflow.dart#L147) – Rewrites settings with `prettyJson`.
-- [lib/src/utils/pretty_json.dart#L1](../lib/src/utils/pretty_json.dart#L1) – Uses standard JSON encoder, destroying comments and tab indentation.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L147](../../lib/src/workflows/update_vscode_settings.workflow.dart#L147) – Rewrites settings with `prettyJson`.
+- [lib/src/utils/pretty_json.dart#L1](../../lib/src/utils/pretty_json.dart#L1) – Uses standard JSON encoder, destroying comments and tab indentation.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -73,8 +73,8 @@ String prettyJson(Map<String, dynamic> json) {
 - When creating new files, we can still fall back to `prettyJson` because there’s no existing formatting to preserve.
 
 ### Related Code Locations
-- [lib/src/workflows/update_workspace_settings.workflow.dart](../lib/src/workflows/update_vscode_settings.workflow.dart) – Also rewrites workspace files; apply the same editing logic there.
-- [lib/src/utils/pretty_json.dart](../lib/src/utils/pretty_json.dart) – May still be used for fresh files, but avoid for existing ones.
+- [lib/src/workflows/update_workspace_settings.workflow.dart](../../lib/src/workflows/update_vscode_settings.workflow.dart) – Also rewrites workspace files; apply the same editing logic there.
+- [lib/src/utils/pretty_json.dart](../../lib/src/utils/pretty_json.dart) – May still be used for fresh files, but avoid for existing ones.
 
 ## Recommendation
 **Action**: validate-p2

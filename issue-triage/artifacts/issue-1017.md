@@ -35,9 +35,9 @@ docs/pages/documentation/guides/running-flutter.mdx:37-45
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/use_version.workflow.dart:72](../lib/src/workflows/use_version.workflow.dart#L72) - VS Code terminal restart guidance.
-- [lib/src/commands/doctor_command.dart:83](../lib/src/commands/doctor_command.dart#L83) - IDE/path mismatch diagnostics.
-- [docs/pages/documentation/guides/running-flutter.mdx:37](../docs/pages/documentation/guides/running-flutter.mdx#L37) - Command resolution guidance.
+- [lib/src/workflows/use_version.workflow.dart:72](../../lib/src/workflows/use_version.workflow.dart#L72) - VS Code terminal restart guidance.
+- [lib/src/commands/doctor_command.dart:83](../../lib/src/commands/doctor_command.dart#L83) - IDE/path mismatch diagnostics.
+- [docs/pages/documentation/guides/running-flutter.mdx:37](../../docs/pages/documentation/guides/running-flutter.mdx#L37) - Command resolution guidance.
 
 ## Current Status in v4.0.0
 - [ ] Still reproducible
@@ -67,8 +67,8 @@ Available evidence points to environment/path configuration, not a confirmed fai
 - Requires reporter follow-up; current evidence is insufficient to mark as core regression.
 
 ### Related Code Locations
-- [docs/pages/documentation/guides/vscode.mdx:31](../docs/pages/documentation/guides/vscode.mdx#L31) - VS Code integration behavior.
-- [docs/pages/documentation/getting-started/faq.md:57](../docs/pages/documentation/getting-started/faq.md#L57) - Windows path-order troubleshooting context.
+- [docs/pages/documentation/guides/vscode.mdx:31](../../docs/pages/documentation/guides/vscode.mdx#L31) - VS Code integration behavior.
+- [docs/pages/documentation/getting-started/faq.md:57](../../docs/pages/documentation/getting-started/faq.md#L57) - Windows path-order troubleshooting context.
 
 ## Recommendation
 **Action**: needs-info

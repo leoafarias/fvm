@@ -6,6 +6,6 @@
   "status": "closed",
   "closedAt": "2025-10-31",
   "resolvedBy": "pr-937",
-  "artifact": "../../artifacts/issue-915.md",
+  "artifact": "../artifacts/issue-915.md",
   "url": "https://github.com/leoafarias/fvm/issues/915",
   "notes": "Fixed by PR #937. Documentation links now correctly resolve to /documentation/getting-started/installation."}

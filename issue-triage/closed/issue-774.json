@@ -1,0 +1,12 @@
+{
+  "number": 774,
+  "title": "dart: command not found error while using rps package",
+  "triagedAt": "2025-10-31",
+  "priority": "p2-medium",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-774.md",
+  "url": "https://github.com/conceptadev/fvm/issues/774",
+  "notes": "Closed as answered/documented because the current global setup guide includes the FVM default bin PATH workflow required by global Dart packages such as rps."
+}

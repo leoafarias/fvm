@@ -28,8 +28,8 @@ docs/pages/documentation/guides/running-flutter.mdx  // Does not mention adding 
 ```
 
 **Files/Code References:**
-- [lib/src/commands/global_command.dart:98](../lib/src/commands/global_command.dart#L98) – Emits guidance showing the expected PATH.
-- [docs/pages/documentation/guides/running-flutter.mdx](../docs/pages/documentation/guides/running-flutter.mdx) – Needs PATH instructions.
+- [lib/src/commands/global_command.dart:98](../../lib/src/commands/global_command.dart#L98) – Emits guidance showing the expected PATH.
+- [docs/pages/documentation/guides/running-flutter.mdx](../../docs/pages/documentation/guides/running-flutter.mdx) – Needs PATH instructions.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -74,3 +74,7 @@ Tracking this as a documentation task so we don’t lose it.
 ---
 **Validated by**: Code Agent  
 **Date**: 2025-10-31
+
+## Closure Outcome
+
+Revalidated on 2026-08-11: the current global setup guide now documents adding `$HOME/fvm/default/bin` to PATH. Closed on GitHub as answered/documented; users with an overridden cache path should use the exact path printed by FVM.

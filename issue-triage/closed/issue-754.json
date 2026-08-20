@@ -1,0 +1,12 @@
+{
+  "number": 754,
+  "title": "Feedback for \u201cInstalling FVM in Mac Issue\u201d",
+  "triagedAt": "2025-10-31",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "not_planned",
+  "artifact": "../artifacts/issue-754.md",
+  "url": "https://github.com/conceptadev/fvm/issues/754",
+  "notes": "Closed as not planned/working as intended because Homebrew owns the Xcode requirement; the prebuilt official installer and release archives are the supported workaround.",
+  "priority": "p3-low"
+}

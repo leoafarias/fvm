@@ -5,14 +5,14 @@
 - **Created**: 2024-05-18
 - **Reported Version**: stable channel (3.22.0)
 - **Issue Type**: support
-- **URL**: https://github.com/leoafarias/fvm/issues/724
+- **URL**: https://github.com/conceptadev/fvm/issues/724
 
 ## Problem Summary
 `fvm doctor` shows `SDK Path does not point to the project directory…` for Android Studio. The IDE keeps using a hard-coded Flutter SDK path (e.g., `/Users/.../fvm/versions/stable`) even after running `fvm use stable`, so the IDE does not follow the `.fvm/flutter_sdk` symlink that FVM maintains.
 
 ## Version Context
 - Reported against: v3.19.x (stable channel)
-- Current version: v4.0.0
+- Current version: v4.1.2
 - Version-specific: no
 - Reason: Android Studio still relies on a single Flutter SDK path; the workflow is unchanged in v4.0.0.
 
@@ -20,6 +20,8 @@
 1. Reproduced `fvm doctor` output locally showing the warning when `.idea/libraries/Dart_SDK.xml` points to a fixed SDK path.
 2. Confirmed `fvm doctor` continues to emit the same warning in v4.0.0 via `lib/src/commands/doctor_command.dart:138-160`.
 3. Verified documentation now instructs users to point Android Studio at `.fvm/flutter_sdk` (see `docs/pages/documentation/guides/workflows.mdx:195-199`).
+4. Re-reviewed the 2025 follow-up: a user reports branch switching still leaves Android Studio on a physical cached SDK, causing cross-version build errors.
+5. Correlated with current confirmations on #767; documentation explains the intended path but does not prevent IntelliJ from resolving/persisting the symlink target.
 
 ## Evidence
 ```
@@ -28,12 +30,12 @@ docs/pages/documentation/guides/workflows.mdx:195-199  // Step-by-step instructi
 ```
 
 **Files/Code References:**
-- [lib/src/commands/doctor_command.dart:138](../lib/src/commands/doctor_command.dart#L138) – Logic emitting the warning seen in the issue.
-- [docs/pages/documentation/guides/workflows.mdx:195](../docs/pages/documentation/guides/workflows.mdx#L195) – Updated docs describing the correct IDE path.
+- [lib/src/commands/doctor_command.dart:138](../../lib/src/commands/doctor_command.dart#L138) – Logic emitting the warning seen in the issue.
+- [docs/pages/documentation/guides/workflows.mdx:195](../../docs/pages/documentation/guides/workflows.mdx#L195) – Updated docs describing the correct IDE path.
 
-## Current Status in v4.0.0
-- [ ] Still reproducible
-- [x] Already fixed
+## Current Status in v4.1.2
+- [x] Still reproducible / currently reported
+- [ ] Already fixed
 - [ ] Not applicable to v4.0.0
 - [ ] Needs more information
 - [ ] Cannot reproduce
@@ -41,12 +43,13 @@ docs/pages/documentation/guides/workflows.mdx:195-199  // Step-by-step instructi
 ## Troubleshooting/Implementation Plan
 
 ### Root Cause Analysis
-Android Studio stores the Flutter SDK location as a single path; pointing it at a specific cached SDK prevents `fvm use` from switching versions. FVM already surfaces the issue via `doctor` and provides the necessary symlink.
+Android Studio stores and may resolve the Flutter SDK location to a physical cache path. Pointing it at `.fvm/flutter_sdk` is the documented workflow, but recent reports show the IDE/plugin can persist the resolved target, so `fvm use` cannot reliably switch it.
 
 ### Proposed Solution
-1. Close the issue with instructions to update Android Studio’s Flutter SDK path to `<project>/.fvm/flutter_sdk`.
-2. Reference the updated workflow documentation in the reply.
-3. Consider adding a screenshot or short FAQ entry in the docs (tracked separately in the Android Studio research artifact).
+1. Consolidate reproduction with #767 using current Android Studio and Flutter plugin versions.
+2. Capture `.idea/libraries/Dart_SDK.xml`, `android/local.properties`, and IDE SDK settings before and after branch/version switches.
+3. Decide whether to implement opt-in IntelliJ file synchronization or document the upstream symlink-resolution limitation as unsupported.
+4. Keep the existing `.fvm/flutter_sdk` guidance as the first troubleshooting step, but do not treat it as proof the compatibility bug is fixed.
 
 ### Alternative Approaches
 - Long term: implement `fvm ide android-studio --sync` to update `.idea` XML automatically (tracked outside this issue).
@@ -55,11 +58,11 @@ Android Studio stores the Flutter SDK location as a single path; pointing it at 
 - Documentation only; no code change required.
 
 ### Related Code Locations
-- [lib/src/services/cache_service.dart:171](../lib/src/services/cache_service.dart#L171) – Shows `fvm global` manages `~/.fvm/default`, reinforcing the symlink approach.
+- [lib/src/services/cache_service.dart:171](../../lib/src/services/cache_service.dart#L171) – Shows `fvm global` manages `~/.fvm/default`, reinforcing the symlink approach.
 
 ## Recommendation
-**Action**: resolved  
-**Reason**: The warning reflects expected IDE configuration; documentation and `fvm doctor` now guide users to the fix.
+**Action**: validate-p2
+**Reason**: Documentation covers the intended setup, but current reports show the IDE may resolve and persist the physical SDK path. Track with #767/#600 as an active compatibility gap.
 
 ## Draft Reply
 ```

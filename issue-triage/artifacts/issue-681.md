@@ -36,8 +36,8 @@ $ sed -n '226,234p' lib/src/workflows/update_vscode_settings.workflow.dart
 ```
 
 **Files/Code References:**
-- [lib/src/workflows/update_project_references.workflow.dart#L35](../lib/src/workflows/update_project_references.workflow.dart#L35) – Deletes `.fvm/versions` on every switch.
-- [lib/src/workflows/update_vscode_settings.workflow.dart#L228](../lib/src/workflows/update_vscode_settings.workflow.dart#L228) – VS Code path depends on version-specific symlink.
+- [lib/src/workflows/update_project_references.workflow.dart#L35](../../lib/src/workflows/update_project_references.workflow.dart#L35) – Deletes `.fvm/versions` on every switch.
+- [lib/src/workflows/update_vscode_settings.workflow.dart#L228](../../lib/src/workflows/update_vscode_settings.workflow.dart#L228) – VS Code path depends on version-specific symlink.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible
@@ -71,8 +71,8 @@ The project workflow treats `.fvm/versions` as a single-use scratch directory. D
 - On Windows, symlink creation requires Developer Mode/admin; behavior should match current flow.
 
 ### Related Code Locations
-- [lib/src/workflows/update_project_references.workflow.dart#L64](../lib/src/workflows/update_project_references.workflow.dart#L64) – Creates the per-version symlink.
-- [lib/src/commands/remove_command.dart](../lib/src/commands/remove_command.dart) – Already handles explicit removals; ensure it also removes project symlinks when versions are deleted.
+- [lib/src/workflows/update_project_references.workflow.dart#L64](../../lib/src/workflows/update_project_references.workflow.dart#L64) – Creates the per-version symlink.
+- [lib/src/commands/remove_command.dart](../../lib/src/commands/remove_command.dart) – Already handles explicit removals; ensure it also removes project symlinks when versions are deleted.
 
 ## Recommendation
 **Action**: validate-p2

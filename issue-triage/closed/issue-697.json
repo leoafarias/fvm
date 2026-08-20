@@ -1,0 +1,12 @@
+{
+  "number": 697,
+  "title": "[BUG] Could not find a Flutter SDK. Please download, or, if already downloaded, click 'Locate SDK'.",
+  "triagedAt": "2025-10-31",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-697.md",
+  "url": "https://github.com/conceptadev/fvm/issues/697",
+  "notes": "Closed as working as intended after explaining that Android Studio must point at the configured FVM cache default link; project-specific IDE gaps remain in #724 and #767.",
+  "priority": "p2-medium"
+}

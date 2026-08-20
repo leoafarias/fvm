@@ -1,0 +1,12 @@
+{
+  "number": 794,
+  "title": "Feedback for “Installation” (Raspberry Pi support)",
+  "triagedAt": "2025-10-30",
+  "priority": "p2-medium",
+  "status": "closed",
+  "closedAt": "2026-08-11",
+  "stateReason": "completed",
+  "artifact": "../artifacts/issue-794.md",
+  "url": "https://github.com/conceptadev/fvm/issues/794",
+  "notes": "Closed as completed in v4.1.2: Linux ARM/ARM64 assets ship and docs/public/install.sh detects arm64 and armv6/armv7/armhf."
+}

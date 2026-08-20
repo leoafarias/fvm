@@ -1,0 +1,12 @@
+{
+  "number": 767,
+  "title": "[BUG] Android Studio cannot change the project's Flutter SDK path",
+  "triagedAt": "2025-10-30",
+  "revalidatedAt": "2026-07-18",
+  "priority": "p2-medium",
+  "status": "validated",
+  "artifact": "../../artifacts/issue-767.md",
+  "url": "https://github.com/conceptadev/fvm/issues/767",
+  "related_issues": [600, 724],
+  "notes": "Multiple current confirmations establish a real IntelliJ/Android Studio symlink-resolution compatibility gap; implementation still needs a controlled current-version reproduction."
+}

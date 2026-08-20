@@ -37,8 +37,8 @@ $ sed -n '120,150p' lib/src/utils/context.dart
 ```
 
 **Files/Code References:**
-- [lib/src/services/app_config_service.dart#L88](../lib/src/services/app_config_service.dart#L88) – Merges env/config overrides.
-- [lib/src/utils/context.dart#L120](../lib/src/utils/context.dart#L120) – Reads the resolved URL.
+- [lib/src/services/app_config_service.dart#L88](../../lib/src/services/app_config_service.dart#L88) – Merges env/config overrides.
+- [lib/src/utils/context.dart#L120](../../lib/src/utils/context.dart#L120) – Reads the resolved URL.
 
 ## Current Status in v4.0.0
 - [x] Still reproducible (docs issue)
@@ -65,7 +65,7 @@ $ sed -n '120,150p' lib/src/utils/context.dart
 - Pure documentation and messaging changes; no code risk.
 
 ### Related Code Locations
-- [docs/pages/documentation/getting-started/configuration.mdx](../docs/pages/documentation/getting-started/configuration.mdx).
+- [docs/pages/documentation/getting-started/configuration.mdx](../../docs/pages/documentation/getting-started/configuration.mdx).
 - CLI help strings for `ConfigOptions.flutterUrl`.
 
 ## Recommendation

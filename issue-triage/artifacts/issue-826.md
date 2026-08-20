@@ -38,7 +38,7 @@ The release automation only targets Pub, Homebrew, Chocolatey, and Docker, so Wi
 4. Document Winget install instructions in `docs/pages/documentation/getting-started/installation.mdx` (Windows section).
 5. Coordinate version bump process (Winget requires manual PR review; include fallback instructions if automation blocked).
 
-## Classification Recommendation
+## Recommendation
 - Priority: **P2 - Medium** (expands distribution reach)
 - Suggested Folder: `validated/p2-medium/`
 
