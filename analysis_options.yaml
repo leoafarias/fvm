@@ -4,6 +4,13 @@ analyzer:
   exclude:
     - tool/release_tool/**
     - fvm_mcp/**
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 # For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
 # Uncomment to specify additional rules.
