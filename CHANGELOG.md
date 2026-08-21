@@ -1,3 +1,7 @@
+## Unreleased
+
+* feat: keep a cache-local project registry and show which known projects reference each installed SDK
+
 ## 4.1.4
 
 * fix: stop git-cache maintenance from running destructive git commands against repositories FVM does not own (#1060)

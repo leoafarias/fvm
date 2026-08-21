@@ -21,6 +21,14 @@ If `fvm flutter` or `fvm dart` commands are not working:
 
 ---
 
+## Where does FVM store known projects?
+
+FVM keeps a machine-local registry at `$FVM_CACHE_PATH/projects.json` (or the default cache root). It is created by `fvm use`, a project-aware `fvm install`, or `fvm projects add`. FVM does not scan your disks for projects.
+
+The file stores absolute local paths. Do not share it if those directory names should stay private. Integrations should use `fvm api projects` instead of reading the file directly.
+
+---
+
 ## How does FVM find the Flutter version to use?
 
 FVM searches for the Flutter SDK in this order:

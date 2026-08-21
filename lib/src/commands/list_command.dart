@@ -2,8 +2,10 @@ import 'package:dart_console/dart_console.dart';
 import 'package:mason_logger/mason_logger.dart';
 
 import '../models/cache_flutter_version_model.dart';
+import '../models/project_registry_model.dart';
 import '../services/cache_service.dart';
 import '../services/logger_service.dart';
+import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/models/flutter_releases_model.dart';
 import '../services/releases_service/models/version_model.dart';
@@ -27,6 +29,7 @@ class ListCommand extends BaseFvmCommand {
     FlutterReleasesResponse releases,
     CacheFlutterVersion? globalVersion,
     String? localVersion,
+    Map<String, VersionUsage> usageByVersion,
   ) {
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
@@ -35,7 +38,8 @@ class ListCommand extends BaseFvmCommand {
       ..insertColumn(header: 'Dart Version', alignment: TextAlignment.left)
       ..insertColumn(header: 'Release Date', alignment: TextAlignment.left)
       ..insertColumn(header: 'Global', alignment: TextAlignment.left)
-      ..insertColumn(header: 'Local', alignment: TextAlignment.left);
+      ..insertColumn(header: 'Local', alignment: TextAlignment.left)
+      ..insertColumn(header: 'Projects', alignment: TextAlignment.left);
 
     for (var version in cacheVersions) {
       var printVersion = version.nameWithAlias;
@@ -80,6 +84,12 @@ class ListCommand extends BaseFvmCommand {
         return flutterSdkVersion;
       }
 
+      final usage = usageByVersion[printVersion];
+      final projectCount = usage?.projectCount ?? 0;
+      final projectsCell = usage != null && usage.unreferenced
+          ? '$projectCount ${yellow.wrap('Unreferenced') ?? 'Unreferenced'}'
+          : '$projectCount';
+
       // Add row to the table with proper null safety
       table
         ..insertRows([
@@ -93,6 +103,7 @@ class ListCommand extends BaseFvmCommand {
             localVersion == printVersion && localVersion != null
                 ? (green.wrap(Icons.circle) ?? '')
                 : '',
+            projectsCell,
           ],
         ])
         ..borderStyle = BorderStyle.square
@@ -139,10 +150,28 @@ class ListCommand extends BaseFvmCommand {
     // Fetch releases and get versions for table display
     final releases = await get<FlutterReleaseClient>().fetchReleases();
     final globalVersion = get<CacheService>().getGlobal();
-    final localVersion = get<ProjectService>().findVersion();
+    final project = get<ProjectService>().findAncestor();
+    final localVersion = project.pinnedVersion?.nameWithAlias;
+    final snapshot = await get<ProjectRegistryService>().calculateUsage(
+      includeTransient: project.hasConfig ? project : null,
+      ignoreRegistryErrors: true,
+    );
+    final usageByVersion = {
+      for (final usage in snapshot.versionUsage) usage.version: usage,
+    };
 
     // Display the table with versions
-    displayVersionsTable(cacheVersions, releases, globalVersion, localVersion);
+    displayVersionsTable(
+      cacheVersions,
+      releases,
+      globalVersion,
+      localVersion,
+      usageByVersion,
+    );
+
+    logger.info(
+      'Unreferenced status considers only known, currently reachable projects.',
+    );
 
     return ExitCode.success.code;
   }

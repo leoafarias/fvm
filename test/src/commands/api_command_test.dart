@@ -37,11 +37,12 @@ void main() {
       // Verify subcommands are added
       expect(command.subcommands.containsKey('context'), isTrue);
       expect(command.subcommands.containsKey('project'), isTrue);
+      expect(command.subcommands.containsKey('projects'), isTrue);
       expect(command.subcommands.containsKey('list'), isTrue);
       expect(command.subcommands.containsKey('releases'), isTrue);
 
       // Verify the correct number of subcommands
-      expect(command.subcommands.length, equals(4));
+      expect(command.subcommands.length, equals(5));
     });
   });
 

@@ -13,6 +13,7 @@ import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
 import '../services/process_service.dart';
+import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../version.dart';
@@ -180,6 +181,10 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   String get versionsCachePath => join(fvmDir, 'versions');
 
+  /// Cache-local project registry path.
+  @MappableField()
+  String get projectsRegistryPath => join(fvmDir, kProjectsRegistryFileName);
+
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
   @MappableField()
@@ -242,6 +247,7 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 
 const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
+  ProjectRegistryService: ProjectRegistryService.new,
   CacheService: CacheService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
   FlutterService: FlutterService.new,

@@ -18,6 +18,7 @@ Run this before handoff when changes touch:
 - `EnsureCacheWorkflow`
 - install/use/global command behavior
 - project reference or SDK symlink behavior
+- project registry tracking, listing, or cache-usage classification
 - non-interactive prompt handling
 - `.fvmrc`, `.gitignore`, Melos, or VS Code project updates
 
@@ -97,6 +98,7 @@ git commit -m 'seed hidden-only ref' >/dev/null
 HIDDEN_SHA="$(git rev-parse HEAD)"
 git update-ref refs/pull/1/head "$HIDDEN_SHA"
 git checkout stable >/dev/null 2>&1
+git branch beta stable
 
 git clone --bare "$FAKE_REMOTE_WORK" "$FAKE_REMOTE_BARE" >/dev/null 2>&1
 git --git-dir="$FAKE_REMOTE_BARE" symbolic-ref HEAD refs/heads/stable
@@ -224,6 +226,65 @@ case "$LIST_OUTPUT" in
   *) echo "fvm list did not include the fake Flutter version" >&2; exit 1 ;;
 esac
 
+printf '\n== project registry ==\n'
+test -f "$CACHE/projects.json"
+grep -Fq '"schemaVersion": 1' "$CACHE/projects.json"
+grep -Fq "$PROJECT" "$CACHE/projects.json"
+grep -Fq '"flutter": "stable"' "$CACHE/projects.json"
+
+printf '\n== fvm projects list ==\n'
+PROJECTS_OUTPUT="$(run_fvm_skip projects list)"
+printf '%s\n' "$PROJECTS_OUTPUT"
+case "$PROJECTS_OUTPUT" in
+  *"fvm_smoke_app"*) ;;
+  *) echo "fvm projects list did not include the smoke project name" >&2; exit 1 ;;
+esac
+case "$PROJECTS_OUTPUT" in
+  *"active"*) ;;
+  *) echo "fvm projects list did not mark the smoke project active" >&2; exit 1 ;;
+esac
+case "$PROJECTS_OUTPUT" in
+  *"$PROJECT"*) ;;
+  *) echo "fvm projects list did not include the smoke project path" >&2; exit 1 ;;
+esac
+
+printf '\n== install beta --no-setup for unreferenced classification ==\n'
+run_fvm_skip install beta --no-setup
+grep -Fq '"flutter": "stable"' "$CACHE/projects.json"
+
+printf '\n== fvm list unreferenced ==\n'
+LIST_AFTER_BETA="$(run_fvm_skip list)"
+printf '%s\n' "$LIST_AFTER_BETA"
+case "$LIST_AFTER_BETA" in
+  *"Unreferenced"*) ;;
+  *) echo "fvm list did not classify the unused beta SDK as unreferenced" >&2; exit 1 ;;
+esac
+case "$LIST_AFTER_BETA" in
+  *"currently reachable projects"*) ;;
+  *) echo "fvm list did not explain unreferenced classification" >&2; exit 1 ;;
+esac
+
+printf '\n== fvm api projects ==\n'
+API_PROJECTS="$(run_fvm_skip api projects --compress)"
+printf '%s\n' "$API_PROJECTS"
+case "$API_PROJECTS" in
+  *"fvm_smoke_app"*) ;;
+  *) echo "fvm api projects did not include the smoke project" >&2; exit 1 ;;
+esac
+case "$API_PROJECTS" in
+  *'"status":"active"'*|*'\"status\": \"active\"'*) ;;
+  *) echo "fvm api projects did not report the smoke project as active" >&2; exit 1 ;;
+esac
+case "$API_PROJECTS" in
+  *'"unreferenced":true'*|*'\"unreferenced\": true'*) ;;
+  *) echo "fvm api projects did not mark beta unreferenced" >&2; exit 1 ;;
+esac
+case "$API_PROJECTS" in
+  *'"unreferencedVersions":["beta"]'*|*'\"unreferencedVersions\": [\"beta\"]'*) ;;
+  *) echo "fvm api projects did not list beta in unreferencedVersions" >&2; exit 1 ;;
+esac
+printf '%s\n' "$API_PROJECTS" | python3 -c 'import json,sys; json.load(sys.stdin)'
+
 printf '\n== project files ==\n'
 printf '.fvmrc:\n'
 sed -n '1,20p' .fvmrc
@@ -310,6 +371,11 @@ Expected high-signal output:
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
+- `use` creates `$CACHE/projects.json` as schema version 1 and registers the smoke project as `stable`.
+- `fvm projects list` shows the smoke project as `active`.
+- `fvm install beta --no-setup` keeps the registry pin on `stable`.
+- `fvm list` then labels `beta` `Unreferenced` and explains that only known, currently reachable projects are considered.
+- `fvm api projects --compress` prints valid JSON with the smoke project, `unreferenced: true` for `beta`, and `unreferencedVersions: ["beta"]`.
 - `.fvmrc` contains `"flutter": "stable"`.
 - `.fvm/fvm_config.json` contains `"flutterSdkVersion": "stable"`.
 - `.fvm/version` contains `3.99.0-smoke`.

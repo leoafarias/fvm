@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:io/io.dart';
 
+import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../utils/exceptions.dart';
 import '../workflows/ensure_cache.workflow.dart';
@@ -86,6 +87,11 @@ class InstallCommand extends BaseFvmCommand {
 
     if (setup) {
       await setupFlutter(cacheVersion);
+    }
+
+    final project = get<ProjectService>().findAncestor();
+    if (project.hasConfig) {
+      await get<ProjectRegistryService>().trackAutomatically(project);
     }
 
     return ExitCode.success.code;

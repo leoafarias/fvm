@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../utils/helpers.dart';
@@ -45,6 +46,39 @@ class ApiService extends ContextualService {
     return GetCacheVersionsResponse(
       size: formatFriendlyBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
       versions: versions,
+    );
+  }
+
+  /// Returns registered projects and cache-usage metadata.
+  Future<GetProjectsResponse> getProjects() async {
+    final snapshot = await get<ProjectRegistryService>().calculateUsage();
+
+    return GetProjectsResponse(
+      projects: [
+        for (final project in snapshot.projects)
+          ProjectUsageResponse(
+            name: project.name,
+            path: project.path,
+            status: project.status.name,
+            flutter: project.flutter,
+            flavors: project.flavors,
+            referencedVersions: project.referencedVersions,
+            firstSeenAt: project.firstSeenAt,
+            lastSeenAt: project.lastSeenAt,
+          ),
+      ],
+      versionUsage: [
+        for (final usage in snapshot.versionUsage)
+          VersionUsageResponse(
+            version: usage.version,
+            projectCount: usage.projectCount,
+            projectPaths: usage.projectPaths,
+            global: usage.global,
+            unreferenced: usage.unreferenced,
+          ),
+      ],
+      unreferencedVersions: snapshot.unreferencedVersions,
+      missingVersions: snapshot.missingVersions,
     );
   }
 
