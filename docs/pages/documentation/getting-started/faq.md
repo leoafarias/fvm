@@ -23,9 +23,11 @@ If `fvm flutter` or `fvm dart` commands are not working:
 
 ## Where does FVM store known projects?
 
-FVM keeps a machine-local registry at `$FVM_CACHE_PATH/projects.json` (or the default cache root). It is created by `fvm use`, a project-aware `fvm install`, or `fvm projects add`. FVM does not scan your disks for projects.
+FVM keeps a machine-local list of project roots at `$FVM_CACHE_PATH/projects.json` (or the default cache root). Entries are added when you run `fvm use` or `fvm install` inside a project; FVM never scans your disks. It stores paths only, so pinned versions are always read back from each project's `.fvmrc`.
 
-The file stores absolute local paths. Do not share it if those directory names should stay private. Integrations should use `fvm api projects` instead of reading the file directly.
+`fvm list` uses it to mark cached SDKs that no known project pins as `Unused`. Because only projects you have run FVM in are recorded, that label is a hint, not proof an SDK is safe to delete.
+
+The file stores absolute local paths. Do not share it if those directory names should stay private. To make FVM forget everything it has recorded, delete the file. Integrations should use `fvm api list` instead of reading it directly.
 
 ---
 

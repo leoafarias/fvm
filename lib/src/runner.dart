@@ -21,7 +21,6 @@ import 'commands/global_command.dart';
 import 'commands/install_command.dart';
 import 'commands/integration_test_command.dart';
 import 'commands/list_command.dart';
-import 'commands/projects_command.dart';
 import 'commands/releases_command.dart';
 import 'commands/remove_command.dart';
 import 'commands/spawn_command.dart';
@@ -54,7 +53,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(InstallCommand(context));
     addCommand(UseCommand(context));
     addCommand(ListCommand(context));
-    addCommand(ProjectsCommand(context));
     addCommand(RemoveCommand(context));
     addCommand(ReleasesCommand(context));
     addCommand(FlutterCommand(context));
@@ -268,11 +266,6 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
 
     if (topLevelResults.command != null) {
       final commandResult = topLevelResults.command!;
-      // CommandRunner rejects a parent command when it has subcommands and
-      // none was given. Treat bare `fvm projects` as `fvm projects list`.
-      if (commandResult.name == 'projects' && commandResult.command == null) {
-        return ProjectsListCommand(context).run();
-      }
       logger.debug('Command: ${commandResult.name}');
 
       // Check if any command option was parsed

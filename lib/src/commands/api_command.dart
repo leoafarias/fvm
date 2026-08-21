@@ -62,7 +62,6 @@ class APICommand extends BaseFvmCommand {
     addSubcommand(APIReleasesCommand(context));
     addSubcommand(APIContextCommand(context));
     addSubcommand(APIProjectCommand(context));
-    addSubcommand(APIProjectsCommand(context));
   }
 
   @override
@@ -140,22 +139,6 @@ class APIListCommand extends APISubCommand<GetCacheVersionsResponse> {
     return get<ApiService>().getCachedVersions(
       skipCacheSizeCalculation: shouldSkipSizing,
     );
-  }
-}
-
-class APIProjectsCommand extends APISubCommand<GetProjectsResponse> {
-  @override
-  final name = 'projects';
-
-  @override
-  final description =
-      'Returns registered projects and cache-usage metadata as JSON';
-
-  APIProjectsCommand(super.context);
-
-  @override
-  Future<GetProjectsResponse> runSubCommand() {
-    return get<ApiService>().getProjects();
   }
 }
 

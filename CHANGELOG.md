@@ -1,6 +1,7 @@
 ## Unreleased
 
-* feat: keep a cache-local project registry and show which known projects reference each installed SDK
+* feat: `fvm list` now flags cached SDKs that no known project pins as `Unused`. FVM records a project root when you run `fvm use` or `fvm install` inside it (never in CI), and `fvm api list` exposes the recorded paths under `projects` plus the unused versions under `unreferencedVersions`
+* fix: `fvm list` now marks the local SDK for projects pinning a forked channel version such as `myfork/3.24.0@beta`. Those install to `myfork/3.24.0`, so the `Local` column never matched them
 
 ## 4.1.4
 

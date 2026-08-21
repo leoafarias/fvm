@@ -37,12 +37,11 @@ void main() {
       // Verify subcommands are added
       expect(command.subcommands.containsKey('context'), isTrue);
       expect(command.subcommands.containsKey('project'), isTrue);
-      expect(command.subcommands.containsKey('projects'), isTrue);
       expect(command.subcommands.containsKey('list'), isTrue);
       expect(command.subcommands.containsKey('releases'), isTrue);
 
       // Verify the correct number of subcommands
-      expect(command.subcommands.length, equals(5));
+      expect(command.subcommands.length, equals(4));
     });
   });
 
@@ -143,11 +142,15 @@ void main() {
       withoutSizeCalculationResponse = GetCacheVersionsResponse(
         size: '',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       sizeCalculationResponse = GetCacheVersionsResponse(
         size: '100MB',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       // Configure API service mock

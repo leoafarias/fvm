@@ -10,6 +10,7 @@ import '../services/project_service.dart';
 import '../services/releases_service/models/flutter_releases_model.dart';
 import '../services/releases_service/models/version_model.dart';
 import '../services/releases_service/releases_client.dart';
+import '../utils/exceptions.dart';
 import '../utils/helpers.dart';
 import 'base_command.dart';
 
@@ -29,7 +30,7 @@ class ListCommand extends BaseFvmCommand {
     FlutterReleasesResponse releases,
     CacheFlutterVersion? globalVersion,
     String? localVersion,
-    Map<String, VersionUsage> usageByVersion,
+    CacheProjectUsage? usage,
   ) {
     final table = Table()
       ..insertColumn(header: 'Version', alignment: TextAlignment.left)
@@ -84,11 +85,14 @@ class ListCommand extends BaseFvmCommand {
         return flutterSdkVersion;
       }
 
-      final usage = usageByVersion[printVersion];
-      final projectCount = usage?.projectCount ?? 0;
-      final projectsCell = usage != null && usage.unreferenced
-          ? '$projectCount ${yellow.wrap('Unreferenced') ?? 'Unreferenced'}'
-          : '$projectCount';
+      String projectsCell() {
+        if (usage == null) return '-';
+        if (usage.isUnused(printVersion)) {
+          return yellow.wrap('Unused') ?? 'Unused';
+        }
+
+        return '${usage.countFor(printVersion)}';
+      }
 
       // Add row to the table with proper null safety
       table
@@ -103,7 +107,7 @@ class ListCommand extends BaseFvmCommand {
             localVersion == printVersion && localVersion != null
                 ? (green.wrap(Icons.circle) ?? '')
                 : '',
-            projectsCell,
+            projectsCell(),
           ],
         ])
         ..borderStyle = BorderStyle.square
@@ -151,14 +155,22 @@ class ListCommand extends BaseFvmCommand {
     final releases = await get<FlutterReleaseClient>().fetchReleases();
     final globalVersion = get<CacheService>().getGlobal();
     final project = get<ProjectService>().findAncestor();
-    final localVersion = project.pinnedVersion?.nameWithAlias;
-    final snapshot = await get<ProjectRegistryService>().calculateUsage(
-      includeTransient: project.hasConfig ? project : null,
-      ignoreRegistryErrors: true,
-    );
-    final usageByVersion = {
-      for (final usage in snapshot.versionUsage) usage.version: usage,
-    };
+    final pinned = project.pinnedVersion;
+    // Match on the cached name, not nameWithAlias: a forked `x@channel` pin
+    // installs to `<fork>/x`, so the two differ for those versions.
+    final localVersion =
+        pinned == null ? null : get<CacheService>().installedNameOf(pinned);
+
+    // An unreadable registry only costs the Projects column, never the list.
+    CacheProjectUsage? usage;
+    try {
+      usage = get<ProjectRegistryService>().calculateUsage(
+        includeCurrent: project,
+      );
+    } on ProjectRegistryException catch (error, stackTrace) {
+      logger.warn('$error');
+      logger.logTrace(stackTrace);
+    }
 
     // Display the table with versions
     displayVersionsTable(
@@ -166,12 +178,15 @@ class ListCommand extends BaseFvmCommand {
       releases,
       globalVersion,
       localVersion,
-      usageByVersion,
+      usage,
     );
 
-    logger.info(
-      'Unreferenced status considers only known, currently reachable projects.',
-    );
+    if (usage != null) {
+      logger.info(
+        '"Unused" means no project known to FVM pins that SDK. Projects are '
+        'recorded when you run fvm use or fvm install inside them.',
+      );
+    }
 
     return ExitCode.success.code;
   }

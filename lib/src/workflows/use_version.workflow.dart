@@ -40,7 +40,7 @@ class UseVersionWorkflow extends Workflow {
       force: force,
     );
 
-    await get<ProjectRegistryService>().trackAutomatically(updatedProject);
+    get<ProjectRegistryService>().track(updatedProject);
 
     get<SetupGitIgnoreWorkflow>()(project);
 

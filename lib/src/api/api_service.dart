@@ -29,56 +29,30 @@ class ApiService extends ContextualService {
     bool skipCacheSizeCalculation = false,
   }) async {
     final versions = await get<CacheService>().getAllVersions();
+    // Fold in the current project like `fvm list` does, so a fresh clone with
+    // a committed .fvmrc does not report its own SDK unreferenced.
+    final usage = get<ProjectRegistryService>().calculateUsage(
+      includeCurrent: get<ProjectService>().findAncestor(),
+    );
 
-    if (skipCacheSizeCalculation) {
-      return GetCacheVersionsResponse(
-        size: formatFriendlyBytes(0),
-        versions: versions,
+    var size = 0;
+    if (!skipCacheSizeCalculation) {
+      final versionSizes = await Future.wait(
+        versions.map((version) {
+          return getDirectorySize(Directory(version.directory));
+        }),
       );
+      size = versionSizes.fold<int>(0, (a, b) => a + b);
     }
 
-    final versionSizes = await Future.wait(
-      versions.map((version) {
-        return getDirectorySize(Directory(version.directory));
-      }),
-    );
-
     return GetCacheVersionsResponse(
-      size: formatFriendlyBytes(versionSizes.fold<int>(0, (a, b) => a + b)),
+      size: formatFriendlyBytes(size),
       versions: versions,
-    );
-  }
-
-  /// Returns registered projects and cache-usage metadata.
-  Future<GetProjectsResponse> getProjects() async {
-    final snapshot = await get<ProjectRegistryService>().calculateUsage();
-
-    return GetProjectsResponse(
-      projects: [
-        for (final project in snapshot.projects)
-          ProjectUsageResponse(
-            name: project.name,
-            path: project.path,
-            status: project.status.name,
-            flutter: project.flutter,
-            flavors: project.flavors,
-            referencedVersions: project.referencedVersions,
-            firstSeenAt: project.firstSeenAt,
-            lastSeenAt: project.lastSeenAt,
-          ),
-      ],
-      versionUsage: [
-        for (final usage in snapshot.versionUsage)
-          VersionUsageResponse(
-            version: usage.version,
-            projectCount: usage.projectCount,
-            projectPaths: usage.projectPaths,
-            global: usage.global,
-            unreferenced: usage.unreferenced,
-          ),
-      ],
-      unreferencedVersions: snapshot.unreferencedVersions,
-      missingVersions: snapshot.missingVersions,
+      projects: usage.projectPaths,
+      unreferencedVersions: [
+        for (final version in versions)
+          if (usage.isUnused(version.nameWithAlias)) version.nameWithAlias,
+      ]..sort(),
     );
   }
 

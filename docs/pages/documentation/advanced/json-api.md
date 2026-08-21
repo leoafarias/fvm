@@ -49,21 +49,6 @@ fvm api project [--compress] [--path <path>]
 - `--compress` - Compact JSON output
 - `--path` - Project directory path
 
-### projects
-
-Returns the cache-local project registry and version-usage metadata.
-
-```bash
-fvm api projects [--compress]
-```
-
-**Options:**
-- `--compress` - Compact JSON output
-
-The persisted `<FVM_CACHE_PATH>/projects.json` file is an internal storage contract. Integrations should consume `fvm api projects` so later storage migrations do not break them.
-
-The registry stores absolute project paths on this machine. Do not share `projects.json` or API output if those directory names should stay private.
-
 ## Integration Example
 
 ```bash
@@ -110,9 +95,25 @@ fvm api list [options]
       "isSetup": true
     },
     ...
-  ]
+  ],
+  "projects": [
+    "/Users/example/code/my_app"
+  ],
+  "unreferencedVersions": ["3.17.0"]
 }
 ```
+
+`projects` lists the project roots considered when computing
+`unreferencedVersions`: every root recorded for this cache, plus the project
+you run the command from when it is configured. `unreferencedVersions` lists
+installed versions that none of them pin (the global version is never listed).
+Roots are recorded when you run `fvm use` or `fvm install` inside them, so
+treat `unreferencedVersions` as a hint rather than proof that an SDK is unused.
+
+The persisted `<FVM_CACHE_PATH>/projects.json` file is an internal storage
+contract that stores absolute local paths. Read it through `fvm api list` so
+later storage changes do not break integrations, and do not share it if those
+directory names should stay private.
 
 ### `releases`
 
@@ -271,49 +272,5 @@ fvm api project [options]
       }
     }
   }
-}
-```
-
-### `projects`
-
-Returns registered projects for the active cache and how they reference installed SDK versions.
-
-**Usage:**
-
-```bash
-fvm api projects [options]
-```
-
-**Options:**
-
--  `--compress` (`-c`): Outputs JSON with no whitespace.
-
-**Response Payload:**
-
-```json
-{
-  "projects": [
-    {
-      "name": "my_app",
-      "path": "/Users/example/code/my_app",
-      "status": "active",
-      "flutter": "stable",
-      "flavors": {"beta": "beta"},
-      "referencedVersions": ["beta", "stable"],
-      "firstSeenAt": "2026-08-21T18:15:00.000Z",
-      "lastSeenAt": "2026-08-21T19:30:00.000Z"
-    }
-  ],
-  "versionUsage": [
-    {
-      "version": "stable",
-      "projectCount": 1,
-      "projectPaths": ["/Users/example/code/my_app"],
-      "global": false,
-      "unreferenced": false
-    }
-  ],
-  "unreferencedVersions": ["3.19.6"],
-  "missingVersions": ["beta"]
 }
 ```

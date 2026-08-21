@@ -259,6 +259,21 @@ File createProjectConfig(ProjectConfig config, Directory directory) {
   return file;
 }
 
+/// Creates a temp directory holding a pubspec and an `.fvmrc`, so tests that
+/// need several FVM projects do not repeat the three-call setup each time.
+Directory createConfiguredProject({
+  required String name,
+  String flutter = 'stable',
+  Map<String, String>? flavors,
+}) {
+  final directory = createTempDir(name);
+  createPubspecYaml(directory, name: name);
+  createProjectConfig(
+      ProjectConfig(flutter: flutter, flavors: flavors), directory);
+
+  return directory;
+}
+
 String _generateUuid() {
   final random = Random();
   const hexDigits = '0123456789abcdef';

@@ -32,12 +32,7 @@ class GitCacheDependentSdkRemovalException extends AppException {
 
 /// Thrown when the project registry cannot be read or written safely.
 class ProjectRegistryException extends AppException {
-  final String registryPath;
-
-  const ProjectRegistryException(
-    super.message, {
-    required this.registryPath,
-  });
+  const ProjectRegistryException(super.message);
 }
 
 bool checkIfNeedsPrivilegePermission(FileSystemException err) {

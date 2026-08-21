@@ -91,7 +91,7 @@ class InstallCommand extends BaseFvmCommand {
 
     final project = get<ProjectService>().findAncestor();
     if (project.hasConfig) {
-      await get<ProjectRegistryService>().trackAutomatically(project);
+      get<ProjectRegistryService>().track(project);
     }
 
     return ExitCode.success.code;

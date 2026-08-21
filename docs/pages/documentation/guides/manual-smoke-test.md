@@ -18,7 +18,7 @@ Run this before handoff when changes touch:
 - `EnsureCacheWorkflow`
 - install/use/global command behavior
 - project reference or SDK symlink behavior
-- project registry tracking, listing, or cache-usage classification
+- project registry tracking or unused-SDK classification in `fvm list`
 - non-interactive prompt handling
 - `.fvmrc`, `.gitignore`, Melos, or VS Code project updates
 
@@ -230,60 +230,34 @@ printf '\n== project registry ==\n'
 test -f "$CACHE/projects.json"
 grep -Fq '"schemaVersion": 1' "$CACHE/projects.json"
 grep -Fq "$PROJECT" "$CACHE/projects.json"
-grep -Fq '"flutter": "stable"' "$CACHE/projects.json"
 
-printf '\n== fvm projects list ==\n'
-PROJECTS_OUTPUT="$(run_fvm_skip projects list)"
-printf '%s\n' "$PROJECTS_OUTPUT"
-case "$PROJECTS_OUTPUT" in
-  *"fvm_smoke_app"*) ;;
-  *) echo "fvm projects list did not include the smoke project name" >&2; exit 1 ;;
-esac
-case "$PROJECTS_OUTPUT" in
-  *"active"*) ;;
-  *) echo "fvm projects list did not mark the smoke project active" >&2; exit 1 ;;
-esac
-case "$PROJECTS_OUTPUT" in
-  *"$PROJECT"*) ;;
-  *) echo "fvm projects list did not include the smoke project path" >&2; exit 1 ;;
-esac
-
-printf '\n== install beta --no-setup for unreferenced classification ==\n'
+printf '\n== install beta --no-setup for unused classification ==\n'
 run_fvm_skip install beta --no-setup
-grep -Fq '"flutter": "stable"' "$CACHE/projects.json"
 
-printf '\n== fvm list unreferenced ==\n'
+printf '\n== fvm list unused ==\n'
 LIST_AFTER_BETA="$(run_fvm_skip list)"
 printf '%s\n' "$LIST_AFTER_BETA"
 case "$LIST_AFTER_BETA" in
-  *"Unreferenced"*) ;;
-  *) echo "fvm list did not classify the unused beta SDK as unreferenced" >&2; exit 1 ;;
+  *"Unused"*) ;;
+  *) echo "fvm list did not classify the unused beta SDK" >&2; exit 1 ;;
 esac
 case "$LIST_AFTER_BETA" in
-  *"currently reachable projects"*) ;;
-  *) echo "fvm list did not explain unreferenced classification" >&2; exit 1 ;;
+  *"no project known to FVM pins that SDK"*) ;;
+  *) echo "fvm list did not explain the Unused label" >&2; exit 1 ;;
 esac
 
-printf '\n== fvm api projects ==\n'
-API_PROJECTS="$(run_fvm_skip api projects --compress)"
-printf '%s\n' "$API_PROJECTS"
-case "$API_PROJECTS" in
-  *"fvm_smoke_app"*) ;;
-  *) echo "fvm api projects did not include the smoke project" >&2; exit 1 ;;
+printf '\n== fvm api list ==\n'
+API_LIST="$(run_fvm_skip api list --compress --skip-size-calculation)"
+printf '%s\n' "$API_LIST"
+case "$API_LIST" in
+  *"$PROJECT"*) ;;
+  *) echo "fvm api list did not include the smoke project path" >&2; exit 1 ;;
 esac
-case "$API_PROJECTS" in
-  *'"status":"active"'*|*'\"status\": \"active\"'*) ;;
-  *) echo "fvm api projects did not report the smoke project as active" >&2; exit 1 ;;
+case "$API_LIST" in
+  *'"unreferencedVersions":["beta"]'*) ;;
+  *) echo "fvm api list did not list beta in unreferencedVersions" >&2; exit 1 ;;
 esac
-case "$API_PROJECTS" in
-  *'"unreferenced":true'*|*'\"unreferenced\": true'*) ;;
-  *) echo "fvm api projects did not mark beta unreferenced" >&2; exit 1 ;;
-esac
-case "$API_PROJECTS" in
-  *'"unreferencedVersions":["beta"]'*|*'\"unreferencedVersions\": [\"beta\"]'*) ;;
-  *) echo "fvm api projects did not list beta in unreferencedVersions" >&2; exit 1 ;;
-esac
-printf '%s\n' "$API_PROJECTS" | python3 -c 'import json,sys; json.load(sys.stdin)'
+printf '%s\n' "$API_LIST" | python3 -c 'import json,sys; json.load(sys.stdin)'
 
 printf '\n== project files ==\n'
 printf '.fvmrc:\n'
@@ -371,11 +345,9 @@ Expected high-signal output:
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
-- `use` creates `$CACHE/projects.json` as schema version 1 and registers the smoke project as `stable`.
-- `fvm projects list` shows the smoke project as `active`.
-- `fvm install beta --no-setup` keeps the registry pin on `stable`.
-- `fvm list` then labels `beta` `Unreferenced` and explains that only known, currently reachable projects are considered.
-- `fvm api projects --compress` prints valid JSON with the smoke project, `unreferenced: true` for `beta`, and `unreferencedVersions: ["beta"]`.
+- `use` creates `$CACHE/projects.json` as schema version 1 containing the smoke project path.
+- `fvm list` labels the unused `beta` SDK `Unused` and explains that only projects known to FVM are considered.
+- `fvm api list --compress --skip-size-calculation` prints valid JSON with the smoke project under `projects` and `unreferencedVersions: ["beta"]`.
 - `.fvmrc` contains `"flutter": "stable"`.
 - `.fvm/fvm_config.json` contains `"flutterSdkVersion": "stable"`.
 - `.fvm/version` contains `3.99.0-smoke`.

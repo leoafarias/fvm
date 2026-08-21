@@ -110,13 +110,20 @@ class FvmContext with FvmContextMappable {
       overrides: configOverrides,
       appConfigPath: resolvedAppConfigPath,
     );
+    final environment = {...Platform.environment};
+    if (isTest) {
+      for (final variable in kCiEnvironmentVariables) {
+        environment.remove(variable);
+      }
+    }
+    environment.addAll(environmentOverrides ?? const {});
 
     return FvmContext.raw(
       debugLabel: debugLabel,
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: builtConfig,
       appConfigPath: resolvedAppConfigPath,
-      environment: {...Platform.environment, ...?environmentOverrides},
+      environment: environment,
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
       stdinHasTerminal:

@@ -1,9 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:fvm/fvm.dart';
+import 'package:fvm/src/models/config_model.dart';
+import 'package:fvm/src/models/flutter_version_model.dart';
+import 'package:fvm/src/models/project_model.dart';
+import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
-import 'package:fvm/src/utils/clock.dart';
+import 'package:fvm/src/services/project_registry_service.dart';
+import 'package:fvm/src/utils/constants.dart';
+import 'package:fvm/src/utils/context.dart';
+import 'package:fvm/src/utils/exceptions.dart';
 import 'package:io/io.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -11,106 +17,34 @@ import 'package:test/test.dart';
 import '../../testing_utils.dart';
 
 void main() {
-  late DateTime currentTime;
+  List<String> registeredPaths(FvmContext context) {
+    final decoded =
+        jsonDecode(File(context.projectsRegistryPath).readAsStringSync())
+            as Map<String, dynamic>;
 
-  Clock steppingClock() {
-    return Clock(() {
-      final value = currentTime;
-      currentTime = currentTime.add(const Duration(minutes: 15));
-
-      return value;
-    });
+    return (decoded['projects'] as List).cast<String>();
   }
 
-  FvmContext contextWithClock({
-    Map<String, String>? environmentOverrides,
-    String? workingDirectoryOverride,
-  }) {
-    return TestFactory.fastContext(
-      environmentOverrides: environmentOverrides,
-      workingDirectoryOverride: workingDirectoryOverride,
-      generators: {
-        ProjectRegistryService: (context) => ProjectRegistryService(
-              context,
-              clock: steppingClock(),
-            ),
-      },
-    );
-  }
+  group('track', () {
+    test('creates schema version 1 with the canonical project root', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(name: 'my_app');
 
-  Directory configuredProject({
-    required String name,
-    String flutter = 'stable',
-    Map<String, String>? flavors,
-  }) {
-    final dir = createTempDir(name);
-    createPubspecYaml(dir, name: name);
-    createProjectConfig(
-      ProjectConfig(flutter: flutter, flavors: flavors),
-      dir,
-    );
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
 
-    return dir;
-  }
-
-  setUp(() {
-    currentTime = DateTime.utc(2026, 8, 21, 18, 15);
-  });
-
-  group('ProjectRegistryService persistence', () {
-    test('creates schema version 1 and registers a project', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'my_app');
-      final service = context.get<ProjectRegistryService>();
-
-      await service.upsert(Project.loadFromDirectory(projectDir));
-
-      final file = File(context.projectsRegistryPath);
-      expect(file.existsSync(), isTrue);
-      expect(file.path, startsWith(context.fvmDir));
-
-      final decoded = jsonDecode(file.readAsStringSync()) as Map<String, dynamic>;
+      final decoded =
+          jsonDecode(File(context.projectsRegistryPath).readAsStringSync())
+              as Map<String, dynamic>;
       expect(decoded['schemaVersion'], 1);
-      expect(decoded['projects'], hasLength(1));
-      expect(decoded['projects'][0]['name'], 'my_app');
-      expect(decoded['projects'][0]['flutter'], 'stable');
-      expect(decoded['projects'][0]['flavors'], isEmpty);
-      expect(decoded['projects'][0]['firstSeenAt'], '2026-08-21T18:15:00.000Z');
-      expect(decoded['projects'][0]['lastSeenAt'], '2026-08-21T18:15:00.000Z');
+      expect(decoded['projects'], [projectDir.resolveSymbolicLinksSync()]);
     });
 
-    test('refresh preserves firstSeenAt and updates snapshot', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'my_app');
-      final service = context.get<ProjectRegistryService>();
-
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      createProjectConfig(
-        const ProjectConfig(
-          flutter: 'beta',
-          flavors: {'legacy': '3.10.0'},
-        ),
-        projectDir,
-      );
-      createPubspecYaml(projectDir, name: 'renamed_app');
-      await service.upsert(Project.loadFromDirectory(projectDir));
-
-      final decoded = jsonDecode(
-        File(context.projectsRegistryPath).readAsStringSync(),
-      ) as Map<String, dynamic>;
-      expect(decoded['projects'], hasLength(1));
-      expect(decoded['projects'][0]['name'], 'renamed_app');
-      expect(decoded['projects'][0]['flutter'], 'beta');
-      expect(decoded['projects'][0]['flavors'], {'legacy': '3.10.0'});
-      expect(decoded['projects'][0]['firstSeenAt'], '2026-08-21T18:15:00.000Z');
-      expect(decoded['projects'][0]['lastSeenAt'], '2026-08-21T18:30:00.000Z');
-    });
-
-    test('resolves symlink aliases to one canonical entry', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'my_app');
-      final aliasParent = createTempDir('alias_parent');
-      final alias = Link(p.join(aliasParent.path, 'alias'));
+    test('records a project reached through a symlink only once', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(name: 'my_app');
+      final alias = Link(p.join(createTempDir('alias_parent').path, 'alias'));
       try {
         alias.createSync(projectDir.path);
       } on FileSystemException {
@@ -118,504 +52,275 @@ void main() {
       }
 
       final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(Directory(alias.path)));
-      await service.upsert(Project.loadFromDirectory(projectDir));
+      service.track(Project.loadFromDirectory(Directory(alias.path)));
+      service.track(Project.loadFromDirectory(projectDir));
 
-      final document = await service.loadDocument();
-      expect(document.projects, hasLength(1));
-      expect(
-        document.projects.single.path,
-        projectDir.resolveSymbolicLinksSync(),
-      );
+      expect(registeredPaths(context), [projectDir.resolveSymbolicLinksSync()]);
     });
 
-    test('writes projects in canonical path order', () async {
-      final context = contextWithClock();
-      final zDir = configuredProject(name: 'z_app');
-      final aDir = configuredProject(name: 'a_app');
-      final service = context.get<ProjectRegistryService>();
+    test('skips tracking in CI', () {
+      final projectDir = createConfiguredProject(name: 'ci_app');
+      final context = TestFactory.fastContext(
+        environmentOverrides: const {'CI': 'true'},
+      );
 
-      await service.upsert(Project.loadFromDirectory(zDir));
-      await service.upsert(Project.loadFromDirectory(aDir));
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
 
-      final decoded = jsonDecode(
+      expect(File(context.projectsRegistryPath).existsSync(), isFalse);
+    });
+
+    test('test contexts do not inherit CI from the host environment', () {
+      expect(TestFactory.fastContext().isCI, isFalse);
+    });
+
+    test('leaves a registry it cannot parse untouched, and warns', () {
+      final context = TestFactory.fastContext();
+      File(context.projectsRegistryPath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('not-json');
+
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(createConfiguredProject(name: 'warn')),
+          );
+
+      expect(
         File(context.projectsRegistryPath).readAsStringSync(),
-      ) as Map<String, dynamic>;
-      final paths = [
-        for (final project in decoded['projects'] as List)
-          (project as Map)['path'] as String,
-      ];
-      expect(paths, [paths.first, paths.last]);
-      expect(paths.first.compareTo(paths.last), lessThan(0));
-    });
-
-    test('retains both entries during concurrent registration', () async {
-      final context = contextWithClock();
-      final first = configuredProject(name: 'one');
-      final second = configuredProject(name: 'two');
-      final service = context.get<ProjectRegistryService>();
-
-      await Future.wait([
-        service.upsert(Project.loadFromDirectory(first)),
-        service.upsert(Project.loadFromDirectory(second)),
-      ]);
-
-      final document = await service.loadDocument();
-      expect(document.projects, hasLength(2));
-      jsonDecode(File(context.projectsRegistryPath).readAsStringSync());
-    });
-
-    test('does not overwrite a newer schema version', () async {
-      final context = contextWithClock();
-      final file = File(context.projectsRegistryPath)
-        ..createSync(recursive: true);
-      const newer = '{"schemaVersion":2,"projects":[],"extra":true}';
-      file.writeAsStringSync(newer);
-
-      final service = context.get<ProjectRegistryService>();
-      expect(
-        () => service.upsert(
-          Project.loadFromDirectory(configuredProject(name: 'my_app')),
-        ),
-        throwsA(
-          isA<ProjectRegistryException>().having(
-            (error) => error.registryPath,
-            'registryPath',
-            context.projectsRegistryPath,
-          ),
-        ),
+        'not-json',
       );
-      expect(file.readAsStringSync(), newer);
-    });
-
-    test('does not replace malformed JSON', () async {
-      final context = contextWithClock();
-      final file = File(context.projectsRegistryPath)
-        ..createSync(recursive: true);
-      file.writeAsStringSync('not-json');
-
-      final service = context.get<ProjectRegistryService>();
       expect(
-        () => service.upsert(
-          Project.loadFromDirectory(configuredProject(name: 'my_app')),
-        ),
-        throwsA(isA<ProjectRegistryException>()),
+        context.get<Logger>().outputs.any(
+              (line) => line.contains(context.projectsRegistryPath),
+            ),
+        isTrue,
       );
-      expect(file.readAsStringSync(), 'not-json');
     });
   });
 
-  group('ProjectRegistryService status', () {
-    test('marks a deleted root as missing without mutating the registry',
-        () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'gone');
-      final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      final original = File(context.projectsRegistryPath).readAsStringSync();
-
-      projectDir.deleteSync(recursive: true);
-      final listed = await service.listProjects();
-
-      expect(listed, hasLength(1));
-      expect(listed.single.status, ProjectRegistryStatus.missing);
-      expect(listed.single.usesLastKnownSnapshot, isTrue);
-      expect(listed.single.referencedVersions, ['stable']);
-      expect(File(context.projectsRegistryPath).readAsStringSync(), original);
-    });
-
-    test('marks a reachable project without config as unconfigured', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'plain');
-      final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-
-      File(p.join(projectDir.path, kFvmConfigFileName)).deleteSync();
-      final legacyConfig = File(
-        p.join(projectDir.path, kFvmDirName, kFvmLegacyConfigFileName),
-      );
-      if (legacyConfig.existsSync()) {
-        legacyConfig.deleteSync();
-      }
-
-      final listed = await service.listProjects();
-      expect(listed.single.status, ProjectRegistryStatus.unconfigured);
-      expect(listed.single.referencedVersions, ['stable']);
-    });
-
-    test('keeps a readable .fvmrc when pubspec cannot be parsed', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'broken_pubspec');
-      final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      File(p.join(projectDir.path, 'pubspec.yaml')).writeAsStringSync(
-        'not: [yaml',
-      );
-
-      final listed = await service.listProjects();
-      expect(listed.single.status, ProjectRegistryStatus.active);
-      expect(listed.single.flutter, 'stable');
-      expect(listed.single.usesLastKnownSnapshot, isFalse);
-    });
-
-    test('uses live .fvmrc values for active projects', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(name: 'live');
-      final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      createProjectConfig(const ProjectConfig(flutter: 'beta'), projectDir);
-
-      final listed = await service.listProjects();
-      expect(listed.single.status, ProjectRegistryStatus.active);
-      expect(listed.single.flutter, 'beta');
-      expect(listed.single.usesLastKnownSnapshot, isFalse);
-    });
-
-    test('counts only parsed references for invalid configs', () async {
-      final context = contextWithClock();
-      final projectDir = configuredProject(
-        name: 'invalid',
-        flutter: 'stable',
-        flavors: const {'ok': 'beta'},
-      );
-      final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      File(p.join(projectDir.path, kFvmConfigFileName)).writeAsStringSync(
-        '{"flutter":"3.10.0@notachannel","flavors":{"ok":"beta"}}',
-      );
-
-      final listed = await service.listProjects();
-      expect(listed.single.status, ProjectRegistryStatus.invalid);
-      expect(listed.single.referencedVersions, ['beta']);
-    });
-  });
-
-  group('ProjectRegistryService usage', () {
-    test('counts distinct flavor and primary versions', () async {
-      final context = contextWithClock();
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('stable'),
-      );
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('beta'),
-      );
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('3.10.0'),
-      );
-
-      final projectDir = configuredProject(
+  group('calculateUsage', () {
+    test('maps flutter and flavor pins to the projects that use them', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(
         name: 'flavored',
         flutter: 'stable',
         flavors: const {'dev': 'beta', 'legacy': 'beta'},
       );
       final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
+      service.track(Project.loadFromDirectory(projectDir));
 
-      final usage = await service.calculateUsage();
-      final byVersion = {
-        for (final item in usage.versionUsage) item.version: item,
-      };
-      expect(byVersion['stable']!.projectCount, 1);
-      expect(byVersion['beta']!.projectCount, 1);
-      expect(byVersion['3.10.0']!.projectCount, 0);
-      expect(byVersion['3.10.0']!.unreferenced, isTrue);
-      expect(usage.unreferencedVersions, ['3.10.0']);
+      final usage = service.calculateUsage();
+
+      expect(usage.countFor('stable'), 1);
+      expect(usage.countFor('beta'), 1);
+      expect(usage.countFor('3.10.0'), 0);
+      expect(usage.projectPaths, [projectDir.resolveSymbolicLinksSync()]);
     });
 
-    test('does not mark the global version unreferenced', () async {
-      final context = contextWithClock();
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('stable'),
-      );
-      context.get<CacheService>().setGlobal(
-            context.get<CacheService>().getVersion(
-                  FlutterVersion.parse('stable'),
-                )!,
-          );
-
-      final usage = await context.get<ProjectRegistryService>().calculateUsage();
-      expect(usage.versionUsage.single.global, isTrue);
-      expect(usage.versionUsage.single.unreferenced, isFalse);
-      expect(usage.unreferencedVersions, isEmpty);
-    });
-
-    test('does not count last-known refs from missing projects', () async {
-      final context = contextWithClock();
-      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
-      final projectDir = configuredProject(name: 'gone_usage');
+    test('reads live config instead of the recorded snapshot', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(name: 'live');
       final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
-      projectDir.deleteSync(recursive: true);
+      service.track(Project.loadFromDirectory(projectDir));
 
-      final usage = await service.calculateUsage();
-      expect(usage.projects.single.referencedVersions, ['stable']);
-      expect(usage.versionUsage.single.projectCount, 0);
-      expect(usage.versionUsage.single.unreferenced, isTrue);
+      createProjectConfig(const ProjectConfig(flutter: 'beta'), projectDir);
+
+      final usage = service.calculateUsage();
+      expect(usage.countFor('stable'), 0);
+      expect(usage.countFor('beta'), 1);
     });
 
-    test('can ignore registry errors when calculating usage', () async {
-      final context = contextWithClock();
-      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
-      File(context.projectsRegistryPath)
-        ..createSync(recursive: true)
-        ..writeAsStringSync('not-json');
+    test('skips deleted and unconfigured projects without pruning them', () {
+      final context = TestFactory.fastContext();
+      final deleted = createConfiguredProject(name: 'gone');
+      final unconfigured = createConfiguredProject(name: 'plain');
       final service = context.get<ProjectRegistryService>();
+      service.track(Project.loadFromDirectory(deleted));
+      service.track(Project.loadFromDirectory(unconfigured));
 
-      await expectLater(
-        service.calculateUsage(),
-        throwsA(isA<ProjectRegistryException>()),
+      deleted.deleteSync(recursive: true);
+      File(p.join(unconfigured.path, kFvmConfigFileName)).deleteSync();
+      final legacy = File(
+        p.join(unconfigured.path, kFvmDirName, kFvmLegacyConfigFileName),
       );
+      if (legacy.existsSync()) legacy.deleteSync();
 
-      final usage = await service.calculateUsage(ignoreRegistryErrors: true);
-      expect(usage.projects, isEmpty);
-      expect(usage.versionUsage.single.unreferenced, isFalse);
-      expect(usage.unreferencedVersions, isEmpty);
-      expect(File(context.projectsRegistryPath).readAsStringSync(), 'not-json');
-      expect(
-        context.get<Logger>().outputs.any(
-              (line) => line.contains(context.projectsRegistryPath),
-            ),
-        isTrue,
-      );
+      final usage = service.calculateUsage();
+      expect(usage.countFor('stable'), 0);
+      expect(usage.projectPaths, isEmpty);
+      expect(registeredPaths(context), hasLength(2));
     });
 
-    test('includes an unregistered current project only when requested',
+    test('skips a project whose config is valid JSON of the wrong shape', () {
+      final context = TestFactory.fastContext();
+      final good = createConfiguredProject(name: 'good');
+      final broken = createConfiguredProject(name: 'broken');
+      final service = context.get<ProjectRegistryService>();
+      service.track(Project.loadFromDirectory(good));
+      service.track(Project.loadFromDirectory(broken));
+
+      // Throws a TypeError rather than an Exception when decoded.
+      File(p.join(broken.path, kFvmConfigFileName)).writeAsStringSync('[]');
+
+      final usage = service.calculateUsage();
+      expect(usage.countFor('stable'), 1);
+      expect(usage.projectPaths, [good.resolveSymbolicLinksSync()]);
+    });
+
+    test('ignores pins that cannot be parsed', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(name: 'invalid');
+      final service = context.get<ProjectRegistryService>();
+      service.track(Project.loadFromDirectory(projectDir));
+      File(p.join(projectDir.path, kFvmConfigFileName)).writeAsStringSync(
+        '{"flutter":"3.10.0@notachannel","flavors":{"ok":"beta"}}',
+      );
+
+      final usage = service.calculateUsage();
+      expect(usage.countFor('beta'), 1);
+      expect(usage.projectCountByVersion.keys, ['beta']);
+    });
+
+    test('matches a forked channel-qualified pin to its installed SDK',
         () async {
-      final projectDir = configuredProject(name: 'transient');
-      final context = contextWithClock(
-        workingDirectoryOverride: projectDir.path,
+      // A forked `x@channel` pin installs to `<fork>/x`, so matching on
+      // FlutterVersion.nameWithAlias would report the SDK in use here unused.
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(
+        name: 'forked',
+        flutter: 'myfork/3.10.0@beta',
       );
       FakeFlutterSdkFixture.install(
         context,
-        FlutterVersion.parse('stable'),
+        FlutterVersion.parse('myfork/3.10.0@beta'),
       );
-      final project = Project.loadFromDirectory(projectDir);
-      final service = context.get<ProjectRegistryService>();
+      final service = context.get<ProjectRegistryService>()
+        ..track(Project.loadFromDirectory(projectDir));
 
-      final withoutTransient = await service.calculateUsage();
-      expect(withoutTransient.versionUsage.single.projectCount, 0);
+      final usage = service.calculateUsage();
+      final installed = await context.get<CacheService>().getAllVersions();
 
-      final withTransient = await service.calculateUsage(
-        includeTransient: project,
-      );
-      expect(withTransient.versionUsage.single.projectCount, 1);
-      expect(File(context.projectsRegistryPath).existsSync(), isFalse);
+      expect(installed, hasLength(1));
+      expect(usage.isUnused(installed.single.nameWithAlias), isFalse);
     });
 
-    test('keeps fork and channel-qualified versions distinct', () async {
-      final context = contextWithClock();
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('3.10.0'),
-      );
-      FakeFlutterSdkFixture.install(
-        context,
-        FlutterVersion.parse('3.10.0@beta'),
-      );
-
-      final projectDir = configuredProject(
+    test('keeps fork and channel-qualified pins distinct', () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(
         name: 'qualified',
         flutter: '3.10.0@beta',
       );
       final service = context.get<ProjectRegistryService>();
-      await service.upsert(Project.loadFromDirectory(projectDir));
+      service.track(Project.loadFromDirectory(projectDir));
 
-      final usage = await service.calculateUsage();
-      final byVersion = {
-        for (final item in usage.versionUsage) item.version: item,
-      };
-      expect(byVersion['3.10.0']!.projectCount, 0);
-      expect(byVersion['3.10.0@beta']!.projectCount, 1);
+      final usage = service.calculateUsage();
+      expect(usage.countFor('3.10.0@beta'), 1);
+      expect(usage.countFor('3.10.0'), 0);
     });
-  });
 
-  group('automatic tracking', () {
-    test('skips registration when context.isCI is true', () async {
-      final projectDir = configuredProject(name: 'ci_app');
-      final context = contextWithClock(
-        environmentOverrides: const {'CI': 'true'},
+    test('counts an unregistered current project only when passed', () {
+      final projectDir = createConfiguredProject(name: 'transient');
+      final context = TestFactory.fastContext(
         workingDirectoryOverride: projectDir.path,
       );
+      final project = Project.loadFromDirectory(projectDir);
       final service = context.get<ProjectRegistryService>();
 
-      await service.trackAutomatically(Project.loadFromDirectory(projectDir));
-
+      expect(service.calculateUsage().countFor('stable'), 0);
+      expect(
+        service.calculateUsage(includeCurrent: project).countFor('stable'),
+        1,
+      );
       expect(File(context.projectsRegistryPath).existsSync(), isFalse);
     });
 
-    test('warns and leaves a malformed registry unchanged', () async {
-      final context = contextWithClock();
-      final file = File(context.projectsRegistryPath)
-        ..createSync(recursive: true);
-      file.writeAsStringSync('not-json');
+    test('does not double count an already registered current project', () {
+      final projectDir = createConfiguredProject(name: 'registered');
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: projectDir.path,
+      );
+      final project = Project.loadFromDirectory(projectDir);
+      final service = context.get<ProjectRegistryService>()..track(project);
 
-      await context.get<ProjectRegistryService>().trackAutomatically(
-            Project.loadFromDirectory(configuredProject(name: 'warn')),
-          );
+      expect(registeredPaths(context), [projectDir.resolveSymbolicLinksSync()]);
 
-      expect(file.readAsStringSync(), 'not-json');
+      final usage = service.calculateUsage(includeCurrent: project);
+      expect(usage.countFor('stable'), 1);
+      expect(usage.projectPaths, hasLength(1));
+    });
+
+    test('throws when the registry cannot be parsed', () {
+      final context = TestFactory.fastContext();
+      File(context.projectsRegistryPath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('not-json');
+
       expect(
-        context.get<Logger>().outputs.any(
-              (line) => line.contains(context.projectsRegistryPath),
-            ),
-        isTrue,
+        () => context.get<ProjectRegistryService>().calculateUsage(),
+        throwsA(
+          isA<ProjectRegistryException>().having(
+            (error) => error.message,
+            'message',
+            contains(context.projectsRegistryPath),
+          ),
+        ),
       );
     });
   });
 
   group('command tracking', () {
-    test('fvm use registers the project root', () async {
-      final projectDir = configuredProject(name: 'used');
-      final context = contextWithClock(
-        workingDirectoryOverride: projectDir.path,
-      );
-      final runner = TestFactory.fastCommandRunner(context: context);
-
-      final exitCode = await runner.run([
-        'fvm',
-        'use',
-        'stable',
-        '--force',
-        '--skip-setup',
-        '--skip-pub-get',
-      ]);
-
-      expect(exitCode, ExitCode.success.code);
-      final document =
-          await context.get<ProjectRegistryService>().loadDocument();
-      expect(document.projects, hasLength(1));
-      expect(document.projects.single.flutter, 'stable');
-    });
-
-    test('nested directory use refreshes one ancestor entry', () async {
-      final projectDir = configuredProject(name: 'nested');
-      final nested = Directory(p.join(projectDir.path, 'lib'))
-        ..createSync();
-      final context = contextWithClock(workingDirectoryOverride: nested.path);
-      final runner = TestFactory.fastCommandRunner(context: context);
-
-      await runner.run([
-        'fvm',
-        'use',
-        'stable',
-        '--force',
-        '--skip-setup',
-        '--skip-pub-get',
-      ]);
-      await runner.run([
-        'fvm',
-        'use',
-        'beta',
-        '--force',
-        '--skip-setup',
-        '--skip-pub-get',
-      ]);
-
-      final document =
-          await context.get<ProjectRegistryService>().loadDocument();
-      expect(document.projects, hasLength(1));
-      expect(
-        document.projects.single.path,
-        projectDir.resolveSymbolicLinksSync(),
-      );
-      expect(document.projects.single.flutter, 'beta');
-    });
-
-    test('use --flavor records the complete flavor map', () async {
-      final projectDir = configuredProject(
-        name: 'flavors',
-        flutter: 'stable',
-        flavors: const {'legacy': '3.10.0'},
-      );
-      final context = contextWithClock(
-        workingDirectoryOverride: projectDir.path,
-      );
-      final runner = TestFactory.fastCommandRunner(context: context);
-
-      await runner.run([
-        'fvm',
-        'use',
-        'beta',
-        '--flavor',
-        'preview',
-        '--force',
-        '--skip-setup',
-        '--skip-pub-get',
-      ]);
-
-      final document =
-          await context.get<ProjectRegistryService>().loadDocument();
-      expect(document.projects.single.flutter, 'beta');
-      expect(document.projects.single.flavors, {
-        'legacy': '3.10.0',
-        'preview': 'beta',
-      });
-    });
-
-    test('install without a version tracks through use exactly once', () async {
-      final projectDir = configuredProject(name: 'installed');
-      final context = contextWithClock(
-        workingDirectoryOverride: projectDir.path,
-      );
-      final runner = TestFactory.fastCommandRunner(context: context);
-
-      final exitCode = await runner.run([
-        'fvm',
-        'install',
-        '--no-setup',
-        '--skip-pub-get',
-      ]);
-
-      expect(exitCode, ExitCode.success.code);
-      final document =
-          await context.get<ProjectRegistryService>().loadDocument();
-      expect(document.projects, hasLength(1));
-      expect(
-        document.projects.single.firstSeenAt,
-        document.projects.single.lastSeenAt,
-      );
-    });
-
-    test('install <version> records the project pin, not the argument',
+    test('fvm use registers the project root from a nested directory',
         () async {
-      final projectDir = configuredProject(name: 'pinned', flutter: 'stable');
-      final context = contextWithClock(
-        workingDirectoryOverride: projectDir.path,
+      final projectDir = createConfiguredProject(name: 'nested');
+      final nested = Directory(p.join(projectDir.path, 'lib'))..createSync();
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: nested.path,
       );
-      final runner = TestFactory.fastCommandRunner(context: context);
-
-      final exitCode = await runner.run(['fvm', 'install', 'beta', '--no-setup']);
-
-      expect(exitCode, ExitCode.success.code);
-      final document =
-          await context.get<ProjectRegistryService>().loadDocument();
-      expect(document.projects.single.flutter, 'stable');
-    });
-
-    test('install <version> outside a configured project creates no entry',
-        () async {
-      final emptyDir = createTempDir('empty');
-      final context = contextWithClock(workingDirectoryOverride: emptyDir.path);
       final runner = TestFactory.fastCommandRunner(context: context);
 
       final exitCode = await runner.run([
         'fvm',
-        'install',
+        'use',
         'stable',
-        '--no-setup',
+        '--force',
+        '--skip-setup',
+        '--skip-pub-get',
       ]);
+
+      expect(exitCode, ExitCode.success.code);
+      expect(registeredPaths(context), [projectDir.resolveSymbolicLinksSync()]);
+    });
+
+    test('fvm install registers the surrounding project', () async {
+      final projectDir = createConfiguredProject(name: 'installed');
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: projectDir.path,
+      );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode =
+          await runner.run(['fvm', 'install', 'beta', '--no-setup']);
+
+      expect(exitCode, ExitCode.success.code);
+      expect(registeredPaths(context), [projectDir.resolveSymbolicLinksSync()]);
+    });
+
+    test('fvm install outside a configured project records nothing', () async {
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: createTempDir('empty').path,
+      );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode =
+          await runner.run(['fvm', 'install', 'stable', '--no-setup']);
 
       expect(exitCode, ExitCode.success.code);
       expect(File(context.projectsRegistryPath).existsSync(), isFalse);
     });
 
-    test('automatic registry failure does not fail use', () async {
-      final projectDir = configuredProject(name: 'resilient');
-      final context = contextWithClock(
+    test('a malformed registry does not fail fvm use', () async {
+      final projectDir = createConfiguredProject(name: 'resilient');
+      final context = TestFactory.fastContext(
         workingDirectoryOverride: projectDir.path,
       );
       File(context.projectsRegistryPath)
@@ -633,7 +338,10 @@ void main() {
       ]);
 
       expect(exitCode, ExitCode.success.code);
-      expect(File(p.join(projectDir.path, kFvmConfigFileName)).existsSync(), isTrue);
+      expect(
+        File(p.join(projectDir.path, kFvmConfigFileName)).existsSync(),
+        isTrue,
+      );
     });
   });
 }
