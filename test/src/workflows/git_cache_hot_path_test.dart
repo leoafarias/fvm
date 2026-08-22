@@ -49,39 +49,41 @@ void main() {
       expect(flutterService.installUseGitCacheValues, equals([true]));
     });
 
-    test('flutter and dart proxy commands do not maintain shared cache',
-        () async {
-      final context = TestFactory.fastContext();
-      final version = FlutterVersion.parse('3.10.0');
-      final cachedVersion = FakeFlutterSdkFixture.install(
-        context,
-        version,
-        state: FakeFlutterSdkState.installedSetup,
-      );
-      context.get<CacheService>().setGlobal(cachedVersion);
+    test(
+      'flutter and dart proxy commands do not maintain shared cache',
+      () async {
+        final context = TestFactory.fastContext();
+        final version = FlutterVersion.parse('3.10.0');
+        final cachedVersion = FakeFlutterSdkFixture.install(
+          context,
+          version,
+          state: FakeFlutterSdkState.installedSetup,
+        );
+        context.get<CacheService>().setGlobal(cachedVersion);
 
-      final gitService = context.get<GitService>() as FakeGitService;
-      final flutterService =
-          context.get<FlutterService>() as FakeFlutterService;
-      final workflow = RunConfiguredFlutterWorkflow(context);
+        final gitService = context.get<GitService>() as FakeGitService;
+        final flutterService =
+            context.get<FlutterService>() as FakeFlutterService;
+        final workflow = RunConfiguredFlutterWorkflow(context);
 
-      final flutterResult = await workflow.call(
-        'flutter',
-        args: ['--version'],
-      );
-      final dartResult = await workflow.call(
-        'dart',
-        args: ['--version'],
-      );
+        final flutterResult = await workflow.call(
+          'flutter',
+          args: ['--version'],
+        );
+        final dartResult = await workflow.call(
+          'dart',
+          args: ['--version'],
+        );
 
-      expect(flutterResult.exitCode, 0);
-      expect(dartResult.exitCode, 0);
-      expect(gitService.ensureBareCacheCalls, 0);
-      expect(gitService.updateLocalMirrorCalls, 0);
-      expect(
-        flutterService.runCalls.map((call) => call.cmd),
-        equals(['flutter', 'dart']),
-      );
-    });
+        expect(flutterResult.exitCode, 0);
+        expect(dartResult.exitCode, 0);
+        expect(gitService.ensureBareCacheCalls, 0);
+        expect(gitService.updateLocalMirrorCalls, 0);
+        expect(
+          flutterService.runCalls.map((call) => call.cmd),
+          equals(['flutter', 'dart']),
+        );
+      },
+    );
   });
 }
