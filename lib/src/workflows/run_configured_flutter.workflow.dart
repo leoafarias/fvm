@@ -23,14 +23,20 @@ class RunConfiguredFlutterWorkflow extends Workflow {
       final version = get<ValidateFlutterVersionWorkflow>().call(
         projectVersion,
       );
-      selectedVersion = await get<EnsureCacheWorkflow>().call(version);
+      selectedVersion = await get<EnsureCacheWorkflow>().call(
+        version,
+        maintainGitCache: false,
+      );
       logger.debug(
         '$kPackageName: Running Flutter from version "$projectVersion"',
       );
     } else {
       final globalVersion = get<CacheService>().getGlobal();
       if (globalVersion != null) {
-        selectedVersion = await get<EnsureCacheWorkflow>().call(globalVersion);
+        selectedVersion = await get<EnsureCacheWorkflow>().call(
+          globalVersion,
+          maintainGitCache: false,
+        );
         logger.debug(
           '$kPackageName: Running Flutter from global version "${globalVersion.flutterSdkVersion}"',
         );
