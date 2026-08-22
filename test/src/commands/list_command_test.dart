@@ -125,6 +125,50 @@ void main() {
       expect(response.unreferencedVersions, ['3.10.0']);
     });
 
+    test(
+      'counts an untracked configured project so its SDK is not unreferenced',
+      () async {
+        final projectDir = createConfiguredProject(name: 'fresh_clone');
+        final context = TestFactory.fastContext(
+          workingDirectoryOverride: projectDir.path,
+        );
+        FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+        FakeFlutterSdkFixture.install(context, FlutterVersion.parse('beta'));
+        expect(File(context.projectsRegistryPath).existsSync(), isFalse);
+        final runner = TestFactory.fastCommandRunner(context: context);
+
+        final printed = await runnerZoned(runner, [
+          'fvm',
+          'api',
+          'list',
+          '--compress',
+        ]);
+
+        final response = GetCacheVersionsResponse.fromJson(printed.join());
+        expect(response.projects, [projectDir.resolveSymbolicLinksSync()]);
+        expect(response.unreferencedVersions, ['beta']);
+        expect(File(context.projectsRegistryPath).existsSync(), isFalse);
+      },
+    );
+
+    test('does not list the global version as unreferenced', () async {
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+      final cache = context.get<CacheService>();
+      cache.setGlobal(cache.getVersion(FlutterVersion.parse('stable'))!);
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final printed = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--compress',
+      ]);
+
+      final response = GetCacheVersionsResponse.fromJson(printed.join());
+      expect(response.unreferencedVersions, isEmpty);
+    });
+
     test('fails on a malformed registry without rewriting it', () async {
       final context = TestFactory.fastContext();
       File(context.projectsRegistryPath)

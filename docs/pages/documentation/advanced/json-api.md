@@ -104,9 +104,10 @@ fvm api list [options]
 ```
 
 `projects` lists the project roots considered when computing
-`unreferencedVersions`: every root recorded for this cache, plus the project
-you run the command from when it is configured. `unreferencedVersions` lists
-installed versions that none of them pin (the global version is never listed).
+`unreferencedVersions`: recorded roots that still load as configured FVM
+projects, plus the project you run the command from when it is configured.
+`unreferencedVersions` lists installed versions that none of them pin (the
+global version is never listed).
 Roots are recorded when you run `fvm use` or `fvm install` inside them, so
 treat `unreferencedVersions` as a hint rather than proof that an SDK is unused.
 

@@ -202,7 +202,8 @@ class CacheService extends ContextualService {
   /// knows it as `<fork>/x`. Callers matching a project's pin against installed
   /// SDKs must compare this, not [FlutterVersion.nameWithAlias].
   ///
-  /// Returns null when [version] does not resolve inside the cache.
+  /// This is a path derivation, not an existence check. It returns null only
+  /// when the computed directory is not inside the versions cache.
   String? installedNameOf(FlutterVersion version) {
     return _relativeVersionNameFromCachePath(getVersionCacheDir(version).path);
   }

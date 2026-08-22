@@ -106,8 +106,9 @@ class ProjectRegistryService extends ContextualService {
   /// a flavor.
   ///
   /// Names come from [CacheService.installedNameOf] so they match what the
-  /// cache actually stores. A pin is silently dropped when it cannot name an
-  /// installed SDK at all, since it can never match one either.
+  /// cache actually stores. A pin is skipped when it cannot be parsed or
+  /// resolves outside the cache directory, since it can never match an
+  /// installed SDK either.
   Set<String> _pinnedVersionsOf(ProjectConfig config) {
     final cache = get<CacheService>();
     final versions = <String>{};
@@ -130,15 +131,17 @@ class ProjectRegistryService extends ContextualService {
   /// process: tracking is best-effort, so skipping it always beats stalling
   /// the command that triggered it.
   bool _tryLock(RandomAccessFile handle) {
-    for (var attempt = 0; attempt < 20; attempt++) {
+    const attempts = 20;
+    const retry = Duration(milliseconds: 25);
+    for (var attempt = 0; attempt < attempts; attempt++) {
       try {
         handle.lockSync(FileLock.exclusive);
 
         return true;
       } on FileSystemException {
-        // Held by another FVM process.
+        // Retry for the lock budget; lockSync throws when held or on IO errors.
       }
-      sleep(const Duration(milliseconds: 25));
+      sleep(retry);
     }
 
     return false;

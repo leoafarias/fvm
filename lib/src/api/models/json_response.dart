@@ -25,7 +25,8 @@ class GetCacheVersionsResponse extends APIResponse
   final List<CacheFlutterVersion> versions;
 
   /// Project roots considered when computing [unreferencedVersions]:
-  /// everything recorded for this cache, plus the current project.
+  /// recorded roots that still load as configured FVM projects, plus the
+  /// current project when it has a config and is not already in that list.
   final List<String> projects;
 
   /// Installed versions no project in [projects] pins, excluding the global

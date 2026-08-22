@@ -34,6 +34,11 @@ The script sets:
 - `FVM_FLUTTER_URL` to a local `file://` Git URL
 - `FVM_USE_GIT_CACHE=true`
 
+It also unsets `CI`, `GITHUB_ACTIONS`, and the other keys FVM treats as CI.
+Tracking is skipped when any of those keys is present, and `isCI` uses
+`containsKey`, so an empty `CI=` still counts. Without unsetting them, the
+registry assertions fail on GitHub Actions even though `use` succeeded.
+
 It should not mutate the user's normal FVM cache or global config. The temp directory is left in place for inspection and printed as `Smoke root`; remove it manually after reviewing.
 
 `FVM_FLUTTER_URL` must be a valid Git URL. Use a `file://` URL for local remotes; a plain filesystem path is rejected by FVM URL validation.
@@ -112,12 +117,22 @@ printf 'name: fvm_smoke_workspace\npackages:\n  - .\n' > melos.yaml
 : > .gitignore
 
 run_fvm_skip() {
-  HOME="$HOME_DIR" \
-  FVM_CACHE_PATH="$CACHE" \
-  FVM_GIT_CACHE_PATH="$GIT_CACHE" \
-  FVM_FLUTTER_URL="$REMOTE_URL" \
-  FVM_USE_GIT_CACHE=true \
-  dart run "$FVM_REPO/bin/main.dart" --fvm-skip-input "$@"
+  env \
+    -u CI \
+    -u TRAVIS \
+    -u CIRCLECI \
+    -u GITHUB_ACTIONS \
+    -u GITLAB_CI \
+    -u JENKINS_URL \
+    -u BAMBOO_BUILD_NUMBER \
+    -u TEAMCITY_VERSION \
+    -u TF_BUILD \
+    HOME="$HOME_DIR" \
+    FVM_CACHE_PATH="$CACHE" \
+    FVM_GIT_CACHE_PATH="$GIT_CACHE" \
+    FVM_FLUTTER_URL="$REMOTE_URL" \
+    FVM_USE_GIT_CACHE=true \
+    dart run "$FVM_REPO/bin/main.dart" --fvm-skip-input "$@"
 }
 
 run_fvm_interactive_with_yes() {
@@ -130,6 +145,15 @@ run_fvm_interactive_with_yes() {
 set timeout 90
 set main [file join $env(SMOKE_REPO) bin main.dart]
 spawn env \
+  -u CI \
+  -u TRAVIS \
+  -u CIRCLECI \
+  -u GITHUB_ACTIONS \
+  -u GITLAB_CI \
+  -u JENKINS_URL \
+  -u BAMBOO_BUILD_NUMBER \
+  -u TEAMCITY_VERSION \
+  -u TF_BUILD \
   "HOME=$env(SMOKE_HOME)" \
   "FVM_CACHE_PATH=$env(SMOKE_CACHE)" \
   "FVM_GIT_CACHE_PATH=$env(SMOKE_GIT_CACHE)" \

@@ -112,9 +112,11 @@ class FvmContext with FvmContextMappable {
     );
     final environment = {...Platform.environment};
     if (isTest) {
-      for (final variable in kCiEnvironmentVariables) {
-        environment.remove(variable);
-      }
+      // Host CI keys would skip registry tracking; strip them first so a
+      // test can opt back in through environmentOverrides.
+      environment.removeWhere(
+        (key, _) => kCiEnvironmentVariables.contains(key),
+      );
     }
     environment.addAll(environmentOverrides ?? const {});
 
