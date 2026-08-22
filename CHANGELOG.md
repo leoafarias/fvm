@@ -1,3 +1,7 @@
+## 4.1.5
+
+* perf: skip git-cache maintenance when running Flutter or Dart through an already-installed SDK (#1066)
+
 ## 4.1.4
 
 * fix: stop git-cache maintenance from running destructive git commands against repositories FVM does not own (#1060)
