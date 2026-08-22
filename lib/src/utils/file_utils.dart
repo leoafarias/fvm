@@ -1,5 +1,21 @@
 import 'dart:io';
 
+/// Whether [error] indicates that another process currently holds a file lock.
+bool isFileLockContentionError(FileSystemException error) {
+  if (Platform.isWindows) {
+    final errorCode = error.osError?.errorCode;
+    if (errorCode == 32 || errorCode == 33) return true;
+  }
+
+  final message = error.message.toLowerCase();
+
+  return message.contains('lock failed') ||
+      message.contains('resource temporarily unavailable') ||
+      message.contains('operation would block') ||
+      message.contains('already locked') ||
+      message.contains('being used by another process');
+}
+
 /// Deletes [directory] with retries on Windows to work around file locks.
 ///
 /// Returns `true` when the directory no longer exists. On failure the last

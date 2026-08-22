@@ -205,7 +205,13 @@ class CacheService extends ContextualService {
   /// This is a path derivation, not an existence check. It returns null only
   /// when the computed directory is not inside the versions cache.
   String? installedNameOf(FlutterVersion version) {
-    return _relativeVersionNameFromCachePath(getVersionCacheDir(version).path);
+    try {
+      return _relativeVersionNameFromCachePath(
+        getVersionCacheDir(version).path,
+      );
+    } on AppException {
+      return null;
+    }
   }
 
   // For backward compatibility - used by existing string-based calls

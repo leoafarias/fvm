@@ -29,10 +29,8 @@ class ApiService extends ContextualService {
     bool skipCacheSizeCalculation = false,
   }) async {
     final versions = await get<CacheService>().getAllVersions();
-    // Fold in the current project like `fvm list` does, so a fresh clone with
-    // a committed .fvmrc does not report its own SDK unreferenced.
     final usage = get<ProjectRegistryService>().calculateUsage(
-      includeCurrent: get<ProjectService>().findAncestor(),
+      includeCurrent: get<ProjectService>().tryFindAncestor(),
     );
 
     var size = 0;

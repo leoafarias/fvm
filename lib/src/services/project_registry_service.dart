@@ -7,6 +7,7 @@ import '../models/flutter_version_model.dart';
 import '../models/project_model.dart';
 import '../models/project_registry_model.dart';
 import '../utils/exceptions.dart';
+import '../utils/file_utils.dart';
 import 'base_service.dart';
 import 'cache_service.dart';
 
@@ -51,9 +52,7 @@ class ProjectRegistryService extends ContextualService {
     return parseProjectRegistry(contents, registryPath: _registryPath);
   }
 
-  /// Stages the new contents beside the registry and renames it into place, so
-  /// a failed write can never leave a partial `projects.json` behind. Renaming
-  /// over an existing file replaces it on every platform `dart:io` supports.
+  /// Replaces the registry with a fully written temporary file.
   void _writePaths(List<String> projects) {
     final file = File(_registryPath);
     if (!file.parent.existsSync()) {
@@ -85,12 +84,9 @@ class ProjectRegistryService extends ContextualService {
   /// The live config of the project at [path], or null when the directory is
   /// gone or no longer an FVM project.
   ///
-  /// A registry entry is only a hint, so an unreadable project is skipped
-  /// rather than reported: one broken `.fvmrc` must not break `fvm list`.
-  ///
-  /// The bare catch is deliberate. A `.fvmrc` holding valid JSON of the wrong
-  /// shape (an array, say) makes `ProjectConfig.fromMap` throw a `TypeError`,
-  /// which `on Exception` would let escape.
+  /// The bare catch handles `.fvmrc` JSON of the wrong shape. An array, for
+  /// example, makes `ProjectConfig.fromMap` throw a `TypeError`, which
+  /// `on Exception` would let escape.
   ProjectConfig? _configAt(String path) {
     try {
       final root = Directory(path);
@@ -127,9 +123,7 @@ class ProjectRegistryService extends ContextualService {
     return versions;
   }
 
-  /// Polls for the registry lock, giving up rather than waiting on a hung
-  /// process: tracking is best-effort, so skipping it always beats stalling
-  /// the command that triggered it.
+  /// Tries briefly to acquire the registry lock.
   bool _tryLock(RandomAccessFile handle) {
     const attempts = 20;
     const retry = Duration(milliseconds: 25);
@@ -138,21 +132,17 @@ class ProjectRegistryService extends ContextualService {
         handle.lockSync(FileLock.exclusive);
 
         return true;
-      } on FileSystemException {
-        // Retry for the lock budget; lockSync throws when held or on IO errors.
+      } on FileSystemException catch (error) {
+        if (!isFileLockContentionError(error)) rethrow;
+        if (attempt == attempts - 1) return false;
+        sleep(retry);
       }
-      sleep(retry);
     }
 
     return false;
   }
 
-  /// Runs [action] holding an exclusive lock on the registry.
-  ///
-  /// Only writers need this. A reader always sees a whole file because
-  /// [_writePaths] renames a fully written one into place, but concurrent
-  /// `fvm use`/`fvm install` runs in a monorepo would otherwise interleave
-  /// read-modify-write and drop each other's registrations.
+  /// Serializes registry read-modify-write operations.
   void _withRegistryLock(void Function() action) {
     final lockFile = File('$_registryPath.lock');
     if (!lockFile.parent.existsSync()) {
@@ -179,8 +169,6 @@ class ProjectRegistryService extends ContextualService {
   String get _registryPath => context.projectsRegistryPath;
 
   /// Records [project] so `fvm list` can classify unused cached SDKs.
-  ///
-  /// Registry bookkeeping is secondary and never fails the parent command.
   void track(Project project) {
     if (context.isCI) {
       logger.debug('Skipping project registry tracking in CI');
@@ -192,9 +180,15 @@ class ProjectRegistryService extends ContextualService {
       final canonical = _canonicalize(project.path);
       _withRegistryLock(() {
         final known = _readPaths();
-        if (known.any((path) => p.equals(path, canonical))) return;
+        final active = [
+          for (final path in known)
+            if (_configAt(path) != null) path,
+        ];
+        final alreadyKnown = active.any((path) => p.equals(path, canonical));
+        if (alreadyKnown && active.length == known.length) return;
+        if (!alreadyKnown) active.add(canonical);
 
-        _writePaths([...known, canonical]);
+        _writePaths(active);
       });
     } on Exception catch (error, stackTrace) {
       logger.warn('Failed to update project registry: $error');
@@ -205,8 +199,7 @@ class ProjectRegistryService extends ContextualService {
   /// Which SDK versions the projects FVM knows about are using, together with
   /// the globally linked version, which counts as in use on its own.
   ///
-  /// Pass [includeCurrent] to count a configured project that has not been
-  /// recorded yet, so `fvm list` never calls the current project's SDK unused.
+  /// [includeCurrent] also counts a configured but unrecorded project.
   ///
   /// Throws [ProjectRegistryException] when the registry exists but cannot be
   /// read; callers decide whether that is fatal.

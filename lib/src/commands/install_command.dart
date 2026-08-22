@@ -89,9 +89,11 @@ class InstallCommand extends BaseFvmCommand {
       await setupFlutter(cacheVersion);
     }
 
-    final project = get<ProjectService>().findAncestor();
-    if (project.hasConfig) {
-      get<ProjectRegistryService>().track(project);
+    if (!context.isCI) {
+      final project = get<ProjectService>().tryFindAncestor();
+      if (project != null && project.hasConfig) {
+        get<ProjectRegistryService>().track(project);
+      }
     }
 
     return ExitCode.success.code;

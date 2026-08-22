@@ -5,16 +5,12 @@ import '../utils/pretty_json.dart';
 
 /// Writable schema version for the cache-local project registry.
 ///
-/// The registry deliberately stores nothing but project paths. Pinned versions
-/// are always read back from each project's live config, so the file can never
-/// disagree with a project's `.fvmrc`, and entries never need repairing.
+/// The registry stores project paths; pinned versions come from live configs.
 const kProjectRegistrySchemaVersion = 1;
 
 /// Reads the project roots out of registry JSON.
 ///
-/// Throws [ProjectRegistryException] rather than silently repairing anything it
-/// could not faithfully rewrite, so a registry written by a newer FVM is never
-/// clobbered by an older one.
+/// Throws [ProjectRegistryException] for formats this FVM cannot safely update.
 List<String> parseProjectRegistry(
   String contents, {
   required String registryPath,

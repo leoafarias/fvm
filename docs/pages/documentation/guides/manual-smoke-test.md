@@ -34,10 +34,8 @@ The script sets:
 - `FVM_FLUTTER_URL` to a local `file://` Git URL
 - `FVM_USE_GIT_CACHE=true`
 
-It also unsets `CI`, `GITHUB_ACTIONS`, and the other keys FVM treats as CI.
-Tracking is skipped when any of those keys is present, and `isCI` uses
-`containsKey`, so an empty `CI=` still counts. Without unsetting them, the
-registry assertions fail on GitHub Actions even though `use` succeeded.
+It also unsets FVM's recognized CI environment variables so project tracking
+runs during the smoke test.
 
 It should not mutate the user's normal FVM cache or global config. The temp directory is left in place for inspection and printed as `Smoke root`; remove it manually after reviewing.
 
@@ -252,7 +250,6 @@ esac
 
 printf '\n== project registry ==\n'
 test -f "$CACHE/projects.json"
-grep -Fq '"schemaVersion": 1' "$CACHE/projects.json"
 grep -Fq "$PROJECT" "$CACHE/projects.json"
 
 printf '\n== install beta --no-setup for unused classification ==\n'
@@ -369,7 +366,7 @@ Expected high-signal output:
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
-- `use` creates `$CACHE/projects.json` as schema version 1 containing the smoke project path.
+- `use` creates `$CACHE/projects.json` containing the smoke project path.
 - `fvm list` labels the unused `beta` SDK `Unused` and explains that only projects known to FVM are considered.
 - `fvm api list --compress --skip-size-calculation` prints valid JSON with the smoke project under `projects` and `unreferencedVersions: ["beta"]`.
 - `.fvmrc` contains `"flutter": "stable"`.

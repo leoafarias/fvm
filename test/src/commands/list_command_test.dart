@@ -8,6 +8,7 @@ import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/logger_service.dart';
 import 'package:fvm/src/services/project_registry_service.dart';
 import 'package:io/io.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 
 import '../../testing_utils.dart';
@@ -99,6 +100,24 @@ void main() {
       final output = plainOutput(context.get<Logger>());
       expect(output, contains(context.projectsRegistryPath));
       expect(output, isNot(unusedCell));
+    });
+
+    test('still lists versions when the local pin resolves outside the cache',
+        () async {
+      final projectDir = createConfiguredProject(
+        name: 'unsafe_pin',
+        flutter: '../evil',
+      );
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: projectDir.path,
+      );
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode = await runner.run(['fvm', 'list']);
+
+      expect(exitCode, ExitCode.success.code);
+      expect(plainOutput(context.get<Logger>()), unusedCell);
     });
   });
 
@@ -199,6 +218,28 @@ void main() {
       final decoded = jsonDecode(printed.join()) as Map<String, dynamic>;
       expect(decoded['projects'], isEmpty);
       expect(decoded['unreferencedVersions'], isEmpty);
+    });
+
+    test('ignores malformed current project metadata', () async {
+      final projectDir = createTempDir('malformed_api_project');
+      File(p.join(projectDir.path, 'pubspec.yaml'))
+          .writeAsStringSync('name: [');
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: projectDir.path,
+      );
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final printed = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--compress',
+      ]);
+
+      final response = GetCacheVersionsResponse.fromJson(printed.join());
+      expect(response.projects, isEmpty);
+      expect(response.unreferencedVersions, ['stable']);
     });
   });
 }

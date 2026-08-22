@@ -96,6 +96,46 @@ void main() {
         isTrue,
       );
     });
+
+    test('waits briefly for another writer to release the registry lock',
+        () async {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(name: 'locked');
+      final helper =
+          File(p.join(createTempDir('lock_helper').path, 'hold.dart'))
+            ..writeAsStringSync(r'''
+import 'dart:io';
+
+Future<void> main(List<String> args) async {
+  final file = File(args[0]);
+  file.parent.createSync(recursive: true);
+  final handle = file.openSync(mode: FileMode.write);
+  handle.lockSync(FileLock.exclusive);
+  stdout.writeln('locked');
+  await stdout.flush();
+  await Future<void>.delayed(Duration(milliseconds: int.parse(args[1])));
+  handle.unlockSync();
+  handle.closeSync();
+}
+''');
+      final process = await Process.start(Platform.resolvedExecutable, [
+        helper.path,
+        '${context.projectsRegistryPath}.lock',
+        '150',
+      ]);
+      addTearDown(process.kill);
+      await process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .firstWhere((line) => line == 'locked');
+
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
+
+      expect(await process.exitCode, 0);
+      expect(registeredPaths(context), [projectDir.resolveSymbolicLinksSync()]);
+    });
   });
 
   group('calculateUsage', () {
@@ -130,7 +170,7 @@ void main() {
       expect(usage.countFor('beta'), 1);
     });
 
-    test('skips deleted and unconfigured projects without pruning them', () {
+    test('prunes stale projects on the next successful write', () {
       final context = TestFactory.fastContext();
       final deleted = createConfiguredProject(name: 'gone');
       final unconfigured = createConfiguredProject(name: 'plain');
@@ -149,6 +189,11 @@ void main() {
       expect(usage.countFor('stable'), 0);
       expect(usage.projectPaths, isEmpty);
       expect(registeredPaths(context), hasLength(2));
+
+      final current = createConfiguredProject(name: 'current');
+      service.track(Project.loadFromDirectory(current));
+
+      expect(registeredPaths(context), [current.resolveSymbolicLinksSync()]);
     });
 
     test('skips a project whose config is valid JSON of the wrong shape', () {
@@ -315,6 +360,26 @@ void main() {
           await runner.run(['fvm', 'install', 'stable', '--no-setup']);
 
       expect(exitCode, ExitCode.success.code);
+      expect(File(context.projectsRegistryPath).existsSync(), isFalse);
+    });
+
+    test('broken project metadata does not fail an explicit install', () async {
+      final projectDir = createTempDir('broken_install');
+      File(p.join(projectDir.path, 'pubspec.yaml'))
+          .writeAsStringSync('name: [');
+      final context = TestFactory.fastContext(
+        workingDirectoryOverride: projectDir.path,
+      );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode =
+          await runner.run(['fvm', 'install', 'stable', '--no-setup']);
+
+      expect(exitCode, ExitCode.success.code);
+      expect(
+        context.get<CacheService>().getVersion(FlutterVersion.parse('stable')),
+        isNotNull,
+      );
       expect(File(context.projectsRegistryPath).existsSync(), isFalse);
     });
 

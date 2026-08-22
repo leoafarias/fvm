@@ -78,8 +78,6 @@ myproject/
 - `FVM_GIT_CACHE_PATH` - Git cache location
 - `FVM_FLUTTER_URL` - Custom Flutter repo
 
-FVM records the projects you run `fvm use` or `fvm install` in at `$FVM_CACHE_PATH/projects.json`, so `fvm list` can flag cached SDKs no project pins. The file contains absolute local paths; do not share it if those directory names should stay private. Prefer `fvm api list` for integrations.
-
 ## Tips
 
 - Use `fvm doctor` to troubleshoot issues

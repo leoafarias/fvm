@@ -111,11 +111,6 @@ global version is never listed).
 Roots are recorded when you run `fvm use` or `fvm install` inside them, so
 treat `unreferencedVersions` as a hint rather than proof that an SDK is unused.
 
-The persisted `<FVM_CACHE_PATH>/projects.json` file is an internal storage
-contract that stores absolute local paths. Read it through `fvm api list` so
-later storage changes do not break integrations, and do not share it if those
-directory names should stay private.
-
 ### `releases`
 
 Provides a list of available Flutter SDK releases.
