@@ -1,5 +1,4 @@
 import 'package:fvm/fvm.dart';
-import 'package:fvm/src/services/cache_service.dart';
 import 'package:fvm/src/services/flutter_service.dart';
 import 'package:fvm/src/services/git_service.dart';
 import 'package:fvm/src/workflows/ensure_cache.workflow.dart';
@@ -22,7 +21,7 @@ void main() {
       final gitService = context.get<GitService>() as FakeGitService;
       final result = await EnsureCacheWorkflow(context).call(
         version,
-        maintainGitCache: false,
+        maintainGitCacheOnHit: false,
       );
 
       expect(result.name, version.name);
@@ -40,7 +39,7 @@ void main() {
       final result = await EnsureCacheWorkflow(context).call(
         version,
         shouldInstall: true,
-        maintainGitCache: false,
+        maintainGitCacheOnHit: false,
       );
 
       expect(result.name, version.name);
@@ -49,21 +48,13 @@ void main() {
       expect(flutterService.installUseGitCacheValues, equals([true]));
     });
 
-    test(
-      'flutter and dart proxy commands do not maintain shared cache',
-      () async {
-        final context = TestFactory.fastContext();
+    group('configured execution', () {
+      test('project flutter and dart commands skip shared cache', () async {
         final version = FlutterVersion.parse('3.10.0');
-        final cachedVersion = FakeFlutterSdkFixture.install(
-          context,
+        final context = _projectContextWithInstalledSdk(
           version,
-          state: FakeFlutterSdkState.installedSetup,
+          tempPrefix: 'git_cache_project_hot_path',
         );
-        context.get<CacheService>().setGlobal(cachedVersion);
-
-        final gitService = context.get<GitService>() as FakeGitService;
-        final flutterService =
-            context.get<FlutterService>() as FakeFlutterService;
         final workflow = RunConfiguredFlutterWorkflow(context);
 
         final flutterResult = await workflow.call(
@@ -77,13 +68,87 @@ void main() {
 
         expect(flutterResult.exitCode, 0);
         expect(dartResult.exitCode, 0);
-        expect(gitService.ensureBareCacheCalls, 0);
-        expect(gitService.updateLocalMirrorCalls, 0);
-        expect(
-          flutterService.runCalls.map((call) => call.cmd),
-          equals(['flutter', 'dart']),
+        _expectNoSharedGitCacheMaintenance(context, ['flutter', 'dart']);
+      });
+
+      test('global flutter and dart commands skip shared cache', () async {
+        final context = TestFactory.fastContext();
+        final version = FlutterVersion.parse('3.10.0');
+        final cachedVersion = FakeFlutterSdkFixture.install(
+          context,
+          version,
+          state: FakeFlutterSdkState.installedSetup,
         );
-      },
-    );
+        context.get<CacheService>().setGlobal(cachedVersion);
+
+        final workflow = RunConfiguredFlutterWorkflow(context);
+
+        final flutterResult = await workflow.call(
+          'flutter',
+          args: ['--version'],
+        );
+        final dartResult = await workflow.call(
+          'dart',
+          args: ['--version'],
+        );
+
+        expect(flutterResult.exitCode, 0);
+        expect(dartResult.exitCode, 0);
+        _expectNoSharedGitCacheMaintenance(context, ['flutter', 'dart']);
+      });
+
+      test('exec command skips shared cache maintenance', () async {
+        final version = FlutterVersion.parse('3.10.0');
+        final context = _projectContextWithInstalledSdk(
+          version,
+          tempPrefix: 'git_cache_exec_hot_path',
+        );
+
+        final runner = TestCommandRunner(context);
+
+        final exitCode = await runner.run([
+          'fvm',
+          'exec',
+          'flutter',
+          '--version',
+        ]);
+
+        expect(exitCode, 0);
+        _expectNoSharedGitCacheMaintenance(context, ['flutter']);
+      });
+    });
   });
+}
+
+FvmContext _projectContextWithInstalledSdk(
+  FlutterVersion version, {
+  required String tempPrefix,
+}) {
+  final projectDir = createTempDir(tempPrefix);
+  createProjectConfig(ProjectConfig(flutter: version.name), projectDir);
+  final context = TestFactory.fastContext(
+    workingDirectoryOverride: projectDir.path,
+  );
+  FakeFlutterSdkFixture.install(
+    context,
+    version,
+    state: FakeFlutterSdkState.installedSetup,
+  );
+
+  return context;
+}
+
+void _expectNoSharedGitCacheMaintenance(
+  FvmContext context,
+  List<String> expectedCommands,
+) {
+  final gitService = context.get<GitService>() as FakeGitService;
+  final flutterService = context.get<FlutterService>() as FakeFlutterService;
+
+  expect(gitService.ensureBareCacheCalls, 0);
+  expect(gitService.updateLocalMirrorCalls, 0);
+  expect(
+    flutterService.runCalls.map((call) => call.cmd),
+    equals(expectedCommands),
+  );
 }

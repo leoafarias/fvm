@@ -116,15 +116,16 @@ class EnsureCacheWorkflow extends Workflow {
   ///
   /// Returns a [CacheFlutterVersion] which represents the locally cached version.
   ///
-  /// When [maintainGitCache] is false, an already-installed SDK skips shared
-  /// git-cache migration and validation. Cache misses still prepare the git
-  /// cache before installation.
+  /// When [maintainGitCacheOnHit] is false, an already-installed SDK leaves the
+  /// shared git cache unchanged. Legacy migration, shape checks, and
+  /// connectivity validation are deferred until a maintenance caller or cache
+  /// miss prepares the git cache for installation.
   Future<CacheFlutterVersion> call(
     FlutterVersion version, {
     bool shouldInstall = false,
     bool force = false,
     int retryCount = 0,
-    bool maintainGitCache = true,
+    bool maintainGitCacheOnHit = true,
   }) async {
     _validateContext();
     _validateGit();
@@ -139,7 +140,7 @@ class EnsureCacheWorkflow extends Workflow {
     // Refresh the git cache only when we actually need to clone (cache miss).
     final useGitCache = context.gitCache;
     var useGitCacheForInstall = useGitCache;
-    final shouldPrepareGitCache = maintainGitCache || cacheVersion == null;
+    final shouldPrepareGitCache = maintainGitCacheOnHit || cacheVersion == null;
     if (shouldPrepareGitCache && !version.fromFork) {
       try {
         await gitService.ensureBareCacheIfPresent();
