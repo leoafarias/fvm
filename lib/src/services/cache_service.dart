@@ -194,6 +194,26 @@ class CacheService extends ContextualService {
     return _safeCacheDirectory([version.name]);
   }
 
+  /// The name [getAllVersions] reports for [version] once it is installed.
+  ///
+  /// Derived from the cache directory rather than from [version] directly, so
+  /// it stays correct where the directory drops part of the requested version:
+  /// a forked `x@channel` pin installs to `<fork>/x`, so the cache only ever
+  /// knows it as `<fork>/x`. Callers matching a project's pin against installed
+  /// SDKs must compare this, not [FlutterVersion.nameWithAlias].
+  ///
+  /// This is a path derivation, not an existence check. It returns null only
+  /// when the computed directory is not inside the versions cache.
+  String? installedNameOf(FlutterVersion version) {
+    try {
+      return _relativeVersionNameFromCachePath(
+        getVersionCacheDir(version).path,
+      );
+    } on AppException {
+      return null;
+    }
+  }
+
   // For backward compatibility - used by existing string-based calls
   @Deprecated('Use getVersionCacheDir(FlutterVersion) instead')
   Directory getVersionCacheDirByName(String version) {

@@ -142,11 +142,15 @@ void main() {
       withoutSizeCalculationResponse = GetCacheVersionsResponse(
         size: '',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       sizeCalculationResponse = GetCacheVersionsResponse(
         size: '100MB',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       // Configure API service mock

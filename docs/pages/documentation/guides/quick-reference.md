@@ -74,7 +74,7 @@ myproject/
 
 ## Environment Variables
 
-- `FVM_CACHE_PATH` - Custom cache directory
+- `FVM_CACHE_PATH` - Custom cache directory (also selects that cache's project registry)
 - `FVM_GIT_CACHE_PATH` - Git cache location
 - `FVM_FLUTTER_URL` - Custom Flutter repo
 

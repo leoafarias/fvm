@@ -56,16 +56,6 @@ class GitService extends ContextualService {
     }
   }
 
-  bool _isLockContentionError(FileSystemException error) {
-    final message = error.message.toLowerCase();
-
-    return message.contains('lock failed') ||
-        message.contains('resource temporarily unavailable') ||
-        message.contains('operation would block') ||
-        message.contains('already locked') ||
-        message.contains('being used by another process');
-  }
-
   /// Serializes git cache reads and writes through a single file lock.
   Future<T> _withGitCacheLock<T>(Future<T> Function() action) async {
     final lockFile = File('${context.gitCachePath}.lock');
@@ -91,7 +81,7 @@ class GitService extends ContextualService {
             await lockHandle.lock(FileLock.exclusive);
             lockAcquired = true;
           } on FileSystemException catch (error, stackTrace) {
-            if (!_isLockContentionError(error)) {
+            if (!isFileLockContentionError(error)) {
               Error.throwWithStackTrace(
                 AppException(
                   'Failed to acquire git cache lock at ${lockFile.path}: ${error.message}',

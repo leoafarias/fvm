@@ -5,8 +5,6 @@ import 'package:path/path.dart' as p;
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
-  const ProcessService(super.context);
-
   /// Environment variables that bind a git invocation to a specific
   /// repository (the set reported by `git rev-parse --local-env-vars`).
   ///
@@ -33,13 +31,7 @@ class ProcessService extends ContextualService {
     'GIT_COMMON_DIR',
   };
 
-  Map<String, String> _scrubbedGitEnvironment(
-    Map<String, String>? environment,
-  ) {
-    return {...context.environment, ...?environment}..removeWhere(
-        (key, _) => _gitRepositoryScopedEnvVars.contains(key.toUpperCase()),
-      );
-  }
+  const ProcessService(super.context);
 
   /// Whether [command] operates on git repositories FVM manages: git
   /// itself, and the Flutter/Dart SDK tools (which spawn their own git
@@ -48,6 +40,14 @@ class ProcessService extends ContextualService {
     final name = p.basenameWithoutExtension(command).toLowerCase();
 
     return name == 'git' || name == 'flutter' || name == 'dart';
+  }
+
+  Map<String, String> _scrubbedGitEnvironment(
+    Map<String, String>? environment,
+  ) {
+    return {...context.environment, ...?environment}..removeWhere(
+        (key, _) => _gitRepositoryScopedEnvVars.contains(key.toUpperCase()),
+      );
   }
 
   void _throwIfProcessFailed(

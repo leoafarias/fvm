@@ -18,6 +18,7 @@ Run this before handoff when changes touch:
 - `EnsureCacheWorkflow`
 - install/use/global command behavior
 - project reference or SDK symlink behavior
+- project registry tracking or unused-SDK classification in `fvm list`
 - non-interactive prompt handling
 - `.fvmrc`, `.gitignore`, Melos, or VS Code project updates
 
@@ -32,6 +33,9 @@ The script sets:
 - `FVM_GIT_CACHE_PATH` to a temp bare git cache
 - `FVM_FLUTTER_URL` to a local `file://` Git URL
 - `FVM_USE_GIT_CACHE=true`
+
+It also unsets FVM's recognized CI environment variables so project tracking
+runs during the smoke test.
 
 It should not mutate the user's normal FVM cache or global config. The temp directory is left in place for inspection and printed as `Smoke root`; remove it manually after reviewing.
 
@@ -97,6 +101,7 @@ git commit -m 'seed hidden-only ref' >/dev/null
 HIDDEN_SHA="$(git rev-parse HEAD)"
 git update-ref refs/pull/1/head "$HIDDEN_SHA"
 git checkout stable >/dev/null 2>&1
+git branch beta stable
 
 git clone --bare "$FAKE_REMOTE_WORK" "$FAKE_REMOTE_BARE" >/dev/null 2>&1
 git --git-dir="$FAKE_REMOTE_BARE" symbolic-ref HEAD refs/heads/stable
@@ -110,12 +115,22 @@ printf 'name: fvm_smoke_workspace\npackages:\n  - .\n' > melos.yaml
 : > .gitignore
 
 run_fvm_skip() {
-  HOME="$HOME_DIR" \
-  FVM_CACHE_PATH="$CACHE" \
-  FVM_GIT_CACHE_PATH="$GIT_CACHE" \
-  FVM_FLUTTER_URL="$REMOTE_URL" \
-  FVM_USE_GIT_CACHE=true \
-  dart run "$FVM_REPO/bin/main.dart" --fvm-skip-input "$@"
+  env \
+    -u CI \
+    -u TRAVIS \
+    -u CIRCLECI \
+    -u GITHUB_ACTIONS \
+    -u GITLAB_CI \
+    -u JENKINS_URL \
+    -u BAMBOO_BUILD_NUMBER \
+    -u TEAMCITY_VERSION \
+    -u TF_BUILD \
+    HOME="$HOME_DIR" \
+    FVM_CACHE_PATH="$CACHE" \
+    FVM_GIT_CACHE_PATH="$GIT_CACHE" \
+    FVM_FLUTTER_URL="$REMOTE_URL" \
+    FVM_USE_GIT_CACHE=true \
+    dart run "$FVM_REPO/bin/main.dart" --fvm-skip-input "$@"
 }
 
 run_fvm_interactive_with_yes() {
@@ -128,6 +143,15 @@ run_fvm_interactive_with_yes() {
 set timeout 90
 set main [file join $env(SMOKE_REPO) bin main.dart]
 spawn env \
+  -u CI \
+  -u TRAVIS \
+  -u CIRCLECI \
+  -u GITHUB_ACTIONS \
+  -u GITLAB_CI \
+  -u JENKINS_URL \
+  -u BAMBOO_BUILD_NUMBER \
+  -u TEAMCITY_VERSION \
+  -u TF_BUILD \
   "HOME=$env(SMOKE_HOME)" \
   "FVM_CACHE_PATH=$env(SMOKE_CACHE)" \
   "FVM_GIT_CACHE_PATH=$env(SMOKE_GIT_CACHE)" \
@@ -224,6 +248,38 @@ case "$LIST_OUTPUT" in
   *) echo "fvm list did not include the fake Flutter version" >&2; exit 1 ;;
 esac
 
+printf '\n== project registry ==\n'
+test -f "$CACHE/projects.json"
+grep -Fq "$PROJECT" "$CACHE/projects.json"
+
+printf '\n== install beta --no-setup for unused classification ==\n'
+run_fvm_skip install beta --no-setup
+
+printf '\n== fvm list unused ==\n'
+LIST_AFTER_BETA="$(run_fvm_skip list)"
+printf '%s\n' "$LIST_AFTER_BETA"
+case "$LIST_AFTER_BETA" in
+  *"Unused"*) ;;
+  *) echo "fvm list did not classify the unused beta SDK" >&2; exit 1 ;;
+esac
+case "$LIST_AFTER_BETA" in
+  *"no project known to FVM pins that SDK"*) ;;
+  *) echo "fvm list did not explain the Unused label" >&2; exit 1 ;;
+esac
+
+printf '\n== fvm api list ==\n'
+API_LIST="$(run_fvm_skip api list --compress --skip-size-calculation)"
+printf '%s\n' "$API_LIST"
+case "$API_LIST" in
+  *"$PROJECT"*) ;;
+  *) echo "fvm api list did not include the smoke project path" >&2; exit 1 ;;
+esac
+case "$API_LIST" in
+  *'"unreferencedVersions":["beta"]'*) ;;
+  *) echo "fvm api list did not list beta in unreferencedVersions" >&2; exit 1 ;;
+esac
+printf '%s\n' "$API_LIST" | python3 -c 'import json,sys; json.load(sys.stdin)'
+
 printf '\n== project files ==\n'
 printf '.fvmrc:\n'
 sed -n '1,20p' .fvmrc
@@ -310,6 +366,9 @@ Expected high-signal output:
 - The second `use stable --force --skip-setup --skip-pub-get` run answers the Melos prompt with `yes` through `expect` and writes `sdkPath: .fvm/flutter_sdk`.
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
+- `use` creates `$CACHE/projects.json` containing the smoke project path.
+- `fvm list` labels the unused `beta` SDK `Unused` and explains that only projects known to FVM are considered.
+- `fvm api list --compress --skip-size-calculation` prints valid JSON with the smoke project under `projects` and `unreferencedVersions: ["beta"]`.
 - `.fvmrc` contains `"flutter": "stable"`.
 - `.fvm/fvm_config.json` contains `"flutterSdkVersion": "stable"`.
 - `.fvm/version` contains `3.99.0-smoke`.

@@ -116,7 +116,14 @@ fvm list
 
 ### Output
 
-Shows all cached SDK versions with their installation paths.
+Shows each cached SDK, whether it is selected locally or globally, and how many
+known projects pin it. Versions that no known project pins and that are not
+selected globally are labeled `Unused`.
+
+FVM learns about a project when you run `fvm use` or `fvm install` inside it.
+Because it does not scan your disks, treat `Unused` as a cleanup hint rather
+than proof that an SDK can be removed. See [known projects](/documentation/getting-started/faq#where-does-fvm-store-known-projects)
+for details.
 
 ## releases
 

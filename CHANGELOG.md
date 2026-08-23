@@ -1,3 +1,9 @@
+## 4.2.0
+
+* feat: add a `Projects` column to `fvm list` that shows how many known projects pin each cached SDK. Versions that no known project pins and that are not selected globally are labeled `Unused`. FVM records projects after `fvm use` or `fvm install` and reads their current `.fvmrc` values when listing
+* feat: expose the project roots used for SDK classification and the resulting unused versions through `fvm api list` as `projects` and `unreferencedVersions`
+* fix: correctly match forked channel pins such as `myfork/3.24.0@beta` to the installed `myfork/3.24.0` SDK in the `Local` and `Projects` columns
+
 ## 4.1.5
 
 * perf: skip git-cache maintenance when running Flutter or Dart through an already-installed SDK (#1066)

@@ -24,10 +24,24 @@ class GetCacheVersionsResponse extends APIResponse
   final String size;
   final List<CacheFlutterVersion> versions;
 
+  /// Project roots considered when computing [unreferencedVersions]:
+  /// recorded roots that still load as configured FVM projects, plus the
+  /// current project when it has a config and is not already in that list.
+  final List<String> projects;
+
+  /// Installed versions no project in [projects] pins, excluding the global
+  /// one.
+  final List<String> unreferencedVersions;
+
   static final fromMap = GetCacheVersionsResponseMapper.fromMap;
   static final fromJson = GetCacheVersionsResponseMapper.fromJson;
 
-  const GetCacheVersionsResponse({required this.size, required this.versions});
+  const GetCacheVersionsResponse({
+    required this.size,
+    required this.versions,
+    required this.projects,
+    required this.unreferencedVersions,
+  });
 }
 
 @MappableClass()
