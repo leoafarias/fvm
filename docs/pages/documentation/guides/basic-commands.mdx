@@ -120,10 +120,37 @@ Shows each cached SDK, whether it is selected locally or globally, and how many
 known projects pin it. Versions that no known project pins and that are not
 selected globally are labeled `Unused`.
 
+`Local` refers only to the project containing the directory where `fvm list`
+runs. When that project has no `.fvmrc`, no cached SDK is marked local.
+
 FVM learns about a project when you run `fvm use` or `fvm install` inside it.
 Because it does not scan your disks, treat `Unused` as a cleanup hint rather
 than proof that an SDK can be removed. See [known projects](/documentation/getting-started/faq#where-does-fvm-store-known-projects)
 for details.
+
+## cleanup
+
+Shows cached patch upgrades and unused SDKs without changing projects. FVM
+lists SDKs that no known project or global setting uses, and commands to
+move pins onto the newest cached patch in the same major/minor line.
+
+```bash
+fvm cleanup
+```
+
+Patch upgrades include the project directory and exact `fvm use` command to
+run. They are never applied automatically. A cached patch that is the
+recommended upgrade target is kept even if `fvm list` labels it `Unused`.
+Because FVM only knows projects it has previously recorded, unused SDK
+removal remains explicit:
+
+```bash
+# Review unused SDKs and confirm removal
+fvm cleanup --remove-unused
+
+# Remove unused SDKs without prompting
+fvm cleanup --remove-unused --yes
+```
 
 ## releases
 
@@ -479,6 +506,14 @@ fvm api list [options]
 
 **Options:**
 - `-s, --skip-size-calculation` - Skips cache size calculation
+
+#### api cleanup
+
+Returns cached patch upgrades and unused SDK names as JSON.
+
+```bash
+fvm api cleanup [--compress]
+```
 
 #### api releases
 

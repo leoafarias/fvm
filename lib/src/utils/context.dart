@@ -9,6 +9,7 @@ import '../models/log_level_model.dart';
 import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/cleanup_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
@@ -258,6 +259,7 @@ const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
   ProjectRegistryService: ProjectRegistryService.new,
   CacheService: CacheService.new,
+  CleanupService: CleanupService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
   FlutterService: FlutterService.new,
   ApiService: ApiService.new,

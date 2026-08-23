@@ -59,6 +59,7 @@ class APICommand extends BaseFvmCommand {
 
   APICommand(super.context) {
     addSubcommand(APIListCommand(context));
+    addSubcommand(APICleanupCommand(context));
     addSubcommand(APIReleasesCommand(context));
     addSubcommand(APIContextCommand(context));
     addSubcommand(APIProjectCommand(context));
@@ -66,6 +67,22 @@ class APICommand extends BaseFvmCommand {
 
   @override
   String get invocation => 'fvm api [command]';
+}
+
+class APICleanupCommand extends APISubCommand<GetCleanupResponse> {
+  @override
+  final name = 'cleanup';
+
+  @override
+  final description =
+      'Returns cached patch upgrades and unused SDK names as JSON';
+
+  APICleanupCommand(super.context);
+
+  @override
+  Future<GetCleanupResponse> runSubCommand() {
+    return get<ApiService>().getCleanup();
+  }
 }
 
 class APIContextCommand extends APISubCommand<GetContextResponse> {

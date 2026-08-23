@@ -181,6 +181,20 @@ class ListCommand extends BaseFvmCommand {
       usage,
     );
 
+    if (pinned == null) {
+      logger.info(
+        'Local shows the SDK pinned by the project in the current directory; '
+        'none is configured here.',
+      );
+    } else if (localVersion == null ||
+        !cacheVersions.any(
+          (version) => version.nameWithAlias == localVersion,
+        )) {
+      logger.info(
+        'Local version ${pinned.nameWithAlias} is configured but not cached.',
+      );
+    }
+
     if (usage != null) {
       logger.info(
         '"Unused" means no project known to FVM pins that SDK. Projects are '

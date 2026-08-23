@@ -1,3 +1,9 @@
+## Next
+
+* feat: add `fvm cleanup` with cached patch upgrade recommendations and opt-in removal of SDKs unused by known projects
+* feat: add `fvm api cleanup` for structured patch upgrade actions and unused SDK names
+* fix: explain when `fvm list` has no local project version to mark
+
 ## 4.2.0
 
 * feat: add a `Projects` column to `fvm list` that shows how many known projects pin each cached SDK. Versions that no known project pins and that are not selected globally are labeled `Unused`. FVM records projects after `fvm use` or `fvm install` and reads their current `.fvmrc` values when listing

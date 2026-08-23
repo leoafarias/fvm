@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
 import '../../models/cache_flutter_version_model.dart';
+import '../../models/cleanup_model.dart';
 import '../../models/project_model.dart';
 import '../../services/releases_service/models/version_model.dart';
 import '../../utils/context.dart';
@@ -42,6 +43,17 @@ class GetCacheVersionsResponse extends APIResponse
     required this.projects,
     required this.unreferencedVersions,
   });
+}
+
+@MappableClass()
+class GetCleanupResponse extends APIResponse with GetCleanupResponseMappable {
+  final List<PatchUpgrade> upgrades;
+  final List<String> unused;
+
+  static final fromMap = GetCleanupResponseMapper.fromMap;
+  static final fromJson = GetCleanupResponseMapper.fromJson;
+
+  const GetCleanupResponse({required this.upgrades, required this.unused});
 }
 
 @MappableClass()
