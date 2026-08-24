@@ -34,6 +34,7 @@ class CleanupCommand extends BaseFvmCommand {
   void _printPlan({
     required List<PatchUpgrade> upgrades,
     required List<String> unused,
+    required List<String> removable,
   }) {
     if (upgrades.isEmpty && unused.isEmpty) {
       logger.info('No patch upgrades or unused SDKs.');
@@ -67,7 +68,7 @@ class CleanupCommand extends BaseFvmCommand {
       logger.info(
         'No known project pins these SDKs and they are not selected globally.',
       );
-      if (!boolArg('remove-unused')) {
+      if (removable.isNotEmpty && !boolArg('remove-unused')) {
         logger.info(
           'Run "fvm cleanup --remove-unused" to review and remove them.',
         );
@@ -103,7 +104,11 @@ class CleanupCommand extends BaseFvmCommand {
   Future<int> run() async {
     final plan = await get<CleanupService>().plan();
 
-    _printPlan(upgrades: plan.upgrades, unused: plan.unused);
+    _printPlan(
+      upgrades: plan.upgrades,
+      unused: plan.unused,
+      removable: plan.removable,
+    );
 
     if (boolArg('remove-unused')) {
       await _removeUnusedSdks(plan.removable);

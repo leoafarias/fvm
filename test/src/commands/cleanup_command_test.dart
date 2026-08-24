@@ -80,6 +80,7 @@ void main() {
           'Newer cached patches recommended as upgrade targets are not',
         ),
       );
+      expect(output, isNot(contains('fvm cleanup --remove-unused')));
     });
 
     test('does not remove unused SDKs with --yes alone', () async {
