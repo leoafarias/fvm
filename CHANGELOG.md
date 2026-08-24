@@ -1,7 +1,7 @@
-## Next
+## 4.3.0
 
-* feat: add `fvm cleanup` with cached patch upgrade recommendations and opt-in removal of SDKs unused by known projects
-* feat: add `fvm api cleanup` for structured patch upgrade actions, unused SDK names, and the removable subset
+* feat: add `fvm cleanup` to preview unused cached SDKs and exact same-line stable patch upgrades, and to remove unused versions with `--remove-unused`. Recommended upgrade targets stay cached until a project or global pin moves; `fvm list` Unused now points here
+* feat: add `fvm api cleanup` with `upgrades`, `unused`, and `removable`. `unused` matches `fvm list` Unused and `fvm api list` `unreferencedVersions`; `removable` is what `--remove-unused` would delete
 * fix: explain when `fvm list` has no local project version to mark
 
 ## 4.2.0
