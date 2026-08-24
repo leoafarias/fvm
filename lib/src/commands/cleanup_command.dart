@@ -34,7 +34,6 @@ class CleanupCommand extends BaseFvmCommand {
   void _printPlan({
     required List<PatchUpgrade> upgrades,
     required List<String> unused,
-    required bool removingUnused,
   }) {
     if (upgrades.isEmpty && unused.isEmpty) {
       logger.info('No patch upgrades or unused SDKs.');
@@ -47,10 +46,10 @@ class CleanupCommand extends BaseFvmCommand {
       for (final upgrade in upgrades) {
         logger.info('  ${upgrade.fromVersion} → ${upgrade.toVersion}');
         for (final action in upgrade.actions) {
-          if (action.workingDirectory != null) {
-            logger.info('    Project: ${action.workingDirectory}');
-          }
           logger.info('    Run: fvm ${action.arguments.join(' ')}');
+          if (action.workingDirectory != null) {
+            logger.info('    in ${action.workingDirectory}');
+          }
         }
       }
       logger.info(
@@ -68,7 +67,7 @@ class CleanupCommand extends BaseFvmCommand {
       logger.info(
         'No known project pins these SDKs and they are not selected globally.',
       );
-      if (!removingUnused) {
+      if (!boolArg('remove-unused')) {
         logger.info(
           'Run "fvm cleanup --remove-unused" to review and remove them.',
         );
@@ -104,14 +103,9 @@ class CleanupCommand extends BaseFvmCommand {
   Future<int> run() async {
     final plan = await get<CleanupService>().plan();
 
-    final removingUnused = boolArg('remove-unused');
-    _printPlan(
-      upgrades: plan.upgrades,
-      unused: plan.unused,
-      removingUnused: removingUnused,
-    );
+    _printPlan(upgrades: plan.upgrades, unused: plan.unused);
 
-    if (removingUnused) {
+    if (boolArg('remove-unused')) {
       await _removeUnusedSdks(plan.unused);
     }
 

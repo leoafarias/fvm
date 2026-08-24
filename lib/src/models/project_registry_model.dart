@@ -84,7 +84,8 @@ class CacheProjectUsage {
   });
 
   /// How many known projects pin [version], as their Flutter version or through
-  /// a flavor.
+  /// a flavor. A project that pins the same SDK more than once still counts as
+  /// one.
   int countFor(String version) {
     final references = projectReferencesByVersion[version];
     if (references == null || references.isEmpty) return 0;

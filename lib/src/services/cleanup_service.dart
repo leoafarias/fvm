@@ -33,12 +33,14 @@ class CleanupService extends ContextualService {
     for (final candidates in candidatesByLine.values) {
       candidates.sort((a, b) => b.version.compareTo(a.version));
       final latest = candidates.first;
+      final toVersion = latest.cached.nameWithAlias;
 
       for (final candidate in candidates.skip(1)) {
         if (candidate.version == latest.version) continue;
+        final fromVersion = candidate.cached.nameWithAlias;
         final actions = _upgradeActions(
-          currentVersion: candidate.cached.nameWithAlias,
-          targetVersion: latest.cached.nameWithAlias,
+          currentVersion: fromVersion,
+          targetVersion: toVersion,
           usage: usage,
         );
         if (actions.isEmpty) continue;
@@ -46,8 +48,8 @@ class CleanupService extends ContextualService {
         ranked.add(
           (
             upgrade: PatchUpgrade(
-              fromVersion: candidate.cached.nameWithAlias,
-              toVersion: latest.cached.nameWithAlias,
+              fromVersion: fromVersion,
+              toVersion: toVersion,
               reason:
                   'A newer cached patch release is available in the ${candidate.version.major}.${candidate.version.minor} line.',
               actions: actions,

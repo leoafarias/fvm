@@ -81,6 +81,80 @@ void main() {
       expect(plan.upgrades, isEmpty);
     });
 
+    test('does not recommend patch upgrades for prerelease versions', () async {
+      final project = createConfiguredProject(
+        name: 'prerelease_pin',
+        flutter: '3.10.0-1.0.pre',
+      );
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('3.10.0-1.0.pre'),
+      );
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(project),
+          );
+
+      final plan = await context.get<CleanupService>().plan();
+
+      expect(plan.upgrades, isEmpty);
+    });
+
+    test('recommends a same-fork cached patch upgrade', () async {
+      final project = createConfiguredProject(
+        name: 'same_fork',
+        flutter: 'myfork/3.10.0',
+      );
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('myfork/3.10.0'),
+      );
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('myfork/3.10.5'),
+      );
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(project),
+          );
+
+      final plan = await context.get<CleanupService>().plan();
+
+      final upgrade = plan.upgrades.singleWhere(
+        (item) => item.fromVersion == 'myfork/3.10.0',
+      );
+      expect(upgrade.toVersion, 'myfork/3.10.5');
+    });
+
+    test('recommends a global-only cached patch upgrade', () async {
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
+      final latest = FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('3.10.5'),
+      );
+      context.get<CacheService>().setGlobal(
+            context.get<CacheService>().getVersion(
+                  FlutterVersion.parse('3.10.0'),
+                )!,
+          );
+
+      final plan = await context.get<CleanupService>().plan();
+
+      final upgrade = plan.upgrades.singleWhere(
+        (item) => item.fromVersion == '3.10.0',
+      );
+      expect(upgrade.toVersion, '3.10.5');
+      expect(
+        upgrade.actions.map((action) => action.arguments),
+        [
+          ['global', '3.10.5'],
+        ],
+      );
+      expect(plan.unused, isNot(contains(latest.nameWithAlias)));
+    });
+
     test('does not recommend patch upgrades across forks', () async {
       final project = createConfiguredProject(
         name: 'forked_line',

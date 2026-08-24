@@ -47,7 +47,13 @@ class GetCacheVersionsResponse extends APIResponse
 
 @MappableClass()
 class GetCleanupResponse extends APIResponse with GetCleanupResponseMappable {
+  /// Same-line cached patch upgrades. Actions are never applied automatically.
   final List<PatchUpgrade> upgrades;
+
+  /// Installed SDK names `fvm cleanup --remove-unused` would delete.
+  ///
+  /// Unlike [GetCacheVersionsResponse.unreferencedVersions], this omits newer
+  /// cached patches that [upgrades] still recommend as targets.
   final List<String> unused;
 
   static final fromMap = GetCleanupResponseMapper.fromMap;

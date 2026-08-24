@@ -82,6 +82,20 @@ void main() {
       );
     });
 
+    test('does not remove unused SDKs with --yes alone', () async {
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode = await runner.run(['fvm', 'cleanup', '--yes']);
+
+      expect(exitCode, ExitCode.success.code);
+      expect(
+        context.get<CacheService>().getVersion(FlutterVersion.parse('3.10.0')),
+        isNotNull,
+      );
+    });
+
     test('does not remove unused SDKs without confirmation', () async {
       final context = TestFactory.fastContext(skipInput: true);
       FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
