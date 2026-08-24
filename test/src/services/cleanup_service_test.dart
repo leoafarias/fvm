@@ -62,7 +62,8 @@ void main() {
           ),
           isTrue,
         );
-        expect(plan.unused, isNot(contains(latest.nameWithAlias)));
+        expect(plan.unused, contains(latest.nameWithAlias));
+        expect(plan.removable, isNot(contains(latest.nameWithAlias)));
         expect(plan.unused, contains('beta'));
       },
     );
@@ -152,7 +153,8 @@ void main() {
           ['global', '3.10.5'],
         ],
       );
-      expect(plan.unused, isNot(contains(latest.nameWithAlias)));
+      expect(plan.unused, contains(latest.nameWithAlias));
+      expect(plan.removable, isNot(contains(latest.nameWithAlias)));
     });
 
     test('does not recommend patch upgrades across forks', () async {
@@ -218,8 +220,9 @@ void main() {
         plan.upgrades.where((upgrade) => upgrade.fromVersion == '3.10.0'),
         hasLength(1),
       );
-      expect(plan.unused, contains('3.10.1'));
-      expect(plan.unused, isNot(contains('3.10.5')));
+      expect(plan.unused, containsAll(['3.10.1', '3.10.5']));
+      expect(plan.removable, contains('3.10.1'));
+      expect(plan.removable, isNot(contains('3.10.5')));
     });
   });
 }

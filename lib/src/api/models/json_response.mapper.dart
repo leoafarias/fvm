@@ -249,16 +249,22 @@ class GetCleanupResponseMapper extends ClassMapperBase<GetCleanupResponse> {
   static List<String> _$unused(GetCleanupResponse v) => v.unused;
   static const Field<GetCleanupResponse, List<String>> _f$unused =
       Field('unused', _$unused);
+  static List<String> _$removable(GetCleanupResponse v) => v.removable;
+  static const Field<GetCleanupResponse, List<String>> _f$removable =
+      Field('removable', _$removable);
 
   @override
   final MappableFields<GetCleanupResponse> fields = const {
     #upgrades: _f$upgrades,
     #unused: _f$unused,
+    #removable: _f$removable,
   };
 
   static GetCleanupResponse _instantiate(DecodingData data) {
     return GetCleanupResponse(
-        upgrades: data.dec(_f$upgrades), unused: data.dec(_f$unused));
+        upgrades: data.dec(_f$upgrades),
+        unused: data.dec(_f$unused),
+        removable: data.dec(_f$removable));
   }
 
   @override
@@ -319,7 +325,11 @@ abstract class GetCleanupResponseCopyWith<$R, $In extends GetCleanupResponse,
   ListCopyWith<$R, PatchUpgrade,
       PatchUpgradeCopyWith<$R, PatchUpgrade, PatchUpgrade>> get upgrades;
   ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get unused;
-  $R call({List<PatchUpgrade>? upgrades, List<String>? unused});
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable;
+  $R call(
+      {List<PatchUpgrade>? upgrades,
+      List<String>? unused,
+      List<String>? removable});
   GetCleanupResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -342,15 +352,24 @@ class _GetCleanupResponseCopyWithImpl<$R, $Out>
       ListCopyWith($value.unused, (v, t) => ObjectCopyWith(v, $identity, t),
           (v) => call(unused: v));
   @override
-  $R call({List<PatchUpgrade>? upgrades, List<String>? unused}) =>
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable =>
+      ListCopyWith($value.removable, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(removable: v));
+  @override
+  $R call(
+          {List<PatchUpgrade>? upgrades,
+          List<String>? unused,
+          List<String>? removable}) =>
       $apply(FieldCopyWithData({
         if (upgrades != null) #upgrades: upgrades,
-        if (unused != null) #unused: unused
+        if (unused != null) #unused: unused,
+        if (removable != null) #removable: removable
       }));
   @override
   GetCleanupResponse $make(CopyWithData data) => GetCleanupResponse(
       upgrades: data.get(#upgrades, or: $value.upgrades),
-      unused: data.get(#unused, or: $value.unused));
+      unused: data.get(#unused, or: $value.unused),
+      removable: data.get(#removable, or: $value.removable));
 
   @override
   GetCleanupResponseCopyWith<$R2, GetCleanupResponse, $Out2> $chain<$R2, $Out2>(

@@ -75,7 +75,7 @@ class APICleanupCommand extends APISubCommand<GetCleanupResponse> {
 
   @override
   final description =
-      'Returns cached patch upgrades and unused SDK names as JSON';
+      'Returns cached patch upgrades, unused SDK names, and removable SDKs as JSON';
 
   APICleanupCommand(super.context);
 

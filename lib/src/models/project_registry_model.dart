@@ -100,6 +100,15 @@ class CacheProjectUsage {
   /// SDK counts as in use even when no project pins it.
   bool isUnused(String version) =>
       version != globalVersion && countFor(version) == 0;
+
+  /// Sorted installed names that [isUnused] considers unused.
+  ///
+  /// Same membership as `fvm list` Unused and `fvm api list`
+  /// `unreferencedVersions`.
+  List<String> unusedNames(Iterable<String> installed) => [
+        for (final name in installed)
+          if (isUnused(name)) name,
+      ]..sort();
 }
 
 /// A primary or flavor pin in a known project config.

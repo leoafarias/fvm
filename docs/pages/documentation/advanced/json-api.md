@@ -31,14 +31,15 @@ fvm api releases [--compress] [--limit <n>] [--filter-channel <channel>]
 
 ### cleanup
 
-Returns cached patch upgrades and unused SDK names.
+Returns cached patch upgrades, unused SDK names, and the removable subset.
 
 ```bash
 fvm api cleanup [--compress]
 ```
 
 Patch upgrades include the project directory and the `fvm` arguments to run.
-Unused names are the SDKs `fvm cleanup --remove-unused` would delete.
+`unused` is the same unpinned set as `fvm api list` `unreferencedVersions`.
+`removable` is what `fvm cleanup --remove-unused` would delete.
 
 ### context
 
@@ -124,7 +125,7 @@ treat `unreferencedVersions` as a hint rather than proof that an SDK is unused.
 
 ### `cleanup`
 
-Returns cached patch upgrades and unused SDK names.
+Returns cached patch upgrades, unused SDK names, and the removable subset.
 
 **Usage:**
 
@@ -149,16 +150,17 @@ fvm api cleanup [--compress]
       ]
     }
   ],
-  "unused": ["3.38.6"]
+  "unused": ["3.38.6", "3.44.8"],
+  "removable": ["3.38.6"]
 }
 ```
 
 Patch upgrades only consolidate exact stable releases within the same cached
 major/minor line and fork. Channel-qualified pins such as `3.10.0@beta` are
-not upgraded. `unused` skips versions that are recommended as patch upgrade
-targets, even if `fvm list` labels them Unused. Project actions include
-`workingDirectory`; global actions do not. Each action's `arguments` are the
-tokens after `fvm`.
+not upgraded. `unused` is the same unpinned set as `unreferencedVersions`.
+`removable` omits versions that `upgrades` still recommend as targets.
+Project actions include `workingDirectory`; global actions do not. Each
+action's `arguments` are the tokens after `fvm`.
 
 ### `releases`
 

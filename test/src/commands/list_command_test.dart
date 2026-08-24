@@ -296,6 +296,43 @@ void main() {
         upgrade.actions.single.workingDirectory,
         projectDir.resolveSymbolicLinksSync(),
       );
+      expect(response.unused, contains('3.10.5'));
+      expect(response.removable, isNot(contains('3.10.5')));
+    });
+
+    test('unused matches api list unreferencedVersions', () async {
+      final projectDir = createConfiguredProject(
+        name: 'same_unused',
+        flutter: '3.10.0',
+      );
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.5'));
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('beta'));
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final listPrinted = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--compress',
+        '--skip-size-calculation',
+      ]);
+      final cleanupPrinted = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'cleanup',
+        '--compress',
+      ]);
+
+      final list = GetCacheVersionsResponse.fromJson(listPrinted.join());
+      final cleanup = GetCleanupResponse.fromJson(cleanupPrinted.join());
+      expect(cleanup.unused, list.unreferencedVersions);
+      expect(cleanup.unused, containsAll(['3.10.5', 'beta']));
+      expect(cleanup.removable, ['beta']);
     });
 
     test('lists unused SDK names', () async {
@@ -314,6 +351,7 @@ void main() {
       final response = GetCleanupResponse.fromJson(printed.join());
       expect(response.upgrades, isEmpty);
       expect(response.unused, ['beta', 'stable']);
+      expect(response.removable, ['beta', 'stable']);
     });
 
     test('fails on a malformed registry without rewriting it', () async {

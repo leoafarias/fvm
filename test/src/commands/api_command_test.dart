@@ -211,7 +211,11 @@ void main() {
 
   group('APICleanupCommand', () {
     test('returns cleanup data', () async {
-      const response = GetCleanupResponse(upgrades: [], unused: []);
+      const response = GetCleanupResponse(
+        upgrades: [],
+        unused: [],
+        removable: [],
+      );
       when(() => apiService.getCleanup()).thenAnswer((_) async => response);
 
       final result = await runnerZoned(runner, [

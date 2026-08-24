@@ -12,8 +12,10 @@ import 'project_service.dart';
 ///
 /// Patch upgrades cover exact stable releases on the same fork and major/minor
 /// line, and only when a project or the global setting still pins the older
-/// SDK. Unused names then skip those recommended targets so a later `fvm use`
-/// can still find them.
+/// SDK. [CleanupPlan.unused] is the same unpinned set as `fvm list`.
+/// [CleanupPlan.removable] drops recommended upgrade targets so
+/// `--remove-unused` cannot delete an SDK the plan just told the user to
+/// switch to.
 class CleanupService extends ContextualService {
   const CleanupService(super.context);
 
@@ -92,28 +94,48 @@ class CleanupService extends ContextualService {
     return actions;
   }
 
-  /// Cached patch upgrades to run by hand, and SDK names safe to remove.
-  Future<({List<PatchUpgrade> upgrades, List<String> unused})> plan() async {
+  /// Cached patch upgrades to run by hand, and unused SDK names.
+  Future<CleanupPlan> plan() async {
     final versions = await get<CacheService>().getAllVersions();
     final usage = get<ProjectRegistryService>().calculateUsage(
       includeCurrent: get<ProjectService>().tryFindAncestor(),
     );
     final upgrades = _patchUpgrades(versions, usage);
-    // Keep recommended patch targets even when nothing pins them yet, so
-    // `fvm cleanup --remove-unused` cannot delete the SDK an upgrade action
-    // just told the user to switch to.
+    final unused = usage.unusedNames([
+      for (final version in versions) version.nameWithAlias,
+    ]);
     final upgradeTargets = {
       for (final upgrade in upgrades) upgrade.toVersion,
     };
-    final unused = [
-      for (final version in versions)
-        if (usage.isUnused(version.nameWithAlias) &&
-            !upgradeTargets.contains(version.nameWithAlias))
-          version.nameWithAlias,
-    ]..sort();
+    final removable = [
+      for (final name in unused)
+        if (!upgradeTargets.contains(name)) name,
+    ];
 
-    return (upgrades: upgrades, unused: unused);
+    return CleanupPlan(
+      upgrades: upgrades,
+      unused: unused,
+      removable: removable,
+    );
   }
+}
+
+/// Result of [CleanupService.plan].
+class CleanupPlan {
+  /// Same-line cached patch upgrades. Never applied automatically.
+  final List<PatchUpgrade> upgrades;
+
+  /// Unpinned installed names; same set as `fvm list` Unused.
+  final List<String> unused;
+
+  /// [unused] minus [upgrades] targets; what `--remove-unused` deletes.
+  final List<String> removable;
+
+  const CleanupPlan({
+    required this.upgrades,
+    required this.unused,
+    required this.removable,
+  });
 }
 
 class _PatchCandidate {

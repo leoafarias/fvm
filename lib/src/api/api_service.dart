@@ -48,10 +48,9 @@ class ApiService extends ContextualService {
       size: formatFriendlyBytes(size),
       versions: versions,
       projects: usage.projectPaths,
-      unreferencedVersions: [
-        for (final version in versions)
-          if (usage.isUnused(version.nameWithAlias)) version.nameWithAlias,
-      ]..sort(),
+      unreferencedVersions: usage.unusedNames([
+        for (final version in versions) version.nameWithAlias,
+      ]),
     );
   }
 
@@ -59,7 +58,11 @@ class ApiService extends ContextualService {
   Future<GetCleanupResponse> getCleanup() async {
     final plan = await get<CleanupService>().plan();
 
-    return GetCleanupResponse(upgrades: plan.upgrades, unused: plan.unused);
+    return GetCleanupResponse(
+      upgrades: plan.upgrades,
+      unused: plan.unused,
+      removable: plan.removable,
+    );
   }
 
   /// Returns available Flutter SDK releases with optional filtering.

@@ -139,10 +139,10 @@ fvm cleanup
 ```
 
 Patch upgrades include the project directory and exact `fvm use` command to
-run. They are never applied automatically. A cached patch that is the
-recommended upgrade target is kept even if `fvm list` labels it `Unused`.
-Because FVM only knows projects it has previously recorded, unused SDK
-removal remains explicit:
+run. They are never applied automatically. Cleanup lists the same unused
+SDK names as `fvm list`. `--remove-unused` still keeps a cached patch that
+is the recommended upgrade target. Because FVM only knows projects it has
+previously recorded, unused SDK removal remains explicit:
 
 ```bash
 # Review unused SDKs and confirm removal
@@ -509,7 +509,7 @@ fvm api list [options]
 
 #### api cleanup
 
-Returns cached patch upgrades and unused SDK names as JSON.
+Returns cached patch upgrades, unused SDK names, and the removable subset as JSON.
 
 ```bash
 fvm api cleanup [--compress]

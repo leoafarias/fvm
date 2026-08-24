@@ -50,16 +50,23 @@ class GetCleanupResponse extends APIResponse with GetCleanupResponseMappable {
   /// Same-line cached patch upgrades. Actions are never applied automatically.
   final List<PatchUpgrade> upgrades;
 
-  /// Installed SDK names `fvm cleanup --remove-unused` would delete.
-  ///
-  /// Unlike [GetCacheVersionsResponse.unreferencedVersions], this omits newer
-  /// cached patches that [upgrades] still recommend as targets.
+  /// Unpinned installed names; same membership as
+  /// [GetCacheVersionsResponse.unreferencedVersions].
   final List<String> unused;
+
+  /// [unused] minus recommended patch upgrade targets.
+  ///
+  /// This is the list `fvm cleanup --remove-unused` deletes.
+  final List<String> removable;
 
   static final fromMap = GetCleanupResponseMapper.fromMap;
   static final fromJson = GetCleanupResponseMapper.fromJson;
 
-  const GetCleanupResponse({required this.upgrades, required this.unused});
+  const GetCleanupResponse({
+    required this.upgrades,
+    required this.unused,
+    required this.removable,
+  });
 }
 
 @MappableClass()

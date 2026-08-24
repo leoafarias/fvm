@@ -106,7 +106,7 @@ class CleanupCommand extends BaseFvmCommand {
     _printPlan(upgrades: plan.upgrades, unused: plan.unused);
 
     if (boolArg('remove-unused')) {
-      await _removeUnusedSdks(plan.unused);
+      await _removeUnusedSdks(plan.removable);
     }
 
     return ExitCode.success.code;

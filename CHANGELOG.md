@@ -1,7 +1,7 @@
 ## Next
 
 * feat: add `fvm cleanup` with cached patch upgrade recommendations and opt-in removal of SDKs unused by known projects
-* feat: add `fvm api cleanup` for structured patch upgrade actions and unused SDK names
+* feat: add `fvm api cleanup` for structured patch upgrade actions, unused SDK names, and the removable subset
 * fix: explain when `fvm list` has no local project version to mark
 
 ## 4.2.0
