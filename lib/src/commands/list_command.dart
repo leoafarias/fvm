@@ -198,7 +198,8 @@ class ListCommand extends BaseFvmCommand {
     if (usage != null) {
       logger.info(
         '"Unused" means no project known to FVM pins that SDK. Projects are '
-        'recorded when you run fvm use or fvm install inside them.',
+        'recorded when you run fvm use or fvm install inside them. '
+        'Run "fvm cleanup" to review removal and cached patch upgrades.',
       );
     }
 

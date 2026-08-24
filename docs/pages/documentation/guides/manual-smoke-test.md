@@ -266,6 +266,10 @@ case "$LIST_AFTER_BETA" in
   *"no project known to FVM pins that SDK"*) ;;
   *) echo "fvm list did not explain the Unused label" >&2; exit 1 ;;
 esac
+case "$LIST_AFTER_BETA" in
+  *"fvm cleanup"*) ;;
+  *) echo "fvm list did not point to fvm cleanup" >&2; exit 1 ;;
+esac
 
 printf '\n== fvm api list ==\n'
 API_LIST="$(run_fvm_skip api list --compress --skip-size-calculation)"
@@ -389,7 +393,7 @@ Expected high-signal output:
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
 - `use` creates `$CACHE/projects.json` containing the smoke project path.
-- `fvm list` labels the unused `beta` SDK `Unused` and explains that only projects known to FVM are considered.
+- `fvm list` labels the unused `beta` SDK `Unused`, explains that only projects known to FVM are considered, and points to `fvm cleanup`.
 - `fvm api list --compress --skip-size-calculation` prints valid JSON with the smoke project under `projects` and `unreferencedVersions: ["beta"]`.
 - `fvm api cleanup --compress` prints valid JSON with `unused: ["beta"]`.
 - `fvm cleanup` previews `beta` without removing it.

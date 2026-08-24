@@ -125,7 +125,8 @@ runs. When that project has no `.fvmrc`, no cached SDK is marked local.
 
 FVM learns about a project when you run `fvm use` or `fvm install` inside it.
 Because it does not scan your disks, treat `Unused` as a cleanup hint rather
-than proof that an SDK can be removed. See [known projects](/documentation/getting-started/faq#where-does-fvm-store-known-projects)
+than proof that an SDK can be removed. Run `fvm cleanup` to review unused
+SDKs and cached patch upgrades. See [known projects](/documentation/getting-started/faq#where-does-fvm-store-known-projects)
 for details.
 
 ## cleanup

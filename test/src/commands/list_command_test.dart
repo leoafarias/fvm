@@ -41,6 +41,7 @@ void main() {
       final output = plainOutput(context.get<Logger>());
       expect(output, unusedCell);
       expect(output, contains('no project known to FVM pins that SDK'));
+      expect(output, contains('fvm cleanup'));
     });
 
     test('marks a forked channel-qualified SDK as local and in use', () async {
