@@ -41,6 +41,7 @@ void main() {
       final output = plainOutput(context.get<Logger>());
       expect(output, unusedCell);
       expect(output, contains('no project known to FVM pins that SDK'));
+      expect(output, contains('fvm cleanup'));
     });
 
     test('marks a forked channel-qualified SDK as local and in use', () async {
@@ -118,6 +119,23 @@ void main() {
 
       expect(exitCode, ExitCode.success.code);
       expect(plainOutput(context.get<Logger>()), unusedCell);
+      expect(
+        plainOutput(context.get<Logger>()),
+        contains('configured but not cached'),
+      );
+    });
+
+    test('explains when no local project version is configured', () async {
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      expect(await runner.run(['fvm', 'list']), ExitCode.success.code);
+
+      expect(
+        plainOutput(context.get<Logger>()),
+        contains('none is configured here'),
+      );
     });
   });
 
@@ -240,6 +258,117 @@ void main() {
       final response = GetCacheVersionsResponse.fromJson(printed.join());
       expect(response.projects, isEmpty);
       expect(response.unreferencedVersions, ['stable']);
+    });
+  });
+
+  group('fvm api cleanup', () {
+    test('returns structured cached patch upgrades', () async {
+      final projectDir = createConfiguredProject(
+        name: 'upgrade_api',
+        flutter: '3.10.0',
+      );
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('3.10.0'),
+      );
+      FakeFlutterSdkFixture.install(
+        context,
+        FlutterVersion.parse('3.10.5'),
+      );
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final printed = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'cleanup',
+        '--compress',
+      ]);
+
+      final response = GetCleanupResponse.fromJson(printed.join());
+      final upgrade = response.upgrades.singleWhere(
+        (item) => item.fromVersion == '3.10.0',
+      );
+      expect(upgrade.toVersion, '3.10.5');
+      expect(
+        upgrade.actions.single.workingDirectory,
+        projectDir.resolveSymbolicLinksSync(),
+      );
+      expect(response.unused, contains('3.10.5'));
+      expect(response.removable, isNot(contains('3.10.5')));
+    });
+
+    test('unused matches api list unreferencedVersions', () async {
+      final projectDir = createConfiguredProject(
+        name: 'same_unused',
+        flutter: '3.10.0',
+      );
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.0'));
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('3.10.5'));
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('beta'));
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final listPrinted = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'list',
+        '--compress',
+        '--skip-size-calculation',
+      ]);
+      final cleanupPrinted = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'cleanup',
+        '--compress',
+      ]);
+
+      final list = GetCacheVersionsResponse.fromJson(listPrinted.join());
+      final cleanup = GetCleanupResponse.fromJson(cleanupPrinted.join());
+      expect(cleanup.unused, list.unreferencedVersions);
+      expect(cleanup.unused, containsAll(['3.10.5', 'beta']));
+      expect(cleanup.removable, ['beta']);
+    });
+
+    test('lists unused SDK names', () async {
+      final context = TestFactory.fastContext();
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('stable'));
+      FakeFlutterSdkFixture.install(context, FlutterVersion.parse('beta'));
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final printed = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'cleanup',
+        '--compress',
+      ]);
+
+      final response = GetCleanupResponse.fromJson(printed.join());
+      expect(response.upgrades, isEmpty);
+      expect(response.unused, ['beta', 'stable']);
+      expect(response.removable, ['beta', 'stable']);
+    });
+
+    test('fails on a malformed registry without rewriting it', () async {
+      final context = TestFactory.fastContext();
+      File(context.projectsRegistryPath)
+        ..createSync(recursive: true)
+        ..writeAsStringSync('not-json');
+      final runner = TestFactory.fastCommandRunner(context: context);
+
+      final exitCode = await runner.run(['fvm', 'api', 'cleanup']);
+
+      expect(exitCode, isNot(ExitCode.success.code));
+      expect(
+        File(context.projectsRegistryPath).readAsStringSync(),
+        'not-json',
+      );
     });
   });
 }

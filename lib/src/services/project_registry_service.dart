@@ -105,14 +105,17 @@ class ProjectRegistryService extends ContextualService {
   /// cache actually stores. A pin is skipped when it cannot be parsed or
   /// resolves outside the cache directory, since it can never match an
   /// installed SDK either.
-  Set<String> _pinnedVersionsOf(ProjectConfig config) {
+  List<({String? flavor, String version})> _versionReferencesOf(
+    ProjectConfig config,
+  ) {
     final cache = get<CacheService>();
-    final versions = <String>{};
-    for (final value in [config.flutter, ...?config.flavors?.values]) {
-      if (value == null) continue;
+    final references = <({String? flavor, String version})>[];
+
+    void add(String? value, {String? flavor}) {
+      if (value == null) return;
       try {
         final name = cache.installedNameOf(FlutterVersion.parse(value));
-        if (name != null) versions.add(name);
+        if (name != null) references.add((flavor: flavor, version: name));
       } on FormatException {
         // Not a version FVM can parse.
       } on AppException {
@@ -120,7 +123,15 @@ class ProjectRegistryService extends ContextualService {
       }
     }
 
-    return versions;
+    add(config.flutter);
+    final flavors = config.flavors;
+    if (flavors != null) {
+      for (final entry in flavors.entries) {
+        add(entry.value, flavor: entry.key);
+      }
+    }
+
+    return references;
   }
 
   /// Tries briefly to acquire the registry lock.
@@ -205,12 +216,17 @@ class ProjectRegistryService extends ContextualService {
   /// read; callers decide whether that is fatal.
   CacheProjectUsage calculateUsage({Project? includeCurrent}) {
     final paths = <String>[];
-    final countByVersion = <String, int>{};
+    final referencesByVersion = <String, List<ProjectVersionReference>>{};
 
     void record(String path, ProjectConfig config) {
       paths.add(path);
-      for (final version in _pinnedVersionsOf(config)) {
-        countByVersion[version] = (countByVersion[version] ?? 0) + 1;
+      for (final reference in _versionReferencesOf(config)) {
+        referencesByVersion.putIfAbsent(reference.version, () => []).add(
+              ProjectVersionReference(
+                projectPath: path,
+                flavor: reference.flavor,
+              ),
+            );
       }
     }
 
@@ -230,7 +246,7 @@ class ProjectRegistryService extends ContextualService {
 
     return CacheProjectUsage(
       projectPaths: paths..sort(),
-      projectCountByVersion: countByVersion,
+      projectReferencesByVersion: referencesByVersion,
       globalVersion: get<CacheService>().getGlobalVersion(),
     );
   }

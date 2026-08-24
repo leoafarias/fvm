@@ -71,23 +71,50 @@ class CacheProjectUsage {
   /// Known project roots that still resolve to a configured FVM project.
   final List<String> projectPaths;
 
-  /// How many of those projects pin each version, as their Flutter version or
-  /// through a flavor.
-  final Map<String, int> projectCountByVersion;
+  /// Project config locations that reference each installed version.
+  final Map<String, List<ProjectVersionReference>> projectReferencesByVersion;
 
   /// The globally linked version, if one is set.
   final String? globalVersion;
 
   const CacheProjectUsage({
     required this.projectPaths,
-    required this.projectCountByVersion,
+    required this.projectReferencesByVersion,
     required this.globalVersion,
   });
 
-  int countFor(String version) => projectCountByVersion[version] ?? 0;
+  /// How many known projects pin [version], as their Flutter version or through
+  /// a flavor. A project that pins the same SDK more than once still counts as
+  /// one.
+  int countFor(String version) {
+    final references = projectReferencesByVersion[version];
+    if (references == null || references.isEmpty) return 0;
+
+    return {for (final reference in references) reference.projectPath}.length;
+  }
+
+  List<ProjectVersionReference> referencesFor(String version) =>
+      projectReferencesByVersion[version] ?? const [];
 
   /// Whether nothing FVM knows about is using [version]. The globally linked
   /// SDK counts as in use even when no project pins it.
   bool isUnused(String version) =>
       version != globalVersion && countFor(version) == 0;
+
+  /// Sorted installed names that [isUnused] considers unused.
+  ///
+  /// Same membership as `fvm list` Unused and `fvm api list`
+  /// `unreferencedVersions`.
+  List<String> unusedNames(Iterable<String> installed) => [
+        for (final name in installed)
+          if (isUnused(name)) name,
+      ]..sort();
+}
+
+/// A primary or flavor pin in a known project config.
+class ProjectVersionReference {
+  final String projectPath;
+  final String? flavor;
+
+  const ProjectVersionReference({required this.projectPath, this.flavor});
 }

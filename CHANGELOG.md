@@ -1,3 +1,9 @@
+## 4.3.0
+
+* feat: add `fvm cleanup` to preview unused cached SDKs and exact same-line stable patch upgrades, and to remove unused versions with `--remove-unused`. Recommended upgrade targets stay cached until a project or global pin moves; `fvm list` Unused now points here
+* feat: add `fvm api cleanup` with `upgrades`, `unused`, and `removable`. `unused` matches `fvm list` Unused and `fvm api list` `unreferencedVersions`; `removable` is what `--remove-unused` would delete
+* fix: explain when `fvm list` has no local project version to mark
+
 ## 4.2.0
 
 * feat: add a `Projects` column to `fvm list` that shows how many known projects pin each cached SDK. Versions that no known project pins and that are not selected globally are labeled `Unused`. FVM records projects after `fvm use` or `fvm install` and reads their current `.fvmrc` values when listing

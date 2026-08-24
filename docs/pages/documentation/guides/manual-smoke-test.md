@@ -266,6 +266,10 @@ case "$LIST_AFTER_BETA" in
   *"no project known to FVM pins that SDK"*) ;;
   *) echo "fvm list did not explain the Unused label" >&2; exit 1 ;;
 esac
+case "$LIST_AFTER_BETA" in
+  *"fvm cleanup"*) ;;
+  *) echo "fvm list did not point to fvm cleanup" >&2; exit 1 ;;
+esac
 
 printf '\n== fvm api list ==\n'
 API_LIST="$(run_fvm_skip api list --compress --skip-size-calculation)"
@@ -279,6 +283,28 @@ case "$API_LIST" in
   *) echo "fvm api list did not list beta in unreferencedVersions" >&2; exit 1 ;;
 esac
 printf '%s\n' "$API_LIST" | python3 -c 'import json,sys; json.load(sys.stdin)'
+
+printf '\n== fvm api cleanup ==\n'
+API_CLEANUP="$(run_fvm_skip api cleanup --compress)"
+printf '%s\n' "$API_CLEANUP"
+case "$API_CLEANUP" in
+  *'"unused":["beta"]'*) ;;
+  *) echo "fvm api cleanup did not list beta as unused" >&2; exit 1 ;;
+esac
+printf '%s\n' "$API_CLEANUP" | python3 -c 'import json,sys; json.load(sys.stdin)'
+
+printf '\n== fvm cleanup preview ==\n'
+CLEANUP_OUTPUT="$(run_fvm_skip cleanup)"
+printf '%s\n' "$CLEANUP_OUTPUT"
+case "$CLEANUP_OUTPUT" in
+  *'beta'*) ;;
+  *) echo "fvm cleanup did not identify beta" >&2; exit 1 ;;
+esac
+test -d "$CACHE/versions/beta"
+
+printf '\n== fvm cleanup removal ==\n'
+run_fvm_skip cleanup --remove-unused --yes
+test ! -d "$CACHE/versions/beta"
 
 printf '\n== project files ==\n'
 printf '.fvmrc:\n'
@@ -367,8 +393,11 @@ Expected high-signal output:
 - `fvm flutter --version` prints `Flutter smoke 3.99.0 on stable`.
 - `fvm list` reports the isolated temp cache, `stable`, and `3.99.0-smoke`.
 - `use` creates `$CACHE/projects.json` containing the smoke project path.
-- `fvm list` labels the unused `beta` SDK `Unused` and explains that only projects known to FVM are considered.
+- `fvm list` labels the unused `beta` SDK `Unused`, explains that only projects known to FVM are considered, and points to `fvm cleanup`.
 - `fvm api list --compress --skip-size-calculation` prints valid JSON with the smoke project under `projects` and `unreferencedVersions: ["beta"]`.
+- `fvm api cleanup --compress` prints valid JSON with `unused: ["beta"]`.
+- `fvm cleanup` previews `beta` without removing it.
+- `fvm cleanup --remove-unused --yes` removes only the unused `beta` SDK.
 - `.fvmrc` contains `"flutter": "stable"`.
 - `.fvm/fvm_config.json` contains `"flutterSdkVersion": "stable"`.
 - `.fvm/version` contains `3.99.0-smoke`.

@@ -14,6 +14,7 @@ class APIResponseMapper extends ClassMapperBase<APIResponse> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = APIResponseMapper._());
       GetCacheVersionsResponseMapper.ensureInitialized();
+      GetCleanupResponseMapper.ensureInitialized();
       GetReleasesResponseMapper.ensureInitialized();
       GetProjectResponseMapper.ensureInitialized();
       GetContextResponseMapper.ensureInitialized();
@@ -224,6 +225,156 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
   GetCacheVersionsResponseCopyWith<$R2, GetCacheVersionsResponse, $Out2>
       $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
           _GetCacheVersionsResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
+class GetCleanupResponseMapper extends ClassMapperBase<GetCleanupResponse> {
+  GetCleanupResponseMapper._();
+
+  static GetCleanupResponseMapper? _instance;
+  static GetCleanupResponseMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = GetCleanupResponseMapper._());
+      APIResponseMapper.ensureInitialized();
+      PatchUpgradeMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'GetCleanupResponse';
+
+  static List<PatchUpgrade> _$upgrades(GetCleanupResponse v) => v.upgrades;
+  static const Field<GetCleanupResponse, List<PatchUpgrade>> _f$upgrades =
+      Field('upgrades', _$upgrades);
+  static List<String> _$unused(GetCleanupResponse v) => v.unused;
+  static const Field<GetCleanupResponse, List<String>> _f$unused =
+      Field('unused', _$unused);
+  static List<String> _$removable(GetCleanupResponse v) => v.removable;
+  static const Field<GetCleanupResponse, List<String>> _f$removable =
+      Field('removable', _$removable);
+
+  @override
+  final MappableFields<GetCleanupResponse> fields = const {
+    #upgrades: _f$upgrades,
+    #unused: _f$unused,
+    #removable: _f$removable,
+  };
+
+  static GetCleanupResponse _instantiate(DecodingData data) {
+    return GetCleanupResponse(
+        upgrades: data.dec(_f$upgrades),
+        unused: data.dec(_f$unused),
+        removable: data.dec(_f$removable));
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static GetCleanupResponse fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<GetCleanupResponse>(map);
+  }
+
+  static GetCleanupResponse fromJson(String json) {
+    return ensureInitialized().decodeJson<GetCleanupResponse>(json);
+  }
+}
+
+mixin GetCleanupResponseMappable {
+  String toJson() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .encodeJson<GetCleanupResponse>(this as GetCleanupResponse);
+  }
+
+  Map<String, dynamic> toMap() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .encodeMap<GetCleanupResponse>(this as GetCleanupResponse);
+  }
+
+  GetCleanupResponseCopyWith<GetCleanupResponse, GetCleanupResponse,
+          GetCleanupResponse>
+      get copyWith => _GetCleanupResponseCopyWithImpl<GetCleanupResponse,
+          GetCleanupResponse>(this as GetCleanupResponse, $identity, $identity);
+  @override
+  String toString() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .stringifyValue(this as GetCleanupResponse);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .equalsValue(this as GetCleanupResponse, other);
+  }
+
+  @override
+  int get hashCode {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .hashValue(this as GetCleanupResponse);
+  }
+}
+
+extension GetCleanupResponseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, GetCleanupResponse, $Out> {
+  GetCleanupResponseCopyWith<$R, GetCleanupResponse, $Out>
+      get $asGetCleanupResponse => $base.as(
+          (v, t, t2) => _GetCleanupResponseCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class GetCleanupResponseCopyWith<$R, $In extends GetCleanupResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, PatchUpgrade,
+      PatchUpgradeCopyWith<$R, PatchUpgrade, PatchUpgrade>> get upgrades;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get unused;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable;
+  $R call(
+      {List<PatchUpgrade>? upgrades,
+      List<String>? unused,
+      List<String>? removable});
+  GetCleanupResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+      Then<$Out2, $R2> t);
+}
+
+class _GetCleanupResponseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, GetCleanupResponse, $Out>
+    implements GetCleanupResponseCopyWith<$R, GetCleanupResponse, $Out> {
+  _GetCleanupResponseCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<GetCleanupResponse> $mapper =
+      GetCleanupResponseMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, PatchUpgrade,
+          PatchUpgradeCopyWith<$R, PatchUpgrade, PatchUpgrade>>
+      get upgrades => ListCopyWith($value.upgrades,
+          (v, t) => v.copyWith.$chain(t), (v) => call(upgrades: v));
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get unused =>
+      ListCopyWith($value.unused, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(unused: v));
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable =>
+      ListCopyWith($value.removable, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(removable: v));
+  @override
+  $R call(
+          {List<PatchUpgrade>? upgrades,
+          List<String>? unused,
+          List<String>? removable}) =>
+      $apply(FieldCopyWithData({
+        if (upgrades != null) #upgrades: upgrades,
+        if (unused != null) #unused: unused,
+        if (removable != null) #removable: removable
+      }));
+  @override
+  GetCleanupResponse $make(CopyWithData data) => GetCleanupResponse(
+      upgrades: data.get(#upgrades, or: $value.upgrades),
+      unused: data.get(#unused, or: $value.unused),
+      removable: data.get(#removable, or: $value.removable));
+
+  @override
+  GetCleanupResponseCopyWith<$R2, GetCleanupResponse, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _GetCleanupResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {

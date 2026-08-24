@@ -2,6 +2,7 @@ import 'dart:io';
 
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/cleanup_service.dart';
 import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
@@ -47,10 +48,20 @@ class ApiService extends ContextualService {
       size: formatFriendlyBytes(size),
       versions: versions,
       projects: usage.projectPaths,
-      unreferencedVersions: [
-        for (final version in versions)
-          if (usage.isUnused(version.nameWithAlias)) version.nameWithAlias,
-      ]..sort(),
+      unreferencedVersions: usage.unusedNames([
+        for (final version in versions) version.nameWithAlias,
+      ]),
+    );
+  }
+
+  /// Returns cached patch upgrades and unused SDK names.
+  Future<GetCleanupResponse> getCleanup() async {
+    final plan = await get<CleanupService>().plan();
+
+    return GetCleanupResponse(
+      upgrades: plan.upgrades,
+      unused: plan.unused,
+      removable: plan.removable,
     );
   }
 

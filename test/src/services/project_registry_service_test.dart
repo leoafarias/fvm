@@ -155,6 +155,28 @@ Future<void> main(List<String> args) async {
       expect(usage.countFor('beta'), 1);
       expect(usage.countFor('3.10.0'), 0);
       expect(usage.projectPaths, [projectDir.resolveSymbolicLinksSync()]);
+      expect(
+        usage.referencesFor('beta').map((reference) => reference.flavor),
+        containsAll(['dev', 'legacy']),
+      );
+    });
+
+    test('counts a project once when flutter and a flavor pin the same SDK',
+        () {
+      final context = TestFactory.fastContext();
+      final projectDir = createConfiguredProject(
+        name: 'same_pin',
+        flutter: '3.10.0',
+        flavors: const {'legacy': '3.10.0'},
+      );
+      context.get<ProjectRegistryService>().track(
+            Project.loadFromDirectory(projectDir),
+          );
+
+      final usage = context.get<ProjectRegistryService>().calculateUsage();
+
+      expect(usage.countFor('3.10.0'), 1);
+      expect(usage.referencesFor('3.10.0'), hasLength(2));
     });
 
     test('reads live config instead of the recorded snapshot', () {
@@ -223,7 +245,7 @@ Future<void> main(List<String> args) async {
 
       final usage = service.calculateUsage();
       expect(usage.countFor('beta'), 1);
-      expect(usage.projectCountByVersion.keys, ['beta']);
+      expect(usage.projectReferencesByVersion.keys, ['beta']);
     });
 
     test('matches a forked channel-qualified pin to its installed SDK',

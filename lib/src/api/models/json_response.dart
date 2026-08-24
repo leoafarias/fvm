@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 
 import '../../models/cache_flutter_version_model.dart';
+import '../../models/cleanup_model.dart';
 import '../../models/project_model.dart';
 import '../../services/releases_service/models/version_model.dart';
 import '../../utils/context.dart';
@@ -41,6 +42,30 @@ class GetCacheVersionsResponse extends APIResponse
     required this.versions,
     required this.projects,
     required this.unreferencedVersions,
+  });
+}
+
+@MappableClass()
+class GetCleanupResponse extends APIResponse with GetCleanupResponseMappable {
+  /// Same-line cached patch upgrades. Actions are never applied automatically.
+  final List<PatchUpgrade> upgrades;
+
+  /// Unpinned installed names; same membership as
+  /// [GetCacheVersionsResponse.unreferencedVersions].
+  final List<String> unused;
+
+  /// [unused] minus recommended patch upgrade targets.
+  ///
+  /// This is the list `fvm cleanup --remove-unused` deletes.
+  final List<String> removable;
+
+  static final fromMap = GetCleanupResponseMapper.fromMap;
+  static final fromJson = GetCleanupResponseMapper.fromJson;
+
+  const GetCleanupResponse({
+    required this.upgrades,
+    required this.unused,
+    required this.removable,
   });
 }
 
