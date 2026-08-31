@@ -10,6 +10,11 @@ import 'ensure_cache.workflow.dart';
 import 'validate_flutter_version.workflow.dart';
 import 'workflow.dart';
 
+/// Runs a command with the project or global Flutter SDK configuration.
+///
+/// Healthy SDK execution does not maintain the shared git cache. This keeps
+/// `fvm flutter`, `fvm dart`, and `fvm exec` off the cache-validation hot path;
+/// cache misses still prepare the shared cache before installing the SDK.
 class RunConfiguredFlutterWorkflow extends Workflow {
   const RunConfiguredFlutterWorkflow(super.context);
 
@@ -23,14 +28,20 @@ class RunConfiguredFlutterWorkflow extends Workflow {
       final version = get<ValidateFlutterVersionWorkflow>().call(
         projectVersion,
       );
-      selectedVersion = await get<EnsureCacheWorkflow>().call(version);
+      selectedVersion = await get<EnsureCacheWorkflow>().call(
+        version,
+        maintainGitCacheOnHit: false,
+      );
       logger.debug(
         '$kPackageName: Running Flutter from version "$projectVersion"',
       );
     } else {
       final globalVersion = get<CacheService>().getGlobal();
       if (globalVersion != null) {
-        selectedVersion = await get<EnsureCacheWorkflow>().call(globalVersion);
+        selectedVersion = await get<EnsureCacheWorkflow>().call(
+          globalVersion,
+          maintainGitCacheOnHit: false,
+        );
         logger.debug(
           '$kPackageName: Running Flutter from global version "${globalVersion.flutterSdkVersion}"',
         );

@@ -35,6 +35,9 @@ const kFvmConfigFileName = '.fvmrc';
 /// The legacy FVM configuration file name, used for backward compatibility.
 const kFvmLegacyConfigFileName = 'fvm_config.json';
 
+/// The cache-local project registry file name.
+const kProjectsRegistryFileName = 'projects.json';
+
 /// Constant for the Visual Studio Code editor name.
 /// This is used when selecting an IDE in FVM configurations.
 const kVsCode = 'VSCode';

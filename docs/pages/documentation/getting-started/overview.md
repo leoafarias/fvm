@@ -26,6 +26,8 @@ fvm flutter doctor
 - **Per-project Flutter versions** - Each project can use a different Flutter SDK
 - **Fast switching** - Change versions instantly without re-downloading
 - **Team consistency** - Everyone uses the same Flutter version via `.fvmrc`
+- **Cache usage visibility** - See which SDKs known projects use and spot unreferenced versions
+- **Cache cleanup** - Preview unused SDKs and patch upgrades, then remove unused versions with `fvm cleanup`
 - **CI/CD friendly** - Simple commands for automation
 - **Fork support** - Use custom Flutter repositories
 
