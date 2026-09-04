@@ -83,7 +83,7 @@ myproject/
 
 - Use `fvm doctor` to troubleshoot issues
 - Use `fvm cleanup` to review cached SDK consolidation
-- Add `.fvm/flutter_sdk` to `.gitignore`
+- Add `.fvm/` to `.gitignore`
 - Commit `.fvmrc` for team consistency
 - Use `--no-setup` for faster caching
 - Enable git cache for faster installs

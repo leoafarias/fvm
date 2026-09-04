@@ -1,0 +1,128 @@
+---
+id: android_studio
+title: Android Studio and IntelliJ
+---
+
+import { Callout } from "nextra/components";
+
+# Android Studio and IntelliJ
+
+FVM manages Flutter SDK installations and links, but it does not change Android Studio or IntelliJ settings. The IDE can also remember a previously configured SDK or discover one from `PATH`, so it might use a different Flutter installation than FVM.
+
+Make sure the IDE's [Flutter plugin](https://docs.flutter.dev/tools/android-studio#install-the-flutter-plugin) is installed before configuring an SDK.
+
+## Choose the SDK path
+
+| Use case | Flutter SDK root |
+| --- | --- |
+| Project pinned with `fvm use` | `/path/to/project/.fvm/flutter_sdk` |
+| Global version with the default cache | `$HOME/fvm/default` on macOS/Linux or `C:\Users\<user>\fvm\default` on Windows |
+| Global version with a custom cache | `<FVM_CACHE_PATH>/default` |
+
+Use the SDK root shown above, not its `bin` directory.
+
+<Callout type="tip">
+  Prefer the project SDK for application development. It keeps Android Studio aligned with the version recorded in the project's `.fvmrc` file.
+</Callout>
+
+## Configure a project SDK
+
+From the project root, select and install its Flutter version:
+
+```bash
+fvm use <version>
+```
+
+Then configure the IDE:
+
+1. Open **File → Settings** on Windows/Linux, or **Android Studio/IntelliJ → Settings** on macOS.
+2. Select **Languages & Frameworks → Flutter**.
+3. Set **Flutter SDK path** to the absolute project path ending in `.fvm/flutter_sdk`.
+4. Select **Apply**, then verify that the displayed Flutter version matches `fvm flutter --version`.
+
+If `.fvm/flutter_sdk` is missing, run `fvm use <version>` again from the project root.
+
+### Check automatic SDK switching
+
+FVM automatically retargets `.fvm/flutter_sdk` when you run `fvm use`. Android Studio only follows that change when its project metadata preserves the symlink path instead of the resolved cache path.
+
+The most reliable check is in Android Studio itself:
+
+1. Open **Settings → Languages & Frameworks → Flutter** and note the displayed SDK path and version.
+2. Run `fvm use <different-version>` from the project root.
+3. Reopen the Flutter settings without reselecting the SDK.
+4. If the displayed version changed, the IDE followed the FVM link. If it still shows the previous version or a path under `<FVM cache>/versions/<version>`, reselect the SDK manually.
+
+You can also inspect the saved project metadata with:
+
+```bash
+fvm doctor
+```
+
+Check the **IntelliJ → SDK Path** result:
+
+- **SDK Path points to project directory**: the saved metadata contains `.fvm/flutter_sdk`; confirm automatic switching with the Android Studio check above.
+- **SDK Path does not point to the project directory**: the IDE saved a concrete path such as `<FVM cache>/versions/<version>`, so it will not switch automatically.
+
+You can also inspect `.idea/libraries/Dart_SDK.xml`. Its SDK entries should contain `$PROJECT_DIR$/.fvm/flutter_sdk`; a direct cache-version path means the symlink was resolved.
+
+<Callout type="info">
+  `fvm doctor` checks the IDE metadata on disk. It does not execute Android Studio or prove that the running IDE refreshed after a version switch.
+</Callout>
+
+## Configure the global SDK
+
+Use a global SDK for projects that don't pin a version with FVM:
+
+```bash
+fvm global stable
+```
+
+In the IDE's Flutter settings, select the applicable global SDK root:
+
+- macOS/Linux default: `$HOME/fvm/default`
+- Windows default: `C:\Users\<user>\fvm\default`
+- Custom cache: `<configured-cache-path>/default`
+
+These paths use placeholders for readability. Enter the actual absolute path in the IDE—for example, `/Users/alice/fvm/default` or `C:\Users\alice\fvm\default`—instead of relying on environment-variable expansion.
+
+For command-line and IDE discovery, put the global SDK's `bin` directory before any other Flutter installation on `PATH`. For example, on macOS or Linux:
+
+```bash
+export PATH="$HOME/fvm/default/bin:$PATH"
+```
+
+After changing `PATH`, close and reopen Android Studio or IntelliJ. Run `command -v flutter` on macOS/Linux or `where flutter` on Windows to check which installation appears first.
+
+<Callout type="warning">
+  Some Android Studio and IntelliJ versions resolve an SDK symlink to its current cached version when saving the setting. After `fvm use` or `fvm global` switches versions, verify the version shown in the IDE and reselect the FVM SDK path if it is stale. This is tracked by [flutter-intellij#6616](https://github.com/flutter/flutter-intellij/issues/6616).
+</Callout>
+
+Typing or pasting the exact FVM path into the SDK field instead of selecting it with the folder browser can preserve the symlink in some IDE versions. Do not add a trailing slash, then select **Apply**. Check the path and version shown in Android Studio and use `fvm doctor` to inspect the saved metadata. This is a best-effort workaround; if the field changes to a concrete cache-version path, reselect the FVM SDK after each version change.
+
+## Troubleshooting
+
+### Could not find a Flutter SDK
+
+1. Run `fvm use <version>` for a project SDK or `fvm global <version>` for a global SDK.
+2. Confirm that `.fvm/flutter_sdk` or the global `default` link exists.
+3. Select that SDK root under **Settings → Languages & Frameworks → Flutter**. Do not select its `bin` directory.
+4. Restart the IDE if it still shows the prompt.
+
+### The IDE uses the wrong Flutter version
+
+1. Compare the IDE's displayed version with `fvm flutter --version` for a pinned project.
+2. Check `command -v flutter` on macOS/Linux or `where flutter` on Windows for another Flutter installation earlier on `PATH`.
+3. Run `fvm doctor` and check whether the saved IntelliJ SDK path still contains `.fvm/flutter_sdk`.
+4. Reopen the Flutter settings and reselect the FVM path after switching versions.
+5. For Android projects, run **Sync Project with Gradle Files** after the SDK change. Use **Find Action** and search for that command if it is not visible in the menu.
+
+### Flutter works, but the Android toolchain does not
+
+The Flutter SDK and Android SDK are separate. Run:
+
+```bash
+fvm flutter doctor
+```
+
+Use Android Studio's **Tools → SDK Manager** to install any missing Android SDK components, then follow the reported license or toolchain steps. See Flutter's [installation troubleshooting guide](https://docs.flutter.dev/install/troubleshoot#android-setup) for Android-specific errors.

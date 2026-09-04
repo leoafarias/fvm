@@ -24,6 +24,14 @@ To accomplish this, FVM provides you with a helper command to configure a global
 fvm global {version}
 ```
 
+FVM creates a `default` link inside the configured cache:
+
+- macOS/Linux default: `$HOME/fvm/default`
+- Windows default: `C:\Users\<user>\fvm\default`
+- Custom cache: `<FVM_CACHE_PATH>/default`
+
+Add the link's `bin` directory before other Flutter installations on `PATH`. If you use Android Studio or IntelliJ, also follow the [IDE configuration guide](/documentation/guides/android-studio#configure-the-global-sdk); FVM does not change the IDE's SDK setting.
+
 Now you will be able to do the following.
 
 ```bash title="Example"
@@ -44,4 +52,10 @@ flutter --version # Will be stable release
   After you run the command, FVM will check if the global version is configured
   in your environment path. If it is not, it will provide you with the path that
   needs to be configured.
+</Callout>
+
+<Callout type="warning">
+  Android Studio and IntelliJ can resolve the `default` link to a specific cached
+  version. After changing the global version, verify the version shown in the IDE
+  and reselect the FVM path if necessary.
 </Callout>
