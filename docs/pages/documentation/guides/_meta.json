@@ -23,7 +23,9 @@
   "global-configuration": {
     "title": "Global Configuration"
   },
-
+  "android-studio": {
+    "title": "Android Studio / IntelliJ"
+  },
   "vscode": {
     "title": "VSCode Configuration"
   },

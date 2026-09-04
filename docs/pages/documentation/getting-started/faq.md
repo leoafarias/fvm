@@ -21,6 +21,14 @@ If `fvm flutter` or `fvm dart` commands are not working:
 
 ---
 
+## Android Studio cannot find Flutter after `fvm global`
+
+`fvm global` creates an FVM-managed `default` SDK link, but it does not change Android Studio or IntelliJ settings. In **Settings → Languages & Frameworks → Flutter**, select `$HOME/fvm/default` on macOS/Linux or `C:\Users\<user>\fvm\default` on Windows. If you configured a custom cache, select `<FVM_CACHE_PATH>/default` instead.
+
+The IDE can resolve this link to a specific cached version. After changing the global version, verify the version shown in the IDE and reselect the FVM path if necessary. See the [Android Studio and IntelliJ guide](../guides/android-studio) for project-specific setup and troubleshooting.
+
+---
+
 ## Where does FVM store known projects?
 
 FVM keeps a machine-local list of project roots at `$FVM_CACHE_PATH/projects.json` (or the default cache root). Entries are added when you run `fvm use` or `fvm install` inside a project; FVM never scans your disks. It stores paths only, so pinned versions are always read back from each project's `.fvmrc`.
