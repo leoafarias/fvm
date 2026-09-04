@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
 
+import '../utils/exceptions.dart';
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
@@ -113,22 +115,40 @@ class ProcessService extends ContextualService {
 
       return processResult;
     }
-    final process = await Process.start(
-      command,
-      args,
-      workingDirectory: workingDirectory,
-      environment: effectiveEnvironment,
-      includeParentEnvironment: !scrubGitEnv,
-      runInShell: runInShell,
-      mode: ProcessStartMode.inheritStdio,
-    );
+    StreamSubscription<ProcessSignal>? sigintSubscription;
+    var interrupted = false;
+    if (!Platform.isWindows && context.stdinHasTerminal) {
+      sigintSubscription = ProcessSignal.sigint.watch().listen((_) {
+        interrupted = true;
+      });
+    }
 
-    processResult = ProcessResult(
-      process.pid,
-      await process.exitCode,
-      null,
-      null,
-    );
+    final Process process;
+    final int processExitCode;
+    try {
+      process = await Process.start(
+        command,
+        args,
+        workingDirectory: workingDirectory,
+        environment: effectiveEnvironment,
+        includeParentEnvironment: !scrubGitEnv,
+        runInShell: runInShell,
+        mode: ProcessStartMode.inheritStdio,
+      );
+
+      if (interrupted) {
+        process.kill(ProcessSignal.sigint);
+      }
+      processExitCode = await process.exitCode;
+    } finally {
+      await sigintSubscription?.cancel();
+    }
+
+    if (interrupted) {
+      throw ForceExit('', 128 + ProcessSignal.sigint.signalNumber);
+    }
+
+    processResult = ProcessResult(process.pid, processExitCode, null, null);
     if (throwOnError) {
       _throwIfProcessFailed(processResult, command, args);
     }
