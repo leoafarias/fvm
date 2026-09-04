@@ -39,9 +39,10 @@ void main() {
       expect(command.subcommands.containsKey('project'), isTrue);
       expect(command.subcommands.containsKey('list'), isTrue);
       expect(command.subcommands.containsKey('releases'), isTrue);
+      expect(command.subcommands.containsKey('cleanup'), isTrue);
 
       // Verify the correct number of subcommands
-      expect(command.subcommands.length, equals(4));
+      expect(command.subcommands.length, equals(5));
     });
   });
 
@@ -142,11 +143,15 @@ void main() {
       withoutSizeCalculationResponse = GetCacheVersionsResponse(
         size: '',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       sizeCalculationResponse = GetCacheVersionsResponse(
         size: '100MB',
         versions: versions,
+        projects: const [],
+        unreferencedVersions: const [],
       );
 
       // Configure API service mock
@@ -201,6 +206,26 @@ void main() {
       ).called(1);
       expect(result, hasLength(1));
       expect(result[0], isExpectedJson(sizeCalculationResponse.toJson()));
+    });
+  });
+
+  group('APICleanupCommand', () {
+    test('returns cleanup data', () async {
+      const response = GetCleanupResponse(
+        upgrades: [],
+        unused: [],
+        removable: [],
+      );
+      when(() => apiService.getCleanup()).thenAnswer((_) async => response);
+
+      final result = await runnerZoned(runner, [
+        'fvm',
+        'api',
+        'cleanup',
+      ]);
+
+      verify(() => apiService.getCleanup()).called(1);
+      expect(result, isExpectedJson(response.toPrettyJson()));
     });
   });
 

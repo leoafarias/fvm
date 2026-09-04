@@ -1,9 +1,54 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'base_service.dart';
 
 class ProcessService extends ContextualService {
+  /// Environment variables that bind a git invocation to a specific
+  /// repository (the set reported by `git rev-parse --local-env-vars`).
+  ///
+  /// These override git's repository discovery, and git hooks export some
+  /// of them (linked-worktree hooks export an absolute `GIT_DIR`), so
+  /// inheriting them would redirect FVM's git commands away from the
+  /// directory they run in. Transport and authentication variables such
+  /// as `GIT_SSH_COMMAND` and `GIT_ASKPASS` are preserved.
+  static const _gitRepositoryScopedEnvVars = {
+    'GIT_ALTERNATE_OBJECT_DIRECTORIES',
+    'GIT_CONFIG',
+    'GIT_CONFIG_PARAMETERS',
+    'GIT_CONFIG_COUNT',
+    'GIT_OBJECT_DIRECTORY',
+    'GIT_DIR',
+    'GIT_WORK_TREE',
+    'GIT_IMPLICIT_WORK_TREE',
+    'GIT_GRAFT_FILE',
+    'GIT_INDEX_FILE',
+    'GIT_NO_REPLACE_OBJECTS',
+    'GIT_REPLACE_REF_BASE',
+    'GIT_PREFIX',
+    'GIT_SHALLOW_FILE',
+    'GIT_COMMON_DIR',
+  };
+
   const ProcessService(super.context);
+
+  /// Whether [command] operates on git repositories FVM manages: git
+  /// itself, and the Flutter/Dart SDK tools (which spawn their own git
+  /// subprocesses). Commands with other names keep their environment.
+  static bool _needsGitEnvScrubbing(String command) {
+    final name = p.basenameWithoutExtension(command).toLowerCase();
+
+    return name == 'git' || name == 'flutter' || name == 'dart';
+  }
+
+  Map<String, String> _scrubbedGitEnvironment(
+    Map<String, String>? environment,
+  ) {
+    return {...context.environment, ...?environment}..removeWhere(
+        (key, _) => _gitRepositoryScopedEnvVars.contains(key.toUpperCase()),
+      );
+  }
 
   void _throwIfProcessFailed(
     ProcessResult pr,
@@ -48,13 +93,17 @@ class ProcessService extends ContextualService {
       ..debug('')
       ..debug('Running: $command')
       ..debug('');
+    final scrubGitEnv = _needsGitEnvScrubbing(command);
+    final effectiveEnvironment =
+        scrubGitEnv ? _scrubbedGitEnvironment(environment) : environment;
     ProcessResult processResult;
     if (!echoOutput || context.isTest) {
       processResult = await Process.run(
         command,
         args,
         workingDirectory: workingDirectory,
-        environment: environment,
+        environment: effectiveEnvironment,
+        includeParentEnvironment: !scrubGitEnv,
         runInShell: runInShell,
       );
 
@@ -68,7 +117,8 @@ class ProcessService extends ContextualService {
       command,
       args,
       workingDirectory: workingDirectory,
-      environment: environment,
+      environment: effectiveEnvironment,
+      includeParentEnvironment: !scrubGitEnv,
       runInShell: runInShell,
       mode: ProcessStartMode.inheritStdio,
     );

@@ -9,10 +9,12 @@ import '../models/log_level_model.dart';
 import '../services/app_config_service.dart';
 import '../services/base_service.dart';
 import '../services/cache_service.dart';
+import '../services/cleanup_service.dart';
 import '../services/flutter_service.dart';
 import '../services/git_service.dart';
 import '../services/logger_service.dart';
 import '../services/process_service.dart';
+import '../services/project_registry_service.dart';
 import '../services/project_service.dart';
 import '../services/releases_service/releases_client.dart';
 import '../version.dart';
@@ -109,13 +111,22 @@ class FvmContext with FvmContextMappable {
       overrides: configOverrides,
       appConfigPath: resolvedAppConfigPath,
     );
+    final environment = {...Platform.environment};
+    if (isTest) {
+      // Host CI keys would skip registry tracking; strip them first so a
+      // test can opt back in through environmentOverrides.
+      environment.removeWhere(
+        (key, _) => kCiEnvironmentVariables.contains(key),
+      );
+    }
+    environment.addAll(environmentOverrides ?? const {});
 
     return FvmContext.raw(
       debugLabel: debugLabel,
       workingDirectory: workingDirectoryOverride ?? Directory.current.path,
       config: builtConfig,
       appConfigPath: resolvedAppConfigPath,
-      environment: {...Platform.environment, ...?environmentOverrides},
+      environment: environment,
       logLevel: logLevel ?? (isTest ? Level.error : Level.info),
       skipInput: skipInput,
       stdinHasTerminal:
@@ -180,6 +191,10 @@ class FvmContext with FvmContextMappable {
   @MappableField()
   String get versionsCachePath => join(fvmDir, 'versions');
 
+  /// Cache-local project registry path.
+  @MappableField()
+  String get projectsRegistryPath => join(fvmDir, kProjectsRegistryFileName);
+
   /// Checks if the current environment is a Continuous Integration (CI) environment.
   /// This is done by checking for common CI environment variables.
   @MappableField()
@@ -242,7 +257,9 @@ class GeneratorsMapper extends SimpleMapper<Map<Type, Generator>> {
 
 const _defaultGenerators = <Type, Generator>{
   ProjectService: ProjectService.new,
+  ProjectRegistryService: ProjectRegistryService.new,
   CacheService: CacheService.new,
+  CleanupService: CleanupService.new,
   FlutterReleaseClient: FlutterReleaseClient.new,
   FlutterService: FlutterService.new,
   ApiService: ApiService.new,

@@ -76,6 +76,16 @@ void main() {
   });
 
   group('getCachedVersions', () {
+    setUp(() {
+      // Usage reporting folds in the current project, so the mock has to
+      // answer the ancestor lookup. An unconfigured project contributes none.
+      when(
+        () => context.get<ProjectService>().findAncestor(directory: null),
+      ).thenReturn(
+        Project(config: null, path: createTempDir('api').path, pubspec: null),
+      );
+    });
+
     test('returns versions with directories', () async {
       await context.get<FlutterService>().install(FlutterVersion.parse('beta'));
 

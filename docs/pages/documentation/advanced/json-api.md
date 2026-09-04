@@ -29,6 +29,18 @@ fvm api releases [--compress] [--limit <n>] [--filter-channel <channel>]
 - `--limit` - Number of releases to return
 - `--filter-channel` - Filter by channel (stable, beta, dev)
 
+### cleanup
+
+Returns cached patch upgrades, unused SDK names, and the removable subset.
+
+```bash
+fvm api cleanup [--compress]
+```
+
+Patch upgrades include the project directory and the `fvm` arguments to run.
+`unused` is the same unpinned set as `fvm api list` `unreferencedVersions`.
+`removable` is what `fvm cleanup --remove-unused` would delete.
+
 ### context
 
 Returns FVM environment information.
@@ -95,9 +107,60 @@ fvm api list [options]
       "isSetup": true
     },
     ...
-  ]
+  ],
+  "projects": [
+    "/Users/example/code/my_app"
+  ],
+  "unreferencedVersions": ["3.17.0"]
 }
 ```
+
+`projects` lists the project roots considered when computing
+`unreferencedVersions`: recorded roots that still load as configured FVM
+projects, plus the project you run the command from when it is configured.
+`unreferencedVersions` lists installed versions that none of them pin (the
+global version is never listed).
+Roots are recorded when you run `fvm use` or `fvm install` inside them, so
+treat `unreferencedVersions` as a hint rather than proof that an SDK is unused.
+
+### `cleanup`
+
+Returns cached patch upgrades, unused SDK names, and the removable subset.
+
+**Usage:**
+
+```bash
+fvm api cleanup [--compress]
+```
+
+**Response Payload:**
+
+```json
+{
+  "upgrades": [
+    {
+      "fromVersion": "3.44.0",
+      "toVersion": "3.44.8",
+      "reason": "A newer cached patch release is available in the 3.44 line.",
+      "actions": [
+        {
+          "arguments": ["use", "3.44.8"],
+          "workingDirectory": "/Users/example/code/my_app"
+        }
+      ]
+    }
+  ],
+  "unused": ["3.38.6", "3.44.8"],
+  "removable": ["3.38.6"]
+}
+```
+
+Patch upgrades only consolidate exact stable releases within the same cached
+major/minor line and fork. Channel-qualified pins such as `3.10.0@beta` are
+not upgraded. `unused` is the same unpinned set as `unreferencedVersions`.
+`removable` omits versions that `upgrades` still recommend as targets.
+Project actions include `workingDirectory`; global actions do not. Each
+action's `arguments` are the tokens after `fvm`.
 
 ### `releases`
 
