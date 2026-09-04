@@ -1,3 +1,8 @@
+## 4.3.1
+
+* fix: wait for proxied Flutter commands to finish cleanup after Ctrl+C before FVM exits with status 130, preventing terminals from being left in raw mode (#1054)
+* fix: support both `pub_updater` 0.4 and 0.5 in dependency resolution while retaining Dart 3.6 compatibility (#1022)
+
 ## 4.3.0
 
 * feat: add `fvm cleanup` to preview unused cached SDKs and exact same-line stable patch upgrades, and to remove unused versions with `--remove-unused`. Recommended upgrade targets stay cached until a project or global pin moves; `fvm list` Unused now points here
