@@ -12,6 +12,7 @@ title: Quick Reference
 | `fvm use [version]` | Set project SDK version | `fvm use 3.19.0` |
 | `fvm install [version]` | Download SDK version | `fvm install stable` |
 | `fvm list` | Show installed versions | `fvm list` |
+| `fvm cleanup` | Review unused SDKs and patch upgrades | `fvm cleanup` |
 | `fvm global [version]` | Set system default | `fvm global 3.19.0` |
 | `fvm flutter [cmd]` | Run Flutter commands | `fvm flutter doctor` |
 | `fvm dart [cmd]` | Run Dart commands | `fvm dart pub get` |
@@ -74,14 +75,15 @@ myproject/
 
 ## Environment Variables
 
-- `FVM_CACHE_PATH` - Custom cache directory
+- `FVM_CACHE_PATH` - Custom cache directory (also selects that cache's project registry)
 - `FVM_GIT_CACHE_PATH` - Git cache location
 - `FVM_FLUTTER_URL` - Custom Flutter repo
 
 ## Tips
 
 - Use `fvm doctor` to troubleshoot issues
-- Add `.fvm/flutter_sdk` to `.gitignore`
+- Use `fvm cleanup` to review cached SDK consolidation
+- Add `.fvm/` to `.gitignore`
 - Commit `.fvmrc` for team consistency
 - Use `--no-setup` for faster caching
 - Enable git cache for faster installs

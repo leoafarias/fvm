@@ -50,6 +50,19 @@ class ProjectService extends ContextualService {
     return result;
   }
 
+  /// Finds the nearest project, returning null when its metadata cannot be
+  /// read. Use this only for optional project-aware behavior.
+  Project? tryFindAncestor({Directory? directory}) {
+    try {
+      return findAncestor(directory: directory);
+    } catch (error, stackTrace) {
+      logger.debug('Unable to read project metadata: $error');
+      logger.logTrace(stackTrace);
+
+      return null;
+    }
+  }
+
   /// Search for version configured
   ///
   /// This method searches for the version of the Flutter SDK that is configured for

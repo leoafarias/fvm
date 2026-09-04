@@ -116,13 +116,16 @@ flutter doctor
 
 ## Cleaning up old versions
 
-Remove unused SDK versions to free disk space.
+Review unused SDKs and cached patch upgrades, then remove what you do not need.
 
 ```bash
-# List installed versions
-fvm list
+# Preview unused SDKs and patch upgrade commands
+fvm cleanup
 
-# Remove specific version
+# Remove unused SDKs FVM knows about
+fvm cleanup --remove-unused
+
+# Remove a specific version
 fvm remove 3.16.0
 
 # Remove all versions
@@ -210,11 +213,10 @@ JetBrains IDEs can resolve either link to its current cached version, so verify 
 
 ```bash
 # Add to .gitignore
-.fvm/flutter_sdk
+.fvm/
 
-# Commit these files
+# Commit this file
 .fvmrc
-.fvm/fvm_config.json
 ```
 
 ### Performance tips
