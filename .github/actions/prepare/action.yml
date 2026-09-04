@@ -14,7 +14,9 @@ runs:
     - name: Setup Dart
       uses: dart-lang/setup-dart@v1
       with:
-        sdk: ${{ inputs.sdk-version }} 
+        sdk: ${{ inputs.sdk-version }}
+        # Work around dart-lang/setup-dart#198 in composite actions.
+        problem-matcher: false
 
     - name: Get dependencies
       run: dart pub get
