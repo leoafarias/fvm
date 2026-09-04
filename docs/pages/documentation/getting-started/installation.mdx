@@ -40,7 +40,6 @@ curl -fsSL https://fvm.app/install.sh | bash -s -- <version>
 Install:
 
 ```bash
-brew tap leoafarias/fvm
 brew install fvm
 ```
 
@@ -48,7 +47,6 @@ Uninstall:
 
 ```bash
 brew uninstall fvm
-brew untap leoafarias/fvm
 ```
 
   </Tabs.Tab>
@@ -67,6 +65,11 @@ Uninstall:
 ```bash
 choco uninstall fvm
 ```
+
+## Standalone Archive
+
+Native Windows builds are published on the [GitHub Releases](https://github.com/leoafarias/fvm/releases/latest) page.
+Download the `windows-x64` or `windows-arm64` zip for your device, extract it, and add the extracted `fvm` directory to your PATH.
 
   </Tabs.Tab>
 
@@ -121,7 +124,7 @@ The install script (`install.sh`) supports several options:
 
 - **Latest version**: `curl -fsSL https://fvm.app/install.sh | bash`
 - **Specific version**: `curl -fsSL https://fvm.app/install.sh | bash -s -- <version>` (replace `<version>` with desired FVM version)
-- **Custom install location**: `FVM_INSTALL_DIR=<path> curl -fsSL https://fvm.app/install.sh | bash` (absolute path under `$HOME`)
+- **Custom install location**: `curl -fsSL https://fvm.app/install.sh | FVM_INSTALL_DIR=<path> bash` (absolute path under `$HOME`)
 - **Help**: `./install.sh --help`
 - **Version info**: `./install.sh --version`
 
@@ -131,12 +134,12 @@ The install script (`install.sh`) supports several options:
 |----------|-------------|---------|
 | macOS | x64, arm64 | ✅ |
 | Linux | x64, arm64, riscv64 | ✅ |
-| Windows | x64 | ✅ (via PowerShell/Chocolatey) |
+| Windows | x64, arm64 | ✅ (x64 via Chocolatey; x64/arm64 via standalone archive) |
 
 ### Requirements
 
 - **macOS/Linux**: `curl` and `tar`
-- **Windows**: PowerShell (for script) or Chocolatey
+- **Windows**: PowerShell and Chocolatey for Chocolatey installs, or a standalone zip from GitHub Releases
 
 ## PATH Configuration
 
@@ -183,7 +186,6 @@ curl -fsSL https://fvm.app/install.sh | bash -s -- --uninstall
 **Homebrew:**
 ```bash
 brew uninstall fvm
-brew untap leoafarias/fvm
 ```
 
 **Chocolatey:**

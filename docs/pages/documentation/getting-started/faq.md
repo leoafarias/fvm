@@ -21,6 +21,24 @@ If `fvm flutter` or `fvm dart` commands are not working:
 
 ---
 
+## Android Studio cannot find Flutter after `fvm global`
+
+`fvm global` creates an FVM-managed `default` SDK link, but it does not change Android Studio or IntelliJ settings. In **Settings → Languages & Frameworks → Flutter**, select `$HOME/fvm/default` on macOS/Linux or `C:\Users\<user>\fvm\default` on Windows. If you configured a custom cache, select `<FVM_CACHE_PATH>/default` instead.
+
+The IDE can resolve this link to a specific cached version. After changing the global version, verify the version shown in the IDE and reselect the FVM path if necessary. See the [Android Studio and IntelliJ guide](../guides/android-studio) for project-specific setup and troubleshooting.
+
+---
+
+## Where does FVM store known projects?
+
+FVM keeps a machine-local list of project roots at `$FVM_CACHE_PATH/projects.json` (or the default cache root). Entries are added when you run `fvm use` or `fvm install` inside a project; FVM never scans your disks. It stores paths only, so pinned versions are always read back from each project's `.fvmrc`.
+
+`fvm list` uses it to mark cached SDKs that no known project pins and that are not selected globally as `Unused`. `fvm cleanup` shows that same unused set, plus same-line cached patch upgrade commands. `--remove-unused` still keeps a newer cached patch that cleanup recommends as an upgrade target. Because only projects you have run FVM in are recorded, those results are a hint, not proof an SDK is safe to delete.
+
+The file stores absolute local paths. Do not share it if those directory names should stay private. To make FVM forget everything it has recorded, delete the file. Integrations should use `fvm api list` instead of reading it directly.
+
+---
+
 ## How does FVM find the Flutter version to use?
 
 FVM searches for the Flutter SDK in this order:
@@ -48,7 +66,6 @@ When running `dart pub global activate fvm`, pub will grab the latest FVM versio
 **Homebrew:**
 ```bash
 brew uninstall fvm
-brew untap leoafarias/fvm
 ```
 
 **Pub:**

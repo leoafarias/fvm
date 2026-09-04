@@ -32,6 +32,9 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static AppConfig _$config(FvmContext v) => v.config;
   static const Field<FvmContext, AppConfig> _f$config =
       Field('config', _$config);
+  static String _$appConfigPath(FvmContext v) => v.appConfigPath;
+  static const Field<FvmContext, String> _f$appConfigPath =
+      Field('appConfigPath', _$appConfigPath);
   static Map<Type, Contextual Function(FvmContext)> _$_generators(
           FvmContext v) =>
       v._generators;
@@ -41,8 +44,12 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static const Field<FvmContext, Map<String, String>> _f$environment =
       Field('environment', _$environment);
   static bool _$_skipInput(FvmContext v) => v._skipInput;
-  static const Field<FvmContext, bool> _f$_skipInput =
-      Field('_skipInput', _$_skipInput, key: r'skipInput');
+  static const Field<FvmContext, bool> _f$_skipInput = Field(
+      '_skipInput', _$_skipInput,
+      key: r'skipInputRequested', opt: true, def: false);
+  static bool _$stdinHasTerminal(FvmContext v) => v.stdinHasTerminal;
+  static const Field<FvmContext, bool> _f$stdinHasTerminal =
+      Field('stdinHasTerminal', _$stdinHasTerminal, opt: true, def: true);
   static bool _$isTest(FvmContext v) => v.isTest;
   static const Field<FvmContext, bool> _f$isTest =
       Field('isTest', _$isTest, opt: true, def: false);
@@ -84,6 +91,9 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
   static String _$versionsCachePath(FvmContext v) => v.versionsCachePath;
   static const Field<FvmContext, String> _f$versionsCachePath =
       Field('versionsCachePath', _$versionsCachePath);
+  static String _$projectsRegistryPath(FvmContext v) => v.projectsRegistryPath;
+  static const Field<FvmContext, String> _f$projectsRegistryPath =
+      Field('projectsRegistryPath', _$projectsRegistryPath);
   static bool _$isCI(FvmContext v) => v.isCI;
   static const Field<FvmContext, bool> _f$isCI = Field('isCI', _$isCI);
   static bool _$skipInput(FvmContext v) => v.skipInput;
@@ -95,9 +105,11 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
     #debugLabel: _f$debugLabel,
     #workingDirectory: _f$workingDirectory,
     #config: _f$config,
+    #appConfigPath: _f$appConfigPath,
     #_generators: _f$_generators,
     #environment: _f$environment,
     #_skipInput: _f$_skipInput,
+    #stdinHasTerminal: _f$stdinHasTerminal,
     #isTest: _f$isTest,
     #logLevel: _f$logLevel,
     #fvmDir: _f$fvmDir,
@@ -112,6 +124,7 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
     #globalCacheLink: _f$globalCacheLink,
     #globalCacheBinPath: _f$globalCacheBinPath,
     #versionsCachePath: _f$versionsCachePath,
+    #projectsRegistryPath: _f$projectsRegistryPath,
     #isCI: _f$isCI,
     #skipInput: _f$skipInput,
   };
@@ -121,9 +134,11 @@ class FvmContextMapper extends ClassMapperBase<FvmContext> {
         debugLabel: data.dec(_f$debugLabel),
         workingDirectory: data.dec(_f$workingDirectory),
         config: data.dec(_f$config),
+        appConfigPath: data.dec(_f$appConfigPath),
         generators: data.dec(_f$_generators),
         environment: data.dec(_f$environment),
         skipInput: data.dec(_f$_skipInput),
+        stdinHasTerminal: data.dec(_f$stdinHasTerminal),
         isTest: data.dec(_f$isTest),
         logLevel: data.dec(_f$logLevel));
   }
@@ -193,9 +208,11 @@ abstract class FvmContextCopyWith<$R, $In extends FvmContext, $Out>
       {String? debugLabel,
       String? workingDirectory,
       AppConfig? config,
+      String? appConfigPath,
       Map<Type, Contextual Function(FvmContext)>? generators,
       Map<String, String>? environment,
       bool? skipInput,
+      bool? stdinHasTerminal,
       bool? isTest,
       Level? logLevel});
   FvmContextCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(Then<$Out2, $R2> t);
@@ -233,18 +250,22 @@ class _FvmContextCopyWithImpl<$R, $Out>
           {Object? debugLabel = $none,
           String? workingDirectory,
           AppConfig? config,
+          String? appConfigPath,
           Map<Type, Contextual Function(FvmContext)>? generators,
           Map<String, String>? environment,
           bool? skipInput,
+          bool? stdinHasTerminal,
           bool? isTest,
           Level? logLevel}) =>
       $apply(FieldCopyWithData({
         if (debugLabel != $none) #debugLabel: debugLabel,
         if (workingDirectory != null) #workingDirectory: workingDirectory,
         if (config != null) #config: config,
+        if (appConfigPath != null) #appConfigPath: appConfigPath,
         if (generators != null) #generators: generators,
         if (environment != null) #environment: environment,
         if (skipInput != null) #skipInput: skipInput,
+        if (stdinHasTerminal != null) #stdinHasTerminal: stdinHasTerminal,
         if (isTest != null) #isTest: isTest,
         if (logLevel != null) #logLevel: logLevel
       }));
@@ -254,9 +275,12 @@ class _FvmContextCopyWithImpl<$R, $Out>
       workingDirectory:
           data.get(#workingDirectory, or: $value.workingDirectory),
       config: data.get(#config, or: $value.config),
+      appConfigPath: data.get(#appConfigPath, or: $value.appConfigPath),
       generators: data.get(#generators, or: $value._generators),
       environment: data.get(#environment, or: $value.environment),
       skipInput: data.get(#skipInput, or: $value._skipInput),
+      stdinHasTerminal:
+          data.get(#stdinHasTerminal, or: $value.stdinHasTerminal),
       isTest: data.get(#isTest, or: $value.isTest),
       logLevel: data.get(#logLevel, or: $value.logLevel));
 

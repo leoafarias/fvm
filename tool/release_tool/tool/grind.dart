@@ -7,12 +7,27 @@ import 'package:path/path.dart' as p;
 import 'package:meta/meta.dart';
 
 const _packageName = 'fvm';
+
+// This must always name the account that *canonically* owns the repository,
+// never an account that merely redirects to it.
+//
+// GitHub keeps redirects alive after a repository moves between accounts, so
+// a stale owner here looks fine everywhere except the one call that matters:
+// GET follows the redirect transparently (as do `gh` and curl), but cli_pkg
+// does not follow redirects on POST, so creating the release fails with
+// `307 Moved Permanently` after every test job has already passed. That is
+// exactly how the v4.1.3 deploy broke while the repository was temporarily
+// owned by another account.
+//
+// When the repository moves, update this constant in the same change.
 const _owner = 'leoafarias';
+
 const _repo = 'fvm';
 
 final Directory _releaseToolRoot = Directory.current;
-final Directory _repoRoot =
-    Directory(p.normalize(p.join(_releaseToolRoot.path, '..', '..')));
+final Directory _repoRoot = Directory(
+  p.normalize(p.join(_releaseToolRoot.path, '..', '..')),
+);
 
 @visibleForTesting
 Directory? repoRootOverride;
@@ -102,9 +117,7 @@ Future<void> getReleases() async {
   } on GrinderException {
     rethrow;
   } catch (error, stackTrace) {
-    _fail(
-      'Failed to retrieve GitHub releases: $error\n$stackTrace',
-    );
+    _fail('Failed to retrieve GitHub releases: $error\n$stackTrace');
   }
 }
 
@@ -117,7 +130,10 @@ Future<String> _githubRequest(Uri uri) async {
   final client = HttpClient();
   try {
     final request = await client.getUrl(uri);
-    request.headers.set(HttpHeaders.acceptHeader, 'application/vnd.github.v3+json');
+    request.headers.set(
+      HttpHeaders.acceptHeader,
+      'application/vnd.github.v3+json',
+    );
     final token = Platform.environment['GITHUB_TOKEN'];
     if (token != null && token.isNotEmpty) {
       request.headers.set(HttpHeaders.authorizationHeader, 'token $token');

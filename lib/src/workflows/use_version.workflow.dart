@@ -4,6 +4,7 @@ import 'package:io/ansi.dart';
 
 import '../models/cache_flutter_version_model.dart';
 import '../models/project_model.dart';
+import '../services/project_registry_service.dart';
 import '../utils/helpers.dart';
 import '../utils/which.dart';
 import 'resolve_project_deps.workflow.dart';
@@ -38,6 +39,8 @@ class UseVersionWorkflow extends Workflow {
       flavor: flavor,
       force: force,
     );
+
+    get<ProjectRegistryService>().track(updatedProject);
 
     get<SetupGitIgnoreWorkflow>()(project);
 

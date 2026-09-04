@@ -14,6 +14,7 @@ class APIResponseMapper extends ClassMapperBase<APIResponse> {
     if (_instance == null) {
       MapperContainer.globals.use(_instance = APIResponseMapper._());
       GetCacheVersionsResponseMapper.ensureInitialized();
+      GetCleanupResponseMapper.ensureInitialized();
       GetReleasesResponseMapper.ensureInitialized();
       GetProjectResponseMapper.ensureInitialized();
       GetContextResponseMapper.ensureInitialized();
@@ -73,16 +74,29 @@ class GetCacheVersionsResponseMapper
       v.versions;
   static const Field<GetCacheVersionsResponse, List<CacheFlutterVersion>>
       _f$versions = Field('versions', _$versions);
+  static List<String> _$projects(GetCacheVersionsResponse v) => v.projects;
+  static const Field<GetCacheVersionsResponse, List<String>> _f$projects =
+      Field('projects', _$projects);
+  static List<String> _$unreferencedVersions(GetCacheVersionsResponse v) =>
+      v.unreferencedVersions;
+  static const Field<GetCacheVersionsResponse, List<String>>
+      _f$unreferencedVersions =
+      Field('unreferencedVersions', _$unreferencedVersions);
 
   @override
   final MappableFields<GetCacheVersionsResponse> fields = const {
     #size: _f$size,
     #versions: _f$versions,
+    #projects: _f$projects,
+    #unreferencedVersions: _f$unreferencedVersions,
   };
 
   static GetCacheVersionsResponse _instantiate(DecodingData data) {
     return GetCacheVersionsResponse(
-        size: data.dec(_f$size), versions: data.dec(_f$versions));
+        size: data.dec(_f$size),
+        versions: data.dec(_f$versions),
+        projects: data.dec(_f$projects),
+        unreferencedVersions: data.dec(_f$unreferencedVersions));
   }
 
   @override
@@ -148,7 +162,14 @@ abstract class GetCacheVersionsResponseCopyWith<
       CacheFlutterVersion,
       CacheFlutterVersionCopyWith<$R, CacheFlutterVersion,
           CacheFlutterVersion>> get versions;
-  $R call({String? size, List<CacheFlutterVersion>? versions});
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get projects;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+      get unreferencedVersions;
+  $R call(
+      {String? size,
+      List<CacheFlutterVersion>? versions,
+      List<String>? projects,
+      List<String>? unreferencedVersions});
   GetCacheVersionsResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
       Then<$Out2, $R2> t);
 }
@@ -170,20 +191,190 @@ class _GetCacheVersionsResponseCopyWithImpl<$R, $Out>
           CacheFlutterVersion>> get versions => ListCopyWith($value.versions,
       (v, t) => v.copyWith.$chain(t), (v) => call(versions: v));
   @override
-  $R call({String? size, List<CacheFlutterVersion>? versions}) =>
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get projects =>
+      ListCopyWith($value.projects, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(projects: v));
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>>
+      get unreferencedVersions => ListCopyWith(
+          $value.unreferencedVersions,
+          (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(unreferencedVersions: v));
+  @override
+  $R call(
+          {String? size,
+          List<CacheFlutterVersion>? versions,
+          List<String>? projects,
+          List<String>? unreferencedVersions}) =>
       $apply(FieldCopyWithData({
         if (size != null) #size: size,
-        if (versions != null) #versions: versions
+        if (versions != null) #versions: versions,
+        if (projects != null) #projects: projects,
+        if (unreferencedVersions != null)
+          #unreferencedVersions: unreferencedVersions
       }));
   @override
   GetCacheVersionsResponse $make(CopyWithData data) => GetCacheVersionsResponse(
       size: data.get(#size, or: $value.size),
-      versions: data.get(#versions, or: $value.versions));
+      versions: data.get(#versions, or: $value.versions),
+      projects: data.get(#projects, or: $value.projects),
+      unreferencedVersions:
+          data.get(#unreferencedVersions, or: $value.unreferencedVersions));
 
   @override
   GetCacheVersionsResponseCopyWith<$R2, GetCacheVersionsResponse, $Out2>
       $chain<$R2, $Out2>(Then<$Out2, $R2> t) =>
           _GetCacheVersionsResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
+}
+
+class GetCleanupResponseMapper extends ClassMapperBase<GetCleanupResponse> {
+  GetCleanupResponseMapper._();
+
+  static GetCleanupResponseMapper? _instance;
+  static GetCleanupResponseMapper ensureInitialized() {
+    if (_instance == null) {
+      MapperContainer.globals.use(_instance = GetCleanupResponseMapper._());
+      APIResponseMapper.ensureInitialized();
+      PatchUpgradeMapper.ensureInitialized();
+    }
+    return _instance!;
+  }
+
+  @override
+  final String id = 'GetCleanupResponse';
+
+  static List<PatchUpgrade> _$upgrades(GetCleanupResponse v) => v.upgrades;
+  static const Field<GetCleanupResponse, List<PatchUpgrade>> _f$upgrades =
+      Field('upgrades', _$upgrades);
+  static List<String> _$unused(GetCleanupResponse v) => v.unused;
+  static const Field<GetCleanupResponse, List<String>> _f$unused =
+      Field('unused', _$unused);
+  static List<String> _$removable(GetCleanupResponse v) => v.removable;
+  static const Field<GetCleanupResponse, List<String>> _f$removable =
+      Field('removable', _$removable);
+
+  @override
+  final MappableFields<GetCleanupResponse> fields = const {
+    #upgrades: _f$upgrades,
+    #unused: _f$unused,
+    #removable: _f$removable,
+  };
+
+  static GetCleanupResponse _instantiate(DecodingData data) {
+    return GetCleanupResponse(
+        upgrades: data.dec(_f$upgrades),
+        unused: data.dec(_f$unused),
+        removable: data.dec(_f$removable));
+  }
+
+  @override
+  final Function instantiate = _instantiate;
+
+  static GetCleanupResponse fromMap(Map<String, dynamic> map) {
+    return ensureInitialized().decodeMap<GetCleanupResponse>(map);
+  }
+
+  static GetCleanupResponse fromJson(String json) {
+    return ensureInitialized().decodeJson<GetCleanupResponse>(json);
+  }
+}
+
+mixin GetCleanupResponseMappable {
+  String toJson() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .encodeJson<GetCleanupResponse>(this as GetCleanupResponse);
+  }
+
+  Map<String, dynamic> toMap() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .encodeMap<GetCleanupResponse>(this as GetCleanupResponse);
+  }
+
+  GetCleanupResponseCopyWith<GetCleanupResponse, GetCleanupResponse,
+          GetCleanupResponse>
+      get copyWith => _GetCleanupResponseCopyWithImpl<GetCleanupResponse,
+          GetCleanupResponse>(this as GetCleanupResponse, $identity, $identity);
+  @override
+  String toString() {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .stringifyValue(this as GetCleanupResponse);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .equalsValue(this as GetCleanupResponse, other);
+  }
+
+  @override
+  int get hashCode {
+    return GetCleanupResponseMapper.ensureInitialized()
+        .hashValue(this as GetCleanupResponse);
+  }
+}
+
+extension GetCleanupResponseValueCopy<$R, $Out>
+    on ObjectCopyWith<$R, GetCleanupResponse, $Out> {
+  GetCleanupResponseCopyWith<$R, GetCleanupResponse, $Out>
+      get $asGetCleanupResponse => $base.as(
+          (v, t, t2) => _GetCleanupResponseCopyWithImpl<$R, $Out>(v, t, t2));
+}
+
+abstract class GetCleanupResponseCopyWith<$R, $In extends GetCleanupResponse,
+    $Out> implements ClassCopyWith<$R, $In, $Out> {
+  ListCopyWith<$R, PatchUpgrade,
+      PatchUpgradeCopyWith<$R, PatchUpgrade, PatchUpgrade>> get upgrades;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get unused;
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable;
+  $R call(
+      {List<PatchUpgrade>? upgrades,
+      List<String>? unused,
+      List<String>? removable});
+  GetCleanupResponseCopyWith<$R2, $In, $Out2> $chain<$R2, $Out2>(
+      Then<$Out2, $R2> t);
+}
+
+class _GetCleanupResponseCopyWithImpl<$R, $Out>
+    extends ClassCopyWithBase<$R, GetCleanupResponse, $Out>
+    implements GetCleanupResponseCopyWith<$R, GetCleanupResponse, $Out> {
+  _GetCleanupResponseCopyWithImpl(super.value, super.then, super.then2);
+
+  @override
+  late final ClassMapperBase<GetCleanupResponse> $mapper =
+      GetCleanupResponseMapper.ensureInitialized();
+  @override
+  ListCopyWith<$R, PatchUpgrade,
+          PatchUpgradeCopyWith<$R, PatchUpgrade, PatchUpgrade>>
+      get upgrades => ListCopyWith($value.upgrades,
+          (v, t) => v.copyWith.$chain(t), (v) => call(upgrades: v));
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get unused =>
+      ListCopyWith($value.unused, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(unused: v));
+  @override
+  ListCopyWith<$R, String, ObjectCopyWith<$R, String, String>> get removable =>
+      ListCopyWith($value.removable, (v, t) => ObjectCopyWith(v, $identity, t),
+          (v) => call(removable: v));
+  @override
+  $R call(
+          {List<PatchUpgrade>? upgrades,
+          List<String>? unused,
+          List<String>? removable}) =>
+      $apply(FieldCopyWithData({
+        if (upgrades != null) #upgrades: upgrades,
+        if (unused != null) #unused: unused,
+        if (removable != null) #removable: removable
+      }));
+  @override
+  GetCleanupResponse $make(CopyWithData data) => GetCleanupResponse(
+      upgrades: data.get(#upgrades, or: $value.upgrades),
+      unused: data.get(#unused, or: $value.unused),
+      removable: data.get(#removable, or: $value.removable));
+
+  @override
+  GetCleanupResponseCopyWith<$R2, GetCleanupResponse, $Out2> $chain<$R2, $Out2>(
+          Then<$Out2, $R2> t) =>
+      _GetCleanupResponseCopyWithImpl<$R2, $Out2>($value, $cast, t);
 }
 
 class GetReleasesResponseMapper extends ClassMapperBase<GetReleasesResponse> {

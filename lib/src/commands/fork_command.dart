@@ -76,7 +76,7 @@ class ForkAddCommand extends BaseFvmCommand {
     }
 
     // Check for duplicate alias
-    final config = LocalAppConfig.read();
+    final config = LocalAppConfig.read(path: context.appConfigPath);
     if (config.forks.any((f) => f.name == alias)) {
       throw UsageException(
         'Fork alias "$alias" already exists. Remove it first if you want to update.',
@@ -88,7 +88,7 @@ class ForkAddCommand extends BaseFvmCommand {
 
     config
       ..forks.add(forkDef)
-      ..save();
+      ..save(path: context.appConfigPath);
 
     logger.info('Fork alias "$alias" added pointing to $url');
     logger.info('You can now use it with: fvm install $alias/stable');
@@ -117,9 +117,9 @@ class ForkRemoveCommand extends BaseFvmCommand {
     }
     final alias = args[0];
 
-    LocalAppConfig.read()
+    LocalAppConfig.read(path: context.appConfigPath)
       ..forks.removeWhere((f) => f.name == alias)
-      ..save();
+      ..save(path: context.appConfigPath);
 
     logger.info('Fork alias "$alias" removed');
 
@@ -140,7 +140,7 @@ class ForkListCommand extends BaseFvmCommand {
 
   @override
   Future<int> run() async {
-    final forks = LocalAppConfig.read().forks;
+    final forks = LocalAppConfig.read(path: context.appConfigPath).forks;
     if (forks.isEmpty) {
       logger.info('No fork aliases found');
       logger.info('To add a fork, use: fvm fork add <alias> <url>');

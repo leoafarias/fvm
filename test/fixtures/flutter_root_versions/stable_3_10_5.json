@@ -1,0 +1,12 @@
+{
+  "dartSdkVersion": "3.0.0 (build 3.0.0-0.0.dev)",
+  "flutterVersionJson": {
+    "channel": "stable",
+    "dartSdkVersion": "3.0.0 (build 3.0.0-0.0.dev)",
+    "flutterVersion": "3.10.5",
+    "frameworkVersion": "3.10.5",
+    "repositoryUrl": "https://github.com/flutter/flutter.git"
+  },
+  "legacyVersion": "3.10.5",
+  "name": "stable_3_10_5"
+}

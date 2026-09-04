@@ -34,6 +34,17 @@ Usage:
 sudo ./scripts/test-install.sh
 ```
 
+### test-install-arch.sh
+Deterministic regression test for install target selection:
+- Verifies macOS Rosetta-aware arm64 detection
+- Verifies Linux architecture mapping and unsupported-arch failures
+- Avoids downloads by stubbing `uname`, `sysctl`, `curl`, and `tar`
+
+Usage:
+```bash
+./scripts/test-install-arch.sh
+```
+
 ### install.ps1
 PowerShell installation script for Windows.
 

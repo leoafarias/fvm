@@ -274,6 +274,6 @@ void main() {
       final contents = gitignore.readAsLinesSync();
       expect(contents, contains(SetupGitIgnoreWorkflow.kGitIgnoreHeading));
       expect(contents, contains(SetupGitIgnoreWorkflow.kFvmPathToAdd));
-    });
+    }, tags: ['git']);
   });
 }

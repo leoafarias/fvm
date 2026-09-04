@@ -3,7 +3,7 @@ import 'package:dart_mcp/server.dart';
 List<String> flag(CallToolRequest call, String key, String cliFlag) {
   final v = (call.arguments ?? const {})[key];
 
-  return v == true ? <String>[cliFlag] : const <String>[];
+  return v == true ? [cliFlag] : const [];
 }
 
 List<String> opt<T>(
@@ -20,13 +20,13 @@ List<String> opt<T>(
     throw ArgumentError.value(v, key, 'Expected $T');
   }
 
-  return const <String>[];
+  return const [];
 }
 
 List<String> maybeOne(CallToolRequest call, String key) {
   final v = stringArg(call, key);
 
-  return v != null ? <String>[v] : const <String>[];
+  return v != null ? [v] : const [];
 }
 
 String? stringArg(CallToolRequest call, String key) {
@@ -44,5 +44,5 @@ bool? boolArg(CallToolRequest call, String key) {
 List<String> listArg(CallToolRequest call, String key) {
   final v = (call.arguments ?? const {})[key];
 
-  return (v is List) ? v.whereType<String>().toList() : const <String>[];
+  return (v is List) ? v.whereType<String>().toList() : const [];
 }

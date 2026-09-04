@@ -57,8 +57,8 @@ fvm
 
 # FVM Version Cache
 .fvm/
-
-test/fixtures/sample_app
+# This repo is a Dart CLI, not a Flutter app. Keep a local pin untracked.
+.fvmrc
 
 # Example app directory
 example_app/

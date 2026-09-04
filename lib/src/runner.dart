@@ -9,6 +9,7 @@ import 'package:io/io.dart';
 import 'package:pub_updater/pub_updater.dart';
 
 import 'commands/api_command.dart';
+import 'commands/cleanup_command.dart';
 import 'commands/config_command.dart';
 import 'commands/dart_command.dart';
 import 'commands/destroy_command.dart';
@@ -53,6 +54,7 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
     addCommand(InstallCommand(context));
     addCommand(UseCommand(context));
     addCommand(ListCommand(context));
+    addCommand(CleanupCommand(context));
     addCommand(RemoveCommand(context));
     addCommand(ReleasesCommand(context));
     addCommand(FlutterCommand(context));
@@ -82,9 +84,9 @@ class FvmCommandRunner extends CompletionCommandRunner<int> {
         return null;
       }
 
-      LocalAppConfig.read()
+      LocalAppConfig.read(path: context.appConfigPath)
         ..lastUpdateCheck = DateTime.now()
-        ..save();
+        ..save(path: context.appConfigPath);
 
       final isUpToDate = await _pubUpdater.isUpToDate(
         packageName: kPackageName,

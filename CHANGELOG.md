@@ -1,6 +1,42 @@
-## Unreleased
+## 4.3.0
 
-* change: Git cache is now recreated as a bare mirror; on upgrade FVM migrates legacy caches and rewrites installed SDK alternates to point at the new mirror layout (expect a one-time repack when upgrading).
+* feat: add `fvm cleanup` to preview unused cached SDKs and exact same-line stable patch upgrades, and to remove unused versions with `--remove-unused`. Recommended upgrade targets stay cached until a project or global pin moves; `fvm list` Unused now points here
+* feat: add `fvm api cleanup` with `upgrades`, `unused`, and `removable`. `unused` matches `fvm list` Unused and `fvm api list` `unreferencedVersions`; `removable` is what `--remove-unused` would delete
+* fix: explain when `fvm list` has no local project version to mark
+
+## 4.2.0
+
+* feat: add a `Projects` column to `fvm list` that shows how many known projects pin each cached SDK. Versions that no known project pins and that are not selected globally are labeled `Unused`. FVM records projects after `fvm use` or `fvm install` and reads their current `.fvmrc` values when listing
+* feat: expose the project roots used for SDK classification and the resulting unused versions through `fvm api list` as `projects` and `unreferencedVersions`
+* fix: correctly match forked channel pins such as `myfork/3.24.0@beta` to the installed `myfork/3.24.0` SDK in the `Local` and `Projects` columns
+
+## 4.1.5
+
+* perf: skip git-cache maintenance when running Flutter or Dart through an already-installed SDK (#1066)
+
+## 4.1.4
+
+* fix: stop git-cache maintenance from running destructive git commands against repositories FVM does not own (#1060)
+* Behavior change: FVM now clears repository-scoped git environment variables (`GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, and the rest of the `git rev-parse --local-env-vars` set) when it runs `git`, `flutter`, or `dart`. Tools launched through FVM from inside a git hook, such as `fvm dart run` in a pre-commit hook, no longer see the hook's repository variables and will read the real index instead of the hook's staged index. Transport and auth variables like `GIT_SSH_COMMAND` and `GIT_ASKPASS` are preserved. (#1060)
+
+## 4.1.2
+
+* fix: stop rebuilding the git cache on every command when macOS leaves `.DS_Store` files in it (#1043)
+
+## 4.1.1
+
+* fix: prevent git cache bloat and stale SDK installs caused by outdated cache clones (#1037)
+* fix: fall back to safe defaults instead of hanging when prompts run without an interactive terminal, like CI or git hooks (#1036)
+* fix: stop false Flutter version-mismatch prompts when a project uses its own calendar-style git tags (#1033)
+
+## 4.1.0
+
+* feat: opt out of update checks for quieter CI and offline runs (#994)
+* feat: keep working with cached SDKs even when Flutter drops the version file (#997)
+* perf: faster installs and smaller disk usage with a leaner git cache (one-time repack on upgrade) (#1018)
+* fix: stop forked versions from getting mixed up in the global cache (#995)
+* fix: more reliable concurrent FVM commands (#1002)
+* chore: cleanup cache handling and release parsing (#1005)
 
 ## 4.0.5
 

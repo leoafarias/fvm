@@ -1,3 +1,4 @@
+@Tags(['network'])
 import 'package:fvm/src/services/releases_service/releases_client.dart';
 import 'package:fvm/src/utils/context.dart';
 import 'package:test/test.dart';

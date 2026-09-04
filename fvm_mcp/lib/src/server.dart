@@ -466,6 +466,6 @@ base class FvmMcpServer extends MCPServer with ToolsSupport {
     );
   }
 
-  Future<CallToolResult> _error(String message) async =>
+  CallToolResult _error(String message) =>
       CallToolResult(isError: true, content: [TextContent(text: message)]);
 }

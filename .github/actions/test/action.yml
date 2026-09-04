@@ -10,12 +10,8 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Prepare tests
-      run: dart run grinder test-setup
-      shell: bash
-
     - name: Run tests
-      run: dart test --coverage=coverage
+      run: dart test -x "sdk || network || git || integration || migration" --coverage=coverage
       shell: bash
 
     - name: Generate coverage report

@@ -20,7 +20,7 @@ void main() {
   setUpAll(() async {
     // Initialize the context for testing
 
-    testRunner = TestFactory.commandRunner();
+    testRunner = TestFactory.fastCommandRunner();
   });
 
   // Tests for Flutter commands
@@ -92,14 +92,18 @@ void main() {
       );
       final dartVersion = extractDartVersionOutput(dartVersionResult.stdout);
 
-      expect(dartVersion, cacheVersion.dartSdkVersion);
+      expect(dartVersion, _dartVersion(cacheVersion.dartSdkVersion));
       expect(flutterVersion.channel, channel);
-      expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
+      expect(
+        flutterVersion.dartBuildVersion,
+        _dartBuildVersion(cacheVersion.dartSdkVersion),
+      );
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
 
     // Test 2: On global version
     test('On global version', () async {
+      final testRunner = TestFactory.commandRunner();
       const installVersion = '2.2.0@stable';
       const releaseVersion = '2.2.0';
 
@@ -149,15 +153,18 @@ void main() {
       final parsedChannel = flutterVersion.channel;
 
       // Verify version information
-      expect(dartVersion, cacheVersion.dartSdkVersion);
+      expect(dartVersion, _dartVersion(cacheVersion.dartSdkVersion));
       expect(parsedChannel, isNotEmpty);
       expect(isFlutterChannel(parsedChannel!), isTrue);
       if (expectedChannel != null) {
         expect(parsedChannel, expectedChannel);
       }
-      expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
+      expect(
+        flutterVersion.dartBuildVersion,
+        _dartBuildVersion(cacheVersion.dartSdkVersion),
+      );
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
-    });
+    }, tags: ['sdk']);
 
     // Test 3: Exec command
     test('Exec command', () async {
@@ -203,10 +210,24 @@ void main() {
           .get<FlutterReleaseClient>()
           .getReleaseByVersion(versionNumber);
 
-      expect(dartVersion, cacheVersion.dartSdkVersion);
+      expect(dartVersion, _dartVersion(cacheVersion.dartSdkVersion));
       expect(flutterVersion.channel, release!.channel.name);
-      expect(flutterVersion.dartBuildVersion, cacheVersion.dartSdkVersion);
+      expect(
+        flutterVersion.dartBuildVersion,
+        _dartBuildVersion(cacheVersion.dartSdkVersion),
+      );
       expect(flutterVersion.flutterVersion, cacheVersion.flutterSdkVersion);
     });
   });
+}
+
+String _dartVersion(String? dartSdkVersion) {
+  return dartSdkVersion?.split(' ').first ?? '';
+}
+
+String _dartBuildVersion(String? dartSdkVersion) {
+  final value = dartSdkVersion ?? '';
+  final buildMatch = RegExp(r'\(build ([^)]+)\)').firstMatch(value);
+
+  return buildMatch?.group(1) ?? _dartVersion(value);
 }

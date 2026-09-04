@@ -80,6 +80,21 @@ class CacheService extends ContextualService {
     return versionsMatch(version.version, cached);
   }
 
+  /// Heuristic check for a Flutter SDK directory.
+  ///
+  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
+  /// this is a cloned Flutter SDK rather than a fork parent directory.
+  bool _looksLikeFlutterSdk(Directory dir) {
+    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
+    if (hasVersionFile) return true;
+
+    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
+    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
+    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
+
+    return hasGitDir && hasBin;
+  }
+
   Link get _globalCacheLink => Link(context.globalCacheLink);
 
   CacheFlutterVersion? getVersion(FlutterVersion version) {
@@ -146,21 +161,6 @@ class CacheService extends ContextualService {
     return cacheVersions;
   }
 
-  /// Heuristic check for a Flutter SDK directory.
-  ///
-  /// A `version` file or the combination of `.git` + `bin/flutter` indicates
-  /// this is a cloned Flutter SDK rather than a fork parent directory.
-  bool _looksLikeFlutterSdk(Directory dir) {
-    final hasVersionFile = File(path.join(dir.path, 'version')).existsSync();
-    if (hasVersionFile) return true;
-
-    final hasGitDir = Directory(path.join(dir.path, '.git')).existsSync();
-    final binName = Platform.isWindows ? 'flutter.bat' : 'flutter';
-    final hasBin = File(path.join(dir.path, 'bin', binName)).existsSync();
-
-    return hasGitDir && hasBin;
-  }
-
   /// Removes a cached Flutter SDK version and cleans up empty fork directories.
   Future<void> remove(FlutterVersion version) async {
     final versionDir = getVersionCacheDir(version);
@@ -192,6 +192,26 @@ class CacheService extends ContextualService {
     }
 
     return _safeCacheDirectory([version.name]);
+  }
+
+  /// The name [getAllVersions] reports for [version] once it is installed.
+  ///
+  /// Derived from the cache directory rather than from [version] directly, so
+  /// it stays correct where the directory drops part of the requested version:
+  /// a forked `x@channel` pin installs to `<fork>/x`, so the cache only ever
+  /// knows it as `<fork>/x`. Callers matching a project's pin against installed
+  /// SDKs must compare this, not [FlutterVersion.nameWithAlias].
+  ///
+  /// This is a path derivation, not an existence check. It returns null only
+  /// when the computed directory is not inside the versions cache.
+  String? installedNameOf(FlutterVersion version) {
+    try {
+      return _relativeVersionNameFromCachePath(
+        getVersionCacheDir(version).path,
+      );
+    } on AppException {
+      return null;
+    }
   }
 
   // For backward compatibility - used by existing string-based calls
@@ -294,9 +314,8 @@ class CacheService extends ContextualService {
     final versionDir = Directory(version.directory);
     if (!versionDir.existsSync()) return;
 
-    final versionString = version.fromFork
-        ? '${version.fork}/$sdkVersion'
-        : sdkVersion;
+    final versionString =
+        version.fromFork ? '${version.fork}/$sdkVersion' : sdkVersion;
     final targetVersion = FlutterVersion.parse(versionString);
     final newDir = getVersionCacheDir(targetVersion);
 

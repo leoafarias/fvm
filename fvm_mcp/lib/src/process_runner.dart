@@ -28,9 +28,22 @@ class ProcessRunner {
     return [exe, ...args]
         .map((part) {
           final escaped = part.replaceAll('"', r'\"');
+
           return escaped.contains(' ') ? '"$escaped"' : escaped;
         })
         .join(' ');
+  }
+
+  Future<void> _drainStream(
+    Stream<List<int>> stream,
+    StringBuffer buffer,
+  ) async {
+    try {
+      await stream.transform(utf8.decoder).forEach(buffer.write);
+    } on Object {
+      // Best-effort output collection should not fail the process result.
+      buffer.write('');
+    }
   }
 
   Future<CallToolResult> _runCore(
@@ -50,14 +63,8 @@ class ProcessRunner {
     final outBuf = StringBuffer();
     final errBuf = StringBuffer();
 
-    final outDone = proc.stdout
-        .transform(utf8.decoder)
-        .forEach(outBuf.write)
-        .catchError((_) {});
-    final errDone = proc.stderr
-        .transform(utf8.decoder)
-        .forEach(errBuf.write)
-        .catchError((_) {});
+    final outDone = _drainStream(proc.stdout, outBuf);
+    final errDone = _drainStream(proc.stderr, errBuf);
 
     if (meta?.progressToken != null && progressLabel != null) {
       _notify?.call(
@@ -85,11 +92,13 @@ class ProcessRunner {
     } finally {
       // Let stdio drain after exit/kill; don't cancel streams early.
       try {
-        final wait = Future.wait([outDone, errDone]);
         if (timedOut) {
-          await wait.timeout(const Duration(seconds: 2));
+          await Future.wait([
+            outDone,
+            errDone,
+          ]).timeout(const Duration(seconds: 2));
         } else {
-          await wait;
+          await Future.wait([outDone, errDone]);
         }
       } catch (_) {
         // Best-effort: if streams don't close, proceed with what we have.

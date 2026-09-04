@@ -75,10 +75,13 @@ void main() {
       });
 
       final url = 'http://${server.address.host}:${server.port}/';
-      final response = await httpRequest(url, headers: {
-        'Authorization': 'Bearer token',
-        'Accept': 'application/json',
-      });
+      final response = await httpRequest(
+        url,
+        headers: {
+          'Authorization': 'Bearer token',
+          'Accept': 'application/json',
+        },
+      );
 
       expect(response, equals('ok'));
 
