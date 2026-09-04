@@ -123,8 +123,8 @@ class ProcessService extends ContextualService {
       });
     }
 
-    late final Process process;
-    late final int processExitCode;
+    final Process process;
+    final int processExitCode;
     try {
       process = await Process.start(
         command,
@@ -148,12 +148,7 @@ class ProcessService extends ContextualService {
       throw ForceExit('', 128 + ProcessSignal.sigint.signalNumber);
     }
 
-    processResult = ProcessResult(
-      process.pid,
-      processExitCode,
-      null,
-      null,
-    );
+    processResult = ProcessResult(process.pid, processExitCode, null, null);
     if (throwOnError) {
       _throwIfProcessFailed(processResult, command, args);
     }
