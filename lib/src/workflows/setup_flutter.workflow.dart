@@ -19,8 +19,7 @@ class SetupFlutterWorkflow extends Workflow {
       if (result.exitCode != 0) {
         throw AppException(
           'Flutter SDK setup exited with code ${result.exitCode}. '
-          'Fix the error above (for example, install missing system tools), '
-          'then run "fvm install ${version.name}" again.',
+          'Fix the error above and try again.',
         );
       }
       logger
