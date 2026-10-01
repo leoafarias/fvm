@@ -37,6 +37,16 @@
       "sha256": "056884723df187adbfcd2ac8961395ea5a411d31447e9bcb1310871f70f507cb"
     },
     {
+      "hash": "38ec981bad973156ad05bdef0aa8e82d1a58905b",
+      "channel": "beta",
+      "version": "3.49.0-0.2.pre",
+      "dart_sdk_version": "3.14.0 (build 3.14.0-211.1.beta)",
+      "dart_sdk_arch": "x64",
+      "release_date": "2026-10-01T17:16:30.017266Z",
+      "archive": "beta/macos/flutter_macos_3.49.0-0.2.pre-beta.zip",
+      "sha256": "8ef3671c01e089b5763bfb719ddc33d295b08202b3dc4b4c9dfec7f0bdc76523"
+    },
+    {
       "hash": "e1dc10cc0416d4d879191a375b165ab2288b2888",
       "channel": "beta",
       "version": "3.49.0-0.1.pre",
