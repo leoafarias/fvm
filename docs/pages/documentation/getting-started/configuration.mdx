@@ -85,6 +85,7 @@ Set environment variables at the system level to apply configurations globally. 
 -  `FVM_USE_GIT_CACHE`: Enables/disables the git cache globally (`true`/`false`).
 -  `FVM_GIT_CACHE_PATH`: Sets the path for the local git reference cache.
 -  `FVM_FLUTTER_URL`: Defines the Flutter repository git URL.
+-  `FVM_FORWARD_SIGTERM`: Opts into POSIX PID-only cancellation when set to `true` (disabled by default). Set this per invocation only for runners that signal FVM's PID, not its process group. See [Cancelling commands](/documentation/guides/running-flutter#cancelling-commands).
 
 ### Legacy and Deprecated Variables:
 

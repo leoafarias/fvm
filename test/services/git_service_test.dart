@@ -26,7 +26,7 @@ class _FakeProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool? runInShell,
   }) async {
     lastCommand = command;
     lastArgs = args;
@@ -57,7 +57,7 @@ class _CountingProcessService extends ProcessService {
     Map<String, String>? environment,
     bool throwOnError = true,
     bool echoOutput = false,
-    bool runInShell = true,
+    bool? runInShell,
   }) {
     if (command == 'git' &&
         args.length == 2 &&

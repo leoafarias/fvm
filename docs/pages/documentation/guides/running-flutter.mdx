@@ -51,6 +51,40 @@ You can also call the SDK directly using the symlink:
 .fvm/flutter_sdk/bin/flutter run
 ```
 
+## Cancelling commands
+
+Terminal Ctrl+C waits for child cleanup before FVM exits with status `130`.
+By default, FVM does not forward `SIGTERM`: runners that own a separate process
+group can signal that group and wait for its processes to exit.
+
+For automation that sends `SIGTERM` **only to FVM's PID**, enable forwarding
+for that invocation on macOS or Linux:
+
+```bash
+FVM_FORWARD_SIGTERM=true fvm flutter test
+```
+
+With this option, FVM forwards `SIGTERM` to its direct child, waits for that
+child to exit, then exits with status `143`. This works with non-terminal stdin
+and system-PATH fallback when no project or global SDK is selected. Command
+input and output remain live with or without this option.
+
+Do not enable forwarding for a runner that sends graceful `SIGTERM` to the
+whole process group: the child can receive the signal twice, and tools that
+escalate repeated interrupts may skip cleanup. FVM cannot distinguish these
+two signal-delivery modes.
+
+When forwarding is enabled, POSIX commands launch directly so an intermediary
+shell cannot absorb cancellation. Shell builtins then need an explicit shell,
+for example `fvm exec sh -c 'echo hello'`, and a command that cannot be found
+on `PATH` fails with a "No such file or directory" error and exit status `2`
+rather than the shell's `127`. Default and Windows shell behavior are
+unchanged; the forwarding option has no effect on Windows.
+
+Forwarding does not supervise every descendant or detect the death of FVM's
+own parent. Children that ignore `SIGTERM` need the runner's timeout policy;
+`SIGKILL` cannot be forwarded or handled by FVM.
+
 ## Spawn Command
 
 Run commands with any installed Flutter version:
