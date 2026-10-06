@@ -63,18 +63,40 @@ fvm spawn 3.19.0 doctor
 
 If you wish to reroute `flutter` and `dart` calls to FVM, i.e., ensure that running `flutter` on the terminal internally runs `fvm flutter`, then you could run the below commands.
 
+These wrappers need a POSIX shebang and `"$@"`. A one-line `fvm dart ${@:1}` file has no shebang, so Ubuntu runs it with dash, and global packages such as `melos` fail with `Bad substitution`.
+
 **On Mac**
 
 ```bash
-sudo echo 'fvm flutter ${@:1}' > "/usr/local/bin/flutter" && sudo chmod +x /usr/local/bin/flutter
-sudo echo 'fvm dart ${@:1}' > "/usr/local/bin/dart" && sudo chmod +x /usr/local/bin/dart
+sudo tee /usr/local/bin/flutter > /dev/null << 'EOF'
+#!/bin/sh
+exec fvm flutter "$@"
+EOF
+sudo chmod +x /usr/local/bin/flutter
+
+sudo tee /usr/local/bin/dart > /dev/null << 'EOF'
+#!/bin/sh
+exec fvm dart "$@"
+EOF
+sudo chmod +x /usr/local/bin/dart
 ```
 
 **On Linux**
 
 ```bash
-echo 'fvm flutter ${@:1}' > "$HOME/.local/bin/flutter" && chmod +x "$HOME/.local/bin/flutter"
-echo 'fvm dart ${@:1}' > "$HOME/.local/bin/dart" && chmod +x "$HOME/.local/bin/dart"
+mkdir -p "$HOME/.local/bin"
+
+cat > "$HOME/.local/bin/flutter" << 'EOF'
+#!/bin/sh
+exec fvm flutter "$@"
+EOF
+chmod +x "$HOME/.local/bin/flutter"
+
+cat > "$HOME/.local/bin/dart" << 'EOF'
+#!/bin/sh
+exec fvm dart "$@"
+EOF
+chmod +x "$HOME/.local/bin/dart"
 ```
 
 If you've installed flutter/dart using native package managers, the binaries might conflict with these new shortcuts, so consider deleting the existing ones and taking a backup for easier restoration.
