@@ -1,10 +1,17 @@
 # FVM Scripts
 
-This directory contains testing and utility scripts for FVM.
+This directory contains installation and testing scripts for FVM.
 
-## Installation Scripts
+## Scripts
 
-The main installation scripts (`install.sh` and `uninstall.sh`) are located in `docs/public/` and served at https://fvm.app/install.sh.
+### install.sh
+The main FVM installation script for Linux/macOS that:
+- Detects OS and architecture
+- Downloads the appropriate FVM binary
+- Creates a system-wide symlink
+- Configures shell PATH
+- Supports container environments (Docker, Podman, CI)
+- **Now includes uninstall functionality via `--uninstall` flag**
 
 Usage:
 ```bash
@@ -15,15 +22,19 @@ curl -fsSL https://fvm.app/install.sh | bash
 curl -fsSL https://fvm.app/install.sh | bash -s 3.2.1
 
 # Uninstall FVM
-./docs/public/install.sh --uninstall
-```
+./install.sh --uninstall
 
-## Scripts in This Directory
+# Container/CI support
+export FVM_ALLOW_ROOT=true
+./install.sh
+```
 
 ### test-install.sh
 Test script for the installation logic:
-- Tests root warning behavior
-- Validates security (warns root in regular environments)
+- Tests container detection (Docker, Podman)
+- Tests CI environment detection
+- Tests manual override (FVM_ALLOW_ROOT)
+- Validates security (blocks root in regular environments)
 
 Usage:
 ```bash
@@ -33,9 +44,6 @@ Usage:
 # Test all scenarios (requires root)
 sudo ./scripts/test-install.sh
 ```
-
-### install.ps1
-PowerShell installation script for Windows.
 
 ### install.md
 Documentation for the installation process.
