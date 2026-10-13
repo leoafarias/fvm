@@ -3,6 +3,9 @@ name: Deploy Windows
 on:  
     workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   deploy-windows:
     name: Deploy (Windows)

@@ -44,12 +44,17 @@ brew tap btwld/fvm
 brew install btwld/fvm/fvm
 ```
 
-If you previously used the `leoafarias/fvm` tap, update its remote:
+If you previously used the `leoafarias/fvm` tap, migrate your installation:
 
 ```bash
-brew tap --repair
-brew update
+brew tap btwld/fvm
+brew uninstall fvm
+brew untap leoafarias/fvm
+brew install btwld/fvm/fvm
 ```
+
+Your cached Flutter SDKs and project configuration are retained. For a versioned
+formula, use its name (for example, `fvm@4.3.1`) in the uninstall and install commands.
 
 Uninstall:
 

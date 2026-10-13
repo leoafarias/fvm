@@ -3,6 +3,9 @@ name: Deploy Macos
 on:
     workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   deploy-macos:
     name: Deploy (Macos)

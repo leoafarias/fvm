@@ -413,7 +413,7 @@
 
 ## 1.2.2 - 2020-08-19
 
-* Updated process\_run dependency [(Issue #113)](https://github.com/fluttertools/fvm/pull/113).
+* Updated process\_run dependency [(Issue #113)](https://github.com/btwld/fvm/pull/113).
 
 ## 1.2.0 - 2020-08-16
 
