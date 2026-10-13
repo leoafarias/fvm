@@ -11,6 +11,9 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   RELEASE_DART_SDK: "3.9.0" # Release tool requires Dart >=3.8; pinned for reproducibility
 
+permissions:
+  contents: write
+
 jobs:
 
   test:

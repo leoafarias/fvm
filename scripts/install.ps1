@@ -54,7 +54,7 @@ try {
     Write-ErrorLine "curl is required but not installed."
 }
 
-$github_repo = "fluttertools/fvm"
+$github_repo = "btwld/fvm"
 
 # Get FVM version
 if ($args.Count -eq 0) {
@@ -70,7 +70,7 @@ if ($args.Count -eq 0) {
 Write-Info "Installing FVM Version: $FVM_VERSION"
 
 # Download FVM
-$URL = "https://github.com/fluttertools/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-x64.zip"
+$URL = "https://github.com/btwld/fvm/releases/download/$FVM_VERSION/fvm-$FVM_VERSION-$OS-x64.zip"
 Write-Host "Downloading from $URL"
 try {
     Invoke-WebRequest -Uri $URL -OutFile "fvm.tar.gz"
