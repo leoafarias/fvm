@@ -1,6 +1,6 @@
 class Fvm < Formula
   desc "Flutter Version Management: A CLI to manage Flutter SDK versions"
-  homepage "https://github.com/leoafarias/fvm"
+  homepage "https://github.com/btwld/fvm"
   version "{{VERSION}}"
 
   on_macos do

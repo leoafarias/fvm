@@ -90,7 +90,7 @@
 3. **Automatic Deployment**
    - `release.yml` triggers automatically on tag push
    - cli_pkg creates GitHub release from CHANGELOG content
-   - Monitor progress in [Actions](https://github.com/leoafarias/fvm/actions)
+   - Monitor progress in [Actions](https://github.com/btwld/fvm/actions)
    - All platforms deployed simultaneously
 
 ### 🧩 FVM MCP Release (Standalone)

@@ -27,7 +27,7 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <!-- Is the version a prerelease of a version? https://docs.nuget.org/create/versioning#creating-prerelease-packages -->
     <!-- Note that unstable versions like 0.0.1 can be considered a released version, but it's possible that one can release a 0.0.1-beta before you release a 0.0.1 version. If the version number is final, that is considered a released version and not a prerelease. -->
     <!-- <version>AUTOMATICALLY_ADDED</version> -->
-    <packageSourceUrl>https://github.com/leoafarias/fvm</packageSourceUrl>
+    <packageSourceUrl>https://github.com/btwld/fvm</packageSourceUrl>
     <!-- owners is a poor name for maintainers of the package. It sticks around by this name for compatibility reasons. It basically means you. -->
     <owners>leochocolatey</owners>
     <!-- ============================== -->
@@ -37,21 +37,21 @@ This is a nuspec. It mostly adheres to https://docs.nuget.org/create/Nuspec-Refe
     <title>Flutter Version Management (FVM)</title>
     <authors>leochocolatey</authors>
     <!-- projectUrl is required for the community feed -->
-    <projectUrl>https://github.com/leoafarias/fvm</projectUrl>
+    <projectUrl>https://github.com/btwld/fvm</projectUrl>
     
     <!-- <copyright>Year Software Vendor</copyright> -->
     <!-- If there is a license Url available, it is required for the community feed -->
-    <licenseUrl>https://github.com/leoafarias/fvm/blob/master/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/btwld/fvm/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <!--<projectSourceUrl>Software Source Location - is the software FOSS somewhere? Link to it with this</projectSourceUrl>-->
     <docsUrl>https://fvm.app</docsUrl>
-    <!-- <iconUrl>http://cdn.rawgit.com/leoafarias/fvm/master/docs/fvm-logo.png</iconUrl> -->
+    <!-- <iconUrl>http://cdn.rawgit.com/btwld/fvm/master/docs/fvm-logo.png</iconUrl> -->
     <!--<mailingListUrl></mailingListUrl>-->
     <!--<bugTrackerUrl></bugTrackerUrl>-->
     <tags>fvm flutter versions sdk</tags>
     <summary>Flutter Version Management: A simple CLI to manage Flutter SDK versions per project</summary>
     <description>Flutter Version Management (FVM) helps teams maintain consistent app builds by referencing the desired Flutter SDK version on a per-project basis. It also lets you install multiple Flutter versions to validate upcoming releases quickly, without waiting on a fresh Flutter installation each time. </description>
-    <releaseNotes>https://github.com/leoafarias/fvm/blob/master/CHANGELOG.md</releaseNotes>
+    <releaseNotes>https://github.com/btwld/fvm/blob/main/CHANGELOG.md</releaseNotes>
     <!-- =============================== -->      
 
     <!-- Specifying dependencies and version ranges? https://docs.nuget.org/create/versioning#specifying-version-ranges-in-.nuspec-files -->
