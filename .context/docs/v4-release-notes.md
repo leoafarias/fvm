@@ -66,7 +66,7 @@ First-class monorepo support with automatic `sdkPath` management in `melos.yaml`
 ### macOS/Linux
 ```bash
 # Homebrew (recommended)
-brew tap leoafarias/fvm
+brew tap btwld/fvm
 brew install fvm
 
 # Dart pub
@@ -124,8 +124,8 @@ This release was made possible by contributions from the Flutter community. Spec
 
 ## 🐛 Bug Reports
 
-Found an issue? Please report it on our [issue tracker](https://github.com/leoafarias/fvm/issues).
+Found an issue? Please report it on our [issue tracker](https://github.com/btwld/fvm/issues).
 
 ---
 
-**Full Changelog**: https://github.com/leoafarias/fvm/compare/3.2.1...4.0.0
+**Full Changelog**: https://github.com/btwld/fvm/compare/3.2.1...4.0.0
