@@ -1,6 +1,7 @@
 ## 4.3.2
 
-* fix: preserve live command input/output, exit status, and Ctrl+C cleanup when falling back to the system PATH without a project or global SDK selection
+* fix: preserve live command input/output, exit status, and Ctrl+C cleanup when falling back to the system PATH without a project or global SDK selection (#1080)
+* chore: migrate FVM repository, release metadata fallback, and installer references to `btwld/fvm` (#1078)
 
 ## 4.3.1
 
