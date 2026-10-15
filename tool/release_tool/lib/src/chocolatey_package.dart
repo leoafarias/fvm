@@ -26,7 +26,6 @@ final class ChocolateyPackageFiles {
 ChocolateyPackageFiles stageChocolateyPackage({
   required Directory repoRoot,
   required String version,
-  Directory? outputDirectory,
 }) {
   final archiveFile = File(
     p.join(repoRoot.path, 'build', 'fvm-$version-windows-x64.zip'),
@@ -57,9 +56,7 @@ ChocolateyPackageFiles stageChocolateyPackage({
   final executableBytes = _requiredFileBytes(archive, _executableArchivePath);
   final licenseBytes = _requiredFileBytes(archive, _licenseArchivePath);
 
-  final output =
-      outputDirectory ??
-      Directory(p.join(repoRoot.path, 'build', 'chocolatey'));
+  final output = Directory(p.join(repoRoot.path, 'build', 'chocolatey'));
   if (output.existsSync()) {
     output.deleteSync(recursive: true);
   }
